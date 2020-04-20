@@ -107,7 +107,12 @@ public:
 
         mpCouplingMP = rModelPartOrigin.pGetSubModelPart("coupling");
         mpCouplingQuadraturePointsMP = rModelPartOrigin.pGetSubModelPart("coupling_quadrature_points");
-            
+
+        for (auto condition_itr = mpCouplingMP->ConditionsBegin();
+            condition_itr != mpCouplingMP->ConditionsEnd();
+            ++condition_itr)
+            condition_itr->GetGeometry().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
+
         this->InitializeInterface();
     }
 

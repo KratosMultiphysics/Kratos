@@ -202,14 +202,25 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
     const std::size_t num_elements = rModelPartCommunicator.LocalMesh().NumberOfConditions(); 
     const auto elems_ptr_begin = rModelPartCommunicator.LocalMesh().Conditions().ptr_begin();
 
-    if (rLocalSystems.size() != num_elements) rLocalSystems.resize(num_elements);
+    // set to 2x the number of systems. First block is projected systems, second block is slave systems
+    if (rLocalSystems.size() != 2*num_elements) rLocalSystems.resize(2*num_elements);
 
-    // TODO re-enable
-    //#pragma omp parallel for
+    // Compose projected systems
+    #pragma omp parallel for
     for (int i = 0; i< static_cast<int>(num_elements); ++i) {
         auto it_elem = elems_ptr_begin + i;
         Geometry<Node<3>>* p_geom(&((*it_elem)->GetGeometry()));
-        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom); // TODO find a way to include a boolean switch here
+        p_geom->SetValue(IS_PROJECTED_LOCAL_SYSTEM, true);
+        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
+    }
+
+    // Compose consistent slave systems
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(num_elements); ++i) {
+        auto it_elem = elems_ptr_begin + i;
+        Geometry<Node<3>>* p_geom(&((*it_elem)->GetGeometry()));
+        p_geom->SetValue(IS_PROJECTED_LOCAL_SYSTEM, false);
+        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
     }
 
     int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI

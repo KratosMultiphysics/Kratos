@@ -31,56 +31,68 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
-    std::cout << mpGeom << std::endl;
-    const auto& r_geometry_origin = mpGeom->GetGeometryPart(0);
-    // TODO change between projected and master consistent mass matrix switch here/*
-    /*const auto& r_geometry_origin = (mIsProjectorMappingMatrix)
-        ? mpGeom->GetGeometryPart(1)
-        : mpGeom->GetGeometryPart(0);*/
-    
-    const auto& r_geometry_destination = mpGeom->GetGeometryPart(1);
+    const auto& r_geometry_master = (mpGeom->GetValue(IS_PROJECTED_LOCAL_SYSTEM))
+        ? mpGeom->GetGeometryPart(0) // set to master  - get projected 'mass' matrix
+        : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
+    const auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
 
-    const std::size_t number_of_nodes_origin = r_geometry_origin.size();
-    const std::size_t number_of_nodes_destination = r_geometry_destination.size();
+    const bool is_dual_mortar = (mpGeom->GetValue(IS_PROJECTED_LOCAL_SYSTEM) &&
+        mpGeom->GetValue(IS_DUAL_MORTAR))
+        ? true
+        : false;
 
-    const std::size_t mat_size = (number_of_nodes_origin + number_of_nodes_destination);
+    const std::size_t number_of_nodes_master = r_geometry_master.size();
+    const std::size_t number_of_nodes_slave = r_geometry_slave.size();
 
     rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
 
-    if (rLocalMappingMatrix.size1() != mat_size || rLocalMappingMatrix.size2() != mat_size) {
-        rLocalMappingMatrix.resize(mat_size, mat_size, false);
+    if (rLocalMappingMatrix.size1() != number_of_nodes_slave || rLocalMappingMatrix.size2() != number_of_nodes_master) {
+        rLocalMappingMatrix.resize(number_of_nodes_slave, number_of_nodes_master, false);
     }
-    if (rOriginIds.size()      != number_of_nodes_origin) rOriginIds.resize(number_of_nodes_origin);
-    if (rDestinationIds.size() != number_of_nodes_destination) rDestinationIds.resize(number_of_nodes_destination);
+    if (rOriginIds.size()      != number_of_nodes_master) rOriginIds.resize(number_of_nodes_master);
+    if (rDestinationIds.size() != number_of_nodes_slave) rDestinationIds.resize(number_of_nodes_slave);
 
-    auto sf_values_origin = r_geometry_origin.ShapeFunctionsValues();
-    auto integration_point_values_origin = r_geometry_origin.IntegrationPoints();
+    auto sf_values_master = r_geometry_master.ShapeFunctionsValues();
+    auto sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
+    auto integration_point_values_slave = r_geometry_slave.IntegrationPoints();
     Vector det_jacobian;
-    auto determinant_of_jacobian_values_origin = r_geometry_origin.DeterminantOfJacobian(det_jacobian);
+    r_geometry_slave.DeterminantOfJacobian(det_jacobian);
+    KRATOS_ERROR_IF(det_jacobian.size() != 1)
+        << "Coupling Geometry Mapper should only have 1 integration point coupling per local system"
+        << std::endl;
 
-    auto sf_values_destination = r_geometry_destination.ShapeFunctionsValues();
-    //auto integration_point_values_destination = r_geometry_destination.IntegrationPoints();
-    //auto determinant_of_jacobian_values_destination = r_geometry_destination.DeterminantOfJacobian();
+    if (is_dual_mortar) {
+        for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) { // This loop is probably redundant - it will always just be 1
+            for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
+                rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
+                    * det_jacobian[integration_point_itr];
+                KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0) 
+                    << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+            }
+        }
+    }
+    else {
+        for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) { // This loop is probably redundant - it will always just be 1
+            for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
+                for (IndexType j = 0; j < sf_values_master.size2(); ++j) {
+                    rLocalMappingMatrix(i, j) = sf_values_slave(integration_point_itr, i)
+                        * sf_values_master(integration_point_itr, j)
+                        * det_jacobian[integration_point_itr];
 
-    for (IndexType integration_point_itr=0; integration_point_itr<sf_values_origin.size1(); ++integration_point_itr){
-        for (IndexType i=0; i<sf_values_origin.size2(); ++i) {
-            for (IndexType j=0; j<sf_values_destination.size2(); ++j) {
-                rLocalMappingMatrix(i,j) = sf_values_origin( integration_point_itr, i )
-                 * sf_values_destination( integration_point_itr, j )
-                 * integration_point_values_origin[integration_point_itr].Weight()
-                 * determinant_of_jacobian_values_origin[i];
-
-                KRATOS_DEBUG_ERROR_IF(sf_values_origin(integration_point_itr, i) < 0.0) << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
-                KRATOS_DEBUG_ERROR_IF(sf_values_destination(integration_point_itr, j) < 0.0) << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0) 
+                        << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, j) < 0.0) 
+                        << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                }
             }
         }
     }
 
-    for (IndexType i=0; i<sf_values_origin.size2(); ++i) {
-        rOriginIds[i] = r_geometry_origin[i].GetValue(INTERFACE_EQUATION_ID);
+    for (IndexType i=0; i< sf_values_master.size2(); ++i) {
+        rOriginIds[i] = r_geometry_master[i].GetValue(INTERFACE_EQUATION_ID);
     }
-    for (IndexType i=0; i<sf_values_destination.size2(); ++i) {
-        rDestinationIds[0] = r_geometry_origin[i].GetValue(INTERFACE_EQUATION_ID);
+    for (IndexType i=0; i< sf_values_slave.size2(); ++i) {
+        rDestinationIds[0] = r_geometry_master[i].GetValue(INTERFACE_EQUATION_ID);
     }
 }
 
@@ -110,20 +122,42 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // @tteschemachen here kann man theoretisch auch das Origin-MP nehmen
     // kommt drauf an, wo die Coupling-Geometries sind
     
-    // projector mass matrix
+    // compose local element mappings
     CreateMapperLocalSystems(mpCouplingMP->GetCommunicator(),
                              mMapperLocalSystems);
 
-    // change to slave mass matrix
-    CreateMapperLocalSystems(mpCouplingMP->GetCommunicator(),
-                            mMapperLocalSystems);
+    // assemble projector interface mass matrix - interface_matrix_projector
+    const std::size_t num_nodes_interface_slave = mrModelPartDestination.GetSubModelPart("interface").NumberOfNodes(); // fix up and put in the mapper parameters
+    const std::size_t num_nodes_interface_master = mrModelPartOrigin.GetSubModelPart("interface").NumberOfNodes();
+    Matrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
+    for (size_t local_projector_system = 0; 
+        local_projector_system < mMapperLocalSystems.size()/2; local_projector_system++)
+    {
+        // assemble from mMapperLocalSystems(local_projector_system) to interface_matrix_projector
+    }
 
-    // invert projector interface matrix and assemble total interface mapping matrix
+    // assemble slave interface mass matrix - interface_matrix_slave
+    Matrix interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
+    for (size_t local_projector_system = mMapperLocalSystems.size() / 2; 
+        local_projector_system < mMapperLocalSystems.size(); local_projector_system++)
+    {
+        // assemble from mMapperLocalSystems(local_projector_system) to interface_matrix_slave
+    }
+
+    // get total interface mapping matrix
+    Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave);
+    double aux_det_slave = 0;
+    MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
+    Matrix interface_mapper = prod(interface_matrix_slave, interface_matrix_projector);
+
+    
 
 
     // assemble to global
+    // directly assemble from interface_mapper to global mapping matrix.
+    //BuildMappingMatrix(MappingOptions); // TODO we probably may not need this
 
-    BuildMappingMatrix(MappingOptions); // TODO we probably may not need this
+
 }
 
 /* Performs operations that are needed for Initialization and when the interface is updated (All cases)
@@ -135,9 +169,6 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Krato
     AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
     const int echo_level = mMapperSettings["echo_level"].GetInt();
-
-    // TODO at this point the local mapper systems  are distinct. we need to re-combine them into the combined
-    // local mapping matrix, perform the inversion and then assemble this into the global system
 
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrix,
