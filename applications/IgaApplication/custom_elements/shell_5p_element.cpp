@@ -676,53 +676,53 @@ namespace Kratos
 
 
 
-	void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) //update before next iteration
-	{
-		for (int i=1 ; i< GetGeometry().size(); i++)  //update for each node after every solution step
-		{ 
+	//void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) //update before next iteration
+	//{
+	//	for (int i=1 ; i< GetGeometry().size(); i++)  //update for each node after every solution step
+	//	{ 
 
-			array_1d<double, 3> director = GetGeometry()[i].GetValue(DIRECTOR);
-			array_1d<double, 2> inc2d = GetGeometry()[i].GetValue(DIRECTORINC);
-			Matrix BLA(3, 2);
-			BLA= GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
+	//		array_1d<double, 3> director = GetGeometry()[i].GetValue(DIRECTOR);
+	//		array_1d<double, 2> inc2d = GetGeometry()[i].GetValue(DIRECTORINC);
+	//		Matrix BLA(3, 2);
+	//		BLA= GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
 
-			array_1d<double, 3> inc3d = prod(BLA,inc2d);
+	//		array_1d<double, 3> inc3d = prod(BLA,inc2d);
 
-			//projection-based update
-			director = director+inc3d;
-			director = director / sqrt(inner_prod(director, director));
+	//		//projection-based update
+	//		director = director+inc3d;
+	//		director = director / sqrt(inner_prod(director, director));
 
-			GetGeometry()[i].SetValue(DIRECTOR, director);
+	//		GetGeometry()[i].SetValue(DIRECTOR, director);
 
-			//TODO: update tangentspace
-		}
-		
-	}
-
-
+	//		//TODO: update tangentspace
+	//	}
+	//	
+	//}
 
 
-	void Shell5pElement::constructReferenceDirectorL2FitSystem(MatrixType& rLeftHandSideMatrix, MatrixType& rRightHandSideMatrix) 
-	{
-		    //size of rLeftHandSideMatrix(num_node, num_node);
-		    //size of rRightHandSideMatrix(num_node, 3);
 
-			const auto& r_geometry = GetGeometry();
-			const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
-			const SizeType r_number_of_nodes = r_geometry.size();
 
-			array_1d<double, 3 > A3;
+	//void Shell5pElement::constructReferenceDirectorL2FitSystem(MatrixType& rLeftHandSideMatrix, MatrixType& rRightHandSideMatrix) 
+	//{
+	//	    //size of rLeftHandSideMatrix(num_node, num_node);
+	//	    //size of rRightHandSideMatrix(num_node, 3);
 
-			for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
-			{
-				A3 = GetGeometry().Normal(point_number); //this makes only sense if the geometry is undeformed
-				A3 = A3 / sqrt(inner_prod(A3, A3));
-				//Vector m_Nvec = trans(row(m_N, point_number));
-					rRightHandSideMatrix = rRightHandSideMatrix + outer_prod(trans(row(m_N, point_number)),  trans(A3)     ) ;
+	//		const auto& r_geometry = GetGeometry();
+	//		const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+	//		const SizeType r_number_of_nodes = r_geometry.size();
 
-				rLeftHandSideMatrix = rLeftHandSideMatrix + outer_prod(row(m_N,point_number), row(m_N, point_number));
-			}
-	}
+	//		array_1d<double, 3 > A3;
+
+	//		for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
+	//		{
+	//			A3 = GetGeometry().Normal(point_number); //this makes only sense if the geometry is undeformed
+	//			A3 = A3 / sqrt(inner_prod(A3, A3));
+	//			//Vector m_Nvec = trans(row(m_N, point_number));
+	//				rRightHandSideMatrix = rRightHandSideMatrix + outer_prod(trans(row(m_N, point_number)),  trans(A3)     ) ;
+
+	//			rLeftHandSideMatrix = rLeftHandSideMatrix + outer_prod(row(m_N,point_number), row(m_N, point_number));
+	//		}
+	//}
 	///@}
 
 } // Namespace Kratos
