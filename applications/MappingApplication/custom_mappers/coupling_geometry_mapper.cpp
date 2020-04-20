@@ -232,16 +232,20 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     const double scalingLimit)
 {
     // Performs scaling of projected mapping entries as per eqn25 Wang2016
-    double row_sum_slave = 0.0;
-    double row_sum_projector = 0.0;
+    double row_sum_slave;
+    double row_sum_projector;
 
     for (IndexType i = 0; i < rInterfaceMatrixSlave.size1(); ++i) {
+        row_sum_slave = 0.0;
+        row_sum_projector = 0.0;
+
         for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j) {
             row_sum_slave += rInterfaceMatrixSlave(i, j);
             row_sum_projector += rInterfaceMatrixProjected(i, j);
         }
+
         const double alpha = (row_sum_slave / row_sum_projector < scalingLimit)
-            ? alpha
+            ? row_sum_slave / row_sum_projector
             : scalingLimit;
         for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j) 
                 rInterfaceMatrixProjected(i, j) *= alpha;
