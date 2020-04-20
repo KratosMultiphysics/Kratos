@@ -310,7 +310,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
     {
         return mpIsotropicCL->RequiresFinalizeMaterialResponse();
     }
-    
+
+    void CalculateOrthotropicElasticMatrix(
+        Matrix &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
     ///@}
     ///@name Access
     ///@{

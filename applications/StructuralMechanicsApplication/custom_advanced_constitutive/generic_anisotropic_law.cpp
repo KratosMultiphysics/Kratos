@@ -57,85 +57,7 @@ void GenericAnisotropicLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::
 
 void GenericAnisotropicLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // // Some auxiliar values
-    // const SizeType dimension = WorkingSpaceDimension();
-    // const SizeType voigt_size = GetStrainSize();
 
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-
-    // // Previous flags saved
-    // const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-    // const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-    // const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
-
-    // const Properties& r_material_properties  = rValues.GetMaterialProperties();
-
-    // // The deformation gradient
-    // if (rValues.IsSetDeterminantF()) {
-    //     const double determinant_f = rValues.GetDeterminantF();
-    //     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
-    // }
-    // // In case the element has not computed the Strain
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     Vector& r_strain_vector = rValues.GetStrainVector();
-
-    //     Matrix F_deformation_gradient(dimension, dimension);
-    //     this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
-    //     const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
-    //     // Doing resize in case is needed
-    //     if (r_strain_vector.size() != voigt_size)
-    //         r_strain_vector.resize(voigt_size);
-
-    //      // Identity matrix
-    //     Matrix identity_matrix(dimension, dimension);
-    //     for (IndexType i = 0; i < dimension; ++i) {
-    //         for (IndexType j = 0; j < dimension; ++j) {
-    //             if (i == j) identity_matrix(i, j) = 1.0;
-    //             else identity_matrix(i, j) = 0.0;
-    //         }
-    //     }
-
-    //     // Calculating the inverse of the left Cauchy tensor
-    //     Matrix inverse_B_tensor(dimension, dimension);
-    //     double aux_det_b = 0;
-    //     MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
-
-    //     // Calculate E matrix
-    //     const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
-    //     // Almansi Strain Calculation
-    //     r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
-    // }
-
-    // if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-    //     // Set new flags
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-    //     // Total strain vector
-    //     Vector& r_strain_vector = rValues.GetStrainVector();
-    //     Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
-    //     Vector fiber_stress_vector, matrix_stress_vector;
-    //     this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
-    //                                                 fiber_stress_vector,
-    //                                                 matrix_stress_vector,
-    //                                                 r_material_properties,
-    //                                                 rValues,
-    //                                                 serial_strain_matrix_old);
-    //     Vector& r_integrated_stress_vector = rValues.GetStressVector();
-    //     noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector 
-    //                                  + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
-
-    //     // Previous flags restored
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-
-    //     if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-    //         this->CalculateTangentTensor(rValues);
-    //     }
-    // }
 
 } // End CalculateMaterialResponseCauchy
 
@@ -169,6 +91,40 @@ void GenericAnisotropicLaw::CalculateElasticMatrix(
     rElasticityTensor(3, 3) = mu;
     rElasticityTensor(4, 4) = mu;
     rElasticityTensor(5, 5) = mu;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GenericAnisotropicLaw::CalculateOrthotropicElasticMatrix( // TODO generalize for 2D
+    Matrix& rElasticityTensor,
+    const Properties& rMaterialProperties)
+{
+	const double E1  = rMaterialProperties[YOUNG_MODULUS_X];
+	const double E2  = rMaterialProperties[YOUNG_MODULUS_Y];
+	const double E3  = rMaterialProperties[YOUNG_MODULUS_Z];
+	const double v12 = rMaterialProperties[POISSON_RATIO_XY];
+	const double v23 = rMaterialProperties[POISSON_RATIO_YZ];
+	const double v13 = rMaterialProperties[POISSON_RATIO_XZ];
+    const double P1  = 1.0 / (E2 * E2 * v12 * v12 + 2.0 * E3 * E2 * v12 * v13 * v23 + E3 * E2 * v13 * v13 - E1 * E2 + E1 * E3 * v23 * v23);
+    const double P2  = E1 * E1;
+    const double P3  = E2 * E2;
+    const double P4  = E1 * v23 + E2 * v12 * v13;
+    const double P5  = E2 * v12 + E3 * v13 * v23;
+    const double P6  = E3 * E3;
+
+    rElasticityTensor(0, 0) = -P1 * P2 * (-E3 * v23 * v23 + E2);
+    rElasticityTensor(0, 1) = -E1 * E2 * P1 * P5;
+    rElasticityTensor(0, 2) = -E2 * E3 * P1 * (E1 * v13 + E1 * v12 * v23);
+    rElasticityTensor(1, 0) = -E1 * E2 * P1 * P5;
+    rElasticityTensor(1, 1) = -P1 * P3 * (-E3 * v13 * v13 + E1);
+    rElasticityTensor(1, 2) = -E2 * E3 * P1 * P4;
+    rElasticityTensor(2, 0) = -E1 * E2 * E3 * P1 * (v13 + v12 * v23);
+    rElasticityTensor(2, 1) = -E2 * E3 * P1 * P4;
+    rElasticityTensor(2, 2) = -E2*E3*P1*(- E2*v12*v12 + E1);
+    rElasticityTensor(3, 3) = (E2 * P2) / (P2 + v12 * (P2 + P3) + E1 * E2) / 2.0;
+    rElasticityTensor(4, 4) = (E3 * P3) / (P3 + v23 * (P3 + P6) + E2 * E3) / 2.0;
+    rElasticityTensor(5, 5) = (E3 * P2) / (P2 + v13 * (P2 + P6) + E1 * E3) / 2.0;
 }
 
 /***********************************************************************************/
@@ -409,20 +365,20 @@ void GenericAnisotropicLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 
 void GenericAnisotropicLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    // const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
-    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+    // const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
+    // const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
 
-    if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
-        KRATOS_ERROR << "Analytic solution not available" << std::endl;
-    } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
-        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
-    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
-        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
-    }
+    // if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
+    //     KRATOS_ERROR << "Analytic solution not available" << std::endl;
+    // } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+    //     // Calculates the Tangent Constitutive Tensor by perturbation (first order)
+    //     TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
+    // } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
+    //     // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+    //     TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+    // }
 }
 /***********************************************************************************/
 /***********************************************************************************/
