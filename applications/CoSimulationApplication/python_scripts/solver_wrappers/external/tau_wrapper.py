@@ -19,6 +19,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
     """
     def __init__(self, settings, solver_name):
         super(TAUWrapper, self).__init__(settings, solver_name)
+        print("Hellow world wrapper")
 
         wrapper_settings = self.settings["solver_wrapper_settings"]
 

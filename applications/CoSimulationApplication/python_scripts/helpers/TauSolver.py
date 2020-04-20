@@ -5,17 +5,21 @@ import CoSimIO
 import PyPara, PyPrep, PySolv, PyDataSet
 from tau_python import tau_plt_init_tecplot_params
 # TODO Find a better way of indicating this script's path
-this_scripts_path = "/home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/python_scripts/helpers"
+this_scripts_path = "/work/piquee/Softwares/Kratos/applications/CoSimulationApplication/python_scripts/helpers"
 sys.path.append(this_scripts_path)
 from tau_functions import findInterfaceFileName
 from tau_functions import findInterfaceFileNumberOfLines
+
+print " Hello Test"
+
+print "Hello world test"
 
 ##### Set up and initialize TAU #####
 # Definition of the parameter file
 para_path='airfoil_Structured.cntl'
 para_path_mod = para_path + ".mod"
 shutil.copy(para_path, para_path_mod)
-working_path = "/media/inigo/10740FB2740F9A1C/simulations/MembraneWing/run_tau_from_kratos"
+working_path = "/work/piquee/MembraneWing/run_tau_from_kratos"
 interface_file_path_pattern =  working_path + "/Outputs/*.plt"
 
 # Initialize Tau python classes
