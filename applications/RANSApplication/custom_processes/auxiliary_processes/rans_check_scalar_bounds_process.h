@@ -87,6 +87,8 @@ public:
 
     void Execute() override;
 
+    void ExecuteFinalizeSolutionStep() override;
+
     ///@}
     ///@name Access
     ///@{

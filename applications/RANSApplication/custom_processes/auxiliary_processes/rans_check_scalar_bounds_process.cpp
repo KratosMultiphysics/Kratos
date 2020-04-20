@@ -87,6 +87,11 @@ void RansCheckScalarBoundsProcess::Execute()
     KRATOS_CATCH("");
 }
 
+void RansCheckScalarBoundsProcess::ExecuteFinalizeSolutionStep()
+{
+    Execute();
+}
+
 std::string RansCheckScalarBoundsProcess::Info() const
 {
     return std::string("RansCheckScalarBoundsProcess");
