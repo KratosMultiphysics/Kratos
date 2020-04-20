@@ -26,12 +26,12 @@
 #include "rans_application_variables.h"
 
 // Include base h
-#include "rans_nut_k_epsilon_high_re_calculation_process.h"
+#include "rans_nut_k_epsilon_high_re_update_process.h"
 
 namespace Kratos
 {
-RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+RansNutKEpsilonHighReUpdateProcess::RansNutKEpsilonHighReUpdateProcess(Model& rModel, Parameters rParameters)
+    : mrModel(rModel)
 {
     KRATOS_TRY
 
@@ -43,17 +43,27 @@ RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess
             "min_value"       : 1e-15
         })");
 
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
+    rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mEchoLevel = mrParameters["echo_level"].GetInt();
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mCmu = mrParameters["c_mu"].GetDouble();
-    mMinValue = mrParameters["min_value"].GetDouble();
+    mEchoLevel = rParameters["echo_level"].GetInt();
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mCmu = rParameters["c_mu"].GetDouble();
+    mMinValue = rParameters["min_value"].GetDouble();
 
     KRATOS_CATCH("");
 }
 
-int RansNutKEpsilonHighReCalculationProcess::Check()
+RansNutKEpsilonHighReUpdateProcess::RansNutKEpsilonHighReUpdateProcess(
+    Model& rModel, const std::string& rModelPartName, const double Cmu, const double MinValue, const int EchoLevel)
+    : mrModel(rModel),
+      mModelPartName(rModelPartName),
+      mCmu(Cmu),
+      mMinValue(MinValue),
+      mEchoLevel(EchoLevel)
+{
+}
+
+int RansNutKEpsilonHighReUpdateProcess::Check()
 {
     KRATOS_TRY
 
@@ -71,7 +81,7 @@ int RansNutKEpsilonHighReCalculationProcess::Check()
     KRATOS_CATCH("");
 }
 
-void RansNutKEpsilonHighReCalculationProcess::Execute()
+void RansNutKEpsilonHighReUpdateProcess::Execute()
 {
     KRATOS_TRY
 
@@ -87,35 +97,39 @@ void RansNutKEpsilonHighReCalculationProcess::Execute()
         const double epsilon =
             r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
 
+        double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+
         if (epsilon > 0.0)
         {
             const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) =
-                mCmu * std::pow(tke, 2) / epsilon;
+            nu_t = mCmu * std::pow(tke, 2) / epsilon;
         }
         else
         {
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = mMinValue;
+            nu_t = mMinValue;
         }
+
+        r_node.FastGetSolutionStepValue(VISCOSITY) =
+            r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nu_t;
     }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-        << "Calculated nu_t for nodes in" << mModelPartName << "\n";
+        << "Calculated nu_t for nodes in " << mModelPartName << ".\n";
 
     KRATOS_CATCH("");
 }
 
-std::string RansNutKEpsilonHighReCalculationProcess::Info() const
+std::string RansNutKEpsilonHighReUpdateProcess::Info() const
 {
-    return std::string("RansNutKEpsilonHighReCalculationProcess");
+    return std::string("RansNutKEpsilonHighReUpdateProcess");
 }
 
-void RansNutKEpsilonHighReCalculationProcess::PrintInfo(std::ostream& rOStream) const
+void RansNutKEpsilonHighReUpdateProcess::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << this->Info();
 }
 
-void RansNutKEpsilonHighReCalculationProcess::PrintData(std::ostream& rOStream) const
+void RansNutKEpsilonHighReUpdateProcess::PrintData(std::ostream& rOStream) const
 {
 }
 

@@ -33,6 +33,8 @@
 #include "custom_processes/auxiliary_processes/rans_vector_cell_center_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_wall_function_update_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_update_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_update_process.h"
 
 // RANS sensitivity processes
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
@@ -146,17 +148,27 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         m, "RansNutYPlusWallFunctionSensitivitiesProcess")
         .def(py::init<Model&, Parameters&>());
 
+    using RansNutKEpsilonHighReUpdateProcessType = RansNutKEpsilonHighReUpdateProcess;
+    py::class_<RansNutKEpsilonHighReUpdateProcessType, RansNutKEpsilonHighReUpdateProcessType::Pointer, Process>(
+        m, "RansNutKEpsilonHighReUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
+
+    using RansNutYPlusWallFunctionUpdateProcessType = RansNutYPlusWallFunctionUpdateProcess;
+    py::class_<RansNutYPlusWallFunctionUpdateProcessType, RansNutYPlusWallFunctionUpdateProcessType::Pointer, Process>(
+        m, "RansNutYPlusWallFunctionUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const double, const double, const int>());
+
     using RansNutKEpsilonHighReCalculationProcessType = RansNutKEpsilonHighReCalculationProcess;
     py::class_<RansNutKEpsilonHighReCalculationProcessType, RansNutKEpsilonHighReCalculationProcessType::Pointer, Process>(
         m, "RansNutKEpsilonHighReCalculationProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const double, const int>());
+        .def(py::init<Model&, Parameters&>());
 
     using RansNutYPlusWallFunctionProcessType = RansNutYPlusWallFunctionProcess;
     py::class_<RansNutYPlusWallFunctionProcessType, RansNutYPlusWallFunctionProcessType::Pointer, Process>(
         m, "RansNutYPlusWallFunctionProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const double, const double, const double, const int>());
+        .def(py::init<Model&, Parameters&>());
 
     using RansWallFunctionUpdateProcessType = RansWallFunctionUpdateProcess;
     py::class_<RansWallFunctionUpdateProcessType, RansWallFunctionUpdateProcessType::Pointer, Process>(

@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_PROCESS_H_INCLUDED)
-#define KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_PROCESS_H_INCLUDED
+#if !defined(KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_UPDATE_PROCESS_H_INCLUDED)
+#define KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_UPDATE_PROCESS_H_INCLUDED
 
 // System includes
 #include <string>
@@ -46,16 +46,18 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(RANS_APPLICATION) RansNutYPlusWallFunctionProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansNutYPlusWallFunctionUpdateProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
     using NodeType = ModelPart::NodeType;
+    using ConditionType = ModelPart::ConditionType;
+    using ConditionGeometryType = ModelPart::ConditionType::GeometryType;
 
-    /// Pointer definition of RansNutYPlusWallFunctionProcess
-    KRATOS_CLASS_POINTER_DEFINITION(RansNutYPlusWallFunctionProcess);
+    /// Pointer definition of RansNutYPlusWallFunctionUpdateProcess
+    KRATOS_CLASS_POINTER_DEFINITION(RansNutYPlusWallFunctionUpdateProcess);
 
     ///@}
     ///@name Life Cycle
@@ -63,10 +65,18 @@ public:
 
     /// Constructor
 
-    RansNutYPlusWallFunctionProcess(Model& rModel, Parameters rParameters);
+    RansNutYPlusWallFunctionUpdateProcess(Model& rModel, Parameters rParameters);
+
+    RansNutYPlusWallFunctionUpdateProcess(Model& rModel,
+                                          const std::string& rModelPartName,
+                                          const double Cmu,
+                                          const double VonKarman,
+                                          const double Beta,
+                                          const double MinValue,
+                                          const int EchoLevel);
 
     /// Destructor.
-    ~RansNutYPlusWallFunctionProcess() override = default;
+    ~RansNutYPlusWallFunctionUpdateProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -77,6 +87,8 @@ public:
     ///@{
 
     int Check() override;
+
+    void ExecuteInitialize() override;
 
     void Execute() override;
 
@@ -146,17 +158,12 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
     std::string mModelPartName;
-
-    int mEchoLevel;
-
-    double mLimitYPlus;
-    double mMinValue;
-
     double mCmu;
     double mVonKarman;
     double mBeta;
+    double mMinValue;
+    int mEchoLevel;
 
     ///@}
     ///@name Private Operators
@@ -165,6 +172,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void CalculateConditionNeighbourCount();
 
     ///@}
     ///@name Private  Access
@@ -179,14 +188,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    RansNutYPlusWallFunctionProcess& operator=(RansNutYPlusWallFunctionProcess const& rOther);
+    RansNutYPlusWallFunctionUpdateProcess& operator=(RansNutYPlusWallFunctionUpdateProcess const& rOther);
 
     /// Copy constructor.
-    RansNutYPlusWallFunctionProcess(RansNutYPlusWallFunctionProcess const& rOther);
+    RansNutYPlusWallFunctionUpdateProcess(RansNutYPlusWallFunctionUpdateProcess const& rOther);
 
     ///@}
 
-}; // Class RansNutYPlusWallFunctionProcess
+}; // Class RansNutYPlusWallFunctionUpdateProcess
 
 ///@}
 
@@ -199,7 +208,7 @@ private:
 
 /// output stream function
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansNutYPlusWallFunctionProcess& rThis);
+                                const RansNutYPlusWallFunctionUpdateProcess& rThis);
 
 ///@}
 
@@ -207,4 +216,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_PROCESS_H_INCLUDED defined
+#endif // KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_UPDATE_PROCESS_H_INCLUDED defined

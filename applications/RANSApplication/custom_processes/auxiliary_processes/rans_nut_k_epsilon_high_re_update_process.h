@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_PROCESS_H_INCLUDED)
-#define KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_PROCESS_H_INCLUDED
+#if !defined(KRATOS_RANS_NUT_K_EPSILON_HIGH_RE_UPDATE_PROCESS_H_INCLUDED)
+#define KRATOS_RANS_NUT_K_EPSILON_HIGH_RE_UPDATE_PROCESS_H_INCLUDED
 
 // System includes
 #include <string>
@@ -46,7 +46,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(RANS_APPLICATION) RansNutYPlusWallFunctionProcess : public Process
+/**
+ * @brief Calculates turbulent kinematic viscosity
+ *
+ * This process uses following formula to calculate turbulent kinematic viscosity
+ *
+ * \[
+ *      \nu_t = C_\mu\frac{k^2}{\epsilon}
+ * \]
+ *
+ * $k$ is the turbulent kinetic energy, $\epsilon$ is the turbulent energy dissipation rate
+ */
+
+class KRATOS_API(RANS_APPLICATION) RansNutKEpsilonHighReUpdateProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -54,8 +66,10 @@ public:
 
     using NodeType = ModelPart::NodeType;
 
-    /// Pointer definition of RansNutYPlusWallFunctionProcess
-    KRATOS_CLASS_POINTER_DEFINITION(RansNutYPlusWallFunctionProcess);
+    using NodesContainerType = ModelPart::NodesContainerType;
+
+    /// Pointer definition of RansNutKEpsilonHighReUpdateProcess
+    KRATOS_CLASS_POINTER_DEFINITION(RansNutKEpsilonHighReUpdateProcess);
 
     ///@}
     ///@name Life Cycle
@@ -63,10 +77,16 @@ public:
 
     /// Constructor
 
-    RansNutYPlusWallFunctionProcess(Model& rModel, Parameters rParameters);
+    RansNutKEpsilonHighReUpdateProcess(Model& rModel, Parameters rParameters);
+
+    RansNutKEpsilonHighReUpdateProcess(Model& rModel,
+                                            const std::string& rModelPartName,
+                                            const double Cmu,
+                                            const double MinValue,
+                                            const int EchoLevel);
 
     /// Destructor.
-    ~RansNutYPlusWallFunctionProcess() override = default;
+    ~RansNutKEpsilonHighReUpdateProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -146,17 +166,10 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
     std::string mModelPartName;
-
-    int mEchoLevel;
-
-    double mLimitYPlus;
-    double mMinValue;
-
     double mCmu;
-    double mVonKarman;
-    double mBeta;
+    double mMinValue;
+    int mEchoLevel;
 
     ///@}
     ///@name Private Operators
@@ -179,14 +192,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    RansNutYPlusWallFunctionProcess& operator=(RansNutYPlusWallFunctionProcess const& rOther);
+    RansNutKEpsilonHighReUpdateProcess& operator=(RansNutKEpsilonHighReUpdateProcess const& rOther);
 
     /// Copy constructor.
-    RansNutYPlusWallFunctionProcess(RansNutYPlusWallFunctionProcess const& rOther);
+    RansNutKEpsilonHighReUpdateProcess(RansNutKEpsilonHighReUpdateProcess const& rOther);
 
     ///@}
 
-}; // Class RansNutYPlusWallFunctionProcess
+}; // Class RansNutKEpsilonHighReUpdateProcess
 
 ///@}
 
@@ -199,7 +212,7 @@ private:
 
 /// output stream function
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansNutYPlusWallFunctionProcess& rThis);
+                                const RansNutKEpsilonHighReUpdateProcess& rThis);
 
 ///@}
 
@@ -207,4 +220,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_PROCESS_H_INCLUDED defined
+#endif // KRATOS_RANS_NUT_K_EPSILON_HIGH_RE_UPDATE_PROCESS_H_INCLUDED defined
