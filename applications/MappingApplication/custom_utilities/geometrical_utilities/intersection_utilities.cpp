@@ -233,10 +233,7 @@ bool IntersectionUtilities::FindOverlapExtents1DGeometries2D(
                 return true; // the line lies entirely within the other line
             } else return false; // Lines are colinear, but do not overlap at all
         } else return false; // Lines are parallel but not colinear
-    }
-
-    // 
-    
+    }    
 }
 
 } // namespace Kratos.
