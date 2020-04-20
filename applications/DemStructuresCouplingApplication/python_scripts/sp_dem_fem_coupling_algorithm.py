@@ -207,6 +207,9 @@ class SPAlgorithm(Algorithm):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
+            if self.test_number:
+                self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
+
             # Write SP data
             if self.IsPostProcessWriteStep():
                 self.sp_post_process_tool.WriteData()

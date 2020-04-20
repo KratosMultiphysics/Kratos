@@ -132,9 +132,6 @@ void ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
-    // DEM variables
-    ModelPart::ElementsContainerType& rElements = mrDemModelPart.GetCommunicator().LocalMesh().Elements();
-    // FEM variables
     const double CurrentTime = mrFemModelPart.GetProcessInfo()[TIME];
     const double delta_time = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
     const ProcessInfo& CurrentProcessInfo = mrFemModelPart.GetProcessInfo();
@@ -144,88 +141,36 @@ void ExecuteInitializeSolutionStep()
     ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
     TableType::Pointer pTargetStressTable = mrFemModelPart.pGetTable(mTargetStressTableId);
 
-    // Calculate face_area
-    double face_area = 0.0;
-    // DEM modelpart
-    #pragma omp parallel for reduction(+:face_area)
-    for (int i = 0; i < (int)rElements.size(); i++) {
-        ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
-        Element* p_element = ptr_itElem->get();
-        SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
-        const double radius = pDemElem->GetRadius();
-        face_area += Globals::Pi*radius*radius;
-    }
-    // FEM modelpart
-    #pragma omp parallel for reduction(+:face_area)
-    for(int i = 0; i < NElems; i++) {
-        ModelPart::ElementsContainerType::iterator itElem = elem_begin + i;
-        face_area += itElem->GetGeometry().Area();
-    }
-
-    // Calculate ReactionStress
-    double face_reaction = 0.0;
-    // DEM modelpart
-    #pragma omp parallel for reduction(+:face_reaction)
-    for (int i = 0; i < (int)rElements.size(); i++) {
-        ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
-        Element* p_element = ptr_itElem->get();
-        SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
-        BoundedMatrix<double, 3, 3> stress_tensor = ZeroMatrix(3,3);
-        noalias(stress_tensor) = (*(pDemElem->mSymmStressTensor));
-        const double radius = pDemElem->GetRadius();
-        face_reaction += stress_tensor(2,2) * Globals::Pi*radius*radius;
-    }
-    // FEM modelpart
-    #pragma omp parallel for reduction(+:face_reaction)
-    for(int i = 0; i < NElems; i++)
-    {
-        ModelPart::ElementsContainerType::iterator itElem = elem_begin + i;
-        Element::GeometryType& rGeom = itElem->GetGeometry();
-        GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
-        const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
-        unsigned int NumGPoints = IntegrationPoints.size();
-        std::vector<Vector> stress_vector(NumGPoints);
-        itElem->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, CurrentProcessInfo );
-        const double area_over_gp = rGeom.Area()/NumGPoints;
-        // Loop through GaussPoints
-        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-        {
-            face_reaction += stress_vector[GPoint][2] * area_over_gp;
-        }
-    }
-    double reaction_stress = face_reaction / face_area;
-
-    reaction_stress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(reaction_stress);
-
-    // Update K if required
-    double K_estimated = mStiffness;
-    if(mUpdateStiffness == true) {
-        if(std::abs(mVelocity) > 1.0e-4*std::abs(mLimitVelocity) &&
-            std::abs(reaction_stress-mReactionStressOld) > mStressIncrementTolerance) {
-            K_estimated = std::abs((reaction_stress-mReactionStressOld)/(mVelocity * delta_time));
-        }
-        mReactionStressOld = reaction_stress;
-        mStiffness = K_estimated;
-    }
-
-    // Update velocity
-    const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+delta_time);
-    const double df_target = NextTargetStress - reaction_stress;
-    double delta_velocity = df_target/(K_estimated * delta_time) - mVelocity;
-
-    if(std::abs(df_target) < mStressIncrementTolerance) { delta_velocity = -mVelocity; }
-
-    mVelocity += mVelocityFactor * delta_velocity;
-
-    if(std::abs(mVelocity) > std::abs(mLimitVelocity)) {
-        if(mVelocity >= 0.0) { mVelocity = std::abs(mLimitVelocity); }
-        else { mVelocity = - std::abs(mLimitVelocity); }
-    }
+    double reaction_stress = CalculateReactionStress();
 
     const bool is_time_to_apply_cm = IsTimeToApplyCM();
 
-    if (is_time_to_apply_cm == true)
-    {
+    if (is_time_to_apply_cm == true) {
+
+        reaction_stress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(reaction_stress);
+
+        // Update K if required
+        if (mAlternateAxisLoading == false) {
+            if(mUpdateStiffness == true) {
+                mStiffness = EstimateStiffness(reaction_stress,delta_time);
+            }
+        }
+        mReactionStressOld = reaction_stress;
+
+        // Update velocity
+        const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+delta_time);
+        const double df_target = NextTargetStress - reaction_stress;
+        double delta_velocity = df_target/(mStiffness * delta_time) - mVelocity;
+
+        if(std::abs(df_target) < mStressIncrementTolerance) { delta_velocity = -mVelocity; }
+
+        mVelocity += mVelocityFactor * delta_velocity;
+
+        if(std::abs(mVelocity) > std::abs(mLimitVelocity)) {
+            if(mVelocity >= 0.0) { mVelocity = std::abs(mLimitVelocity); }
+            else { mVelocity = - std::abs(mLimitVelocity); }
+        }
+
         // Update IMPOSED_Z_STRAIN_VALUE
         // DEM modelpart
         mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += mVelocity*delta_time/mCompressionLength;
@@ -263,6 +208,19 @@ void ExecuteInitializeSolutionStep()
     KRATOS_CATCH("");
 }
 
+// After FEM and DEM solution
+void ExecuteFinalizeSolutionStep()
+{
+    // Update K with latest ReactionStress after the axis has been loaded
+    if (mAlternateAxisLoading == true) {
+        const double delta_time = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
+        double ReactionStress = CalculateReactionStress();
+
+        if(mUpdateStiffness == true) {
+            mStiffness = EstimateStiffness(ReactionStress,delta_time);
+        }
+    }
+}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -400,25 +358,101 @@ double UpdateVectorOfHistoricalStressesAndComputeNewAverage(const double& last_r
     KRATOS_CATCH("");
 }
 
-    bool IsTimeToApplyCM(){
-        const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
-        bool apply_cm = false;
+bool IsTimeToApplyCM(){
+    const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
+    bool apply_cm = false;
 
-        if(current_time >= mStartTime) {
-            if (mAlternateAxisLoading == true) {
-                const unsigned int step = mrFemModelPart.GetProcessInfo()[STEP];
-                if(step == mZCounter){
-                    apply_cm = true;
-                    mZCounter += 3;
-                }
-            } else {
+    if(current_time >= mStartTime) {
+        if (mAlternateAxisLoading == true) {
+            const unsigned int step = mrFemModelPart.GetProcessInfo()[STEP];
+            if(step == mZCounter){
                 apply_cm = true;
+                mZCounter += 3;
             }
+        } else {
+            apply_cm = true;
         }
-
-        return apply_cm;
     }
 
+    return apply_cm;
+}
+
+double CalculateReactionStress() {
+    // DEM variables
+    ModelPart::ElementsContainerType& rElements = mrDemModelPart.GetCommunicator().LocalMesh().Elements();
+    // FEM variables
+    const ProcessInfo& CurrentProcessInfo = mrFemModelPart.GetProcessInfo();
+    int NElems = static_cast<int>(mrFemModelPart.Elements().size());
+    ModelPart::ElementsContainerType::iterator elem_begin = mrFemModelPart.ElementsBegin();
+
+    // Calculate face_area
+    double face_area = 0.0;
+    // DEM modelpart
+    #pragma omp parallel for reduction(+:face_area)
+    for (int i = 0; i < (int)rElements.size(); i++) {
+        ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
+        Element* p_element = ptr_itElem->get();
+        SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
+        const double radius = pDemElem->GetRadius();
+        face_area += Globals::Pi*radius*radius;
+    }
+    // FEM modelpart
+    #pragma omp parallel for reduction(+:face_area)
+    for(int i = 0; i < NElems; i++) {
+        ModelPart::ElementsContainerType::iterator itElem = elem_begin + i;
+        face_area += itElem->GetGeometry().Area();
+    }
+
+    // Calculate ReactionStress
+    double face_reaction = 0.0;
+    // DEM modelpart
+    #pragma omp parallel for reduction(+:face_reaction)
+    for (int i = 0; i < (int)rElements.size(); i++) {
+        ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
+        Element* p_element = ptr_itElem->get();
+        SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
+        BoundedMatrix<double, 3, 3> stress_tensor = ZeroMatrix(3,3);
+        noalias(stress_tensor) = (*(pDemElem->mSymmStressTensor));
+        const double radius = pDemElem->GetRadius();
+        face_reaction += stress_tensor(2,2) * Globals::Pi*radius*radius;
+    }
+    // FEM modelpart
+    #pragma omp parallel for reduction(+:face_reaction)
+    for(int i = 0; i < NElems; i++)
+    {
+        ModelPart::ElementsContainerType::iterator itElem = elem_begin + i;
+        Element::GeometryType& rGeom = itElem->GetGeometry();
+        GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
+        const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
+        unsigned int NumGPoints = IntegrationPoints.size();
+        std::vector<Vector> stress_vector(NumGPoints);
+        itElem->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, CurrentProcessInfo );
+        const double area_over_gp = rGeom.Area()/NumGPoints;
+        // Loop through GaussPoints
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            face_reaction += stress_vector[GPoint][2] * area_over_gp;
+        }
+    }
+
+    double reaction_stress;
+    if (std::abs(face_area) > 1.0e-12) {
+        reaction_stress = face_reaction / face_area;
+    } else {
+        reaction_stress = 0.0;
+    }
+
+    return reaction_stress;
+}
+
+double EstimateStiffness(const double& rReactionStress, const double& rDeltaTime) {
+    double K_estimated = mStiffness;
+    if(std::abs(mVelocity) > 1.0e-4*std::abs(mLimitVelocity) &&
+        std::abs(rReactionStress-mReactionStressOld) > mStressIncrementTolerance) {
+        K_estimated = std::abs((rReactionStress-mReactionStressOld)/(mVelocity * rDeltaTime));
+    }
+    return K_estimated;
+}
 
 ///@}
 ///@name Private  Access

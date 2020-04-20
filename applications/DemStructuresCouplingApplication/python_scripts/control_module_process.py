@@ -24,3 +24,6 @@ class ControlModuleProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         self.control_module_process.ExecuteInitializeSolutionStep()
+
+    def ExecuteFinalizeSolutionStep(self):
+        self.control_module_process.ExecuteFinalizeSolutionStep()

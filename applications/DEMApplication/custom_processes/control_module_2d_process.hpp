@@ -175,111 +175,37 @@ public:
         const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
-        // Calculate face_area
-        double face_area = 0.0;
-        if (mImposedDirection == 2) { // Z direction
-            ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
-
-            #pragma omp parallel for reduction(+:face_area)
-            for (int i = 0; i < (int)rElements.size(); i++) {
-                ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
-                Element* p_element = ptr_itElem->get();
-                SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
-                const double radius = pDemElem->GetRadius();
-                face_area += Globals::Pi*radius*radius;
-            }
-        } else { // X and Y directions
-            const int NCons = static_cast<int>(mrModelPart.Conditions().size());
-            ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
-            #pragma omp parallel for reduction(+:face_area)
-            for(int i = 0; i < NCons; i++) {
-                ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-                face_area += itCond->GetGeometry().Area();
-            }
-        }
-
-        // Calculate ReactionStress
-        double FaceReaction = 0.0;
-
-        if (mImposedDirection == 0) { // X direction
-            #pragma omp parallel for reduction(+:FaceReaction)
-            for(int i = 0; i<NNodes; i++) {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_X);
-            }
-        } else if (mImposedDirection == 1) { // Y direction
-            #pragma omp parallel for reduction(+:FaceReaction)
-            for(int i = 0; i<NNodes; i++) {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
-            }
-        } else if (mImposedDirection == 2) { // Z direction
-            ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
-
-            #pragma omp parallel for reduction(+:FaceReaction)
-            for (int i = 0; i < (int)rElements.size(); i++) {
-                ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
-                Element* p_element = ptr_itElem->get();
-                SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
-                BoundedMatrix<double, 3, 3> stress_tensor = ZeroMatrix(3,3);
-                noalias(stress_tensor) = (*(pDemElem->mSymmStressTensor));
-                const double radius = pDemElem->GetRadius();
-                FaceReaction += stress_tensor(2,2) * Globals::Pi*radius*radius;
-            }
-        } else { // Radial direction
-            //#pragma omp parallel for
-            FaceReaction = 0.0;
-            for(int i = 0; i<NNodes; i++) {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                // Unit normal vector pointing outwards
-                array_1d<double,2> n;
-                n[0] = it->X();
-                n[1] = it->Y();
-                double inv_norm = 1.0/norm_2(n);
-                n[0] *= inv_norm;
-                n[1] *= inv_norm;
-
-                // Scalar product between reaction and normal
-                double n_dot_r = n[0] * it->FastGetSolutionStepValue(CONTACT_FORCES_X) + n[1] * it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
-                FaceReaction -= n_dot_r;
-                //FaceReaction -= it->FastGetSolutionStepValue(DEM_PRESSURE);
-            }
-        }
-        double ReactionStress = FaceReaction / face_area;
-
-        ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
-
-        // Update K if required
-        const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
-        double K_estimated = mStiffness;
-        if(mUpdateStiffness == true) {
-            if(std::abs(mVelocity) > 1.0e-4*std::abs(mLimitVelocity) &&
-                std::abs(ReactionStress-mReactionStressOld) > mStressIncrementTolerance) {
-                K_estimated = std::abs((ReactionStress-mReactionStressOld)/(mVelocity * delta_time));
-            }
-            mReactionStressOld = ReactionStress;
-            mStiffness = K_estimated;
-        }
-
-        // Update velocity
-        const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+delta_time);
-        const double df_target = NextTargetStress - ReactionStress;
-        double delta_velocity = df_target/(K_estimated * delta_time) - mVelocity;
-
-        if(std::abs(df_target) < mStressIncrementTolerance) { delta_velocity = -mVelocity; }
-
-        mVelocity += mVelocityFactor * delta_velocity;
-
-        if(std::abs(mVelocity) > std::abs(mLimitVelocity)) {
-            if(mVelocity >= 0.0) { mVelocity = std::abs(mLimitVelocity); }
-            else { mVelocity = - std::abs(mLimitVelocity); }
-        }
+        double ReactionStress = CalculateReactionStress();
 
         const bool is_time_to_apply_cm = IsTimeToApplyCM();
 
-        if (is_time_to_apply_cm == true)
-        {
+        if (is_time_to_apply_cm == true) {
+
+            ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
+
+            // Update K if required
+            const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
+            if (mAlternateAxisLoading == false) {
+                if(mUpdateStiffness == true) {
+                    mStiffness = EstimateStiffness(ReactionStress,delta_time);
+                }
+            }
+            mReactionStressOld = ReactionStress;
+
+            // Update velocity
+            const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+delta_time);
+            const double df_target = NextTargetStress - ReactionStress;
+            double delta_velocity = df_target/(mStiffness * delta_time) - mVelocity;
+
+            if(std::abs(df_target) < mStressIncrementTolerance) { delta_velocity = -mVelocity; }
+
+            mVelocity += mVelocityFactor * delta_velocity;
+
+            if(std::abs(mVelocity) > std::abs(mLimitVelocity)) {
+                if(mVelocity >= 0.0) { mVelocity = std::abs(mLimitVelocity); }
+                else { mVelocity = - std::abs(mLimitVelocity); }
+            }
+
             // Update Imposed displacement
             if (mImposedDirection == 0) { // X direction
                 #pragma omp parallel for
@@ -366,6 +292,22 @@ public:
         }
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This function will be executed at every time step AFTER performing the solve phase
+     */
+    void ExecuteFinalizeSolutionStep() override
+    {
+        // Update K with latest ReactionStress after the axis has been loaded
+        if (mAlternateAxisLoading == true) {
+            const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
+            double ReactionStress = CalculateReactionStress();
+
+            if(mUpdateStiffness == true) {
+                mStiffness = EstimateStiffness(ReactionStress,delta_time);
+            }
+        }
     }
 
     /// Turn back information as a string.
@@ -480,6 +422,100 @@ private:
         }
 
         return apply_cm;
+    }
+
+    double CalculateReactionStress() {
+        const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+
+        // Calculate face_area
+        double face_area = 0.0;
+        if (mImposedDirection == 2) { // Z direction
+            ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
+
+            #pragma omp parallel for reduction(+:face_area)
+            for (int i = 0; i < (int)rElements.size(); i++) {
+                ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
+                Element* p_element = ptr_itElem->get();
+                SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
+                const double radius = pDemElem->GetRadius();
+                face_area += Globals::Pi*radius*radius;
+            }
+        } else { // X and Y directions
+            const int NCons = static_cast<int>(mrModelPart.Conditions().size());
+            ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
+            #pragma omp parallel for reduction(+:face_area)
+            for(int i = 0; i < NCons; i++) {
+                ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
+                face_area += itCond->GetGeometry().Area();
+            }
+        }
+
+        // Calculate ReactionStress
+        double FaceReaction = 0.0;
+        if (mImposedDirection == 0) { // X direction
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_X);
+            }
+        } else if (mImposedDirection == 1) { // Y direction
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
+            }
+        } else if (mImposedDirection == 2) { // Z direction
+            ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
+
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for (int i = 0; i < (int)rElements.size(); i++) {
+                ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
+                Element* p_element = ptr_itElem->get();
+                SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
+                BoundedMatrix<double, 3, 3> stress_tensor = ZeroMatrix(3,3);
+                noalias(stress_tensor) = (*(pDemElem->mSymmStressTensor));
+                const double radius = pDemElem->GetRadius();
+                FaceReaction += stress_tensor(2,2) * Globals::Pi*radius*radius;
+            }
+        } else { // Radial direction
+            //#pragma omp parallel for
+            FaceReaction = 0.0;
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                // Unit normal vector pointing outwards
+                array_1d<double,2> n;
+                n[0] = it->X();
+                n[1] = it->Y();
+                double inv_norm = 1.0/norm_2(n);
+                n[0] *= inv_norm;
+                n[1] *= inv_norm;
+
+                // Scalar product between reaction and normal
+                double n_dot_r = n[0] * it->FastGetSolutionStepValue(CONTACT_FORCES_X) + n[1] * it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
+                FaceReaction -= n_dot_r;
+                //FaceReaction -= it->FastGetSolutionStepValue(DEM_PRESSURE);
+            }
+        }
+
+        double ReactionStress;
+        if (std::abs(face_area) > 1.0e-12) {
+            ReactionStress = FaceReaction/face_area;
+        } else {
+            ReactionStress = 0.0;
+        }
+
+        return ReactionStress;
+    }
+
+    double EstimateStiffness(const double& rReactionStress, const double& rDeltaTime) {
+        double K_estimated = mStiffness;
+        if(std::abs(mVelocity) > 1.0e-4*std::abs(mLimitVelocity) &&
+            std::abs(rReactionStress-mReactionStressOld) > mStressIncrementTolerance) {
+            K_estimated = std::abs((rReactionStress-mReactionStressOld)/(mVelocity * rDeltaTime));
+        }
+        return K_estimated;
     }
 
 }; // Class ControlModule2DProcess
