@@ -950,7 +950,6 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatri
 )
 {
     auto &r_mat_props = rValues.GetMaterialProperties();
-
     if (rAs.size1() != VoigtSize || rAs.size2() != VoigtSize) {
         rAs.resize(VoigtSize, VoigtSize);
     }
@@ -959,8 +958,6 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatri
         rAsInv.resize(VoigtSize, VoigtSize);
     }
     noalias(rAsInv) = ZeroMatrix(VoigtSize, VoigtSize);
-
-    KRATOS_ERROR_IF_NOT(r_mat_props.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X))<< "The ratio of strengths between ther isotropic and the anisotropic spaces is not defined, check that ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X, ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y, ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Z, ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY, ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XZ, ISOTROPIC_ANISOTROPIC_YIELD_RATIO_YZ are correctly defined " << std::endl;
 
     if (VoigtSize == 6) {
         rAs(0, 0) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X];
