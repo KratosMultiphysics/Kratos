@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "input_output/logger.h"
+#include "utilities/openmp_utils.h"
 
 
 namespace Kratos
@@ -28,6 +29,7 @@ namespace Kratos
 
   Logger::Logger(std::string const& TheLabel) : mCurrentMessage(TheLabel)
   {
+    mCurrentMessage.SetLevel(GetCurrentLevelInstance());
   }
 
   Logger::~Logger()
@@ -43,11 +45,21 @@ namespace Kratos
 
 
   Logger& Logger::Start(std::string const& TheSectionLabel){
-
+    KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "The Logger::Start cannot be called in a parallel region" << std::endl;
+    mCurrentMessage.SetLevel(GetCurrentLevelInstance());
+    GetCurrentLevelInstance()++;
+    return *this;
   }
 
   Logger& Logger::Stop(std::string const& TheSectionLabel){
+    KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "The Logger::Stop cannot be called in a parallel region" << std::endl;
+    
+    if(GetCurrentLevelInstance() > 0){
+      GetCurrentLevelInstance()--;
+    }
 
+    mCurrentMessage.SetLevel(GetCurrentLevelInstance());
+    return *this;
   }
 
   void Logger::AddOutput(LoggerOutput::Pointer pTheOutput)
