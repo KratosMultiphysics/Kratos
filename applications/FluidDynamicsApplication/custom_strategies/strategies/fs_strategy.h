@@ -171,40 +171,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    double Solve() override
-    {
-        double NormDp = 0.0;
-        if (mPredictorCorrector)
-        {
-            bool Converged = false;
-            const unsigned int echo_level = BaseType::GetEchoLevel();
-
-            // Iterative solution for pressure
-            for(unsigned int it = 0; it < mMaxPressureIter; ++it)
-            {
-                KRATOS_INFO_IF("FSStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
-
-                NormDp = this->SolveStep();
-
-                Converged = this->CheckPressureConvergence(NormDp);
-
-                if ( Converged )
-                {
-                    KRATOS_INFO_IF("FSStrategy", echo_level > 0) << "Predictor-corrector converged in " << it+1 << " iterations." << std::endl;
-                    break;
-                }
-            }
-            KRATOS_INFO_IF("FSStrategy", !Converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
-        }
-        else
-        {
-            // Solve for fractional step velocity, then update pressure once
-            NormDp = this->SolveStep();
-        }
-
-        return NormDp;
-    }
-
     void InitializeSolutionStep() override
     {
         // Initialize BDF2 coefficients
@@ -213,13 +179,32 @@ public:
 
     bool SolveSolutionStep() override
     {
-        double norm_dp = this->Solve();
-        /* If not doing predictor corrector iterations, norm_dp will
-         * typically be "large" since we are not iterating on pressure.
-         * It makes no sense to report that the iteration didn't converge
-         * based on this.
-         */
-        return mPredictorCorrector ? this->CheckPressureConvergence(norm_dp) : true;
+        double norm_dp = 0.0;
+        bool converged = false;
+        if (mPredictorCorrector) {
+            const unsigned int echo_level = BaseType::GetEchoLevel();
+            // Iterative solution for pressure
+            for (unsigned int it = 0; it < mMaxPressureIter; ++it) {
+                KRATOS_INFO_IF("FSStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
+                norm_dp = this->SolveStep();
+                converged = this->CheckPressureConvergence(norm_dp);
+                if (converged) {
+                    KRATOS_INFO_IF("FSStrategy", echo_level > 0) << "Predictor-corrector converged in " << it + 1 << " iterations." << std::endl;
+                    break;
+                }
+            }
+            KRATOS_WARNING_IF("FSStrategy", !converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
+        } else {
+            // Solve for fractional step velocity, then update pressure once
+            norm_dp = this->SolveStep();
+            // If not doing predictor corrector iterations, norm_dp will
+            // typically be "large" since we are not iterating on pressure.
+            // It makes no sense to report that the iteration didn't converge
+            // based on this.
+            converged = true;
+        }
+
+        return converged;
     }
 
     void FinalizeSolutionStep() override
