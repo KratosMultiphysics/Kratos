@@ -255,6 +255,11 @@ protected:
                                       const double & rCurrentRadius,
                                       const double & rReferenceRadius);
 
+    /// Calculate and add RHS
+    void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+        GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Protected  Access
     ///@{

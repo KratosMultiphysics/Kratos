@@ -88,6 +88,48 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
 
+    void MPMExplicitUtilities::CalcuateAndAddAxisymmetricExplicitInternalForce(
+        Element& rElement, 
+        const Matrix& rDN_DX, 
+        const Vector& rN, 
+        const Vector& rMPStress, 
+        const double& rMPVolume, 
+        const SizeType StrainSize, 
+        const double AxisymmetricRadius,
+        Vector& rRightHandSideVector)
+    {
+        KRATOS_TRY
+
+        // Add in explicit internal force calculation (Fint = Volume*divergence(sigma))
+        // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
+        GeometryType& rGeom = rElement.GetGeometry();
+        const SizeType dimension = rGeom.WorkingSpaceDimension();
+        const SizeType number_of_nodes = rGeom.PointsNumber();
+        array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3);
+
+        KRATOS_ERROR_IF_NOT(dimension == 2 && StrainSize == 4)
+            << "Call CalcuateAndAddExplicitInternalForce instead of CalcuateAndAddAxisymmetricExplicitInternalForce"
+            << std::endl;
+
+        for (IndexType i = 0; i < number_of_nodes; i++) {
+            // StressVec = srr szz  sthetatheta srz
+            // Index        0   1   2           3
+
+            nodal_force_internal_normal[0] = rMPVolume *
+                (rMPStress[0] * rDN_DX(i, 0) +
+                    rMPStress[2] * rN[i] / AxisymmetricRadius +
+                    rMPStress[3] * rDN_DX(i, 1));
+
+            nodal_force_internal_normal[1] = rMPVolume *
+                (rMPStress[1] * rDN_DX(i, 1) +
+                    rMPStress[3] * rDN_DX(i, 0));
+            
+            rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
+            rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
+        }
+        KRATOS_CATCH("")
+    }
+
     void MPMExplicitUtilities::UpdateGaussPointExplicit(
         const ProcessInfo& rCurrentProcessInfo,
         Element& rElement,

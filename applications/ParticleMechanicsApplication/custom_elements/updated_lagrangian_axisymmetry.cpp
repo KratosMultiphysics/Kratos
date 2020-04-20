@@ -24,6 +24,7 @@
 #include "includes/constitutive_law.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 #include "particle_mechanics_application_variables.h"
+#include "custom_utilities/mpm_explicit_utilities.h"
 
 namespace Kratos
 {
@@ -268,6 +269,63 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationGradient(const Matrix& rD
 
     KRATOS_CATCH( "" )
 }
+
+//************************************************************************************
+void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    GeneralVariables& rVariables,
+    Vector& rVolumeForce,
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Contribution of the internal and external forces
+    if (rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_RHS_VECTOR_WITH_COMPONENTS))
+    {
+        std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
+        const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
+        for (unsigned int i = 0; i < rRightHandSideVariables.size(); i++)
+        {
+            bool calculated = false;
+            if (rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR)
+            {
+                // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+                this->CalculateAndAddExternalForces(rRightHandSideVectors[i], rVariables, rVolumeForce, rIntegrationWeight);
+                calculated = true;
+            }
+
+            if (rRightHandSideVariables[i] == INTERNAL_FORCES_VECTOR)
+            {
+                // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+                this->CalculateAndAddInternalForces(rRightHandSideVectors[i], rVariables, rIntegrationWeight);
+                calculated = true;
+            }
+
+            KRATOS_ERROR_IF(calculated == false) << " ELEMENT can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
+        }
+    }
+    else
+    {
+        VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
+        // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+        this->CalculateAndAddExternalForces(rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
+
+        if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
+        {
+            const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(mN, GetGeometry());
+            MPMExplicitUtilities::CalcuateAndAddAxisymmetricExplicitInternalForce(*this,
+                mDN_DX, mN, mMP.cauchy_stress_vector, mMP.volume,
+                mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
+        }
+        else
+        {
+            // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+            this->CalculateAndAddInternalForces(rRightHandSideVector, rVariables, rIntegrationWeight);
+        }
+
+
+    }
+}
+
 
 //************************************************************************************
 //************************************************************************************
