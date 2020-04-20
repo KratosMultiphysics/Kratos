@@ -205,22 +205,17 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
     // set to 2x the number of systems. First block is projected systems, second block is slave systems
     if (rLocalSystems.size() != 2*num_elements) rLocalSystems.resize(2*num_elements);
 
-    // Compose projected systems
+    // Compose local systems
     #pragma omp parallel for
     for (int i = 0; i< static_cast<int>(num_elements); ++i) {
         auto it_elem = elems_ptr_begin + i;
         Geometry<Node<3>>* p_geom(&((*it_elem)->GetGeometry()));
+
         p_geom->SetValue(IS_PROJECTED_LOCAL_SYSTEM, true);
         rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
-    }
 
-    // Compose consistent slave systems
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(num_elements); ++i) {
-        auto it_elem = elems_ptr_begin + i;
-        Geometry<Node<3>>* p_geom(&((*it_elem)->GetGeometry()));
         p_geom->SetValue(IS_PROJECTED_LOCAL_SYSTEM, false);
-        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
+        rLocalSystems[num_elements+i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
     }
 
     int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
