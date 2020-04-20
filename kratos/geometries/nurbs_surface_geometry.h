@@ -192,6 +192,22 @@ public:
     }
 
     ///@}
+    ///@name Information
+    ///@{
+
+    /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        if (DirectionIndex == 0) {
+            return this->NumberOfControlPointsU();
+        }
+        else if (DirectionIndex == 1) {
+            return this->NumberOfControlPointsV();
+        }
+        return 1;
+    }
+
+    ///@}
     ///@name Get and Set functions
     ///@{
 
