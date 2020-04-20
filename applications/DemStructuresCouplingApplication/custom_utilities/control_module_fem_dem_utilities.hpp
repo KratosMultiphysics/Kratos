@@ -167,9 +167,6 @@ void ExecuteInitialize()
 // Before FEM and DEM solution
 void ExecuteInitializeSolutionStep()
 {
-    // DEM variables
-    ModelPart::ElementsContainerType& rElements = mrDemModelPart.GetCommunicator().LocalMesh().Elements();
-    // FEM variables
     const double CurrentTime = mrFemModelPart.GetProcessInfo()[TIME];
     const double DeltaTime = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
     const int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
