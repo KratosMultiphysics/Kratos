@@ -41,11 +41,6 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     impose_partion_of_unity = False
     N,DN = sfu.DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
 
-    #define enrichment shape functions
-    DNenr = sfu.DefineMatrix('DNenr',nnodes,dim)
-    Nenr = sfu.DefineVector('Nenr',nnodes)
-
-
     ## Unknown fields definition
     v = sfu.DefineMatrix('v',nnodes,dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
     vn = sfu.DefineMatrix('vn',nnodes,dim)          # Previous step velocity
@@ -109,7 +104,6 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     grad_sym_v_voigt = sfu.grad_sym_voigtform(DN,v)     # Symmetric gradient of v in Voigt notation
     grad_sym_w_voigt = sfu.grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
-    # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
 
     ## Galerkin Functional
     rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss
