@@ -28,13 +28,14 @@ class DistributedImportModelPartUtility(object):
         if input_type == "mdpa":
             default_settings = KratosMultiphysics.Parameters("""{
                 "input_filename"                             : "",
-                "perform_partitioning"                       : true,
-                "partition_in_memory"                        : false
                 "skip_timer"                                 : true,
                 "ignore_variables_not_in_solution_step_data" : false,
+                "perform_partitioning"                       : true,
+                "partition_in_memory"                        : false
             }""")
 
-            model_part_import_settings.ValidateAndAssignDefaults(default_settings)
+            # cannot validate as this might contain other settings too
+            model_part_import_settings.AddMissingParameters(default_settings)
 
             input_filename = model_part_import_settings["input_filename"].GetString()
 

@@ -165,13 +165,14 @@ class PythonSolver(object):
 
             default_settings = KratosMultiphysics.Parameters("""{
                 "input_filename"                             : "",
-                "reorder"                                    : false,
-                "reorder_consecutive"                        : false,
                 "skip_timer"                                 : true,
                 "ignore_variables_not_in_solution_step_data" : false,
+                "reorder"                                    : false,
+                "reorder_consecutive"                        : false
             }""")
 
-            model_part_import_settings.ValidateAndAssignDefaults(default_settings)
+            # cannot validate as this might contain other settings too
+            model_part_import_settings.AddMissingParameters(default_settings)
 
             input_filename = model_part_import_settings["input_filename"].GetString()
 
@@ -187,12 +188,12 @@ class PythonSolver(object):
             # Import model part from mdpa file.
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
 
-            if model_part_import_settings["reorder_consecutive"].GetBool()):
+            if model_part_import_settings["reorder_consecutive"].GetBool():
                 KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
             else:
                 KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
 
-            if model_part_import_settings["reorder"].GetBool()):
+            if model_part_import_settings["reorder"].GetBool():
                 tmp = KratosMultiphysics.Parameters("{}")
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
 
