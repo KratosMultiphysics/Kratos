@@ -530,7 +530,7 @@ public:
     /// Returns number of points per direction.
     virtual SizeType PointsNumberInDirection(IndexType DirectionIndex) const
     {
-        return if (DirectionIndex == 0)
+        return (DirectionIndex == 0)
             ? mPoints.size()
             : 1;
     }
