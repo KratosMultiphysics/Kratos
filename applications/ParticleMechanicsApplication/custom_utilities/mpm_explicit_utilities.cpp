@@ -20,7 +20,7 @@ namespace Kratos
         const Matrix& rDN_DX,
         const Vector& rMPStress,
         const double& rMPVolume,
-        const std::size_t StrainSize,
+        const SizeType StrainSize,
         Vector& rRightHandSideVector)
     {
         KRATOS_TRY
@@ -276,7 +276,8 @@ namespace Kratos
         Element& rElement,
         const Matrix& rDN_DX,
         Vector& rMPStrain,
-        Matrix& rDeformationGradientIncrement)
+        Matrix& rDeformationGradientIncrement,
+        const SizeType StrainSize)
     {
         KRATOS_TRY
 
@@ -287,6 +288,7 @@ namespace Kratos
 
         //Calculate velocity gradients
         Matrix velocityGradient = Matrix(dimension, dimension, 0.0);
+
         for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; nodeIndex++)
         {
             const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
@@ -313,21 +315,98 @@ namespace Kratos
         // Apply strain increment to strain vector
         rMPStrain(0) += strainIncrement(0, 0); //e_xx
         rMPStrain(1) += strainIncrement(1, 1); //e_yy
-        if (dimension == 2)
+        if (dimension == 2 && StrainSize == 3)
         {
             rMPStrain(2) += 2.0 * strainIncrement(0, 1); //e_xy
         }        
-        else
+        else if((dimension == 3 && StrainSize == 6))
         {
-            rMPStrain(2) += strainIncrement(2, 2) * deltaTime; //e_zz
+            rMPStrain(2) += strainIncrement(2, 2); //e_zz
 
             rMPStrain(3) += 2.0 * strainIncrement(0, 1); //e_xy
             rMPStrain(4) += 2.0 * strainIncrement(1, 2); //e_yz
             rMPStrain(5) += 2.0 * strainIncrement(0, 2); //e_xz
         }  
+        else
+        {
+            KRATOS_ERROR << "Dimension = " << dimension << " and strain size = " << StrainSize
+                << " are invalid for MPM explicit kinematic calculation." << std::endl;
+        }
 
         // Model compressibility
         rDeformationGradientIncrement = IdentityMatrix(dimension);
+        if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE)) rDeformationGradientIncrement += strainIncrement;
+
+        KRATOS_CATCH("")
+    }
+
+    void MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(
+        const ProcessInfo& rCurrentProcessInfo,
+        Element& rElement,
+        const Matrix& rDN_DX,
+        const Vector& rN,
+        Vector& rMPStrain,
+        Matrix& rDeformationGradientIncrement,
+        const SizeType StrainSize,
+        const double AxisymmetricRadius)
+    {
+        KRATOS_TRY
+
+        GeometryType rGeom = rElement.GetGeometry();
+        const double deltaTime = rCurrentProcessInfo[DELTA_TIME];
+        const SizeType dimension = rGeom.WorkingSpaceDimension();
+        const SizeType number_of_nodes = rGeom.PointsNumber();
+
+        //Calculate velocity gradients
+        Matrix velocityGradient = Matrix(3, 3, 0.0); // for axisymmetric case
+
+        for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; nodeIndex++)
+        {
+            const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
+
+            for (IndexType i = 0; i < dimension; i++)
+            {
+                for (IndexType j = 0; j < dimension; j++)
+                {
+                    velocityGradient(i, j) += nodal_velocity[i] * rDN_DX(nodeIndex, j);
+                }
+            }
+        }
+        if (dimension == 2 && StrainSize == 4) // axisymmetric case
+        {
+            for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; nodeIndex++)
+            {
+                const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
+                velocityGradient(3, 3) += nodal_velocity[0] * rN[nodeIndex] / AxisymmetricRadius;;
+            }
+        }
+
+        //Calculate rate of deformation and spin tensors
+        const Matrix rateOfDeformation = 0.5 * (velocityGradient + trans(velocityGradient));
+        const Matrix spinTensor = velocityGradient - rateOfDeformation;
+
+        //Calculate objective Jaumann strain rate
+        const Matrix jaumannRate = rateOfDeformation -
+            (prod(spinTensor, rateOfDeformation)) * deltaTime +
+            prod((rateOfDeformation * deltaTime), spinTensor);
+        const Matrix strainIncrement = deltaTime * jaumannRate;
+
+        // Apply strain increment to strain vector
+        rMPStrain(0) += strainIncrement(0, 0); //e_xx
+        rMPStrain(1) += strainIncrement(1, 1); //e_yy
+        if (dimension == 2 && StrainSize == 4)
+        {
+            rMPStrain(2) += strainIncrement(2, 2); //e_theta theta
+            rMPStrain(3) += 2.0 * strainIncrement(0, 1); //e_xy
+        }
+        else
+        {
+            KRATOS_ERROR << "Dimension = " << dimension << " and strain size = " << StrainSize
+                << " are invalid for MPM explicit asymmetric kinematic calculation." << std::endl;
+        }
+
+        // Model compressibility
+        rDeformationGradientIncrement = IdentityMatrix(3);
         if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE)) rDeformationGradientIncrement += strainIncrement;
 
         KRATOS_CATCH("")

@@ -182,6 +182,10 @@ protected:
                                      GeneralVariables& rVariables,
                                      const double& rIntegrationWeight) override;
 
+    /// Calculation of the Explicit Stresses from velocity gradient.
+    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+        GeneralVariables& rVariables);
+
     /**
      * Clear Nodal Forces
      */
