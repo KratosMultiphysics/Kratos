@@ -46,6 +46,10 @@ namespace Kratos
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalcuateAndAddExplicitInternalForce(Element& rElement,
             const Matrix& rDN_DX, const Vector& rMPStress, const double& rMPVolume, Vector& rRightHandSideVector);
 
+        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalcuateAndAddAxisymmetricExplicitInternalForce(Element& rElement,
+            const Matrix& rDN_DX, const Vector& rN, const Vector& rMPStress, const double& rMPVolume,
+            const SizeType StrainSize, const double AxisymmetricRadius, Vector& rRightHandSideVector);
+
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(const ProcessInfo& rCurrentProcessInfo, 
             Element& rElement, const Vector& rN);
 

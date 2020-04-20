@@ -20,61 +20,64 @@ namespace Kratos
         const Matrix& rDN_DX,
         const Vector& rMPStress,
         const double& rMPVolume,
+        const std::size_t StrainSize,
         Vector& rRightHandSideVector)
     {
         KRATOS_TRY
 
-            // Add in explicit internal force calculation (Fint = Volume*divergence(sigma))
-            // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
+        // Add in explicit internal force calculation (f_i = V * Sum_j [s_ij N_,j])
+        // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
         GeometryType& rGeom = rElement.GetGeometry();
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
         array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3);
-        
-        for (IndexType i = 0; i < number_of_nodes; i++)
+        for (IndexType i = 0; i < number_of_nodes; i++) 
         {
-            // f_i = V * Sum_j [s_ij N_,j]
-            if (dimension == 2)
+            if (dimension == 2 && StrainSize == 3) 
             {
                 // StressVec = s00 s11  s01
                 // Index        0   1   2 
-
                 //f_x = V*(s_xx*dNdX + s_xy*dNdY)
                 nodal_force_internal_normal[0] = rMPVolume *
                     (rMPStress[0] * rDN_DX(i, 0) +
                         rMPStress[2] * rDN_DX(i, 1));
-
                 //f_y = V*(s_yy*dNdY + s_yx*dNdX)
                 nodal_force_internal_normal[1] = rMPVolume *
                     (rMPStress[1] * rDN_DX(i, 1) +
                         rMPStress[2] * rDN_DX(i, 0));
-            }
-            else
+            } 
+            else if (dimension == 2 && StrainSize == 4) 
+            {
+                KRATOS_ERROR 
+                    << "Call CalcuateAndAddAxisymmetricExplicitInternalForce instead of CalcuateAndAddExplicitInternalForce" 
+                    << std::endl;
+            } 
+            else if (dimension == 3 && StrainSize == 6) 
             {
                 // StressVec = s00 s11 s22   s01   s12   s02
                 // Index        0   1   2     3     4      5
-
                 //f_x = V*(s_xx*dNdX + s_xy*dNdY + s_xz*dNdZ)
                 nodal_force_internal_normal[0] = rMPVolume *
                     (rMPStress[0] * rDN_DX(i, 0) +
                         rMPStress[3] * rDN_DX(i, 1) +
                         rMPStress[5] * rDN_DX(i, 2));
-
                 //f_y = V*(s_yy*dNdY + s_yx*dNdX + s_yz*dNdZ)
                 nodal_force_internal_normal[1] = rMPVolume *
                     (rMPStress[1] * rDN_DX(i, 1) +
                         rMPStress[3] * rDN_DX(i, 0) +
                         rMPStress[4] * rDN_DX(i, 2));
-
                 //f_z = V*(s_zz*dNdZ + s_zx*dNdX + s_zy*dNdY)
                 nodal_force_internal_normal[2] = rMPVolume *
                     (rMPStress[2] * rDN_DX(i, 2) +
                         rMPStress[5] * rDN_DX(i, 0) +
                         rMPStress[4] * rDN_DX(i, 1));
-
                 rRightHandSideVector[dimension * i + 2] -= nodal_force_internal_normal[2]; //minus sign, internal forces
+            } 
+            else
+            {
+                KRATOS_ERROR << "Dimension = " << dimension << " and strain size = " << StrainSize
+                    << " are invalid for MPM explicit internal force calculation." << std::endl;
             }
-
             rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
             rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
         }
