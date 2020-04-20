@@ -16,6 +16,7 @@
 #include "input_output/logger.h"
 #include "input_output/logger_table_output.h"
 #include "includes/data_communicator.h"
+#include "utilities/openmp_utils.h"
 
 
 namespace Kratos {
@@ -485,6 +486,45 @@ namespace Kratos {
 
             std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test message\n[INFO] TestInfo: Test message\n[DETAIL] TestDetail: Test message\n" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(LoggerStartStop, KratosCoreFastSuite)
+        {
+            int rank = DataCommunicator::GetDefault().Rank();
+
+            static std::stringstream buffer;
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            Logger::AddOutput(p_output);
+            
+            KRATOS_INFO("TestLevel") << "Level 0\n";
+            
+                double time = 0.1;
+                Logger("TimeStep").Start() << time << std::endl;
+                KRATOS_INFO("TestLevel") << "Level 1\n";
+                Logger("Build").Start() << std::endl;
+                KRATOS_INFO("TestLevel") << "Level 2\n";
+                Logger("Build").Stop() << std::endl;
+                Logger("Solve").Start() << std::endl;
+                KRATOS_INFO("TestLevel") << "Level 2\n";
+                Logger("Solve").Stop() << std::endl;
+                Logger("TimeStep").Stop() << std::endl;
+
+
+
+            std::stringstream expected_output;
+            if (rank == 0){
+                expected_output << "TestLevel: Level 0\n";
+                expected_output << "TimeStep: 0.1\n";
+                expected_output << "  TestLevel: Level 1\n";
+                expected_output << "  Build: \n";
+                expected_output << "    TestLevel: Level 2\n";
+                expected_output << "  Build: \n";
+                expected_output << "  Solve: \n";
+                expected_output << "    TestLevel: Level 2\n";
+                expected_output << "  Solve: \n";
+                expected_output << "TimeStep: \n";
+            }
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.str().c_str());
         }
 
     }   // namespace Testing
