@@ -32,7 +32,7 @@ namespace Kratos
 namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_EquationIdVector,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_EquationI
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetDofList, KratosRansFastSuite1)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetDofList, KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetDofLis
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetValuesVector, KratosRansFastSuite1)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetValuesVector, KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -121,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetValues
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetFirstDerivativesVector,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -143,7 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetFirstD
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetSecondDerivativesVector,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -177,7 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetSecond
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_CalculateFirstDerivativesLHS,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -185,13 +185,13 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "RansVMSMonolithicKBasedWallCondition2D2N",
+        "RansEvmKEpsilonVmsMonolithicWall2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N", VELOCITY,
         calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -200,13 +200,13 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "RansVMSMonolithicKBasedWallCondition2D2N",
+        "RansEvmKEpsilonVmsMonolithicWall2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N",
         TURBULENT_KINETIC_ENERGY, calculate_sensitivity_matrix, 1e-8, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate_RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -215,13 +215,13 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "RansVMSMonolithicKBasedWallCondition2D2N",
+        "RansEvmKEpsilonVmsMonolithicWall2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N",
         TURBULENT_ENERGY_DISSIPATION_RATE, calculate_sensitivity_matrix, 1e-8, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_CalculateSecondDerivativesLHS,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -229,13 +229,13 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "RansVMSMonolithicKBasedWallCondition2D2N",
+        "RansEvmKEpsilonVmsMonolithicWall2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N", ACCELERATION,
         calculate_sensitivity_matrix, 1e-8, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_CalculateSensitivityMatrix,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)> calculate_sensitivity_matrix =
         [](Matrix& rOutput, ConditionType& rCondition, ProcessInfo& rProcessInfo) -> void {
@@ -243,7 +243,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "RansVMSMonolithicKBasedWallCondition2D2N",
+        "RansEvmKEpsilonVmsMonolithicWall2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N", SHAPE_SENSITIVITY,
         calculate_sensitivity_matrix, 1e-9, 1e-5);
 }

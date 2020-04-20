@@ -21,6 +21,14 @@ class EvmKEpsilonTest(UnitTest.TestCase):
             self._runTest(settings_file_name)
             kratos_utilities.DeleteTimeFiles(".")
 
+    def testFractionalStepKEpsilonHighReResidualFC(self):
+        work_folder = "BackwardFacingStepTest"
+        settings_file_name = "backward_facing_step_k_epsilon_fractional_step_residual_fc_parameters.json"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            self._runTest(settings_file_name)
+            kratos_utilities.DeleteTimeFiles(".")
+
     def _runTest(self,settings_file_name, is_periodic = False):
         model = km.Model()
         with open(settings_file_name,'r') as settings_file:
