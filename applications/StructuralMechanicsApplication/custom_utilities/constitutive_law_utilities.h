@@ -406,6 +406,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * "ficticious" space and the real anisotropic space
      * @param rValues The values of the constitutive la
      * @param rAs The mapper operator
+     * @param rAs The mapper operator inverse
      * @note Eq. (2.39) S. Oller book: Comportamiento mecánico de los materiales compuestos
      */
     static void CalculateAnisotropicStressMapperMatrix(
