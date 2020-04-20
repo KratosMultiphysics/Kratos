@@ -51,7 +51,7 @@ class DistributedImportModelPartUtility(object):
             if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
                 import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
 
-            if not is_single_process_run and perform_partitioning == True:
+            if not is_single_process_run and perform_partitioning:
                 import KratosMultiphysics.MetisApplication as KratosMetis
 
                 # Partition of the original .mdpa file
