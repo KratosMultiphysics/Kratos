@@ -144,7 +144,7 @@ namespace Kratos
                     id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
                 this->CreateElements(
-                    geometries.begin(), geometries.end(),
+                    geometries.ptr_begin(), geometries.ptr_end(),
                     rModelPart, name, id, PropertiesPointerType());
             }
             else if (type == "condition" || type == "Condition") {
@@ -153,7 +153,7 @@ namespace Kratos
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
                 this->CreateConditions(
-                    geometries.begin(), geometries.end(),
+                    geometries.ptr_begin(), geometries.ptr_end(),
                     rModelPart, name, id, PropertiesPointerType());
             }
             else {
@@ -198,8 +198,8 @@ namespace Kratos
     ///@{
 
     void IgaModeler::CreateElements(
-        typename GeometriesArrayType::iterator rGeometriesBegin,
-        typename GeometriesArrayType::iterator rGeometriesEnd,
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
         ModelPart& rModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
@@ -216,7 +216,7 @@ namespace Kratos
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_element_list.push_back(
-                rReferenceElement.Create(rIdCounter, typename GeometryType::Pointer(&*it), pProperties));
+                rReferenceElement.Create(rIdCounter, (*it), pProperties));
             rIdCounter++;
         }
 
@@ -224,8 +224,8 @@ namespace Kratos
     }
 
     void IgaModeler::CreateConditions(
-        typename GeometriesArrayType::iterator rGeometriesBegin,
-        typename GeometriesArrayType::iterator rGeometriesEnd,
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
         ModelPart& rModelPart,
         std::string& rConditionName,
         SizeType& rIdCounter,
@@ -242,7 +242,7 @@ namespace Kratos
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_condition_list.push_back(
-                rReferenceCondition.Create(rIdCounter, typename GeometryType::Pointer(&*it), pProperties));
+                rReferenceCondition.Create(rIdCounter, (*it), pProperties));
             rIdCounter++;
         }
 

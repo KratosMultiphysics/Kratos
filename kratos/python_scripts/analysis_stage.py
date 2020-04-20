@@ -21,10 +21,10 @@ class AnalysisStage(object):
         model -- The Model to be used
         project_parameters -- The ProjectParameters used
         """
-        if (type(model) != KratosMultiphysics.Model):
+        if not isinstance(model, KratosMultiphysics.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
-        if (type(project_parameters) != KratosMultiphysics.Parameters):
+        if not isinstance(project_parameters, KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.model = model
