@@ -78,6 +78,10 @@ namespace Kratos
                 break;
             }
 
+            for(std::size_t i_level = 0 ; i_level < TheMessage.GetLevel() ; i_level++){
+                r_stream << "  ";
+            }
+
             if(TheMessage.IsDistributed())
                 r_stream << "Rank " << TheMessage.GetSourceRank() << ": ";
 
