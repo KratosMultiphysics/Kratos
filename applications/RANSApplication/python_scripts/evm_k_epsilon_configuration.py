@@ -192,4 +192,4 @@ class TurbulenceKEpsilonConfiguration(
         return self.turbulence_model_process
 
     def GetFluidVelocityPressureConditionName(self):
-        return "RansVMSMonolithicKBasedWallCondition"
+        return "RansEvmKEpsilonVmsMonolithicWall"
