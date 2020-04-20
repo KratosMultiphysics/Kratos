@@ -43,7 +43,7 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def PrepareModelPart(self):
-        self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, "RansEvmKEpsilonEpsilonWall")
+        self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, "RansEvmKEpsilonEpsilonVelocityBasedWallCondition")
 
         Kratos.Logger.PrintInfo(self.GetName(),
                                 "Created formulation model part.")

@@ -29,13 +29,13 @@
 #include "rans_application_variables.h"
 
 // Include base h
-#include "rans_evm_k_epsilon_vms_monolithic_wall.h"
+#include "rans_vms_monolithic_k_based_wall_condition.h"
 
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>& RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::operator=(
-    RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes> const& rOther)
+RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>& RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::operator=(
+    RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes> const& rOther)
 {
     Condition::operator=(rOther);
 
@@ -43,22 +43,23 @@ RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>& RansEvmKEpsilonVmsMonolithicW
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::Create(
+Condition::Pointer RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<RansEvmKEpsilonVmsMonolithicWall>(
+    return Kratos::make_intrusive<RansVMSMonolithicKBasedWallCondition>(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::Create(
+Condition::Pointer RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<RansEvmKEpsilonVmsMonolithicWall>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<RansVMSMonolithicKBasedWallCondition>(
+        NewId, pGeom, pProperties);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::Clone(
+Condition::Pointer RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Clone(
     IndexType NewId, NodesArrayType const& rThisNodes) const
 {
     Condition::Pointer pNewCondition = Create(
@@ -71,7 +72,7 @@ Condition::Pointer RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::Clone(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -99,7 +100,7 @@ int RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::Check(const ProcessInfo& 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::Initialize()
+void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize()
 {
     KRATOS_TRY;
 
@@ -119,26 +120,26 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::Initialize()
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::string RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::Info() const
+std::string RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "RansEvmKEpsilonVmsMonolithicWall" << TDim << "D";
+    buffer << "RansVMSMonolithicKBasedWallCondition" << TDim << "D";
     return buffer.str();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "RansEvmKEpsilonVmsMonolithicWall";
+    rOStream << "RansVMSMonolithicKBasedWallCondition";
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
+void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyWallLaw(
+void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
     MatrixType& rLocalMatrix, VectorType& rLocalVector, ProcessInfo& rCurrentProcessInfo)
 {
     if (RansCalculationUtilities::IsWall(*this))
@@ -241,20 +242,20 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyWallLaw(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::save(Serializer& rSerializer) const
+void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::load(Serializer& rSerializer)
+void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
 }
 
 // template instantiations
 
-template class RansEvmKEpsilonVmsMonolithicWall<2, 2>;
-template class RansEvmKEpsilonVmsMonolithicWall<3, 3>;
+template class RansVMSMonolithicKBasedWallCondition<2, 2>;
+template class RansVMSMonolithicKBasedWallCondition<3, 3>;
 
 } // namespace Kratos.

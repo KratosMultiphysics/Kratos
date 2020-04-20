@@ -41,8 +41,8 @@
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon_cross_wind_stabilized_element.h"
 
 // Condition includes
-#include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
-#include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.h"
+#include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_velocity_based_wall_condition.h"
+#include "custom_conditions/monolithic/rans_vms_monolithic_k_based_wall_condition.h"
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_condition.h"
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_condition.h"
 #include "custom_conditions/fractional_step/fs_high_re_k_wall_condition.h"
@@ -254,11 +254,11 @@ private:
     const RansEvmKEpsilonEpsilon<3, 4> mRansEvmKEpsilonEpsilon3D;
 
     /// k-epsilon turbulence model conditions
-    const RansEvmKEpsilonEpsilonWall<2> mRansEvmKEpsilonEpsilonWall2D2N;
-    const RansEvmKEpsilonEpsilonWall<3> mRansEvmKEpsilonEpsilonWall3D3N;
+    const RansEvmKEpsilonEpsilonVelocityBasedWallCondition<2> mRansEvmKEpsilonEpsilonVelocityBasedWallCondition2D2N;
+    const RansEvmKEpsilonEpsilonVelocityBasedWallCondition<3> mRansEvmKEpsilonEpsilonVelocityBasedWallCondition3D3N;
 
-    const RansEvmKEpsilonVmsMonolithicWall<2> mRansEvmKEpsilonVmsMonolithicWall2D2N;
-    const RansEvmKEpsilonVmsMonolithicWall<3> mRansEvmKEpsilonVmsMonolithicWall3D3N;
+    const RansVMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWallCondition2D2N;
+    const RansVMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWallCondition3D3N;
 
     // k-epsilon adjoint elements
     const RansEvmEpsilonAdjoint<2, 3> mRansEvmEpsilonAdjoint2D3N;

@@ -163,7 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_CalculateFirstD
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonEpsilonWall2D2N",
+        "RansEvmKEpsilonEpsilonVelocityBasedWallCondition2D2N",
         "RansEvmEpsilonAdjointWallCondition2D2N", TURBULENT_ENERGY_DISSIPATION_RATE,
         calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
@@ -178,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_Calculate_RANS_
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonEpsilonWall2D2N",
+        "RansEvmKEpsilonEpsilonVelocityBasedWallCondition2D2N",
         "RansEvmEpsilonAdjointWallCondition2D2N", TURBULENT_KINETIC_ENERGY,
         calculate_sensitivity_matrix, 1e-8, 1e-5);
 }
@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_CalculateSecond
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonEpsilonWall2D2N",
+        "RansEvmKEpsilonEpsilonVelocityBasedWallCondition2D2N",
         "RansEvmEpsilonAdjointWallCondition2D2N", TURBULENT_ENERGY_DISSIPATION_RATE_2,
         calculate_sensitivity_matrix, 1e-6, 1e-5);
 }
@@ -208,7 +208,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_CalculateSensit
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonEpsilonWall2D2N",
+        "RansEvmKEpsilonEpsilonVelocityBasedWallCondition2D2N",
         "RansEvmEpsilonAdjointWallCondition2D2N", SHAPE_SENSITIVITY,
         calculate_sensitivity_matrix, 1e-9, 1e-5);
 }
@@ -222,7 +222,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointWallCondition2D2N_Calculate_RANS_
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonEpsilonWall2D2N",
+        "RansEvmKEpsilonEpsilonVelocityBasedWallCondition2D2N",
         "RansEvmEpsilonAdjointWallCondition2D2N", VELOCITY,
         calculate_sensitivity_matrix, 1e-8, 1e-5);
 }

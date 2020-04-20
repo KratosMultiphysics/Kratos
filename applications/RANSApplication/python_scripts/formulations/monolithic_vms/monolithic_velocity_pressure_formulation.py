@@ -113,7 +113,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
     def PrepareModelPart(self):
         self.monolithic_model_part = CreateFormulationModelPart(self,
                                                                 "VMS",
-                                                                "RansEvmKEpsilonVmsMonolithicWall")
+                                                                "RansVMSMonolithicKBasedWallCondition")
         Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
 
     def Initialize(self):

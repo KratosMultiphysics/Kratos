@@ -185,7 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonVmsMonolithicWall2D2N",
+        "RansVMSMonolithicKBasedWallCondition2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N", VELOCITY,
         calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
@@ -200,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonVmsMonolithicWall2D2N",
+        "RansVMSMonolithicKBasedWallCondition2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N",
         TURBULENT_KINETIC_ENERGY, calculate_sensitivity_matrix, 1e-8, 1e-5);
 }
@@ -215,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonVmsMonolithicWall2D2N",
+        "RansVMSMonolithicKBasedWallCondition2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N",
         TURBULENT_ENERGY_DISSIPATION_RATE, calculate_sensitivity_matrix, 1e-8, 1e-5);
 }
@@ -229,7 +229,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonVmsMonolithicWall2D2N",
+        "RansVMSMonolithicKBasedWallCondition2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N", ACCELERATION,
         calculate_sensitivity_matrix, 1e-8, 1e-5);
 }
@@ -243,7 +243,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "RansEvmKEpsilonVmsMonolithicWall2D2N",
+        "RansVMSMonolithicKBasedWallCondition2D2N",
         "RansEvmVmsMonolithicAdjointWallCondition2D2N", SHAPE_SENSITIVITY,
         calculate_sensitivity_matrix, 1e-9, 1e-5);
 }
