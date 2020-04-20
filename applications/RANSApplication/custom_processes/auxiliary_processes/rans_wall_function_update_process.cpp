@@ -82,11 +82,47 @@ int RansWallFunctionUpdateProcess::Check()
     KRATOS_CATCH("");
 }
 
+void RansWallFunctionUpdateProcess::ExecuteInitialize()
+{
+    CalculateConditionNeighbourCount();
+}
+
+void RansWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
+{
+    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    VariableUtils().SetNonHistoricalVariableToZero(
+        NUMBER_OF_NEIGHBOUR_CONDITIONS, r_model_part.Nodes());
+
+    const int number_of_conditions = r_model_part.NumberOfConditions();
+#pragma omp parallel for
+    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
+    {
+        ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
+        ConditionGeometryType& r_geometry = r_cond.GetGeometry();
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+        {
+            NodeType& r_node = r_geometry[i_node];
+            r_node.SetLock();
+            r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1;
+            r_node.UnSetLock();
+        }
+    }
+
+    r_model_part.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_CONDITIONS);
+
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+        << "Calculated number of neighbour conditions in " << mModelPartName << ".\n";
+}
+
 void RansWallFunctionUpdateProcess::Execute()
 {
     KRATOS_TRY
 
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+    ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
+    VariableUtils().SetHistoricalVariableToZero(RANS_Y_PLUS, r_nodes);
+    VariableUtils().SetNonHistoricalVariableToZero(FRICTION_VELOCITY, r_nodes);
 
     ModelPart::ConditionsContainerType& r_conditions = r_model_part.Conditions();
     const int number_of_conditions = r_conditions.size();
@@ -128,8 +164,29 @@ void RansWallFunctionUpdateProcess::Execute()
 
             r_condition.SetValue(RANS_Y_PLUS, y_plus);
             r_condition.SetValue(FRICTION_VELOCITY, r_friction_velocity);
+
+            ModelPart::ConditionType::GeometryType& r_geometry =
+                r_condition.GetGeometry();
+            const int number_of_nodes = r_geometry.PointsNumber();
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            {
+                ModelPart::NodeType& r_node = r_geometry[i_node];
+                const array_1d<double, 3>& r_u_tau = r_node.GetValue(FRICTION_VELOCITY);
+                const double inv_number_of_neighbour_conditions =
+                    1.0 / static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
+
+                r_node.SetLock();
+                r_node.FastGetSolutionStepValue(RANS_Y_PLUS) +=
+                    y_plus * inv_number_of_neighbour_conditions;
+                r_node.SetValue(FRICTION_VELOCITY,
+                                r_u_tau + r_friction_velocity * inv_number_of_neighbour_conditions);
+                r_node.UnSetLock();
+            }
         }
     }
+
+    r_model_part.GetCommunicator().AssembleCurrentData(RANS_Y_PLUS);
+    r_model_part.GetCommunicator().AssembleNonHistoricalData(FRICTION_VELOCITY);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << "Calculated wall function based y_plus for " << mModelPartName << ".\n";

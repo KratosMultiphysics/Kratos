@@ -86,6 +86,8 @@ public:
 
     int Check() override;
 
+    void ExecuteInitialize() override;
+
     void Execute() override;
 
     ///@}
