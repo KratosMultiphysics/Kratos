@@ -66,9 +66,9 @@ UpdatedLagrangian::~UpdatedLagrangian()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::Initialize( )
+void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    BaseSolidElement::Initialize();
+    BaseSolidElement::Initialize(rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
@@ -549,20 +549,6 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(
     )
 {
     this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-
-    return ier;
-
-    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/

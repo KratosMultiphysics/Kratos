@@ -187,7 +187,7 @@ public:
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * @brief This resets the constitutive law
@@ -237,8 +237,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -247,8 +247,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Returns the used integration method
@@ -662,7 +662,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo the current process info instance
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access

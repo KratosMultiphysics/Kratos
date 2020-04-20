@@ -1,6 +1,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
-from KratosMultiphysics.DEMApplication import mesh_creator_sphere_2D
+from KratosMultiphysics.DEMApplication import mesh_creator_sphere
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 
 class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
@@ -72,7 +72,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         spheres_mp_filename_post = self.problem_name + 'DEM_Post'
 
         if self.write_mdpa_from_results:
-            mesh_creator_sphere_2D.WriteSphereMdpaFromResults(self.problem_name + 'DEM', self.main_path, spheres_mp_filename_post, self.file_msh, self.file_res, self.post_path)
+            mesh_creator_sphere.WriteSphereMdpaFromResults(self.problem_name + 'DEM', self.main_path, spheres_mp_filename_post, self.spheres_model_part)
 
 if __name__ == "__main__":
     DEMAnalysisStage2DSpRigidFem(model, project_parameters).Run()

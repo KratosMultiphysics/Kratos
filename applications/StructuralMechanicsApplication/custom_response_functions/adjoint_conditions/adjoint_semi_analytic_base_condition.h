@@ -111,9 +111,9 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const override;
 
     IntegrationMethod GetIntegrationMethod() override
     {
@@ -122,9 +122,9 @@ public:
 
     void GetValuesVector(Vector& rValues, int Step = 0 ) override;
 
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->Initialize();
+        mpPrimalCondition->Initialize(rCurrentProcessInfo);
     }
 
     void ResetConstitutiveLaw() override
@@ -319,7 +319,7 @@ public:
         this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Calculates the pseudo-load contribution of the condition w.r.t.  a scalar design variable.
@@ -336,6 +336,11 @@ public:
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
     Condition::Pointer pGetPrimalCondition()
+    {
+        return mpPrimalCondition;
+    }
+
+    const Condition::Pointer pGetPrimalCondition() const
     {
         return mpPrimalCondition;
     }

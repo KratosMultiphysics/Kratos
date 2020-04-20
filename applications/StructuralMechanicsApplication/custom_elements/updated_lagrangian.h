@@ -111,7 +111,7 @@ public:
      * @brief Called to initialize the element.
      * Must be called before any calculation is done
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Called at the beginning of each solution step
@@ -239,17 +239,6 @@ public:
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    //std::string Info() const;
 
     ///@}
     ///@name Access

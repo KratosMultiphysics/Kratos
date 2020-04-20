@@ -25,6 +25,8 @@ class PotentialFlowFormulation(object):
                 self._SetUpIncompressiblePerturbationElement(formulation_settings)
             elif element_type == "perturbation_compressible":
                 self._SetUpCompressiblePerturbationElement(formulation_settings)
+            elif element_type == "perturbation_transonic":
+                self._SetUpTransonicPerturbationElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
@@ -66,6 +68,15 @@ class PotentialFlowFormulation(object):
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "CompressiblePerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
+    def _SetUpTransonicPerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_transonic"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "TransonicPerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
@@ -125,6 +136,13 @@ class PotentialFlowSolver(FluidSolver):
             "skin_parts":[""],
             "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts": [""],
+            "time_stepping"                : {
+                "automatic_time_step" : false,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 1.0,
+                "time_step":            1.0
+            },
             "move_mesh_flag": false,
             "reference_chord": 1.0,
             "auxiliary_variables_list" : []
@@ -175,9 +193,6 @@ class PotentialFlowSolver(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
-    def AdvanceInTime(self, current_time):
-        raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
-
     def _ComputeNodalElementalNeighbours(self):
         # Find nodal neigbours util call
         data_communicator  = KratosMultiphysics.DataCommunicator.GetDefault()
@@ -194,7 +209,7 @@ class PotentialFlowSolver(FluidSolver):
                 strategy_type = "linear"
             else:
                 strategy_type = "non_linear"
-        elif "compressible" in element_type:
+        elif "compressible" or "transonic" in element_type:
             strategy_type = "non_linear"
         else:
             strategy_type = None
