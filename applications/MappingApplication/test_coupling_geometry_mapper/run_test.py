@@ -59,12 +59,9 @@ KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, 
 
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
-    "echo_level" : 0
+    "echo_level" : 0,
+    "dual_mortar": false
 }""")
-
-# TODO add origin and destination sizes thru parameters
-#mapper_params.AddVarible(origin_nodes, origin.Nodes.Size())
-#mapper_params.AddVarible(origin_nodes, origin.Nodes.Size())
 
 mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)
 #mapper = KratosMapping.MapperFactory.CreateMapper(model_part_coupling, dummy, mapper_params) // goal
