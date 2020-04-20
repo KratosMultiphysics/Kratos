@@ -48,7 +48,7 @@ class Formulation:
                 if (not formulation.SolveCouplingStep()):
                     return False
 
-        self.ExecuteAfterCouplingSolveStep()
+            self.ExecuteAfterCouplingSolveStep()
         return True
 
     def ExecuteAfterCouplingSolveStep(self):
