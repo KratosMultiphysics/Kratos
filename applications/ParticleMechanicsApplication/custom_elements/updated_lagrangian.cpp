@@ -43,7 +43,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
 
 UpdatedLagrangian::UpdatedLagrangian( )
     : Element( )
-    , mMP(0)
+    , mMP()
 {
     //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
@@ -51,7 +51,7 @@ UpdatedLagrangian::UpdatedLagrangian( )
 //************************************************************************************
 UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
-    , mMP(pGeometry->WorkingSpaceDimension())
+    , mMP()
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -61,7 +61,7 @@ UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGe
 
 UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
-    , mMP(pGeometry->WorkingSpaceDimension())
+    , mMP()
 {
     mFinalizedStep = true;
 
@@ -1101,6 +1101,9 @@ void UpdatedLagrangian::InitializeMaterial()
 
         mConstitutiveLawVector->InitializeMaterial( GetProperties(), GetGeometry(),
                 Variables.N );
+
+        mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
+        mMP.cauchy_stress_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
     }
     else
         KRATOS_ERROR <<  "A constitutive law needs to be specified for the element with ID: " << this->Id() << std::endl;
