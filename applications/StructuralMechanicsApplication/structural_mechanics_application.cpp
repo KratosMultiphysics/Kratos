@@ -750,6 +750,9 @@ void KratosStructuralMechanicsApplication::Register() {
     // Serial-Parallel Rule Of Mixtures
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SerialParallelRuleOfMixturesLaw", mSerialParallelRuleOfMixturesLaw);
 
+    // Anisotropic law
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericAnisotropicLaw", mGenericAnisotropicLaw);
+
     /// Plasticity
 
     /* Small strain */
