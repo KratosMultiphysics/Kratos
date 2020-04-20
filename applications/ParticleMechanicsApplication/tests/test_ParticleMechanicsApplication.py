@@ -87,23 +87,23 @@ def AssembleTestSuites():
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
-    nightSuite.addTests(smallSuite)
-    
-    nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
-    
-    nightSuite.addTest(TBeamCantileverStaticLinearElasticPointLoad2DTriTest('test_execution'))
-    nightSuite.addTest(TBeamCantileverStaticLinearElasticParticlePointLoad2DTriTest('test_execution'))
-    nightSuite.addTest(TBeamCantileverStaticLinearElasticLineLoad2DQuadTest('test_execution'))
-    nightSuite.addTest(TBeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest('test_execution'))
-    nightSuite.addTest(TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
-    
-    nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
-    nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
-    nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
-    
-    nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
-    
-    nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    #nightSuite.addTests(smallSuite)
+    #
+    #nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
+    #
+    #nightSuite.addTest(TBeamCantileverStaticLinearElasticPointLoad2DTriTest('test_execution'))
+    #nightSuite.addTest(TBeamCantileverStaticLinearElasticParticlePointLoad2DTriTest('test_execution'))
+    #nightSuite.addTest(TBeamCantileverStaticLinearElasticLineLoad2DQuadTest('test_execution'))
+    #nightSuite.addTest(TBeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest('test_execution'))
+    #nightSuite.addTest(TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    #
+    #nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
+    #nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
+    #nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
+    #
+    #nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    #
+    #nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     
     nightSuite.addTest(TExplicitOscillatingPointUSLTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointUSFTest('test_execution'))
@@ -124,9 +124,9 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+    #KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    #run_cpp_unit_tests.run()
+    #KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
