@@ -406,7 +406,7 @@ double UpdateVectorOfHistoricalStressesAndComputeNewAverage(const double& last_r
 
         if(current_time >= mStartTime) {
             if (mAlternateAxisLoading == true) {
-                const int step = mrFemModelPart.GetProcessInfo()[STEP];
+                const unsigned int step = mrFemModelPart.GetProcessInfo()[STEP];
                 if(step == mZCounter){
                     apply_cm = true;
                     mZCounter += 3;

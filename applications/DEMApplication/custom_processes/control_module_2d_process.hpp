@@ -455,7 +455,7 @@ private:
 
         if(current_time >= mStartTime) {
             if (mAlternateAxisLoading == true) {
-                const int step = mrModelPart.GetProcessInfo()[STEP];
+                const unsigned int step = mrModelPart.GetProcessInfo()[STEP];
                 if (mImposedDirection == 0) {
                     if(step == mXCounter){
                         apply_cm = true;

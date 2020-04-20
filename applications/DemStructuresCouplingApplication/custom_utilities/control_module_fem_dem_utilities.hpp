@@ -302,7 +302,7 @@ void ExecuteInitializeSolutionStep()
         } else if (mImposedDirection == 1) { // Y direction
             const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_Y_VALUE");
             mrDemModelPart[DemVelocityVar] = mVelocity;
-            
+
             #pragma omp parallel for
             for(int i = 0; i<NNodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -496,7 +496,7 @@ bool IsTimeToApplyCM(){
 
     if(current_time >= mStartTime) {
         if (mAlternateAxisLoading == true) {
-            const int step = mrFemModelPart.GetProcessInfo()[STEP];
+            const unsigned int step = mrFemModelPart.GetProcessInfo()[STEP];
             if (mImposedDirection == 0) {
                 if(step == mXCounter){
                     apply_cm = true;
