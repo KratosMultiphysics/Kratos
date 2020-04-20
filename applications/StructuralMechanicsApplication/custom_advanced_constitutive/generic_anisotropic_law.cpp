@@ -25,11 +25,7 @@ namespace Kratos
 {
 ConstitutiveLaw::Pointer GenericAnisotropicLaw::Create(Kratos::Parameters NewParameters) const
 {
-    Vector euler_angles(3);
-    for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
-        euler_angles[i_comp] = NewParameters["Euler_angles"][i_comp].GetDouble();
-    }
-    return Kratos::make_shared<GenericAnisotropicLaw>(euler_angles);
+    return Kratos::make_shared<GenericAnisotropicLaw>();
 }
 
 /***********************************************************************************/
@@ -143,18 +139,6 @@ void GenericAnisotropicLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Par
 
 } // End CalculateMaterialResponseCauchy
 
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void GenericAnisotropicLaw::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    // Deprecated
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -287,19 +271,7 @@ double& GenericAnisotropicLaw::GetValue(
     double& rValue
     )
 {
-    // if (rThisVariable == DAMAGE_MATRIX) {
-    //     return mpMatrixConstitutiveLaw->GetValue(DAMAGE, rValue);
-    // } else if (rThisVariable == DAMAGE_FIBER) {
-    //      return mpFiberConstitutiveLaw->GetValue(DAMAGE, rValue);
-    // }
-    // if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-    //     return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
-    // } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-    //     return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
-    // } else {
-    //     return rValue;
-    // }
-    return rValue;
+    return mpIsotropicCL->GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -310,14 +282,7 @@ Vector& GenericAnisotropicLaw::GetValue(
     Vector& rValue
     )
 {
-    // if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-    //     return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
-    // } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-    //     return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
-    // } else {
-    //     return rValue;
-    // }
-    return rValue;
+    return mpIsotropicCL->GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -328,14 +293,7 @@ Matrix& GenericAnisotropicLaw::GetValue(
     Matrix& rValue
     )
 {
-    // if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-    //     return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
-    // } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-    //     return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
-    // } else {
-    //     return rValue;
-    // }
-    return rValue;
+    return mpIsotropicCL->GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -343,14 +301,7 @@ Matrix& GenericAnisotropicLaw::GetValue(
 
 bool GenericAnisotropicLaw::Has(const Variable<bool>& rThisVariable)
 {
-    // if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-    //     return true;
-    // } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-    //     return true;
-    // } else {
-    //     return false;
-    // }
-    return false;
+    return mpIsotropicCL->Has(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -358,14 +309,7 @@ bool GenericAnisotropicLaw::Has(const Variable<bool>& rThisVariable)
 
 bool GenericAnisotropicLaw::Has(const Variable<double>& rThisVariable)
 {
-    // if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-    //     return true;
-    // } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-    //     return true;
-    // } else {
-    //     return false;
-    // }
-    return false;
+    return mpIsotropicCL->Has(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -373,14 +317,7 @@ bool GenericAnisotropicLaw::Has(const Variable<double>& rThisVariable)
 
 bool GenericAnisotropicLaw::Has(const Variable<Vector>& rThisVariable)
 {
-    // if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-    //     return true;
-    // } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-    //     return true;
-    // } else {
-    //     return false;
-    // }
-    return false;
+    return mpIsotropicCL->Has(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -388,14 +325,7 @@ bool GenericAnisotropicLaw::Has(const Variable<Vector>& rThisVariable)
 
 bool GenericAnisotropicLaw::Has(const Variable<Matrix>& rThisVariable)
 {
-    // if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-    //     return true;
-    // } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-    //     return true;
-    // } else {
-    //     return false;
-    // }
-    return false;
+    return mpIsotropicCL->Has(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -406,7 +336,7 @@ double& GenericAnisotropicLaw::CalculateValue(
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    return mpIsotropicCL->CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -417,7 +347,7 @@ Vector& GenericAnisotropicLaw::CalculateValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    return mpIsotropicCL->CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -428,17 +358,21 @@ void GenericAnisotropicLaw::InitializeMaterial(
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues)
 {
-    // const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-    // const auto r_props_matrix_cl = *(it_cl_begin);
-    // const auto r_props_fiber_cl  = *(it_cl_begin + 1);
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    const auto r_props_isotropic_cl = *(it_cl_begin);
+    KRATOS_ERROR_IF_NOT(r_props_isotropic_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
+    mpIsotropicCL = r_props_isotropic_cl[CONSTITUTIVE_LAW]->Clone();
+    mpIsotropicCL->InitializeMaterial(r_props_isotropic_cl, rElementGeometry, rShapeFunctionsValues);
 
-    // KRATOS_ERROR_IF_NOT(r_props_matrix_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
-    // KRATOS_ERROR_IF_NOT(r_props_fiber_cl.Has(CONSTITUTIVE_LAW))  << "No constitutive law set" << std::endl;
-
-    // mpMatrixConstitutiveLaw = r_props_matrix_cl[CONSTITUTIVE_LAW]->Clone();
-    // mpFiberConstitutiveLaw  = r_props_fiber_cl[CONSTITUTIVE_LAW]->Clone();
-    // mpMatrixConstitutiveLaw->InitializeMaterial(r_props_matrix_cl, rElementGeometry, rShapeFunctionsValues);
-    // mpFiberConstitutiveLaw ->InitializeMaterial(r_props_fiber_cl, rElementGeometry, rShapeFunctionsValues);
+    // Let's check variables
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X not defined in properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y not defined in properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY)) << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY not defined in properties" << std::endl;
+    if (mpIsotropicCL->GetStrainSize() == 6) {
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Z))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Z not defined in properties" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XZ)) << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XZ not defined in properties" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_YZ)) << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_YZ not defined in properties" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -450,249 +384,7 @@ Matrix& GenericAnisotropicLaw::CalculateValue(
     Matrix& rValue
     )
 {
-//     // We do some special operations for constitutive matrices
-//     if (rThisVariable == CONSTITUTIVE_MATRIX ||
-//         rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
-//         rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-//         // Get Values to compute the constitutive law:
-//         Flags& r_flags = rParameterValues.GetOptions();
-
-//         // Previous flags saved
-//         const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-//         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-//         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
-//         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-//         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-//         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-
-//          // We compute the constitutive matrix
-//         if (rThisVariable == CONSTITUTIVE_MATRIX) {
-//             this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
-//         } else if (rThisVariable == CONSTITUTIVE_MATRIX_PK2) {
-//             this->CalculateMaterialResponsePK2(rParameterValues);
-//         } else if (rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-//             this->CalculateMaterialResponsePK2(rParameterValues);
-//         }
-
-//         noalias(rValue) = rParameterValues.GetConstitutiveMatrix();
-
-//         // Previous flags restored
-//         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-//         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-//         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-//     } else if (rThisVariable == DEFORMATION_GRADIENT) { // TODO: Make in the future modifications for take into account different layers combinations
-//         noalias(rValue) = rParameterValues.GetDeformationGradientF();
-//     } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) { // TODO: Make in the future modifications for take into account different layers combinations
-//         // Some auxiliar values
-//         const SizeType dimension = WorkingSpaceDimension();
-//         const SizeType voigt_size = GetStrainSize();
-
-//         // Get Values to compute the constitutive law:
-//         Flags& r_flags = rParameterValues.GetOptions();
-
-//         // Previous flags saved
-//         const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-//         const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-//         const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
-
-//         const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
-
-//         // The deformation gradient
-//         if (rParameterValues.IsSetDeterminantF()) {
-//             const double determinant_f = rParameterValues.GetDeterminantF();
-//             KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
-//         }
-//         // In case the element has not computed the Strain
-//         if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-//             Vector& r_strain_vector = rParameterValues.GetStrainVector();
-
-//             Matrix F_deformation_gradient;
-//             this->CalculateValue(rParameterValues, DEFORMATION_GRADIENT, F_deformation_gradient);
-//             const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
-//             // Doing resize in case is needed
-//             if (r_strain_vector.size() != voigt_size)
-//                 r_strain_vector.resize(voigt_size);
-
-//             // Identity matrix
-//             Matrix identity_matrix(dimension, dimension);
-//             for (IndexType i = 0; i < dimension; ++i) {
-//                 for (IndexType j = 0; j < dimension; ++j) {
-//                     if (i == j) identity_matrix(i, j) = 1.0;
-//                     else identity_matrix(i, j) = 0.0;
-//                 }
-//             }
-
-//             // Calculating the inverse of the left Cauchy tensor
-//             Matrix inverse_B_tensor (dimension, dimension);
-//             double aux_det_b = 0;
-//             MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
-
-//             // Calculate E matrix
-//             const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
-//             // Almansi Strain Calculation
-//             r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
-//         }
-
-//         if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-//             // Set new flags
-//             r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-//             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-//             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-//             // Total strain vector
-//             Vector& r_strain_vector = rParameterValues.GetStrainVector();
-//             Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
-//             Vector fiber_stress_vector, matrix_stress_vector;
-//             this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
-//                                                         fiber_stress_vector,
-//                                                         matrix_stress_vector,
-//                                                         r_material_properties,
-//                                                         rParameterValues,
-//                                                         serial_strain_matrix_old);
-//             // Previous flags restored
-//             r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-//             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-//             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-//             rValue = MathUtils<double>::StressVectorToTensor(fiber_stress_vector);
-//             return rValue;
-//         }
-//     } else if (rThisVariable == CAUCHY_STRESS_TENSOR_MATRIX) { // TODO: Make in the future modifications for take into account different layers combinations
-//         // Some auxiliar values
-//         const SizeType dimension = WorkingSpaceDimension();
-//         const SizeType voigt_size = GetStrainSize();
-
-//         // Get Values to compute the constitutive law:
-//         Flags& r_flags = rParameterValues.GetOptions();
-
-//         // Previous flags saved
-//         const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-//         const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-//         const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
-
-//         const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
-
-//         // The deformation gradient
-//         if (rParameterValues.IsSetDeterminantF()) {
-//             const double determinant_f = rParameterValues.GetDeterminantF();
-//             KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
-//         }
-//         // In case the element has not computed the Strain
-//         if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-//             Vector& r_strain_vector = rParameterValues.GetStrainVector();
-
-//             Matrix F_deformation_gradient;
-//             this->CalculateValue(rParameterValues, DEFORMATION_GRADIENT, F_deformation_gradient);
-//             const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
-//             // Doing resize in case is needed
-//             if (r_strain_vector.size() != voigt_size)
-//                 r_strain_vector.resize(voigt_size);
-
-//             // Identity matrix
-//             Matrix identity_matrix(dimension, dimension);
-//             for (IndexType i = 0; i < dimension; ++i) {
-//                 for (IndexType j = 0; j < dimension; ++j) {
-//                     if (i == j) identity_matrix(i, j) = 1.0;
-//                     else identity_matrix(i, j) = 0.0;
-//                 }
-//             }
-
-//             // Calculating the inverse of the left Cauchy tensor
-//             Matrix inverse_B_tensor (dimension, dimension);
-//             double aux_det_b = 0;
-//             MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
-
-//             // Calculate E matrix
-//             const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
-//             // Almansi Strain Calculation
-//             r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
-//         }
-
-//         if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-//             // Set new flags
-//             r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-//             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-//             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-//             // Total strain vector
-//             Vector& r_strain_vector = rParameterValues.GetStrainVector();
-//             Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
-//             Vector fiber_stress_vector, matrix_stress_vector;
-//             this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
-//                                                         fiber_stress_vector,
-//                                                         matrix_stress_vector,
-//                                                         r_material_properties,
-//                                                         rParameterValues,
-//                                                         serial_strain_matrix_old);
-//             // Previous flags restored
-//             r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-//             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-//             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-//             rValue = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
-//             return rValue;
-//         }
-//     } else if (rThisVariable == CAUCHY_STRESS_TENSOR) {
-//         // Get Values to compute the constitutive law:
-//         Flags& r_flags = rParameterValues.GetOptions();
-
-//         // Previous flags saved
-//         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-//         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS);
-
-//         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-//         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-//         // We compute the stress
-//         this->CalculateMaterialResponseCauchy(rParameterValues);
-//         rValue = MathUtils<double>::StressVectorToTensor(rParameterValues.GetStressVector());
-
-//         // Previous flags restored
-//         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-//         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-//         return rValue;
-//     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_MATRIX) {
-//         const std::size_t voigt_size = this->GetStrainSize();
-//         Matrix parallel_projector, serial_projector;
-//         this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
-
-//         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
-//         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-//         this->CalculateStrainsOnEachComponent(r_strain_vector,
-//                                               parallel_projector, serial_projector, mPreviousSerialStrainMatrix, 
-//                                               matrix_strain_vector, fiber_strain_vector);
-//         rValue = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
-//         return rValue;
-//     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_FIBER) {
-//         const std::size_t voigt_size = this->GetStrainSize();
-//         Matrix parallel_projector, serial_projector;
-//         this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
-
-//         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
-//         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
-//         this->CalculateStrainsOnEachComponent(r_strain_vector,
-//                                               parallel_projector, serial_projector, mPreviousSerialStrainMatrix, 
-//                                               matrix_strain_vector, fiber_strain_vector);
-//         rValue = MathUtils<double>::StrainVectorToTensor(fiber_strain_vector);
-//         return rValue;
-//     } else {
-//         Matrix aux_value;
-//         Properties material_properties  = rParameterValues.GetMaterialProperties();
-//         Properties& r_prop = material_properties.GetSubProperties(0);
-
-//         rValue.clear();
-//         rParameterValues.SetMaterialProperties(r_prop);
-//         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
-//         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
-
-//         r_prop = material_properties.GetSubProperties(1);
-//         rParameterValues.SetMaterialProperties(r_prop);
-//         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
-//         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
-
-//         // Reset properties
-//         rParameterValues.SetMaterialProperties(material_properties);
-//     }
-    return(rValue);
+    return mpIsotropicCL->CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -700,6 +392,7 @@ Matrix& GenericAnisotropicLaw::CalculateValue(
 
 void GenericAnisotropicLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 {
+    mpIsotropicCL->InitializeMaterialResponsePK2(rValues);
 }
 
 /***********************************************************************************/

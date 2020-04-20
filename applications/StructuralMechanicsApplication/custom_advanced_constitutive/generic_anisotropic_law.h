@@ -74,16 +74,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
     ///@{
 
     /**
-    * Default constructor.
-    */
-    GenericAnisotropicLaw()
-    {
-    }
-
-    /**
     * Constructor.
     */
-    GenericAnisotropicLaw(const Vector& rEulerAngles) : mEulerAngles(rEulerAngles)
+    GenericAnisotropicLaw()
     {
     }
 
@@ -97,9 +90,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
 
     // Copy constructor
     GenericAnisotropicLaw(GenericAnisotropicLaw const& rOther)
-        : ConstitutiveLaw(rOther), mpIsotropicCL(rOther.mpIsotropicCL), 
-        mStrengthsRatios(rOther.mStrengthsRatios), 
-        mEulerAngles(rOther.mEulerAngles)
+        : ConstitutiveLaw(rOther), 
+        mpIsotropicCL(rOther.mpIsotropicCL)
     {
     }
 
@@ -164,20 +156,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
@@ -406,8 +384,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
     ///@{
 
     ConstitutiveLaw::Pointer mpIsotropicCL;
-    Vector mStrengthsRatios; // ft,iso / ft,ortho
-    Vector mEulerAngles = ZeroVector(3);
 
     ///@}
     ///@name Private Operators
@@ -446,16 +422,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("IsotropicCL", mpIsotropicCL);
-        rSerializer.save("StrengthsRatios", mStrengthsRatios);
-        rSerializer.save("EulerAngles", mEulerAngles);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("IsotropicCL", mpIsotropicCL);
-        rSerializer.load("StrengthsRatios", mStrengthsRatios);
-        rSerializer.load("EulerAngles", mEulerAngles);
     }
 
     ///@}
