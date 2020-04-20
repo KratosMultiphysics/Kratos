@@ -88,7 +88,7 @@ class KEpsilonHighReFormulation(Formulation):
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
         beta = process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
 
-        nut_process = KratosRANS.RansNutKEpsilonHighReCalculationProcess(
+        nut_process = KratosRANS.RansNutKEpsilonHighReUpdateProcess(
                                             model,
                                             self.GetBaseModelPart().Name,
                                             c_mu,
@@ -96,7 +96,7 @@ class KEpsilonHighReFormulation(Formulation):
                                             self.echo_level)
         self.AddProcess(nut_process)
 
-        nut_wall_process = KratosRANS.RansNutYPlusWallFunctionProcess(
+        nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
                                             model,
                                             wall_model_part_name,
                                             c_mu,
