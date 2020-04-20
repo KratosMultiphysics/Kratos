@@ -942,6 +942,50 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGr
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatrix(
+    ConstitutiveLaw::Parameters& rValues,
+    Matrix& rAs,
+    Matrix& rAsInv
+)
+{
+    auto &r_mat_props = rValues.GetMaterialProperties();
+
+    if (rAs.size1() != VoigtSize || rAs.size2() != VoigtSize) {
+        rAs.resize(VoigtSize, VoigtSize);
+    }
+    noalias(rAs) = ZeroMatrix(VoigtSize, VoigtSize);
+    if (rAsInv.size1() != VoigtSize || rAsInv.size2() != VoigtSize) {
+        rAsInv.resize(VoigtSize, VoigtSize);
+    }
+    noalias(rAsInv) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    KRATOS_ERROR_IF_NOT(r_mat_props.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X))
+        << "The ratio of strengths between ther isotropic and the anisotropic spaces is not defined, 
+        check that ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X, ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y, 
+        ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Z, ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY, 
+        ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XZ, ISOTROPIC_ANISOTROPIC_YIELD_RATIO_YZ 
+        are correctly defined " << std::endl;
+
+    if (VoigtSize == 6) {
+        rAs(0, 0) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X];
+        rAs(1, 1) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y];
+        rAs(2, 2) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Z];
+        rAs(3, 3) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY];
+        rAs(4, 4) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_YZ];
+        rAs(5, 5) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XZ];        
+    } else {
+        rAs(0, 0) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X];
+        rAs(1, 1) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y];
+        rAs(2, 2) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY]; 
+    }
+    for (IndexType i = 0; i < VoigtSize; ++i)
+        rAsInv(i, i) = 1.0 / rAs(i, i);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 

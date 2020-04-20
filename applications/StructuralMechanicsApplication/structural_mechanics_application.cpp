@@ -521,6 +521,16 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_VALUE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_OPTION)
 
+    // For anisotropy + orthotrophy
+    // The ratios between the yield strength in the isotropic space and the anisotropic space
+    // at each direction in local coordinates ratio_x = ft / ft,x 
+    KRATOS_REGISTER_VARIABLE( ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X );
+    KRATOS_REGISTER_VARIABLE( ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y );
+    KRATOS_REGISTER_VARIABLE( ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Z );
+    KRATOS_REGISTER_VARIABLE( ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY );
+    KRATOS_REGISTER_VARIABLE( ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XZ );
+    KRATOS_REGISTER_VARIABLE( ISOTROPIC_ANISOTROPIC_YIELD_RATIO_YZ );
+
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("TrussLinearElement3D2N", mTrussLinearElement3D2N)

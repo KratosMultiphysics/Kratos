@@ -21,6 +21,8 @@
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
+#include "includes/constitutive_law.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -399,7 +401,20 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const MatrixType& rRe
         );
 
-  private:
+    /**
+     * @brief This computes the mapper operator between the stresses in the isotropic
+     * "ficticious" space and the real anisotropic space
+     * @param rValues The values of the constitutive la
+     * @param rAs The mapper operator
+     * @note Eq. (2.39) S. Oller book: Comportamiento mecánico de los materiales compuestos
+     */
+    static void CalculateAnisotropicStressMapperMatrix(
+        ConstitutiveLaw::Parameters &rValues,
+        Matrix &rAs,
+        Matrix& rAsInv
+        );
+
+private:
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos
