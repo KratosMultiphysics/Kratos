@@ -1,4 +1,16 @@
+
+### Brief methodology to generate the cluster file ###
+# 1. extract from mesh: OBJ from surface mesh, MSH from the tetrahedra mesh
+# 2. Generate SPH via sphereTree external executable passing OBJ file as argument
+# 3. Clean the SPH file
+# 4. Generate Cluster.clu via mesh_to_cluster_converter.cpp passing SPH + MSH as arguments
+#    modified and precompiled executable will be required to do this
+
+##  --------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 ## GiD events --------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 proc InitGIDProject { dir } {
 
@@ -7,6 +19,8 @@ proc InitGIDProject { dir } {
         GiDMenu::Create "Sphere Cluster Creation" PRE
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenConditions \"SphereTree\"" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenProblemData" "" ""
+        GiDMenu::Create "GenerateSPH" PRE
+        GiDMenu::InsertOption "GenerateSPH" [list "GenerateSPHList" ] 0 PRE [list GenerateSPHFileFromOBJFile] "" ""
         GiDMenu::UpdateMenus
     }
 
@@ -42,18 +56,21 @@ proc ExtractSurfaceTriangles { } {
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
+    # TODO:  On running calculate it will just to to locate and run a DEMClusters.bat
+
     # Write file
-    source [file join $problemtypedir file.tcl]
+    #source [file join $problemtypedir file.tcl]
 
     # TODO: move out and create a button to call this. Do not depend on proc BeforeRunCalculation
     # WriteSphereTreeParameters.json
-    set TableDict [lindex $MDPAOutput 1]
-    source [file join $problemtypedir SphereTreeParameters.tcl]
-    WriteSphereTreeParameters $basename $dir $problemtypedir $TableDict
+    # set TableDict [lindex $MDPAOutput 1]
+    # source [file join $problemtypedir SphereTreeParameters.tcl]
+    # WriteSphereTreeParameters $basename $dir $problemtypedir $TableDict
+
 }
 
 proc GenerateOBJFile { } {
-
+    
     # TODO: Extract required mesh data and format it into a file:
     # Analyze the format of the OBJ and generate the file in GID
     # The format of the OBJ file is as follows:
@@ -81,6 +98,9 @@ proc GenerateOBJFile { } {
 }
 
 proc GenerateSPHFileFromOBJFile { } {
+
+    W "executing GenerateSPHFileFromOBJFile"
+    # TODO: On pressing Button, execute GenerateSPHFileFromOBJFile. Create new button for that?
     call_SphereTree
 }
 
@@ -88,6 +108,7 @@ proc call_SphereTree { } {
 
     # TODO: pass arguments from GiD somehow: 
     set $Algorithm [GiD_AccessValue get gendata Algorithm]
+    W $Algorithm
     if {$Algorithm == "makeTreeMedial"} {
         call_TreeMedial
     } elseif {$Algorithm == "makeTreeGrid"} {
