@@ -151,8 +151,8 @@ private:
 
     /// Creates elements from geometries
     void CreateElements(
-        typename GeometriesArrayType::iterator rGeometriesBegin,
-        typename GeometriesArrayType::iterator rGeometriesEnd,
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
@@ -160,8 +160,8 @@ private:
 
     /// Creates conditions from geometries
     void CreateConditions(
-        typename GeometriesArrayType::iterator rGeometriesBegin,
-        typename GeometriesArrayType::iterator rGeometriesEnd,
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
         SizeType& rIdCounter,

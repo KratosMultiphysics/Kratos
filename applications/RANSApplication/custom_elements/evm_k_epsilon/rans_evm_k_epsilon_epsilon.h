@@ -78,9 +78,6 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
-    /// Vector type for local contributions to the linear system
-    using VectorType = Vector;
-
     using IndexType = std::size_t;
 
     using EquationIdVectorType = std::vector<IndexType>;
@@ -201,11 +198,11 @@ public:
      */
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-    void GetValuesVector(VectorType& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
-    void GetFirstDerivativesVector(VectorType& values, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
 
-    void GetSecondDerivativesVector(VectorType& values, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
     /**
      * @brief GetIntegrationMethod Return the integration order to be used.
