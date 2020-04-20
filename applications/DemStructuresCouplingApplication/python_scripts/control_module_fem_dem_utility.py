@@ -26,13 +26,14 @@ class ControlModuleFemDemUtility(object):
             self.fem_submodel_part = Model["Structure.Parts_Solid_part"]
             settings = KratosMultiphysics.Parameters( """
             {
+                "alternate_axis_loading": false,
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
                 "limit_velocity" : -10.0,
                 "velocity_factor" : 0.5,
                 "compression_length" : 1.0,
                 "young_modulus" : 7.0e9,
-                "stress_increment_tolerance": 100.0,
+                "stress_increment_tolerance": 1.0e2,
                 "update_stiffness": true,
                 "start_time" : 0.0,
                 "stress_averaging_time": 1.0e-5
@@ -47,13 +48,8 @@ class ControlModuleFemDemUtility(object):
             self.top_dem_model_part = self.dem_main_model_part.GetSubModelPart("topdem")
             top_settings = KratosMultiphysics.Parameters( """
             {
-                "variable_name": "DISPLACEMENT",
-                "reaction_variable_name": "REACTION",
-                "dem_force_variable_name": "TOTAL_FORCES",
-                "target_stress_variable_name": "TARGET_STRESS",
-                "reaction_stress_variable_name": "REACTION_STRESS",
-                "loading_velocity_variable_name": "LOADING_VELOCITY",
                 "imposed_direction" : 2,
+                "alternate_axis_loading": false,
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
                 "limit_velocity" : -0.1,
@@ -76,13 +72,8 @@ class ControlModuleFemDemUtility(object):
             self.bot_dem_model_part = self.dem_main_model_part.GetSubModelPart("botdem")
             bot_settings = KratosMultiphysics.Parameters( """
             {
-                "variable_name": "DISPLACEMENT",
-                "reaction_variable_name": "REACTION",
-                "dem_force_variable_name": "TOTAL_FORCES",
-                "target_stress_variable_name": "TARGET_STRESS",
-                "reaction_stress_variable_name": "REACTION_STRESS",
-                "loading_velocity_variable_name": "LOADING_VELOCITY",
                 "imposed_direction" : 2,
+                "alternate_axis_loading": false,
                 "target_stress_table_id" : 2,
                 "initial_velocity" : 0.0,
                 "limit_velocity" : 0.1,
