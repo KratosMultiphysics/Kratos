@@ -104,10 +104,9 @@ namespace Kratos
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
-                ProcessInfo process_info = rProcessInfo;
                 Matrix left_hand_side;
-                ng_elem_i.CalculateLeftHandSide(left_hand_side, process_info);
-                auto dof_index = this->GetDofIndex(ng_elem_i, process_info);
+                ng_elem_i.CalculateLeftHandSide(left_hand_side, rProcessInfo);
+                auto dof_index = this->GetDofIndex(ng_elem_i, rProcessInfo);
                 rResponseGradient = -1.0 * (this->GetColumnCopy(left_hand_side, dof_index));
             }
         }
@@ -252,8 +251,7 @@ namespace Kratos
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
-                ProcessInfo process_info = rProcessInfo;
-                auto dof_index = this->GetDofIndex(ng_elem_i, process_info);
+                auto dof_index = this->GetDofIndex(ng_elem_i, rProcessInfo);
                 rSensitivityGradient = -1.0 * (this->GetColumnCopy(rSensitivityMatrix, dof_index));
             }
         }
@@ -274,8 +272,7 @@ namespace Kratos
 
             if( rAdjointCondition.Id() == ng_cond_i.Id() )
             {
-                ProcessInfo process_info = rProcessInfo;
-                auto dof_index = this->GetDofIndex(ng_cond_i, process_info);
+                auto dof_index = this->GetDofIndex(ng_cond_i, rProcessInfo);
                 rSensitivityGradient = -1.0 * (this->GetColumnCopy(rSensitivityMatrix, dof_index));
             }
         }

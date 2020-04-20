@@ -30,7 +30,7 @@ namespace Kratos
 {
 
     template <class TPrimalCondition>
-    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
     {
         KRATOS_TRY
 
@@ -61,7 +61,7 @@ namespace Kratos
     }
 
     template <class TPrimalCondition>
-    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -294,7 +294,7 @@ namespace Kratos
     }
 
     template <class TPrimalCondition>
-    int AdjointSemiAnalyticBaseCondition<TPrimalCondition>::Check( const ProcessInfo& rCurrentProcessInfo )
+    int AdjointSemiAnalyticBaseCondition<TPrimalCondition>::Check( const ProcessInfo& rCurrentProcessInfo ) const
     {
         KRATOS_TRY
 

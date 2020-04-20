@@ -131,7 +131,6 @@ namespace Kratos
 
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
-            KRATOS_WATCH("here")
             GeometriesArrayType geometries;
             rGeometryList[i].CreateQuadraturePointGeometries(
                 geometries, shape_function_derivatives_order);
@@ -140,7 +139,7 @@ namespace Kratos
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
             if (type == "element" || type == "Element") {
-                SizeType id = 0;
+                SizeType id = 1;
                 if (rModelPart.GetRootModelPart().Elements().size() > 0)
                     id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
@@ -149,7 +148,7 @@ namespace Kratos
                     rModelPart, name, id, PropertiesPointerType());
             }
             else if (type == "condition" || type == "Condition") {
-                SizeType id = 0;
+                SizeType id = 1;
                 if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
@@ -217,7 +216,7 @@ namespace Kratos
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_element_list.push_back(
-                rReferenceElement.Create(rIdCounter, *it, pProperties));
+                rReferenceElement.Create(rIdCounter, typename GeometryType::Pointer(&*it), pProperties));
             rIdCounter++;
         }
 
@@ -243,7 +242,7 @@ namespace Kratos
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_condition_list.push_back(
-                rReferenceCondition.Create(rIdCounter, *it, pProperties));
+                rReferenceCondition.Create(rIdCounter, typename GeometryType::Pointer(&*it), pProperties));
             rIdCounter++;
         }
 
