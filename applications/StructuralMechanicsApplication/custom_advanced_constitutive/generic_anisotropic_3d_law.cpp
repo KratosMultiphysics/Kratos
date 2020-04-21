@@ -81,7 +81,6 @@ void GenericAnisotropicLaw3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     // this strain in the real anisotropic space
     Vector& r_strain_vector = rValues.GetStrainVector();
 
-    const SizeType voigt_size               = GetStrainSize();
     const Properties& r_material_properties = rValues.GetMaterialProperties();
    
     // We create the rValues for the isotropic CL
@@ -96,9 +95,9 @@ void GenericAnisotropicLaw3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     // todo ...
 
     // We compute the mappers As and Ae
-    Matrix stress_mapper(voigt_size, voigt_size), strain_mapper(voigt_size, voigt_size);
-    Matrix stress_mapper_inv(voigt_size, voigt_size); // The inverse of As
-    Matrix isotropic_elastic_matrix(voigt_size, voigt_size), anisotropic_elastic_matrix(voigt_size, voigt_size);
+    Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
+    Matrix stress_mapper_inv(VoigtSize, VoigtSize); // The inverse of As
+    Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
 
     ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
     this->CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
@@ -225,8 +224,6 @@ void GenericAnisotropicLaw3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
 {
     // this strain in the real anisotropic space
     Vector& r_strain_vector = rValues.GetStrainVector();
-    
-    const SizeType voigt_size               = GetStrainSize();
     const Properties& r_material_properties = rValues.GetMaterialProperties();
    
     // We create the rValues for the isotropic CL
@@ -241,9 +238,9 @@ void GenericAnisotropicLaw3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     // todo ...
 
     // We compute the mappers As and Ae
-    Matrix stress_mapper(voigt_size, voigt_size), strain_mapper(voigt_size, voigt_size);
-    Matrix stress_mapper_inv(voigt_size, voigt_size); // The inverse of As
-    Matrix isotropic_elastic_matrix(voigt_size, voigt_size), anisotropic_elastic_matrix(voigt_size, voigt_size);
+    Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
+    Matrix stress_mapper_inv(VoigtSize, VoigtSize); // The inverse of As
+    Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
 
     ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
     this->CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
@@ -342,7 +339,101 @@ Vector& GenericAnisotropicLaw3D::CalculateValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
 {
-    return mpIsotropicCL->CalculateValue(rParameterValues, rThisVariable, rValue);
+    if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+        this->CalculateCauchyGreenStrain(rParameterValues, rValue);
+        return rValue;
+    } else if (rThisVariable == PK2_STRESS_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // We compute the stress
+        this->CalculateMaterialResponsePK2(rParameterValues);
+        rValue = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        return rValue;
+
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // We compute the stress
+        this->CalculateMaterialResponseCauchy(rParameterValues);
+        rValue = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        return rValue;
+
+    } else if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // We compute the stress
+        this->CalculateMaterialResponseKirchhoff(rParameterValues);
+        rValue = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        return rValue;
+        
+    } else if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        if (mpIsotropicCL->Has(PLASTIC_STRAIN_VECTOR)) {
+            
+            const Vector &r_plastic_strain = mpIsotropicCL->CalculateValue(rParameterValues, rThisVariable, rValue);
+            const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
+        
+            // We create the rParameterValues for the isotropic CL
+            const auto it_cl_begin                    = r_material_properties.GetSubProperties().begin();
+            const auto& r_props_iso_cl                = *(it_cl_begin);
+            ConstitutiveLaw::Parameters values_iso_cl = rParameterValues;
+            values_iso_cl.SetMaterialProperties(r_props_iso_cl);
+
+            // We compute the mappers As and Ae
+            Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
+            Matrix stress_mapper_inv(VoigtSize, VoigtSize); // The inverse of As
+            Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
+
+            ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rParameterValues, stress_mapper, stress_mapper_inv);
+            this->CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
+            this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
+            ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
+                                                                                        isotropic_elastic_matrix, stress_mapper, 
+                                                                                        strain_mapper);
+            Matrix invAe(VoigtSize, VoigtSize);
+            double aux_det;
+            MathUtils<double>::InvertMatrix(strain_mapper, invAe, aux_det);
+            rValue = prod(invAe, r_plastic_strain);
+            return rValue;
+        }
+    }
+
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -424,4 +515,28 @@ void GenericAnisotropicLaw3D::CalculateTangentTensor(ConstitutiveLaw::Parameters
 }
 /***********************************************************************************/
 /***********************************************************************************/
+
+void GenericAnisotropicLaw3D::CalculateCauchyGreenStrain(
+    ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector
+    )
+{
+    const SizeType space_dimension = this->WorkingSpaceDimension();
+
+    // Compute total deformation gradient
+    const Matrix& F = rValues.GetDeformationGradientF();
+    KRATOS_DEBUG_ERROR_IF(F.size1()!= Dimension || F.size2() != Dimension)
+        << "expected size of F " << Dimension << "x" << Dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
+
+    Matrix E_tensor = prod(trans(F), F);
+    for(unsigned int i = 0; i < Dimension; ++i)
+        E_tensor(i, i) -= 1.0;
+    E_tensor *= 0.5;
+
+    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // namespace Kratos

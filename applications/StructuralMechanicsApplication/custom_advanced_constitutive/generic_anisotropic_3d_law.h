@@ -416,6 +416,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw3D
         Matrix& rElasticityTensor,
         const Properties& rMaterialProperties);
 
+    void CalculateCauchyGreenStrain(
+        ConstitutiveLaw::Parameters &rValues,
+        Vector &rStrainVector);
+
     ///@}
     ///@name Private  Access
     ///@{
