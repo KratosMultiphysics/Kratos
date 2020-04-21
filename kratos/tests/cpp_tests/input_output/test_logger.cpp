@@ -501,13 +501,13 @@ namespace Kratos {
                 double time = 0.1;
                 Logger("TimeStep").Start() << time << std::endl;
                 KRATOS_INFO("TestLevel") << "Level 1\n";
-                Logger("Build").Start() << std::endl;
+                Logger("Build").Start();
                 KRATOS_INFO("TestLevel") << "Level 2\n";
-                Logger("Build").Stop() << std::endl;
-                Logger("Solve").Start() << std::endl;
+                Logger("Build").Stop();
+                Logger("Solve").Start();
                 KRATOS_INFO("TestLevel") << "Level 2\n";
-                Logger("Solve").Stop() << std::endl;
-                Logger("TimeStep").Stop() << std::endl;
+                Logger("Solve").Stop();
+                Logger("TimeStep").Stop();
 
 
 
@@ -516,13 +516,13 @@ namespace Kratos {
                 expected_output << "TestLevel: Level 0\n";
                 expected_output << "TimeStep: 0.1\n";
                 expected_output << "  TestLevel: Level 1\n";
-                expected_output << "  Build: \n";
+                expected_output << "  Build started\n";
                 expected_output << "    TestLevel: Level 2\n";
-                expected_output << "  Build: \n";
-                expected_output << "  Solve: \n";
+                expected_output << "  Build finished\n";
+                expected_output << "  Solve started\n";
                 expected_output << "    TestLevel: Level 2\n";
-                expected_output << "  Solve: \n";
-                expected_output << "TimeStep: \n";
+                expected_output << "  Solve finished\n";
+                expected_output << "TimeStep finished\n";
             }
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.str().c_str());
         }
