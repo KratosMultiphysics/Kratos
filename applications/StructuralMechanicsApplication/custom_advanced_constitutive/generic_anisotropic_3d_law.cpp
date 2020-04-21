@@ -345,7 +345,12 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
     Vector& rValue)
 {
     if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-        this->CalculateCauchyGreenStrain(rParameterValues, rValue);
+        Flags& r_flags = rParameterValues.GetOptions();
+        if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            this->CalculateCauchyGreenStrain(rParameterValues, rValue);
+        } else {
+            rValue = rParameterValues.GetStrainVector();
+        }
         return rValue;
     } else if (rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
@@ -498,26 +503,7 @@ void GenericAnisotropic3DLaw::InitializeMaterialResponsePK2(Parameters& rValues)
     mpIsotropicCL->InitializeMaterialResponsePK2(rValues);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
 
-void GenericAnisotropic3DLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
-{
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-    // const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
-    // const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
-
-    // if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
-    //     KRATOS_ERROR << "Analytic solution not available" << std::endl;
-    // } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
-    //     // Calculates the Tangent Constitutive Tensor by perturbation (first order)
-    //     TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
-    // } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
-    //     // Calculates the Tangent Constitutive Tensor by perturbation (second order)
-    //     TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
-    // }
-}
 /***********************************************************************************/
 /***********************************************************************************/
 

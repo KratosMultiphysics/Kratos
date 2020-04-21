@@ -132,7 +132,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
      */
     SizeType WorkingSpaceDimension() override
     {
-        return mpIsotropicCL->WorkingSpaceDimension();
+        return 3;
     };
 
     /**
@@ -140,7 +140,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
      */
     SizeType GetStrainSize() override
     {
-        return mpIsotropicCL->GetStrainSize();
+        return 6;
     };
 
     /**
@@ -297,13 +297,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
      * @see Parameters
      */
     void InitializeMaterialResponsePK2(Parameters& rValues) override;  
-
-
-    /**
-     * @brief This method computes the tangent tensor
-     * @param rValues The constitutive law parameters and flags
-     */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues);
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
