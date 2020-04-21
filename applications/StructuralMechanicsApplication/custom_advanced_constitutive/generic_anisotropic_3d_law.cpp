@@ -451,7 +451,7 @@ void GenericAnisotropicLaw3D::InitializeMaterial(
     mpIsotropicCL->InitializeMaterial(r_props_isotropic_cl, rElementGeometry, rShapeFunctionsValues);
 
     // We check now the dimension of the CL pointer, must be 3D
-    KRATOS_ERROR_IF_NOT(VoigtSize == 6) << "The slave CL has a dimension lower than 3, not possible" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpIsotropicCL->GetStrainSize() == 6) << "The slave CL has a dimension lower than 3, not possible" << std::endl;
 
     // Let's check variables
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X not defined in properties" << std::endl;
