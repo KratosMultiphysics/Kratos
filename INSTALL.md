@@ -1,11 +1,10 @@
 # Contents
+* [Cloning Kratos](#cloning-kratos)
 * [Kratos Dependencies](#kratos-dependencies)
   * [Kratos Core Dependencies](#kratos-core-dependencies)
+    * [Linux Installation](#linux-installation)
+    * [Windows Installation](#windows-installation)
   * [Specific Application Dependencies](#specific-application-dependencies)
-    * [ExternalSolversApplication](#externalsolversapplication)
-    * [HDF5Application](#hdf5application)
-    * [MetisApplication](#metisapplication)
-    * [TrilinosApplication](#trilinosapplication)
 * [Basic Configuration](#basic-configuration)
 * [Adding Applications](#adding-applications)
 * [Adding Kratos to Path](#adding-kratos-to-path)
@@ -22,42 +21,94 @@
     * [Feast](#feast)
     * [Metis](#metis)
     * [Trilinos](#trilinos)
-* [Applications](#applications)
+
+## Cloning Kratos
+
+In order to obtain the source code of Kratos, you will need to clone the repository using git.
+
+You can install git through the following command in Linux:
+```Shell
+sudo apt-get install git
+```
+In Windows, you can download it in:
+
+* [Download Git](https://git-scm.com/downloads)
+
+
+
+Once git is installed you can fetch the code by using this command in a terminal:
+
+```Shell
+git clone https://github.com/KratosMultiphysics/Kratos Kratos
+```
 
 ## Kratos Dependencies
 
 ### Kratos Core Dependencies
-  This are the basic dependecies needed to compile the Kratos Core and most of the applications. 
+  This are the basic dependecies needed to compile the Kratos Core and most of the Kratos applications.
   * Python3-dev
-  * C++11 compioler
+  * C++11 compiler
   * CMake
   * Boost
 
-- Linux installation
+Additionaly Visual Studio or MinGW is required to compile in Windows.
 
-   The command below will install all the packages needed.
+- #### Linux installation
 
-   ```Shell
-   sudo apt-get install python3-dev gcc g++ cmake libboost-all-dev
-   ```
-   Newer versions of boost can be downloaded in:
+    The command below will install all the packages needed.
 
-   http://www.boost.org/users/download/. 
+    ```Shell
+    sudo apt-get install python3-dev gcc g++ cmake libboost-all-dev
+    ```
+    Newer versions of boost can be downloaded in:
 
--  Windows installation
+    http://www.boost.org/users/download/.
 
-   TO-DO
+- #### Windows installation
+
+    - Visual Studio
+
+        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*.
+        Since the adoption of **C++11** we support versions 2015 update 3 onwards. We recommend you to use the latest version of visual studio which can be obtained here for free:
+
+        * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=15)
+
+        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continue, in case C++ packages were missing you will be prompt to download them.
+
+    - CMake
+        * [Download CMake](http://cmake.org/download/)
+
+        Once installing, please <span style="color:red"> do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''</span>
+
+        Please notice that if you want to use *python* 3.4 or higher, you will need *CMake* 3.0.2 or higher.
+
+    - Python
+
+        You will need any version of python in your computer in order to compile *Kratos*. We strongly recommend *Python* 3, at least 3.3.4 or higher. you can download python from its official webpage:
+
+        * [Download Python](http://www.python.org/downloads/)
+
+        Please, take special care to download a installer that suits your desired architecture <span style="color:red">x86 for 32 bits</span>  compilations and <span style="color:red">x86_64 for 64 bits</span>  compilations. Otherwise it won't work.
+
+    - Boost
+
+        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward.
+
+        * [Download Boost](http://www.boost.org/users/download/)
+
+        Extract boost, and note the path as it will be needed in the configure stage to set the `-DBOOST_ROOT` variable.
+
+
 ### Specific Application Dependencies
-In this section, the applications that require specific dependencies are listed.  
-#### ExternalSolversApplication
-The list of dependencies for this application can be found [in the application README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/ExternalSolversApplication/README.md)
-#### HDF5Application
-The list of dependencies for this application can be found [in the application README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/HDF5Application/README.md)
-#### MetisApplication
-The list of dependencies for this application can be found [in the application README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MetisApplication/README.md)
-#### TrilinosApplication
-The list of dependencies for this application can be found [in the application README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/TrilinosApplication/README.md)
 
+Specific compilation information about applications can be found in their own directories:
+- [EigenSolvers Application (only required if MKL is used)](applications/EigenSolversApplication/README.md#build-instructions)
+- [ExternalSolvers Application](applications/ExternalSolversApplication/README.md#installing-blas-and-lapack)
+- [HDF5 Application](applications/HDF5Application/README.md#build-instructions)
+- [Metis Application](applications/MetisApplication/README.md)
+- [MultilevelMontecarlo Application](applications/MultilevelMonteCarloApplication/README.md#external-libraries)
+- [Poromechanics Application](applications/PoromechanicsApplication/README.md#how-to-use-mpi-in-poromechanics-application)
+- [Trilinos Application (Aditional notes)](applications/TrilinosApplication/README.md#notes-for-compilation)
 
 ## Basic Configuration
 
@@ -129,7 +180,7 @@ set PATH=%PATH%;C:/Kratos/bin/Release/libs
 These examples are also located [in the /scripts folder](https://github.com/KratosMultiphysics/Kratos/tree/master/scripts). You can simply create your own copy:
 
 ```Shell
-cp /path_to_kratos/scripts/standard_configure.sh /path_to_kratos/scripts/configure.sh 
+cp /path_to_kratos/scripts/standard_configure.sh /path_to_kratos/scripts/configure.sh
 ```
 
 
@@ -397,12 +448,3 @@ libepetra.so          -> No prefix
 libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
 ```
 
-## Applications
-
-Specific compilation information about applications can be found in their own directories:
-
-- [EigenSolvers Application](applications/EigenSolversApplication/README.md#build-instructions)
-- [HDF5 Application](applications/HDF5Application/README.md#build-instructions)
-- [MultilevelMontecarlo Application](applications/MultilevelMonteCarloApplication/README.md#external-libraries)
-- [Poromechanics Application](applications/PoromechanicsApplication/README.md#how-to-use-mpi-in-poromechanics-application)
-- [Trilinos Application (Aditional notes)](applications/TrilinosApplication/README.md#notes-for-compilation)
