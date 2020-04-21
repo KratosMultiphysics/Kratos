@@ -49,18 +49,18 @@
     "modelers": {
         "iga_modelers": [
             {
-                "kratos_module": "CadIoModeler",
+                "modeler_name": "CadIoModeler",
                 "Parameters": {
                     "cad_model_part_name": "SinglePatchCADModel",
-                    "physics_file_name": "single_patch_geometry.cad.json"
+                    "geometry_file_name": "single_patch_test/single_patch_geometry.cad.json"
                 }
             },
             {
-                "kratos_module": "IgaModeler",
+                "modeler_name": "IgaModeler",
                 "Parameters": {
                     "cad_model_part_name": "SinglePatchCADModel",
                     "analysis_model_part_name": "IgaModelPart",
-                    "physics_file_name": "single_patch_physics.iga.json"
+                    "physics_file_name": "single_patch_test/single_patch_physics.iga.json"
                 }
             }
         ]
