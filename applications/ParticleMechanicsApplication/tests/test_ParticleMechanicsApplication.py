@@ -95,7 +95,6 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
     
     nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
-    nightSuite.addTest(TExplicit3dHexCompressibleOscillatingPointTest('test_execution'))
     
     nightSuite.addTest(TBeamCantileverStaticLinearElasticPointLoad2DTriTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticParticlePointLoad2DTriTest('test_execution'))
@@ -120,6 +119,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TExplicitOscillatingPointTriTest('test_execution'))
     nightSuite.addTest(TExplicitAxisymDiskTriCompressibleTest('test_execution'))
     nightSuite.addTest(TExplicitAxisymDiskQuadCompressibleTest('test_execution'))
+    nightSuite.addTest(TExplicit3dHexCompressibleOscillatingPointTest('test_execution'))
     nightSuite.addTest(TExplicit3dTetCompressibleOscillatingPointTest('test_execution'))
     
     ### Adding Validation Tests
