@@ -172,7 +172,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
       this->Initialize();
 
     //prints informations about the current time
-    //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
+    //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::STATUS;
 
     //set up the system
     if(this->mOptions.Is(LocalFlagType::REFORM_DOFS)){
@@ -186,7 +186,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     double end_time = OpenMPUtils::GetCurrentTime();
 
     if (this->mEchoLevel >= 2)
-      KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+      KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::STATISTICS;
 
     //initial operations ... things that are constant over the Solution Step
     mpBuilderAndSolver->InitializeSolutionStep(mpScheme, this->GetModelPart(), mpA, mpDx, mpb);
@@ -507,14 +507,14 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     mpBuilderAndSolver->SetUpDofSet(mpScheme, this->GetModelPart());
     double end_time = OpenMPUtils::GetCurrentTime();
     if (this->mEchoLevel >= 2)
-      KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+      KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::STATISTICS;
 
     //shaping correctly the system
     begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpSystem();
     end_time = OpenMPUtils::GetCurrentTime();
     if (this->mEchoLevel >= 2)
-      KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;    //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
+      KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::STATISTICS;    //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
 
     KRATOS_CATCH("")
   }

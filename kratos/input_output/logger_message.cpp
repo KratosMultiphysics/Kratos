@@ -23,6 +23,12 @@
 
 namespace Kratos
 {
+  KRATOS_CREATE_LOCAL_FLAG( LoggerMessage, STATUS,      0 );
+  KRATOS_CREATE_LOCAL_FLAG( LoggerMessage, CRITICAL,    1 );
+  KRATOS_CREATE_LOCAL_FLAG( LoggerMessage, STATISTICS,  2 );
+  KRATOS_CREATE_LOCAL_FLAG( LoggerMessage, PROFILING,   3 );
+  KRATOS_CREATE_LOCAL_FLAG( LoggerMessage, CHECKING,    4 );
+
   LoggerMessage::MessageSource::MessageSource()
   {
     mRank = ParallelEnvironment::GetDefaultRank();
@@ -77,8 +83,8 @@ namespace Kratos
     return *this;
   }
 
-  LoggerMessage& LoggerMessage::operator << (Category const& TheCategory) {
-    mCategory = TheCategory;
+  LoggerMessage& LoggerMessage::operator << (Flags const& TheFlags) {
+    mFlags |= TheFlags;
 
     return *this;
   }

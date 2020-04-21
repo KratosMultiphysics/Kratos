@@ -50,7 +50,7 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
 
     std::stringstream buffer;
     Logger::Severity severityOption = severity;
-    Logger::Category categoryOption = Logger::Category::STATUS;
+    Flags categoryOption = LoggerMessage::STATUS;
 
     std::string label;
 //     const char* label;
@@ -87,8 +87,8 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
     }
 
     if(kwargs.contains("category")) {
-//         categoryOption = extract<Logger::Category>(kwargs["category"]);
-        categoryOption = py::cast<Logger::Category>(kwargs["category"]);
+//         categoryOption = extract<Flags>(kwargs["category"]);
+        categoryOption = py::cast<Flags>(kwargs["category"]);
     }
 
     // Send the message and options to the logger
@@ -157,8 +157,8 @@ void  AddLoggerToPython(pybind11::module& m) {
     .def("GetMaxLevel", &LoggerOutput::GetMaxLevel)
     .def("SetSeverity", &LoggerOutput::SetSeverity)
     .def("GetSeverity", &LoggerOutput::GetSeverity)
-    .def("SetCategory", &LoggerOutput::SetCategory)
-    .def("GetCategory", &LoggerOutput::GetCategory)
+    .def("SetCategory", &LoggerOutput::SetFlags)
+    .def("GetCategory", &LoggerOutput::GetFlags)
     .def("SetOption", &LoggerOutput::SetOption)
     .def("GetOption", &LoggerOutput::GetOption)
     ;
@@ -193,13 +193,13 @@ void  AddLoggerToPython(pybind11::module& m) {
     .value("DEBUG", Logger::Severity::DEBUG)
     .value("TRACE", Logger::Severity::TRACE);
 
-    // Enums for Category
-    py::enum_<Logger::Category>(logger_scope,"Category")
-    .value("STATUS", Logger::Category::STATUS)
-    .value("CRITICAL", Logger::Category::CRITICAL)
-    .value("STATISTICS", Logger::Category::STATISTICS)
-    .value("PROFILING", Logger::Category::PROFILING)
-    .value("CHECKING", Logger::Category::CHECKING);
+    logger_output.attr("STATUS") = LoggerMessage::STATUS;
+    logger_output.attr("CRITICAL") = LoggerMessage::CRITICAL;
+    logger_output.attr("STATISTICS") = LoggerMessage::STATISTICS;
+    logger_output.attr("PROFILING") = LoggerMessage::PROFILING;
+    logger_output.attr("CHECKING") = LoggerMessage::CHECKING;
+
+
 }
 
 }  // namespace Python.

@@ -66,8 +66,6 @@ namespace Kratos
 
     using Severity = LoggerMessage::Severity;
 
-    using Category = LoggerMessage::Category;
-
     using DistributedFilter = LoggerMessage::DistributedFilter;
 
     ///@}
@@ -184,8 +182,8 @@ namespace Kratos
     /// Severity stream function
     Logger& operator << (Severity const& TheSeverity);
 
-    /// Category stream function
-    Logger& operator << (Category const& TheCategory);
+    /// Flags stream function
+    Logger& operator << (Flags const& TheFlags);
 
 
       ///@}
@@ -310,11 +308,11 @@ namespace Kratos
 #define KRATOS_TRACE_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_TRACE_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
-#define KRATOS_CHECK_POINT(label) Logger(label) << Logger::Category::CHECKING
+#define KRATOS_CHECK_POINT(label) Logger(label) << Logger::CHECKING
 #else
 #define KRATOS_CHECK_POINT(label) \
   if (false)                      \
-    Logger(label) << Logger::Category::CHECKING
+    Logger(label) << LoggerMessage::CHECKING
 #endif
     ///@}
 

@@ -32,6 +32,7 @@
 #include "includes/kratos_export_api.h"
 #include "includes/code_location.h"
 #include "utilities/stl_vector_io.h"
+#include "containers/flags.h"
 
 namespace Kratos
 {
@@ -69,13 +70,13 @@ public:
   TRACE,
   };
 
-  enum class Category {
-  STATUS,
-  CRITICAL,
-  STATISTICS,
-  PROFILING,
-  CHECKING
-  };
+  
+KRATOS_DEFINE_LOCAL_FLAG(STATUS);
+KRATOS_DEFINE_LOCAL_FLAG(CRITICAL);
+KRATOS_DEFINE_LOCAL_FLAG(STATISTICS);
+KRATOS_DEFINE_LOCAL_FLAG(PROFILING);
+KRATOS_DEFINE_LOCAL_FLAG(CHECKING);
+
 
   class DistributedFilter {
   public:
@@ -140,10 +141,10 @@ public:
   ///@{
 
   explicit LoggerMessage(std::string const& TheLabel)
-  : mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS), mMessageSource(), mDistributedFilter(DistributedFilter::FromRoot()) {}
+  : mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mFlags(LoggerMessage::STATUS), mMessageSource(), mDistributedFilter(DistributedFilter::FromRoot()) {}
 
   LoggerMessage(LoggerMessage const& Other)
-  : mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory), mMessageSource(Other.mMessageSource), mDistributedFilter(Other.mDistributedFilter) {}
+  : mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mFlags(Other.mFlags), mMessageSource(Other.mMessageSource), mDistributedFilter(Other.mDistributedFilter) {}
 
   /// Destructor.
   virtual ~LoggerMessage() {}
@@ -159,7 +160,7 @@ public:
       mLevel = Other.mLevel;
       // mLocation = Other.mLocation;
   mSeverity = Other.mSeverity;
-  mCategory = Other.mCategory;
+  mFlags = Other.mFlags;
   mDistributedFilter = Other.mDistributedFilter;
 
   return *this;
@@ -214,12 +215,12 @@ public:
   return mSeverity;
   }
 
-  void SetCategory(Category const& TheCategory) {
-  mCategory = TheCategory;
+  void SetFlags(Flags const& TheFlags) {
+  mFlags = TheFlags;
   }
 
-  Category GetCategory() const {
-  return mCategory;
+  Flags GetFlags() const {
+  return mFlags;
   }
 
   bool IsDistributed() const {
@@ -284,8 +285,8 @@ public:
   /// Severity stream function
   LoggerMessage& operator << (Severity const& TheSeverity);
 
-  /// Category stream function
-  LoggerMessage& operator << (Category const& TheCategory);
+  /// Flags stream function
+  LoggerMessage& operator << (Flags const& TheFlags);
 
   /// DistributedFilter stream function
   LoggerMessage& operator << (DistributedFilter const& TheMessageSource);
@@ -308,7 +309,7 @@ private:
   std::size_t mLevel;
   CodeLocation mLocation;
   Severity mSeverity;
-  Category mCategory;
+  Flags mFlags;
   MessageSource mMessageSource;
   DistributedFilter mDistributedFilter;
   TimePointType mTime;

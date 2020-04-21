@@ -220,14 +220,14 @@ public:
   //   this->SetUpDofSet(rModelPart);
   //   double end_time = OpenMPUtils::GetCurrentTime();
   //   if (this->mEchoLevel >= 2)
-  //     KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+  //     KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::STATISTICS;
 
   //   //shaping correctly the system
   //   begin_time = OpenMPUtils::GetCurrentTime();
   //   this->SetUpSystem();
   //   end_time = OpenMPUtils::GetCurrentTime();
   //   if (this->mEchoLevel >= 2)
-  //     KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+  //     KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::STATISTICS;
 
   //   KRATOS_CATCH("")
   // }

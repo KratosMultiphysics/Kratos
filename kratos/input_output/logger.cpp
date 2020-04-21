@@ -124,10 +124,10 @@ namespace Kratos
     return *this;
   }
 
-  /// Category stream function
-  Logger& Logger::operator << (Category const& TheCategory)
+  /// Flags stream function
+  Logger& Logger::operator << (Flags const& TheFlags)
   {
-    mCurrentMessage << TheCategory;
+    mCurrentMessage << TheFlags;
 
     return *this;
   }

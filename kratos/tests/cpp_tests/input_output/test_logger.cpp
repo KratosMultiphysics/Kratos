@@ -31,18 +31,18 @@ namespace Kratos {
             KRATOS_CHECK_C_STRING_EQUAL(message.GetLabel().c_str(), "label");
             if (DataCommunicator::GetDefault().Rank() == 0) KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00");
             KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::INFO);
-            KRATOS_CHECK_EQUAL(message.GetCategory(), LoggerMessage::Category::STATUS);
+            KRATOS_CHECK_EQUAL(message.GetFlags(), LoggerMessage::STATUS);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFileName(), "Unknown");
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), "Unknown");
             KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), -1);
 
             message << LoggerMessage::Severity::DETAIL
-                << LoggerMessage::Category::CRITICAL
+                << LoggerMessage::CRITICAL
                 << KRATOS_CODE_LOCATION << std::endl;
 
             KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00\n");
             KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::DETAIL);
-            KRATOS_CHECK_EQUAL(message.GetCategory(), LoggerMessage::Category::CRITICAL);
+            KRATOS_CHECK_EQUAL(message.GetFlags(), LoggerMessage::CRITICAL);
             KRATOS_CHECK_NOT_EQUAL(message.GetLocation().GetFileName().find("test_logger.cpp"), std::string::npos);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), KRATOS_CURRENT_FUNCTION);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), 40);
@@ -74,7 +74,7 @@ namespace Kratos {
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
 
             Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output "
-                << Logger::Category::CRITICAL << std::endl;
+                << LoggerMessage::CRITICAL << std::endl;
 
             // The message has DETAIL severity and should not be written (check that nothing was added to the buffer)
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());

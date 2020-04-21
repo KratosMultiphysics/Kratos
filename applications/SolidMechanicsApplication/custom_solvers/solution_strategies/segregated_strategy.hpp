@@ -150,7 +150,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
       this->GetModelPart().GetProcessInfo().SetValue(IMPLEX, true);
 
     //prints informations about the current time
-    //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
+    //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::STATUS;
 
     int counter = 0;
     for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)

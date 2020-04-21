@@ -782,7 +782,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     // double end_time = OpenMPUtils::GetCurrentTime();
 
     // if (this->mEchoLevel >= 2)
-    //   KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    //   KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::STATISTICS;
 
     KRATOS_CATCH("")
   }
@@ -1065,7 +1065,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
     double end_time = OpenMPUtils::GetCurrentTime();
     if (this->mEchoLevel >= 2)
-      KRATOS_INFO("BlockBuilderAndSolver") << "construct matrix structure time:" << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+      KRATOS_INFO("BlockBuilderAndSolver") << "construct matrix structure time:" << end_time - begin_time << "\n" << LoggerMessage::STATISTICS;
 
   }
 

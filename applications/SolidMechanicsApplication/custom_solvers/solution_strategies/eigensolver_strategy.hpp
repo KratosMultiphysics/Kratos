@@ -436,14 +436,14 @@ class EigensolverStrategy
     mpBuilderAndSolver->SetUpDofSet(mpScheme, this->GetModelPart());
     double end_time = OpenMPUtils::GetCurrentTime();
     if (this->mEchoLevel >= 2)
-      KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+      KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::STATISTICS;
 
     //shaping correctly the system
     begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpSystem();
     end_time = OpenMPUtils::GetCurrentTime();
     if (this->mEchoLevel >= 2)
-      KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+      KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::STATISTICS;
 
     KRATOS_CATCH("")
   }
@@ -606,8 +606,8 @@ class EigensolverStrategy
     }
 
     if (this->mEchoLevel >= 1){
-      KRATOS_INFO(" eigen_ratio") << " ::EIGEN_CONTRIBUTION:: (Mode/Mass) RATIO [" <<ratio_mass_mode_contribution << "]\n" << LoggerMessage::Category::STATUS;
-      KRATOS_INFO(" eigen_total") << " ::EIGEN_CONTRIBUTION:: (Mode/Mass) TOTAL [" << total_mass_contribution<< "]\n" << LoggerMessage::Category::STATUS;
+      KRATOS_INFO(" eigen_ratio") << " ::EIGEN_CONTRIBUTION:: (Mode/Mass) RATIO [" <<ratio_mass_mode_contribution << "]\n" << LoggerMessage::STATUS;
+      KRATOS_INFO(" eigen_total") << " ::EIGEN_CONTRIBUTION:: (Mode/Mass) TOTAL [" << total_mass_contribution<< "]\n" << LoggerMessage::STATUS;
     }
 
     KRATOS_CATCH("")
