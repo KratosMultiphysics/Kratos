@@ -107,9 +107,10 @@ def CreateFormulationModelPart(formulation, element_name, condition_name):
 
     element_name = element_name + element_suffix
     condition_name = condition_name + condition_suffix
-    return CreateDuplicateModelPart(formulation.GetBaseModelPart(),
-                                    formulation.GetName(), element_name,
-                                    condition_name, "")
+    return CreateDuplicateModelPart(
+        formulation.GetBaseModelPart(),
+        formulation.GetName() + "_" + element_name + "_" + condition_name,
+        element_name, condition_name, "")
 
 
 def GetConvergenceInfo(variable,

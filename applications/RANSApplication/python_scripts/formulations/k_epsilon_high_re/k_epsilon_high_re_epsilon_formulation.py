@@ -29,6 +29,7 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
               self).__init__(model_part, settings)
 
         defaults = Kratos.Parameters(r"""{
+            "wall_function_type"    : "turbulent_kinetic_energy_based",
             "relative_tolerance"    : 1e-3,
             "absolute_tolerance"    : 1e-5,
             "max_iterations"        : 200,
@@ -43,7 +44,19 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def PrepareModelPart(self):
-        self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, "RansEvmKEpsilonEpsilonVelocityBasedWallCondition")
+        wall_function_type = self.settings["wall_function_type"].GetString()
+        if (wall_function_type == "turbulent_kinetic_energy_based"):
+            # this wall condition is more preferred, but fails if turbulent kinetic energy singularities is found
+            condition_name = "RansEvmKEpsilonEpsilonKBasedWallCondition"
+        elif wall_function_type == "velocity_based":
+            # this one works even with turbulent kinetic energy singularities
+            condition_name = "RansEvmKEpsilonEpsilonVelocityBasedWallCondition"
+        else:
+            raise Exception(
+                "Only \"turbulent_kinetic_energy_based\" and \"velocity_based\" wall function type supported. [ wall_function_type = \""
+                + wall_function_type + "\" ].")
+
+        self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, condition_name)
 
         Kratos.Logger.PrintInfo(self.GetName(),
                                 "Created formulation model part.")
