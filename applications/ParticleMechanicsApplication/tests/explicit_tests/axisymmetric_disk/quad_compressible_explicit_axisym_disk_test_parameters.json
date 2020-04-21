@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "tri_compressible_explicit_axisym_disk_test",
+        "problem_name"  : "quad_compressible_explicit_axisym_disk_test",
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
@@ -18,7 +18,7 @@
 		"compressible"                       : true,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "explicit_tests/axisymmetric_disk/tri_compressible_explicit_axisym_disk_test_Body"
+            "input_filename" : "explicit_tests/axisymmetric_disk/quad_compressible_explicit_axisym_disk_test_Body"
         },
         "material_import_settings"           : {
             "materials_filename" : "explicit_tests/axisymmetric_disk/compressible_explicit_axisym_disk_test_materials.json"
@@ -36,7 +36,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_bc"],
         "grid_model_import_settings"         : {
             "input_type"     : "mdpa",
-            "input_filename" : "explicit_tests/axisymmetric_disk/tri_compressible_explicit_axisym_disk_test_Grid"
+            "input_filename" : "explicit_tests/axisymmetric_disk/quad_compressible_explicit_axisym_disk_test_Grid"
         },
         "axis_symmetric_flag"                : true,
         "pressure_dofs"                      : false
@@ -72,7 +72,7 @@
             "process_name"          : "ParticleFromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["MP_VELOCITY","MP_DISPLACEMENT"],
-                "input_file_name"  : "explicit_tests/axisymmetric_disk/tri_compressible_explicit_axisym_disk_results.json",
+                "input_file_name"  : "explicit_tests/axisymmetric_disk/quad_compressible_explicit_axisym_disk_results.json",
                 "model_part_name"  : "MPM_Material",
                 "time_frequency"   : 0.025
             }
@@ -85,7 +85,7 @@
         "process_name"          : "ParticleJsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["MP_VELOCITY","MP_DISPLACEMENT","MP_VOLUME"],
-            "output_file_name"              : "explicit_tests/axisymmetric_disk/tri_compressible_explicit_axisym_disk_results.json",
+            "output_file_name"              : "explicit_tests/axisymmetric_disk/quad_compressible_explicit_axisym_disk_results.json",
             "model_part_name"               : "MPM_Material",
             "time_frequency"                : 0.025
         }
