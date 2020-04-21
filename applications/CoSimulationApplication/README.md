@@ -29,7 +29,7 @@ The CoSimulation Application is very modular and designed to be extended to coup
 
 The interface between the CoSimulation and a solver is the done with the [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py). This wrapper is specific to every solver and calls the solver-custom methods based on the input of CoSimulation.
 
-The second component necessary is an [**IO**](python_scripts/base_classes/co_simulation_io.py). This component is used by the SolverWrapper and is responsible for the exchange of data (e.g. mesh, field-quantities, geomety etc) between the solver and CoSimulation.\
+The second component necessary is an [**IO**](python_scripts/base_classes/co_simulation_io.py). This component is used by the SolverWrapper and is responsible for the exchange of data (e.g. mesh, field-quantities, geomety etc) between the solver and CoSimulation.
 
     In principle three different options are possible for exchanging data with CoSimulation:
 
