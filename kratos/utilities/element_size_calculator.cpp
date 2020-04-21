@@ -138,7 +138,7 @@ double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& 
     Hsq = (hsq < Hsq) ? hsq : Hsq;
     return std::sqrt(Hsq);
 }
-// Prism3D4 version.
+// Prism3D6 version.
 template<>
 double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &rGeometry){
     // Get nodes
