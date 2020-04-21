@@ -37,6 +37,7 @@ from particle_mechanics_test_factory import ExplicitOscillatingPointGravityTest 
 from particle_mechanics_test_factory import ExplicitOscillatingPointTriTest as TExplicitOscillatingPointTriTest
 from particle_mechanics_test_factory import ExplicitAxisymDiskTriCompressibleTest as TExplicitAxisymDiskTriCompressibleTest
 from particle_mechanics_test_factory import ExplicitAxisymDiskQuadCompressibleTest as TExplicitAxisymDiskQuadCompressibleTest
+from particle_mechanics_test_factory import Explicit3dHexCompressibleOscillatingPointTest as TExplicit3dHexCompressibleOscillatingPointTest
 
 
 # Import from Test Factories (with different analysis flows)
@@ -92,6 +93,7 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
     
     nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
+    nightSuite.addTest(TExplicit3dHexCompressibleOscillatingPointTest('test_execution'))
     
     nightSuite.addTest(TBeamCantileverStaticLinearElasticPointLoad2DTriTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticParticlePointLoad2DTriTest('test_execution'))

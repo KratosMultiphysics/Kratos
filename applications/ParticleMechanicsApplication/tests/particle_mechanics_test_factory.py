@@ -119,3 +119,6 @@ class ExplicitAxisymDiskTriCompressibleTest(ParticleMechanicsTestFactory):
 
 class ExplicitAxisymDiskQuadCompressibleTest(ParticleMechanicsTestFactory):
     file_name = "explicit_tests/axisymmetric_disk/quad_compressible_explicit_axisym_disk_test"
+
+class Explicit3dHexCompressibleOscillatingPointTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point_3d/3dhex_compressible_explicit_oscillating_point_test"
