@@ -51,7 +51,7 @@ CrBeamElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 CrBeamElement3D2N::~CrBeamElement3D2N() {}
 
 void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
 {
     if (rResult.size() != msElementSize) {
         rResult.resize(msElementSize);
@@ -72,7 +72,7 @@ void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
 }
 
 void CrBeamElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
-                                   ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rElementalDofList.size() != msElementSize) {
@@ -91,13 +91,6 @@ void CrBeamElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
         rElementalDofList[index + 4] = GetGeometry()[i].pGetDof(ROTATION_Y);
         rElementalDofList[index + 5] = GetGeometry()[i].pGetDof(ROTATION_Z);
     }
-}
-
-void CrBeamElement3D2N::Initialize()
-{
-
-    KRATOS_TRY;
-    KRATOS_CATCH("")
 }
 
 void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
@@ -1652,7 +1645,7 @@ double CrBeamElement3D2N::CalculateShearModulus() const
     KRATOS_CATCH("")
 }
 
-int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();

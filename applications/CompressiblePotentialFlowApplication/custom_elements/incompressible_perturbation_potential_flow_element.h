@@ -192,40 +192,53 @@ private:
 
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
 
-    void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
-                                           VectorType& rRightHandSideVector,
+    void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
                                            const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                         VectorType& rRightHandSideVector,
+    void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
+                                           const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                          const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalSystemSubdividedElement(BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
+    void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
+                                         const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateLeftHandSideSubdividedElement(BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
                                                BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
                                                const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateVolumesSubdividedElement(double& rUpper_vol,
+                                           double& rLower_vol,
+                                           const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeLHSGaussPointContribution(const double weight,
                                           BoundedMatrix<double, NumNodes, NumNodes>& lhs,
                                           const ElementalData<NumNodes, Dim>& data) const;
 
-    void AssignLocalSystemSubdividedElement(MatrixType& rLeftHandSideMatrix,
+    void AssignLeftHandSideSubdividedElement(MatrixType& rLeftHandSideMatrix,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                             const ElementalData<NumNodes, Dim>& data) const;
 
-    void AssignLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
+    void AssignLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                       BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                       const ElementalData<NumNodes, Dim>& data) const;
 
-    void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
+    void AssignLeftHandSideWakeNode(MatrixType& rLeftHandSideMatrix,
                                    BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
 
-    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
+    void AssignRightHandSideWakeNode(VectorType& rRightHandSideVector,
+                                   const BoundedVector<double, NumNodes>& rUpper_rhs,
+                                   const BoundedVector<double, NumNodes>& rLower_rhs,
+                                   const BoundedVector<double, NumNodes>& rWake_rhs,
+                                   const ElementalData<NumNodes, Dim>& rData,
+                                   unsigned int& rRow) const;
 
-    void ComputeElementInternalEnergy();
+    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Serialization

@@ -30,7 +30,7 @@ GenerateDemProcess::GenerateDemProcess(
 
 void GenerateDemProcess::Execute() 
 {
-    auto nodal_neigh_process = FindNodalNeighboursProcess(mrModelPart, 5, 5);
+    FindNodalNeighboursProcess nodal_neigh_process (mrModelPart);
     nodal_neigh_process.Execute();
 
     const auto it_element_begin = mrModelPart.ElementsBegin();

@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/kratos_components.h"
+#include "geometries/register_kratos_components_for_geometry.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
@@ -115,6 +116,11 @@ void AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComp
     KratosComponents<Variable<Flags> >::Add(Name, ThisComponent);
 }
 
+void AddKratosComponent(std::string const& Name, Geometry<Node<3>> const& ThisComponent)
+{
+    KratosComponents<Geometry<Node<3>>>::Add(Name, ThisComponent);
+}
+
 void AddKratosComponent(std::string const& Name, Element const& ThisComponent)
 {
     KratosComponents<Element>::Add(Name, ThisComponent);
@@ -155,6 +161,7 @@ template class KratosComponents<Variable<Flags> >;
 template class KratosComponents<Flags>;
 template class KratosComponents<DataCommunicator>;
 
+template class KratosComponents<Geometry<Node<3>>>;
 template class KratosComponents<Element>;
 template class KratosComponents<Condition>;
 template class KratosComponents<ConstitutiveLaw>;

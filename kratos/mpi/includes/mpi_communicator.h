@@ -1188,29 +1188,6 @@ public:
         return "MPICommunicator";
     }
 
-    /// Print information about this object.
-
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-
-    void PrintData(std::ostream& rOStream) const override
-    {
-        for (IndexType i = 0; i < mLocalMeshes.size(); i++)
-        {
-            rOStream << "    Local Mesh " << i << " : " << std::endl;
-            LocalMesh(i).PrintData(rOStream);
-            rOStream << "    Ghost Mesh " << i << " : " << std::endl;
-            GhostMesh(i).PrintData(rOStream);
-            rOStream << "    Interface Mesh " << i << " : " << std::endl;
-            InterfaceMesh(i).PrintData(rOStream);
-        }
-    }
-
-
     ///@}
     ///@name Friends
     ///@{

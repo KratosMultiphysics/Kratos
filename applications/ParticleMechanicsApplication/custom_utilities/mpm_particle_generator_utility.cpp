@@ -24,9 +24,6 @@ namespace MPMParticleGeneratorUtility
     typedef Node<3> NodeType;
     typedef Geometry<Node<3>> GeometryType;
 
-/***********************************************************************************/
-/***********************************************************************************/
-
     void GenerateMaterialPointCondition(    ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart)
@@ -68,23 +65,28 @@ namespace MPMParticleGeneratorUtility
             if (submodelpart.NumberOfConditions() != 0){
 
                 std::string submodelpart_name = submodelpart.Name();
-                rMPMModelPart.CreateSubModelPart(submodelpart_name);
 
                 // For regular conditions: straight copy all conditions
                 if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
-                    rMPMModelPart.SetConditions(submodelpart.pConditions());
-                    rMPMModelPart.GetSubModelPart(submodelpart_name).SetConditions(submodelpart.pConditions());
+                    if (submodelpart.NodesBegin()->Is(SLIP)){
+                        // Do nothing, this is a slip condition applied directly 
+                        // to the background grid nodes.
+                        // Check 'apply_mpm_slip_boundary_process.py'
+                    }
+                    else {
+                        rMPMModelPart.CreateSubModelPart(submodelpart_name);
+                        rMPMModelPart.SetConditions(submodelpart.pConditions());
+                    }
                 }
                 // For boundary conditions: create particle conditions for all the necessary conditions
                 else{
-
                     // NOTE: To create Particle Condition, we consider both the nodal position as well as the position of integration point
                     // Loop over the conditions of submodelpart and generate mpm condition to be appended to the rMPMModelPart
+                    rMPMModelPart.CreateSubModelPart(submodelpart_name);
                     for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
                             i != submodelpart.ConditionsEnd(); i++)
                     {
                         Properties::Pointer properties = i->pGetProperties();
-                        const int mpc_condition_id = i->GetProperties().Id();
 
                         // Flag whether condition is Neumann or Dirichlet
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
@@ -272,7 +274,6 @@ namespace MPMParticleGeneratorUtility
                         // Evaluation of geometric length/area
                         const double area = r_geometry.Area();
                         mpc_area = area / (1 + integration_point_per_conditions);
-                        const double mpc_nodal_area = mpc_area / r_geometry.size();
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
@@ -344,23 +345,29 @@ namespace MPMParticleGeneratorUtility
                             // Check Normal direction
                             if (flip_normal_direction) mpc_normal *= -1.0;
 
+                            ProcessInfo process_info = ProcessInfo();
+
                             // Setting particle condition's initial condition
                             // TODO: If any variable is added or remove here, please add and remove also at the second loop below
-                            p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
-                            p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, mpc_area);
-                            p_condition->SetValue(MPC_NORMAL, mpc_normal);
-                            p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
-                            p_condition->SetValue(MPC_IMPOSED_DISPLACEMENT, mpc_imposed_displacement);
-                            p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
-                            p_condition->SetValue(MPC_IMPOSED_VELOCITY, mpc_imposed_velocity);
-                            p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
-                            p_condition->SetValue(MPC_IMPOSED_ACCELERATION, mpc_imposed_acceleration);
+                            //p_condition->SetValuesOnIntegrationPoints(MPC_CONDITION_ID, mpc_condition_id, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_COORD, { mpc_xg }, process_info);
+                            std::vector<double> mpc_area_vector = { mpc_area };
+                            p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area_vector, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
 
                             if (is_neumann_condition)
-                                p_condition->SetValue(POINT_LOAD, point_load);
+                                p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
                             else{
-                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
+
+                                std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
+                                p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
+
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
@@ -368,7 +375,7 @@ namespace MPMParticleGeneratorUtility
                                 if (is_interface)
                                 {
                                     p_condition->Set(INTERFACE);
-                                    p_condition->SetValue(MPC_CONTACT_FORCE, mpc_contact_force);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE, { mpc_contact_force }, process_info);
                                 }
                             }
 
@@ -398,23 +405,28 @@ namespace MPMParticleGeneratorUtility
                                 mpc_xg[dimension] = r_geometry[j].Coordinates()[dimension];
                             }
 
+                            ProcessInfo process_info = ProcessInfo();
+
                             // Setting particle condition's initial condition
                             // TODO: If any variable is added or remove here, please add and remove also at the first loop above
-                            p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
-                            p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, mpc_nodal_area);
-                            p_condition->SetValue(MPC_NORMAL, mpc_normal);
-                            p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
-                            p_condition->SetValue(MPC_IMPOSED_DISPLACEMENT, mpc_imposed_displacement);
-                            p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
-                            p_condition->SetValue(MPC_IMPOSED_VELOCITY, mpc_imposed_velocity);
-                            p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
-                            p_condition->SetValue(MPC_IMPOSED_ACCELERATION, mpc_imposed_acceleration);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_COORD, { mpc_xg }, process_info);
+                            std::vector<double> mpc_area_vector = { mpc_area };
+                            p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area_vector, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
 
                             if (is_neumann_condition)
-                                p_condition->SetValue(POINT_LOAD, point_load);
+                                p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
                             else{
-                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
+
+                                std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
+                                p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
+
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
@@ -422,7 +434,7 @@ namespace MPMParticleGeneratorUtility
                                 if (is_interface)
                                 {
                                     p_condition->Set(INTERFACE);
-                                    p_condition->SetValue(MPC_CONTACT_FORCE, mpc_contact_force);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE, { mpc_contact_force }, process_info);
                                 }
                             }
 

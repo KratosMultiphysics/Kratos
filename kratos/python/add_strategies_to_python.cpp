@@ -207,7 +207,7 @@ namespace Kratos
             return *dummy;
         }
 
-        template< typename TSpaceType > 
+        template< typename TSpaceType >
         py::class_< TSpaceType > CreateSpaceInterface(pybind11::module& m, std::string Name)
         {
             py::class_< TSpaceType > binder(m,Name.c_str());
@@ -274,7 +274,7 @@ namespace Kratos
                 .def("Clean", &BaseSchemeType::Clean)
                 .def("Clear",&BaseSchemeType::Clear)
                 .def("MoveMesh", MoveMesh)
-                .def("Check", &BaseSchemeType::Check)
+                .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
                 ;
 
             py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
@@ -460,6 +460,7 @@ namespace Kratos
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
             .def(py::init< LinearSolverType::Pointer > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
             ;
 
             //********************************************************************

@@ -71,9 +71,6 @@ KratosMeshMovingApplication::KratosMeshMovingApplication()
 
 void KratosMeshMovingApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     KRATOS_INFO("") << "    KRATOS  __  __        _    __  __         _\n"
                     << "           |  \\/  |___ __| |_ |  \\/  |_____ _(_)_ _  __ _\n"
                     << "           | |\\/| / -_|_-< ' \\| |\\/| / _ \\ V / | ' \\/ _` |\n"

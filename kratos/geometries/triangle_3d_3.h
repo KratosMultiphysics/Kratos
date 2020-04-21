@@ -659,8 +659,20 @@ public:
         isect2[0] = tmp + e*xx*y1;
         isect2[1] = tmp + f*xx*y0;
 
-        std::sort(isect1.begin(), isect1.end());
-        std::sort(isect2.begin(), isect2.end());
+        // std::sort(isect1.begin(), isect1.end());
+        // std::sort(isect2.begin(), isect2.end());
+
+        if (isect1[0] > isect1[1]) {
+            isect1[1] = isect1[0] + isect1[1];
+            isect1[0] = isect1[1] - isect1[0];
+            isect1[1] = isect1[1] - isect1[0];
+        }
+
+        if (isect2[0] > isect2[1]) {
+            isect2[1] = isect2[0] + isect2[1];
+            isect2[0] = isect2[1] - isect2[0];
+            isect2[1] = isect2[1] - isect2[0];
+        }
 
         if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
         return true;

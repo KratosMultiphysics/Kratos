@@ -368,7 +368,7 @@ namespace Kratos
 
    //*********************************SET DOUBLE VALUE***********************************
    //************************************************************************************
-   void UpdatedLagrangianUJElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+   void UpdatedLagrangianUJElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
          std::vector<double>& rValues,
          const ProcessInfo& rCurrentProcessInfo )
    {
@@ -384,7 +384,7 @@ namespace Kratos
       }
       else{
 
-         LargeDisplacementElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+         LargeDisplacementElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
       }
 
