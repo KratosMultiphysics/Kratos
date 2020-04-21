@@ -3,12 +3,12 @@ import KratosMultiphysics.RANSApplication
 
 from KratosMultiphysics.RANSApplication.evm_k_epsilon_configuration import TurbulenceKEpsilonConfiguration
 
-def Factory(settings, Model):
+def Factory(model_part, settings):
     if (not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
         )
-    if (not isinstance(Model, KratosMultiphysics.Model)):
+    if (not isinstance(model_part, KratosMultiphysics.ModelPart)):
         raise Exception("expected input shall be a Model object")
     turbulence_models_list = ["k_epsilon"]
 
@@ -20,5 +20,5 @@ def Factory(settings, Model):
         raise Exception(msg)
 
     if model_type == "k_epsilon":
-        turbulence_model = TurbulenceKEpsilonConfiguration(Model, settings)
+        turbulence_model = TurbulenceKEpsilonConfiguration(model_part, settings)
         return turbulence_model

@@ -96,11 +96,11 @@ namespace Kratos
 
         void EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         void GetDofList(
             DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -222,7 +222,7 @@ namespace Kratos
             int Step = 0) override;
 
         int  Check(
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         /**
          * @brief This function calculates the current Green-Lagrange strain

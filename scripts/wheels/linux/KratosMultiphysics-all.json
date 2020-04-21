@@ -7,7 +7,14 @@
         "KratosContactStructuralMechanicsApplication==${KRATOS_VERSION}",
         "KratosDEMApplication==${KRATOS_VERSION}",
         "KratosFluidDynamicsApplication==${KRATOS_VERSION}",
-        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}"
+        "KratosStructuralMechanicsApplication==${KRATOS_VERSION}",
+        "KratosConvectionDiffusionApplication==${KRATOS_VERSION}",
+        "KratosDamApplication==${KRATOS_VERSION}",
+        "KratosEigenSolversApplication==${KRATOS_VERSION}",
+        "KratosExternalSolversApplication==${KRATOS_VERSION}",
+        "KratosFSIApplication==${KRATOS_VERSION}",
+        "KratosParticleMechanicsApplication==${KRATOS_VERSION}",
+        "KratosPoroMechanicsApplication==${KRATOS_VERSION}"
     ],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",

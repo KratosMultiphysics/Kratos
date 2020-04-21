@@ -99,7 +99,7 @@ protected:
         TDataType residual_solution_norm = TDataType();
         long int local_dof_num = 0;
 
-        const double rank = rB.Comm().MyPID(); // To compare with PARTITION_INDEX, which is a double variable
+        const int rank = rB.Comm().MyPID();
 
         // Loop over Dofs
         #pragma omp parallel for reduction(+:residual_solution_norm,local_dof_num)
