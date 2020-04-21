@@ -16,9 +16,8 @@
   * [Building Environment](#building-environments)
   * [Common Flags](#common-flags)
   * [Compilation Performance](#compilation-performance)
-  * [Parallelism](#parallelism)
+  * [MPI-Parallelism](#parallelism)
   * [External Libraries](#external-libraries)
-    * [Feast](#feast)
     * [Metis](#metis)
     * [Trilinos](#trilinos)
 
@@ -49,7 +48,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
   * Python3-dev
   * C++11 compiler
   * CMake
-  * Boost
+  * Boost (dependencies are header-only, no compilation of boost libraries required)
 
 Additionaly Visual Studio or MinGW is required to compile in Windows.
 
