@@ -235,6 +235,7 @@ void Stokes<TElementData>::UpdateIntegrationPointData(
     const typename TElementData::ShapeDerivativesType& rDN_DX) const
 {
     rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
+    this->CalculateMaterialResponse(rData);
 }
 
 template <>
