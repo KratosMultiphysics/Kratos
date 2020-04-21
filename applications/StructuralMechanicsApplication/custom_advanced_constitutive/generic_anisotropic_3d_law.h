@@ -43,7 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GenericAnisotropicLaw
+ * @class GenericAnisotropicLaw3D
  * @ingroup StructuralMechanicsApplication
  * @brief This CL takes into account the material anisotropy in terms of 
  * young modulus, poisson ratio, orientation and strengths. 
@@ -51,7 +51,7 @@ namespace Kratos
  * Chapter "Anisotropía mecánica"
  * @author Alejandro Cornejo
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw3D
     : public ConstitutiveLaw
 {
   public:
@@ -67,8 +67,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-    /// Counted pointer of GenericAnisotropicLaw
-    KRATOS_CLASS_POINTER_DEFINITION(GenericAnisotropicLaw);
+    /// The size type definition
+    typedef std::size_t SizeType;
+    
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 3;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 6;
+
+    /// Counted pointer of GenericAnisotropicLaw3D
+    KRATOS_CLASS_POINTER_DEFINITION(GenericAnisotropicLaw3D);
 
     ///@}
     ///@name Life Cycle
@@ -77,7 +86,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
     /**
     * Constructor.
     */
-    GenericAnisotropicLaw()
+    GenericAnisotropicLaw3D()
     {
     }
 
@@ -86,11 +95,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericAnisotropicLaw>(*this);
+        return Kratos::make_shared<GenericAnisotropicLaw3D>(*this);
     }
 
     // Copy constructor
-    GenericAnisotropicLaw(GenericAnisotropicLaw const& rOther)
+    GenericAnisotropicLaw3D(GenericAnisotropicLaw3D const& rOther)
         : ConstitutiveLaw(rOther), 
         mpIsotropicCL(rOther.mpIsotropicCL)
     {
@@ -99,7 +108,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
     /**
     * Destructor.
     */
-    ~GenericAnisotropicLaw() override
+    ~GenericAnisotropicLaw3D() override
     {
     }
 
@@ -437,7 +446,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropicLaw
 
     ///@}
 
-}; // Class GenericAnisotropicLaw
+}; // Class GenericAnisotropicLaw3D
 
 } // namespace Kratos
 
