@@ -183,19 +183,19 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
     const double Gxy = 1.0 / ((1.0 + vxy) / Ex + (1.0 + vxy) / Ey);
     const double Gxz = 1.0 / ((1.0 + vxz) / Ex + (1.0 + vxz) / Ez);
     const double Gyz = 1.0 / ((1.0 + vyz) / Ey + (1.0 + vyz) / Ez);
-    const double ctant = (1.0 - vxy * vxy - vyz * vyz - vxz * vxz - 2.0 * vxy * vyz * vxz) / (Ex * Ey * Ez);
+    const double ctant = 1.0 / (1.0 - vxy * vxy - vyz * vyz - vxz * vxz - 2.0 * vxy * vyz * vxz);
 
-    rElasticityTensor(0, 0) = (1.0 - vyz * vyz) / (Ey * Ez * ctant);
-    rElasticityTensor(0, 1) = (vxy + vxz * vyz) / (Ey * Ez * ctant);
-    rElasticityTensor(1, 0) = (vxy + vxz * vyz) / (Ex * Ez * ctant);
+    rElasticityTensor(0, 0) = Ex * (1.0 - vyz * vyz) * ctant;
+    rElasticityTensor(0, 1) = Ex * (vxy + vyz * vxz) * ctant;
+    rElasticityTensor(1, 0) = Ey * (vxy + vyz * vxz) * ctant;
 
-    rElasticityTensor(0, 2) = (vxz + vxy * vyz) / (Ey * Ez * ctant);
-    rElasticityTensor(2, 0) = (vxz + vxy * vyz) / (Ey * Ex * ctant);
-    rElasticityTensor(1, 1) = (1.0 - vxz * vxz) / (Ez * Ex * ctant);
+    rElasticityTensor(0, 2) = Ex * (vxz + vxy * vyz) * ctant;
+    rElasticityTensor(2, 0) = Ez * (vxz + vxy * vyz) * ctant;
+    rElasticityTensor(1, 1) = Ey * (1.0 - vxz * vxz) * ctant;
 
-    rElasticityTensor(1, 2) = (vyz + vxz * vxy) / (Ez * Ex * ctant);
-    rElasticityTensor(2, 1) = (vyz + vxz * vxy) / (Ey * Ex * ctant);
-    rElasticityTensor(2, 2) = (1.0 - vxy * vxy) / (Ex * Ey * ctant);
+    rElasticityTensor(1, 2) = Ey * (vyz + vxy * vxz) * ctant;
+    rElasticityTensor(2, 1) = Ez * (vyz + vxy * vxz) * ctant;
+    rElasticityTensor(2, 2) = Ez * (1.0 - vxy * vxy) * ctant;
 
     rElasticityTensor(3, 3) = Gxy;
     rElasticityTensor(4, 4) = Gyz;
