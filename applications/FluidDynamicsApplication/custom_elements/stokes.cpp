@@ -252,8 +252,6 @@ void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointLHSContribution(
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
-
     // Get constitutive matrix
     const Matrix &C = rData.C;
 
@@ -455,8 +453,6 @@ void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointLHSContribution(
     const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
-
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -660,8 +656,6 @@ void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
     const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
-
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -1238,8 +1232,6 @@ void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointLHSContribution(
 
     const double dyn_tau = rData.DynamicTau;
 
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
-
     // Get constitutive matrix
     const Matrix &C = rData.C;
 
@@ -1814,8 +1806,6 @@ void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointLHSContribution(
     const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
-
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -2397,8 +2387,6 @@ void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vnn = rData.Velocity_OldStep2;
-    const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -2458,8 +2446,6 @@ void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointRHSContribution(
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vnn = rData.Velocity_OldStep2;
-    const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -2519,8 +2505,6 @@ void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vnn = rData.Velocity_OldStep2;
-    const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -2590,8 +2574,6 @@ void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointRHSContribution(
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vnn = rData.Velocity_OldStep2;
-    const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
@@ -2661,8 +2643,6 @@ void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointRHSContribution(
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vnn = rData.Velocity_OldStep2;
-    const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
