@@ -183,8 +183,8 @@ protected:
                                      const double& rIntegrationWeight) override;
 
     /// Calculation of the Explicit Stresses from velocity gradient.
-    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
-        GeneralVariables& rVariables);
+    void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+        GeneralVariables& rVariables) override;
 
     /**
      * Clear Nodal Forces
@@ -260,7 +260,7 @@ protected:
                                       const double & rReferenceRadius);
 
     /// Calculate and add RHS
-    void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
         GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight,
         const ProcessInfo& rCurrentProcessInfo) override;
 
