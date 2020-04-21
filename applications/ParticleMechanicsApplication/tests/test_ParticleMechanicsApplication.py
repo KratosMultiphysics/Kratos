@@ -35,6 +35,8 @@ from particle_mechanics_test_factory import ExplicitOscillatingPointCentralDiffe
 from particle_mechanics_test_factory import ExplicitOscillatingPointYCompressibleTest as TExplicitOscillatingPointYCompressibleTest
 from particle_mechanics_test_factory import ExplicitOscillatingPointGravityTest as TExplicitOscillatingPointGravityTest
 from particle_mechanics_test_factory import ExplicitOscillatingPointTriTest as TExplicitOscillatingPointTriTest
+from particle_mechanics_test_factory import ExplicitAxisymDiskTriCompressibleTest as TExplicitAxisymDiskTriCompressibleTest
+
 
 
 # Import from Test Factories (with different analysis flows)
@@ -112,6 +114,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TExplicitOscillatingPointYCompressibleTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointGravityTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointTriTest('test_execution'))
+    nightSuite.addTest(TExplicitAxisymDiskTriCompressibleTest('test_execution'))
     
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate

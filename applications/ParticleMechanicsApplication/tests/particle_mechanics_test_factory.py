@@ -113,3 +113,6 @@ class ExplicitOscillatingPointGravityTest(ParticleMechanicsTestFactory):
 
 class ExplicitOscillatingPointTriTest(ParticleMechanicsTestFactory):
     file_name = "explicit_tests/oscillating_point/tri_explicit_oscillating_point_test"
+
+class ExplicitAxisymDiskTriCompressibleTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/axisymmetric_disk/tri_compressible_explicit_axisym_disk_test"
