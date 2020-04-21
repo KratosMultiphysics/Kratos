@@ -169,11 +169,21 @@ void GenericAnisotropicLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Para
     const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-
+    const SizeType voigt_size    = GetStrainSize();
     const Properties& r_material_properties = rValues.GetMaterialProperties();
+   
 
-    
+    // Here we rotate the orthotropy misalignment with respect to the global axes
+    // {
+    //}
+    // todo ...
 
+    // We compute the mappers As and Ae
+    Matrix stress_mapper(voigt_size, voigt_size), strain_mapper(voigt_size, voigt_size);
+    Matrix stress_mapper_inv(voigt_size, voigt_size); // The inverse of As
+    Matrix isotropic_elastic_matrix(voigt_size, voigt_size), anisotropic_elastic_matrix(voigt_size, voigt_size);
+
+    ConstitutiveLawUtilities<voigt_size>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
 
 }
 
