@@ -71,7 +71,7 @@
             "help"                  : "",
             "process_name"          : "ParticleFromJsonCheckResultProcess",
             "Parameters"            : {
-                "check_variables"  : ["MP_VELOCITY","MP_DISPLACEMENT"],
+                "check_variables"  : ["MP_VELOCITY","MP_DISPLACEMENT","MP_VOLUME"],
                 "input_file_name"  : "explicit_tests/axisymmetric_disk/quad_compressible_explicit_axisym_disk_results.json",
                 "model_part_name"  : "MPM_Material",
                 "time_frequency"   : 0.025
