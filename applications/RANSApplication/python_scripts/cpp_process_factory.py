@@ -42,10 +42,15 @@ def Factory(settings, Model):
         ],
         [
             "CheckScalarBoundsProcess",
-            KratosRANS.RansCheckScalarBoundsProcess],
+            KratosRANS.RansCheckScalarBoundsProcess
+        ],
         [
             "NutKEpsilonHighReCalculationProcess",
             KratosRANS.RansNutKEpsilonHighReCalculationProcess
+        ],
+        [
+            "NutKEpsilonHighReUpdateProcess",
+            KratosRANS.RansNutKEpsilonHighReUpdateProcess
         ],
         [
             "KTurbulentIntensityInletProcess",
@@ -68,6 +73,10 @@ def Factory(settings, Model):
             KratosRANS.RansNutYPlusWallFunctionProcess
         ],
         [
+            "NutYPlusWallFunctionUpdateProcess",
+            KratosRANS.RansNutYPlusWallFunctionUpdateProcess
+        ],
+        [
             "NuTLowReCalculationProcess",
             KratosRANS.RansNutLowReCalculationProcess
         ],
@@ -82,6 +91,10 @@ def Factory(settings, Model):
         [
             "LineOutputProcess",
             KratosRANS.RansLineOutputProcess
+        ],
+        [
+            "WallFunctionUpdateProcess",
+            KratosRANS.RansWallFunctionUpdateProcess
         ],
         [
             "NutYPlusWallFunctionSensitivitiesProcess",
