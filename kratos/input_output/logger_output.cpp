@@ -78,29 +78,27 @@ namespace Kratos
                 break;
             }
 
+            if(TheMessage.IsDistributed())
+                r_stream << "Rank " << TheMessage.GetSourceRank() << ": ";
+
             for(std::size_t i_level = 0 ; i_level < TheMessage.GetLevel() ; i_level++){
                 r_stream << "  ";
             }
 
-            if(TheMessage.IsDistributed())
-                r_stream << "Rank " << TheMessage.GetSourceRank() << ": ";
+            std::string seperator = (TheMessage.GetMessage().empty() || TheMessage.GetLabel().empty()) ? "" : ": ";
+            std::string message_body = TheMessage.GetMessage();
 
-            if(TheMessage.GetLabel().size()){
-                if(TheMessage.GetMessage().empty()){
-                    if(TheMessage.GetFlags().Is(LoggerMessage::START)){
-                        r_stream << TheMessage.GetLabel() << " started" << std::endl;
-                    }
-                    else if(TheMessage.GetFlags().Is(LoggerMessage::STOP)){
-                        r_stream << TheMessage.GetLabel() << " finished" << std::endl;
-                    }
+            if(TheMessage.GetMessage().empty()){
+                if(TheMessage.GetFlags().Is(LoggerMessage::START)){
+                    message_body =  " started\n";
                 }
-                else{
-                    r_stream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+                else if(TheMessage.GetFlags().Is(LoggerMessage::STOP)){
+                    message_body =  " finished\n";
                 }
             }
-            else{
-                r_stream << TheMessage.GetMessage();
-            }
+
+
+            r_stream << TheMessage.GetLabel() << seperator<< message_body;
 
             ResetMessageColor(message_severity);
         }
