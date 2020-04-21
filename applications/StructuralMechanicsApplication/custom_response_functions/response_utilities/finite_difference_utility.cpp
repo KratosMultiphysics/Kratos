@@ -26,7 +26,7 @@ namespace Kratos
                                                 const Variable<double>& rDesignVariable,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -73,7 +73,7 @@ namespace Kratos
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -124,7 +124,7 @@ namespace Kratos
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 

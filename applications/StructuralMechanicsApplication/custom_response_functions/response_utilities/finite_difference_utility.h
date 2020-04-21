@@ -47,7 +47,7 @@ public:
                                                 const Variable<double>& rDesignVariable,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo);
+                                                const ProcessInfo& rCurrentProcessInfo);
 
     template <typename TElementType>
     static void CalculateRightHandSideDerivative(TElementType& rElement,
@@ -56,7 +56,7 @@ public:
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Vector& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -101,7 +101,7 @@ public:
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo);
+                                                const ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateMassMatrixDerivative(Element& rElement,
                                                 const Matrix& rMassMatrix,
@@ -109,7 +109,7 @@ public:
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo);
+                                                const ProcessInfo& rCurrentProcessInfo);
 
 private:
 

@@ -40,7 +40,7 @@ void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunica
     const int size = rComm.Size();
 
     auto p_center = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    p_center->FastGetSolutionStepValue(PARTITION_INDEX) = 0.0;
+    p_center->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
 
     const double angle_start = rank   * (total_angle / size);
     const double angle_end   = rank+1 * (total_angle / size);
@@ -56,9 +56,9 @@ void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunica
     auto p_node_1 = rModelPart.CreateNewNode(local_index, x1, y1, 0.0);
     auto p_node_2 = rModelPart.CreateNewNode(ghost_index, x2, y2, 0.0);
 
-    p_node_1->FastGetSolutionStepValue(PARTITION_INDEX) = 1.0*rank;
+    p_node_1->FastGetSolutionStepValue(PARTITION_INDEX) = rank;
     const int remote_rank = (rank != size-1) ? rank + 1 : 0;
-    p_node_2->FastGetSolutionStepValue(PARTITION_INDEX) = 1.0*remote_rank;
+    p_node_2->FastGetSolutionStepValue(PARTITION_INDEX) = remote_rank;
 
     std::vector<ModelPart::IndexType> element_nodes{1, local_index, ghost_index};
     rModelPart.CreateNewElement("Element2D3N", rank+1, element_nodes, p_properties);
@@ -763,7 +763,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosM
     auto neighbor_indices = r_mpi_comm.NeighbourIndices();
 
     int neighbor;
-    double local_index = comm_world.Rank(); // PARTITION_INDEX is a double
+    int local_index = comm_world.Rank();
     for (unsigned int i = 0; i < number_of_colors; i++)
     {
         if ((neighbor = neighbor_indices[i]) > -1)
@@ -773,7 +773,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosM
             std::size_t ghost_size = r_mpi_comm.GhostMeshes()[i].Nodes().size();
             KRATOS_CHECK_GREATER(interface_size, 0);
             KRATOS_CHECK_EQUAL(interface_size, local_size+ghost_size);
-            double neighbor_index = neighbor; // PARTITION_INDEX is a double
+            int neighbor_index = neighbor;
             for (auto& node : r_mpi_comm.LocalMeshes()[i].Nodes())
             {
                 KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(PARTITION_INDEX,0), local_index);
