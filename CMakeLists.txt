@@ -18,8 +18,6 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
 
-cmake_policy(SET CMP0021 OLD)
-
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 7)
 set (KratosMultiphysics_MINOR_VERSION 1)
