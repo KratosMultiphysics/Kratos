@@ -25,6 +25,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
+
         // Add in explicit internal force calculation (f_i = V * Sum_j [s_ij N_,j])
         // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
         GeometryType& rGeom = rElement.GetGeometry();
@@ -352,7 +353,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType rGeom = rElement.GetGeometry();
+        const GeometryType rGeom = rElement.GetGeometry();
         const double deltaTime = rCurrentProcessInfo[DELTA_TIME];
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
@@ -377,7 +378,7 @@ namespace Kratos
             for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; nodeIndex++)
             {
                 const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
-                velocityGradient(3, 3) += nodal_velocity[0] * rN[nodeIndex] / AxisymmetricRadius;;
+                velocityGradient(2, 2) += nodal_velocity[0] * rN[nodeIndex] / AxisymmetricRadius;
             }
         }
 
