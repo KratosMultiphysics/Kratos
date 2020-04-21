@@ -47,6 +47,7 @@ namespace Kratos
   Logger& Logger::Start(std::string const& TheSectionLabel){
     KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "The Logger::Start cannot be called in a parallel region" << std::endl;
     mCurrentMessage.SetLevel(GetCurrentLevelInstance());
+    mCurrentMessage << LoggerMessage::START << LoggerMessage::PROFILING;
     GetCurrentLevelInstance()++;
     return *this;
   }
@@ -59,6 +60,7 @@ namespace Kratos
     }
 
     mCurrentMessage.SetLevel(GetCurrentLevelInstance());
+    mCurrentMessage << LoggerMessage::STOP << LoggerMessage::PROFILING;
     return *this;
   }
 

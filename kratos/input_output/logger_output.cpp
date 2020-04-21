@@ -85,10 +85,22 @@ namespace Kratos
             if(TheMessage.IsDistributed())
                 r_stream << "Rank " << TheMessage.GetSourceRank() << ": ";
 
-            if(TheMessage.GetLabel().size())
-                r_stream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
-            else
+            if(TheMessage.GetLabel().size()){
+                if(TheMessage.GetMessage().empty()){
+                    if(TheMessage.GetFlags().Is(LoggerMessage::START)){
+                        r_stream << TheMessage.GetLabel() << " started" << std::endl;
+                    }
+                    else if(TheMessage.GetFlags().Is(LoggerMessage::STOP)){
+                        r_stream << TheMessage.GetLabel() << " finished" << std::endl;
+                    }
+                }
+                else{
+                    r_stream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+                }
+            }
+            else{
                 r_stream << TheMessage.GetMessage();
+            }
 
             ResetMessageColor(message_severity);
         }
