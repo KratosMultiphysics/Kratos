@@ -87,6 +87,19 @@ void RansWallFunctionUpdateProcess::ExecuteInitialize()
     CalculateConditionNeighbourCount();
 }
 
+void RansWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY
+
+    if (!mIsInitialized)
+    {
+        this->Execute();
+        mIsInitialized = true;
+    }
+
+    KRATOS_CATCH("");
+}
+
 void RansWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
 {
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);

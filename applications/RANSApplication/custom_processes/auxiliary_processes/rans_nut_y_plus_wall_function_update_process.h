@@ -90,6 +90,8 @@ public:
 
     void ExecuteInitialize() override;
 
+    void ExecuteInitializeSolutionStep() override;
+
     void Execute() override;
 
     ///@}
@@ -164,6 +166,7 @@ private:
     double mBeta;
     double mMinValue;
     int mEchoLevel;
+    bool mIsInitialized = false;
 
     ///@}
     ///@name Private Operators

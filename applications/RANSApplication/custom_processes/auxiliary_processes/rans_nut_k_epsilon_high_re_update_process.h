@@ -98,6 +98,8 @@ public:
 
     int Check() override;
 
+    void ExecuteInitializeSolutionStep() override;
+
     void Execute() override;
 
     ///@}
@@ -170,6 +172,7 @@ private:
     double mCmu;
     double mMinValue;
     int mEchoLevel;
+    bool mIsInitialized = false;
 
     ///@}
     ///@name Private Operators

@@ -123,6 +123,19 @@ void RansNutYPlusWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
         << "Calculated number of neighbour conditions in " << mModelPartName << ".\n";
 }
 
+void RansNutYPlusWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY
+
+    if (!mIsInitialized)
+    {
+        this->Execute();
+        mIsInitialized = true;
+    }
+
+    KRATOS_CATCH("");
+}
+
 void RansNutYPlusWallFunctionUpdateProcess::Execute()
 {
     KRATOS_TRY

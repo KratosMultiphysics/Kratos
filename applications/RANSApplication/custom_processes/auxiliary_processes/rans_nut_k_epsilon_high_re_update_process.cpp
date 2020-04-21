@@ -81,6 +81,19 @@ int RansNutKEpsilonHighReUpdateProcess::Check()
     KRATOS_CATCH("");
 }
 
+void RansNutKEpsilonHighReUpdateProcess::ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY
+
+    if (!mIsInitialized)
+    {
+        this->Execute();
+        mIsInitialized = true;
+    }
+
+    KRATOS_CATCH("");
+}
+
 void RansNutKEpsilonHighReUpdateProcess::Execute()
 {
     KRATOS_TRY
