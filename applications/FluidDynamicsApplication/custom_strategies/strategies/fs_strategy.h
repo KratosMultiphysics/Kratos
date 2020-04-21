@@ -58,8 +58,22 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class FSStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+/**
+ * @brief Fractional-step strategy for incompressible Navier-Stokes formulation
+ * This strategy implements a splitting scheme for the incompressible Navier-Stokes equations.
+ * It is intended to be used in combination with the FractionalStep element in the FluidDynamicsApplicatoin.
+ * The fractional step index, which is stored in the ProcessInfo, takes the values
+ * 1 : Momentum step (calculate fractional step velocity)
+ * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
+ * 4 : Pressure step
+ * 5 : Computation of projections
+ * 6 : End of step velocity
+ * @tparam TSparseSpace Sparse space template type
+ * @tparam TDenseSpace Dense space template type
+ * @tparam TLinearSolver Linear solver template type
+ */
+template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
+class FSStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -86,8 +100,10 @@ public:
                SolverSettingsType& rSolverConfig,
                bool PredictorCorrector):
         BaseType(rModelPart,false),
+        mCalculateReactionsFlag(false),
         mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {
+        KRATOS_WARNING("FSStrategy") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
         InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
@@ -96,7 +112,34 @@ public:
                bool PredictorCorrector,
                const Kratos::Variable<int>& PeriodicVar):
         BaseType(rModelPart,false),
+        mCalculateReactionsFlag(false),
         mrPeriodicIdVar(PeriodicVar)
+    {
+        KRATOS_WARNING("FSStrategy") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
+        InitializeStrategy(rSolverConfig,PredictorCorrector);
+    }
+
+    FSStrategy(
+        ModelPart& rModelPart,
+        SolverSettingsType& rSolverConfig,
+        bool PredictorCorrector,
+        bool CalculateReactionsFlag)
+        : BaseType(rModelPart,false)
+        , mCalculateReactionsFlag(CalculateReactionsFlag)
+        , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    {
+        InitializeStrategy(rSolverConfig,PredictorCorrector);
+    }
+
+    FSStrategy(
+        ModelPart& rModelPart,
+        SolverSettingsType& rSolverConfig,
+        bool PredictorCorrector,
+        bool CalculateReactionsFlag,
+        const Kratos::Variable<int>& PeriodicVar)
+        : BaseType(rModelPart,false)
+        , mCalculateReactionsFlag(CalculateReactionsFlag)
+        , mrPeriodicIdVar(PeriodicVar)
     {
         InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
@@ -204,6 +247,11 @@ public:
             converged = true;
         }
 
+        // Calculate reactions
+        if (mCalculateReactionsFlag) {
+            CalculateReactions();
+        }
+
         return converged;
     }
 
@@ -214,64 +262,58 @@ public:
         }
     }
 
-    virtual void CalculateReactions()
-    {
+    //TODO: Move to private section as soon as we remove the Python exposure
+    /**
+     * @brief Calculates the reactions
+     * This methods calculates the reactions of the momentum equation.
+     * These are computed as minus the RHS and saved in the REACTION variable
+     */
+virtual void CalculateReactions()
+{
+    auto &r_model_part = BaseType::GetModelPart();
+    auto &r_process_info = r_model_part.GetProcessInfo();
 
-        ModelPart& rModelPart = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    // Set fractional step index to the momentum equation step
+    const int original_step = r_process_info[FRACTIONAL_STEP];
+    r_process_info.SetValue(FRACTIONAL_STEP, 1);
 
-        // Set fractional step index to the momentum equation step
-        int OriginalStep = rCurrentProcessInfo[FRACTIONAL_STEP];
-        rCurrentProcessInfo.SetValue(FRACTIONAL_STEP,1);
-
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                itNode->FastGetSolutionStepValue(REACTION) = ZeroVector(3);
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(r_model_part.NumberOfNodes()); ++i_node) {
+            auto it_node = r_model_part.NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(REACTION) = ZeroVector(3);
         }
 
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
+        LocalSystemVectorType RHS_Contribution;
+        LocalSystemMatrixType LHS_Contribution;
 
-            LocalSystemVectorType RHS_Contribution;
-            LocalSystemMatrixType LHS_Contribution;
+#pragma omp parallel for private(RHS_Contribution, LHS_Contribution)
+        for (int i_elem = 0; i_elem < static_cast<int>(r_model_part.NumberOfElements()); ++i_elem) {
+            // Build local system
+            auto it_elem = r_model_part.ElementsBegin() + i_elem;
+            it_elem->CalculateLocalSystem(
+                LHS_Contribution,
+                RHS_Contribution,
+                r_process_info);
 
-            for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-
-                //itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
-
-                // Build local system
-                itElem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-
-                Element::GeometryType& rGeom = itElem->GetGeometry();
-                unsigned int NumNodes = rGeom.PointsNumber();
-                unsigned int index = 0;
-
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    rGeom[i].SetLock();
-                    array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION);
-                    for (unsigned int d = 0; d < mDomainSize; ++d)
-                        rReaction[d] -= RHS_Contribution[index++];
-                    rGeom[i].UnSetLock();
+            // Accumulate minus the RHS as the reaction
+            unsigned int index = 0;
+            auto& r_geom = it_elem->GetGeometry();
+            const unsigned int n_nodes = r_geom.PointsNumber();
+            for (unsigned int i = 0; i < n_nodes; ++i) {
+                r_geom[i].SetLock();
+                auto& r_reaction = r_geom[i].FastGetSolutionStepValue(REACTION);
+                for (unsigned int d = 0; d < mDomainSize; ++d) {
+                    r_reaction[d] -= RHS_Contribution[index++];
                 }
+                r_geom[i].UnSetLock();
             }
         }
 
-        rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
+        // Synchronize the local REACTION values
+        r_model_part.GetCommunicator().AssembleCurrentData(REACTION);
 
         // Reset original fractional step index
-        rCurrentProcessInfo.SetValue(FRACTIONAL_STEP,OriginalStep);
+        r_process_info.SetValue(FRACTIONAL_STEP, original_step);
     }
 
     virtual void AddIterationStep(Process::Pointer pNewStep)
@@ -300,6 +342,24 @@ public:
         int StrategyLevel = Level > 0 ? Level - 1 : 0;
         mpMomentumStrategy->SetEchoLevel(StrategyLevel);
         mpPressureStrategy->SetEchoLevel(StrategyLevel);
+    }
+
+    /**
+     * @brief This method sets the flag mCalculateReactionsFlag
+     * @param CalculateReactionsFlag The flag that tells if the reactions are computed
+     */
+    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
+    {
+        mCalculateReactionsFlag = CalculateReactionsFlag;
+    }
+
+    /**
+     * @brief This method returns the flag mCalculateReactionsFlag
+     * @return The flag that tells if the reactions are computed
+     */
+    bool GetCalculateReactionsFlag()
+    {
+        return mCalculateReactionsFlag;
     }
 
     ///@}
@@ -366,14 +426,7 @@ protected:
 
     bool mReformDofSet;
 
-    // Fractional step index.
-    /*  1 : Momentum step (calculate fractional step velocity)
-      * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
-      * 4 : Pressure step
-      * 5 : Computation of projections
-      * 6 : End of step velocity
-      */
-//    unsigned int mStepId;
+    bool mCalculateReactionsFlag;
 
     /// Scheme for the solution of the momentum equation
     StrategyPointerType mpMomentumStrategy;
@@ -385,7 +438,6 @@ protected:
 
     const Kratos::Variable<int>& mrPeriodicIdVar;
 
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -395,9 +447,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Calculate the coefficients for time iteration.
     /**
-     * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME and BDF_COEFFICIENTS variables.
+     * @brief Set the Time Coefficients object
+     * Calculate the coefficients for the BDF2 time iteration.
+     * These are stored in the BDF_COEFFICIENTS variable of the ProcessInfo container.
      */
     void SetTimeCoefficients()
     {
@@ -444,12 +497,9 @@ protected:
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
         bool Converged = false;
-        int Rank = rModelPart.GetCommunicator().MyPID();
-
         for(unsigned int it = 0; it < mMaxVelocityIter; ++it)
         {
-            if ( BaseType::GetEchoLevel() > 1 && Rank == 0)
-                std::cout << "Momentum iteration " << it << std::endl;
+            KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 1) << "Momentum iteration " << it << std::endl;
 
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
@@ -469,14 +519,12 @@ protected:
 
             if (Converged)
             {
-                if ( BaseType::GetEchoLevel() > 0 && Rank == 0)
-                    std::cout << "Fractional velocity converged in " << it+1 << " iterations." << std::endl;
+                KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Fractional velocity converged in " << it + 1 << " iterations." << std::endl;
                 break;
             }
         }
 
-        if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
-            std::cout << "Fractional velocity iterations did not converge." << std::endl;
+        KRATOS_INFO_IF("FSStrategy", !Converged && BaseType::GetEchoLevel() > 0) << "Fractional velocity iterations did not converge." << std::endl;
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
@@ -498,8 +546,7 @@ protected:
             }
         }
 
-        if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-            std::cout << "Calculating Pressure." << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
 
 #pragma omp parallel
@@ -513,8 +560,7 @@ protected:
         }
 
         // 3. Compute end-of-step velocity
-        if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-            std::cout << "Updating Velocity." << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Updating Velocity." << std::endl;
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
@@ -562,8 +608,8 @@ protected:
 
         double Ratio = NormDv / NormV;
 
-        KRATOS_INFO_IF("Fractional Step Strategy : ", BaseType::GetEchoLevel() > 0) << "CONVERGENCE CHECK:" << std::endl;
-        KRATOS_INFO_IF("Fractional Step Strategy : ", BaseType::GetEchoLevel() > 0) <<  std::scientific << std::setprecision(8)
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "CONVERGENCE CHECK:" << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) <<  std::scientific << std::setprecision(8)
                                                                                     << "FRAC VEL.: ratio = "
                                                                                     << Ratio <<"; exp.ratio = " << mVelocityTolerance
                                                                                     << " abs = " << NormDv << std::endl;
@@ -600,8 +646,7 @@ protected:
 
         double Ratio = NormDp / NormP;
 
-        if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Pressure relative error: " << Ratio << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Pressure relative error: " << Ratio << std::endl;
 
         if (Ratio < mPressureTolerance)
         {
@@ -954,6 +999,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
 
     ///@}
     ///@name Private Operators

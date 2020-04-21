@@ -59,6 +59,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
                 BaseSolvingStrategyType >
                 (m,"FSStrategyForChimera")
                 .def(py::init< ModelPart&, FractionalStepSettingsForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
+                .def(py::init< ModelPart&, FractionalStepSettingsForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool, bool >() )
                 ;
     //*************************B&S CLASSES***************************
     py::class_< ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >,
