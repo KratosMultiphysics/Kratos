@@ -1,10 +1,22 @@
 
 ### Brief methodology to generate the cluster file ###
 # 1. extract from mesh: OBJ from surface mesh, MSH from the tetrahedra mesh
-# 2. Generate SPH via sphereTree external executable passing OBJ file as argument
+# 2. Generate SPH via sphereTree external executable passing OBJ file as argument (current issue accessing gid values)
 # 3. Clean the SPH file
 # 4. Generate Cluster.clu via mesh_to_cluster_converter.cpp passing SPH + MSH as arguments
 #    modified and precompiled executable will be required to do this
+
+
+# current order and links
+# 1AfterMeshGeneration
+# -ExtractSurfaceTriangles
+# -GenerateOBJFile
+
+# 2GenerateSPHFileFromOBJFile
+# -call_SphereTree
+# -CleanSPHFile
+
+# 3GenerateClusterFile
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -18,9 +30,10 @@ proc InitGIDProject { dir } {
     if { [GidUtils::IsTkDisabled] eq 0} {
         GiDMenu::Create "Sphere Cluster Creation" PRE
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenConditions \"SphereTree\"" "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenProblemData" "" ""
-        GiDMenu::Create "GenerateSPH" PRE
-        GiDMenu::InsertOption "GenerateSPH" [list "GenerateSPHList" ] 0 PRE [list GenerateSPHFileFromOBJFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define SphereTree"] 0 PRE "GidOpenProblemData" "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateSPH" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
+        GiDMenu::Create "GenerateCLU" PRE
+        GiDMenu::InsertOption "GenerateCLU" [list "GenerateCLU" ] 0 PRE [list GenerateClusterFile] "" ""
         GiDMenu::UpdateMenus
     }
 
@@ -32,6 +45,8 @@ proc InitGIDProject { dir } {
     #     return 1
     # }
 }
+
+
 
 
 proc BeforeMeshGeneration {elementsize} {
@@ -100,13 +115,16 @@ proc GenerateOBJFile { } {
 proc GenerateSPHFileFromOBJFile { } {
 
     W "executing GenerateSPHFileFromOBJFile"
-    # TODO: On pressing Button, execute GenerateSPHFileFromOBJFile. Create new button for that?
+    # TODO: linked to GenerateSPHFileFromOBJFile button. On pressing Button, execute GenerateSPHFileFromOBJFile.
     call_SphereTree
 }
 
 proc call_SphereTree { } {
 
-    # TODO: pass arguments from GiD somehow: 
+    set $Young_Modulus [GiD_AccessValue get condition Body_Part Young_Modulus]
+    W $Young_Modulus
+
+    # TODO: error: seems the variables in the prb cannot be located.
     set $Algorithm [GiD_AccessValue get gendata Algorithm]
     W $Algorithm
     if {$Algorithm == "makeTreeMedial"} {
@@ -306,16 +324,20 @@ proc call_makeTreeOctree { } {
 
 
 proc CleanSPHFile { sphfilename } {
-    # TODO: Access generic_obj.obj file and execute the partial removal of some lines and columns as specified in the reference.
+    # TODO: Access generic_sph.sph file and execute the partial removal of some lines and columns as specified in the reference.
 
 }
 
-proc GenerateClusterFile { sphfilename mshfilename} {
-    # TODO: Generate the cluster file from the joint information of generic_obj.obj and generic_msh.msh
+proc GenerateClusterFile { } {
+    # TODO: linked to GenerateClusterFile button. Generate the cluster file from the joint information of generic_sph.sph and generic_msh.msh
 
     # Look for a way to edit, compile and execute mesh_to_clu_converter.cpp with the specified filenames
     # Create cpp executable able to generate cluster file directly from inputs.
     # Or pass always the same generic sph and msh names. Generate generic cluster filename.
+
+    # Execute external compiled exe
+    set program mesh_to_clu_converter
+    exec $program
 
 }
 

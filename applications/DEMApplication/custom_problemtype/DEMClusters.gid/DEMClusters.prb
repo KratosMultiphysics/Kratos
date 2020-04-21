@@ -1,7 +1,6 @@
 PROBLEM DATA
 
 TITLE:Sphere_Tree_Algorithm_Settings
-
 QUESTION: Algorithm#CB#(makeTreeMedial,makeTreeSpawn,makeTreeGrid,makeTreeHubbard,makeTreeOctree)
 VALUE: makeTreeMedial
 DEPENDENCIES: (makeTreeMedial,RESTORE,branch,#CURRENT#)(makeTreeGrid,HIDE,branch,8)(makeTreeOctree,HIDE,branch,8)
