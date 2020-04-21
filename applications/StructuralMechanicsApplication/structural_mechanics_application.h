@@ -922,6 +922,7 @@ private:
     const RuleOfMixturesLaw mRuleOfMixturesLaw;
 
     // Anisotropic law
+    
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
 #endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 

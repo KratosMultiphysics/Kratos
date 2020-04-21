@@ -112,9 +112,14 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     mpIsotropicCL->CalculateMaterialResponsePK2(values_iso_cl);
     const Vector& r_iso_stress_vector = values_iso_cl.GetStressVector();
 
-    // Finally, we map the stresses to the real space: Sreal = inv(As)Siso
+    // We map the stresses to the real space: Sreal = inv(As)Siso
     Vector &r_real_stress_vector = rValues.GetStressVector();
     r_real_stress_vector = prod(stress_mapper_inv, r_iso_stress_vector);
+
+    // Finally we map the tangent tensor: C_aniso = inv(As)*C_iso*Ae
+    Matrix &r_anisotropic_tangent_matrix  = rValues.GetConstitutiveMatrix();
+    const Matrix& r_isotropic_tangent     = values_iso_cl.GetConstitutiveMatrix();
+    noalias(r_anisotropic_tangent_matrix) = prod(stress_mapper_inv, Matrix(prod(r_isotropic_tangent, strain_mapper)));
 
     // Here we revert the rotations
     // {
