@@ -373,8 +373,8 @@ void UpdatedLagrangianAxisymmetry::CalculateExplicitStresses(const ProcessInfo& 
 {
     KRATOS_TRY
 
-        // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     // Define the stress measure
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
