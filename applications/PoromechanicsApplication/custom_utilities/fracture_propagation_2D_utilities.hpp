@@ -938,7 +938,7 @@ protected:
                         StateVariableVector[GPoint] = DamageThreshold;
                 }
                 // Set stateVariable of new GaussPoints
-                itElem->SetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
+                itElem->SetValuesOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
             }
         }
 
@@ -1033,7 +1033,7 @@ protected:
                         StateVariableVector[GPoint] = PropagationDamage;
                 }
                 // Set stateVariable of new GaussPoints
-                itElem->SetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
+                itElem->SetValuesOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
             }
         }
     }

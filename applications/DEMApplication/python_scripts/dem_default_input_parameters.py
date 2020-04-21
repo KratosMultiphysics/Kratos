@@ -75,6 +75,8 @@ def GetDefaultInputParameters():
             "SearchTolerance"                  : 0.0,
             "search_tolerance_against_walls"   : 0.0,
             "CoordinationNumber"               : 10,
+            "LocalCoordinationNumberOption"    : false,
+            "GlobalCoordinationNumberOption"    : true,
             "AmplifiedSearchRadiusExtension"   : 0.0,
             "MaxAmplificationRatioOfSearchRadius" : 10,
             "ModelDataInfo"                    : false,

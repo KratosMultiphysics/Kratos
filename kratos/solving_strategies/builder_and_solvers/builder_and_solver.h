@@ -499,10 +499,25 @@ public:
     }
 
     /**
-     * @brief Applies the constraints
-     * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rb The RHS vector of the system of equations
+     * @brief Applies the constraints with master-slave relation matrix (RHS only)
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS vector
+     */
+    virtual void ApplyRHSConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        )
+    {
+    }
+
+    /**
+     * @brief Applies the constraints with master-slave relation matrix
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
      */
     virtual void ApplyConstraints(
         typename TSchemeType::Pointer pScheme,

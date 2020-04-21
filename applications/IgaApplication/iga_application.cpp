@@ -20,7 +20,6 @@ KratosIgaApplication::KratosIgaApplication()
 }
 
 void KratosIgaApplication::Register() {
-    KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosIgaApplication..." << std::endl;
 
     // Variables
