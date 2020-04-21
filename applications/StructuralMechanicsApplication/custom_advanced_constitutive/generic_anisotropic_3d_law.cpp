@@ -23,15 +23,15 @@
 
 namespace Kratos
 {
-ConstitutiveLaw::Pointer GenericAnisotropicLaw3D::Create(Kratos::Parameters NewParameters) const
+ConstitutiveLaw::Pointer GenericAnisotropic3DLaw::Create(Kratos::Parameters NewParameters) const
 {
-    return Kratos::make_shared<GenericAnisotropicLaw3D>();
+    return Kratos::make_shared<GenericAnisotropic3DLaw>();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericAnisotropic3DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponsePK2(rValues);
 
@@ -46,7 +46,7 @@ void GenericAnisotropicLaw3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Para
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericAnisotropic3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponsePK2(rValues);
 
@@ -61,7 +61,7 @@ void GenericAnisotropicLaw3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::P
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void GenericAnisotropic3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponsePK2(rValues);
 
@@ -76,7 +76,7 @@ void GenericAnisotropicLaw3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // this strain in the real anisotropic space
     Vector& r_strain_vector = rValues.GetStrainVector();
@@ -127,7 +127,7 @@ void GenericAnisotropicLaw3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::CalculateElasticMatrix(
+void GenericAnisotropic3DLaw::CalculateElasticMatrix(
     Matrix& rElasticityTensor,
     const Properties& rMaterialProperties)
 {
@@ -158,7 +158,7 @@ void GenericAnisotropicLaw3D::CalculateElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::CalculateOrthotropicElasticMatrix(
+void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
     Matrix& rElasticityTensor,
     const Properties& rMaterialProperties)
 {
@@ -196,7 +196,7 @@ void GenericAnisotropicLaw3D::CalculateOrthotropicElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->FinalizeMaterialResponsePK2(rValues);
 }
@@ -204,7 +204,7 @@ void GenericAnisotropicLaw3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Param
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericAnisotropic3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     this->FinalizeMaterialResponsePK2(rValues);
 }
@@ -212,7 +212,7 @@ void GenericAnisotropicLaw3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Pa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void GenericAnisotropic3DLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->FinalizeMaterialResponsePK2(rValues);
 }
@@ -220,7 +220,7 @@ void GenericAnisotropicLaw3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw:
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // this strain in the real anisotropic space
     Vector& r_strain_vector = rValues.GetStrainVector();
@@ -258,7 +258,7 @@ void GenericAnisotropicLaw3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
 /***********************************************************************************/
 /***********************************************************************************/
 
-double& GenericAnisotropicLaw3D::GetValue(
+double& GenericAnisotropic3DLaw::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -269,7 +269,7 @@ double& GenericAnisotropicLaw3D::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& GenericAnisotropicLaw3D::GetValue(
+Vector& GenericAnisotropic3DLaw::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -280,7 +280,7 @@ Vector& GenericAnisotropicLaw3D::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& GenericAnisotropicLaw3D::GetValue(
+Matrix& GenericAnisotropic3DLaw::GetValue(
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
@@ -291,7 +291,7 @@ Matrix& GenericAnisotropicLaw3D::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GenericAnisotropicLaw3D::Has(const Variable<bool>& rThisVariable)
+bool GenericAnisotropic3DLaw::Has(const Variable<bool>& rThisVariable)
 {
     return mpIsotropicCL->Has(rThisVariable);
 }
@@ -299,7 +299,7 @@ bool GenericAnisotropicLaw3D::Has(const Variable<bool>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GenericAnisotropicLaw3D::Has(const Variable<double>& rThisVariable)
+bool GenericAnisotropic3DLaw::Has(const Variable<double>& rThisVariable)
 {
     return mpIsotropicCL->Has(rThisVariable);
 }
@@ -307,7 +307,7 @@ bool GenericAnisotropicLaw3D::Has(const Variable<double>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GenericAnisotropicLaw3D::Has(const Variable<Vector>& rThisVariable)
+bool GenericAnisotropic3DLaw::Has(const Variable<Vector>& rThisVariable)
 {
     return mpIsotropicCL->Has(rThisVariable);
 }
@@ -315,7 +315,7 @@ bool GenericAnisotropicLaw3D::Has(const Variable<Vector>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GenericAnisotropicLaw3D::Has(const Variable<Matrix>& rThisVariable)
+bool GenericAnisotropic3DLaw::Has(const Variable<Matrix>& rThisVariable)
 {
     return mpIsotropicCL->Has(rThisVariable);
 }
@@ -323,7 +323,7 @@ bool GenericAnisotropicLaw3D::Has(const Variable<Matrix>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-double& GenericAnisotropicLaw3D::CalculateValue(
+double& GenericAnisotropic3DLaw::CalculateValue(
     Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue)
@@ -334,7 +334,7 @@ double& GenericAnisotropicLaw3D::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& GenericAnisotropicLaw3D::CalculateValue(
+Vector& GenericAnisotropic3DLaw::CalculateValue(
     Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
@@ -439,7 +439,7 @@ Vector& GenericAnisotropicLaw3D::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::InitializeMaterial(
+void GenericAnisotropic3DLaw::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues)
@@ -476,7 +476,7 @@ void GenericAnisotropicLaw3D::InitializeMaterial(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& GenericAnisotropicLaw3D::CalculateValue(
+Matrix& GenericAnisotropic3DLaw::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -488,7 +488,7 @@ Matrix& GenericAnisotropicLaw3D::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::InitializeMaterialResponsePK2(Parameters& rValues)
+void GenericAnisotropic3DLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     mpIsotropicCL->InitializeMaterialResponsePK2(rValues);
 }
@@ -496,7 +496,7 @@ void GenericAnisotropicLaw3D::InitializeMaterialResponsePK2(Parameters& rValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+void GenericAnisotropic3DLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
 {
     // const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -516,7 +516,7 @@ void GenericAnisotropicLaw3D::CalculateTangentTensor(ConstitutiveLaw::Parameters
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenericAnisotropicLaw3D::CalculateCauchyGreenStrain(
+void GenericAnisotropic3DLaw::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
