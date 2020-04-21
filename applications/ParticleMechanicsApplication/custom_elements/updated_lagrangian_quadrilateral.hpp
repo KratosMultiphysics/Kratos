@@ -134,9 +134,9 @@ protected:
             volume = 1.0;
 
             // MP_CAUCHY_STRESS_VECTOR
-            cauchy_stress_vector = ZeroVector(0);
+            cauchy_stress_vector;
             // MP_ALMANSI_STRAIN_VECTOR
-            almansi_strain_vector = ZeroVector(0);
+            almansi_strain_vector;
 
             // MP_DELTA_PLASTIC_STRAIN
             delta_plastic_strain = 1.0;

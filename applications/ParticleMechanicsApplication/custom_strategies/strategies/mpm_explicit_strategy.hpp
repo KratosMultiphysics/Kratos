@@ -75,7 +75,7 @@ namespace Kratos
 
         typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
-        MPMExplicitStrategy(
+        explicit MPMExplicitStrategy(
             ModelPart& model_part,
             typename TSchemeType::Pointer pScheme,
             bool CalculateReactions = false,

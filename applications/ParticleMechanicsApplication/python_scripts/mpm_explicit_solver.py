@@ -40,7 +40,6 @@ class MPMExplicitSolver(MPMSolver):
         grid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
         grid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
 
-        scheme_type = self.settings["scheme_type"].GetString()
         KratosMultiphysics.Logger.PrintInfo("::[MPMExplicitSolver]:: ", "Variables are all added.")
 
     ### Protected functions ###
@@ -58,10 +57,9 @@ class MPMExplicitSolver(MPMSolver):
 
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()
-        isCentralDifference = False
-        StressUpdateOption = 0
 
         if(scheme_type == "forward_euler" or scheme_type == "Forward_Euler"):
+            StressUpdateOption = 10
             stress_update = self.settings["stress_update"].GetString() #0 = USF, 1 = USL, 2 = MUSL
             if(stress_update == "USF" or stress_update == "usf"):
                 StressUpdateOption = 0
@@ -75,15 +73,12 @@ class MPMExplicitSolver(MPMSolver):
             grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, StressUpdateOption)
             grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, False)
         elif(scheme_type == "central_difference" or scheme_type == "Central_Difference"):
-            isCentralDifference = True
             grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, 0)
             grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, True)
         else:
             err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
             err_msg += "Available options are: \"forward_euler\", \"central_difference\""
             raise Exception(err_msg)
-
-        is_dynamic = self._IsDynamic()
 
         return KratosParticle.MPMExplicitScheme( grid_model_part)
 
@@ -103,10 +98,7 @@ class MPMExplicitSolver(MPMSolver):
     def _CreateLinearStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         solution_scheme = self._GetSolutionScheme()
-        linear_solver = self._GetLinearSolver()
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
-        calc_norm_dx_flag = False ## hard-coded, but can be changed upon implementation
-
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
         move_mesh_flag = False ## hard-coded
         return KratosParticle.MPMExplicitStrategy(computing_model_part,

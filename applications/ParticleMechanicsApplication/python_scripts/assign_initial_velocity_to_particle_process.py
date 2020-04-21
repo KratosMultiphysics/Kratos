@@ -40,9 +40,6 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-
-        
-
         # Get updated model_part
         self.model = Model
         model_part_name = settings["model_part_name"].GetString()
@@ -52,7 +49,7 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
         # The actual initial velocity application occurs after the submodelpart is
         # transferred from the initial MPM material to the MPM material in the particle
         # generator utility. Therefore we change the prefix from initial MPM material
-        # to MPM material. 
+        # to MPM material.
 
         # Default settings
         self.modulus = settings["modulus"].GetDouble()

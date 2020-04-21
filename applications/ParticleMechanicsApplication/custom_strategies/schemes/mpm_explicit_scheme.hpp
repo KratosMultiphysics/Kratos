@@ -94,7 +94,7 @@ namespace Kratos {
              * @param DeltaTimeFraction The delta ttime fraction
              * @param DeltaTimePredictionLevel The prediction level
              */
-            MPMExplicitScheme(
+            explicit MPMExplicitScheme(
                 ModelPart& grid_model_part
                 )
                 : Scheme<TSparseSpace, TDenseSpace>(),
@@ -488,7 +488,7 @@ namespace Kratos {
 
                 //check that variables are correctly allocated
                 for (ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin();
-                    it != r_model_part.NodesEnd(); it++)
+                    it != r_model_part.NodesEnd(); ++it)
                 {
                     KRATOS_ERROR_IF(it->SolutionStepsDataHas(DISPLACEMENT) == false) << "DISPLACEMENT variable is not allocated for node " << it->Id() << std::endl;
                     KRATOS_ERROR_IF(it->SolutionStepsDataHas(VELOCITY) == false) << "VELOCITY variable is not allocated for node " << it->Id() << std::endl;
@@ -497,7 +497,7 @@ namespace Kratos {
 
                 //check that dofs exist
                 for (ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin();
-                    it != r_model_part.NodesEnd(); it++)
+                    it != r_model_part.NodesEnd(); ++it)
                 {
                     KRATOS_ERROR_IF(it->HasDofFor(DISPLACEMENT_X) == false) << "Missing DISPLACEMENT_X dof on node " << it->Id() << std::endl;
                     KRATOS_ERROR_IF(it->HasDofFor(DISPLACEMENT_Y) == false) << "Missing DISPLACEMENT_Y dof on node " << it->Id() << std::endl;
@@ -506,9 +506,8 @@ namespace Kratos {
 
                 //check for minimum value of the buffer index
                 KRATOS_ERROR_IF(r_model_part.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << r_model_part.GetBufferSize() << std::endl;
-
-                return 0;
                 KRATOS_CATCH("")
+                return 0;
             }
 
             void Calculate_RHS_Contribution(

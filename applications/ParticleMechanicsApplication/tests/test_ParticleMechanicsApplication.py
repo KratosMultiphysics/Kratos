@@ -121,7 +121,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TExplicitAxisymDiskQuadCompressibleTest('test_execution'))
     nightSuite.addTest(TExplicit3dHexCompressibleOscillatingPointTest('test_execution'))
     nightSuite.addTest(TExplicit3dTetCompressibleOscillatingPointTest('test_execution'))
-    
+
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
