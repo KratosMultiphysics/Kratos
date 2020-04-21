@@ -122,3 +122,6 @@ class ExplicitAxisymDiskQuadCompressibleTest(ParticleMechanicsTestFactory):
 
 class Explicit3dHexCompressibleOscillatingPointTest(ParticleMechanicsTestFactory):
     file_name = "explicit_tests/oscillating_point_3d/3dhex_compressible_explicit_oscillating_point_test"
+
+class Explicit3dTetCompressibleOscillatingPointTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point_3d/3dtet_compressible_explicit_oscillating_point_test"
