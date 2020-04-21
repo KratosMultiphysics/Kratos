@@ -113,7 +113,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
 
     // We map the stresses to the real space: Sreal = inv(As)Siso
     Vector &r_real_stress_vector = rValues.GetStressVector();
-    r_real_stress_vector = prod(stress_mapper_inv, r_iso_stress_vector);
+    noalias(r_real_stress_vector) = prod(stress_mapper_inv, r_iso_stress_vector);
 
     // Finally we map the tangent tensor: C_aniso = inv(As)*C_iso*Ae
     Matrix &r_anisotropic_tangent_matrix  = rValues.GetConstitutiveMatrix();
@@ -171,33 +171,35 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
 {
     if (rElasticityTensor.size1() != VoigtSize || rElasticityTensor.size2() != VoigtSize)
         rElasticityTensor.resize(VoigtSize, VoigtSize, false);
-    rElasticityTensor.clear();
+    noalias(rElasticityTensor) = ZeroMatrix(VoigtSize, VoigtSize);
 
-	const double E1  = rMaterialProperties[YOUNG_MODULUS_X];
-	const double E2  = rMaterialProperties[YOUNG_MODULUS_Y];
-	const double E3  = rMaterialProperties[YOUNG_MODULUS_Z];
-	const double v12 = rMaterialProperties[POISSON_RATIO_XY];
-	const double v23 = rMaterialProperties[POISSON_RATIO_YZ];
-	const double v13 = rMaterialProperties[POISSON_RATIO_XZ];
-    const double P1  = 1.0 / (E2 * E2 * v12 * v12 + 2.0 * E3 * E2 * v12 * v13 * v23 + E3 * E2 * v13 * v13 - E1 * E2 + E1 * E3 * v23 * v23);
-    const double P2  = E1 * E1;
-    const double P3  = E2 * E2;
-    const double P4  = E1 * v23 + E2 * v12 * v13;
-    const double P5  = E2 * v12 + E3 * v13 * v23;
-    const double P6  = E3 * E3;
+    const double Ex  = rMaterialProperties[YOUNG_MODULUS_X];
+	const double Ey  = rMaterialProperties[YOUNG_MODULUS_Y];
+	const double Ez  = rMaterialProperties[YOUNG_MODULUS_Z];
+	const double vxy = rMaterialProperties[POISSON_RATIO_XY];
+	const double vyz = rMaterialProperties[POISSON_RATIO_YZ];
+	const double vxz = rMaterialProperties[POISSON_RATIO_XZ];
 
-    rElasticityTensor(0, 0) = -P1 * P2 * (-E3 * v23 * v23 + E2);
-    rElasticityTensor(0, 1) = -E1 * E2 * P1 * P5;
-    rElasticityTensor(0, 2) = -E2 * E3 * P1 * (E1 * v13 + E1 * v12 * v23);
-    rElasticityTensor(1, 0) = -E1 * E2 * P1 * P5;
-    rElasticityTensor(1, 1) = -P1 * P3 * (-E3 * v13 * v13 + E1);
-    rElasticityTensor(1, 2) = -E2 * E3 * P1 * P4;
-    rElasticityTensor(2, 0) = -E1 * E2 * E3 * P1 * (v13 + v12 * v23);
-    rElasticityTensor(2, 1) = -E2 * E3 * P1 * P4;
-    rElasticityTensor(2, 2) = -E2 * E3 * P1 * (-E2 * v12 * v12 + E1);
-    rElasticityTensor(3, 3) = (E2 * P2) / (P2 + v12 * (P2 + P3) + E1 * E2) / 2.0;
-    rElasticityTensor(4, 4) = (E3 * P3) / (P3 + v23 * (P3 + P6) + E2 * E3) / 2.0;
-    rElasticityTensor(5, 5) = (E3 * P2) / (P2 + v13 * (P2 + P6) + E1 * E3) / 2.0;
+    const double Gxy = 1.0 / ((1.0 + vxy) / Ex + (1.0 + vxy) / Ey);
+    const double Gxz = 1.0 / ((1.0 + vxz) / Ex + (1.0 + vxz) / Ez);
+    const double Gyz = 1.0 / ((1.0 + vyz) / Ey + (1.0 + vyz) / Ez);
+    const double ctant = (1.0 - vxy * vxy - vyz * vyz - vxz * vxz - 2.0 * vxy * vyz * vxz) / (Ex * Ey * Ez);
+
+    rElasticityTensor(0, 0) = (1.0 - vyz * vyz) / (Ey * Ez * ctant);
+    rElasticityTensor(0, 1) = (vxy + vxz * vyz) / (Ey * Ez * ctant);
+    rElasticityTensor(1, 0) = (vxy + vxz * vyz) / (Ex * Ez * ctant);
+
+    rElasticityTensor(0, 2) = (vxz + vxy * vyz) / (Ey * Ez * ctant);
+    rElasticityTensor(2, 0) = (vxz + vxy * vyz) / (Ey * Ex * ctant);
+    rElasticityTensor(1, 1) = (1.0 - vxz * vxz) / (Ez * Ex * ctant);
+
+    rElasticityTensor(1, 2) = (vyz + vxz * vxy) / (Ez * Ex * ctant);
+    rElasticityTensor(2, 1) = (vyz + vxz * vxy) / (Ey * Ex * ctant);
+    rElasticityTensor(2, 2) = (1.0 - vxy * vxy) / (Ex * Ey * ctant);
+
+    rElasticityTensor(3, 3) = Gxy;
+    rElasticityTensor(4, 4) = Gyz;
+    rElasticityTensor(5, 5) = Gxz;
 }
 
 /***********************************************************************************/
