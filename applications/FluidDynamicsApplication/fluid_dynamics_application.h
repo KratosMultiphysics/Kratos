@@ -329,6 +329,7 @@ private:
     const MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
     /// stokes condition(monolithic version)
     const StokesWallCondition<3,3> mStokesWallCondition3D;
+    const StokesWallCondition<3,4> mStokesWallCondition3D4N;
 
     /// Periodic Condition
     const FSPeriodicCondition<2> mFSPeriodicCondition2D;
