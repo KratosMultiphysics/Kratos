@@ -395,7 +395,7 @@ class MPMSolver(PythonSolver):
         convergence_criterion = self._GetConvergenceCriteria()
         builder_and_solver = self._GetBuilderAndSolver()
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
-        return KratosParticle.MPMResidualBasedNewtonRaphsonStrategy(computing_model_part,
+        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                         solution_scheme,
                                                                         linear_solver,
                                                                         convergence_criterion,
