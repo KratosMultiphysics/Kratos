@@ -991,6 +991,7 @@ void ConstitutiveLawUtilities<TVoigtSize>:: CalculateAnisotropicStrainMapperMatr
     noalias(rAe) = ZeroMatrix(VoigtSize, VoigtSize);
 
     Matrix inv_isotropic_elastic_matrix(VoigtSize, VoigtSize);
+    noalias(inv_isotropic_elastic_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
     double aux_det;
     MathUtils<double>::InvertMatrix(rIsotropicElasticMatrix, inv_isotropic_elastic_matrix, aux_det);
     noalias(rAe) = prod(inv_isotropic_elastic_matrix, Matrix(prod(rAs, rAnisotropicElasticMatrix)));
