@@ -143,10 +143,10 @@ KRATOS_DEFINE_LOCAL_FLAG(STOP);
   ///@{
 
   explicit LoggerMessage(std::string const& TheLabel)
-  : mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mFlags(LoggerMessage::STATUS), mMessageSource(), mDistributedFilter(DistributedFilter::FromRoot()) {}
+  : mLabel(TheLabel), mFullLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mFlags(LoggerMessage::STATUS), mMessageSource(), mDistributedFilter(DistributedFilter::FromRoot()) {}
 
   LoggerMessage(LoggerMessage const& Other)
-  : mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mFlags(Other.mFlags), mMessageSource(Other.mMessageSource), mDistributedFilter(Other.mDistributedFilter) {}
+  : mLabel(Other.mLabel), mFullLabel(Other.mFullLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mFlags(Other.mFlags), mMessageSource(Other.mMessageSource), mDistributedFilter(Other.mDistributedFilter) {}
 
   /// Destructor.
   virtual ~LoggerMessage() {}
@@ -158,6 +158,7 @@ KRATOS_DEFINE_LOCAL_FLAG(STOP);
 
   LoggerMessage& operator=(LoggerMessage const& Other) {
   mLabel = Other.mLabel;
+  mFullLabel = Other.mFullLabel;
   mMessage = Other.mMessage;
       mLevel = Other.mLevel;
       // mLocation = Other.mLocation;
@@ -245,6 +246,14 @@ KRATOS_DEFINE_LOCAL_FLAG(STOP);
   return mTime;
   }
 
+  void SetFullLabel(std::string const& TheFullLabel) {
+    mFullLabel = TheFullLabel;
+  }
+
+  std::string GetFullLabel() const {
+    return mFullLabel;
+  }
+
   ///@}
   ///@name Inquiry
   ///@{
@@ -307,6 +316,7 @@ private:
   ///@{
 
   std::string mLabel;
+  std::string mFullLabel;
   std::string mMessage;
   std::size_t mLevel;
   CodeLocation mLocation;
