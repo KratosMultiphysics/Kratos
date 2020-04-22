@@ -157,7 +157,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
         double response_value = 0.0;
 
         // Check if there are at primal elements, because the primal state is required

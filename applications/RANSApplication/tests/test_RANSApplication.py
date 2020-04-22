@@ -34,6 +34,8 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTest(EvmKEpsilonTest('testOneElementKEpsilonSteady'))
+    smallSuite.addTest(AdjointKEpsilonSensitivity2D('testOneElementSteady'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -55,11 +57,6 @@ def AssembleTestSuites():
     nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteady'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
-    nightSuite.addTest(EvmKEpsilonTest('testOneElementKEpsilonSteady'))
-
-    # Adjoint tests
-    nightSuite.addTest(AdjointKEpsilonSensitivity2D('testOneElementSteady'))
-
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
