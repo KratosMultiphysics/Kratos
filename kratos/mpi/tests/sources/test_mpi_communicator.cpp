@@ -30,8 +30,7 @@ namespace Internals {
 void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunicator& rComm)
 {
     /* NOTE: the modelpart should at least have PARTITION_INDEX in the nodal solution step data */
-    constexpr double pi = 3.141592653589793238462643383279502884197169399375105820974944592308;
-    constexpr double total_angle = pi/2.0;
+    constexpr double total_angle = Globals::Pi/2.0;
     constexpr double side_length = 1.0;
 
     Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
@@ -784,6 +783,24 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosM
             }
         }
     }
+}
+
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CommunicatorGlobalNumMethods, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+
+    const auto& r_mpi_comm = r_model_part.GetCommunicator();
+
+    const unsigned int comm_size = r_mpi_comm.TotalProcesses();
+
+    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfNodes(), comm_size+1);
+    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfElements(), comm_size);
 }
 
 }
