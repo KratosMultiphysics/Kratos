@@ -663,7 +663,7 @@ void NodalConcentratedElement::CalculateLeftHandSide(
 void NodalConcentratedElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double>& rDestinationVariable,
+    const Variable<double>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -714,7 +714,7 @@ void NodalConcentratedElement::AddExplicitContribution(
 void NodalConcentratedElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
