@@ -128,6 +128,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     // Backup the strain vector
     Vector &r_strain_vector  = rValues.GetStrainVector();
     noalias(r_strain_vector) = real_strain_vector;
+
 } // End CalculateMaterialResponseCauchy
 
 
@@ -180,22 +181,27 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
 	const double vyz = rMaterialProperties[POISSON_RATIO_YZ];
 	const double vxz = rMaterialProperties[POISSON_RATIO_XZ];
 
-    const double Gxy = 1.0 / ((1.0 + vxy) / Ex + (1.0 + vxy) / Ey);
-    const double Gxz = 1.0 / ((1.0 + vxz) / Ex + (1.0 + vxz) / Ez);
-    const double Gyz = 1.0 / ((1.0 + vyz) / Ey + (1.0 + vyz) / Ez);
-    const double ctant = 1.0 / (1.0 - vxy * vxy - vyz * vyz - vxz * vxz - 2.0 * vxy * vyz * vxz);
+    const double vyx = vxy * Ey / Ex;
+    const double vzx = vxz * Ez / Ex;
+    const double vzy = vyz * Ez / Ey;
 
-    rElasticityTensor(0, 0) = Ex * (1.0 - vyz * vyz) * ctant;
-    rElasticityTensor(0, 1) = Ex * (vxy + vyz * vxz) * ctant;
-    rElasticityTensor(1, 0) = Ey * (vxy + vyz * vxz) * ctant;
+    const double Gxy   = 1.0 / ((1.0 + vyx) / Ex + (1.0 + vxy) / Ey);
+    const double Gxz   = 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
+    const double Gyz   = 1.0 / ((1.0 + vzy) / Ey + (1.0 + vyz) / Ez);
 
-    rElasticityTensor(0, 2) = Ex * (vxz + vxy * vyz) * ctant;
+    const double ctant = 1.0 / (1.0 - vxy * vyx - vzy * vyz - vzx * vxz - vxy * vyz * vzx - vxz * vyx * vzy);
+
+    rElasticityTensor(0, 0) = Ex * (1.0 - vyz * vzy) * ctant;
+    rElasticityTensor(0, 1) = Ex * (vyx + vyz * vzx) * ctant;
+    rElasticityTensor(1, 0) = Ey * (vxy + vzy * vxz) * ctant;
+
+    rElasticityTensor(0, 2) = Ex * (vxz + vyx * vzy) * ctant;
     rElasticityTensor(2, 0) = Ez * (vxz + vxy * vyz) * ctant;
-    rElasticityTensor(1, 1) = Ey * (1.0 - vxz * vxz) * ctant;
+    rElasticityTensor(1, 1) = Ey * (1.0 - vxz * vzx) * ctant;
 
-    rElasticityTensor(1, 2) = Ey * (vyz + vxy * vxz) * ctant;
-    rElasticityTensor(2, 1) = Ez * (vyz + vxy * vxz) * ctant;
-    rElasticityTensor(2, 2) = Ez * (1.0 - vxy * vxy) * ctant;
+    rElasticityTensor(1, 2) = Ey * (vzy + vxy * vzx) * ctant;
+    rElasticityTensor(2, 1) = Ez * (vyz + vyx * vxz) * ctant;
+    rElasticityTensor(2, 2) = Ez * (1.0 - vxy * vyx) * ctant;
 
     rElasticityTensor(3, 3) = Gxy;
     rElasticityTensor(4, 4) = Gyz;
