@@ -174,13 +174,12 @@ void ExecuteInitializeSolutionStep()
     TableType::Pointer pTargetStressTable = mrFemModelPart.pGetTable(mTargetStressTableId);
 
     double ReactionStress = CalculateReactionStress();
+    ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
     // Check whether this is a loading step for the current axis
     IsTimeToApplyCM();
 
     if (mApplyCM == true) {
-
-        ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
         // Update K if required
         if (mAlternateAxisLoading == false) {
@@ -278,6 +277,7 @@ void ExecuteFinalizeSolutionStep()
         if (mAlternateAxisLoading == true) {
             const double delta_time = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
             double ReactionStress = CalculateReactionStress();
+            ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
             if(mUpdateStiffness == true) {
                 mStiffness = EstimateStiffness(ReactionStress,delta_time);
