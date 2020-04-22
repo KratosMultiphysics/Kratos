@@ -158,8 +158,8 @@ public:
      */
     bool SolveSolutionStep() override
     {
-        typename TSchemeType::Pointer p_scheme = ResidualBasedNewtonRaphsonStrategy::GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = ResidualBasedNewtonRaphsonStrategy::GetBuilderAndSolver();
+        typename TSchemeType::Pointer p_scheme = this->GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         
         TSystemMatrixType& rA = *(this->mpA);
         TSystemVectorType& rDx = *(this->mpDx);
@@ -257,7 +257,7 @@ public:
                 {
                     KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Iteration Number: " << iteration_number << std::endl;
 
-                    if (ResidualBasedNewtonRaphsonStrategy::GetKeepSystemConstantDuringIterations() == false)
+                    if (this->GetKeepSystemConstantDuringIterations() == false)
                     {
                         TSparseSpace::SetToZero(rA);
                         TSparseSpace::SetToZero(rDx);
@@ -316,8 +316,7 @@ public:
         // Plot a warning if the maximum number of iterations is exceeded
         if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
         {
-            if (this->GetEchoLevel() > 1)
-                ResidualBasedNewtonRaphsonStrategy::MaxIterationsExceeded();
+            if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
         }
 
         return true;
