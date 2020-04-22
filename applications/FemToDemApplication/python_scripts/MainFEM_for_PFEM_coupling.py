@@ -5,6 +5,7 @@ import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as MainFEM_fo
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.DemStructuresCouplingApplication as DEM_Structures
 
 # Python script created to modify the existing one due to the coupling of the DEM app in 2D
 
@@ -37,6 +38,17 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
         self.main_model_part.AddNodalSolutionStepVariable(DEM.ELASTIC_FORCES)
         self.main_model_part.AddNodalSolutionStepVariable(DEM.TANGENTIAL_ELASTIC_FORCES)
         self.main_model_part.AddNodalSolutionStepVariable(DEM.SHEAR_STRESS)
+
+        # For the Substepping
+        self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.BACKUP_LAST_STRUCTURAL_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.BACKUP_LAST_STRUCTURAL_DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM_Structures.SMOOTHED_STRUCTURAL_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(DEM.CONTACT_IMPULSE)
+
+        # For the Aitken
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.RELAXED_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.OLD_RELAXED_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.FSI_INTERFACE_RESIDUAL)
 
         # Adding PFEM Variables TODO put in another place
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
