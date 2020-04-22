@@ -257,7 +257,13 @@ void RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::AddLocalVelocityContribution(
         rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
     const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
     const double eps = std::numeric_limits<double>::epsilon();
-    const double y_plus = this->GetValue(RANS_Y_PLUS);
+
+    KRATOS_ERROR_IF(!(this->Has(RANS_Y_PLUS)))
+        << "RANS_Y_PLUS value is not set in " << this->Info() << " at "
+        << this->GetGeometry() << "\n";
+
+    const double y_plus_limit = rCurrentProcessInfo[RANS_Y_PLUS_LIMIT];
+    const double y_plus = std::max(this->GetValue(RANS_Y_PLUS), y_plus_limit);
 
     if (y_plus > eps)
     {

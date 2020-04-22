@@ -323,99 +323,75 @@ void FSHighReKWallCondition<TDim, TNumNodes>::ApplyWallLaw(MatrixType& rLocalMat
                                                            VectorType& rLocalVector,
                                                            ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
     if (RansCalculationUtilities::IsWall(*this))
     {
+        const GeometryType& r_geometry = this->GetGeometry();
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        RansCalculationUtilities::CalculateConditionGeometryData(
+            r_geometry, this->GetIntegrationMethod(), gauss_weights, shape_functions);
+        const IndexType num_gauss_points = gauss_weights.size();
+
+        const size_t block_size = TDim;
+
+        const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+        const double kappa = rCurrentProcessInfo[WALL_VON_KARMAN];
+        const double inv_kappa = 1.0 / kappa;
+        const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
+        const double y_plus_limit = rCurrentProcessInfo[RANS_Y_PLUS_LIMIT];
+
         const double eps = std::numeric_limits<double>::epsilon();
 
-        const array_1d<double, 3> wall_cell_center_velocity =
-            RansCalculationUtilities::CalculateWallVelocity(*this);
-        const double wall_cell_center_velocity_magnitude = norm_2(wall_cell_center_velocity);
-
-        const double y_plus_limit = rCurrentProcessInfo[RANS_Y_PLUS_LIMIT];
-        double y_plus = 0.0;
-
-        if (wall_cell_center_velocity_magnitude > eps)
+        for (size_t g = 0; g < num_gauss_points; ++g)
         {
-            constexpr unsigned int block_size = TDim;
+            const Vector& gauss_shape_functions = row(shape_functions, g);
 
-            // calculate cell centered y_plus value
-            const double kappa = rCurrentProcessInfo[WALL_VON_KARMAN];
-            const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
-            const double nu = RansCalculationUtilities::EvaluateInParentCenter(
-                KINEMATIC_VISCOSITY, *this);
+            const array_1d<double, 3>& r_wall_velocity =
+                RansCalculationUtilities::EvaluateInPoint(
+                    r_geometry, VELOCITY, gauss_shape_functions);
+            const double wall_velocity_magnitude = norm_2(r_wall_velocity);
 
-            double u_tau;
+            const double tke = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double rho = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, DENSITY, gauss_shape_functions);
+            const double nu = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+
+            double y_plus{0.0}, u_tau{0.0};
             RansCalculationUtilities::CalculateYPlusAndUtau(
-                y_plus, u_tau, wall_cell_center_velocity_magnitude, mWallHeight,
-                nu, kappa, beta);
+                y_plus, u_tau, wall_velocity_magnitude, mWallHeight, nu, kappa, beta);
+            y_plus = std::max(y_plus, y_plus_limit);
 
-            GeometryType& r_geometry = this->GetGeometry();
-
-            MatrixType shape_functions;
-            VectorType gauss_weights;
-            RansCalculationUtilities::CalculateConditionGeometryData(
-                r_geometry, GeometryData::GI_GAUSS_2, gauss_weights, shape_functions);
-            const int number_of_gauss_points = gauss_weights.size();
-
-            // In the linear region, force the velocity to be in the log region lowest
-            // since k - epsilon is only valid in the log region.
-            // In order to avoid issues with stagnation points, tke is also used
-            const double c_mu_25 =
-                std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
-            const std::function<double(double, double)> linear_region_functional =
-                [c_mu_25, y_plus_limit](const double TurbulentKineticEnergy,
-                                        const double Velocity) -> double {
-                return std::max(c_mu_25 * std::sqrt(std::max(TurbulentKineticEnergy, 0.0)),
-                                Velocity / y_plus_limit);
-            };
-
-            // log region, apply the u_tau which is calculated based on the cell centered velocity
-            const std::function<double(double, double)> log_region_functional =
-                [u_tau](const double, const double) -> double { return u_tau; };
-
-            const std::function<double(double, double)> wall_tau_function =
-                ((y_plus >= y_plus_limit) ? log_region_functional : linear_region_functional);
-
-            for (int g = 0; g < number_of_gauss_points; ++g)
+            if (wall_velocity_magnitude > eps)
             {
-                const Vector& gauss_shape_functions = row(shape_functions, g);
-                const double weight = gauss_weights[g];
+                const double u_tau = RansCalculationUtilities::SoftMax(
+                    c_mu_25 * std::sqrt(std::max(tke, 0.0)),
+                    wall_velocity_magnitude / (inv_kappa * std::log(y_plus) + beta));
 
-                const array_1d<double, 3>& r_wall_velocity =
-                    RansCalculationUtilities::EvaluateInPoint(
-                        r_geometry, VELOCITY, gauss_shape_functions);
-                const double wall_velocity_magnitude = norm_2(r_wall_velocity);
-                const double rho = RansCalculationUtilities::EvaluateInPoint(
-                    r_geometry, DENSITY, gauss_shape_functions);
+                const double value = rho * std::pow(u_tau, 2) * gauss_weights[g] / wall_velocity_magnitude;
 
-                if (wall_velocity_magnitude > eps)
+                for (size_t a = 0; a < r_geometry.PointsNumber(); ++a)
                 {
-                    const double tke = RansCalculationUtilities::EvaluateInPoint(
-                        r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-                    const double gauss_u_tau =
-                        wall_tau_function(tke, wall_velocity_magnitude);
-
-                    const double coeff_1 = rho * std::pow(gauss_u_tau, 2) *
-                                           weight / wall_velocity_magnitude;
-
-                    for (IndexType a = 0; a < TNumNodes; ++a)
+                    for (size_t dim = 0; dim < TDim; ++dim)
                     {
-                        for (IndexType i = 0; i < TDim; ++i)
+                        for (size_t b = 0; b < r_geometry.PointsNumber(); ++b)
                         {
-                            for (IndexType b = 0; b < TNumNodes; ++b)
-                            {
-                                rLocalMatrix(a * block_size + i, b * block_size + i) +=
-                                    gauss_shape_functions[a] *
-                                    gauss_shape_functions[b] * coeff_1;
-                            }
-                            rLocalVector[a * block_size + i] -=
-                                gauss_shape_functions[a] * coeff_1 * r_wall_velocity[i];
+                            rLocalMatrix(a * block_size + dim, b * block_size + dim) +=
+                                gauss_shape_functions[a] * gauss_shape_functions[b] * value;
                         }
+                        rLocalVector[a * block_size + dim] -=
+                            gauss_shape_functions[a] * value * r_wall_velocity[dim];
                     }
                 }
             }
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 // template instantiations

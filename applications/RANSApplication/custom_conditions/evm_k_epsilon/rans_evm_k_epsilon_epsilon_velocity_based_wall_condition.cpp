@@ -260,12 +260,18 @@ void RansEvmKEpsilonEpsilonVelocityBasedWallCondition<TDim, TNumNodes>::AddLocal
     const double epsilon_sigma =
         rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
     const double kappa = rCurrentProcessInfo[WALL_VON_KARMAN];
+    const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
+    const double inv_kappa = 1.0 / kappa;
     const double eps = std::numeric_limits<double>::epsilon();
 
-    const double y_plus_2 = std::pow(this->GetValue(RANS_Y_PLUS), 2);
-    const double u_tau_5 = std::pow(norm_2(this->GetValue(FRICTION_VELOCITY)), 5);
+    KRATOS_ERROR_IF(!(this->Has(RANS_Y_PLUS)))
+        << "RANS_Y_PLUS value is not set in " << this->Info() << " at "
+        << this->GetGeometry() << "\n";
 
-    if (y_plus_2 > eps)
+    const double y_plus_limit = rCurrentProcessInfo[RANS_Y_PLUS_LIMIT];
+    const double y_plus = std::max(this->GetValue(RANS_Y_PLUS), y_plus_limit);
+
+    if (y_plus > eps)
     {
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
@@ -275,9 +281,16 @@ void RansEvmKEpsilonEpsilonVelocityBasedWallCondition<TDim, TNumNodes>::AddLocal
                 r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
             const double nu_t = RansCalculationUtilities::EvaluateInPoint(
                 r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
+            const double wall_velocity_magnitude =
+                norm_2(RansCalculationUtilities::EvaluateInPoint(
+                    r_geometry, VELOCITY, gauss_shape_functions));
+
+            const double u_tau =
+                wall_velocity_magnitude / (inv_kappa * std::log(y_plus) + beta);
 
             const double value = gauss_weights[g] * (nu + nu_t / epsilon_sigma) *
-                                 u_tau_5 / (kappa * y_plus_2);
+                                 std::pow(u_tau, 5) /
+                                 (kappa * std::pow(y_plus * nu, 2));
             noalias(rRightHandSideVector) += gauss_shape_functions * value;
         }
     }

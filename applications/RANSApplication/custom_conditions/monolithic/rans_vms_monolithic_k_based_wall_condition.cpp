@@ -148,20 +148,13 @@ void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
     if (RansCalculationUtilities::IsWall(*this))
     {
-        GeometryType& r_geometry = this->GetGeometry();
-
-        const GeometryType::IntegrationPointsArrayType& integration_points =
-            r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const std::size_t number_of_gauss_points = integration_points.size();
-        MatrixType shape_functions =
-            r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-        array_1d<double, 3> normal;
-        this->CalculateNormal(normal); // this already contains the area
-        double A = norm_2(normal);
-
-        // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
-        double J = (TDim == 2) ? 0.5 * A : 2.0 * A;
+        const GeometryType& r_geometry = this->GetGeometry();
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        RansCalculationUtilities::CalculateConditionGeometryData(
+            r_geometry, this->GetIntegrationMethod(), gauss_weights, shape_functions);
+        const IndexType num_gauss_points = gauss_weights.size();
 
         const size_t block_size = TDim + 1;
 
@@ -176,10 +169,9 @@ void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         double condition_y_plus{0.0};
         array_1d<double, 3> condition_u_tau = ZeroVector(3);
 
-        for (size_t g = 0; g < number_of_gauss_points; ++g)
+        for (size_t g = 0; g < num_gauss_points; ++g)
         {
             const Vector& gauss_shape_functions = row(shape_functions, g);
-            const double weight = J * integration_points[g].Weight();
 
             const array_1d<double, 3>& r_wall_velocity =
                 RansCalculationUtilities::EvaluateInPoint(
@@ -208,7 +200,8 @@ void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
                 noalias(condition_u_tau) += r_wall_velocity * u_tau / wall_velocity_magnitude;
 
-                const double value = rho * std::pow(u_tau, 2) * weight / wall_velocity_magnitude;
+                const double value = rho * std::pow(u_tau, 2) *
+                                     gauss_weights[g] / wall_velocity_magnitude;
 
                 for (size_t a = 0; a < r_geometry.PointsNumber(); ++a)
                 {
@@ -227,7 +220,7 @@ void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         }
 
         const double inv_number_of_gauss_points =
-            static_cast<double>(1.0 / number_of_gauss_points);
+            static_cast<double>(1.0 / num_gauss_points);
         this->SetValue(RANS_Y_PLUS, condition_y_plus * inv_number_of_gauss_points);
         this->SetValue(FRICTION_VELOCITY, condition_u_tau * inv_number_of_gauss_points);
     }
