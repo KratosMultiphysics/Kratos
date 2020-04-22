@@ -11,8 +11,8 @@
 //
 
 // System includes
-#include <limits>
 #include <cmath>
+#include <limits>
 
 // External includes
 
@@ -123,7 +123,7 @@ void RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::CalculateLocalVelocityContribu
     rRightHandSideVector.clear();
     rDampingMatrix.clear();
 
-    if (this->Is(SLIP))
+    if (RansCalculationUtilities::IsWall(*this))
     {
         this->AddLocalVelocityContribution(rDampingMatrix, rRightHandSideVector,
                                            rCurrentProcessInfo);
@@ -246,44 +246,38 @@ void RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::AddLocalVelocityContribution(
     KRATOS_TRY
 
     const GeometryType& r_geometry = this->GetGeometry();
-
     // Get Shape function data
-    const GeometryType::IntegrationPointsArrayType& integration_points =
-        r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
-    const IndexType num_gauss_points = integration_points.size();
-    MatrixType shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-    const double area = r_geometry.DomainSize();
-
-    // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
-    double J = (TNumNodes == 2) ? 0.5 * area : 2.0 * area;
+    Vector gauss_weights;
+    Matrix shape_functions;
+    RansCalculationUtilities::CalculateConditionGeometryData(
+        r_geometry, this->GetIntegrationMethod(), gauss_weights, shape_functions);
+    const IndexType num_gauss_points = gauss_weights.size();
 
     const double epsilon_sigma =
         rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
     const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
     const double eps = std::numeric_limits<double>::epsilon();
-    for (IndexType g = 0; g < num_gauss_points; ++g)
+    const double y_plus = this->GetValue(RANS_Y_PLUS);
+
+    if (y_plus > eps)
     {
-        const Vector& gauss_shape_functions = row(shape_functions, g);
-        const double weight = J * integration_points[g].Weight();
-
-        const double nu = RansCalculationUtilities::EvaluateInPoint(
-            r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
-        const double nu_t = RansCalculationUtilities::EvaluateInPoint(
-            r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
-        const double tke = RansCalculationUtilities::EvaluateInPoint(
-            r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-        const double epsilon = RansCalculationUtilities::EvaluateInPoint(
-            r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, gauss_shape_functions);
-        const double y_plus = RansCalculationUtilities::EvaluateInPoint(
-            r_geometry, RANS_Y_PLUS, gauss_shape_functions);
-
-        const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
-
-        if (y_plus > eps)
+        for (IndexType g = 0; g < num_gauss_points; ++g)
         {
-            const double value =
-                weight * (nu + nu_t / epsilon_sigma) * u_tau / (y_plus * nu);
+            const Vector& gauss_shape_functions = row(shape_functions, g);
+
+            const double nu = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+            const double nu_t = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
+            const double tke = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double epsilon = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, gauss_shape_functions);
+
+            const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+
+            const double value = gauss_weights[g] * (nu + nu_t / epsilon_sigma) *
+                                 u_tau / (y_plus * nu);
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {

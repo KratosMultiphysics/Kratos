@@ -250,41 +250,34 @@ void RansEvmKEpsilonEpsilonVelocityBasedWallCondition<TDim, TNumNodes>::AddLocal
     KRATOS_TRY
 
     const GeometryType& r_geometry = this->GetGeometry();
-
     // Get Shape function data
-    const GeometryType::IntegrationPointsArrayType& integration_points =
-        r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
-    const IndexType num_gauss_points = integration_points.size();
-    MatrixType shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-    const double area = r_geometry.DomainSize();
-
-    // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
-    double J = (TNumNodes == 2) ? 0.5 * area : 2.0 * area;
+    Vector gauss_weights;
+    Matrix shape_functions;
+    RansCalculationUtilities::CalculateConditionGeometryData(
+        r_geometry, this->GetIntegrationMethod(), gauss_weights, shape_functions);
+    const IndexType num_gauss_points = gauss_weights.size();
 
     const double epsilon_sigma =
         rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
     const double kappa = rCurrentProcessInfo[WALL_VON_KARMAN];
     const double eps = std::numeric_limits<double>::epsilon();
 
-    const double y_plus = this->GetValue(RANS_Y_PLUS);
-    const double u_tau = norm_2(this->GetValue(FRICTION_VELOCITY));
+    const double y_plus_2 = std::pow(this->GetValue(RANS_Y_PLUS), 2);
+    const double u_tau_5 = std::pow(norm_2(this->GetValue(FRICTION_VELOCITY)), 5);
 
-    for (IndexType g = 0; g < num_gauss_points; ++g)
+    if (y_plus_2 > eps)
     {
-        const Vector& gauss_shape_functions = row(shape_functions, g);
-        const double weight = J * integration_points[g].Weight();
-
-        const double nu = RansCalculationUtilities::EvaluateInPoint(
-            r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
-        const double nu_t = RansCalculationUtilities::EvaluateInPoint(
-            r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
-
-        if (y_plus > eps)
+        for (IndexType g = 0; g < num_gauss_points; ++g)
         {
-            const double value = weight * (nu + nu_t / epsilon_sigma) *
-                                 std::pow(u_tau, 5) /
-                                 (kappa * std::pow(y_plus * nu, 2));
+            const Vector& gauss_shape_functions = row(shape_functions, g);
+
+            const double nu = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+            const double nu_t = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
+
+            const double value = gauss_weights[g] * (nu + nu_t / epsilon_sigma) *
+                                 u_tau_5 / (kappa * y_plus_2);
             noalias(rRightHandSideVector) += gauss_shape_functions * value;
         }
     }

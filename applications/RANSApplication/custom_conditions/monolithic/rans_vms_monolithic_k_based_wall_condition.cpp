@@ -114,6 +114,8 @@ void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize()
             << this->Info() << " cannot find parent element\n";
 
         mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, rNormal);
+
+        KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
     }
 
     KRATOS_CATCH("");
@@ -142,103 +144,95 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
     MatrixType& rLocalMatrix, VectorType& rLocalVector, ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
     if (RansCalculationUtilities::IsWall(*this))
     {
+        GeometryType& r_geometry = this->GetGeometry();
+
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const std::size_t number_of_gauss_points = integration_points.size();
+        MatrixType shape_functions =
+            r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+        array_1d<double, 3> normal;
+        this->CalculateNormal(normal); // this already contains the area
+        double A = norm_2(normal);
+
+        // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
+        double J = (TDim == 2) ? 0.5 * A : 2.0 * A;
+
+        const size_t block_size = TDim + 1;
+
+        const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+        const double kappa = rCurrentProcessInfo[WALL_VON_KARMAN];
+        const double inv_kappa = 1.0 / kappa;
+        const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
+        const double y_plus_limit = rCurrentProcessInfo[RANS_Y_PLUS_LIMIT];
+
         const double eps = std::numeric_limits<double>::epsilon();
 
-        const array_1d<double, 3> wall_cell_center_velocity =
-            RansCalculationUtilities::CalculateWallVelocity(*this);
-        const double wall_cell_center_velocity_magnitude = norm_2(wall_cell_center_velocity);
+        double condition_y_plus{0.0};
+        array_1d<double, 3> condition_u_tau = ZeroVector(3);
 
-        const double y_plus_limit = rCurrentProcessInfo[RANS_Y_PLUS_LIMIT];
-        double y_plus = 0.0;
-
-        if (wall_cell_center_velocity_magnitude > eps)
+        for (size_t g = 0; g < number_of_gauss_points; ++g)
         {
-            constexpr unsigned int block_size = TDim + 1;
+            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const double weight = J * integration_points[g].Weight();
 
-            // calculate cell centered y_plus value
-            const double kappa = rCurrentProcessInfo[WALL_VON_KARMAN];
-            const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
-            const double nu = RansCalculationUtilities::EvaluateInParentCenter(
-                KINEMATIC_VISCOSITY, *this);
+            const array_1d<double, 3>& r_wall_velocity =
+                RansCalculationUtilities::EvaluateInPoint(
+                    r_geometry, VELOCITY, gauss_shape_functions);
+            const double wall_velocity_magnitude = norm_2(r_wall_velocity);
 
-            double u_tau;
+            const double tke = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double rho = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, DENSITY, gauss_shape_functions);
+            const double nu = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+
+            double y_plus{0.0}, u_tau{0.0};
             RansCalculationUtilities::CalculateYPlusAndUtau(
-                y_plus, u_tau, wall_cell_center_velocity_magnitude, mWallHeight,
-                nu, kappa, beta);
+                y_plus, u_tau, wall_velocity_magnitude, mWallHeight, nu, kappa, beta);
+            y_plus = std::max(y_plus, y_plus_limit);
 
-            GeometryType& r_geometry = this->GetGeometry();
+            condition_y_plus += y_plus;
 
-            const GeometryType::IntegrationPointsArrayType& integration_points =
-                r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
-            const std::size_t number_of_gauss_points = integration_points.size();
-            MatrixType shape_functions =
-                r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-            const double area = r_geometry.DomainSize();
-            // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
-            double J = (TDim == 2) ? 0.5 * area : 2.0 * area;
-
-            // In the linear region, force the velocity to be in the log region lowest
-            // since k - epsilon is only valid in the log region.
-            // In order to avoid issues with stagnation points, tke is also used
-            const double c_mu_25 =
-                std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
-            const std::function<double(double, double)> linear_region_functional =
-                [c_mu_25, y_plus_limit](const double TurbulentKineticEnergy,
-                                        const double Velocity) -> double {
-                return std::max(c_mu_25 * std::sqrt(std::max(TurbulentKineticEnergy, 0.0)),
-                                Velocity / y_plus_limit);
-            };
-
-            // log region, apply the u_tau which is calculated based on the cell centered velocity
-            const std::function<double(double, double)> log_region_functional =
-                [u_tau](const double, const double) -> double { return u_tau; };
-
-            const std::function<double(double, double)> wall_tau_function =
-                ((y_plus >= y_plus_limit) ? log_region_functional : linear_region_functional);
-
-            for (size_t g = 0; g < number_of_gauss_points; ++g)
+            if (wall_velocity_magnitude > eps)
             {
-                const Vector& gauss_shape_functions = row(shape_functions, g);
-                const double weight = J * integration_points[g].Weight();
+                const double u_tau = RansCalculationUtilities::SoftMax(
+                    c_mu_25 * std::sqrt(std::max(tke, 0.0)),
+                    wall_velocity_magnitude / (inv_kappa * std::log(y_plus) + beta));
 
-                const array_1d<double, 3>& r_wall_velocity =
-                    RansCalculationUtilities::EvaluateInPoint(
-                        r_geometry, VELOCITY, gauss_shape_functions);
-                const double wall_velocity_magnitude = norm_2(r_wall_velocity);
-                const double rho = RansCalculationUtilities::EvaluateInPoint(
-                    r_geometry, DENSITY, gauss_shape_functions);
+                noalias(condition_u_tau) += r_wall_velocity * u_tau / wall_velocity_magnitude;
 
-                if (wall_velocity_magnitude > eps)
+                const double value = rho * std::pow(u_tau, 2) * weight / wall_velocity_magnitude;
+
+                for (size_t a = 0; a < r_geometry.PointsNumber(); ++a)
                 {
-                    const double tke = RansCalculationUtilities::EvaluateInPoint(
-                        r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-                    const double gauss_u_tau =
-                        wall_tau_function(tke, wall_velocity_magnitude);
-
-                    const double value = rho * std::pow(gauss_u_tau, 2) *
-                                         weight / wall_velocity_magnitude;
-
-                    for (IndexType a = 0; a < TNumNodes; ++a)
+                    for (size_t dim = 0; dim < TDim; ++dim)
                     {
-                        for (IndexType dim = 0; dim < TDim; ++dim)
+                        for (size_t b = 0; b < r_geometry.PointsNumber(); ++b)
                         {
-                            for (IndexType b = 0; b < TNumNodes; ++b)
-                            {
-                                rLocalMatrix(a * block_size + dim, b * block_size + dim) +=
-                                    gauss_shape_functions[a] *
-                                    gauss_shape_functions[b] * value;
-                            }
-                            rLocalVector[a * block_size + dim] -=
-                                gauss_shape_functions[a] * value * r_wall_velocity[dim];
+                            rLocalMatrix(a * block_size + dim, b * block_size + dim) +=
+                                gauss_shape_functions[a] * gauss_shape_functions[b] * value;
                         }
+                        rLocalVector[a * block_size + dim] -=
+                            gauss_shape_functions[a] * value * r_wall_velocity[dim];
                     }
                 }
             }
         }
+
+        const double inv_number_of_gauss_points =
+            static_cast<double>(1.0 / number_of_gauss_points);
+        this->SetValue(RANS_Y_PLUS, condition_y_plus * inv_number_of_gauss_points);
+        this->SetValue(FRICTION_VELOCITY, condition_u_tau * inv_number_of_gauss_points);
     }
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
