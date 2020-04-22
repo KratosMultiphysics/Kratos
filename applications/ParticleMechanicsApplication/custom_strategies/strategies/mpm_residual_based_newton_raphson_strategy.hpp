@@ -116,14 +116,14 @@ public:
     /** Constructors.
      */
     
-     /*MPMResidualBasedNewtonRaphsonStrategy(
+     MPMResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
     )
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
             rModelPart, MoveMeshFlag)
     {
-    }*/
+    }
 
     MPMResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
@@ -165,7 +165,6 @@ public:
     virtual ~MPMResidualBasedNewtonRaphsonStrategy()
     {
     }
-
     
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
@@ -261,9 +260,7 @@ public:
         {
             // Setting the number of iteration
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-
             p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
-
             is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
             // Call the linear system solver to find the correction rDx. It is not called if there is no system to solve
@@ -309,7 +306,6 @@ public:
             r_dof_set = p_builder_and_solver->GetDofSet();
 
             p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-
             p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
             // Move the mesh if needed
