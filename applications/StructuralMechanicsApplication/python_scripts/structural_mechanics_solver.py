@@ -115,11 +115,13 @@ class MechanicalSolver(PythonSolver):
             "compute_reactions": true,
             "block_builder" : true,
             "builder_and_solver_settings" : {
-                "consider_lagrange_multiplier_constraint_resolution" : "none",
                 "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
-                "constraint_scale_factor"                            : "use_mean_diagonal",
-                "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal",
-                "silent_warnings"                                    : false
+                "silent_warnings"                                    : false,
+                "advanced_settings"                                  : {
+                    "consider_lagrange_multiplier_constraint_resolution" : "none",
+                    "constraint_scale_factor"                            : "use_mean_diagonal",
+                    "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
+                }
             },
             "clear_storage": false,
             "move_mesh_flag": true,
@@ -441,12 +443,9 @@ class MechanicalSolver(PythonSolver):
         linear_solver = self.get_linear_solver()
         if self.settings["block_builder"].GetBool():
             bs_params = self.settings["builder_and_solver_settings"]
-            consider_lagrange_multiplier_constraint_resolution = self.settings["builder_and_solver_settings"]["consider_lagrange_multiplier_constraint_resolution"].GetString()
+            consider_lagrange_multiplier_constraint_resolution = bs_params["advanced_settings"]["consider_lagrange_multiplier_constraint_resolution"].GetString()
             if consider_lagrange_multiplier_constraint_resolution == "none":
-                block_bs_params = KratosMultiphysics.Parameters("""{}""")
-                block_bs_params.AddValue("diagonal_values_for_dirichlet_dofs", bs_params["diagonal_values_for_dirichlet_dofs"])
-                block_bs_params.AddValue("silent_warnings", bs_params["silent_warnings"])
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, block_bs_params)
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
         else:
