@@ -894,7 +894,7 @@ std::size_t NodalConcentratedElement::ComputeSizeOfSystem() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

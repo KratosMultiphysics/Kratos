@@ -80,14 +80,20 @@ class FemDemMechanicalSolver(object):
             },
             "bodies_list": [],
             "problem_domain_sub_model_part_list": ["solid"],
-            "processes_sub_model_part_list": [""]
+            "processes_sub_model_part_list":      [""],
+            "strategy_type":                          "newton_raphson",
+            "arc_length_loads_sub_model_part_list":   [],
+            "arc_length_loads_variable_list":         [],
+            "arc_length_desired_iterations":          4,
+            "arc_length_max_radius_factor":           10.0,
+            "arc_length_min_radius_factor":           1.0
         }
         """)
 
 
         #trick to allow null value in a stabilization_factor variable
-        if(custom_settings.Has("stabilization_factor")):
-            if(custom_settings["stabilization_factor"].IsDouble()):
+        if (custom_settings.Has("stabilization_factor")):
+            if (custom_settings["stabilization_factor"].IsDouble()):
                 default_settings["stabilization_factor"].SetDouble(0.0)
 
 
@@ -120,7 +126,7 @@ class FemDemMechanicalSolver(object):
             self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
 
         # Add specific variables for the problem conditions
-        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
+        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD','FORCE_LOAD']
 
         # Add nodal force variables for component wise calculation
         if( self.settings.Has("component_wise") ):
