@@ -80,13 +80,13 @@ def SolveSolutionStep(para_path_mod):
     tau_solver_write_output_conditional()
 
 #------------------------------------------------------------------
-# find the solution file name in '/Outputs' and convert in .dat ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen #########
+# find the solution file name in '/Outputs' and convert in .dat ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen
 #------------------------------------------------------------------
 def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out)
     list_of_interface_file_paths = glob.glob(interface_file_path_pattern + "*") 
     print "list_of_interface_file_path = ", list_of_interface_file_paths 
 
-    interface_file_name = tauFunctions.findFileName(list_of_interface_file_paths, interface_file_path_pattern, "airfoilSol.pval.unsteady_i=",this_step_out) ###### hier ich denke this_step_out ist falsche
+    interface_file_name = tauFunctions.findFileName(list_of_interface_file_paths, interface_file_path_pattern, "airfoilSol.pval.unsteady_i=",this_step_out+1) 
     print "interface_file_name = ", interface_file_name 
 
     list_of_meshes = glob.glob(mesh_file_path_pattern+ "*") 
@@ -113,10 +113,12 @@ def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, 
     interface_file_number_of_lines = tauFunctions.findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
 
+    return interface_file_name_surface, interface_file_number_of_lines
+
 #------------------------------------------------------------------
-# read the solution file name in '/Outputs' and calculate the pressure ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen #########
+# read the solution file name in '/Outputs' and calculate the pressure ## ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen ##
 #------------------------------------------------------------------
-def caculatePressure():
+def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out):
     NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable_Sol,liste_number=tauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0)
     elemTable = elemTable_Sol.astype(int)
 
@@ -126,19 +128,32 @@ def caculatePressure():
 
     nodes,nodesID,elems,numNodesPerElem=tauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
   
+    # calculating cp at the center of each interface element    
+    pCell=tauFunctions.calcpCell(ElemsNr,P,X,elemTable)
+
+    # calculating element area and normal vector
+    area,normal = tauFunctions.calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(this_step_out+1))
+
+    # calculating the force vector
+    forcesTauNP = tauFunctions.calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(this_step_out+1))
+
+    return forcesTauNP
+
+#------------------------------------------------------------------
+# Deformation
+#------------------------------------------------------------------
+def deformationTAU():
+
+    [ids,coordinates,globalID,coords]=Functions.meshDeformation(NodesNr,nodes,dispTau,dispTauOld,0)
+    PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
+
+
+#------------------------------------------------------------------
+# 
+#------------------------------------------------------------------
   #if (this_step_out==0):  
    #   TAUclient.setMesh('myMeshTau', NodesNr, ElemsNr, nodes, nodesID, numNodesPerElem, elems, 'TAUclient')
- #     
-
-  # calculating cp at the center of each interface element    
- # pCell=Functions.calcpCell(ElemsNr,P,X,elemTable)
- # print 'calcCpCell'
-  # calculating element area and normal vector
- # area,normal = Functions.calcAreaNormal(ElemsNr,elemTable,X,Y,Z,fluidIter*(this_step_out+1))
- # print 'calcAreaNormal'
-  # calculating the force vector
-  #forcesTauNP = Functions.calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,fluidIter*(this_step_out+1))
-
+ #  
 
 
 def FinalizeSolutionStep():
