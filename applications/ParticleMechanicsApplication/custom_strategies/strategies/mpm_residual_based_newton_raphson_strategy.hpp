@@ -20,15 +20,6 @@
 /* External includes */
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
-/* Project includes */
-//#include "includes/define.h"
-//#include "includes/model_part.h"
-//#include "includes/kratos_flags.h"
-//
-//
-//#include "solving_strategies/convergencecriterias/convergence_criteria.h"
-//#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-
 // Application includes
 #include "particle_mechanics_application_variables.h"
 
@@ -119,8 +110,7 @@ public:
      MPMResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
-    )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
+    ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
             rModelPart, MoveMeshFlag)
     {
     }
@@ -134,8 +124,7 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-    )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
+    ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
             rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria,
             MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
@@ -151,13 +140,11 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-    )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
+    ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
             rModelPart, pScheme, pNewLinearSolver,
             pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations,
             CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        
     }
 
     /** Destructor.
