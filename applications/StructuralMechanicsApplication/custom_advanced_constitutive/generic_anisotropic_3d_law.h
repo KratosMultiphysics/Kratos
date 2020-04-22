@@ -318,6 +318,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
         Matrix &rElasticityTensor,
         const Properties &rMaterialProperties);
 
+    int Check(const Properties &rMaterialProperties,
+              const GeometryType &rElementGeometry,
+              const ProcessInfo &rCurrentProcessInfo) override;
+
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
     ///@}
     ///@name Access
     ///@{

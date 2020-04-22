@@ -79,56 +79,63 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw
 void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // this strain in the real anisotropic space
-    const Vector real_strain_vector = rValues.GetStrainVector();
+    const Vector real_strain_vector         = rValues.GetStrainVector();
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-   
+
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+
+    // Previous flags saved
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
     // We create the rValues for the isotropic CL
     const auto it_cl_begin                    = r_material_properties.GetSubProperties().begin();
     const auto& r_props_iso_cl                = *(it_cl_begin);
     ConstitutiveLaw::Parameters values_iso_cl = rValues;
     values_iso_cl.SetMaterialProperties(r_props_iso_cl);
 
-    // Here we rotate the orthotropy misalignment with respect to the global axes
-    // {
-    //}
-    // todo ...
+    if (flag_stress) {
+        // Here we rotate the orthotropy misalignment with respect to the global axes
+        // {
+        //}
+        // todo ...
 
-    // We compute the mappers As and Ae
-    Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
-    Matrix stress_mapper_inv(VoigtSize, VoigtSize); // The inverse of As
-    Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
+        // We compute the mappers As and Ae
+        Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
+        Matrix stress_mapper_inv(VoigtSize, VoigtSize); // The inverse of As
+        Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
 
-    ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
-    this->CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
-    this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
-    ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                                                isotropic_elastic_matrix, stress_mapper, 
-                                                                                strain_mapper);
-    // Now we map the strains to the isotropic fictitious space: Eiso = Ae*Ereal
-    // TODO What it is F driven???????
-    Vector &r_iso_strain_vector = values_iso_cl.GetStrainVector();
-    r_iso_strain_vector = prod(strain_mapper, r_iso_strain_vector); // mapped
-    mpIsotropicCL->CalculateMaterialResponsePK2(values_iso_cl);
-    const Vector& r_iso_stress_vector = values_iso_cl.GetStressVector();
+        ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
+        this->CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
+        this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
+                                                                                    isotropic_elastic_matrix, stress_mapper, 
+                                                                                    strain_mapper);
+        // Now we map the strains to the isotropic fictitious space: Eiso = Ae*Ereal
+        // TODO What it is F driven???????
+        Vector &r_iso_strain_vector = values_iso_cl.GetStrainVector();
+        r_iso_strain_vector = prod(strain_mapper, real_strain_vector); // mapped
+        mpIsotropicCL->CalculateMaterialResponsePK2(values_iso_cl);
+        const Vector& r_iso_stress_vector = values_iso_cl.GetStressVector();
 
-    // We map the stresses to the real space: Sreal = inv(As)Siso
-    Vector &r_real_stress_vector = rValues.GetStressVector();
-    noalias(r_real_stress_vector) = prod(stress_mapper_inv, r_iso_stress_vector);
+        // We map the stresses to the real space: Sreal = inv(As)Siso
+        Vector &r_real_stress_vector  = rValues.GetStressVector();
+        noalias(r_real_stress_vector) = prod(stress_mapper_inv, r_iso_stress_vector);
 
-    // Finally we map the tangent tensor: C_aniso = inv(As)*C_iso*Ae
-    Matrix &r_anisotropic_tangent_matrix  = rValues.GetConstitutiveMatrix();
-    const Matrix& r_isotropic_tangent     = values_iso_cl.GetConstitutiveMatrix();
-    noalias(r_anisotropic_tangent_matrix) = prod(stress_mapper_inv, Matrix(prod(r_isotropic_tangent, strain_mapper)));
+        if (flag_const_tensor) {
+            // Finally we map the tangent tensor: C_aniso = inv(As)*C_iso*Ae
+            Matrix &r_anisotropic_tangent_matrix  = rValues.GetConstitutiveMatrix();
+            const Matrix& r_isotropic_tangent     = values_iso_cl.GetConstitutiveMatrix();
+            noalias(r_anisotropic_tangent_matrix) = prod(stress_mapper_inv, Matrix(prod(r_isotropic_tangent, strain_mapper)));
+        }
 
-    // Here we revert the rotations
-    // {
-    //}
-    // todo ...
-
-    // Backup the strain vector
-    Vector &r_strain_vector  = rValues.GetStrainVector();
-    noalias(r_strain_vector) = real_strain_vector;
-
+        // Here we revert the rotations
+        // {
+        //}
+        // todo ...   
+    }
 } // End CalculateMaterialResponseCauchy
 
 
@@ -238,7 +245,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw:
 void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // this strain in the real anisotropic space
-    Vector& r_strain_vector = rValues.GetStrainVector();
+    const Vector& r_strain_vector = rValues.GetStrainVector();
     const Properties& r_material_properties = rValues.GetMaterialProperties();
    
     // We create the rValues for the isotropic CL
@@ -266,7 +273,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     // Now we map the strains to the isotropic fictitious space: Eiso = Ae*Ereal
     // TODO What it is F driven???????
     Vector &r_iso_strain_vector = values_iso_cl.GetStrainVector();
-    r_iso_strain_vector = prod(strain_mapper, r_iso_strain_vector); // mapped
+    r_iso_strain_vector = prod(strain_mapper, r_strain_vector); // mapped
     mpIsotropicCL->FinalizeMaterialResponsePK2(values_iso_cl);
 }
 
@@ -541,5 +548,35 @@ void GenericAnisotropic3DLaw::CalculateCauchyGreenStrain(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+int GenericAnisotropic3DLaw::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    return mpIsotropicCL->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GenericAnisotropic3DLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
+    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+
+    if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
+        KRATOS_ERROR << "Analytic solution not available" << std::endl;
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+    }
+}
 
 } // namespace Kratos
