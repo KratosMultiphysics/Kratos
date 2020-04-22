@@ -307,14 +307,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Kirchhoff-Love MembraneElement #" << Id();
+        buffer << "Kirchhoff MembraneElement #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Kirchhoff-Love MembraneElement #" << Id();
+        rOStream << "Kirchhoff MembraneElement #" << Id();
     }
 
     /// Print object's data.
