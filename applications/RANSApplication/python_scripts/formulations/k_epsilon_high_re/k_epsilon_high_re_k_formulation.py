@@ -148,7 +148,7 @@ class KEpsilonHighReKFormulation(Formulation):
             self.element_name = "RansEvmKEpsilonKResidualBasedFC"
             self.scheme_type = CreateSteadyScalarScheme
         elif (stabilization_method == "non_linear_cross_wind_dissipation"):
-            self.element_name = "RansEvmKEpsilonKCrossWind"
+            self.element_name = "RansEvmKEpsilonKCrossWindStabilized"
             self.scheme_type = CreateSteadyScalarScheme
         else:
             raise Exception("Unsupported stabilization method")

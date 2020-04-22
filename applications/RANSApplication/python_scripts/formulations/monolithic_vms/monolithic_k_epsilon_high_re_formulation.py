@@ -28,6 +28,7 @@ class MonolithicKEpsilonHighReFormulation(Formulation):
             "incompressible_potential_flow_initialization_settings": {},
             "monolithic_flow_solver_settings": {},
             "k_epsilon_high_re_solver_settings": {},
+            "max_iterations": 1,
             "steady_convergence_settings": {
                 "velocity_tolerances": {
                     "relative_tolerance": 1e-3,
@@ -50,11 +51,6 @@ class MonolithicKEpsilonHighReFormulation(Formulation):
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5
                 }
-            },
-            "coupling_settings":
-            {
-                "velocity_pressure_coupling_iterations": 5,
-                "k_epsilon_coupling_iterations": 10
             }
         }''')
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -66,15 +62,21 @@ class MonolithicKEpsilonHighReFormulation(Formulation):
             self.is_potential_flow_initialized = True
 
         self.monolithic_formulation = MonolithicVelocityPressureFormulation(model_part, settings["monolithic_flow_solver_settings"])
-        self.monolithic_formulation.SetMaxCouplingIterations(self.settings["coupling_settings"]["velocity_pressure_coupling_iterations"].GetInt())
         self.AddFormulation(self.monolithic_formulation)
 
         self.k_epsilon_formulation = KEpsilonHighReFormulation(model_part, settings["k_epsilon_high_re_solver_settings"])
-        self.k_epsilon_formulation.SetMaxCouplingIterations(self.settings["coupling_settings"]["k_epsilon_coupling_iterations"].GetInt())
         self.AddFormulation(self.k_epsilon_formulation)
+
+        self.SetMaxCouplingIterations(self.settings["max_iterations"].GetInt())
 
     def IsConverged(self):
         self.is_converged = True
+
+        formulation_converged = self.k_epsilon_formulation.IsConverged()
+        self.is_converged = self.is_converged and formulation_converged
+
+        formulation_converged = self.monolithic_formulation.IsConverged()
+        self.is_converged = self.is_converged and formulation_converged
 
         if (self.is_steady_simulation):
             settings = self.settings["steady_convergence_settings"]
@@ -91,13 +93,6 @@ class MonolithicKEpsilonHighReFormulation(Formulation):
             self.is_converged = self.is_converged and formulation_converged
 
             formulation_converged = self.__CheckTransientConvergence(Kratos.TURBULENT_VISCOSITY, settings["turbulent_viscosity_tolerances"])
-            self.is_converged = self.is_converged and formulation_converged
-
-        else:
-            formulation_converged = self.k_epsilon_formulation.IsConverged()
-            self.is_converged = self.is_converged and formulation_converged
-
-            formulation_converged = self.monolithic_formulation.IsConverged()
             self.is_converged = self.is_converged and formulation_converged
 
         return self.is_converged

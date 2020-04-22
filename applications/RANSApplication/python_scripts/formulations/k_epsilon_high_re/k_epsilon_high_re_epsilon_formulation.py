@@ -45,15 +45,21 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
 
     def PrepareModelPart(self):
         wall_function_type = self.settings["wall_function_type"].GetString()
-        if (wall_function_type == "turbulent_kinetic_energy_based"):
-            # this wall condition is more preferred, but fails if turbulent kinetic energy singularities is found
+        if (wall_function_type == "turbulent_kinetic_energy_based_lhs"):
+            # this wall condition is most preferred, but since it is changing the LHS, positivity preserving quality of
+            # stabilization methods are not guranteed.
+            condition_name = "RansEvmKEpsilonEpsilonWall"
+        elif (wall_function_type == "turbulent_kinetic_energy_based_rhs"):
+            # this wall condition is more preferred, but fails if turbulent kinetic energy singularities is found,
+            # since this only changes RHS, stabilization gurantees positivity preservation
             condition_name = "RansEvmKEpsilonEpsilonKBasedWallCondition"
-        elif wall_function_type == "velocity_based":
-            # this one works even with turbulent kinetic energy singularities
+        elif wall_function_type == "velocity_based_rhs":
+            # this one works even with turbulent kinetic energy singularities, since this also modifies only the RHS
+            # positivity preserving quality is guranteed
             condition_name = "RansEvmKEpsilonEpsilonVelocityBasedWallCondition"
         else:
             raise Exception(
-                "Only \"turbulent_kinetic_energy_based\" and \"velocity_based\" wall function type supported. [ wall_function_type = \""
+                "Only \"turbulent_kinetic_energy_based_lhs\", \"turbulent_kinetic_energy_based_rhs\" and \"velocity_based_rhs\" wall function types supported. [ wall_function_type = \""
                 + wall_function_type + "\" ].")
 
         self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, condition_name)
@@ -159,7 +165,7 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
             self.element_name = "RansEvmKEpsilonEpsilonResidualBasedFC"
             self.scheme_type = CreateSteadyScalarScheme
         elif (stabilization_method == "non_linear_cross_wind_dissipation"):
-            self.element_name = "RansEvmKEpsilonEpsilonCrossWind"
+            self.element_name = "RansEvmKEpsilonEpsilonCrossWindStabilized"
             self.scheme_type = CreateSteadyScalarScheme
         else:
             raise Exception("Unsupported stabilization method")

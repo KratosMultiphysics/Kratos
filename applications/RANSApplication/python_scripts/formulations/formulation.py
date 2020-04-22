@@ -43,12 +43,13 @@ class Formulation:
 
     def SolveCouplingStep(self):
         max_iterations = self.GetMaxCouplingIterations()
-        for _ in range(max_iterations):
+        for itration in range(max_iterations):
             for formulation in self.list_of_formulations:
                 if (not formulation.SolveCouplingStep()):
                     return False
-
             self.ExecuteAfterCouplingSolveStep()
+            Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling itr. " + str(itration + 1) + "/" + str(max_iterations) + ".")
+
         return True
 
     def ExecuteAfterCouplingSolveStep(self):

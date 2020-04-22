@@ -2,9 +2,11 @@ from __future__ import print_function, absolute_import, division
 
 # import kratos
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.process_factory import KratosProcessFactory
 
 # import RANS
 import KratosMultiphysics.RANSApplication as KratosRANS
+from KratosMultiphysics.RANSApplication import RansVariableUtilities
 
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
@@ -15,6 +17,8 @@ from .k_epsilon_high_re_epsilon_formulation import KEpsilonHighReEpsilonFormulat
 
 # import utilities
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
+from KratosMultiphysics.RANSApplication import ScalarVariableDifferenceNormCalculationUtility
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 
 class KEpsilonHighReFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -26,6 +30,17 @@ class KEpsilonHighReFormulation(Formulation):
             "stabilization_method": "algebraic_flux_corrected",
             "turbulent_kinetic_energy_solver_settings": {},
             "turbulent_energy_dissipation_rate_solver_settings": {},
+            "wall_function_properties":{
+                "y_plus_calculation_method": "calculated",
+                "y_plus_value": 11.06
+            },
+            "coupling_settings":
+            {
+                "relative_tolerance": 1e-3,
+                "absolute_tolerance": 1e-5,
+                "max_iterations": 10
+            },
+            "auxiliar_process_list": [],
             "echo_level": 0
         }''')
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -41,6 +56,8 @@ class KEpsilonHighReFormulation(Formulation):
         self.AddFormulation(self.epsilon_formulation)
 
         self.echo_level = self.settings["echo_level"].GetInt()
+        self.nu_t_convergence_utility = ScalarVariableDifferenceNormCalculationUtility(self.GetBaseModelPart(), Kratos.TURBULENT_VISCOSITY)
+        self.SetMaxCouplingIterations(self.settings["coupling_settings"]["max_iterations"].GetInt())
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
@@ -105,6 +122,13 @@ class KEpsilonHighReFormulation(Formulation):
                                             1e-12,
                                             self.echo_level)
         self.AddProcess(nut_wall_process)
+
+        factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
+        self.auxiliar_process_list = factory.ConstructListOfProcesses(
+            self.settings["auxiliar_process_list"])
+        for process in self.auxiliar_process_list:
+            self.AddProcess(process)
+
         super(KEpsilonHighReFormulation, self).Initialize()
 
     def SetConstants(self, settings):
@@ -150,3 +174,30 @@ class KEpsilonHighReFormulation(Formulation):
             raise Exception("\"scheme_type\" is missing in time scheme settings")
 
         super(KEpsilonHighReFormulation, self).SetTimeSchemeSettings(settings)
+
+    def SolveCouplingStep(self):
+        relative_tolerance = self.settings["coupling_settings"]["relative_tolerance"].GetDouble()
+        absolute_tolerance = self.settings["coupling_settings"]["absolute_tolerance"].GetDouble()
+        max_iterations = self.GetMaxCouplingIterations()
+
+        for itration in range(max_iterations):
+            self.nu_t_convergence_utility.InitializeCalculation()
+
+            for formulation in self.list_of_formulations:
+                if (not formulation.SolveCouplingStep()):
+                    return False
+            self.ExecuteAfterCouplingSolveStep()
+
+            relative_error, absolute_error = self.nu_t_convergence_utility.CalculateDifferenceNorm()
+            info = GetConvergenceInfo(Kratos.TURBULENT_VISCOSITY, relative_error, relative_tolerance, absolute_error, absolute_tolerance)
+            Kratos.Logger.PrintInfo(self.GetName() + " CONVERGENCE", info)
+
+            is_converged = relative_error < relative_tolerance or absolute_error < absolute_tolerance
+            if (is_converged):
+                Kratos.Logger.PrintInfo(self.GetName() + " CONVERGENCE", "TURBULENT_VISCOSITY *** CONVERGENCE ACHIEVED ***")
+
+            Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling itr. " + str(itration + 1) + "/" + str(max_iterations) + ".")
+            if (is_converged):
+                return True
+
+        return True

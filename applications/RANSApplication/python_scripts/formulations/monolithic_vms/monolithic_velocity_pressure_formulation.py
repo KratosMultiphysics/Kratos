@@ -14,7 +14,6 @@ from KratosMultiphysics.RANSApplication.formulations.formulation import Formulat
 
 # import utilities
 from KratosMultiphysics import VariableUtils
-from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
@@ -76,6 +75,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
         self.echo_level = self.settings["echo_level"].GetInt()
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
+        self.SetMaxCouplingIterations(1)
 
         Kratos.Logger.PrintInfo(self.GetName(), "Construction of formulation finished.")
 
@@ -121,18 +121,8 @@ class MonolithicVelocityPressureFormulation(Formulation):
         CalculateNormalsOnConditions(model_part)
 
         process_info = model_part.ProcessInfo
-        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-        kappa = process_info[KratosRANS.WALL_VON_KARMAN]
-        beta = process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
         domain_size = process_info[Kratos.DOMAIN_SIZE]
         bossak_alpha = process_info[Kratos.BOSSAK_ALPHA]
-        wall_fuction_update_process = KratosRANS.RansWallFunctionUpdateProcess(
-                                                            model_part.GetModel(),
-                                                            wall_model_part_name,
-                                                            kappa,
-                                                            beta,
-                                                            self.echo_level)
-        self.AddProcess(wall_fuction_update_process)
 
         if (self.IsPeriodic()):
             if (domain_size == 2):
@@ -198,7 +188,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
 
     def IsConverged(self):
         if (hasattr(self, "is_converged")):
-            return self.is_converged
+            return self.GetStrategy().IsConverged()
         return False
 
     def SolveCouplingStep(self):
