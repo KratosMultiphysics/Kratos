@@ -111,6 +111,12 @@ namespace Kratos
       ///@name Static Methods
       ///@{
 
+    static std::vector<std::string>& GetLablesStackInstance()
+    {
+      static std::vector<std::string> instance;
+      return instance;
+    }
+
     static int& GetCurrentLevelInstance()
     {
       static int instance = 0;
@@ -123,16 +129,17 @@ namespace Kratos
       return instance;
       }
 
-      static LoggerOutput& GetDefaultOutputInstance()
-      {
-          static LoggerOutput defaultOutputInstance(std::cout);
-          return defaultOutputInstance;
-      }
+    static LoggerOutput& GetDefaultOutputInstance()
+    {
+        static LoggerOutput defaultOutputInstance(std::cout);
+        return defaultOutputInstance;
+    }
 
     static void AddOutput(LoggerOutput::Pointer pTheOutput);
 
     static void Flush();
 
+    static std::string CreateFullLabel();
 
       ///@}
       ///@name Access

@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "input_output/logger.h"
 #include "utilities/openmp_utils.h"
-
+#include "utilities/timer.h"
 
 namespace Kratos
 {
@@ -48,7 +48,11 @@ namespace Kratos
     KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "The Logger::Start cannot be called in a parallel region" << std::endl;
     mCurrentMessage.SetLevel(GetCurrentLevelInstance());
     mCurrentMessage << LoggerMessage::START << LoggerMessage::PROFILING;
+    GetLablesStackInstance().push_back(TheSectionLabel);
+    auto full_label = CreateFullLabel();
+    mCurrentMessage.SetFullLabel(full_label);
     GetCurrentLevelInstance()++;
+    Timer::Start(full_label);
     return *this;
   }
 
@@ -61,6 +65,8 @@ namespace Kratos
 
     mCurrentMessage.SetLevel(GetCurrentLevelInstance());
     mCurrentMessage << LoggerMessage::STOP << LoggerMessage::PROFILING;
+    Timer::Stop(CreateFullLabel());
+    GetLablesStackInstance().pop_back();
     return *this;
   }
 
@@ -78,6 +84,15 @@ namespace Kratos
     for (auto i_output = outputs.begin(); i_output != outputs.end(); ++i_output) {
       (*i_output)->Flush();
     }
+  }
+
+  std::string Logger::CreateFullLabel(){
+    auto& labels_stack = GetLablesStackInstance();
+    std::string result;
+    for(auto& label : labels_stack){
+      result += "/" + label;
+    }
+    return result;
   }
 
     std::string Logger::Info() const
