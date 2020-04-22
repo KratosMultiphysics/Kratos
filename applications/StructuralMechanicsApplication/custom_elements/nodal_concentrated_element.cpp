@@ -925,34 +925,33 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo ) co
     KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    NodeType& rnode = this->GetGeometry()[0];
+    const NodeType& r_node = this->GetGeometry()[0];
 
     // The displacement terms
     if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
         mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,r_node)
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,r_node)
     }
 
     // The rotational terms
     if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
         mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,r_node)
 
-        KRATOS_CHECK_DOF_IN_NODE(ROTATION_X,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z,rnode)
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_X,r_node)
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y,r_node)
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z,r_node)
     }
 
     return 0;
 
     KRATOS_CATCH( "Problem in the Check in the NodalConcentratedElement" )
 }
-
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -962,6 +961,9 @@ void NodalConcentratedElement::save( Serializer& rSerializer ) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     rSerializer.save("ELementalFlags",mELementalFlags);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void NodalConcentratedElement::load( Serializer& rSerializer )
 {
