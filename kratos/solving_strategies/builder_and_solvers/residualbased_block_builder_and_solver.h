@@ -137,7 +137,8 @@ public:
             "name"                               : "ResidualBasedBlockBuilderAndSolver",
             "block_builder"                      : true,
             "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
-            "silent_warnings"                    : false
+            "silent_warnings"                    : false,
+            "advanced_settings"                  : {}
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
