@@ -103,6 +103,28 @@ protected:
         }
     };
 
+    struct PrestresstransVariables
+    {
+        Matrix Tpre;
+        
+        PrestresstransVariables(const unsigned int& Dimension)
+        {
+           Matrix Tpre = ZeroMatrix(3, 3);
+        }
+    };
+
+    //...is it needed?...
+    struct transPreVariables
+    {
+        Vector S_prestress_result;
+
+         transPreVariables(const unsigned int& Dimension)
+        {
+            Vector S_prestress_result = ZeroVector(Dimension);
+        }
+
+    };
+
 public:
     ///@name Type Definitions
     ///@{
@@ -248,6 +270,16 @@ public:
             rCurrentProcessInfo, true, true);
     }
 
+   /**
+    * @brief Calculate prestress tensor 
+    * @param rPrestressTensor: The prestress tensor to be calculated
+    * @param rMetric
+    */
+    void CalculatePresstressTensor(
+        Vector& rPrestressTensor,
+        KinematicVariables& rActualKinematic); 
+    //...will be used later for postprocessing...
+
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
@@ -392,6 +424,17 @@ private:
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     );
+
+    /**
+    * This functions calculates the matrix for prestress transformation
+    * @param rActualKinematic: The actual metric
+    * @param rPrestresstransVariables: 
+    */
+    void CalculateTransformationmatrixPrestress(
+        const KinematicVariables& rActualKinematic,
+        PrestresstransVariables& rPrestresstransVariables
+        );
+
 
     inline void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,

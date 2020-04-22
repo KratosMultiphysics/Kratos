@@ -149,6 +149,18 @@ namespace Kratos
                 * m_dA_vector[point_number]
                 * GetProperties()[THICKNESS];
 
+            //Define Prestress
+            Vector prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
+
+            PrestresstransVariables prestresstrans_variables(3);
+            CalculateTransformationmatrixPrestress(
+                kinematic_variables,
+                prestresstrans_variables 
+            );
+
+            Vector transformed_prestress = prod(prestresstrans_variables.Tpre, prestress) ;            
+            constitutive_variables_membrane.StressVector += transformed_prestress;
+
             // LEFT HAND SIDE MATRIX
             if (CalculateStiffnessMatrixFlag == true)
             {
@@ -367,6 +379,61 @@ namespace Kratos
         }
     }
 
+    //Prestress Transformation Matrix
+    void MembraneElement::CalculateTransformationmatrixPrestress(
+        const KinematicVariables& rActualKinematic,
+        PrestresstransVariables& rPrestresstransVariable
+    )
+    {
+        //define base vector in reference plane
+        //ATTENTION: in some cases the vector must be modified (e.g. catenoid t3_unten=[0, 0, 1])
+
+        Vector t3_unten = ZeroVector(3);
+        t3_unten[0] = 0;
+        t3_unten[1] = 1;
+        t3_unten[2] = 0;
+
+        Vector t1_z = ZeroVector(3);
+        MathUtils<double>::CrossProduct(t1_z, t3_unten, metric.g3);
+
+        Vector t2 = ZeroVector(3);
+        MathUtils<double>::CrossProduct(t2, metric.g3, t1_z);
+
+        Vector t1_n = t1_z/norm_2(t1_z);
+        Vector t2_n = t2/norm_2(t2);
+        Vector t3_n = metric.g3/norm_2(metric.g3);
+
+        array_1d<double, 3> g_con_1 = metric.g1*metric.gab_con[0] + metric.g2*metric.gab_con[2];
+        array_1d<double, 3> g_con_2 = metric.g1*metric.gab_con[2] + metric.g2*metric.gab_con[1]; 
+
+
+        //local cartesian coordinates oriented along the 1st base vector in the ref. config.
+        double lg1 = norm_2(rActualMetric.g1);
+        array_1d<double, 3> e1 = metric.g1 / lg1;
+        double lg_con2 = norm_2(g_con_2);
+        array_1d<double, 3> e2 = g_con_2 / lg_con2;
+
+        //Transformation matrix from the projected basis T to the local cartesian basis
+        double eG11 = inner_prod(e1,t1_n);
+        double eG12 = inner_prod(e1,t2_n);
+        double eG21 = inner_prod(e2,t1_n);
+        double eG22 = inner_prod(e2,t2_n);
+    
+        Prestresstrans.T_pre = ZeroMatrix(3, 3);
+        Prestresstrans.T_pre(0,0) = eG11*eG11;
+        Prestresstrans.T_pre(0,1) = eG12*eG12;
+        Prestresstrans.T_pre(0,2) = 2.0*eG11*eG12;
+
+        Prestresstrans.T_pre(1,0) = eG21*eG21;
+        Prestresstrans.T_pre(1,1) = eG22*eG22;
+        Prestresstrans.T_pre(1,2) = 2.0*eG21*eG22;
+
+        Prestresstrans.T_pre(2,0) = eG11*eG21;
+        Prestresstrans.T_pre(2,1) = eG12*eG22;
+        Prestresstrans.T_pre(2,2) = eG11*eG22+eG12*eG21;       
+    }  
+
+
     ///@}
     ///@name Stiffness matrix assembly
     ///@{
@@ -569,6 +636,26 @@ namespace Kratos
     }
 
     ///@}
+
+    //...will be used later for postprocessing...
+    void MembraneElement::CalculatePresstressTensor(
+        Vector& rPrestressTensor,
+        KinematicVariables& rActualKinematic
+    )
+    {
+        rPrestressTensor.resize(3);
+
+        Vector prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
+
+        PrestresstransVariables prestresstrans_variables(3);
+        CalculateTransformationmatrixPrestress(
+                kinematic_variables,
+                prestresstrans_variables 
+        );
+
+        rPrestressTensor = prod(prestresstrans_variables.Tpre, prestress);
+    } 
+
 
 } // Namespace Kratos
 
