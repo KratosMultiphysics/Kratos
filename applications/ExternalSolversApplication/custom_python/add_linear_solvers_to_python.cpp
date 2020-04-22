@@ -28,10 +28,6 @@
 #include "external_includes/superlu_iterative_solver.h"
 #include "external_includes/gmres_solver.h"
 
-#ifdef INCLUDE_FEAST
-  #include "external_includes/feast_solver.h"
-#endif
-
 #ifdef INCLUDE_PASTIX
   #include "external_includes/pastix_solver.h"
   #include "external_includes/pastix_complex_solver.h"
@@ -69,14 +65,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     //***************************************************************************
     // Linear solvers
     //***************************************************************************
-#ifdef INCLUDE_FEAST
-    typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;                          //SOME PROBLEM WITH THE SKYLINE_CUSTOM ... TO BE FIXED
-    py::class_<FEASTSolverType, FEASTSolverType::Pointer, LinearSolverType >
-        (m, "FEASTSolver")
-        .def(py::init<Parameters>() )
-        .def(py::init<Parameters, TLinearSolverType<std::complex<double>>::Pointer>())
-        ;
-#endif
 
     py::class_<SuperLUSolverType, typename SuperLUSolverType::Pointer,DirectSolverType>
     (m, "SuperLUSolver")
@@ -151,12 +139,6 @@ ExternalSolversApplicationRegisterLinearSolvers::ExternalSolversApplicationRegis
     typedef PastixComplexSolver<ComplexSpaceType, ComplexLocalSpaceType> PastixComplexSolverType;
     static auto PastixComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, PastixComplexSolverType>();
     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pastix_complex", PastixComplexSolverFactory);
-#endif
-
-#ifdef INCLUDE_FEAST
-    typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
-    static auto FEASTSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,FEASTSolverType>();
-    KRATOS_REGISTER_LINEAR_SOLVER("feast", FEASTSolverFactory);
 #endif
 }
 
