@@ -14,6 +14,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ContactRemeshMmgProcess(Model, settings["Parameters"])
 
+import sys
 
 class ContactRemeshMmgProcess(MmgProcess):
     """This process remeshes using MMG library. This process uses different utilities and processes. It is adapted to be used for contact problems
@@ -238,20 +239,25 @@ class ContactRemeshMmgProcess(MmgProcess):
         self -- It signifies an instance of a class.
         """
 
+        # Ensure properties defined
+        KratosMultiphysics.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties()
+
         # Calculation automatically the normalization factors
         if self.automatic_normalization_factor:
             E = 0.0
             mu = 0.0
             for prop in self.main_model_part.GetProperties():
                 if prop.Has(KratosMultiphysics.YOUNG_MODULUS):
-                    E = prop.GetValue(KratosMultiphysics.YOUNG_MODULUS)
-                    break
+                    if prop.GetValue(KratosMultiphysics.YOUNG_MODULUS) > sys.float_info.epsilon:
+                        E = prop.GetValue(KratosMultiphysics.YOUNG_MODULUS)
+                        break
             for prop in self.main_model_part.GetProperties():
                 if prop.Has(KratosMultiphysics.POISSON_RATIO):
-                    mu = prop.GetValue(KratosMultiphysics.POISSON_RATIO)
-                    break
+                    if prop.GetValue(KratosMultiphysics.POISSON_RATIO) > sys.float_info.epsilon:
+                        mu = prop.GetValue(KratosMultiphysics.POISSON_RATIO)
+                        break
 
-            normalization_factor = 2.0e1/(mu**2 * E)
+            normalization_factor = 2.0e1/(mu**2 * E) # TODO: To experiment with (1.0 + mu**2) in the future, in order to avoid mu>0.0
             if self.consider_strain_energy and "STRAIN_ENERGY" in self.variables_dict.keys():
                 self.settings["hessian_strategy_parameters"]["normalization_factor"][self.variables_dict["STRAIN_ENERGY"]].SetDouble(normalization_factor)
             if "VON_MISES_STRESS" in self.variables_dict.keys():
@@ -356,9 +362,8 @@ class ContactRemeshMmgProcess(MmgProcess):
         self -- It signifies an instance of a class.
         """
 
-        # We remove the submodelpart
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.GetSubModelPart("ComputingContact").Conditions)
-        self.main_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+        # Clean up contact pairs
+        ContactStructuralMechanicsApplication.ContactUtilities.CleanContactModelParts(self.main_model_part)
 
         # We clean the computing before remesh
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.main_model_part.Nodes)
@@ -373,14 +378,12 @@ class ContactRemeshMmgProcess(MmgProcess):
 
         # We remove the contact submodelparts
         self.main_model_part.RemoveSubModelPart("Contact")
-        self.main_model_part.RemoveSubModelPart("ComputingContact")
 
         # Ensure properties defined
         KratosMultiphysics.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties()
 
         # We create the contact submodelparts
         self.main_model_part.CreateSubModelPart("Contact")
-        self.main_model_part.CreateSubModelPart("ComputingContact")
 
     def _AuxiliarCallsAfterRemesh(self):
         """ This method is executed right after execute the remesh
