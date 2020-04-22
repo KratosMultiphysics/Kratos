@@ -177,9 +177,10 @@ public:
 
         double ReactionStress = CalculateReactionStress();
 
-        const bool is_time_to_apply_cm = IsTimeToApplyCM();
+        // Check whether this is a loading step for the current axis
+        IsTimeToApplyCM();
 
-        if (is_time_to_apply_cm == true) {
+        if (mApplyCM == true) {
 
             ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
@@ -300,12 +301,14 @@ public:
     void ExecuteFinalizeSolutionStep() override
     {
         // Update K with latest ReactionStress after the axis has been loaded
-        if (mAlternateAxisLoading == true) {
-            const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
-            double ReactionStress = CalculateReactionStress();
+        if (mApplyCM == true) {
+            if (mAlternateAxisLoading == true) {
+                const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
+                double ReactionStress = CalculateReactionStress();
 
-            if(mUpdateStiffness == true) {
-                mStiffness = EstimateStiffness(ReactionStress,delta_time);
+                if(mUpdateStiffness == true) {
+                    mStiffness = EstimateStiffness(ReactionStress,delta_time);
+                }
             }
         }
     }
@@ -351,6 +354,7 @@ protected:
     unsigned int mXCounter;
     unsigned int mYCounter;
     unsigned int mZCounter;
+    bool mApplyCM;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -391,37 +395,35 @@ private:
         KRATOS_CATCH("");
     }
 
-    bool IsTimeToApplyCM(){
+    void IsTimeToApplyCM(){
         const double current_time = mrModelPart.GetProcessInfo()[TIME];
-        bool apply_cm = false;
+        mApplyCM = false;
 
         if(current_time >= mStartTime) {
             if (mAlternateAxisLoading == true) {
                 const unsigned int step = mrModelPart.GetProcessInfo()[STEP];
                 if (mImposedDirection == 0) {
                     if(step == mXCounter){
-                        apply_cm = true;
+                        mApplyCM = true;
                         mXCounter += 3;
                     }
                 } else if (mImposedDirection == 1) {
                     if(step == mYCounter){
-                        apply_cm = true;
+                        mApplyCM = true;
                         mYCounter += 3;
                     }
                 } else if (mImposedDirection == 2) {
                     if(step == mZCounter){
-                        apply_cm = true;
+                        mApplyCM = true;
                         mZCounter += 3;
                     }
                 } else {
-                    apply_cm = true;
+                    mApplyCM = true;
                 }
             } else {
-                apply_cm = true;
+                mApplyCM = true;
             }
         }
-
-        return apply_cm;
     }
 
     double CalculateReactionStress() {
@@ -511,8 +513,7 @@ private:
 
     double EstimateStiffness(const double& rReactionStress, const double& rDeltaTime) {
         double K_estimated = mStiffness;
-        if(std::abs(mVelocity) > 1.0e-4*std::abs(mLimitVelocity) &&
-            std::abs(rReactionStress-mReactionStressOld) > mStressIncrementTolerance) {
+        if(std::abs(mVelocity) > 1.0e-12 && std::abs(rReactionStress-mReactionStressOld) > mStressIncrementTolerance) {
             K_estimated = std::abs((rReactionStress-mReactionStressOld)/(mVelocity * rDeltaTime));
         }
         return K_estimated;
