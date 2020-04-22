@@ -20,6 +20,7 @@
 
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
+#include "custom_utilities/rans_variable_difference_norm_calculation_utility.h"
 
 namespace Kratos
 {
@@ -28,6 +29,13 @@ namespace Python
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    using RansScalarVariableDifferenceNormCalculationUtilityType = RansVariableDifferenceNormsCalculationUtility<double>;
+    py::class_<RansScalarVariableDifferenceNormCalculationUtilityType, RansScalarVariableDifferenceNormCalculationUtilityType::Pointer>(
+        m, "ScalarVariableDifferenceNormCalculationUtility")
+        .def(py::init<const ModelPart&, const Variable<double>&>())
+        .def("InitializeCalculation", &RansScalarVariableDifferenceNormCalculationUtilityType::InitializeCalculation)
+        .def("CalculateDifferenceNorm", &RansScalarVariableDifferenceNormCalculationUtilityType::CalculateDifferenceNorm);
 
     m.def_submodule("RansVariableUtilities")
         .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)
