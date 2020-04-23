@@ -533,30 +533,20 @@ protected:
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
-                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const double old_press = it_node->FastGetSolutionStepValue(PRESSURE);
+            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -old_press;
         }
 
         KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) += itNode->FastGetSolutionStepValue(PRESSURE);
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) += it_node->FastGetSolutionStepValue(PRESSURE);
         }
 
         // 3. Compute end-of-step velocity
@@ -585,34 +575,23 @@ protected:
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         double NormV = 0.00;
-
-#pragma omp parallel reduction(+:NormV)
-        {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
-
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-                const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
-
-                for (unsigned int d = 0; d < 3; ++d)
-                    NormV += Vel[d] * Vel[d];
+#pragma omp parallel for reduction(+:NormV)
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            const auto it_node = rModelPart.NodesBegin() + i_node;
+            const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int d = 0; d < 3; ++d) {
+                NormV += r_vel[d] * r_vel[d];
             }
         }
-
         NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
         NormV = sqrt(NormV);
 
-        if (NormV == 0.0) NormV = 1.00;
-
-        double Ratio = NormDv / NormV;
+        const double zero_tol = 1.0e-12;
+        const double Ratio = (NormV < zero_tol) ? NormDv : NormDv / NormV;
 
         KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "CONVERGENCE CHECK:" << std::endl;
-        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) <<  std::scientific << std::setprecision(8)
-                                                                                    << "FRAC VEL.: ratio = "
-                                                                                    << Ratio <<"; exp.ratio = " << mVelocityTolerance
-                                                                                    << " abs = " << NormDv << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0)
+            <<  std::scientific << std::setprecision(8) << "FRAC VEL.: ratio = " << Ratio <<"; exp.ratio = " << mVelocityTolerance << " abs = " << NormDv << std::endl;
 
         if (Ratio < mVelocityTolerance)
             return true;
@@ -625,26 +604,17 @@ protected:
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         double NormP = 0.00;
-
-#pragma omp parallel reduction(+:NormP)
-        {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
-
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-                const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
-                NormP += Pr * Pr;
-            }
+#pragma omp parallel for reduction(+:NormP)
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            const auto it_node = rModelPart.NodesBegin() + i_node;
+            const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
+            NormP += Pr * Pr;
         }
-
         NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
         NormP = sqrt(NormP);
 
-        if (NormP == 0.0) NormP = 1.00;
-
-        double Ratio = NormDp / NormP;
+        const double zero_tol = 1.0e-12;
+        const double Ratio = (NormP < zero_tol) ? NormDp : NormDp / NormP;
 
         KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Pressure relative error: " << Ratio << std::endl;
 
@@ -661,31 +631,19 @@ protected:
     {
         array_1d<double,3> Out = ZeroVector(3);
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-            {
-                itNode->FastGetSolutionStepValue(CONV_PROJ) = ZeroVector(3);
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) = ZeroVector(3);
-                itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0;
-                itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(CONV_PROJ) = ZeroVector(3);
+            it_node->FastGetSolutionStepValue(PRESS_PROJ) = ZeroVector(3);
+            it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
+            it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
         }
 
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-
-            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
-            {
-                itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo());
-            }
+#pragma omp parallel for
+        for (int i_elem = 0; i_elem < static_cast<int>(rModelPart.NumberOfElements()); ++i_elem) {
+            const auto it_elem = rModelPart.ElementsBegin() + i_elem;
+            it_elem->Calculate(CONV_PROJ, Out, rModelPart.GetProcessInfo());
         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(CONV_PROJ);
@@ -696,19 +654,13 @@ protected:
         // If there are periodic conditions, add contributions from both sides to the periodic nodes
         this->PeriodicConditionProjectionCorrection(rModelPart);
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-            {
-                const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
-                itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
+            it_node->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
+            it_node->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
+            it_node->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
         }
     }
 
@@ -718,28 +670,16 @@ protected:
 
         array_1d<double,3> Out = ZeroVector(3);
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-            {
-                itNode->FastGetSolutionStepValue(FRACT_VEL) = ZeroVector(3);
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(FRACT_VEL) = ZeroVector(3);
         }
 
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-
-            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
-            {
-                itElem->Calculate(VELOCITY,Out,rModelPart.GetProcessInfo());
-            }
+#pragma omp parallel for
+        for (int i_elem = 0; i_elem < static_cast<int>(rModelPart.NumberOfElements()); ++i_elem) {
+            const auto it_elem = rModelPart.ElementsBegin() + i_elem;
+            it_elem->Calculate(VELOCITY, Out, rModelPart.GetProcessInfo());
         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(FRACT_VEL);
@@ -751,40 +691,28 @@ protected:
 
         if (mDomainSize > 2)
         {
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator NodesBegin;
-                ModelPart::NodeIterator NodesEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-                {
-                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if ( ! itNode->IsFixed(VELOCITY_X) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Y) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Z) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
-                }
+#pragma omp parallel for
+            for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+                auto it_node = rModelPart.NodesBegin() + i_node;
+                const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                if ( ! it_node->IsFixed(VELOCITY_X) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                if ( ! it_node->IsFixed(VELOCITY_Y) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                if ( ! it_node->IsFixed(VELOCITY_Z) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_Z) += it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
             }
         }
         else
         {
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator NodesBegin;
-                ModelPart::NodeIterator NodesEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-                {
-                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if ( ! itNode->IsFixed(VELOCITY_X) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Y) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                }
+#pragma omp parallel for
+            for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+                auto it_node = rModelPart.NodesBegin() + i_node;
+                const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                if ( ! it_node->IsFixed(VELOCITY_X) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                if ( ! it_node->IsFixed(VELOCITY_Y) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
             }
         }
     }
