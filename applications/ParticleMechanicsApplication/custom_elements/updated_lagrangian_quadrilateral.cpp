@@ -506,8 +506,18 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(
 
         if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
         {
+            this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+            Matrix Jacobian;
+            Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+            Matrix InvJ;
+            double detJ;
+            MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+            Matrix DN_De;
+            this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
+            rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
+
             MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
-                mDN_DX, mMP.cauchy_stress_vector, mMP.volume, 
+                rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
                 mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
         }
         else
@@ -582,7 +592,16 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
 
 
     // Compute explicit element kinematics, strain is incremented here.
-    MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, mDN_DX, 
+    this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+    Matrix Jacobian;
+    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+    Matrix InvJ;
+    double detJ;
+    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+    Matrix DN_De;
+    this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
+    rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
+    MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
         mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;
@@ -604,8 +623,6 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
     }
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    rVariables.DN_DX = mDN_DX;
-    rVariables.N = mN;
 
     // Set general variables to constitutivelaw parameters
     this->SetGeneralVariables(rVariables, Values);
@@ -882,22 +899,12 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    GeneralVariables Variables;
 
     mFinalizedStep = false;
 
-    // Calculating shape function and gradients
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, mMP.xg);
-    mN = Variables.N;
-    Matrix Jacobian;
-    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
-    Matrix InvJ;
-    double detJ;
-    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-    Matrix DN_De;
-    this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
-    mDN_DX = prod(DN_De, InvJ); // cartesian gradients
-    
+    // Calculating shape functions
+    Vector N;
+    this->MPMShapeFunctionPointValues(N, mMP.xg);
 
     array_1d<double,3> aux_MP_velocity = ZeroVector(3);
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
@@ -920,8 +927,8 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
 
             for (unsigned int k = 0; k < dimension; k++)
             {
-                aux_MP_velocity[k] += Variables.N[j] * nodal_velocity[k];
-                aux_MP_acceleration[k] += Variables.N[j] * nodal_acceleration[k];
+                aux_MP_velocity[k] += N[j] * nodal_velocity[k];
+                aux_MP_acceleration[k] += N[j] * nodal_acceleration[k];
             }
         }
     }
@@ -931,8 +938,8 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     {
         for (unsigned int j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = Variables.N[i] * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
-            nodal_inertia[j]  = Variables.N[i] * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
+            nodal_momentum[j] = N[i] * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
+            nodal_inertia[j]  = N[i] * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
         }
 
         // Add in the predictor velocity increment for central difference explicit
@@ -942,7 +949,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
             if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
                 const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
                 for (unsigned int j = 0; j < dimension; j++) {
-                    nodal_momentum[j] += 0.5 * delta_time * (Variables.N[i] * mMP.acceleration[j]) * mMP.mass;
+                    nodal_momentum[j] += 0.5 * delta_time * (N[i] * mMP.acceleration[j]) * mMP.mass;
                 }
             }
         }
@@ -950,7 +957,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
         r_geometry[i].SetLock();
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * mMP.mass;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += N[i] * mMP.mass;
         r_geometry[i].UnSetLock();
     }
 }
@@ -1832,12 +1839,16 @@ void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable
     }
     else if (rVariable == EXPLICIT_MAP_GRID_TO_MP) 
     {
-        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo, *this, mN);
+        Vector N;
+        this->MPMShapeFunctionPointValues(N, mMP.xg);
+        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo, *this, N);
         rValues[0] = true;
     }
     else if (rVariable == CALCULATE_MUSL_VELOCITY_FIELD)
     {
-        MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, mN);
+        Vector N;
+        this->MPMShapeFunctionPointValues(N, mMP.xg);
+        MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, N);
         rValues[0] = true;
     }
     else

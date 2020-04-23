@@ -613,12 +613,6 @@ protected:
      */
     bool mFinalizedStep;
 
-    /// Container to store shape functions over whole timestep
-    Vector mN;
-
-    /// Container to store shape function gradients over whole timestep
-    Matrix mDN_DX;
-
     ///@}
     ///@name Protected Operators
     ///@{
