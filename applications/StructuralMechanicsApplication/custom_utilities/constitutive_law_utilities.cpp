@@ -1152,8 +1152,66 @@ int ConstitutiveLawUtilities<6>::GetLfConversion(
             return 2;
     }
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::RotateMatrixToLocalAxes(
+    const Matrix& rRotationMatrix, // global to local
+    Matrix& rLocalMatrix
+    )
+{
+    const SizeType voigt_size = rRotationMatrix.size1();
+    if (rRotationMatrix.size1() != voigt_size || rRotationMatrix.size2() != voigt_size)
+        rLocalMatrix.resize(voigt_size, voigt_size);
+    noalias(rLocalMatrix) = ZeroMatrix(voigt_size, voigt_size);
+
+    // Mloc = R * Mglob * trans(R)
+    rLocalMatrix = prod(rRotationMatrix, Matrix(prod(rLocalMatrix, trans(rRotationMatrix))));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::RotateStrainVectorToLocalAxes(
+    const Matrix& rRotationMatrix, // global to local
+    Vector& rStrainVector // it enters as global
+    )
+{
+
+    Matrix strain_tensor(Dimension, Dimension);
+    strain_tensor = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+
+    // Eloc = R * Eglob * trans(R)
+    noalias(strain_tensor) = prod(rRotationMatrix, Matrix(prod(strain_tensor, trans(rRotationMatrix))));
+
+    rStrainVector = MathUtils<double>::StrainTensorToVector(strain_tensor, VoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::RotateStressVectorToGlobalAxes(
+    const Matrix& rRotationMatrix, // global to local
+    Vector& rStressVector // it enters as global
+    )
+{
+
+    Matrix stress_tensor(Dimension, Dimension);
+    stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
+
+    // Sglob = trans(R) * Sloc * R
+    noalias(stress_tensor) = prod(trans(rRotationMatrix), Matrix(prod(stress_tensor, rRotationMatrix)));
+
+    rStressVector = MathUtils<double>::StressTensorToVector(stress_tensor, VoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;

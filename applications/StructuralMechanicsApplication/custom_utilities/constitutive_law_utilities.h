@@ -476,7 +476,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorConstitutiveMatrix(
         const Matrix &rOldOperator,
-        Matrix &rNewOperator);
+        Matrix &rNewOperator
+    );
 
     /**
      * @brief This converts the indices from the 
@@ -485,6 +486,33 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static int GetKfConversion(const int n);
     static int GetLfConversion(const int n);
+
+    /**
+     * @brief This rotates a matrix from global to local coordinates
+     * Mloc = R * Mglob * trans(R)
+     */
+    static void RotateMatrixToLocalAxes(
+        const Matrix &rRotationMatrix, // global to local
+        Matrix &rLocalMatrix
+    );
+
+    /**
+     * @brief This rotates the strain vector from global to local
+     * coordinates
+     */
+    static void RotateStrainVectorToLocalAxes(
+        const Matrix &rRotationMatrix, // global to local
+        Vector &rStrainVector          // it enters as global
+    );
+
+    /**
+     * @brief This rotates the stress vector from local to 
+     * global coordinates
+     */
+    static void RotateStressVectorToGlobalAxes(
+        const Matrix &rRotationMatrix, // global to local
+        Vector &rStressVector          // it enters as local
+    );
 
 private:
 
