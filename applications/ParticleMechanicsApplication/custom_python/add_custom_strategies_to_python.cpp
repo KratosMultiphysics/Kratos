@@ -96,12 +96,6 @@ namespace Python{
         // MPM Explicit Strategy Type
         py::class_< MPMExplicitStrategyType, typename MPMExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m, "MPMExplicitStrategy")
             .def(py::init< ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
-            .def("SetInitializePerformedFlag", &MPMExplicitStrategyType::SetInitializePerformedFlag)
-            .def("GetInitializePerformedFlag", &MPMExplicitStrategyType::GetInitializePerformedFlag)
-            .def("SetKeepSystemConstantDuringIterations", &MPMExplicitStrategyType::SetKeepSystemConstantDuringIterations)
-            .def("GetKeepSystemConstantDuringIterations", &MPMExplicitStrategyType::GetKeepSystemConstantDuringIterations)
-            .def("SetFinalizeSolutionStepFlag", &MPMExplicitStrategyType::SetFinalizeSolutionStepFlag)
-            .def("GetFinalizeSolutionStepFlag", &MPMExplicitStrategyType::GetFinalizeSolutionStepFlag)
             ;
     }
 

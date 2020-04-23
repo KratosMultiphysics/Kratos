@@ -118,52 +118,6 @@ namespace Kratos
             return mpScheme;
         };
 
-        void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
-        {
-            mInitializeWasPerformed = InitializePerformedFlag;
-        }
-
-        bool GetInitializePerformedFlag()
-        {
-            return mInitializeWasPerformed;
-        }
-
-        void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
-        {
-            mCalculateReactionsFlag = CalculateReactionsFlag;
-        }
-
-        bool GetCalculateReactionsFlag()
-        {
-            return mCalculateReactionsFlag;
-        }
-
-        bool GetReformDofSetAtEachStepFlag()
-        {
-            return mReformDofSetAtEachStep;
-        }
-
-        void SetFinalizeSolutionStepFlag(bool FinalizeSolutionStepFlag = true)
-        {
-            mFinalizeSolutionStep = FinalizeSolutionStepFlag;
-        }
-
-        bool GetFinalizeSolutionStepFlag()
-        {
-            return mFinalizeSolutionStep;
-        }
-
-        //level of echo for the solving strategy
-        // 0 -> mute... no echo at all
-        // 1 -> printing time and basic informations
-        // 2 -> printing linear solver data
-        // 3 -> Print of debug informations:
-        //		Echo of stiffness matrix, Dx, b...
-        void SetEchoLevel(int Level) override
-        {
-            BaseType::mEchoLevel = Level;
-        }
-
         /// Initialize members
         void Initialize() override
         {
