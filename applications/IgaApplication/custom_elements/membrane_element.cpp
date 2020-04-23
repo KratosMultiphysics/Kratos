@@ -382,7 +382,7 @@ namespace Kratos
     //Prestress Transformation Matrix
     void MembraneElement::CalculateTransformationmatrixPrestress(
         const KinematicVariables& rActualKinematic,
-        PrestresstransVariables& rPrestresstransVariable
+        PrestresstransVariables& rPrestresstransVariables
     )
     {
         //define base vector in reference plane
@@ -394,24 +394,33 @@ namespace Kratos
         t3_unten[2] = 0;
 
         Vector t1_z = ZeroVector(3);
-        MathUtils<double>::CrossProduct(t1_z, t3_unten, metric.g3);
+        MathUtils<double>::CrossProduct(t1_z, t3_unten, rActualKinematic.a3);
 
         Vector t2 = ZeroVector(3);
-        MathUtils<double>::CrossProduct(t2, metric.g3, t1_z);
+        MathUtils<double>::CrossProduct(t2, rActualKinematic.a3, t1_z);
 
         Vector t1_n = t1_z/norm_2(t1_z);
         Vector t2_n = t2/norm_2(t2);
-        Vector t3_n = metric.g3/norm_2(metric.g3);
+        Vector t3_n = rActualKinematic.a3/norm_2(rActualKinematic.a3);
 
-        array_1d<double, 3> g_con_1 = metric.g1*metric.gab_con[0] + metric.g2*metric.gab_con[2];
-        array_1d<double, 3> g_con_2 = metric.g1*metric.gab_con[2] + metric.g2*metric.gab_con[1]; 
+        //Contravariant metric g_ab_con
+        double inv_det_g_ab = 1.0 /
+            (rActualKinematic.a_ab_covariant[0] * rActualKinematic.a_ab_covariant[1]
+                - rActualKinematic.a_ab_covariant[2] * rActualKinematic.a_ab_covariant[2]);
 
+        array_1d<double, 3> a_ab_contravariant;
+        a_ab_contravariant[0] =  inv_det_g_ab * rActualKinematic.a_ab_covariant[1];
+        a_ab_contravariant[1] =  inv_det_g_ab * rActualKinematic.a_ab_covariant[0];
+        a_ab_contravariant[2] = -inv_det_g_ab * rActualKinematic.a_ab_covariant[2];
+
+        array_1d<double, 3> a_con_1 = rActualKinematic.a1*a_ab_contravariant[0] + rActualKinematic.a2*a_ab_contravariant[2];
+        array_1d<double, 3> a_con_2 = rActualKinematic.a1*a_ab_contravariant[2] + rActualKinematic.a2*a_ab_contravariant[1]; 
 
         //local cartesian coordinates oriented along the 1st base vector in the ref. config.
-        double lg1 = norm_2(rActualMetric.g1);
-        array_1d<double, 3> e1 = metric.g1 / lg1;
-        double lg_con2 = norm_2(g_con_2);
-        array_1d<double, 3> e2 = g_con_2 / lg_con2;
+        double la1 = norm_2(rActualKinematic.a1);
+        array_1d<double, 3> e1 = rActualKinematic.a1 / la1;
+        double la_con2 = norm_2(a_con_2);
+        array_1d<double, 3> e2 = a_con_2 / la_con2;
 
         //Transformation matrix from the projected basis T to the local cartesian basis
         double eG11 = inner_prod(e1,t1_n);
@@ -419,18 +428,18 @@ namespace Kratos
         double eG21 = inner_prod(e2,t1_n);
         double eG22 = inner_prod(e2,t2_n);
     
-        Prestresstrans.T_pre = ZeroMatrix(3, 3);
-        Prestresstrans.T_pre(0,0) = eG11*eG11;
-        Prestresstrans.T_pre(0,1) = eG12*eG12;
-        Prestresstrans.T_pre(0,2) = 2.0*eG11*eG12;
+        rPrestresstransVariables.Tpre = ZeroMatrix(3, 3);
+        rPrestresstransVariables.Tpre(0,0) = eG11*eG11;
+        rPrestresstransVariables.Tpre(0,1) = eG12*eG12;
+        rPrestresstransVariables.Tpre(0,2) = 2.0*eG11*eG12;
 
-        Prestresstrans.T_pre(1,0) = eG21*eG21;
-        Prestresstrans.T_pre(1,1) = eG22*eG22;
-        Prestresstrans.T_pre(1,2) = 2.0*eG21*eG22;
+        rPrestresstransVariables.Tpre(1,0) = eG21*eG21;
+        rPrestresstransVariables.Tpre(1,1) = eG22*eG22;
+        rPrestresstransVariables.Tpre(1,2) = 2.0*eG21*eG22;
 
-        Prestresstrans.T_pre(2,0) = eG11*eG21;
-        Prestresstrans.T_pre(2,1) = eG12*eG22;
-        Prestresstrans.T_pre(2,2) = eG11*eG22+eG12*eG21;       
+        rPrestresstransVariables.Tpre(2,0) = eG11*eG21;
+        rPrestresstransVariables.Tpre(2,1) = eG12*eG22;
+        rPrestresstransVariables.Tpre(2,2) = eG11*eG22+eG12*eG21;       
     }  
 
 
@@ -649,7 +658,7 @@ namespace Kratos
 
         PrestresstransVariables prestresstrans_variables(3);
         CalculateTransformationmatrixPrestress(
-                kinematic_variables,
+                rActualKinematic,
                 prestresstrans_variables 
         );
 
