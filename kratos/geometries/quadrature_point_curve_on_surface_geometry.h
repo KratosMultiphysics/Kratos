@@ -183,6 +183,10 @@ public:
         return norm_2(a_1 * mLocalTangentsU + a_2 * mLocalTangentsV);
     }
 
+    /* @brief returns the respective segment length of this
+     *        quadrature point. Length of vector always 1.
+     * @param rResult vector of results of this quadrature point.
+     */
     Vector& DeterminantOfJacobian(
         Vector& rResult, IntegrationMethod ThisMethod) const override
     {
