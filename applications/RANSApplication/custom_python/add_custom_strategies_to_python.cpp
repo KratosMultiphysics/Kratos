@@ -58,7 +58,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using AlgebraicFluxCorrectedScalarSteadySchemeType = AlgebraicFluxCorrectedScalarSteadyScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<AlgebraicFluxCorrectedScalarSteadySchemeType, typename AlgebraicFluxCorrectedScalarSteadySchemeType::Pointer, BaseSchemeType>(
         m, "AlgebraicFluxCorrectedScalarSteadyScheme")
-        .def(py::init<const double>());
+        .def(py::init<const double>())
+        .def(py::init<const double, const Variable<int>&>());
 
 }
 

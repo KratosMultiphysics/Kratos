@@ -55,10 +55,24 @@ public:
     ///@{
 
     AlgebraicFluxCorrectedScalarSteadyScheme(const double RelaxationFactor)
-        : BaseType(), mRelaxationFactor(RelaxationFactor)
+        : BaseType(),
+          mRelaxationFactor(RelaxationFactor),
+          mrPeriodicIdVar(Variable<int>::StaticObject())
     {
         KRATOS_INFO("AlgebraicFluxCorrectedScalarSteadyScheme")
-            << " Using residual based simple steady scheme with relaxation "
+            << " Using residual based algebraic flux corrected scheme with "
+               "relaxation "
+               "factor = "
+            << std::scientific << mRelaxationFactor << "\n";
+    }
+
+    AlgebraicFluxCorrectedScalarSteadyScheme(const double RelaxationFactor,
+                                             const Variable<int>& rPeriodicIdVar)
+        : BaseType(), mRelaxationFactor(RelaxationFactor), mrPeriodicIdVar(rPeriodicIdVar)
+    {
+        KRATOS_INFO("AlgebraicFluxCorrectedScalarSteadyScheme")
+            << " Using periodic residual based algebraic flux corrected scheme "
+               "with relaxation "
                "factor = "
             << std::scientific << mRelaxationFactor << "\n";
     }
@@ -68,6 +82,50 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    void Initialize(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        if (mrPeriodicIdVar != Variable<int>::StaticObject())
+        {
+            const int number_of_conditions = rModelPart.NumberOfConditions();
+#pragma omp parallel for
+            for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
+            {
+                const ModelPart::ConditionType& r_condition =
+                    *(rModelPart.ConditionsBegin() + i_cond);
+                if (r_condition.Is(PERIODIC))
+                {
+                    // this only supports 2 noded periodic conditions
+                    KRATOS_ERROR_IF(r_condition.GetGeometry().PointsNumber() != 2)
+                        << this->Info() << " only supports two noded periodic conditions. Found "
+                        << r_condition.Info() << " with "
+                        << r_condition.GetGeometry().PointsNumber() << " nodes.\n";
+
+                    const ModelPart::NodeType& r_node_0 = r_condition.GetGeometry()[0];
+                    const std::size_t r_node_0_pair_id =
+                        r_node_0.FastGetSolutionStepValue(mrPeriodicIdVar);
+
+                    const ModelPart::NodeType& r_node_1 = r_condition.GetGeometry()[1];
+                    const std::size_t r_node_1_pair_id =
+                        r_node_1.FastGetSolutionStepValue(mrPeriodicIdVar);
+
+                    KRATOS_ERROR_IF(r_node_0_pair_id != r_node_1.Id())
+                        << "Periodic condition pair id mismatch in "
+                        << mrPeriodicIdVar.Name() << ". [ " << r_node_0_pair_id
+                        << " != " << r_node_1.Id() << " ].\n";
+
+                    KRATOS_ERROR_IF(r_node_1_pair_id != r_node_0.Id())
+                        << "Periodic condition pair id mismatch in "
+                        << mrPeriodicIdVar.Name() << ". [ " << r_node_1_pair_id
+                        << " != " << r_node_0.Id() << " ].\n";
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
 
     void InitializeNonLinIteration(ModelPart& rModelPart,
                                    TSystemMatrixType& A,
@@ -154,6 +212,53 @@ public:
                     r_node.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) +=
                         q_minus[i];
                     r_node.UnSetLock();
+                }
+            }
+        }
+
+        if (mrPeriodicIdVar != Variable<int>::StaticObject())
+        {
+            const int number_of_conditions = rModelPart.NumberOfConditions();
+#pragma omp parallel for
+            for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
+            {
+                ModelPart::ConditionType& r_condition =
+                    *(rModelPart.ConditionsBegin() + i_cond);
+                if (r_condition.Is(PERIODIC))
+                {
+                    ModelPart::NodeType& r_node_0 = r_condition.GetGeometry()[0];
+                    ModelPart::NodeType& r_node_1 = r_condition.GetGeometry()[1];
+
+                    double p_plus = r_node_0.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+                    double q_plus = r_node_0.FastGetSolutionStepValue(
+                        AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    double p_minus =
+                        r_node_0.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+                    double q_minus = r_node_0.FastGetSolutionStepValue(
+                        AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+
+                    p_plus += r_node_1.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+                    q_plus += r_node_1.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    p_minus += r_node_1.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+                    q_minus += r_node_1.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+
+                    r_node_0.SetLock();
+                    r_node_0.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) = p_plus;
+                    r_node_0.FastGetSolutionStepValue(
+                        AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_plus;
+                    r_node_0.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX) = p_minus;
+                    r_node_0.FastGetSolutionStepValue(
+                        AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_minus;
+                    r_node_0.UnSetLock();
+
+                    r_node_1.SetLock();
+                    r_node_1.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) = p_plus;
+                    r_node_1.FastGetSolutionStepValue(
+                        AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_plus;
+                    r_node_1.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX) = p_minus;
+                    r_node_1.FastGetSolutionStepValue(
+                        AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_minus;
+                    r_node_1.UnSetLock();
                 }
             }
         }
@@ -289,6 +394,8 @@ private:
     DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
 
     double mRelaxationFactor;
+
+    const Variable<int>& mrPeriodicIdVar;
 
     template <typename TItem>
     void CalculateSystemMatrix(TItem& rItem, Matrix& rLeftHandSide, ProcessInfo& rCurrentProcessInfo)

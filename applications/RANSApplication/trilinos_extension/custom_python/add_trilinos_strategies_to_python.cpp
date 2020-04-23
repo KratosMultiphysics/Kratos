@@ -62,7 +62,8 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     using MPIAlgebraicFluxCorrectedScalarSteadySchemeType = AlgebraicFluxCorrectedScalarSteadyScheme<MPISparseSpaceType, LocalSpaceType>;
     py::class_<MPIAlgebraicFluxCorrectedScalarSteadySchemeType, typename MPIAlgebraicFluxCorrectedScalarSteadySchemeType::Pointer, MPIBaseSchemeType>(
         m, "MPIAlgebraicFluxCorrectedScalarSteadyScheme")
-        .def(py::init<const double>());
+        .def(py::init<const double>())
+        .def(py::init<const double, const Variable<int>&>());;
 }
 
 } // namespace Python
