@@ -83,13 +83,13 @@ namespace MPMSearchElementUtility
 
                 // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                 bool is_found = SearchStructure.FindPointOnMesh(
-                    xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                    xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                 if (is_found) {
                     pelem->Set(ACTIVE);
 
                     auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                        pelem->pGetGeometry(), xg,
+                        pelem->pGetGeometry(), xg[0],
                         element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
                     // Update geometry of particle element
