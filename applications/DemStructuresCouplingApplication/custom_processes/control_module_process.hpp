@@ -156,12 +156,14 @@ public:
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
         double ReactionStress = CalculateReactionStress();
-        ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
         // Check whether this is a loading step for the current axis
         IsTimeToApplyCM();
 
         if (mApplyCM == true) {
+            
+            ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
+
             // Update K if required
             const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
             if (mAlternateAxisLoading == false) {
@@ -295,7 +297,6 @@ public:
             if (mAlternateAxisLoading == true) {
                 const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
                 double ReactionStress = CalculateReactionStress();
-                ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
                 if(mUpdateStiffness == true) {
                     mStiffness = EstimateStiffness(ReactionStress,delta_time);
