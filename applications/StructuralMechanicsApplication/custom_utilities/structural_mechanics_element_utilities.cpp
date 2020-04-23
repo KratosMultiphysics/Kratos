@@ -29,7 +29,7 @@ namespace StructuralMechanicsElementUtilities {
 int SolidElementCheck(
     const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo,
-    std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
     )
 {
     const auto& r_geometry = rElement.GetGeometry();

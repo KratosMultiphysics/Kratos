@@ -700,7 +700,7 @@ void IsotropicShellElement::CalculateAllMatrices(
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = 3;
     if(rResult.size() != 18)
@@ -722,7 +722,7 @@ void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, Proc
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
     ElementalDofList.reserve(18);
@@ -2087,7 +2087,7 @@ void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step)
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
