@@ -498,18 +498,16 @@ namespace Kratos {
             
             KRATOS_INFO("TestLevel") << "Level 0\n";
             
-                double time = 0.1;
-                Logger("TimeStep").Start() << time << std::endl;
-                KRATOS_INFO("TestLevel") << "Level 1\n";
-                Logger("Build").Start();
-                KRATOS_INFO("TestLevel") << "Level 2\n";
-                Logger("Build").Stop();
-                Logger("Solve").Start();
-                KRATOS_INFO("TestLevel") << "Level 2\n";
-                Logger("Solve").Stop();
-                Logger("TimeStep").Stop();
-
-
+            double time = 0.1;
+            KRATOS_INFO_START("TimeStep") << time << std::endl;
+            KRATOS_INFO("TestLevel") << "Level 1\n";
+            KRATOS_INFO_START("Build");
+            KRATOS_INFO("TestLevel") << "Level 2\n";
+            KRATOS_INFO_STOP("Build");
+            KRATOS_INFO_START("Solve");
+            KRATOS_INFO("TestLevel") << "Level 2\n";
+            KRATOS_INFO_STOP("Solve");
+            KRATOS_INFO_STOP("TimeStep");
 
             std::stringstream expected_output;
             if (rank == 0){
