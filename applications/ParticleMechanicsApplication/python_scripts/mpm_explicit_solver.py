@@ -24,8 +24,8 @@ class MPMExplicitSolver(MPMSolver):
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method"   : "explicit",
-            "scheme_type"   : "forward_euler",
-            "stress_update" : "USL"
+            "scheme_type"   : "central_difference",
+            "stress_update" : "usf"
         }""")
         this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultSettings())
         return this_defaults
@@ -52,27 +52,27 @@ class MPMExplicitSolver(MPMSolver):
             block_size += 1
 
         # Check whether compressibility is considered
-        isCompressible = self.settings["compressible"].GetBool()
-        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_COMPRESSIBLE, isCompressible)
+        is_compressible = self.settings["compressible"].GetBool()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_COMPRESSIBLE, is_compressible)
 
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()
 
-        if(scheme_type == "forward_euler" or scheme_type == "Forward_Euler"):
-            StressUpdateOption = 10
+        if(scheme_type == "forward_euler"):
+            stress_update_option = 10
             stress_update = self.settings["stress_update"].GetString() #0 = USF, 1 = USL, 2 = MUSL
-            if(stress_update == "USF" or stress_update == "usf"):
-                StressUpdateOption = 0
-            elif(stress_update == "USL" or stress_update == "usl"):
-                StressUpdateOption = 1
-            elif(stress_update == "MUSL" or stress_update == "musl"):
-                StressUpdateOption = 2
+            if(stress_update == "usf"):
+                stress_update_option = 0
+            elif(stress_update == "usl"):
+                stress_update_option = 1
+            elif(stress_update == "musl"):
+                stress_update_option = 2
             else:
                 err_msg = "The requested stress update \"" + stress_update + "\" is not available!\n"
-                err_msg += "Available options are: \"USF\", \"USL\",\"MUSL\""
-            grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, StressUpdateOption)
+                err_msg += "Available options are: \"usf\", \"usl\",\"musl\""
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, stress_update_option)
             grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, False)
-        elif(scheme_type == "central_difference" or scheme_type == "Central_Difference"):
+        elif(scheme_type == "central_difference"):
             grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, 0)
             grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, True)
         else:
