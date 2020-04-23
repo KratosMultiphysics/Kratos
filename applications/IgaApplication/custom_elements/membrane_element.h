@@ -95,7 +95,7 @@ protected:
         * The default constructor
         * @param StrainSize: The size of the strain vector in Voigt notation
         */
-        SecondVariations(const int& mat_size)
+        SecondVariations(SizeType mat_size)
         {
             B11 = ZeroMatrix(mat_size, mat_size);
             B22 = ZeroMatrix(mat_size, mat_size);
@@ -107,22 +107,10 @@ protected:
     {
         Matrix Tpre;
         
-        PrestresstransVariables(const unsigned int& Dimension)
+        PrestresstransVariables(SizeType Dimension)
         {
            Matrix Tpre = ZeroMatrix(3, 3);
         }
-    };
-
-    //...is it needed?...
-    struct transPreVariables
-    {
-        Vector S_prestress_result;
-
-         transPreVariables(const unsigned int& Dimension)
-        {
-            Vector S_prestress_result = ZeroVector(Dimension);
-        }
-
     };
 
 public:

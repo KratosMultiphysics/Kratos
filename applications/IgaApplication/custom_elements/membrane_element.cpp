@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Tobias Tescheamacher
+//  Main authors:    Ricky Aristio
+//                   Tobias Tescheamacher
 //                   Riccardo Rossi
 //
 
@@ -150,7 +151,7 @@ namespace Kratos
                 * GetProperties()[THICKNESS];
 
             //Define Prestress
-            Vector prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
+            array_1d<double, 3> prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
 
             PrestresstransVariables prestresstrans_variables(3);
             CalculateTransformationmatrixPrestress(
@@ -158,7 +159,7 @@ namespace Kratos
                 prestresstrans_variables 
             );
 
-            Vector transformed_prestress = prod(prestresstrans_variables.Tpre, prestress) ;            
+            array_1d<double, 3> transformed_prestress = prod(prestresstrans_variables.Tpre, prestress) ;            
             constitutive_variables_membrane.StressVector += transformed_prestress;
 
             // LEFT HAND SIDE MATRIX
@@ -388,20 +389,20 @@ namespace Kratos
         //define base vector in reference plane
         //ATTENTION: in some cases the vector must be modified (e.g. catenoid t3_unten=[0, 0, 1])
 
-        Vector t3_unten = ZeroVector(3);
+        array_1d<double, 3> t3_unten;
         t3_unten[0] = 0;
         t3_unten[1] = 1;
         t3_unten[2] = 0;
 
-        Vector t1_z = ZeroVector(3);
+        array_1d<double, 3> t1_z;
         MathUtils<double>::CrossProduct(t1_z, t3_unten, rActualKinematic.a3);
 
-        Vector t2 = ZeroVector(3);
+        array_1d<double, 3> t2;
         MathUtils<double>::CrossProduct(t2, rActualKinematic.a3, t1_z);
 
-        Vector t1_n = t1_z/norm_2(t1_z);
-        Vector t2_n = t2/norm_2(t2);
-        Vector t3_n = rActualKinematic.a3/norm_2(rActualKinematic.a3);
+        array_1d<double, 3> t1_n = t1_z/norm_2(t1_z);
+        array_1d<double, 3> t2_n = t2/norm_2(t2);
+        array_1d<double, 3> t3_n = rActualKinematic.a3/norm_2(rActualKinematic.a3);
 
         //Contravariant metric g_ab_con
         double inv_det_g_ab = 1.0 /
@@ -654,7 +655,7 @@ namespace Kratos
     {
         rPrestressTensor.resize(3);
 
-        Vector prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
+        array_1d<double, 3> prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
 
         PrestresstransVariables prestresstrans_variables(3);
         CalculateTransformationmatrixPrestress(
