@@ -124,12 +124,22 @@ class AnalysisStage(object):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
         """
+        # We reinitialize if remeshed previously
+        if self._CheckIfModelIsModified():
+            self.ClearDatabase()
+            self.ReInitializeSolver()
+
         self.PrintAnalysisStageProgressInformation()
 
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
+        # We reinitialize if remeshed on the InitializeSolutionStep
+        if self._CheckIfModelIsModified():
+            self.ClearDatabase()
+            self.ReInitializeSolver()
+            self.InitializeSolutionStep()
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
@@ -201,6 +211,77 @@ class AnalysisStage(object):
     def ChangeMaterialProperties(self):
         """this function is where the user could change material parameters as a part of the solution step """
         pass
+
+    def ClearDatabase(self):
+        """ This method clears the database in case it is necessary. For example it is used in the remeshing process when some specific modifications must be done in the database (i.e To reset a flag that affects the whole model part)
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        pass
+
+    def ReInitializeSolver(self):
+        """ This reinitializes the solver and the processes (used for example on remesh or on adaptive NR)
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        solver = self._GetSolver()
+        processes = self._GetListOfProcesses()
+
+        reinitialize_requirement = self._GetReInitializeRequired()
+
+        # Clear solver
+        solver.Clear()
+
+        # Some initilizations
+        if reinitialize_requirement == "fully_reinitialize":
+            # Some initial calls
+            self.ModifyInitialProperties()
+            self.ModifyInitialGeometry()
+
+            # Processes initialization
+            for process in processes:
+                process.ExecuteInitialize()
+
+            # WE INITIALIZE THE SOLVER
+            solver.Initialize()
+
+            # Call check
+            self.Check()
+
+            # Modify after initialize
+            self.ModifyAfterSolverInitialize()
+        elif reinitialize_requirement == "reinitilize_elements_and_conditions":
+            # Processes initialization
+            for process in processes:
+                process.ExecuteInitialize()
+
+            # Initilize elements and conditions
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                KratosMultiphysics.EntitiesUtilities.InitializeAllEntities(self.model.GetModelPart(model_part_name))
+        else:
+            raise Exception("The following option is not implemented for the ReInitializeSolver: " + reinitialize_requirement)
+
+        ## Processes before the loop
+        for process in processes:
+            process.ExecuteBeforeSolutionLoop()
+
+        ## Processes of initialize the solution step
+        for process in processes:
+            process.ExecuteInitializeSolutionStep()
+
+        # We reset the flags
+        self._ResetModelIsModified()
+
+    def _GetReInitializeRequired(self):
+        """ This returns the initilization requirement. By default only elements and conditions are initialized
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        return "reinitilize_elements_and_conditions"
 
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
@@ -279,6 +360,32 @@ class AnalysisStage(object):
         """Returns the name of the Simulation
         """
         return "Analysis"
+
+    def _CheckIfModelIsModified(self):
+        # We check of some model part requires reinitialize
+        modified_model = False
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                if self.model.GetModelPart(model_part_name).Is(KratosMultiphysics.MODIFIED):
+                    modified_model = True
+                    break
+
+        return modified_model
+
+    def _SetModelIsModified(self):
+        # Set the MODIFIED flag
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                self.model.GetModelPart(model_part_name).Set(KratosMultiphysics.MODIFIED, True)
+
+    def _ResetModelIsModified(self):
+        # Reset the MODIFIED flag
+        if hasattr(self, 'model'):
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                self.model.GetModelPart(model_part_name).Reset(KratosMultiphysics.MODIFIED)
 
     def __CreateListOfProcesses(self):
         """This function creates the processes and the output-processes
