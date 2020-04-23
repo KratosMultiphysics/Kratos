@@ -13,17 +13,21 @@ if (IsDistributedRun()
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIAlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedBossakVelocityDynamicScalarScheme as bossak_scheme
-    from KratosMultiphysics.TrilinosApplication import TrilinosResidualCriteria as residual_criteria
+    # from KratosMultiphysics.TrilinosApplication import TrilinosResidualCriteria as residual_criteria
+    # the core residual criteria is not used since, the ratio is calcualted based on ratio between solution step start and end error,
+    # for pseudo time stepping steady problems, this does not work
+    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericScalarConvergenceCriteria as residual_criteria
     from KratosMultiphysics.TrilinosApplication import TrilinosNewtonRaphsonStrategy as newton_raphson_strategy
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import TrilinosPeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import TrilinosBlockBuilderAndSolver as block_builder_and_solver
     from KratosMultiphysics.TrilinosApplication import TrilinosResidualBasedIncrementalUpdateStaticScheme as incemental_update_static_scheme
 elif (not IsDistributedRun()):
     from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+    from KratosMultiphysics.RANSApplication import GenericScalarConvergenceCriteria as residual_criteria
     from KratosMultiphysics.RANSApplication import GenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
     from KratosMultiphysics.RANSApplication import AlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
     from KratosMultiphysics.RANSApplication import GenericResidualBasedBossakVelocityDynamicScalarScheme as bossak_scheme
-    from Kratos import ResidualCriteria as residual_criteria
+    # from Kratos import ResidualCriteria as residual_criteria
     from Kratos import ResidualBasedNewtonRaphsonStrategy as newton_raphson_strategy
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import PeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import BlockBuilderAndSolver as block_builder_and_solver
@@ -70,8 +74,11 @@ def CreateIncremantalUpdateScheme():
 def CreateSteadyScalarScheme(relaxation_factor):
     return steady_scalar_scheme(relaxation_factor)
 
-def CreateSteadyAlgeraicFluxCorrectedTransportScheme(relaxation_factor):
-    return afc_steady_scalar_scheme(relaxation_factor)
+def CreateSteadyAlgeraicFluxCorrectedTransportScheme(relaxation_factor, is_periodic):
+    if (is_periodic):
+        return afc_steady_scalar_scheme(relaxation_factor, KratosCFD.PATCH_INDEX)
+    else:
+        return afc_steady_scalar_scheme(relaxation_factor)
 
 def CreateBossakScalarScheme(bossak_value, relaxation_factor, scalar_variable,
                              scalar_rate_variable,

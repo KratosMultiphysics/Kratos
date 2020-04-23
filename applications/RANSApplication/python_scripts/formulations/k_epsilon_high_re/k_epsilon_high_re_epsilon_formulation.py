@@ -111,15 +111,8 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
     def InitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
 
-    def IsConverged(self):
-        if (hasattr(self, "is_solved_once")):
-            return self.GetStrategy().IsConverged()
-        else:
-            return False
-
     def SolveCouplingStep(self):
         if (IsBufferInitialized(self)):
-            self.is_solved_once = True
             self.solver.Predict()
             self.solver.SolveSolutionStep()
             Kratos.Logger.PrintInfo(self.GetName(), "Solved  formulation.")
@@ -160,7 +153,7 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
     def SetStabilizationMethod(self, stabilization_method):
         if (stabilization_method == "algebraic_flux_corrected"):
             self.element_name = "RansEvmKEpsilonEpsilonAFC"
-            self.scheme_type = CreateSteadyAlgeraicFluxCorrectedTransportScheme
+            self.scheme_type = lambda x: CreateSteadyAlgeraicFluxCorrectedTransportScheme(x, self.IsPeriodic())
         elif (stabilization_method == "residual_based_flux_corrected"):
             self.element_name = "RansEvmKEpsilonEpsilonResidualBasedFC"
             self.scheme_type = CreateSteadyScalarScheme

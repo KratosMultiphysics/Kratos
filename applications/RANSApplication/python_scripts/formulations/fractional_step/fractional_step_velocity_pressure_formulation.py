@@ -21,6 +21,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateForm
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 
 # case specific imports
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
@@ -101,6 +102,17 @@ class FractionalStepVelocityPressureFormulation(Formulation):
                 "coarsening_type"                : "aggregation",
                 "scaling"                        : true,
                 "verbosity"                      : 0
+            },
+            "steady_convergence_settings":
+            {
+                "velocity_tolerances": {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-5
+                },
+                "pressure_tolerances": {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-5
+                }
             }
         }""")
 
@@ -117,6 +129,7 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         self.velocity_tolerance = self.settings["velocity_tolerance"].GetDouble()
         self.pressure_tolerance = self.settings["pressure_tolerance"].GetDouble()
         self.echo_level = self.settings["echo_level"].GetInt()
+        self.SetMaxCouplingIterations(1)
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
@@ -245,6 +258,14 @@ class FractionalStepVelocityPressureFormulation(Formulation):
 
     def IsConverged(self):
         if (hasattr(self, "is_converged")):
+            if (self.is_steady_simulation):
+                settings = self.settings["steady_convergence_settings"]
+                formulation_converged = self.__CheckTransientConvergence(Kratos.VELOCITY, settings["velocity_tolerances"])
+                self.is_converged = self.is_converged and formulation_converged
+
+                formulation_converged = self.__CheckTransientConvergence(Kratos.PRESSURE, settings["pressure_tolerances"])
+                self.is_converged = self.is_converged and formulation_converged
+
             return self.is_converged
         return False
 
@@ -261,14 +282,12 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         return False
 
     def InitializeSolutionStep(self):
-        if self.GetBaseModelPart().ProcessInfo[
-            Kratos.STEP] + 1 >= 3:
+        if (IsBufferInitialized(self)):
             super(FractionalStepVelocityPressureFormulation, self).InitializeSolutionStep()
             self.solver.InitializeSolutionStep()
 
     def FinializeSolutionStep(self):
-        if self.GetBaseModelPart().ProcessInfo[
-            Kratos.STEP] + 1 >= 3:
+        if (IsBufferInitialized(self)):
             self.solver.FinializeSolutionStep()
             super(FractionalStepVelocityPressureFormulation, self).FinializeSolutionStep()
 
@@ -285,9 +304,12 @@ class FractionalStepVelocityPressureFormulation(Formulation):
             scheme_type = settings["scheme_type"].GetString()
             if (scheme_type == "steady"):
                 self.is_steady_simulation = True
-                if (not self.GetBaseModelPart().ProcessInfo.Has(Kratos.PRESSURE_COEFFICIENT)):
-                    Kratos.Logger.PrintWarning(self.GetName(), "Fractional step steady simulations require PRESSURE_COEFFICIENT to be set in process info.")
-                    self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.PRESSURE_COEFFICIENT, 0.5)
+                default_settings = Kratos.Parameters('''{
+                    "scheme_type": "steady",
+                    "pressure_coefficient": 0.5
+                }''')
+                settings.ValidateAndAssignDefaults(default_settings)
+                self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.PRESSURE_COEFFICIENT, settings["pressure_coefficient"].GetDouble())
             elif (scheme_type == "transient"):
                 self.is_steady_simulation = False
             else:
@@ -321,3 +343,13 @@ class FractionalStepVelocityPressureFormulation(Formulation):
 
     def GetModelPart(self):
         return self.fractional_step_model_part
+
+    def __CheckTransientConvergence(self, variable, settings):
+        relative_error, absolute_error = RansVariableUtilities.CalculateTransientVariableConvergence(self.GetBaseModelPart(), variable)
+        relative_tolerance = settings["relative_tolerance"].GetDouble()
+        absolute_tolerance = settings["absolute_tolerance"].GetDouble()
+
+        info = GetConvergenceInfo(variable, relative_error, relative_tolerance, absolute_error, absolute_tolerance)
+        Kratos.Logger.PrintInfo(self.GetName(), info)
+
+        return (relative_error <= relative_tolerance or absolute_error <= absolute_tolerance)

@@ -74,6 +74,13 @@ class Formulation:
         for formulation in self.list_of_formulations:
             if (not formulation.IsConverged()):
                 return False
+
+        if (self.GetStrategy() is not None):
+            is_converged = self.GetStrategy().IsConverged()
+            if (is_converged):
+                Kratos.Logger.PrintInfo(self.GetName(), " *** CONVERGENCE ACHIEVED ***")
+            return is_converged
+
         return True
 
     def GetMoveMeshFlag(self):

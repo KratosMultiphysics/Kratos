@@ -39,7 +39,6 @@ class CoupledRANSSolver(PythonSolver):
             "material_import_settings": {
                 "materials_filename": ""
             },
-            "max_iterations": 1,
             "consider_periodic_conditions": false,
             "formulation_settings": {},
             "echo_level": 0,
@@ -93,7 +92,6 @@ class CoupledRANSSolver(PythonSolver):
 
         self.formulation.SetConstants(self.settings["constants"])
         self.formulation.SetIsPeriodic(self.settings["consider_periodic_conditions"].GetBool())
-        self.formulation.SetMaxCouplingIterations(self.settings["max_iterations"].GetInt())
 
         self.is_periodic = self.formulation.IsPeriodic()
 

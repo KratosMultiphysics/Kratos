@@ -26,7 +26,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import Initialize
 
 # case specific imports
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
-    from KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension import TrilinosUPCriteria as up_criteria
+    from KratosMultiphysics.TrilinosApplication import TrilinosUPCriteria as up_criteria
     from KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension import TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent as dynamic_scheme
     from KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension import TrilinosResidualBasedSimpleSteadyScheme as steady_scheme
 elif (not IsDistributedRun()):
@@ -99,6 +99,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.Y_WALL)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
 
         Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
 
@@ -185,11 +186,6 @@ class MonolithicVelocityPressureFormulation(Formulation):
     def Finalize(self):
         self.solver.Clear()
         super(MonolithicVelocityPressureFormulation, self).Finalize()
-
-    def IsConverged(self):
-        if (hasattr(self, "is_converged")):
-            return self.GetStrategy().IsConverged()
-        return False
 
     def SolveCouplingStep(self):
         if (IsBufferInitialized(self)):
