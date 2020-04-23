@@ -293,6 +293,9 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
     // Create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -301,7 +304,7 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
     Flags &ConstitutiveLawOptions=Values.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-    if (!rCurrentProcessInfo.GetValue(IS_EXPLICIT))
+    if (!is_explicit)
     {
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -324,7 +327,7 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
         // Update MP_Density
         mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
     }
-    else if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
+    else if (is_explicit)
     {
         rLocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX, false);
     }
@@ -500,7 +503,10 @@ void UpdatedLagrangian::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
         // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
         this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
-        if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
+        const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+            ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+            : false;
+        if (is_explicit)
         {
             this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
             Matrix Jacobian;
@@ -893,6 +899,9 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
 
     mFinalizedStep = false;
 
@@ -906,7 +915,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
-    if (!rCurrentProcessInfo.GetValue(IS_EXPLICIT))
+    if (!is_explicit)
     {
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
@@ -964,7 +973,11 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(rCurrentProcessInfo.GetValue(IS_EXPLICIT))
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+    ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+    : false;
+
+    KRATOS_ERROR_IF(is_explicit)
     << "FinalizeSolutionStep for explicit time integration is done in the scheme";
 
     // Create and initialize element variables:
@@ -1020,7 +1033,10 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
     mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
     mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
 
-    if (!rCurrentProcessInfo.GetValue(IS_EXPLICIT)) this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+    if (!is_explicit) this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
 }
 
 //************************************************************************************

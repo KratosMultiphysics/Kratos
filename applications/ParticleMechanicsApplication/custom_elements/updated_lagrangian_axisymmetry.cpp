@@ -308,8 +308,10 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLo
 
         // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
         this->CalculateAndAddExternalForces(rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
-
-        if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
+        const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+            ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+            : false;
+        if (is_explicit)
         {
             this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
             Matrix Jacobian;
