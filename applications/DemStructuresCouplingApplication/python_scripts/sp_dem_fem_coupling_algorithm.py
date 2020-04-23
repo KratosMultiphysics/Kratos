@@ -143,13 +143,11 @@ class SPAlgorithm(Algorithm):
 
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
 
-            self.structural_solution.InitializeSolutionStep()
             if self.test_number:
                 self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
+            self.structural_solution.InitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
-            self.structural_solution.FinalizeSolutionStep()
-            self.structural_solution.OutputSolutionStep()
 
             time_final_DEM_substepping = self.structural_solution.time
 
@@ -209,6 +207,8 @@ class SPAlgorithm(Algorithm):
 
             if self.test_number:
                 self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
+            self.structural_solution.FinalizeSolutionStep()
+            self.structural_solution.OutputSolutionStep()
 
             # Write SP data
             if self.IsPostProcessWriteStep():

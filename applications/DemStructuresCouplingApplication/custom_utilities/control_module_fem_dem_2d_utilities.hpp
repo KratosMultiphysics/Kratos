@@ -75,7 +75,6 @@ ControlModuleFemDem2DUtilities(ModelPart& rFemModelPart,
             "limit_velocity" : 1.0,
             "velocity_factor" : 1.0,
             "compression_length" : 1.0,
-            "face_area": 1.0,
             "young_modulus" : 1.0e7,
             "stress_increment_tolerance": 100.0,
             "update_stiffness": true,
@@ -96,7 +95,7 @@ ControlModuleFemDem2DUtilities(ModelPart& rFemModelPart,
     mStressIncrementTolerance = rParameters["stress_increment_tolerance"].GetDouble();
     mUpdateStiffness = rParameters["update_stiffness"].GetBool();
     mReactionStressOld = 0.0;
-    mStiffness = rParameters["young_modulus"].GetDouble()*rParameters["face_area"].GetDouble()/mCompressionLength;
+    mStiffness = rParameters["young_modulus"].GetDouble()/mCompressionLength; // mStiffness is actually a stiffness over an area
     mStressAveragingTime = rParameters["stress_averaging_time"].GetDouble();
     mVectorOfLastStresses.resize(0);
 
@@ -192,15 +191,23 @@ void ExecuteInitializeSolutionStep()
             }
             itElem->SetValuesOnIntegrationPoints( IMPOSED_Z_STRAIN_VALUE, imposed_z_strain_vector, CurrentProcessInfo );
         }
-    }
-
-    // Save calculated velocity and reaction for print (only at FEM nodes)
-    #pragma omp parallel for
-    for(int i = 0; i<NNodes; i++) {
-        ModelPart::NodesContainerType::iterator it = it_begin + i;
-        it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-        it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress;
-        it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity;
+        // Save calculated velocity and reaction for print (only at FEM nodes)
+        #pragma omp parallel for
+        for(int i = 0; i<NNodes; i++) {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+            it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress;
+            it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity;
+        }
+    } else {
+        // Save calculated velocity and reaction for print (only at FEM nodes)
+        #pragma omp parallel for
+        for(int i = 0; i<NNodes; i++) {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+            it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress;
+            it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = 0.0;
+        }
     }
 
     mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = pTargetStressTable->GetValue(CurrentTime);
