@@ -340,10 +340,10 @@ namespace Kratos
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
 
-        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
+        const Matrix& r_DN_De = trans(GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex));
 
-        if (rB.size1() != mat_size || rB.size2() != mat_size)
-            rB.resize(mat_size, mat_size);
+        if (rB.size1() != 3 || rB.size2() != mat_size)
+            rB.resize(3, mat_size);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)
@@ -373,8 +373,8 @@ namespace Kratos
 
         const auto& r_geometry = GetGeometry();
 
-        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
-        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
+        const Matrix& r_DN_De = trans(r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex));
+        const Matrix& r_DDN_DDe = trans(r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -445,8 +445,8 @@ namespace Kratos
     {
         const auto& r_geometry = GetGeometry();
 
-        const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
-        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
+        const Matrix& r_DN_De   = trans(r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex));
+        const Matrix& r_DDN_DDe = trans(r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
