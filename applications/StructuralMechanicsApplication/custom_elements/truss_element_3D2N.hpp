@@ -96,13 +96,13 @@ namespace Kratos
 
         void EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         void GetDofList(
             DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
-        void Initialize() override;
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function calculates the total stiffness matrix for the element
@@ -222,7 +222,7 @@ namespace Kratos
             int Step = 0) override;
 
         int  Check(
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         /**
          * @brief This function calculates the current Green-Lagrange strain
@@ -259,24 +259,12 @@ namespace Kratos
 
         double ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo);
 
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function checks if self weight is present
          */
         bool HasSelfWeight() const;
-
-        /**
-         * @brief This function calls the constitutive law to get stresses
-         * @param rCurrentProcessInfo Current process info
-         * @param rSaveInternalVariables Boolean to save internal constit. law variables
-         */
-        virtual BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo);
 
 private:
     /**

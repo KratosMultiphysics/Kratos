@@ -430,6 +430,23 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return true;
+    }
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
+    
     ///@}
     ///@name Access
     ///@{

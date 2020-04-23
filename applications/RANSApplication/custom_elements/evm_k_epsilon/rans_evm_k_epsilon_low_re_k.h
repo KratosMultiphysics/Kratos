@@ -76,9 +76,6 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
-    /// Vector type for local contributions to the linear system
-    using VectorType = Vector;
-
     using IndexType = std::size_t;
 
     using EquationIdVectorType = std::vector<IndexType>;
@@ -97,34 +94,48 @@ public:
     /**
      * Constructor.
      */
-    explicit RansEvmKEpsilonLowReKElement(IndexType NewId = 0);
+    explicit RansEvmKEpsilonLowReKElement(IndexType NewId = 0) : BaseType(NewId)
+    {
+    }
 
     /**
      * Constructor using an array of nodes
      */
-    RansEvmKEpsilonLowReKElement(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKEpsilonLowReKElement(IndexType NewId, const NodesArrayType& ThisNodes)
+        : BaseType(NewId, ThisNodes)
+    {
+    }
 
     /**
      * Constructor using Geometry
      */
-    RansEvmKEpsilonLowReKElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonLowReKElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {
+    }
 
     /**
      * Constructor using Properties
      */
     RansEvmKEpsilonLowReKElement(IndexType NewId,
                                  GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties);
+                                 PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {
+    }
 
     /**
      * Copy Constructor
      */
-    RansEvmKEpsilonLowReKElement(RansEvmKEpsilonLowReKElement const& rOther);
+    RansEvmKEpsilonLowReKElement(RansEvmKEpsilonLowReKElement const& rOther)
+        : BaseType(rOther)
+    {
+    }
 
     /**
      * Destructor
      */
-    ~RansEvmKEpsilonLowReKElement() override;
+    ~RansEvmKEpsilonLowReKElement() override = default;
 
     ///@}
     ///@name Operators
@@ -185,11 +196,11 @@ public:
      */
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-    void GetValuesVector(VectorType& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
-    void GetFirstDerivativesVector(VectorType& values, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
 
-    void GetSecondDerivativesVector(VectorType& values, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
     /**
      * @brief GetIntegrationMethod Return the integration order to be used.

@@ -57,11 +57,6 @@ RansNutYPlusWallFunctionProcess::RansNutYPlusWallFunctionProcess(Model& rModel, 
     KRATOS_CATCH("");
 }
 
-/// Destructor.
-RansNutYPlusWallFunctionProcess::~RansNutYPlusWallFunctionProcess()
-{
-}
-
 int RansNutYPlusWallFunctionProcess::Check()
 {
     KRATOS_TRY

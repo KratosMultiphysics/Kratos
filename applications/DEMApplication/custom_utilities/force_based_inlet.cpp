@@ -10,7 +10,7 @@ DEM_Force_Based_Inlet::DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1
                DEM_Inlet(inlet_modelpart), mInjectionForce(injection_force)
 {}
 
-void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element)
+void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element, int dimension)
 {
     Node<3>& node = element.GetGeometry()[0];
     element.Set(NEW_ENTITY, 0);

@@ -30,10 +30,9 @@
         "displacement_absolute_tolerance"    : 1e-6,
         "residual_relative_tolerance"        : 1e-6,
         "residual_absolute_tolerance"        : 1e-6,
-        "max_iteration"                      : 20,
+        "max_iteration"                      : 25,
             "linear_solver_settings"             : {
-            "solver_type" : "ExternalSolversApplication.super_lu",
-            "scaling"     : false
+            "solver_type" : "EigenSolversApplication.sparse_lu"
         },
 		"use_computing_model_part" : false,
         "rotation_dofs"            : false

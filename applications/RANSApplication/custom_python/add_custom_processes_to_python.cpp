@@ -13,7 +13,6 @@
 #include "custom_python/add_custom_auxiliary_processes_to_python.h"
 #include "custom_python/add_custom_solving_processes_to_python.h"
 
-
 namespace Kratos
 {
 namespace Python

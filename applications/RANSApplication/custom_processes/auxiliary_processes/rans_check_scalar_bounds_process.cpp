@@ -49,10 +49,6 @@ RansCheckScalarBoundsProcess::RansCheckScalarBoundsProcess(Model& rModel, Parame
     KRATOS_CATCH("");
 }
 
-RansCheckScalarBoundsProcess::~RansCheckScalarBoundsProcess()
-{
-}
-
 int RansCheckScalarBoundsProcess::Check()
 {
     KRATOS_TRY

@@ -46,7 +46,7 @@ class RungeKuttaFracStepSolver:
         #neighbour search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+        self.neighbour_search = FindNodalNeighboursProcess(model_part)
 
         # self.move_mesh_strategy = 2
         pDiagPrecond = DiagonalPreconditioner()
@@ -67,9 +67,9 @@ class RungeKuttaFracStepSolver:
         # self.MoveMeshFlag = True
 
         if (self.domain_size == 2):
-            self.neigh_finder = FindNodalNeighboursProcess(self.model_part, 9, 18)
+            self.neigh_finder = FindNodalNeighboursProcess(self.model_part)
         if (self.domain_size == 3):
-            self.neigh_finder = FindNodalNeighboursProcess(self.model_part, 20, 30)
+            self.neigh_finder = FindNodalNeighboursProcess(self.model_part)
         # calculate normals
         self.normal_tools = NormalCalculationUtils()
 
@@ -81,7 +81,7 @@ class RungeKuttaFracStepSolver:
 
         if(domain_size == 2):
             self.Mesher = TriGenPFEMModeler()
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(self.model_part,9,18)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(self.model_part)
             self.condition_neigh_finder = FindConditionsNeighboursProcess(self.model_part,2, 10)
             self.elem_neighbor_finder = FindElementalNeighboursProcess(self.model_part, 2, 10)
 
@@ -165,7 +165,7 @@ class RungeKuttaFracStepSolver:
         ((self.model_part).Conditions).clear();
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("Fluid2DGLS_expl","Condition2D", self.model_part, self.node_erase_process, True, True, alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("Fluid2DGLS_expl","LineCondition2D2N", self.model_part, self.node_erase_process, True, True, alpha_shape, h_factor)
 
         for node in (self.model_part).Nodes:
             node.Set(TO_ERASE, False)

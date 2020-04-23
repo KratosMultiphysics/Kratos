@@ -54,7 +54,7 @@ struct blaze {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
 
-    struct provides_row_iterator : std::false_type {};
+    struct provides_row_iterator : std::true_type {};
 
     typedef ::blaze::CompressedMatrix<real> matrix;
     typedef ::blaze::DynamicVector<real>    vector;
@@ -130,8 +130,8 @@ struct blaze {
 //---------------------------------------------------------------------------
 // Backend interface implementation
 //---------------------------------------------------------------------------
-template < typename V >
-struct value_type < ::blaze::CompressedMatrix<V> > {
+template < typename V, bool O >
+struct value_type < ::blaze::CompressedMatrix<V, O> > {
     typedef V type;
 };
 
@@ -140,31 +140,66 @@ struct value_type < ::blaze::DynamicVector<V> > {
     typedef V type;
 };
 
-template < typename V >
-struct cols_impl< ::blaze::CompressedMatrix<V> > {
-    typedef ::blaze::CompressedMatrix<V> matrix;
+template < typename V, bool O >
+struct cols_impl< ::blaze::CompressedMatrix<V, O> > {
+    typedef ::blaze::CompressedMatrix<V, O> matrix;
 
     static size_t get(const matrix &A) {
         return A.columns();
     }
 };
 
-template < typename V >
-struct nonzeros_impl< ::blaze::CompressedMatrix<V> > {
-    typedef ::blaze::CompressedMatrix<V> matrix;
+template < typename V, bool O >
+struct nonzeros_impl< ::blaze::CompressedMatrix<V, O> > {
+    typedef ::blaze::CompressedMatrix<V, O> matrix;
 
     static size_t get(const matrix &A) {
         return A.nonZeros();
     }
 };
 
-template < class A, class B, typename V >
+template < typename V, bool O >
+struct row_iterator< ::blaze::CompressedMatrix<V, O> >
+{
+    struct type {
+        typedef typename ::blaze::CompressedMatrix<V, O>::ConstIterator Base;
+        Base base;
+        Base end;
+
+        operator bool() const {
+            return base != end;
+        }
+
+        type operator++() {
+            ++base;
+            return *this;
+        }
+
+        size_t col() const {
+            return base->index();
+        }
+
+        V value() const {
+            return base->value();
+        }
+    };
+};
+
+template < typename V, bool O >
+struct row_begin_impl< ::blaze::CompressedMatrix<V, O> > {
+    typedef typename row_iterator< ::blaze::CompressedMatrix<V, O> >::type iterator;
+    static iterator get(const ::blaze::CompressedMatrix<V, O> &A, size_t row) {
+        return iterator{A.cbegin(row), A.cend(row)};
+    }
+};
+
+template < class A, class B, typename V, bool O >
 struct spmv_impl<
-    A, ::blaze::CompressedMatrix<V>, ::blaze::DynamicVector<V>,
+    A, ::blaze::CompressedMatrix<V, O>, ::blaze::DynamicVector<V>,
     B, ::blaze::DynamicVector<V>
     >
 {
-    typedef ::blaze::CompressedMatrix<V> matrix;
+    typedef ::blaze::CompressedMatrix<V, O> matrix;
     typedef ::blaze::DynamicVector<V>    vector;
 
     static void apply(A alpha, const matrix &K, const vector &x, B beta, vector &y)
@@ -176,15 +211,15 @@ struct spmv_impl<
     }
 };
 
-template < typename V >
+template < typename V, bool O >
 struct residual_impl<
-    ::blaze::CompressedMatrix<V>,
+    ::blaze::CompressedMatrix<V, O>,
     ::blaze::DynamicVector<V>,
     ::blaze::DynamicVector<V>,
     ::blaze::DynamicVector<V>
     >
 {
-    typedef ::blaze::CompressedMatrix<V> matrix;
+    typedef ::blaze::CompressedMatrix<V, O> matrix;
     typedef ::blaze::DynamicVector<V>    vector;
 
     static void apply(const vector &rhs, const matrix &A, const vector &x,

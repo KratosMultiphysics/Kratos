@@ -26,6 +26,8 @@
 #include "custom_processes/rough_porous_layer_wetting_model.h"
 #include "custom_processes/negative_height_wetting_model.h"
 #include "custom_processes/id_renumbering_process.h"
+#include "custom_processes/compute_velocity_process.h"
+#include "custom_processes/move_shallow_particles_process.h"
 
 
 namespace Kratos
@@ -44,7 +46,7 @@ namespace Python
         (m, "ElementalRefiningCriteriaProcess")
         .def(py::init<ModelPart&>())
         .def(py::init<ModelPart&, Parameters>())
-        .def(py::init<ModelPart&, Variable<double>, double, bool>())
+        .def(py::init<ModelPart&, const Variable<double>&, double, bool>())
         ;
 
         typedef ApplyPerturbationFunctionProcess<Variable<double>> ApplyPerturbationScalarFunctionProcess;
@@ -101,6 +103,16 @@ namespace Python
         .def("RestoreNodes", &IdRenumberingProcess::RestoreNodes)
         .def("RestoreElements", &IdRenumberingProcess::RestoreElements)
         .def("RestoreConditions", &IdRenumberingProcess::RestoreConditions)
+        ;
+
+        py::class_<ComputeVelocityProcess, ComputeVelocityProcess::Pointer, Process>
+        (m, "ComputeVelocityProcess")
+        .def(py::init<ModelPart&, double>())
+        ;
+
+        py::class_<MoveShallowParticlesProcess<2>, MoveShallowParticlesProcess<2>::Pointer, Process>
+        (m, "MoveShallowParticlesProcess2D")
+        .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3>>&, Variable<double>&, Parameters>())
         ;
 
     }

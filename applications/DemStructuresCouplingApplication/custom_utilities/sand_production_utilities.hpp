@@ -19,7 +19,6 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define_python.h"
 
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
@@ -34,7 +33,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(DEM_STRUCTURES_COUPLING_APPLICATION) SandProductionUtilities {
+class SandProductionUtilities {
 
 public:
 
@@ -45,11 +44,11 @@ KRATOS_CLASS_POINTER_DEFINITION(SandProductionUtilities);
 
 /// Default constructor.
 
-SandProductionUtilities(){}
+SandProductionUtilities();
 
 /// Destructor.
 
-virtual ~SandProductionUtilities(){}
+virtual ~SandProductionUtilities();
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -70,22 +69,15 @@ void MarkSandProductionParticlesForErasing(ModelPart& r_model_part);
 
 /// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-virtual std::string Info() const
-{
-    return "";
-}
+virtual std::string Info() const;
 
 /// Print information about this object.
 
-virtual void PrintInfo(std::ostream& rOStream) const
-{
-}
+virtual void PrintInfo(std::ostream& rOStream) const;
 
 /// Print object's data.
 
-virtual void PrintData(std::ostream& rOStream) const
-{
-}
+virtual void PrintData(std::ostream& rOStream) const;
 
 
 ///@}
@@ -160,10 +152,6 @@ private:
 ///@}
 ///@name Un accessible methods
 ///@{
-
-/// Assignment operator.
-SandProductionUtilities & operator=(SandProductionUtilities const& rOther);
-
 
 ///@}
 

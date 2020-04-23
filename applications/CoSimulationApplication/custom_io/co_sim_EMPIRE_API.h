@@ -156,6 +156,8 @@ static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, do
         input_file >> data[i];
     }
 
+    input_file.close();
+
     RemoveFile(rFileName);
 
     EMPIRE_API_LOG(2) << "Finished receiving array" << std::endl;
@@ -415,6 +417,8 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
         }
     }
 
+    input_file.close();
+
     EMPIRE_API_helpers::RemoveFile(file_name);
 
     EMPIRE_API_LOG(2) << "Finished receiving mesh" << std::endl;
@@ -497,6 +501,8 @@ static int EMPIRE_API_recvConvergenceSignal(const std::string& rFileNameExtensio
         err_msg << "Read an invalid convergence signal: " << signal << ", can only be 0 for non-convergence or 1 for convergence";
         throw std::runtime_error(err_msg.str());
     }
+
+    input_file.close();
 
     EMPIRE_API_helpers::RemoveFile(file_name);
 

@@ -129,7 +129,7 @@ public:
         {
             KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name);
         }
-        Variable<array_1d<double,3> > rVariable = KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name);
+        const Variable<array_1d<double,3> >& rVariable = KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name);
        
         
         if(mmesh_id >= model_part.NumberOfMeshes())

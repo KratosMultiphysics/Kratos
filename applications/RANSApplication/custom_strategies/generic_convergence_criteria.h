@@ -77,9 +77,7 @@ public:
     }
 
     /// Destructor.
-    ~GenericConvergenceCriteria() override
-    {
-    }
+    ~GenericConvergenceCriteria() override = default;
 
     ///@}
     ///@name Operators

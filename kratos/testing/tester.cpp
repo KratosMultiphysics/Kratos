@@ -23,6 +23,8 @@
 #include "testing/tester.h"
 #include "testing/test_suite.h" // it includes the test_case.h
 #include "includes/exception.h"
+#include "includes/parallel_environment.h"
+#include "includes/data_communicator.h"
 
 
 namespace Kratos
@@ -266,6 +268,12 @@ namespace Kratos
 			auto start = std::chrono::steady_clock::now();
 			auto number_of_run_tests = NumberOfSelectedTestCases();
 
+			std::stringstream secondary_stream;
+			std::streambuf* original_buffer = nullptr;
+			if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS && ParallelEnvironment::GetDefaultRank() != 0) {
+				original_buffer = std::cout.rdbuf(secondary_stream.rdbuf());
+			}
+
 			std::size_t test_number = 0;
 			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
@@ -288,7 +296,12 @@ namespace Kratos
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
-			return ReportResults(std::cout, number_of_run_tests, elapsed.count());
+			auto tmp = ReportResults(std::cout, number_of_run_tests, elapsed.count());
+
+			if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS && ParallelEnvironment::GetDefaultRank() != 0) {
+				std::cout.rdbuf(original_buffer);
+			}
+			return tmp;
 		}
 
 
@@ -354,19 +367,19 @@ namespace Kratos
 
 				if (pTheTestCase->GetResult().IsSucceed())
 				{
-					std::cout << " OK." << std::endl;
+					std::cout << "OK." << std::endl;
 					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
 				}
 				else if (pTheTestCase->GetResult().IsFailed())
 				{
-					std::cout << " FAILED!" << std::endl;
+					std::cout << "FAILED!" << std::endl;
 					if (GetInstance().mVerbosity >= Verbosity::FAILED_TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
 				}
 				else if (pTheTestCase->GetResult().IsSkipped())
 				{
-					std::cout << " SKIPPED." << std::endl;
+					std::cout << "SKIPPED." << std::endl;
 					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetErrorMessage() << std::endl;
 				}
@@ -416,14 +429,44 @@ namespace Kratos
 				if (test_case_result.IsFailed())
 				{
 					rOStream << "    " << i_test->first << " Failed";
-					if (test_case_result.GetErrorMessage().size() == 0)
-						rOStream << std::endl;
+					if (ParallelEnvironment::GetDefaultSize() == 1)
+					{
+						if (test_case_result.GetErrorMessage().size() == 0)
+							rOStream << std::endl;
+						else
+						{
+							rOStream << " with message: " << std::endl;
+							rOStream << "        " << test_case_result.GetErrorMessage() << std::endl;
+						}
+					}
 					else
 					{
-						rOStream << " with message: " << std::endl;
-						rOStream << "        " << test_case_result.GetErrorMessage() << std::endl;
+						Tester::ReportDistributedFailureDetails(rOStream, i_test->second);
 					}
 				}
+			}
+		}
+
+		void Tester::ReportDistributedFailureDetails(std::ostream& rOStream, const TestCase* const pTheTestCase)
+		{
+			TestCaseResult const& r_test_case_result = pTheTestCase->GetResult();
+			rOStream << " with messages: " << std::endl;
+			rOStream << "From rank 0:" << std::endl << r_test_case_result.GetErrorMessage() << std::endl;
+			const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+			const int parallel_rank = r_comm.Rank();
+			const int parallel_size = r_comm.Size();
+			if (parallel_rank == 0)
+			{
+				for (int i = 1; i < parallel_size; i++)
+				{
+					std::string remote_message;
+					r_comm.Recv(remote_message, i,i);
+					rOStream << "From rank " << i << ":" << std::endl << remote_message << std::endl;
+				}
+			}
+			else
+			{
+				r_comm.Send(r_test_case_result.GetErrorMessage(), 0, parallel_rank);
 			}
 		}
 

@@ -187,8 +187,12 @@ public:
     /**
      * @brief We initialize the metrics of the MMG sol using the Hessian metric matrix approach
      */
-
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -337,11 +341,6 @@ private:
      */
     template<SizeType TDim>
     void CalculateMetric();
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters() const;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

@@ -44,7 +44,7 @@ class MoveParticleUtilityProcess(KM.Process):
         dimension = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
         num_of_avg_elems = 10
         num_of_avg_nodes = 10
-        neighbor_search = KM.FindNodalNeighboursProcess(self.model_part, num_of_avg_elems, num_of_avg_nodes)
+        neighbor_search = KM.FindNodalNeighboursProcess(self.model_part)
         neighbor_search.Execute()
         neighbor_elements_search = KM.FindElementalNeighboursProcess(self.model_part, dimension, num_of_avg_elems)
         neighbor_elements_search.Execute()

@@ -51,7 +51,7 @@ Begin Elements Element3D3N// GUI group identifier: Domain
         18          1         12        16        15
 End Elements
 
-Begin Conditions Condition3D2N// GUI group identifier: Skin
+Begin Conditions LineCondition3D2N// GUI group identifier: Skin
 1 0 1 2
 2 0 2 3
 3 0 3 4
