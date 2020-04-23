@@ -19,12 +19,12 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/updated_lagrangian_element.h"
+#include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application_variables.h"
-#include "includes/checks.h"
+#include "custom_utilities/mpm_energy_calculation_utility.h"
 
 namespace Kratos
 {
@@ -766,6 +766,191 @@ void UpdatedLagrangianElement::GetSecondDerivativesVector( Vector& values, int S
             values[index + 2] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
     }
 }
+
+///@}
+///@name Access Get Values
+///@{
+
+void UpdatedLagrangianElement::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_MATERIAL_ID) {
+        rValues[0] = GetProperties().Id();
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangianElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_DENSITY) {
+        rValues[0] = mMP.density;
+    }
+    else if (rVariable == MP_MASS) {
+        rValues[0] = mMP.mass;
+    }
+    else if (rVariable == MP_VOLUME) {
+        rValues[0] = mMP.volume;
+    }
+    else if (rVariable == MP_POTENTIAL_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculatePotentialEnergy(*this);
+    }
+    else if (rVariable == MP_KINETIC_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateKineticEnergy(*this);
+    }
+    else if (rVariable == MP_STRAIN_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateStrainEnergy(*this);
+    }
+    else if (rVariable == MP_TOTAL_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangianElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+        rValues[0] = mMP.xg;
+    }
+    else if (rVariable == MP_DISPLACEMENT) {
+        rValues[0] = mMP.displacement;
+    }
+    else if (rVariable == MP_VELOCITY) {
+        rValues[0] = mMP.velocity;
+    }
+    else if (rVariable == MP_ACCELERATION) {
+        rValues[0] = mMP.acceleration;
+    }
+    else if (rVariable == MP_VOLUME_ACCELERATION) {
+        rValues[0] = mMP.volume_acceleration;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangianElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_CAUCHY_STRESS_VECTOR) {
+        rValues[0] = mMP.cauchy_stress_vector;
+    }
+    else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
+        rValues[0] = mMP.almansi_strain_vector;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+///@}
+///@name Access Set Values
+///@{
+
+void UpdatedLagrangianElement::SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+}
+
+void UpdatedLagrangianElement::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_MASS) {
+        mMP.mass = rValues[0];
+    }
+    else if (rVariable == MP_DENSITY) {
+        mMP.density = rValues[0];
+    }
+    else if (rVariable == MP_VOLUME) {
+        mMP.volume = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangianElement::SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+        mMP.xg = rValues[0];
+    }
+    else if (rVariable == MP_DISPLACEMENT) {
+        mMP.displacement = rValues[0];
+    }
+    else if (rVariable == MP_VELOCITY) {
+        mMP.velocity = rValues[0];
+    }
+    else if (rVariable == MP_ACCELERATION) {
+        mMP.acceleration = rValues[0];
+    }
+    else if (rVariable == MP_VOLUME_ACCELERATION) {
+        mMP.volume_acceleration = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangianElement::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_CAUCHY_STRESS_VECTOR) {
+        mMP.cauchy_stress_vector = rValues[0];
+    }
+    else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
+        mMP.almansi_strain_vector = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+///@}
 
 int  UpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
