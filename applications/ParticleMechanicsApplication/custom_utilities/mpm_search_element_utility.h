@@ -101,7 +101,7 @@ namespace MPMSearchElementUtility
                     if (isOnEdge) {
                         // MP is exactly on the edge. Now we give it a little 'nudge'
                         array_1d<double, 3> xg_nudged = array_1d<double, 3>(xg[0]);
-                        const double& delta_time = rProcessInfo[DELTA_TIME];
+                        const double& delta_time = r_process_info[DELTA_TIME];
                         std::vector<array_1d<double, 3>> mp_vel;
                         element_itr->CalculateOnIntegrationPoints(MP_VELOCITY, mp_vel, rMPMModelPart.GetProcessInfo());
                         array_1d<double, 3> nudge_displacement = delta_time / 1000.0 * mp_vel[0];
