@@ -52,6 +52,8 @@ public:
     ///StressMeasure from constitutive laws
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
 
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+
     /// Counted pointer of LargeDisplacementElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianElement );
 
@@ -60,6 +62,80 @@ public:
 protected:
     ///@name Structs
     ///@{
+
+    /// Geometrical variables for the enhancement tpwards material points
+    struct MaterialPointVariables
+    {
+    public:
+        // Particle Position
+        CoordinatesArrayType xg;
+        // MP_MASS
+        double mass;
+        // MP_DENSITY
+        double density;
+        // MP_VOLUME
+        double volume;
+
+        // MP_DISPLACEMENT
+        array_1d<double, 3> displacement;
+        // MP_VELOCITY
+        array_1d<double, 3> velocity;
+        // MP_ACCELERATION
+        array_1d<double, 3> acceleration;
+
+        // MP_VOLUME_ACCELERATION
+        array_1d<double, 3> volume_acceleration;
+
+        // MP_CAUCHY_STRESS_VECTOR
+        Vector cauchy_stress_vector;
+        // MP_ALMANSI_STRAIN_VECTOR
+        Vector almansi_strain_vector;
+
+        // MP_DELTA_PLASTIC_STRAIN
+        double delta_plastic_strain;
+        // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+        double delta_plastic_volumetric_strain;
+        // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+        double delta_plastic_deviatoric_strain;
+        // MP_EQUIVALENT_PLASTIC_STRAIN
+        double equivalent_plastic_strain;
+        // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+        double accumulated_plastic_volumetric_strain;
+        // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+        double accumulated_plastic_deviatoric_strain;
+
+        explicit MaterialPointVariables(SizeType WorkingSpaceDimension)
+        {
+            // MP_MASS
+            mass = 1.0;
+            // MP_DENSITY
+            density = 1.0;
+            // MP_VOLUME
+            volume = 1.0;
+
+            SizeType strain_size = (WorkingSpaceDimension == 2)
+                ? 3
+                : 6;
+
+            // MP_CAUCHY_STRESS_VECTOR
+            cauchy_stress_vector = ZeroVector(strain_size);
+            // MP_ALMANSI_STRAIN_VECTOR
+            almansi_strain_vector = ZeroVector(strain_size);
+
+            // MP_DELTA_PLASTIC_STRAIN
+            delta_plastic_strain = 1.0;
+            // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+            delta_plastic_volumetric_strain = 1.0;
+            // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+            delta_plastic_deviatoric_strain = 1.0;
+            // MP_EQUIVALENT_PLASTIC_STRAIN
+            equivalent_plastic_strain = 1.0;
+            // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+            accumulated_plastic_volumetric_strain = 1.0;
+            // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+            accumulated_plastic_deviatoric_strain = 1.0;
+        }
+    };
 
     /**
      * Parameters to be used in the Element
