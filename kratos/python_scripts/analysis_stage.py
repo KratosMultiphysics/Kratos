@@ -111,7 +111,7 @@ class AnalysisStage(object):
             process.ExecuteInitialize()
 
         self._GetSolver().Initialize()
-        self.Check()
+        #self.Check()
 
         self.ModifyAfterSolverInitialize()
 
