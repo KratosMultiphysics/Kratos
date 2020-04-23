@@ -142,6 +142,10 @@ public:
         IndexType IntegrationPointIndex,
         GeometryData::IntegrationMethod ThisMethod) const override
     {
+        KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex != 0)
+            << "Trying to access Normal of QuadraturePointCurveOnSurface "
+            << "with an integration point index != 0." << std::endl;
+
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
@@ -166,6 +170,10 @@ public:
         IndexType IntegrationPointIndex,
         GeometryData::IntegrationMethod ThisMethod) const override
     {
+        KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex != 0)
+            << "Trying to access DeterminantOfJacobian of QuadraturePointCurveOnSurface "
+            << "with an integration point index != 0." << std::endl;
+
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
