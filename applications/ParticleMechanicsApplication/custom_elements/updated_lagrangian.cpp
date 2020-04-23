@@ -502,7 +502,7 @@ void UpdatedLagrangian::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 
         if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
         {
-            MPMExplicitUtilities::CalcuateAndAddExplicitInternalForce(*this,
+            MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
                 mDN_DX, mMP.cauchy_stress_vector, mMP.volume, 
                 mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
         }

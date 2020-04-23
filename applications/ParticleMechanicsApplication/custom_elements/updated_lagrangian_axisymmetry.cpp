@@ -312,7 +312,7 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLo
         if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
         {
             const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(mN, GetGeometry());
-            MPMExplicitUtilities::CalcuateAndAddAxisymmetricExplicitInternalForce(*this,
+            MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
                 mDN_DX, mN, mMP.cauchy_stress_vector, mMP.volume,
                 mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
         }

@@ -15,7 +15,7 @@
 
 namespace Kratos
 {
-    void MPMExplicitUtilities::CalcuateAndAddExplicitInternalForce(
+    void MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(
         Element& rElement,
         const Matrix& rDN_DX,
         const Vector& rMPStress,
@@ -89,7 +89,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
 
-    void MPMExplicitUtilities::CalcuateAndAddAxisymmetricExplicitInternalForce(
+    void MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(
         Element& rElement, 
         const Matrix& rDN_DX, 
         const Vector& rN, 
