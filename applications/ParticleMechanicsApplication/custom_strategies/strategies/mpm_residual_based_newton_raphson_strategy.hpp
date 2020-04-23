@@ -228,7 +228,6 @@ public:
         if (is_converged == true)
         {
             // Initialisation of the convergence criteria
-            r_dof_set = p_builder_and_solver->GetDofSet();
             this->mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
             if (this->mpConvergenceCriteria->GetActualizeRHSflag() == true)
@@ -319,7 +318,7 @@ public:
             if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
         }
 
-        return true;
+        return is_converged;
     }
 
 }; /* Class MPMResidualBasedNewtonRaphsonStrategy */
