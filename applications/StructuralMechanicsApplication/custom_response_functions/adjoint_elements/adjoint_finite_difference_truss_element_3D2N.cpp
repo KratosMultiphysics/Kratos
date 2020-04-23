@@ -59,7 +59,7 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateStressDisplac
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferenceTrussElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointFiniteDifferenceTrussElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

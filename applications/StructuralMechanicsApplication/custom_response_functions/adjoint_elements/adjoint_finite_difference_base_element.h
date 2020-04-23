@@ -120,9 +120,9 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
 
     IntegrationMethod GetIntegrationMethod() const override
@@ -379,7 +379,7 @@ public:
     }
 
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     // Sensitivity functions
 
@@ -422,6 +422,10 @@ public:
      * Gets the pointer to the primal element.
      */
     Element::Pointer pGetPrimalElement()
+    {
+        return mpPrimalElement;
+    }
+    const Element::Pointer pGetPrimalElement() const
     {
         return mpPrimalElement;
     }

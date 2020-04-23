@@ -61,34 +61,22 @@ public:
 
     constexpr static unsigned int TFluidLocalSize = (TDim + 1) * TNumNodes;
 
-    typedef RANSEvmVMSAdjoint<TDim, RANSEvmVMSAdjointData<TNumNodes>, TNumNodes> BaseType;
+    using BaseType = RANSEvmVMSAdjoint<TDim, RANSEvmVMSAdjointData<TNumNodes>, TNumNodes>;
 
     /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    using NodeType = Node<3>;
 
     /**
      * Properties are used to store any parameters
      * related to the constitutive law
      */
-    typedef Properties PropertiesType;
+    using PropertiesType = Properties;
 
     /// Geometry type (using with given NodeType)
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// Definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-
-    /// Vector type for local contributions to the linear system
-    typedef Vector VectorType;
-
-    /// Type for shape function values container
-    typedef MatrixRow<Matrix> ShapeFunctionsType;
-
-    /// Type for a matrix containing the shape function gradients
-    typedef Kratos::Matrix ShapeFunctionDerivativesType;
-
-    /// Type for an array of shape function gradient matrices
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
     ///@}
     ///@name Pointer Definitions

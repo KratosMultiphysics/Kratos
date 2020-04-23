@@ -61,6 +61,7 @@
 #include "add_memory_info_to_python.h"
 #include "add_constraint_to_python.h"
 #include "add_response_functions_to_python.h"
+#include "add_communicator_to_python.h"
 #include "add_data_communicator_to_python.h"
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
@@ -136,6 +137,7 @@ PYBIND11_MODULE(Kratos, m)
     AddLoggerToPython(m);
     AddConstraintToPython(m);
     AddResponseFunctionsToPython(m);
+    AddCommunicatorToPython(m);
     AddDataCommunicatorToPython(m);
     AddParallelEnvironmentToPython(m);
 
