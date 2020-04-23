@@ -4,13 +4,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import math
 
-def GetZeroMatrix(num_lines, num_columns):
-    zero_matrix = KratosMultiphysics.Matrix(num_lines, num_columns)
-    for i in range(0,num_lines):
-        for j in range(0,num_columns):
-            zero_matrix[i,j] = 0.0
-    return zero_matrix
-
 class TestAdjointLoadingConditions(KratosUnittest.TestCase):
 
     def _SurfaceLoadCondition3D4N(self, prefix = ""):
@@ -47,7 +40,8 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         mp.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = 1e-5
 
         # check w.r.t. to design variable SURFACE_LOAD
-        reference_res_1 = GetZeroMatrix(3,12)
+        reference_res_1 = KratosMultiphysics.Matrix(3, 12)
+        reference_res_1.fill(0.0)
         reference_res_1[0,0] = reference_res_1[0,3] = reference_res_1[0,6] = reference_res_1[0,9]  = 0.25
         reference_res_1[1,1] = reference_res_1[1,4] = reference_res_1[1,7] = reference_res_1[1,10] = 0.25
         reference_res_1[2,2] = reference_res_1[2,5] = reference_res_1[2,8] = reference_res_1[2,11] = 0.25
@@ -55,7 +49,8 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         self.assertMatrixAlmostEqual(reference_res_1, sen_matrix)
 
         # check w.r.t. to design variable SHAPE_SENSITIVITY
-        reference_res_2 = GetZeroMatrix(12,12)
+        reference_res_2 = KratosMultiphysics.Matrix(12, 12)
+        reference_res_2.fill(0.0)
         reference_res_2[0,2] = reference_res_2[0,5] = reference_res_2[1,2] = reference_res_2[1,11] = -0.166667
         reference_res_2[0,8] = reference_res_2[0,11] = reference_res_2[1,5] = reference_res_2[1,8] = -0.0833333
         reference_res_2[3,2] = reference_res_2[3,5] = reference_res_2[10,2] = reference_res_2[10,11]  = 0.166667
@@ -77,7 +72,8 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         cond.SetValue(KratosMultiphysics.PRESSURE, 1.0)
 
         # check w.r.t. to design variable PRESSURE
-        reference_res_3 = GetZeroMatrix(1,12)
+        reference_res_3 = KratosMultiphysics.Matrix(1, 12)
+        reference_res_3.fill(0.0)
         reference_res_3[0,2] = reference_res_3[0,5] = reference_res_3[0,8] = reference_res_3[0,11]  = 0.25
         cond.CalculateSensitivityMatrix(KratosMultiphysics.PRESSURE, sen_matrix, mp.ProcessInfo)
         self.assertMatrixAlmostEqual(reference_res_3, sen_matrix)
@@ -120,13 +116,15 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         mp.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = 1e-6
 
         # check w.r.t. to design variable SURFACE_LOAD
-        reference_res_1 = GetZeroMatrix(3,6)
+        reference_res_1 = KratosMultiphysics.Matrix(3, 6)
+        reference_res_1.fill(0.0)
         reference_res_1[0,0] = reference_res_1[0,3] = reference_res_1[1,1] = reference_res_1[1,4]  = reference_res_1[2,2] = reference_res_1[2,5] = 0.70710678
         cond.CalculateSensitivityMatrix(StructuralMechanicsApplication.LINE_LOAD, sen_matrix, mp.ProcessInfo)
         self.assertMatrixAlmostEqual(reference_res_1, sen_matrix, 6)
 
         # check w.r.t. to design variable SHAPE_SENSITIVITY
-        reference_res_2 = GetZeroMatrix(6,6)
+        reference_res_2 = KratosMultiphysics.Matrix(6, 6)
+        reference_res_2.fill(0.0)
         reference_res_2[0,1] = reference_res_2[0,2] = reference_res_2[0,4] = reference_res_2[0,5] = 2499.999376
         reference_res_2[1,1] = reference_res_2[1,2] = reference_res_2[1,4] = reference_res_2[1,5] = 2499.999376
         reference_res_2[2,1] = reference_res_2[2,2] = reference_res_2[2,4] = reference_res_2[2,5] = -0.001250
