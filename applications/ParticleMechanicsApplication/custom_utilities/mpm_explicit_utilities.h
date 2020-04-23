@@ -62,7 +62,7 @@ namespace Kratos
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitAsymmetricKinematics(const ProcessInfo& rCurrentProcessInfo,
             Element& rElement, const Matrix& rDN_DX, const Vector& rN, Vector& rMPStrain, Matrix& rDeformationGradient,
-            const SizeType StrainSize, const double AxisymmetricRadius = 1.0);
+            const SizeType StrainSize, const double AxisymmetricRadius);
     }; // namespace ExplicitIntegrationUtilities
 }  // namespace Kratos
 #endif /* KRATOS_MPM_EXPLICIT_UTILITIES defined */
