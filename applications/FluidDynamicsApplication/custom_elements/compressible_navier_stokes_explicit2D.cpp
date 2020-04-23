@@ -278,8 +278,11 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     const double etot_el = U_gauss(3);
 
     // Inizio variazione
-    double cvs = (cv + ro_el/ror * c)/(1 + ro_el/ror);
-    double gammas = (cp + ro_el/ror * c) / (cv + ro_el/ror * c);
+
+    double  kk = (ro_el - ro0)/ro0;
+
+    double cvs = (cv + kk * c)/(1 + kk);
+    double gammas = (cp + kk * c) / (cv + kk * c);
 
     // printf("ro_el = %.3e - ror = %.3e - ro_el/ror = %.3e \n", ro_el, ror, ro_el/ror);
 
@@ -287,7 +290,7 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array
     cv = cvs;
     cp = gamma * cv;
 
-    mu = mu/(1 + ro_el/ror);
+    mu = mu/(1 + kk);
 
     // Fine variazione
 
