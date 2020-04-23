@@ -5,23 +5,23 @@ from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-class IncompressiblePotentialFlowSolverFormulationTest(UnitTest.TestCase):
+class MonolithicVelocityPressureFormulationTest(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
         self.print_output = False
 
-    def testIncompressiblePotentialFlow(self):
+    def testMonolithicVelocityPressure(self):
         work_folder = "BackwardFacingStepTest"
-        settings_file_name = "backward_facing_step_incompressible_potential_flow_parameters.json"
+        settings_file_name = "backward_facing_step_monolithic_velocity_pressure_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name, "OpenMP")
             kratos_utilities.DeleteTimeFiles(".")
 
-    def testIncompressiblePotentialFlowMPI(self):
+    def testMonolithicVelocityPressureMPI(self):
         work_folder = "BackwardFacingStepTest"
-        settings_file_name = "backward_facing_step_incompressible_potential_flow_parameters.json"
+        settings_file_name = "backward_facing_step_monolithic_velocity_pressure_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name, "MPI")
