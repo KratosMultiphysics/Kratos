@@ -13,21 +13,18 @@
 #ifndef KRATOS_FS_STRATEGY_H
 #define KRATOS_FS_STRATEGY_H
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
-#include "utilities/openmp_utils.h"
 #include "processes/process.h"
-#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
-
+// Application includes
 #include "custom_utilities/solver_settings.h"
 
 namespace Kratos {
