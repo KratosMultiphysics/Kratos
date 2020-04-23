@@ -997,6 +997,164 @@ void ConstitutiveLawUtilities<TVoigtSize>:: CalculateAnisotropicStrainMapperMatr
     noalias(rAe) = prod(inv_isotropic_elastic_matrix, Matrix(prod(rAs, rAnisotropicElasticMatrix)));
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(
+    const double EulerAngle1,
+    Matrix& rRotationOperator
+)
+{
+    if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
+        rRotationOperator.resize(Dimension, Dimension);
+    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+
+    const double cos_angle = std::cos(EulerAngle1 * Globals::Pi / 180.0);
+    const double sin_angle = std::sin(EulerAngle1 * Globals::Pi / 180.0);
+
+    rRotationOperator(0, 0) = cos_angle;
+    rRotationOperator(0, 1) = sin_angle;
+    rRotationOperator(1, 0) = -sin_angle;
+    rRotationOperator(1, 1) = cos_angle;
+    rRotationOperator(2, 2) = 1.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler2(
+    const double EulerAngle2,
+    Matrix& rRotationOperator
+)
+{
+    if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
+        rRotationOperator.resize(Dimension, Dimension);
+    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+
+    const double cos_angle = std::cos(EulerAngle2 * Globals::Pi / 180.0);
+    const double sin_angle = std::sin(EulerAngle2 * Globals::Pi / 180.0);
+
+    rRotationOperator(0, 0) = 1.0;
+    rRotationOperator(1, 1) = cos_angle;
+    rRotationOperator(1, 2) = sin_angle;
+    rRotationOperator(2, 1) = -sin_angle;
+    rRotationOperator(2, 2) = cos_angle;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler3(
+    const double EulerAngle3,
+    Matrix& rRotationOperator
+)
+{
+    ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<6>::CalculateRotationOperator(
+    const double EulerAngle1, // phi
+    const double EulerAngle2, // theta
+    const double EulerAngle3, // hi
+    Matrix& rRotationOperator
+)
+{
+    if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
+        rRotationOperator.resize(Dimension, Dimension);
+    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+
+    const double cos1 = std::cos(EulerAngle1 * Globals::Pi / 180.0);
+    const double sin1 = std::sin(EulerAngle1 * Globals::Pi / 180.0);
+    const double cos2 = std::cos(EulerAngle2 * Globals::Pi / 180.0);
+    const double sin2 = std::sin(EulerAngle2 * Globals::Pi / 180.0);
+    const double cos3 = std::cos(EulerAngle3 * Globals::Pi / 180.0);
+    const double sin3 = std::sin(EulerAngle3 * Globals::Pi / 180.0);
+
+    rRotationOperator(1, 1) = cos1 * cos3 - sin1 * cos2 * sin3;
+    rRotationOperator(1, 2) = sin1 * cos3 + cos1 * cos2 * sin3;
+    rRotationOperator(1, 3) = sin2 * sin3;
+    rRotationOperator(2, 1) = -cos1 * sin3 - sin1 * cos2 * cos3;
+    rRotationOperator(2, 2) = -sin1 * sin3 + cos1 * cos2 * cos3;
+    rRotationOperator(2, 3) = sin2 * cos3;
+    rRotationOperator(3, 1) = sin1 * sin2;
+    rRotationOperator(3, 2) = -cos1 * sin2;
+    rRotationOperator(3, 3) = cos2;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<6>::CalculateRotationOperatorConstitutiveMatrix(
+    const Matrix& rOldOperator,
+    Matrix& rNewOperator
+    )
+{
+    if (rNewOperator.size1() != VoigtSize || rNewOperator.size2() != VoigtSize)
+        rNewOperator.resize(VoigtSize, VoigtSize);
+    noalias(rNewOperator) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    for (int i = 0; i < VoigtSize; i++) {
+        for (int j = 0; i < VoigtSize; i++) {
+            rNewOperator(i, j) = rOldOperator(GetKfConversion(i), GetKfConversion(j)) * 
+                                 rOldOperator(GetLfConversion(i), GetLfConversion(j));
+            // if (j == 3 || j >= 5) {
+            //     rNewOperator(i, j) += rOldOperator(GetKfConversion(i), GetLfConversion(j)) * 
+            //                           rOldOperator(GetLfConversion(i), GetKfConversion(j));
+            // }
+            if (j >= 3) {
+                rNewOperator(i, j) += rOldOperator(GetKfConversion(i), GetLfConversion(j)) * 
+                                      rOldOperator(GetLfConversion(i), GetKfConversion(j));
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+int ConstitutiveLawUtilities<6>::GetKfConversion(
+    const int n
+    )
+{
+    if (n == 0 || n == 1)
+        return n;
+    else if (n == 2 || n == 4)
+        return 0;
+    else if (n == 3)
+        return 2;
+    else if (n == 5)
+        return 1;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+int ConstitutiveLawUtilities<6>::GetLfConversion(
+    const int n
+    )
+{
+    if (n <= 1)
+        return n;
+    else {
+        if (n == 2)
+            return 1;
+        else
+            return 2;
+    }
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 

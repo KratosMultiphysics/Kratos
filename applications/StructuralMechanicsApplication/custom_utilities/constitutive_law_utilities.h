@@ -430,6 +430,62 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         Matrix& rAe
         );
 
+    /**
+     * @brief This computes the rotation matrix for the 1st Euler angle
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorEuler1(
+        const double EulerAngle1,
+        Matrix &rRotationOperator
+    );
+
+    /**
+     * @brief This computes the rotation matrix for the 2nd Euler angle
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorEuler2(
+        const double EulerAngle2,
+        Matrix &rRotationOperator
+    );
+
+    /**
+     * @brief This computes the rotation matrix for the 3rd Euler angle
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorEuler3(
+        const double EulerAngle3,
+        Matrix &rRotationOperator
+    );
+
+    /**
+     * @brief This computes the total rotation matrix
+     * rotates from global to local coordinates
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperator(
+        const double EulerAngle1, // phi
+        const double EulerAngle2, // theta
+        const double EulerAngle3, // hi
+        Matrix &rRotationOperator
+    );
+
+    /**
+     * @brief This converts the 
+     * 3x3 rotation matrix to the 6x6
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorConstitutiveMatrix(
+        const Matrix &rOldOperator,
+        Matrix &rNewOperator);
+
+    /**
+     * @brief This converts the indices from the 
+     * 3x3 rotation matrix to the 6x6
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static int GetKfConversion(const int n);
+    static int GetLfConversion(const int n);
+
 private:
 
 }; // class ConstitutiveLawUtilities
