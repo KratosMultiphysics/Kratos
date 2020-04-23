@@ -481,9 +481,9 @@ double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(
     // square bracket term
     const double speed_of_sound_factor = ComputeSquaredSpeedofSoundFactor<Dim, NumNodes>(local_velocity_squared, rCurrentProcessInfo);
 
-    // calculate mach derivative
-    return localMachNumberSquared * ((1.0/local_velocity_squared) +
-            0.5*(heat_capacity_ratio - 1.0)*(1.0/free_stream_velocity_squared)*free_stream_mach_squared*(1.0/speed_of_sound_factor));
+    const double second_term_factor = 0.5 * (heat_capacity_ratio - 1.0) / free_stream_velocity_squared * free_stream_mach_squared;
+
+    return localMachNumberSquared * ((1.0 / local_velocity_squared) + second_term_factor / speed_of_sound_factor);
 }
 
 template <int Dim, int NumNodes>
