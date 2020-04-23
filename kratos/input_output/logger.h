@@ -321,6 +321,10 @@ namespace Kratos
   if (false)                      \
     Kratos::Logger(label) << Kratos::LoggerMessage::CHECKING
 #endif
+
+#define KRATOS_INFO_START(label) Kratos::Logger(label).Start() << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::INFO
+#define KRATOS_INFO_STOP(label) Kratos::Logger(label).Stop() << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::INFO
+
     ///@}
 
     ///@} addtogroup block
