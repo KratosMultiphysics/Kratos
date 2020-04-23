@@ -641,7 +641,6 @@ protected:
     /**
      * Calculation and addition of the vectors of the RHS
      */
-
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
                                     Vector& rVolumeForce,
@@ -652,7 +651,6 @@ protected:
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
      */
-
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                                      GeneralVariables& rVariables,
                                      const double& rIntegrationWeight);
