@@ -183,6 +183,17 @@ public:
         return norm_2(a_1 * mLocalTangentsU + a_2 * mLocalTangentsV);
     }
 
+    Vector& DeterminantOfJacobian(
+        Vector& rResult, IntegrationMethod ThisMethod) const override
+    {
+        if (rResult.size() != 1)
+            rResult.resize(1, false);
+
+        rResult[0] = this->DeterminantOfJacobian(0, ThisMethod);
+
+        return rResult;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
