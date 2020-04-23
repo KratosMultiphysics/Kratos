@@ -19,7 +19,7 @@ namespace Kratos
         Element& rElement,
         const Matrix& rDN_DX,
         const Vector& rMPStress,
-        const double& rMPVolume,
+        const double rMPVolume,
         const SizeType StrainSize,
         Vector& rRightHandSideVector)
     {
@@ -94,7 +94,7 @@ namespace Kratos
         const Matrix& rDN_DX, 
         const Vector& rN, 
         const Vector& rMPStress, 
-        const double& rMPVolume, 
+        const double rMPVolume, 
         const SizeType StrainSize, 
         const double AxisymmetricRadius,
         Vector& rRightHandSideVector)
