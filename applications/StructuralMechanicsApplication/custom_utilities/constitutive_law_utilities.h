@@ -497,6 +497,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     );
 
     /**
+     * @brief This rotates a matrix from global to local coordinates
+     * Mglob = trans(R) * Mloc * R
+     */
+    static void RotateMatrixToGlobalAxes(
+        const Matrix &rRotationMatrix, // global to local
+        Matrix &rGlobalMatrix
+    );
+
+    /**
      * @brief This rotates the strain vector from global to local
      * coordinates
      */

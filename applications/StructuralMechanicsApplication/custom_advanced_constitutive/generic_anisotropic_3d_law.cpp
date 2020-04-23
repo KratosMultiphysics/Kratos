@@ -131,8 +131,10 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         Vector &r_iso_strain_vector = values_iso_cl.GetStrainVector();
         r_iso_strain_vector = prod(strain_mapper, real_strain_vector); // mapped
 
-        // Now we rotate according to the local axes
-        //r_iso_strain_vector
+        // Now we rotate the strain according to the local axes
+        ConstitutiveLawUtilities<VoigtSize>::RotateStrainVectorToLocalAxes(rotation_matrix, r_iso_strain_vector);
+
+        // Integrate the isotropic constitutive law
         mpIsotropicCL->CalculateMaterialResponsePK2(values_iso_cl);
         const Vector& r_iso_stress_vector = values_iso_cl.GetStressVector();
 
@@ -140,17 +142,18 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         Vector &r_real_stress_vector  = rValues.GetStressVector();
         noalias(r_real_stress_vector) = prod(stress_mapper_inv, r_iso_stress_vector);
 
+        // Now we revert the rotation to the obtain the global stress
+        ConstitutiveLawUtilities<VoigtSize>::RotateStressVectorToGlobalAxes(rotation_matrix, r_real_stress_vector);
+
         if (flag_const_tensor) {
             // Finally we map the tangent tensor: C_aniso = inv(As)*C_iso*Ae
             Matrix &r_anisotropic_tangent_matrix  = rValues.GetConstitutiveMatrix();
             const Matrix& r_isotropic_tangent     = values_iso_cl.GetConstitutiveMatrix();
             noalias(r_anisotropic_tangent_matrix) = prod(stress_mapper_inv, Matrix(prod(r_isotropic_tangent, strain_mapper)));
-        }
 
-        // Here we revert the rotations
-        // {
-        //}
-        // todo ...   
+            // We rotate the tangent tensor to the global coordinates
+            ConstitutiveLawUtilities<VoigtSize>::RotateMatrixToGlobalAxes(constitutive_rotation_matrix, r_anisotropic_tangent_matrix);
+        }  
     }
 } // End CalculateMaterialResponseCauchy
 
@@ -270,10 +273,22 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     ConstitutiveLaw::Parameters values_iso_cl = rValues;
     values_iso_cl.SetMaterialProperties(r_props_iso_cl);
 
-    // Here we rotate the orthotropy misalignment with respect to the global axes
-    // {
-    //}
-    // todo ...
+    // Here we compute the rotation tensors due to the angles of the local and global axes
+    Matrix rotation_matrix(Dimension, Dimension), constitutive_rotation_matrix(VoigtSize, VoigtSize);
+    if (r_material_properties.Has(EULER_ANGLE_PHI) &&
+        std::abs(r_material_properties[EULER_ANGLE_PHI]) + 
+        std::abs(r_material_properties[EULER_ANGLE_THETA]) + 
+        std::abs(r_material_properties[EULER_ANGLE_HI]) > machine_tolerance) {
+            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
+                r_material_properties[EULER_ANGLE_PHI], r_material_properties[EULER_ANGLE_THETA],
+                r_material_properties[EULER_ANGLE_HI],rotation_matrix);
+            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorConstitutiveMatrix(
+                rotation_matrix,
+                constitutive_rotation_matrix);
+    } else {
+        noalias(rotation_matrix)              = IdentityMatrix(Dimension, Dimension);
+        noalias(constitutive_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
+    }
 
     // We compute the mappers As and Ae
     Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
@@ -290,6 +305,10 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     // TODO What it is F driven???????
     Vector &r_iso_strain_vector = values_iso_cl.GetStrainVector();
     r_iso_strain_vector = prod(strain_mapper, r_strain_vector); // mapped
+
+    // Now we rotate the strain according to the local axes
+    ConstitutiveLawUtilities<VoigtSize>::RotateStrainVectorToLocalAxes(rotation_matrix, r_iso_strain_vector);
+
     mpIsotropicCL->FinalizeMaterialResponsePK2(values_iso_cl);
 }
 

@@ -1077,15 +1077,15 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperator(
     const double cos3 = std::cos(EulerAngle3 * Globals::Pi / 180.0);
     const double sin3 = std::sin(EulerAngle3 * Globals::Pi / 180.0);
 
-    rRotationOperator(1, 1) = cos1 * cos3 - sin1 * cos2 * sin3;
-    rRotationOperator(1, 2) = sin1 * cos3 + cos1 * cos2 * sin3;
-    rRotationOperator(1, 3) = sin2 * sin3;
-    rRotationOperator(2, 1) = -cos1 * sin3 - sin1 * cos2 * cos3;
-    rRotationOperator(2, 2) = -sin1 * sin3 + cos1 * cos2 * cos3;
-    rRotationOperator(2, 3) = sin2 * cos3;
-    rRotationOperator(3, 1) = sin1 * sin2;
-    rRotationOperator(3, 2) = -cos1 * sin2;
-    rRotationOperator(3, 3) = cos2;
+    rRotationOperator(0, 0) = cos1 * cos3 - sin1 * cos2 * sin3;
+    rRotationOperator(0, 1) = sin1 * cos3 + cos1 * cos2 * sin3;
+    rRotationOperator(0, 2) = sin2 * sin3;
+    rRotationOperator(1, 0) = -cos1 * sin3 - sin1 * cos2 * cos3;
+    rRotationOperator(1, 1) = -sin1 * sin3 + cos1 * cos2 * cos3;
+    rRotationOperator(1, 2) = sin2 * cos3;
+    rRotationOperator(2, 0) = sin1 * sin2;
+    rRotationOperator(2, 1) = -cos1 * sin2;
+    rRotationOperator(2, 2) = cos2;
 }
 
 /***********************************************************************************/
@@ -1102,15 +1102,11 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorConstitutiveMatrix(
     noalias(rNewOperator) = ZeroMatrix(VoigtSize, VoigtSize);
 
     for (int i = 0; i < VoigtSize; i++) {
-        for (int j = 0; i < VoigtSize; i++) {
-            rNewOperator(i, j) = rOldOperator(GetKfConversion(i), GetKfConversion(j)) * 
-                                 rOldOperator(GetLfConversion(i), GetLfConversion(j));
-            // if (j == 3 || j >= 5) {
-            //     rNewOperator(i, j) += rOldOperator(GetKfConversion(i), GetLfConversion(j)) * 
-            //                           rOldOperator(GetLfConversion(i), GetKfConversion(j));
-            // }
-            if (j >= 3) {
-                rNewOperator(i, j) += rOldOperator(GetKfConversion(i), GetLfConversion(j)) * 
+        for (int j = 0; j < VoigtSize; j++) {
+            rNewOperator(j, i) = rOldOperator(GetLfConversion(i), GetLfConversion(j)) * 
+                                 rOldOperator(GetKfConversion(i), GetKfConversion(j));
+            if (i >= 3) {
+                rNewOperator(j, i) += rOldOperator(GetKfConversion(i), GetLfConversion(j)) * 
                                       rOldOperator(GetLfConversion(i), GetKfConversion(j));
             }
         }
@@ -1125,14 +1121,26 @@ int ConstitutiveLawUtilities<6>::GetKfConversion(
     const int n
     )
 {
-    if (n == 0 || n == 1)
-        return n;
-    else if (n == 2 || n == 4)
-        return 0;
-    else if (n == 3)
-        return 2;
-    else if (n == 5)
-        return 1;
+    switch (n) {
+        case 0:
+            return n;
+            break;
+        case 1:
+            return n;
+            break;
+        case 2:
+            return 2;
+            break;
+        case 3:
+            return 0;
+            break;
+        case 4:
+            return 1;
+            break;
+        case 5:
+            return 0;
+            break;
+    }
 }
 
 /***********************************************************************************/
@@ -1143,13 +1151,25 @@ int ConstitutiveLawUtilities<6>::GetLfConversion(
     const int n
     )
 {
-    if (n <= 1)
-        return n;
-    else {
-        if (n == 2)
-            return 1;
-        else
+    switch (n) {
+        case 0:
+            return n;
+            break;
+        case 1:
+            return n;
+            break;
+        case 2:
             return 2;
+            break;
+        case 3:
+            return 1;
+            break;
+        case 4:
+            return 2;
+            break;
+        case 5:
+            return 2;
+            break;
     }
 }
 
@@ -1159,16 +1179,32 @@ int ConstitutiveLawUtilities<6>::GetLfConversion(
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::RotateMatrixToLocalAxes(
     const Matrix& rRotationMatrix, // global to local
-    Matrix& rLocalMatrix
+    Matrix& rLocalMatrix // it enters as global
     )
 {
     const SizeType voigt_size = rRotationMatrix.size1();
     if (rRotationMatrix.size1() != voigt_size || rRotationMatrix.size2() != voigt_size)
         rLocalMatrix.resize(voigt_size, voigt_size);
-    noalias(rLocalMatrix) = ZeroMatrix(voigt_size, voigt_size);
 
     // Mloc = R * Mglob * trans(R)
     rLocalMatrix = prod(rRotationMatrix, Matrix(prod(rLocalMatrix, trans(rRotationMatrix))));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::RotateMatrixToGlobalAxes(
+    const Matrix& rRotationMatrix, // global to local
+    Matrix& rGlobalMatrix // it enters as local
+    )
+{
+    const SizeType voigt_size = rRotationMatrix.size1();
+    if (rRotationMatrix.size1() != voigt_size || rRotationMatrix.size2() != voigt_size)
+        rGlobalMatrix.resize(voigt_size, voigt_size);
+
+    // Mglob = trans(R) * Mloc * R
+    rGlobalMatrix = prod(trans(rRotationMatrix), Matrix(prod(rGlobalMatrix, rRotationMatrix)));
 }
 
 /***********************************************************************************/
@@ -1199,7 +1235,6 @@ void ConstitutiveLawUtilities<TVoigtSize>::RotateStressVectorToGlobalAxes(
     Vector& rStressVector // it enters as global
     )
 {
-
     Matrix stress_tensor(Dimension, Dimension);
     stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
 
