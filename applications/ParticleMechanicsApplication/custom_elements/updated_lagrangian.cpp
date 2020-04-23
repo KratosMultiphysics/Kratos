@@ -1372,7 +1372,7 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, Proc
 
     KRATOS_CATCH( "" )
 }
-void UpdatedLagrangian::AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double, 3>>& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangian::AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, const Variable<array_1d<double, 3>>& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
