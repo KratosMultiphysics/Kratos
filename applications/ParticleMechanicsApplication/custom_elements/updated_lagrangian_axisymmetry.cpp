@@ -311,9 +311,18 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLo
 
         if (rCurrentProcessInfo.GetValue(IS_EXPLICIT))
         {
-            const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(mN, GetGeometry());
+            this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+            Matrix Jacobian;
+            Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+            Matrix InvJ;
+            double detJ;
+            MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+            Matrix DN_De;
+            this->MPMShapeFunctionsLocalGradients(DN_De); // parametric gradients
+            rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
+            const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
             MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
-                mDN_DX, mN, mMP.cauchy_stress_vector, mMP.volume,
+                rVariables.DN_DX, rVariables.N, mMP.cauchy_stress_vector, mMP.volume,
                 mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
         }
         else
@@ -389,9 +398,18 @@ void UpdatedLagrangianAxisymmetry::CalculateExplicitStresses(const ProcessInfo& 
 
 
     // Compute explicit element kinematics, strain is incremented here.
-    const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(mN, GetGeometry());
-    MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, mDN_DX,
-        mN, mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
+    this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+    Matrix Jacobian;
+    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+    Matrix InvJ;
+    double detJ;
+    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+    Matrix DN_De;
+    this->MPMShapeFunctionsLocalGradients(DN_De); // parametric gradients
+    rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
+    const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+    MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+        rVariables.N, mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;
 
@@ -412,8 +430,6 @@ void UpdatedLagrangianAxisymmetry::CalculateExplicitStresses(const ProcessInfo& 
     }
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    rVariables.DN_DX = mDN_DX;
-    rVariables.N = mN;
 
     // Set general variables to constitutivelaw parameters
     this->SetGeneralVariables(rVariables, Values);
