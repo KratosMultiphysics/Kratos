@@ -94,7 +94,7 @@ namespace Kratos
             mInitializeWasPerformed = false;
             mFinalizeSolutionStep = true;
             // Set EchoLevel to the default value (only time is displayed)
-            SetEchoLevel(1);
+            this->SetEchoLevel(1);
             // By default the matrices are rebuilt at each solution step
             this->SetRebuildLevel(1);
 
