@@ -150,10 +150,10 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Proce
     const CompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
-    if (wake != 0 && active == true)
-    {
-        ComputePotentialJump(rCurrentProcessInfo);
-    }
+    //if (wake != 0 && active == true)
+   // {
+   //     ComputePotentialJump(rCurrentProcessInfo);
+   // }
     ComputeElementInternalEnergy();
 }
 
