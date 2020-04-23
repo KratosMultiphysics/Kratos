@@ -210,13 +210,16 @@ public:
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangianElement() {
+    UpdatedLagrangianElement()
+        : Element()
+        , mMP(0) {
     };
 
     /// Default constructors
     UpdatedLagrangianElement(
         IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
+        , mMP(pGeometry->WorkingSpaceDimension())
     {
     };
 
@@ -224,12 +227,14 @@ public:
     UpdatedLagrangianElement(
         IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
+        , mMP(pGeometry->WorkingSpaceDimension())
     {
     }
 
     ///Copy constructor
     UpdatedLagrangianElement(UpdatedLagrangianElement const& rOther)
         : Element(rOther)
+        , mMP(rOther.mMP)
         , mDeformationGradientF0(rOther.mDeformationGradientF0)
         , mDeterminantF0(rOther.mDeterminantF0)
         , mpConstitutiveLaw(rOther.mpConstitutiveLaw)
@@ -247,6 +252,8 @@ public:
     UpdatedLagrangianElement& operator=(UpdatedLagrangianElement const& rOther)
     {
         Element::operator=(rOther);
+
+        mMP = rOther.mMP;
 
         mDeformationGradientF0 = rOther.mDeformationGradientF0;
         mDeterminantF0 = rOther.mDeterminantF0;
@@ -281,6 +288,8 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
     {
         UpdatedLagrangianElement NewElement(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+
+        NewElement.mMP = mMP;
 
         NewElement.mpConstitutiveLaw = mpConstitutiveLaw->Clone();
 
@@ -475,7 +484,10 @@ public:
 protected:
     ///@name Protected member Variables
     ///@{
-    
+
+    /// Variables needed for each material point
+    MaterialPointVariables mMP;
+
     /// Container for historical total elastic deformation measure F0 = dx/dX
     Matrix mDeformationGradientF0;
 
