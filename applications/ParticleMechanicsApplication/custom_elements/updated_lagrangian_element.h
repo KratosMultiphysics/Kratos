@@ -545,7 +545,7 @@ protected:
     /// Calculates Element Kinematics
     void CalculateKinematics(
         KinematicVariables& rKinematicVariables,
-        ProcessInfo& rCurrentProcessInfo) const;
+        ProcessInfo& rCurrentProcessInfo);
 
     /// Calculation of the Deformation Matrix B
     virtual void CalculateBMatrix(
@@ -578,7 +578,7 @@ protected:
         const KinematicVariables& rKinematicVariables);
 
     /// Calculation of the Volume Change of the Element
-    virtual double& CalculateVolumeChange(double& rVolumeChange, KinematicVariables& rVariables);
+    //virtual double& CalculateVolumeChange(double& rVolumeChange, KinematicVariables& rVariables);
 
     /// Calculation of the Volume Force of the Element
     virtual Vector& CalculateVolumeForce(Vector& rVolumeForce);

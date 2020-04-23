@@ -68,10 +68,6 @@ void UpdatedLagrangianElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
 
-    const array_1d<double, 3>& MP_velocity = this->GetValue(MP_VELOCITY);
-    const array_1d<double, 3>& MP_acceleration = this->GetValue(MP_ACCELERATION);
-    const double & MP_mass = this->GetValue(MP_MASS);
-
     array_1d<double, 3> aux_MP_velocity = ZeroVector(3);
     array_1d<double, 3> aux_MP_acceleration = ZeroVector(3);
     array_1d<double, 3> nodal_momentum = ZeroVector(3);
@@ -102,15 +98,15 @@ void UpdatedLagrangianElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
     {
         for (IndexType j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = r_N(0, i) * (MP_velocity[j] - aux_MP_velocity[j]) * MP_mass;
-            nodal_inertia[j] = r_N(0, i) * (MP_acceleration[j] - aux_MP_acceleration[j]) * MP_mass;
+            nodal_momentum[j] = r_N(0, i) * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
+            nodal_inertia[j] = r_N(0, i) * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
 
         }
 
         r_geometry[i].SetLock();
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * MP_mass;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
 
     }
@@ -195,7 +191,7 @@ void UpdatedLagrangianElement::CalculateConstitutiveVariables(
 
 void UpdatedLagrangianElement::CalculateKinematics(
     KinematicVariables& rKinematicVariables,
-    ProcessInfo& rCurrentProcessInfo) const
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -375,13 +371,14 @@ void UpdatedLagrangianElement::CalculateAndAddKuug(
     KRATOS_CATCH( "" )
 }
 
-double& UpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange,
-    KinematicVariables & rVariables )
-{
-    rVolumeChange = 1.0 / (rVariables.detF * mDeterminantF0);
-
-    return rVolumeChange;
-}
+//double& UpdatedLagrangianElement::CalculateVolumeChange(
+//    double& rVolumeChange,
+//    KinematicVariables & rVariables )
+//{
+//    rVolumeChange = 1.0 / (rVariables.detF * mDeterminantF0);
+//
+//    return rVolumeChange;
+//}
 
 Vector& UpdatedLagrangianElement::CalculateVolumeForce(
     Vector& rVolumeForce)
@@ -391,7 +388,7 @@ Vector& UpdatedLagrangianElement::CalculateVolumeForce(
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     rVolumeForce = ZeroVector(dimension);
-    rVolumeForce = this->GetValue(MP_VOLUME_ACCELERATION) * this->GetValue(MP_MASS);
+    rVolumeForce = mMP.volume_acceleration * mMP.mass;
 
     return rVolumeForce;
 
@@ -444,28 +441,18 @@ void UpdatedLagrangianElement::FinalizeStepVariables(
     mDeterminantF0         = rVariables.detF* mDeterminantF0;
     mDeformationGradientF0 = prod(rVariables.F, mDeformationGradientF0);
 
-    this->SetValue(MP_CAUCHY_STRESS_VECTOR, rConstitutiveVariables.StressVector);
-    this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rConstitutiveVariables.StrainVector);
+    mMP.cauchy_stress_vector = rConstitutiveVariables.StressVector;
+    mMP.almansi_strain_vector = rConstitutiveVariables.StrainVector;
 
     // Delta Plastic Strains
-    double delta_plastic_strain = mpConstitutiveLaw->GetValue(MP_DELTA_PLASTIC_STRAIN, delta_plastic_strain );
-    this->SetValue(MP_DELTA_PLASTIC_STRAIN, delta_plastic_strain);
-
-    double delta_plastic_volumetric_strain = mpConstitutiveLaw->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, delta_plastic_volumetric_strain);
-    this->SetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, delta_plastic_volumetric_strain);
-
-    double delta_plastic_deviatoric_strain = mpConstitutiveLaw->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, delta_plastic_deviatoric_strain);
-    this->SetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, delta_plastic_deviatoric_strain);
+    mpConstitutiveLaw->GetValue(MP_DELTA_PLASTIC_STRAIN, mMP.delta_plastic_strain);
+    mpConstitutiveLaw->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, mMP.delta_plastic_volumetric_strain);
+    mpConstitutiveLaw->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, mMP.delta_plastic_deviatoric_strain);
 
     // Total Plastic Strain
-    double equivalent_plastic_strain = mpConstitutiveLaw->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, equivalent_plastic_strain );
-    this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, equivalent_plastic_strain);
-
-    double accumulated_plastic_volumetric_strain = mpConstitutiveLaw->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, accumulated_plastic_volumetric_strain);
-    this->SetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, accumulated_plastic_volumetric_strain);
-
-    double accumulated_plastic_deviatoric_strain = mpConstitutiveLaw->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, accumulated_plastic_deviatoric_strain);
-    this->SetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, accumulated_plastic_deviatoric_strain);
+    mpConstitutiveLaw->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, mMP.equivalent_plastic_strain);
+    mpConstitutiveLaw->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
+    mpConstitutiveLaw->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
 
     this->UpdateGaussPoint(rCurrentProcessInfo);
 
@@ -482,10 +469,6 @@ void UpdatedLagrangianElement::UpdateGaussPoint(
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    const array_1d<double,3> & xg = this->GetValue(MP_COORD);
-    const array_1d<double,3> & MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
-    const array_1d<double,3> & MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_acceleration = ZeroVector(3);
@@ -522,8 +505,7 @@ void UpdatedLagrangianElement::UpdateGaussPoint(
     /* NOTE:
     Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
     This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    MP_velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
-    this -> SetValue(MP_VELOCITY,MP_velocity );
+    mMP.velocity = mMP.velocity + 0.5 * delta_time * (MP_acceleration + mMP.acceleration);
 
     /* NOTE: The following interpolation techniques have been tried:
         MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
@@ -531,16 +513,13 @@ void UpdatedLagrangianElement::UpdateGaussPoint(
     */
 
     // Update the MP Position
-    const array_1d<double,3>& new_xg = xg + delta_xg ;
-    this -> SetValue(MP_COORD, new_xg);
+    mMP.xg = mMP.xg + delta_xg;
 
     // Update the MP Acceleration
-    this -> SetValue(MP_ACCELERATION, MP_acceleration);
+    mMP.acceleration = MP_acceleration;
 
     // Update the MP total displacement
-    array_1d<double,3>& MP_Displacement = this->GetValue(MP_DISPLACEMENT);
-    MP_Displacement += delta_xg;
-    this -> SetValue(MP_DISPLACEMENT,MP_Displacement);
+    mMP.displacement += delta_xg;
 
     KRATOS_CATCH( "" )
 }
@@ -581,14 +560,13 @@ double UpdatedLagrangianElement::CalculateIntegrationWeight(const KinematicVaria
     However, the density and volume (integration weight) are changing every time step.*/
     // Update MP_Density
     const double MP_density = (GetProperties()[DENSITY]) / rKinematicVariables.detFT;
-    this->SetValue(MP_DENSITY, MP_density);
 
     // The MP_Volume (integration weight) is evaluated
-    double MP_volume = this->GetValue(MP_MASS) / this->GetValue(MP_DENSITY);
-    this->SetValue(MP_VOLUME, MP_volume);
+    double MP_volume = mMP.mass / MP_density;
 
-    //if( dimension == 2 )
-    //    MP_volume *= GetProperties()[THICKNESS];
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    if( dimension == 2 )
+        MP_volume *= GetProperties()[THICKNESS];
 
     return MP_volume;
 }
@@ -645,11 +623,11 @@ void UpdatedLagrangianElement::CalculateDampingMatrix(
     KRATOS_TRY
 
     //0.-Initialize the DampingMatrix:
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    unsigned int matrix_size = number_of_nodes * dimension;
+    const SizeType matrix_size = number_of_nodes * dimension;
 
     if ( rDampingMatrix.size1() != matrix_size )
         rDampingMatrix.resize( matrix_size, matrix_size, false );
@@ -711,7 +689,7 @@ void UpdatedLagrangianElement::CalculateMassMatrix(
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
 
     // TOTAL MASS OF ONE MP ELEMENT
-    const double & r_total_mass = this->GetValue(MP_MASS);
+    const double & r_total_mass = mMP.mass;
 
     // LUMPED MATRIX
     for ( IndexType i = 0; i < number_of_nodes; i++ )
