@@ -44,5 +44,3 @@ void CopyPropertiesValues(
 
 } // namespace PropertiesUtilities
 } // namespace Kratos
-
-#undef REAL
