@@ -22,8 +22,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "includes/element.h"
-#include "containers/array_1d.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
 #include "custom_utilities/mpm_explicit_utilities.h"
@@ -456,12 +454,12 @@ namespace Kratos {
             /** Function that returns the list of Degrees of freedom to be
             assembled in the system for a Given Element
              */
-            void GetConditionDofList(
-                Condition::Pointer rCurrentCondition,
-                Element::DofsVectorType& ConditionDofList,
-                ProcessInfo& CurrentProcessInfo) override
+            void GetDofList(
+                const Condition& rCurrentCondition,
+                Element::DofsVectorType& rConditionDofList,
+                const ProcessInfo& rCurrentProcessInfo) override
             {
-                rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
+                rCurrentCondition.GetDofList(rConditionDofList, rCurrentProcessInfo);
             }
 
             //***************************************************************************
