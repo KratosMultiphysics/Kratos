@@ -74,7 +74,6 @@ int RansWallFunctionUpdateProcess::Check()
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, VELOCITY);
 
     return 0;
