@@ -472,11 +472,11 @@ namespace Kratos {
              * @param r_model_part
              * @return 0 all ok
              */
-            int Check(ModelPart& r_model_part) override
+            int Check(const ModelPart& rModelPart) const override
             {
                 KRATOS_TRY
 
-                    int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
+                int err = Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
                 if (err != 0) return err;
 
                 //check that the variables are correctly initialized
@@ -485,8 +485,8 @@ namespace Kratos {
                 KRATOS_ERROR_IF(ACCELERATION.Key() == 0) << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
 
                 //check that variables are correctly allocated
-                for (ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin();
-                    it != r_model_part.NodesEnd(); ++it)
+                for (auto it = rModelPart.NodesBegin();
+                    it != rModelPart.NodesEnd(); ++it)
                 {
                     KRATOS_ERROR_IF(it->SolutionStepsDataHas(DISPLACEMENT) == false) << "DISPLACEMENT variable is not allocated for node " << it->Id() << std::endl;
                     KRATOS_ERROR_IF(it->SolutionStepsDataHas(VELOCITY) == false) << "VELOCITY variable is not allocated for node " << it->Id() << std::endl;
@@ -494,8 +494,8 @@ namespace Kratos {
                 }
 
                 //check that dofs exist
-                for (ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin();
-                    it != r_model_part.NodesEnd(); ++it)
+                for (auto it = rModelPart.NodesBegin();
+                    it != rModelPart.NodesEnd(); ++it)
                 {
                     KRATOS_ERROR_IF(it->HasDofFor(DISPLACEMENT_X) == false) << "Missing DISPLACEMENT_X dof on node " << it->Id() << std::endl;
                     KRATOS_ERROR_IF(it->HasDofFor(DISPLACEMENT_Y) == false) << "Missing DISPLACEMENT_Y dof on node " << it->Id() << std::endl;
@@ -503,7 +503,7 @@ namespace Kratos {
                 }
 
                 //check for minimum value of the buffer index
-                KRATOS_ERROR_IF(r_model_part.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << r_model_part.GetBufferSize() << std::endl;
+                KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
                 KRATOS_CATCH("")
                 return 0;
             }
