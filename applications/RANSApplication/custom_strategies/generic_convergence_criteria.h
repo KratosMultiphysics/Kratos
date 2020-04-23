@@ -14,9 +14,9 @@
 #define KRATOS_GENERIC_CONVERGENCE_CRITERIA_H
 
 // System includes
+#include <cmath>
 #include <string>
 #include <unordered_map>
-#include <cmath>
 
 /* Project includes */
 #include "includes/model_part.h"
@@ -37,7 +37,8 @@ namespace Kratos
  relative and absolute tolerances for both must be specified.
  */
 template <class TSparseSpace, class TDenseSpace>
-class KRATOS_API(RANS_APPLICATION) GenericConvergenceCriteria : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
+class KRATOS_API(RANS_APPLICATION) GenericConvergenceCriteria
+    : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -168,14 +169,20 @@ public:
                     (rDofSet.begin() + i_dof)->GetVariable().Name(), 1));
             }
 
+            std::vector<std::string> variable_names;
+            variable_names.resize(variables_map.size());
+            int local_index = 0;
             for (const auto& pair : variables_map)
             {
-                mSolutionVariables += pair.first + ", ";
+                variable_names[local_index++] = pair.first;
             }
+            std::sort(variable_names.begin(), variable_names.end());
 
-            // remove last two characters
-            mSolutionVariables.pop_back();
-            mSolutionVariables.pop_back();
+            mSolutionVariables = variable_names[0];
+            for (int i = 1; i < static_cast<int>(variable_names.size()); ++i)
+            {
+                mSolutionVariables += ", " + variable_names[i];
+            }
         }
     }
 
