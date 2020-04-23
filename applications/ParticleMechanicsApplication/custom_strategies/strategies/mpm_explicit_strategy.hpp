@@ -151,10 +151,7 @@ namespace Kratos
             }
 
             // Prints informations about the current time
-            if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-            {
-                KRATOS_INFO("MPM_Explicit_Strategy") << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
-            }
+            KRATOS_INFO_IF("MPM_Explicit_Strategy", this->GetEchoLevel() == 2) << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
 
             KRATOS_CATCH("")
         }
@@ -164,7 +161,7 @@ namespace Kratos
             KRATOS_TRY
 
                 // Initialize solution step
-                if (mSolutionStepIsInitialized == false)
+                if (!mSolutionStepIsInitialized)
                 {
                     typename TSchemeType::Pointer pScheme = GetScheme();
                     TSystemMatrixType mA = TSystemMatrixType();
