@@ -16,6 +16,7 @@ import os
 
 # Check other applications dependency
 hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
+eignsolver_is_available = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
 meshing_is_available = kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
 try:
     import stl
@@ -64,6 +65,8 @@ class PotentialFlowTests(UnitTest.TestCase):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
     def test_Naca0012SmallCompressible(self):
+        if not eignsolver_is_available:
+            self.skipTest("Missing required application: EigenSolversApplication")
         file_name = "naca0012_small_compressible"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_compressible_test"
@@ -79,7 +82,25 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    def test_Naca0012SmallTransonic(self):
+        if not eignsolver_is_available:
+            self.skipTest("Missing required application: EigenSolversApplication")
+        file_name = "naca0012_small_transonic"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_transonic_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.4968313580730855, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+
+        kratos_utilities.DeleteTimeFiles(work_folder)
+
     def test_Naca0012SmallPerturbationCompressible(self):
+        if not eignsolver_is_available:
+            self.skipTest("Missing required application: EigenSolversApplication")
         file_name = "naca0012_small_perturbation_compressible"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_perturbation_compressible_test"

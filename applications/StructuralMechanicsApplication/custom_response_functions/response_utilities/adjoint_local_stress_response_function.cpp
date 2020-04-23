@@ -110,9 +110,8 @@ namespace Kratos
 
         if(rAdjointElement.Id() == mpTracedElement->Id())
         {
-            ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
-                                                                    rSensitivityGradient, process_info);
+                                                                    rSensitivityGradient, rProcessInfo);
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -143,9 +142,8 @@ namespace Kratos
 
         if(rAdjointElement.Id() == mpTracedElement->Id())
         {
-            ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
-                                                                    rSensitivityGradient, process_info);
+                                                                    rSensitivityGradient, rProcessInfo);
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -239,7 +237,7 @@ namespace Kratos
                                       const std::string& rVariableName,
                                       const Matrix& rSensitivityMatrix,
                                       Vector& rSensitivityGradient,
-                                      ProcessInfo& rProcessInfo)
+                                      const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
