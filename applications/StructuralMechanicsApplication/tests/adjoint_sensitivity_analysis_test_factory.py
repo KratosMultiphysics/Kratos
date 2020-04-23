@@ -131,7 +131,7 @@ class TestAdjointSensitivityAnalysisBeamStructureNodalReaction(AdjointSensitivit
         adjoint_model_part = self.adjoint_analysis.model.GetModelPart(self.model_part_name)
         reference_value = -0.31249774999397384
         sensitivity_to_check = adjoint_model_part.Conditions[1].GetValue(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)[2]
-        self.assertAlmostEqual(sensitivity_to_check, reference_value, 4)
+        self.assertAlmostEqual(sensitivity_to_check, reference_value)
 
 
 @KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
