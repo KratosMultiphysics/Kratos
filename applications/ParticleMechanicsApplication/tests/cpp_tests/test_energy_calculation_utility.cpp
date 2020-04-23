@@ -46,13 +46,13 @@ namespace Testing
         Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
         // Elements
-        auto pGeometry = Kratos::make_shared<Quadrilateral3D4<Node<3>>>(p_node_1, p_node_2, p_node_3, p_node_4);
+        auto p_geometry = Kratos::make_shared<Quadrilateral3D4<Node<3>>>(p_node_1, p_node_2, p_node_3, p_node_4);
 
-        auto p_quad = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(pGeometry, mp_coordinate, 1.5);
+        auto p_quad = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(p_geometry, mp_coordinate, 1.5);
 
-        const Element& rReferenceElement = KratosComponents<Element>::Get("UpdatedLagrangianElement");
+        const Element& r_reference_element = KratosComponents<Element>::Get("UpdatedLagrangianElement");
 
-        auto p_element = rReferenceElement.Create(1, p_quad, p_elem_prop);
+        auto p_element = r_reference_element.Create(1, p_quad, p_elem_prop);
 
         rModelPart.AddElement(p_element);
 
@@ -61,17 +61,17 @@ namespace Testing
         volume_acceleration[0] = 0.0;
         volume_acceleration[1] = -9.8;
         volume_acceleration[2] = 0.0;
-        pElement->SetValuesOnIntegrationPoints(MP_COORD, { mp_coordinate }, rModelPart.GetProcessInfo());
+        p_element->SetValuesOnIntegrationPoints(MP_COORD, { mp_coordinate }, rModelPart.GetProcessInfo());
         std::vector<double> mp_mass_vector = { 1.5 };
-        pElement->SetValuesOnIntegrationPoints(MP_MASS, mp_mass_vector, rModelPart.GetProcessInfo());
-        pElement->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, { volume_acceleration }, rModelPart.GetProcessInfo());
+        p_element->SetValuesOnIntegrationPoints(MP_MASS, mp_mass_vector, rModelPart.GetProcessInfo());
+        p_element->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, { volume_acceleration }, rModelPart.GetProcessInfo());
 
         // For kinetic energy
         array_1d<double, 3> velocity;
         velocity[0] = 1.0;
         velocity[1] = 2.0;
         velocity[2] = 3.0;
-        pElement->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity }, rModelPart.GetProcessInfo());
+        p_element->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity }, rModelPart.GetProcessInfo());
 
         // For strain energy
         //Vector mp_cauchy_stress1 = ;
@@ -91,11 +91,11 @@ namespace Testing
         mp_strain[5] = 0.6;
 
         std::vector<double> mp_volume_vector = { 2.5 };
-        pElement->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume_vector, rModelPart.GetProcessInfo());
+        p_element->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume_vector, rModelPart.GetProcessInfo());
         std::vector<Vector> mp_cauchy_stress_vector = { mp_cauchy_stress };
-        pElement->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, rModelPart.GetProcessInfo());
+        p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, rModelPart.GetProcessInfo());
         std::vector<Vector> mp_almansi_strain_vector = { mp_strain };
-        pElement->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, rModelPart.GetProcessInfo());
+        p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, rModelPart.GetProcessInfo());
     }
 
     /**
