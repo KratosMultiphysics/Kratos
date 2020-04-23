@@ -48,7 +48,7 @@ namespace MPMSearchElementUtility
         const double Tolerance)
     {
         const ProcessInfo& rProcessInfo = rBackgroundGridModelPart.GetProcessInfo();
-        const bool isExplicit = rProcessInfo.GetValue(IS_EXPLICIT);
+        const bool is_explicit = rProcessInfo.GetValue(IS_EXPLICIT);
 
         // Reset elements to inactive
         #pragma omp parallel for
@@ -89,7 +89,7 @@ namespace MPMSearchElementUtility
                 bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
 
-                if (is_found && isExplicit) {
+                if (is_found && is_explicit) {
                     // check if MP is exactly on the edge of the element, this gives spurious strains in explicit
                     bool isOnEdge = false;
                     for (SizeType i = 0; i < N.size(); ++i) {
