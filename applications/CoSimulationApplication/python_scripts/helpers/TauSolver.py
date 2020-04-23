@@ -4,11 +4,11 @@ import CoSimIO
 # import modules for TAU
 import PyPara, PyPrep, PySolv, PyDeform
 #from tau_python import tau_plt_init_tecplot_params ####### import everything
-sys.path.append("/work/piquee/Softwares/TAU/TAU_2016.2/2016.2.0/bin/py_turb1eq")
+sys.path.append("/home/inigo/software/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/bin/py_turb1eq/")
 import tau_python 
 from tau_python import tau_msg
 # TODO Find a better way of indicating this script's path
-this_scripts_path = "/work/piquee/Softwares/Kratos/applications/CoSimulationApplication/python_scripts/helpers/"
+this_scripts_path = "/home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/python_scripts/helpers/"
 sys.path.append(this_scripts_path)
 
 import tau_functions as tauFunctions
@@ -20,12 +20,12 @@ import tau_functions as tauFunctions
 para_path='airfoil_Structured.cntl'
 para_path_mod = para_path + ".mod"
 shutil.copy(para_path, para_path_mod)
-working_path = "/work/piquee/MembraneWing/run_tau_from_kratos/"
+working_path = "/media/inigo/10740FB2740F9A1C/simulations/MembraneWing/run_tau_from_kratos/"
 interface_file_path_pattern =  working_path + "Outputs/"
 mesh_file_path_pattern = working_path + "Mesh/"
 
 # Definition of TAU path
-TAU_path = "/work/piquee/Softwares/TAU/TAU_2016.2/2016.2.0/bin/"
+TAU_path = "/home/inigo/software/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/bin/"
 
 #-------------------------------------------------------------------------------
 # Init Tau python classes + get the informations necessary for the preprocessing 
