@@ -472,7 +472,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(
     GeneralVariables& rVariables, 
     Vector& rVolumeForce, 
     const double& rIntegrationWeight,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Contribution of the internal and external forces
     if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangianQuadrilateral::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )

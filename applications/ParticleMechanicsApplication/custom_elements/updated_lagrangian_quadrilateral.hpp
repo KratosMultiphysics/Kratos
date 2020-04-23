@@ -646,7 +646,7 @@ protected:
                                     GeneralVariables& rVariables,
                                     Vector& rVolumeForce,
                                     const double& rIntegrationWeight,
-                                    ProcessInfo& rCurrentProcessInfo);
+                                    const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
