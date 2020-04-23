@@ -159,7 +159,7 @@ public:
         if (mUseSlipConditions) {
             auto& r_model_part = BaseType::GetModelPart();
 #pragma omp parallel for
-            for (int i_cond = 0; i_cond < r_model_part.NumberOfConditions(); ++i_cond) {
+            for (int i_cond = 0; i_cond < static_cast<int>(r_model_part.NumberOfConditions()); ++i_cond) {
                 auto it_cond = r_model_part.ConditionsBegin() + i_cond;
                 if (it_cond->Is(SLIP)) {
                     auto& r_geom = it_cond->GetGeometry();
