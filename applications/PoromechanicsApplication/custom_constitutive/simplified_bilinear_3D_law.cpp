@@ -155,7 +155,7 @@ void SimplifiedBilinear3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
 			    rVariables.EquivalentStrain = 0.0;
 			}
         }
-   }
+    }
     else // Contact between interfaces
     {
         rVariables.EquivalentStrain = 1.0;
@@ -198,36 +198,31 @@ void SimplifiedBilinear3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
 
     if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
     {
+        // Unloading -> Tensile constitutive matrix
+		if (mStateVariable == 0.0)
+		{
+			rVariables.YieldStress= rVariables.YoungModulus * 1.0e-7;
+		}
 
-        // Unloading
+        rConstitutiveMatrix(0,0) = rVariables.YieldStress;
+        rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
+        rConstitutiveMatrix(2,2) = rConstitutiveMatrix(0,0);
 
-			// Tensile constitutive matrix
-			if (mStateVariable == 0.0)
-			{
-				rVariables.YieldStress= rVariables.YoungModulus * 1.0e-7;
-			}
-
-            rConstitutiveMatrix(0,0) = rVariables.YieldStress;
-            rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
-            rConstitutiveMatrix(2,2) = rConstitutiveMatrix(0,0);
-
-            rConstitutiveMatrix(0,1) = 0.0;
-            rConstitutiveMatrix(0,2) = 0.0;
-            rConstitutiveMatrix(1,2) = 0.0;
-            rConstitutiveMatrix(1,0) = 0.0;
-            rConstitutiveMatrix(2,0) = 0.0;
-            rConstitutiveMatrix(2,1) = 0.0;
+        rConstitutiveMatrix(0,1) = 0.0;
+        rConstitutiveMatrix(0,2) = 0.0;
+        rConstitutiveMatrix(1,2) = 0.0;
+        rConstitutiveMatrix(1,0) = 0.0;
+        rConstitutiveMatrix(2,0) = 0.0;
+        rConstitutiveMatrix(2,1) = 0.0;
 
     }
+
     else // Contact between interfaces
     {
-
-        // Unloading
-
-		// Compresive constitutive matrix
-		if (mStateVariable==0.0)
+        // Unloading -> Compresive constitutive matrix
+		if (mStateVariable == 0.0)
 		{
-			rVariables.YieldStress=2.0e3;
+			rVariables.YieldStress= rVariables.YoungModulus * 1.0e-7;
 		}
 
         rConstitutiveMatrix(0,0) = rVariables.YieldStress;
@@ -267,7 +262,6 @@ void SimplifiedBilinear3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
         rConstitutiveMatrix(1,0) = 0.0;
         rConstitutiveMatrix(2,0) = 0.0;
         rConstitutiveMatrix(2,1) = 0.0;
-
     }
 }
 
@@ -284,7 +278,7 @@ void SimplifiedBilinear3DLaw::ComputeStressVector(Vector& rStressVector,
 		// Tensile stress
 		if (mStateVariable==0.0)
 		{
-				rVariables.YieldStress = rVariables.YoungModulus * 1.0e-7;
+			rVariables.YieldStress = rVariables.YoungModulus * 1.0e-7;
 		}
 
 		rStressVector[0] = rVariables.YieldStress * StrainVector[0];
@@ -293,9 +287,7 @@ void SimplifiedBilinear3DLaw::ComputeStressVector(Vector& rStressVector,
     }
     else // Contact between interfaces
     {
-        // Note: StrainVector[2] < 0.0
-        // Note: rStressVector[2] < 0.0
-        // Compresive stress
+        // Note: StrainVector[1] < 0.0, rStressVector[1] < 0.0 -> Compresive stress
         if (mStateVariable==0.0)
 		{
 			rVariables.YieldStress = rVariables.YoungModulus * 1.0e-7;

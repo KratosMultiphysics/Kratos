@@ -182,6 +182,7 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive3DLaw",mExponentialCohesive3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive2DLaw",mExponentialCohesive2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SimplifiedBilinear3DLaw",mSimplifiedBilinear3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimplifiedBilinear2DLaw",mSimplifiedBilinear2DLaw);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticSolid3DLaw", mLinearElastic3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainSolid2DLaw", mLinearElasticPlaneStrain2DLaw);

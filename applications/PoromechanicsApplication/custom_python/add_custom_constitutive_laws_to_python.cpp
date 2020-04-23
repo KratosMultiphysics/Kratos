@@ -19,6 +19,7 @@
 #include "custom_constitutive/exponential_cohesive_3D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_2D_law.hpp"
 #include "custom_constitutive/simplified_bilinear_3D_law.hpp"
+#include "custom_constitutive/simplified_bilinear_2D_law.hpp"
 
 #include "custom_constitutive/simo_ju_local_damage_3D_law.hpp"
 #include "custom_constitutive/simo_ju_local_damage_plane_strain_2D_law.hpp"
@@ -64,6 +65,9 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( py::init<>() );
     py::class_< SimplifiedBilinear3DLaw, SimplifiedBilinear3DLaw::Pointer, ConstitutiveLaw >
     (m, "SimplifiedBilinear3DLaw")
+    .def( py::init<>() );
+    py::class_< SimplifiedBilinear2DLaw, SimplifiedBilinear2DLaw::Pointer, ConstitutiveLaw >
+    (m, "SimplifiedBilinear2DLaw")
     .def( py::init<>() );
 
     py::class_< LinearElastic3DLaw, LinearElastic3DLaw::Pointer, ConstitutiveLaw >
