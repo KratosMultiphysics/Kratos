@@ -54,6 +54,12 @@ public:
 
     /// Default constructor.
     Modeler(
+        const Parameters ModelerParameters = Parameters())
+        : mParameters(ModelerParameters)
+    {}
+   
+    /// Constructor with Model
+    Modeler(
         Model& rModel,
         const Parameters ModelerParameters = Parameters())
         : mParameters(ModelerParameters)
