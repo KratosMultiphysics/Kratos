@@ -93,7 +93,6 @@ def AssembleTestSuites():
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    
     nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
     
     nightSuite.addTest(TBeamCantileverStaticLinearElasticPointLoad2DTriTest('test_execution'))
