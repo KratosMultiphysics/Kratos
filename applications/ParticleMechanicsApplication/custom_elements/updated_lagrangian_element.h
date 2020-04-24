@@ -370,7 +370,6 @@ public:
 
         if (rRightHandSideVector.size() != matrix_size)
             rRightHandSideVector.resize(matrix_size, false);
-
         rRightHandSideVector = ZeroVector(matrix_size);
 
         CalculateAll(
@@ -413,19 +412,17 @@ public:
     ///@name Operations for Dynamic
     ///@{
 
-    /**
-      * Computes the mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
+    /* Computes the mass matrix
+     * @param rMassMatrix: the elemental mass matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
                              ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-      * Computes the damping matrix
-      * @param rDampingMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
+    /* Computes the damping matrix
+     * @param rDampingMatrix: the elemental damping matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                 ProcessInfo& rCurrentProcessInfo) override;
 
@@ -642,6 +639,7 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        rSerializer.save("MP", mMP);
         rSerializer.save("ConstitutiveLawVector", mpConstitutiveLaw);
         rSerializer.save("DeformationGradientF0", mDeformationGradientF0);
         rSerializer.save("DeterminantF0", mDeterminantF0);
@@ -650,6 +648,7 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        rSerializer.load("MP", mMP);
         rSerializer.load("ConstitutiveLawVector", mpConstitutiveLaw);
         rSerializer.load("DeformationGradientF0", mDeformationGradientF0);
         rSerializer.load("DeterminantF0", mDeterminantF0);
