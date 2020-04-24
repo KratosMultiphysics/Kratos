@@ -51,11 +51,17 @@ namespace Kratos
 class ScalarConvectionDiffusionReactionElementData
 {
 public:
-    virtual void CalculateElementData(const Geometry<Node<3>>& rGeometry,
-                                      const Vector& rShapeFunctions,
-                                      const Matrix& rShapeFunctionDerivatives,
-                                      const ProcessInfo& rCurrentProcessInfo,
-                                      const int Step) = 0;
+    using GeometryType = Geometry<Node<3>>;
+
+    ScalarConvectionDiffusionReactionElementData(const GeometryType& rGeometry)
+        : mrGeometry(rGeometry)
+    {
+    }
+
+    virtual void CalculateGaussPointData(const Vector& rShapeFunctions,
+                                         const Matrix& rShapeFunctionDerivatives,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const int Step) = 0;
 
     virtual double CalculateEffectiveKinematicViscosity(
         const Vector& rShapeFunctions,
@@ -69,6 +75,14 @@ public:
     virtual double CalculateSourceTerm(const Vector& rShapeFunctions,
                                        const Matrix& rShapeFunctionDerivatives,
                                        const ProcessInfo& rCurrentProcessInfo) const = 0;
+
+    const GeometryType& GetGeometry() const
+    {
+        return mrGeometry;
+    }
+
+private:
+    const GeometryType& mrGeometry;
 };
 } // namespace Kratos
 

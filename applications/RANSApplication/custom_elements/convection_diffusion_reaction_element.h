@@ -324,15 +324,15 @@ public:
         const IndexType num_gauss_points = gauss_weights.size();
 
         const GeometryType& r_geometry = this->GetGeometry();
+        TConvectionDiffusionReactionData r_current_data(r_geometry);
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
 
-            TConvectionDiffusionReactionData r_current_data;
-            r_current_data.CalculateElementData(r_geometry, gauss_shape_functions,
-                                                r_shape_derivatives, rCurrentProcessInfo);
+            r_current_data.CalculateGaussPointData(
+                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
             const double source = r_current_data.CalculateSourceTerm(
                 gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
@@ -503,6 +503,7 @@ public:
         const IndexType num_gauss_points = gauss_weights.size();
 
         const GeometryType& r_geometry = this->GetGeometry();
+        TConvectionDiffusionReactionData r_current_data(r_geometry);
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
@@ -514,9 +515,8 @@ public:
             BoundedVector<double, TNumNodes> velocity_convective_terms;
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
-            TConvectionDiffusionReactionData r_current_data;
-            r_current_data.CalculateElementData(r_geometry, gauss_shape_functions,
-                                                r_shape_derivatives, rCurrentProcessInfo);
+            r_current_data.CalculateGaussPointData(
+                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
             const double effective_kinematic_viscosity =
                 r_current_data.CalculateEffectiveKinematicViscosity(
                     gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);

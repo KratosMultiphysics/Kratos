@@ -350,6 +350,7 @@ public:
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
         const GeometryType& r_geometry = this->GetGeometry();
+        TConvectionDiffusionReactionData element_data(r_geometry);
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
@@ -362,9 +363,8 @@ public:
             const array_1d<double, 3> velocity =
                 this->EvaluateInPoint(VELOCITY, gauss_shape_functions);
 
-            TConvectionDiffusionReactionData element_data;
-            element_data.CalculateElementData(r_geometry, gauss_shape_functions,
-                                              r_shape_derivatives, rCurrentProcessInfo);
+            element_data.CalculateGaussPointData(
+                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
             const double effective_kinematic_viscosity =
                 element_data.CalculateEffectiveKinematicViscosity(
                     gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
@@ -588,6 +588,7 @@ public:
             TConvectionDiffusionReactionData::GetScalarVariable();
 
         const GeometryType& r_geometry = this->GetGeometry();
+        TConvectionDiffusionReactionData element_data(r_geometry);
 
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
@@ -605,9 +606,8 @@ public:
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
             const double velocity_magnitude = norm_2(velocity);
 
-            TConvectionDiffusionReactionData element_data;
-            element_data.CalculateElementData(r_geometry, gauss_shape_functions,
-                                              r_shape_derivatives, rCurrentProcessInfo);
+            element_data.CalculateGaussPointData(
+                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
             const double effective_kinematic_viscosity =
                 element_data.CalculateEffectiveKinematicViscosity(
                     gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
@@ -725,6 +725,7 @@ public:
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
         const GeometryType& r_geometry = this->GetGeometry();
+        TConvectionDiffusionReactionData element_data(r_geometry);
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
@@ -742,9 +743,8 @@ public:
             BoundedVector<double, TNumNodes> velocity_convective_terms;
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
-            TConvectionDiffusionReactionData element_data;
-            element_data.CalculateElementData(r_geometry, gauss_shape_functions,
-                                              r_shape_derivatives, rCurrentProcessInfo);
+            element_data.CalculateGaussPointData(
+                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
             const double effective_kinematic_viscosity =
                 element_data.CalculateEffectiveKinematicViscosity(

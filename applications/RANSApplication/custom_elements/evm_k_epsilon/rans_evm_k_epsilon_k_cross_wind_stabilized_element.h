@@ -19,7 +19,7 @@
 
 // Project includes
 #include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
+#include "custom_elements/evm_k_epsilon/element_data/evm_k_epsilon_k_element_data.h"
 
 namespace Kratos
 {
@@ -44,14 +44,14 @@ namespace Kratos
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class RansEvmKEpsilonKCrossWindStabilizedElement
-    : public ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, EvmKepsilonModelUtilities::KElementData<TDim>>
+    : public ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, EvmKEpsilonElementDataUtilities::KElementData<TDim>>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     using BaseType =
-        ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, EvmKepsilonModelUtilities::KElementData<TDim>>;
+        ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, EvmKEpsilonElementDataUtilities::KElementData<TDim>>;
 
     using NodeType = Node<3>;
 

@@ -19,7 +19,7 @@
 
 // Project includes
 #include "custom_elements/convection_diffusion_reaction_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
+#include "custom_elements/evm_k_epsilon/element_data/evm_k_epsilon_k_element_data.h"
 
 namespace Kratos
 {
@@ -44,14 +44,14 @@ namespace Kratos
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class RansEvmKEpsilonKAFCElement
-    : public ConvectionDiffusionReactionElement<TDim, TNumNodes, EvmKepsilonModelUtilities::KElementData<TDim>>
+    : public ConvectionDiffusionReactionElement<TDim, TNumNodes, EvmKEpsilonElementDataUtilities::KElementData<TDim>>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     using BaseType =
-        ConvectionDiffusionReactionElement<TDim, TNumNodes, EvmKepsilonModelUtilities::KElementData<TDim>>;
+        ConvectionDiffusionReactionElement<TDim, TNumNodes, EvmKEpsilonElementDataUtilities::KElementData<TDim>>;
 
     using NodeType = Node<3>;
 

@@ -19,7 +19,7 @@
 
 // Project includes
 #include "custom_elements/convection_diffusion_reaction_residual_based_fc_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
+#include "custom_elements/evm_k_epsilon/element_data/evm_k_epsilon_epsilon_element_data.h"
 
 namespace Kratos
 {
@@ -44,14 +44,14 @@ namespace Kratos
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class RansEvmKEpsilonEpsilonResidualBasedFCElement
-    : public ConvectionDiffusionReactionResidualBasedFCElement<TDim, TNumNodes, EvmKepsilonModelUtilities::EpsilonElementData<TDim>>
+    : public ConvectionDiffusionReactionResidualBasedFCElement<TDim, TNumNodes, EvmKEpsilonElementDataUtilities::EpsilonElementData<TDim>>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     using BaseType =
-        ConvectionDiffusionReactionResidualBasedFCElement<TDim, TNumNodes, EvmKepsilonModelUtilities::EpsilonElementData<TDim>>;
+        ConvectionDiffusionReactionResidualBasedFCElement<TDim, TNumNodes, EvmKEpsilonElementDataUtilities::EpsilonElementData<TDim>>;
 
     using NodeType = Node<3>;
 
