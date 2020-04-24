@@ -104,7 +104,7 @@ protected:
         // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
         double accumulated_plastic_deviatoric_strain;
 
-        explicit MaterialPointVariables(SizeType WorkingSpaceDimension)
+        explicit MaterialPointVariables()
         {
             // MP_MASS
             mass = 1.0;
@@ -112,15 +112,6 @@ protected:
             density = 1.0;
             // MP_VOLUME
             volume = 1.0;
-
-            SizeType strain_size = (WorkingSpaceDimension == 2)
-                ? 3
-                : 6;
-
-            // MP_CAUCHY_STRESS_VECTOR
-            cauchy_stress_vector = ZeroVector(strain_size);
-            // MP_ALMANSI_STRAIN_VECTOR
-            almansi_strain_vector = ZeroVector(strain_size);
 
             // MP_DELTA_PLASTIC_STRAIN
             delta_plastic_strain = 1.0;
@@ -211,23 +202,22 @@ public:
 
     /// Empty constructor needed for serialization
     UpdatedLagrangianElement()
-        : Element()
-        , mMP(0) {
+        : Element(){
     };
 
     /// Default constructors
     UpdatedLagrangianElement(
         IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
-        , mMP(pGeometry->WorkingSpaceDimension())
     {
     };
 
     /// Default constructors
     UpdatedLagrangianElement(
-        IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
-        , mMP(pGeometry->WorkingSpaceDimension())
     {
     }
 
