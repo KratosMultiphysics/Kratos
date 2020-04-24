@@ -50,9 +50,9 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
     def test_lowest_power_in_core(self):
         try:
-            import KratosMultiphysics.ExternalSolversApplication
+            import KratosMultiphysics.EigenSolversApplication
         except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
 
         self._RunParametrized("""
             {
@@ -65,7 +65,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                            "solver_type"             : "SuperLUSolver",
+                            "solver_type"             : "EigenSolversApplication.sparse_lu",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -78,9 +78,9 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
     def test_highest_power_in_core(self):
         try:
-            import KratosMultiphysics.ExternalSolversApplication
+            import KratosMultiphysics.EigenSolversApplication
         except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
 
         self._RunParametrized("""
             {
@@ -93,7 +93,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                        "solver_type"             : "SuperLUSolver",
+                        "solver_type"             : "EigenSolversApplication.sparse_lu",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -116,7 +116,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                            "solver_type"             : "SkylineLUFactorizationSolver",
+                            "solver_type"             : "skyline_lu_factorization",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -128,10 +128,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             """)
 
     def test_eigen_eigensystem_solver(self):
-        try:
-            import KratosMultiphysics.EigenSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
+        self.skipTestIfApplicationsNotAvailable("EigenSolversApplication")
         self._RunParametrized("""
             {
                 "test_list" : [
