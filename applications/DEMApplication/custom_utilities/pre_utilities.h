@@ -83,7 +83,7 @@ class PreUtilities
         p_properties->SetValue(CLUSTER_INFORMATION, cl_info);
     }
 
-    void PrintNumberOfNeighboursHistogram(ModelPart& rSpheresModelPart, std::string const& filename) {
+    void PrintNumberOfNeighboursHistogram(const ModelPart& rSpheresModelPart, std::string const& filename) {
         std::vector<int> number_of_spheres_with_i_neighbours;
         number_of_spheres_with_i_neighbours.resize(20);
         for(int i=0; i<(int)number_of_spheres_with_i_neighbours.size(); i++) {number_of_spheres_with_i_neighbours[i] = 0;}
