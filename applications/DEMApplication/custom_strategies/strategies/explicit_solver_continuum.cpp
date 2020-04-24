@@ -549,7 +549,7 @@ namespace Kratos {
                     const double old_amplification = mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor;
                     double adapted_to_skin_or_not_skin_desired_cn = desired_coordination_number;
                     if(mListOfSphericContinuumParticles[i]->IsSkin()) {
-                        adapted_to_skin_or_not_skin_desired_cn = 0.5*desired_coordination_number;
+                        adapted_to_skin_or_not_skin_desired_cn = 0.6*desired_coordination_number;
                     }
 
                     if(neighbour_elements_size) {
@@ -576,6 +576,7 @@ namespace Kratos {
             current_coordination_number = ComputeCoordinationNumber(standard_dev);
             KRATOS_INFO("DEM")<<"Coordination number reached after local operations = "<<current_coordination_number<<std::endl;
         }
+
         if(global_coordination_option) {
             KRATOS_INFO("DEM")<<"Now iterating for global coordination number..."<<std::endl;
             //STAGE 2, Global Coordination Number
@@ -609,68 +610,74 @@ namespace Kratos {
                 SearchNeighbours();
                 current_coordination_number = ComputeCoordinationNumber(standard_dev);
             }//while
+
+                if (iteration < maxiteration){
+                KRATOS_INFO("DEM") << "The iterative procedure converged after " << iteration << " iterations, to value \e[1m" << current_coordination_number << "\e[0m using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
+                KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
+                //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
+                r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = amplification;
+            }
+
+            else {
+                KRATOS_WARNING("DEM") << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << current_coordination_number << ". Desired number was " <<desired_coordination_number << "\n" << std::endl;
+                KRATOS_ERROR << "Please use a Absolute tolerance instead " << std::endl;
+                //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
+            }
         }
 
         KRATOS_INFO("DEM") <<std::endl;
-
-        if (iteration < maxiteration){
-            KRATOS_INFO("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value \e[1m" << current_coordination_number << "\e[0m using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
-            KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
-            //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
-            r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = amplification;
-        }
-
-        else {
-            KRATOS_WARNING("DEM") << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << current_coordination_number << ". Desired number was " <<desired_coordination_number << "\n" << std::endl;
-            KRATOS_ERROR << "Please use a Absolute tolerance instead " << std::endl;
-            //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
-        }
-
     } //SetCoordinationNumber
 
     double ContinuumExplicitSolverStrategy::ComputeCoordinationNumber(double& standard_dev) {
         KRATOS_TRY
 
         ModelPart& r_model_part = GetModelPart();
-        ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         int total_contacts = 0;
         const int number_of_particles = (int) mListOfSphericParticles.size();
         std::vector<int> neighbour_counter;
         std::vector<int> sum;
+        std::vector<int> number_of_non_skin_particles;
         double total_sum = 0.0;
+        int total_non_skin_particles = 0;
 
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
         neighbour_counter.resize(mNumberOfThreads);
         sum.resize(mNumberOfThreads);
+        number_of_non_skin_particles.resize(mNumberOfThreads);
 
-        #pragma omp parallel
-        {
-            neighbour_counter[OpenMPUtils::ThisThread()] = 0;
-            sum[OpenMPUtils::ThisThread()] = 0;
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-
-                SphericParticle* element = mListOfSphericParticles[i];
-                SphericContinuumParticle* continuous_element = dynamic_cast<SphericContinuumParticle*> (element);
-                if (continuous_element->IsSkin()) {
-                    continue;
-                }
-                neighbour_counter[OpenMPUtils::ThisThread()] += mListOfSphericParticles[i]->mNeighbourElements.size();
-                sum[OpenMPUtils::ThisThread()] += (mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 )*(mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 );
-            }
+        for (int i = 0; i < mNumberOfThreads; i++) {
+            total_contacts = 0;
+            total_sum = 0;
+            neighbour_counter[i] = 0;
+            sum[i] = 0;
+            number_of_non_skin_particles[i] = 0;
         }
+
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_particles; i++) {
+            SphericParticle* element = mListOfSphericParticles[i];
+            SphericContinuumParticle* continuous_element = dynamic_cast<SphericContinuumParticle*> (element);
+            if (continuous_element->IsSkin()) {
+                continue;
+            }
+            neighbour_counter[OpenMPUtils::ThisThread()] += mListOfSphericParticles[i]->mNeighbourElements.size();
+            sum[OpenMPUtils::ThisThread()] += (mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 )*(mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 );
+            number_of_non_skin_particles[OpenMPUtils::ThisThread()] += 1;
+        }
+
         for (int i = 0; i < mNumberOfThreads; i++) {
             total_contacts += neighbour_counter[i];
             total_sum += sum[i];
+            total_non_skin_particles += number_of_non_skin_particles[i];
         }
 
         int global_total_contacts = r_model_part.GetCommunicator().GetDataCommunicator().SumAll(total_contacts);
-        int global_number_of_elements = r_model_part.GetCommunicator().GetDataCommunicator().SumAll((int) pElements.size());
+        int global_total_non_skin_particles = r_model_part.GetCommunicator().GetDataCommunicator().SumAll(total_non_skin_particles);
 
-        double coord_number = double(global_total_contacts) / double(global_number_of_elements);
+        double coord_number = double(global_total_contacts) / double(global_total_non_skin_particles);
 
-        standard_dev = sqrt(total_sum / number_of_particles);
+        standard_dev = sqrt(total_sum / global_total_non_skin_particles);
 
         return coord_number;
 
