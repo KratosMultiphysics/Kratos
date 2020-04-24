@@ -92,7 +92,16 @@ class PreUtilities
         for(int i=0; i<(int)pElements.size(); i++) {
             ElementsArrayType::iterator it = pElements.ptr_begin() + i;
             SphericContinuumParticle* p_cont_sphere = dynamic_cast<SphericContinuumParticle*>(&*it);
-            number_of_spheres_with_i_neighbours[p_cont_sphere->mNeighbourElements.size()] += 1;
+            if(p_cont_sphere != NULL) {
+                unsigned int size = p_cont_sphere->mContinuumInitialNeighborsSize;
+                if(size > number_of_spheres_with_i_neighbours.size() - 1) size = number_of_spheres_with_i_neighbours.size() - 1;
+                number_of_spheres_with_i_neighbours[size] += 1;
+            } else {
+                SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(&*it);
+                unsigned int size = p_sphere->mNeighbourElements.size();
+                if(size > number_of_spheres_with_i_neighbours.size() - 1) size = number_of_spheres_with_i_neighbours.size() - 1;
+                number_of_spheres_with_i_neighbours[size] += 1;
+            }
         }
         std::ofstream outputfile(filename, std::ios_base::out | std::ios_base::app);
         outputfile << "number_of_neighbours   percentage_of_spheres_with_that_number_of_neighbours    number_of_spheres_with_that_number_of_neighbours\n";
