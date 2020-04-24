@@ -61,7 +61,6 @@ namespace MPMSearchElementUtility
                 r_geometry[j].Reset(ACTIVE);
 
         }
-        
         // Search background grid and make element active
         Vector N;
         const int max_result = 1000;
@@ -185,5 +184,4 @@ namespace MPMSearchElementUtility
 } // end namespace Kratos
 
 #endif // KRATOS_MPM_SEARCH_ELEMENT_UTILITY
-
 
