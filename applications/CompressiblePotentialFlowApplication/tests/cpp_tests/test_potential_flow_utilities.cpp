@@ -92,7 +92,12 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityMagnitude, CompressiblePotentialApplica
     // velocity corresponding to squared mach number of 3.0
     double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(3.0, model_part.GetProcessInfo());
     
-    KRATOS_CHECK_NEAR(local_velocity_squared, 232356.0000000000000000, 1e-10);
+    double reference_velocity_squared = 232356.00000000000000000000;
+
+    std::cout.precision(16);
+    KRATOS_WATCH(local_velocity_squared)
+
+    KRATOS_CHECK_RELATIVE_NEAR(local_velocity_squared, reference_velocity_squared, 1e-15);
 }
 
 // Checks the function ComputeMaximumVelocitySquared from the utilities
@@ -102,12 +107,15 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeMaximumVelocitySquared, CompressiblePotentialAp
 
     AssignFreeStreamValues(model_part);
 
-    double reference_max_velocity_squared = 232356.0000000000000000;
+    double reference_max_velocity_squared = 232356.00000000000000000000;
 
     // Max local Mach number = sqrt(3.0), from MACH_SQUARED_LIMIT
     double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2, 3>(model_part.GetProcessInfo());
 
-    KRATOS_CHECK_NEAR(max_velocity_squared, reference_max_velocity_squared, 1e-10);
+    std::cout.precision(16);
+    KRATOS_WATCH(max_velocity_squared)
+
+    KRATOS_CHECK_RELATIVE_NEAR(max_velocity_squared, reference_max_velocity_squared, 1e-15);
 }
 
 // Checks the function ComputeLocalSpeedOfSound from the utilities
@@ -142,9 +150,12 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedofSoundSquared, CompressiblePotential
     
     double local_speed_sound_squared = PotentialFlowUtilities::ComputeLocalSpeedofSoundSquared<2,3>(velocity, model_part.GetProcessInfo());
 
-    double reference_local_speed_sound_squared = 77452.0000000000;
+    double reference_local_speed_sound_squared = 77452.00000000000000000000;
 
-    KRATOS_CHECK_NEAR(local_speed_sound_squared, reference_local_speed_sound_squared, 1e-16);
+    std::cout.precision(16);
+    KRATOS_WATCH(local_speed_sound_squared)
+
+    KRATOS_CHECK_RELATIVE_NEAR(local_speed_sound_squared, reference_local_speed_sound_squared, 1e-15);
 }
 
 // Checks the function ComputeLocalMachNumber from the utilities
@@ -169,7 +180,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumberSquared, CompressiblePotentialAp
 
     AssignFreeStreamValues(model_part);
 
-    double reference_local_mach_squared = 3.0;
+    double reference_local_mach_squared = 3.00000000000000000000;
 
     // velocity corresponding to mach number 3.0
     double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(reference_local_mach_squared, model_part.GetProcessInfo());
@@ -180,11 +191,14 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumberSquared, CompressiblePotentialAp
     // computes mach number with clamping
     double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
 
-    KRATOS_CHECK_NEAR(local_mach_squared, reference_local_mach_squared, 1e-10);
+    std::cout.precision(20);
+    KRATOS_WATCH(local_mach_squared)
+
+    KRATOS_CHECK_RELATIVE_NEAR(local_mach_squared, reference_local_mach_squared, 1e-15);
 }
 
-// Checks the function ComputeDLocalMachSquaredWRTVelocitySquared from the utilities, transonic local Mach number
-KRATOS_TEST_CASE_IN_SUITE(ComputeDLocalMachSquaredWRTVelocitySquaredTransonicMach, CompressiblePotentialApplicationFastSuite) {
+// Checks the function ComputeDerivativeLocalMachSquaredWRTVelocitySquared from the utilities, transonic local Mach number
+KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredTransonicMach, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -198,19 +212,25 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDLocalMachSquaredWRTVelocitySquaredTransonicMac
     array_1d<double, 2> velocity(2, 0.0);
     velocity[0] = sqrt(local_velocity_squared);
 
+    std::cout.precision(20);
+    KRATOS_WATCH(velocity[0])
+
     // performs clamping on mach number
     double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
 
     double mach_derivative = PotentialFlowUtilities::ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(velocity,
                 local_mach_squared, model_part.GetProcessInfo());
 
-    double reference_derivative = 1.16201001910861e-05;
+    double reference_derivative = 1.1620100191086091883e-05;
 
-    KRATOS_CHECK_NEAR(mach_derivative, reference_derivative, 1e-16);
+    std::cout.precision(20);
+    KRATOS_WATCH(mach_derivative)
+    
+    KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
 
-// Checks the function ComputeDLocalMachSquaredWRTVelocitySquared from the utilities, supersonic local Mach number
-KRATOS_TEST_CASE_IN_SUITE(ComputeDLocalMachSquaredWRTVelocitySquaredSupersonicMach, CompressiblePotentialApplicationFastSuite) {
+// Checks the function ComputeDerivativeLocalMachSquaredWRTVelocitySquared from the utilities, supersonic local Mach number
+KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSupersonicMach, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -222,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDLocalMachSquaredWRTVelocitySquaredSupersonicMa
     double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(std::pow(local_mach_number, 2), model_part.GetProcessInfo());
 
     array_1d<double, 2> velocity(2, 0.0);
-    velocity[0] = local_velocity_squared;
+    velocity[0] = sqrt(local_velocity_squared);
 
     // performs clamping on mach number
     double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
@@ -230,9 +250,12 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDLocalMachSquaredWRTVelocitySquaredSupersonicMa
     double mach_derivative = PotentialFlowUtilities::ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(velocity,
                 local_mach_squared, model_part.GetProcessInfo());
                 
-    double reference_derivative = 2.06579558952642e-05;
+    double reference_derivative = 2.0657955895264163348e-05;
 
-    KRATOS_CHECK_NEAR(mach_derivative, reference_derivative, 1e-16);
+    std::cout.precision(20);
+    KRATOS_WATCH(mach_derivative)
+
+    KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
 
 // Checks the function ComputeIncompressiblePerturbationPressureCoefficient from the utilities

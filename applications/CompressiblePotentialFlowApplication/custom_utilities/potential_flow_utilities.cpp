@@ -385,6 +385,9 @@ double ComputeSquaredSpeedofSoundFactor(
     const double localVelocitySquared, 
     const ProcessInfo& rCurrentProcessInfo)
 {
+    // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+
     // read free stream values
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
     const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
