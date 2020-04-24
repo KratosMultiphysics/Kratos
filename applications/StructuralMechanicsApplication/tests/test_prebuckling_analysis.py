@@ -91,9 +91,9 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         {
             "max_iteration"         : 1000,
             "tolerance"             : 1e-6,
-            "number_of_eigenvalues" : 2,
+            "number_of_eigenvalues" : 1,
             "echo_level"            : 0,
-            "normalize_eigenvectors": true
+            "normalize_eigenvectors": false
         }
         """)
 
@@ -114,7 +114,8 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
                                                                            1.0,
                                                                            0.0005,
                                                                            0.5,
-                                                                           0.005 )
+                                                                           0.005,
+                                                                           True )
         eig_strategy.SetEchoLevel(echo)
         LoadFactor = []
         for i in range(iterations):

@@ -112,7 +112,8 @@ public:
         double InitialLoadIncrement,
         double SmallLoadIncrement,
         double PathFollowingStep,
-        double ConvergenceRatio )
+        double ConvergenceRatio,
+        bool MakeMatricesSymmetricFlag )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
         KRATOS_TRY
@@ -134,6 +135,8 @@ public:
         mPathFollowingStep = PathFollowingStep;
 
         mConvergenceRatio = ConvergenceRatio;
+
+        mMakeMatricesSymmetricFlag = MakeMatricesSymmetricFlag;
 
         // Set Eigensolver flags
         mpEigenSolver->SetDofSetIsInitializedFlag(false);
@@ -552,6 +555,12 @@ public:
             // between the current and previous step
             rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
 
+            // Symmetrice matrices if enabled
+            if( mMakeMatricesSymmetricFlag ){
+                rStiffnessMatrix = 0.5 * ( rStiffnessMatrix + boost::numeric::ublas::trans(rStiffnessMatrix) );
+                rStiffnessMatrixPrevious = 0.5 * ( rStiffnessMatrixPrevious + boost::numeric::ublas::trans(rStiffnessMatrixPrevious) );
+            }
+
             this->pGetEigenSolver()->GetLinearSystemSolver()->Solve(
                 rStiffnessMatrixPrevious,
                 rStiffnessMatrix,
@@ -744,6 +753,8 @@ private:
 
     double mLambda = 0.0;
     double mLambdaPrev = 1.0;
+
+    bool mMakeMatricesSymmetricFlag;
 
     ///@}
     ///@name Private Operators
