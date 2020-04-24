@@ -84,6 +84,8 @@ def GetDefaultInputParameters():
             "outer_mesh_diameter" : 0.00015,
             "inner_skin_factor" : 2.4,
             "outer_skin_factor" : 0.8,
+            "AutomaticSkinComputation" : false,
+            "SkinFactorRadius" : 1.0,
             "AmplifiedSearchRadiusExtension"   : 0.0,
             "MaxAmplificationRatioOfSearchRadius" : 10,
             "ModelDataInfo"                    : false,
