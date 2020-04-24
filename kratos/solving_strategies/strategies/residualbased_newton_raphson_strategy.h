@@ -791,6 +791,8 @@ class ResidualBasedNewtonRaphsonStrategy
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
         if (is_converged) {
+            mpConvergenceCriteria->InitializeSolutionStep(r_model_part, r_dof_set, rA, rDx, rb);
+
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(rb);
 
