@@ -53,8 +53,10 @@ public:
     ///@{
 
     /// Default constructor.
-    Modeler(const Parameters ModelerParameters = Parameters())
-        :mParameters(ModelerParameters)
+    Modeler(
+        Model& rModel
+        const Parameters ModelerParameters = Parameters())
+        : mParameters(ModelerParameters)
     {}
 
     /// Destructor.
@@ -65,28 +67,23 @@ public:
     ///@{
 
     /// Import geometry models from external input.
-    virtual void ImportGeometryModel(
-        Model& rModel) const
+    virtual void ImportGeometryModel() const
     {}
 
     /// Prepare or update the geometry model_part.
-    virtual void PrepareGeometryModel(
-        Model& rModel) const
+    virtual void PrepareGeometryModel() const
     {}
 
     /// Convert the geometry model to analysis suitable models.
-    virtual void GenerateModelPart(
-        Model& rModel) const
+    virtual void GenerateModelPart() const
     {}
 
     /// Import the model_part from external input.
-    virtual void ImportModelPart(
-        Model& rModel) const
+    virtual void ImportModelPart() const
     {}
 
     /// Prepare the analysis model_part for the simulation.
-    virtual void PrepareModelPart(
-        Model& rModel) const
+    virtual void PrepareModelPart() const
     {}
 
     ///@}
@@ -97,16 +94,14 @@ public:
        to the geometry model_part or updates the geometry model_part at
        initialize solution step.
     */
-    virtual void UpdateModelInitializeSolutionStep(
-        Model& rModel) const
+    virtual void UpdateModelInitializeSolutionStep() const
     {}
 
     /* Updates the model, maps information from the analysis model_part
        to the geometry model_part or updates the geometry model_part at
        Finalize solution step.
     */
-    virtual void UpdateModelFinalizeSolutionStep(
-        Model& rModel) const
+    virtual void UpdateModelFinalizeSolutionStep() const
     {}
 
     ///@}
