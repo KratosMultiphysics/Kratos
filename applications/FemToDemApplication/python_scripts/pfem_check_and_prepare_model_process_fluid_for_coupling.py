@@ -57,6 +57,9 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
             self.bodies_list = True
             self.bodies_parts_list = Parameters["bodies_list"]
 
+        if Parameters.Has("material_import_settings"):
+            self.material_import_settings = Parameters["material_import_settings"]
+
 #============================================================================================================================
     def Execute(self):
         """This function executes the process
