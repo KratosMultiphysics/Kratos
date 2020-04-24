@@ -30,9 +30,16 @@ int SimplifiedBilinear3DLaw::Check(const Properties& rMaterialProperties,const G
         KRATOS_ERROR << "MAX_COMPRESSIVE_STRESS not defined" << std::endl;
     }
 
+    KRATOS_CHECK_VARIABLE_KEY(MAX_TENSILE_STRESS);
+    if(rMaterialProperties.Has(MAX_TENSILE_STRESS)) {
+        KRATOS_ERROR_IF(rMaterialProperties[MAX_TENSILE_STRESS] < 0.0) << "MAX_TENSILE_STRESS has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "MAX_TENSILE_STRESS not defined" << std::endl;
+    }
+
     KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
     if(rMaterialProperties.Has(POISSON_RATIO)) {
-        KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] < -1.0) << "POISSON_RATIO has an invalid value lower ahn -1.0" << std::endl;
+        KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] < -1.0) << "POISSON_RATIO has an invalid value lower than -1.0" << std::endl;
         KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] >= 0.5) << "POISSON_RATIO has an invalid value greater or equal to 0.5 " << std::endl;
     } else {
         KRATOS_ERROR << "POISSON_RATIO not defined" << std::endl;
@@ -127,8 +134,8 @@ void SimplifiedBilinear3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLaw
 {
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
     rVariables.MaxCompresiveStress = MaterialProperties[MAX_COMPRESSIVE_STRESS];
-    rVariables.MaxTensileStress = 30.0 * pow(rVariables.MaxCompresiveStress, 1.5);
-    rVariables.YoungModulus = 85.0e6 * pow(rVariables.MaxCompresiveStress + 8.0e6, 0.33333333333333333333333333333);
+    rVariables.MaxTensileStress = MaterialProperties[MAX_TENSILE_STRESS];
+    rVariables.YoungModulus = 85.0e6 * pow(MaterialProperties[MAX_COMPRESSIVE_STRESS] + 8.0e6, 0.33333333333333333333333333333);
     rVariables.YieldStress = rVariables.YoungModulus;
     rVariables.PoissonCoefficient = MaterialProperties[POISSON_RATIO];
     rVariables.FrictionCoefficient = MaterialProperties[FRICTION_COEFFICIENT];
@@ -295,7 +302,7 @@ void SimplifiedBilinear3DLaw::ComputeStressVector(Vector& rStressVector,
 
         rStressVector[2] = rVariables.YoungModulus * StrainVector[2];
 
-        const double shear_modulus = rVariables.YoungModulus / (2.0 * (1.0 + rVariables.PoissonCoefficient));
+        const double shear_modulus = rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));
 
         double tangential_strain_vector_modulus = sqrt(StrainVector[0] * StrainVector[0] + StrainVector[1] * StrainVector[1]);
 
