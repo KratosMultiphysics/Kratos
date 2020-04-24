@@ -96,18 +96,18 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     #         # self.__AddVtkOutputToCFD() # uncomment to get output
     #         self._runTest()
 
-    def test_TAU(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
-        if not have_potential_fsi_dependencies:
-            self.skipTest("FSI dependencies are not available!")
+    # def test_TAU(self):
+    #     if not numpy_available:
+    #         self.skipTest("Numpy not available")
+    #     if using_pykratos:
+    #         self.skipTest("This test cannot be run with pyKratos!")
+    #     if not have_potential_fsi_dependencies:
+    #         self.skipTest("FSI dependencies are not available!")
 
-        with KratosUnittest.WorkFolderScope("TAU", __file__):
-            self._createTest(".", "cosim_tau")
-            # self.__AddVtkOutputToCFD() # uncomment to get output
-            self._runTest()
+    #     with KratosUnittest.WorkFolderScope("TAU", __file__):
+    #         self._createTest(".", "cosim_tau")
+    #         # self.__AddVtkOutputToCFD() # uncomment to get output
+    #         self._runTest()
 
     @classmethod
     def tearDownClass(cls):

@@ -57,8 +57,10 @@ tauFunctions.PrintBlockHeader("Initial TAU Mesh at time %s" %(str(time)))
 ##### CoSimulation #####
 def AdvanceInTime(current_time):
     print "TAU SOLVER AdvanceInTime"
-    ts_tau = 0.005 ### TO do  read from TAU
-    return 100.0#current_time + ts_tau
+    print "current time = ", current_time
+    # ts_tau = 0.005 ### TO do  read from TAU
+    ts_tau = 0.5
+    return current_time + ts_tau
 
 #------------------------------------------------------------------
 #         ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen #########
@@ -194,13 +196,30 @@ def ExportData(conn_name, identifier):
     print "TAU SOLVER After ExportData"
 
 def ExportMesh(conn_name, identifier):
+    print "TAU SOLVER ExportMesh"
     # identifier is the data-name in json
-    if identifier == "wing_fsi_interface":
-        nodal_coords, elem_connectivities, element_types = GetFluidMesh()
-    else:
-        raise Exception
+    print("conn_name = ", conn_name)
+    print("identifier = ", identifier)
+    # if identifier == "wing_fsi_interface":
+    #     nodal_coords, elem_connectivities, element_types = GetFluidMesh()
+    # else:
+    #     raise Exception
 
-    CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
+    # CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
+    print "TAU SOLVER ExportMesh End"
+
+def ImportMesh(conn_name, identifier):
+    print "TAU SOLVER ImportMesh"
+    # identifier is the data-name in json
+    print("conn_name = ", conn_name)
+    print("identifier = ", identifier)
+    # if identifier == "wing_fsi_interface":
+    #     nodal_coords, elem_connectivities, element_types = GetFluidMesh()
+    # else:
+    #     raise Exception
+
+    # CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
+    print "TAU SOLVER ImportMesh End"
 
 
 connection_name = "TAU"
@@ -220,6 +239,7 @@ CoSimIO.Register_FinalizeSolutionStep(connection_name, FinalizeSolutionStep)
 CoSimIO.Register_ImportData(connection_name, ImportData)
 CoSimIO.Register_ExportData(connection_name, ExportData)
 CoSimIO.Register_ExportMesh(connection_name, ExportMesh)
+CoSimIO.Register_ImportMesh(connection_name, ImportMesh)
 
 # Run the coupled simulation
 print "Before Run"

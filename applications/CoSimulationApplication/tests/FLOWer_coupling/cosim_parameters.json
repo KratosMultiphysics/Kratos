@@ -3,7 +3,7 @@
     {
         "start_time" : 0.0,
         "end_time" : 5.0,
-        "echo_level" : 0,
+        "echo_level" : 3,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
     },
@@ -62,7 +62,7 @@
             "external_solver":
             {
                 "type" : "solver_wrappers.external.flower_wrapper",
-                "echo_level" : 0,
+                "echo_level" : 3,
                 "solver_wrapper_settings" : {
                     "model_parts_read" : {
                         "Fluid_copy" : "generic_mdpa_files/Mok_CFD"

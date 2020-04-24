@@ -80,10 +80,10 @@ def AssembleTestSuites():
     ################################################################################
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
+    # validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
     # validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
-    # if not using_pykratos and numpy_available:
-    #     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
+    if not using_pykratos and numpy_available:
+        validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
     #     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIODummySolvers]))
 
     ################################################################################
@@ -100,7 +100,8 @@ if __name__ == '__main__':
     #     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     #     run_cpp_unit_tests.run()
     #     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_OUTPUTS) # TESTS_OUTPUTS
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

@@ -48,15 +48,18 @@ class TAUWrapper(CoSimulationSolverWrapper):
         self.controlling_external_solver = wrapper_settings["controlling_external_solver"].GetBool()
 
         self.model_part_name = wrapper_settings["main_model_part_name"].GetString()
-        cs_tools.CreateMainModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
+        # cs_tools.CreateMainModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
+        cs_tools.CreateModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
         cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
 
     def Initialize(self):
+        print('TAUWrapper Initialize')
         super(TAUWrapper, self).Initialize()
 
         interface_config = { "model_part_name" : self.model_part_name }
 
-        # self.ImportCouplingInterface(interface_config)
+        self.ExportCouplingInterface(interface_config)
+        print('TAUWrapper Initialize')
 
     def AdvanceInTime(self, current_time):
         # self.__CheckExternalSolverProcess() # TODO check why this is blocking
@@ -72,7 +75,8 @@ class TAUWrapper(CoSimulationSolverWrapper):
             # print('tau_wrapper advanceintime ImportData')
             self.ImportData(data_config)
             print('tau_wrapper advanceintime Finish')
-            return 100.0 #data_config["time"]
+            print(data_config["time"])
+            return 100.0#data_config["time"]
         else:
             return 100.0
 
