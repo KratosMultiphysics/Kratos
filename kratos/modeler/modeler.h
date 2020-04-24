@@ -67,23 +67,23 @@ public:
     ///@{
 
     /// Import geometry models from external input.
-    virtual void ImportGeometryModel() const
+    virtual void ImportGeometryModel()
     {}
 
     /// Prepare or update the geometry model_part.
-    virtual void PrepareGeometryModel() const
+    virtual void PrepareGeometryModel()
     {}
 
     /// Convert the geometry model to analysis suitable models.
-    virtual void GenerateModelPart() const
+    virtual void GenerateModelPart()
     {}
 
     /// Import the model_part from external input.
-    virtual void ImportModelPart() const
+    virtual void ImportModelPart()
     {}
 
     /// Prepare the analysis model_part for the simulation.
-    virtual void PrepareModelPart() const
+    virtual void PrepareModelPart()
     {}
 
     ///@}
