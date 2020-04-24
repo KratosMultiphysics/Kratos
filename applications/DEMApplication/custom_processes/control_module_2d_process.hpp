@@ -53,6 +53,7 @@ public:
                 "model_part_name":"MODEL_PART_NAME",
                 "imposed_direction" : 0,
                 "alternate_axis_loading": false,
+                "control_module_time_step": 1.0e-5,
                 "target_stress_table_id" : 0,
                 "initial_velocity" : 0.0,
                 "limit_velocity" : 0.1,
@@ -84,9 +85,7 @@ public:
 
         // NOTE: Alternate axis loading only works for X,Y,Z loading. Radial loading is always applied.
         mAlternateAxisLoading = rParameters["alternate_axis_loading"].GetBool();
-        mXCounter = 1;
-        mYCounter = 2;
-        mZCounter = 3;
+        mCMTimeStep = rParameters["control_module_time_step"].GetDouble();
         mStep = 0;
 
         mrModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
@@ -175,37 +174,57 @@ public:
         const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
+        mStep += 1;
+        if (mStep == 1) {
+            unsigned int cm_num_super_steps = (int)(mCMTimeStep / mrModelPart.GetProcessInfo()[DELTA_TIME]);
+            if(cm_num_super_steps < 1) {cm_num_super_steps = 1;}
+            mXStartStep = 1;
+            mXEndStep = mXStartStep + cm_num_super_steps - 1;
+            mYStartStep = mXEndStep + 1;
+            mYEndStep = mYStartStep + cm_num_super_steps - 1;
+            mZStartStep = mYEndStep + 1;
+            mZEndStep = mZStartStep + cm_num_super_steps - 1;
+        }
+
         double ReactionStress = CalculateReactionStress();
 
         // Check whether this is a loading step for the current axis
-        mStep += 1;
         IsTimeToApplyCM();
 
         if (mApplyCM == true) {
-            
+
             ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
             // Update K if required
-            const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
+            double delta_time;
             if (mAlternateAxisLoading == false) {
+                delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
                 if(mUpdateStiffness == true) {
                     mStiffness = EstimateStiffness(ReactionStress,delta_time);
                 }
+            } else {
+                delta_time = mCMTimeStep;
             }
-            mReactionStressOld = ReactionStress;
 
             // Update velocity
             const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+delta_time);
             const double df_target = NextTargetStress - ReactionStress;
             double delta_velocity = df_target/(mStiffness * delta_time) - mVelocity;
-
             if(std::abs(df_target) < mStressIncrementTolerance) { delta_velocity = -mVelocity; }
-
-            mVelocity += mVelocityFactor * delta_velocity;
-
-            if(std::abs(mVelocity) > std::abs(mLimitVelocity)) {
-                if(mVelocity >= 0.0) { mVelocity = std::abs(mLimitVelocity); }
-                else { mVelocity = - std::abs(mLimitVelocity); }
+            if (mAlternateAxisLoading == false) {
+                mReactionStressOld = ReactionStress;
+                mVelocity += mVelocityFactor * delta_velocity;
+                if(std::abs(mVelocity) > std::abs(mLimitVelocity)) {
+                    if(mVelocity >= 0.0) { mVelocity = std::abs(mLimitVelocity); }
+                    else { mVelocity = - std::abs(mLimitVelocity); }
+                }
+            } else if (mIsStartStep == true) {
+                mReactionStressOld = ReactionStress;
+                mVelocity += mVelocityFactor * delta_velocity;
+                if(std::abs(mVelocity) > std::abs(mLimitVelocity)) {
+                    if(mVelocity >= 0.0) { mVelocity = std::abs(mLimitVelocity); }
+                    else { mVelocity = - std::abs(mLimitVelocity); }
+                }
             }
 
             // Update Imposed displacement
@@ -214,7 +233,7 @@ public:
                 for(int i = 0; i<NNodes; i++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->FastGetSolutionStepValue(VELOCITY_X) = mVelocity;
-                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X) = it->FastGetSolutionStepValue(VELOCITY_X) * delta_time;
+                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X) = it->FastGetSolutionStepValue(VELOCITY_X) * mrModelPart.GetProcessInfo()[DELTA_TIME];
                     it->FastGetSolutionStepValue(DISPLACEMENT_X) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X);
                     it->X() = it->X0() + it->FastGetSolutionStepValue(DISPLACEMENT_X);
                     // Save calculated velocity and reaction for print
@@ -227,7 +246,7 @@ public:
                 for(int i = 0; i<NNodes; i++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->FastGetSolutionStepValue(VELOCITY_Y) = mVelocity;
-                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y) = it->FastGetSolutionStepValue(VELOCITY_Y) * delta_time;
+                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y) = it->FastGetSolutionStepValue(VELOCITY_Y) * mrModelPart.GetProcessInfo()[DELTA_TIME];
                     it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
                     it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
                     // Save calculated velocity and reaction for print
@@ -237,7 +256,7 @@ public:
 
                 }
             } else if (mImposedDirection == 2) { // Z direction
-                mrModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += mVelocity*delta_time/mCompressionLength;
+                mrModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += mVelocity*mrModelPart.GetProcessInfo()[DELTA_TIME]/mCompressionLength;
                 #pragma omp parallel for
                 for(int i = 0; i<NNodes; i++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -255,11 +274,11 @@ public:
                     const double cos_theta = it->X()/external_radius;
                     const double sin_theta = it->Y()/external_radius;
                     it->FastGetSolutionStepValue(VELOCITY_X) = mVelocity * cos_theta;
-                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X) = it->FastGetSolutionStepValue(VELOCITY_X) * delta_time;
+                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X) = it->FastGetSolutionStepValue(VELOCITY_X) * mrModelPart.GetProcessInfo()[DELTA_TIME];
                     it->FastGetSolutionStepValue(DISPLACEMENT_X) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X);
                     it->X() = it->X0() + it->FastGetSolutionStepValue(DISPLACEMENT_X);
                     it->FastGetSolutionStepValue(VELOCITY_Y) = mVelocity * sin_theta;
-                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y) = it->FastGetSolutionStepValue(VELOCITY_Y) * delta_time;
+                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y) = it->FastGetSolutionStepValue(VELOCITY_Y) * mrModelPart.GetProcessInfo()[DELTA_TIME];
                     it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
                     it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
                     // Save calculated velocity and reaction for print
@@ -340,14 +359,10 @@ public:
     void ExecuteFinalizeSolutionStep() override
     {
         // Update K with latest ReactionStress after the axis has been loaded
-        if (mApplyCM == true) {
-            if (mAlternateAxisLoading == true) {
-                const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
-                double ReactionStress = CalculateReactionStress();
-
-                if(mUpdateStiffness == true) {
-                    mStiffness = EstimateStiffness(ReactionStress,delta_time);
-                }
+        if (mAlternateAxisLoading == true && mApplyCM == true && mIsEndStep == true) {
+            double ReactionStress = CalculateReactionStress();
+            if(mUpdateStiffness == true) {
+                mStiffness = EstimateStiffness(ReactionStress,mCMTimeStep);
             }
         }
     }
@@ -390,11 +405,17 @@ protected:
     std::vector<double> mVectorOfLastStresses;
     double mStressAveragingTime;
     bool mAlternateAxisLoading;
-    unsigned int mXCounter;
-    unsigned int mYCounter;
-    unsigned int mZCounter;
+    unsigned int mXStartStep;
+    unsigned int mXEndStep;
+    unsigned int mYStartStep;
+    unsigned int mYEndStep;
+    unsigned int mZStartStep;
+    unsigned int mZEndStep;
     bool mApplyCM;
+    bool mIsStartStep;
+    bool mIsEndStep;
     unsigned int mStep;
+    double mCMTimeStep;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -438,29 +459,60 @@ private:
     void IsTimeToApplyCM(){
         const double current_time = mrModelPart.GetProcessInfo()[TIME];
         mApplyCM = false;
+        mIsStartStep = false;
+        mIsEndStep = false;
+        unsigned int cm_num_super_steps = (int)(mCMTimeStep / mrModelPart.GetProcessInfo()[DELTA_TIME]);
 
         if(current_time >= mStartTime) {
             if (mAlternateAxisLoading == true) {
                 if (mImposedDirection == 0) {
-                    if(mStep == mXCounter){
+                    if (mStep >= mXStartStep && mStep <= mXEndStep) {
                         mApplyCM = true;
-                        mXCounter += 3;
+                        if(mStep == mXStartStep){
+                            mIsStartStep = true;
+                        } else if (mStep == mXEndStep) {
+                            mIsEndStep = true;
+                        }
+                        if (mIsEndStep == true) {
+                            mXStartStep += 3*cm_num_super_steps;
+                            mXEndStep += 3*cm_num_super_steps;
+                        }
                     }
                 } else if (mImposedDirection == 1) {
-                    if(mStep == mYCounter){
+                    if (mStep >= mYStartStep && mStep <= mYEndStep) {
                         mApplyCM = true;
-                        mYCounter += 3;
+                        if(mStep == mYStartStep){
+                            mIsStartStep = true;
+                        } else if (mStep == mYEndStep) {
+                            mIsEndStep = true;
+                        }
+                        if (mIsEndStep == true) {
+                            mYStartStep += 3*cm_num_super_steps;
+                            mYEndStep += 3*cm_num_super_steps;
+                        }
                     }
                 } else if (mImposedDirection == 2) {
-                    if(mStep == mZCounter){
+                    if (mStep >= mZStartStep && mStep <= mZEndStep) {
                         mApplyCM = true;
-                        mZCounter += 3;
+                        if(mStep == mZStartStep){
+                            mIsStartStep = true;
+                        } else if (mStep == mZEndStep) {
+                            mIsEndStep = true;
+                        }
+                        if (mIsEndStep == true) {
+                            mZStartStep += 3*cm_num_super_steps;
+                            mZEndStep += 3*cm_num_super_steps;
+                        }
                     }
                 } else {
                     mApplyCM = true;
+                    mIsStartStep = true;
+                    mIsEndStep = true;
                 }
             } else {
                 mApplyCM = true;
+                mIsStartStep = true;
+                mIsEndStep = true;
             }
         }
     }
