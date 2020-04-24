@@ -88,16 +88,19 @@ class PreUtilities
         number_of_spheres_with_i_neighbours.resize(20);
         for(int i=0; i<(int)number_of_spheres_with_i_neighbours.size(); i++) {number_of_spheres_with_i_neighbours[i] = 0;}
 
-        ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+        const ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType::ptr_const_iterator begin = pElements.ptr_begin();
+
         for(int i=0; i<(int)pElements.size(); i++) {
-            ElementsArrayType::iterator it = pElements.ptr_begin() + i;
-            SphericContinuumParticle* p_cont_sphere = dynamic_cast<SphericContinuumParticle*>(&*it);
+            ElementsArrayType::ptr_const_iterator it = begin + i;
+            const Element& el = **it;
+            const SphericContinuumParticle* p_cont_sphere = dynamic_cast<const SphericContinuumParticle*>(&el);
             if(p_cont_sphere != NULL) {
                 unsigned int size = p_cont_sphere->mContinuumInitialNeighborsSize;
                 if(size > number_of_spheres_with_i_neighbours.size() - 1) size = number_of_spheres_with_i_neighbours.size() - 1;
                 number_of_spheres_with_i_neighbours[size] += 1;
             } else {
-                SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(&*it);
+                const SphericParticle* p_sphere = dynamic_cast<const SphericParticle*>(&el);
                 unsigned int size = p_sphere->mNeighbourElements.size();
                 if(size > number_of_spheres_with_i_neighbours.size() - 1) size = number_of_spheres_with_i_neighbours.size() - 1;
                 number_of_spheres_with_i_neighbours[size] += 1;
