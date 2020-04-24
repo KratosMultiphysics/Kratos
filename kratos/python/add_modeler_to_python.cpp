@@ -81,9 +81,6 @@ void  AddModelerToPython(pybind11::module& m)
     .def("GenerateModelPart", GenerateModelPart2)
     .def("ImportModelPart", &Modeler::ImportModelPart)
     .def("PrepareModelPart", &Modeler::PrepareModelPart)
-    // Modeler Stages Solution Loop
-    .def("UpdateModelInitializeSolutionStep", &Modeler::UpdateModelInitializeSolutionStep)
-    .def("UpdateModelFinalizeSolutionStep", &Modeler::UpdateModelFinalizeSolutionStep)
     // Additional Old Functions
     .def("GenerateModelPart", GenerateModelPart1)
     .def("GenerateMesh",&GenerateMesh)
