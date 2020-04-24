@@ -87,24 +87,6 @@ public:
     {}
 
     ///@}
-    ///@name Modeler Stages at Solving
-    ///@{
-
-    /* Updates the model, maps information from the analysis model_part
-       to the geometry model_part or updates the geometry model_part at
-       initialize solution step.
-    */
-    virtual void UpdateModelInitializeSolutionStep() const
-    {}
-
-    /* Updates the model, maps information from the analysis model_part
-       to the geometry model_part or updates the geometry model_part at
-       Finalize solution step.
-    */
-    virtual void UpdateModelFinalizeSolutionStep() const
-    {}
-
-    ///@}
     ///@name Operators
     ///@{
 
