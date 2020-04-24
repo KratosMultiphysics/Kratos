@@ -95,7 +95,7 @@ class PreUtilities
             ElementsArrayType::ptr_const_iterator it = begin + i;
             const Element& el = **it;
             const SphericContinuumParticle* p_cont_sphere = dynamic_cast<const SphericContinuumParticle*>(&el);
-            if(p_cont_sphere != NULL) {
+            if(p_cont_sphere) {
                 unsigned int size = p_cont_sphere->mContinuumInitialNeighborsSize;
                 if(size > number_of_spheres_with_i_neighbours.size() - 1) size = number_of_spheres_with_i_neighbours.size() - 1;
                 number_of_spheres_with_i_neighbours[size] += 1;
