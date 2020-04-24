@@ -54,14 +54,14 @@ public:
 
     /// Default constructor.
     Modeler(
-        const Parameters ModelerParameters = Parameters())
+        Parameters ModelerParameters = Parameters())
         : mParameters(ModelerParameters)
     {}
    
     /// Constructor with Model
     Modeler(
         Model& rModel,
-        const Parameters ModelerParameters = Parameters())
+        Parameters ModelerParameters = Parameters())
         : mParameters(ModelerParameters)
     {}
 
@@ -138,7 +138,7 @@ protected:
     ///@name Protected members
     ///@{
 
-    const Parameters mParameters;
+    Parameters mParameters;
 
     ///@}
 
