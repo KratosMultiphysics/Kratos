@@ -187,13 +187,12 @@ public:
         }
 
         double ReactionStress = CalculateReactionStress();
+        ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
         // Check whether this is a loading step for the current axis
         IsTimeToApplyCM();
 
         if (mApplyCM == true) {
-
-            ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
             // Update K if required
             double delta_time;
