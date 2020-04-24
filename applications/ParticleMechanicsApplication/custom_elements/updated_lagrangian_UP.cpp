@@ -1035,7 +1035,7 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const Pr
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType matrix_size = dimension * number_of_nodes;
 
-    if (rMassMatrix.size1() != matrix_size)
+    if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size)
         rMassMatrix.resize(matrix_size, matrix_size, false);
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
 
