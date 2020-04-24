@@ -1086,31 +1086,74 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperator(
     rRotationOperator(2, 0) = sin1 * sin2;
     rRotationOperator(2, 1) = -cos1 * sin2;
     rRotationOperator(2, 2) = cos2;
+
+    rRotationOperator = trans(rRotationOperator);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorConstitutiveMatrix(
-    const Matrix& rOldOperator,
-    Matrix& rNewOperator
+void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
+    const Matrix& rEulerOperator,
+    Matrix& rVoigtOperator
     )
 {
-    if (rNewOperator.size1() != VoigtSize || rNewOperator.size2() != VoigtSize)
-        rNewOperator.resize(VoigtSize, VoigtSize);
-    noalias(rNewOperator) = ZeroMatrix(VoigtSize, VoigtSize);
+    if (rVoigtOperator.size1() != VoigtSize || rVoigtOperator.size2() != VoigtSize)
+        rVoigtOperator.resize(VoigtSize, VoigtSize);
+    rVoigtOperator.clear();
 
-    for (int i = 0; i < VoigtSize; i++) {
-        for (int j = 0; j < VoigtSize; j++) {
-            rNewOperator(j, i) = rOldOperator(GetLfConversion(i), GetLfConversion(j)) * 
-                                 rOldOperator(GetKfConversion(i), GetKfConversion(j));
-            if (i >= 3) {
-                rNewOperator(j, i) += rOldOperator(GetKfConversion(i), GetLfConversion(j)) * 
-                                      rOldOperator(GetLfConversion(i), GetKfConversion(j));
-            }
-        }
-    }
+    const double l1 = rEulerOperator(0, 0);
+    const double l2 = rEulerOperator(1, 0);
+    const double l3 = rEulerOperator(2, 0);
+    const double m1 = rEulerOperator(0, 1);
+    const double m2 = rEulerOperator(1, 1);
+    const double m3 = rEulerOperator(2, 1);
+    const double n1 = rEulerOperator(0, 2);
+    const double n2 = rEulerOperator(1, 2);
+    const double n3 = rEulerOperator(2, 2);
+
+    rVoigtOperator(0, 0) = l1 * l1;
+    rVoigtOperator(0, 1) = l2 * l2;
+    rVoigtOperator(0, 2) = l3 * l3;
+    rVoigtOperator(0, 3) = 2.0 * l1 * l2;
+    rVoigtOperator(0, 4) = 2.0 * l2 * l3;
+    rVoigtOperator(0, 5) = 2.0 * l1 * l3;
+
+    rVoigtOperator(1, 0) = m1 * m1;
+    rVoigtOperator(1, 1) = m2 * m2;
+    rVoigtOperator(1, 2) = m3 * m3;
+    rVoigtOperator(1, 3) = 2.0 * m1 * m2;
+    rVoigtOperator(1, 4) = 2.0 * m2 * m3;
+    rVoigtOperator(1, 5) = 2.0 * m1 * m3;
+
+    rVoigtOperator(2, 0) = n1 * n1;
+    rVoigtOperator(2, 1) = n2 * n2;
+    rVoigtOperator(2, 2) = n3 * n3;
+    rVoigtOperator(2, 3) = 2.0 * n1 * n2;
+    rVoigtOperator(2, 4) = 2.0 * n2 * n3;
+    rVoigtOperator(2, 5) = 2.0 * n1 * n3;
+
+    rVoigtOperator(3, 0) = l1 * m1;
+    rVoigtOperator(3, 1) = l2 * m2;
+    rVoigtOperator(3, 2) = l3 * n3;
+    rVoigtOperator(3, 3) = l1 * m2 + l2 * m1;
+    rVoigtOperator(3, 4) = l2 * m3 + l3 * m2;
+    rVoigtOperator(3, 5) = l1 * m3 + l3 * m1;
+
+    rVoigtOperator(4, 0) = m1 * n1;
+    rVoigtOperator(4, 1) = m2 * n2;
+    rVoigtOperator(4, 2) = m3 * n3;
+    rVoigtOperator(4, 3) = m1 * n2 + l2 * n1;
+    rVoigtOperator(4, 4) = m2 * n3 + m3 * n2;
+    rVoigtOperator(4, 5) = m1 * n3 + m3 * n1;
+
+    rVoigtOperator(5, 0) = l1 * n1;
+    rVoigtOperator(5, 1) = l2 * n2;
+    rVoigtOperator(5, 2) = l3 * n3;
+    rVoigtOperator(5, 3) = l1 * m2 + l2 * m1;
+    rVoigtOperator(5, 4) = l2 * n3 + l3 * n2;
+    rVoigtOperator(5, 5) = l1 * n3 + l3 * n1;
 }
 
 /***********************************************************************************/
@@ -1210,38 +1253,31 @@ void ConstitutiveLawUtilities<TVoigtSize>::RotateMatrixToGlobalAxes(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::RotateStrainVectorToLocalAxes(
+template<>
+void ConstitutiveLawUtilities<6>::RotateStrainVectorToLocalAxes(
     const Matrix& rRotationMatrix, // global to local
     Vector& rStrainVector // it enters as global
     )
 {
-
-    Matrix strain_tensor(Dimension, Dimension);
-    strain_tensor = MathUtils<double>::StrainVectorToTensor(rStrainVector);
-
-    // Eloc = R * Eglob * trans(R)
-    noalias(strain_tensor) = prod(rRotationMatrix, Matrix(prod(strain_tensor, trans(rRotationMatrix))));
-
-    rStrainVector = MathUtils<double>::StrainTensorToVector(strain_tensor, VoigtSize);
+    Matrix rotation_matrix(VoigtSize, VoigtSize);
+    noalias(rotation_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
+    ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(trans(rRotationMatrix), rotation_matrix);
+    rStrainVector = prod(rotation_matrix, rStrainVector);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::RotateStressVectorToGlobalAxes(
+template<>
+void ConstitutiveLawUtilities<6>::RotateStressVectorToGlobalAxes(
     const Matrix& rRotationMatrix, // global to local
     Vector& rStressVector // it enters as global
     )
 {
-    Matrix stress_tensor(Dimension, Dimension);
-    stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
-
-    // Sglob = trans(R) * Sloc * R
-    noalias(stress_tensor) = prod(trans(rRotationMatrix), Matrix(prod(stress_tensor, rRotationMatrix)));
-
-    rStressVector = MathUtils<double>::StressTensorToVector(stress_tensor, VoigtSize);
+    Matrix rotation_matrix(VoigtSize, VoigtSize);
+    noalias(rotation_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
+    ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rRotationMatrix, rotation_matrix);
+    rStressVector = prod(rotation_matrix, rStressVector);
 }
 
 /***********************************************************************************/

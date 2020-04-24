@@ -459,7 +459,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 
     /**
      * @brief This computes the total rotation matrix
-     * rotates from global to local coordinates
+     * rotates from local to global coordinates
      * http://mathworld.wolfram.com/EulerAngles.html
      */
     static void CalculateRotationOperator(
@@ -474,7 +474,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * 3x3 rotation matrix to the 6x6
      * http://mathworld.wolfram.com/EulerAngles.html
      */
-    static void CalculateRotationOperatorConstitutiveMatrix(
+    static void CalculateRotationOperatorVoigt(
         const Matrix &rOldOperator,
         Matrix &rNewOperator
     );
