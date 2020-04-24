@@ -61,7 +61,7 @@ void  AddModelerToPython(pybind11::module& m)
 {
     py::class_<Modeler, Modeler::Pointer>(m,"Modeler")
     .def(py::init<>())
-    .def(py::init<Parameters>())
+    .def(py::init<&Modeler, Parameters>())
     // Modeler Stages Initialize
     .def("ImportGeometryModel", &Modeler::ImportGeometryModel)
     .def("PrepareGeometryModel", &Modeler::PrepareGeometryModel)
