@@ -109,7 +109,7 @@ class PreUtilities
         std::ofstream outputfile(filename, std::ios_base::out | std::ios_base::app);
         outputfile << "number_of_neighbours   percentage_of_spheres_with_that_number_of_neighbours    number_of_spheres_with_that_number_of_neighbours\n";
         for(int i=0; i<(int)number_of_spheres_with_i_neighbours.size(); i++) {
-            const double percentage = (double)(number_of_spheres_with_i_neighbours[i]) / double(rSpheresModelPart.NumberOfElements(0)) * 100.0;
+            const double percentage = (double)(number_of_spheres_with_i_neighbours[i]) / (double)(rSpheresModelPart.NumberOfElements(0)) * 100.0;
             outputfile <<i<<"        "<<percentage<<"        "<<number_of_spheres_with_i_neighbours[i]<<"\n";
         }
 
