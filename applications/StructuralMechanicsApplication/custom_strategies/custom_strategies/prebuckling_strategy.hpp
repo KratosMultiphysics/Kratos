@@ -101,6 +101,7 @@ public:
      * @param SmallLoadIncrement Load increment of the small load step
      * @param PathFollowingStep Load increment of the big load step
      * @param ConvergenceRatio Convergence ratio for the computed eigenvalues
+     * @param MakeMatricesSymmetricFlag Flag to ensures that matrices are symmetric before eigenvalue problem is evaluated
      */
     PrebucklingStrategy(
         ModelPart &rModelPart,
@@ -109,11 +110,7 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria,
         int MaxIteration,
-        double InitialLoadIncrement,
-        double SmallLoadIncrement,
-        double PathFollowingStep,
-        double ConvergenceRatio,
-        bool MakeMatricesSymmetricFlag )
+        Parameters BucklingSettings )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
         KRATOS_TRY
@@ -128,15 +125,15 @@ public:
 
         mMaxIteration = MaxIteration;
 
-        mInitialLoadIncrement = InitialLoadIncrement;
+        mInitialLoadIncrement = BucklingSettings["initial_load_increment"].GetDouble();
 
-        mSmallLoadIncrement = SmallLoadIncrement;
+        mSmallLoadIncrement = BucklingSettings["small_load_increment"].GetDouble();
 
-        mPathFollowingStep = PathFollowingStep;
+        mPathFollowingStep = BucklingSettings["path_following_step"].GetDouble();
 
-        mConvergenceRatio = ConvergenceRatio;
+        mConvergenceRatio = BucklingSettings["convergence_ratio"].GetDouble();
 
-        mMakeMatricesSymmetricFlag = MakeMatricesSymmetricFlag;
+        mMakeMatricesSymmetricFlag = BucklingSettings["make_matrices_symmetric"].GetBool();
 
         // Set Eigensolver flags
         mpEigenSolver->SetDofSetIsInitializedFlag(false);

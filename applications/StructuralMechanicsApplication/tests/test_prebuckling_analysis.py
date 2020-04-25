@@ -97,6 +97,16 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         }
         """)
 
+        buckling_settings = KratosMultiphysics.Parameters("""
+        {
+            "initial_load_increment"    : 1.0,
+            "small_load_increment"      : 0.0005,
+            "path_following_step"       : 0.5,
+            "convergence_ratio"         : 0.005,
+            "make_matrices_symmetric"   : true
+        }
+        """)
+
         eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
         eigen_solver_ = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(eigen_solver)
         convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-4,1e-9)
@@ -111,11 +121,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
                                                                            builder_and_solver,
                                                                            convergence_criterion,
                                                                            10,
-                                                                           1.0,
-                                                                           0.0005,
-                                                                           0.5,
-                                                                           0.005,
-                                                                           True )
+                                                                           buckling_settings )
         eig_strategy.SetEchoLevel(echo)
         LoadFactor = []
         for i in range(iterations):
