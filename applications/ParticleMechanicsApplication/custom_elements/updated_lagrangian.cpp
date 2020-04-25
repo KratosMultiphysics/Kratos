@@ -1284,9 +1284,9 @@ void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, const Proc
     Vector N;
     this->MPMShapeFunctionPointValues(N, mMP.xg);
 
-    const bool is_consistent_mass_matrix = (rCurrentProcessInfo.Has(USE_CONSISTENT_MASS_MATRIX))
-        ? rCurrentProcessInfo.GetValue(USE_CONSISTENT_MASS_MATRIX)
-        : false;
+    const bool is_lumped_mass_matrix = (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
+        ? rCurrentProcessInfo.GetValue(COMPUTE_LUMPED_MASS_MATRIX)
+        : true;
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
@@ -1296,7 +1296,7 @@ void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, const Proc
         rMassMatrix.resize( matrix_size, matrix_size, false );
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
     
-    if (is_consistent_mass_matrix) {
+    if (!is_lumped_mass_matrix) {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             for (IndexType j = 0; j < number_of_nodes; ++j) {
                 for (IndexType k = 0; k < dimension; ++k)
