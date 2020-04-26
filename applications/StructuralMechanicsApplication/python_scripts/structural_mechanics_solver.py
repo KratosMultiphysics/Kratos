@@ -51,6 +51,16 @@ class MechanicalSolver(PythonSolver):
         if settings_have_smps_for_comp_mp:
             kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "problem_domain_sub_model_part_list" and "processes_sub_model_part_list" is deprecated, please remove it from your "solver_settings"')
 
+        settings_have_use_block_builder = custom_settings.Has("block_builder")
+
+        if settings_have_use_block_builder:
+            kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
+            if not custom_settings.Has("builder_and_solver_settings"):
+                custom_settings.AddEmptyValue("builder_and_solver_settings")
+
+            custom_settings["builder_and_solver_settings"].AddValue("use_block_builder", custom_settings["block_builder"])
+            custom_settings.RemoveValue("block_builder")
+
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
 
@@ -113,14 +123,17 @@ class MechanicalSolver(PythonSolver):
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
-            "block_builder" : true,
             "builder_and_solver_settings" : {
-                "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
-                "silent_warnings"                                    : false,
-                "advanced_settings"                                  : {
-                    "consider_lagrange_multiplier_constraint_resolution" : "none",
-                    "constraint_scale_factor"                            : "use_mean_diagonal",
-                    "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
+                "use_block_builder" : true,
+                "use_lagrange_BS"   : false,
+                "advanced_settings"                      : {
+                    "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
+                    "silent_warnings"                    : false,
+                    "lagrange_multiplier_settings"                           : {
+                        "consider_lagrange_multiplier_constraint_resolution" : "none",
+                        "constraint_scale_factor"                            : "use_mean_diagonal",
+                        "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
+                    }
                 }
             },
             "clear_storage": false,
@@ -141,6 +154,15 @@ class MechanicalSolver(PythonSolver):
         }""")
         this_defaults.AddMissingParameters(super(MechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        default_settings = self.GetDefaultSettings()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
+        # Recursively validate some subparameters
+        self.settings["builder_and_solver_settings"].RecursivelyValidateAndAssignDefaults(default_settings["builder_and_solver_settings"])
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
@@ -441,10 +463,9 @@ class MechanicalSolver(PythonSolver):
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
-        if self.settings["block_builder"].GetBool():
-            bs_params = self.settings["builder_and_solver_settings"]
-            consider_lagrange_multiplier_constraint_resolution = bs_params["advanced_settings"]["consider_lagrange_multiplier_constraint_resolution"].GetString()
-            if consider_lagrange_multiplier_constraint_resolution == "none":
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+            bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
+            if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
