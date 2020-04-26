@@ -11,8 +11,8 @@
 //
 
 // System includes
-#include <cmath>
 #include "rans_application_variables.h"
+#include <cmath>
 
 // Include base h
 #include "rans_calculation_utilities.h"
@@ -259,6 +259,18 @@ double GetDivergence(const Geometry<ModelPart::NodeType>& rGeometry,
     return value;
 }
 
+template <unsigned int TNumNodes>
+void CalculateGaussSensitivities(BoundedVector<double, TNumNodes>& rGaussSensitivities,
+                                 const BoundedVector<double, TNumNodes>& rNodalSensitivities,
+                                 const Vector& rGaussShapeFunctions)
+{
+    for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node)
+    {
+        rGaussSensitivities[i_node] =
+            rGaussShapeFunctions[i_node] * rNodalSensitivities[i_node];
+    }
+}
+
 template <unsigned int TDim>
 Vector GetVector(const array_1d<double, 3>& rVector)
 {
@@ -451,6 +463,14 @@ template void CalculateGeometryParameterDerivativesShapeSensitivity<2>(
 
 template void CalculateGeometryParameterDerivativesShapeSensitivity<3>(
     BoundedMatrix<double, 3, 3>&, const ShapeParameter&, const Matrix&, const Matrix&);
+
+template void CalculateGaussSensitivities<3>(BoundedVector<double, 3>&,
+                                             const BoundedVector<double, 3>&,
+                                             const Vector&);
+
+template void CalculateGaussSensitivities<4>(BoundedVector<double, 4>&,
+                                             const BoundedVector<double, 4>&,
+                                             const Vector&);
 
 template Vector GetVector<2>(const array_1d<double, 3>&);
 template Vector GetVector<3>(const array_1d<double, 3>&);

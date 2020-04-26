@@ -102,6 +102,11 @@ double GetDivergence(const Geometry<ModelPart::NodeType>& rGeometry,
                      const Matrix& rShapeDerivatives,
                      const int Step = 0);
 
+template <unsigned int TNumNodes>
+void CalculateGaussSensitivities(BoundedVector<double, TNumNodes>& rGaussSensitivities,
+                                 const BoundedVector<double, TNumNodes>& rNodalSensitivities,
+                                 const Vector& rGaussShapeFunctions);
+
 template <unsigned int TDim>
 Vector GetVector(const array_1d<double, 3>& rVector);
 
