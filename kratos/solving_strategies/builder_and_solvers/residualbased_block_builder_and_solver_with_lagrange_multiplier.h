@@ -131,7 +131,7 @@ public:
             "name"                                               : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
             "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
             "silent_warnings"                                    : false,
-            "advanced_settings"                                  : {
+            "lagrange_multiplier_settings"                       : {
                 "consider_lagrange_multiplier_constraint_resolution" : "Double",
                 "constraint_scale_factor"                            : "use_mean_diagonal",
                 "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
@@ -169,7 +169,7 @@ public:
         std::set<std::string> available_options_for_constraints_scale = {"use_mean_diagonal","use_diagonal_norm","defined_in_process_info"};
 
         // Definition of the constraint scale factor
-        const std::string& r_constraint_scale_factor = ThisParameters["advanced_settings"]["constraint_scale_factor"].GetString();
+        const std::string& r_constraint_scale_factor = ThisParameters["lagrange_multiplier_settings"]["constraint_scale_factor"].GetString();
 
         // Check the values
         if (available_options_for_constraints_scale.find(r_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
@@ -189,7 +189,7 @@ public:
         }
 
         // Definition of the auxiliar constraint scale factor
-        const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["advanced_settings"]["auxiliar_constraint_scale_factor"].GetString();
+        const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["lagrange_multiplier_settings"]["auxiliar_constraint_scale_factor"].GetString();
 
         // Check the values
         if (available_options_for_constraints_scale.find(r_auxiliar_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
@@ -208,7 +208,7 @@ public:
             mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR;
         }
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
-        if (ThisParameters["advanced_settings"]["consider_lagrange_multiplier_constraint_resolution"].GetString() == "Double") {
+        if (ThisParameters["lagrange_multiplier_settings"]["consider_lagrange_multiplier_constraint_resolution"].GetString() == "Double") {
             BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
         } else {
             BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, false);
