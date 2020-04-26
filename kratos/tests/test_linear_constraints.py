@@ -83,7 +83,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
             params = KM.Parameters("""{
                 "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
                 "silent_warnings"                                    : false,
-                "advanced_settings"                                  : {
+                "lagrange_multiplier_settings"                                  : {
                     "consider_lagrange_multiplier_constraint_resolution" : "Single"
                 }
             }""")
@@ -92,7 +92,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
             params = KM.Parameters("""{
                 "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
                 "silent_warnings"                                    : false,
-                "advanced_settings"                                  : {
+                "lagrange_multiplier_settings"                                  : {
                     "consider_lagrange_multiplier_constraint_resolution" : "Double"
                 }
             }""")
