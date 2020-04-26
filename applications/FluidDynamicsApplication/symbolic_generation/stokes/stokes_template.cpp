@@ -266,7 +266,7 @@ void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointLHSContribution(
 
     auto &lhs = rData.lhs;
 
-    //substitute_lhs_2D
+    //substitute_lhs_2D3
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -300,7 +300,7 @@ void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointLHSContribution(
 
     auto &lhs = rData.lhs;
 
-    //substitute_lhs_2D
+    //substitute_lhs_2D4
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -335,7 +335,7 @@ void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
 
     auto &lhs = rData.lhs;
 
-    //substitute_lhs_3D
+    //substitute_lhs_3D4
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -370,7 +370,7 @@ void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointLHSContribution(
 
     auto &lhs = rData.lhs;
 
-    //substitute_lhs_3D
+    //substitute_lhs_3D6
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -405,7 +405,7 @@ void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointLHSContribution(
 
     auto &lhs = rData.lhs;
 
-    //substitute_lhs_3D
+    //substitute_lhs_3D8
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -446,7 +446,7 @@ void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
 
     auto &rhs = rData.rhs;
 
-    //substitute_rhs_2D
+    //substitute_rhs_2D3
 
     noalias(rRHS) += rData.Weight * rhs;
 }
@@ -486,7 +486,7 @@ void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointRHSContribution(
 
     auto &rhs = rData.rhs;
 
-    //substitute_rhs_2D
+    //substitute_rhs_2D4
 
     noalias(rRHS) += rData.Weight * rhs;
 }
@@ -526,7 +526,7 @@ void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
 
     auto &rhs = rData.rhs;
 
-    //substitute_rhs_3D
+    //substitute_rhs_3D4
 
     noalias(rRHS) += rData.Weight * rhs;
 }
@@ -566,7 +566,7 @@ void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointRHSContribution(
 
     auto &rhs = rData.rhs;
 
-    //substitute_rhs_3D
+    //substitute_rhs_3D6
 
     noalias(rRHS) += rData.Weight * rhs;
 }
@@ -606,7 +606,7 @@ void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointRHSContribution(
 
     auto &rhs = rData.rhs;
 
-    //substitute_rhs_3D
+    //substitute_rhs_3D8
 
     noalias(rRHS) += rData.Weight * rhs;
 }
