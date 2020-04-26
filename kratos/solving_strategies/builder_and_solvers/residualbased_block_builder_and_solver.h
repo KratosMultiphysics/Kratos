@@ -135,13 +135,11 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "name"                               : "ResidualBasedBlockBuilderAndSolver",
-            "block_builder"                      : true,
             "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
-            "silent_warnings"                    : false,
-            "advanced_settings"                  : {}
+            "silent_warnings"                    : false
         })" );
 
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        ThisParameters.ValidateAndAssignDefaultsSkipSubParameters(default_parameters);
 
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
