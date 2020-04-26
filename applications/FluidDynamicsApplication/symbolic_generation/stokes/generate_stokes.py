@@ -32,7 +32,6 @@ templatefile = open("stokes_template.cpp")
 outstring = templatefile.read()
 
 for dim, nnodes in zip(dim_vector, nnodes_vector):
-
     if(dim == 2):
         strain_size = 3
     else:
@@ -40,7 +39,6 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     impose_partion_of_unity = False
     N,DN = sfu.DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
-
     ## Unknown fields definition
     v = sfu.DefineMatrix('v',nnodes,dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
     vn = sfu.DefineMatrix('vn',nnodes,dim)          # Previous step velocity
@@ -170,13 +168,21 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     #####################################################################
     #####################################################################
 
-    if(dim == 2):
-        outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
-        outstring = outstring.replace("//substitute_rhs_2D", rhs_out)
-
-    elif(dim == 3):
-        outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
-        outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
+    if(dim == 2 and nnodes == 3):
+        outstring = outstring.replace("//substitute_lhs_2D3", lhs_out)
+        outstring = outstring.replace("//substitute_rhs_2D3", rhs_out)
+    elif(dim == 2 and nnodes == 4):
+        outstring = outstring.replace("//substitute_lhs_2D4", lhs_out)
+        outstring = outstring.replace("//substitute_rhs_2D4", rhs_out)
+    elif(dim == 3 and nnodes == 4):
+        outstring = outstring.replace("//substitute_lhs_3D4", lhs_out)
+        outstring = outstring.replace("//substitute_rhs_3D4", rhs_out)
+    elif(dim == 3 and nnodes == 6):
+        outstring = outstring.replace("//substitute_lhs_3D6", lhs_out)
+        outstring = outstring.replace("//substitute_rhs_3D6", rhs_out)
+    elif(dim == 3 and nnodes == 8):
+        outstring = outstring.replace("//substitute_lhs_3D8", lhs_out)
+        outstring = outstring.replace("//substitute_rhs_3D8", rhs_out)
 
 #We write in the file
 out = open("stokes.cpp",'w')
