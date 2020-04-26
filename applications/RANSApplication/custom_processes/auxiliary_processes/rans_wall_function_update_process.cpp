@@ -133,7 +133,7 @@ void RansWallFunctionUpdateProcess::Execute()
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
-    VariableUtils().SetHistoricalVariableToZero(RANS_Y_PLUS, r_nodes);
+    VariableUtils().SetNonHistoricalVariableToZero(RANS_Y_PLUS, r_nodes);
     VariableUtils().SetNonHistoricalVariableToZero(FRICTION_VELOCITY, r_nodes);
 
     ModelPart::ConditionsContainerType& r_conditions = r_model_part.Conditions();
@@ -184,12 +184,12 @@ void RansWallFunctionUpdateProcess::Execute()
             {
                 ModelPart::NodeType& r_node = r_geometry[i_node];
                 const array_1d<double, 3>& r_u_tau = r_node.GetValue(FRICTION_VELOCITY);
+                const double current_y_plus = r_node.GetValue(RANS_Y_PLUS);
                 const double inv_number_of_neighbour_conditions =
                     1.0 / static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
 
                 r_node.SetLock();
-                r_node.FastGetSolutionStepValue(RANS_Y_PLUS) +=
-                    y_plus * inv_number_of_neighbour_conditions;
+                r_node.SetValue(RANS_Y_PLUS, current_y_plus + y_plus * inv_number_of_neighbour_conditions);
                 r_node.SetValue(FRICTION_VELOCITY,
                                 r_u_tau + r_friction_velocity * inv_number_of_neighbour_conditions);
                 r_node.UnSetLock();
@@ -197,7 +197,7 @@ void RansWallFunctionUpdateProcess::Execute()
         }
     }
 
-    r_model_part.GetCommunicator().AssembleCurrentData(RANS_Y_PLUS);
+    r_model_part.GetCommunicator().AssembleNonHistoricalData(RANS_Y_PLUS);
     r_model_part.GetCommunicator().AssembleNonHistoricalData(FRICTION_VELOCITY);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
