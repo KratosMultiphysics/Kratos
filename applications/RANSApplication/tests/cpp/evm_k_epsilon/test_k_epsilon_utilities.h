@@ -24,6 +24,8 @@
 #include "includes/process_info.h"
 
 // Application includes
+#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_update_process.h"
+#include "custom_utilities/test_utilities.h"
 
 namespace Kratos
 {
@@ -73,6 +75,48 @@ void RunRansEvmKEpsilonTest(const std::string& PrimalName,
                             const double Tolerance,
                             const int DerivativesOffset = 0,
                             const int EquationOffset = 0);
+
+template <unsigned int TDim, unsigned int TNumNodes, typename TDataType, typename PrimalElementDataType, typename AdjointElementDataType>
+void RunRansEvmKEpsilonElementDataTest(const Variable<TDataType>& rPerturbVariable,
+                                       const RansModellingApplicationTestUtilities::ElementDataMethods& rMethodType,
+                                       const double Delta,
+                                       const double Tolerance)
+{
+    Model primal_model;
+    ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ElementsContainerType>(
+        r_primal_model_part, "Element2D3N");
+
+    Model adjoint_model;
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ElementsContainerType>(
+        r_adjoint_model_part, "Element2D3N");
+
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "test"
+    })");
+    RansNutKEpsilonHighReUpdateProcess adjoint_nut_process(adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReUpdateProcess primal_nut_process(primal_model, empty_nut_parameters);
+
+    std::vector<Process*> primal_processes;
+    std::vector<Process*> adjoint_processes;
+
+    primal_processes.push_back(&primal_nut_process);
+    adjoint_processes.push_back(&adjoint_nut_process);
+
+    auto perturbation_variable =
+        RansModellingApplicationTestUtilities::GetPerturbationMethod(rPerturbVariable);
+
+    auto primal_method =
+        RansModellingApplicationTestUtilities::GetPrimalMethod<PrimalElementDataType>(rMethodType);
+    auto adjoint_method =
+        RansModellingApplicationTestUtilities::GetAdjointMethod<TDim, TNumNodes, AdjointElementDataType>(
+            rMethodType, rPerturbVariable);
+
+    RansModellingApplicationTestUtilities::RunAdjointElementDataSensitivityTest<TDim, TNumNodes, PrimalElementDataType, AdjointElementDataType>(
+        r_primal_model_part, r_adjoint_model_part, primal_processes, adjoint_processes,
+        perturbation_variable, primal_method, adjoint_method, Delta, Tolerance);
+}
 
 } // namespace RansEvmKEpsilonModel
 } // namespace Testing

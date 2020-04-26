@@ -29,7 +29,6 @@
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
-#include "custom_utilities/test_utilities.h"
 #include "rans_application_variables.h"
 
 #include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.h"
