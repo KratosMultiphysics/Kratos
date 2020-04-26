@@ -322,7 +322,8 @@ class FractionalStepVelocityPressureFormulation(Formulation):
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
             "von_karman": 0.41,
-            "beta"      : 5.2
+            "beta"      : 5.2,
+            "c_mu"      : 0.09
         }''')
         settings.ValidateAndAssignDefaults(defaults)
 
@@ -337,6 +338,7 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.WALL_VON_KARMAN, self.von_karman)
         self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, self.beta)
         self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.RANS_Y_PLUS_LIMIT, self.y_plus_limit)
+        self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
 
     def GetStrategy(self):
         return self.solver

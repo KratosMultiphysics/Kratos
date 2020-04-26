@@ -99,6 +99,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.Y_WALL)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
 
         Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
@@ -239,8 +240,9 @@ class MonolithicVelocityPressureFormulation(Formulation):
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
-            "von_karman"  : 0.41,
-            "beta"        : 5.2
+            "von_karman": 0.41,
+            "beta"      : 5.2,
+            "c_mu"      : 0.09
         }''')
         settings.ValidateAndAssignDefaults(defaults)
 
@@ -255,6 +257,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
         self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.WALL_VON_KARMAN, self.von_karman)
         self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, self.beta)
         self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.RANS_Y_PLUS_LIMIT, self.y_plus_limit)
+        self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
 
     def GetStrategy(self):
         return self.solver

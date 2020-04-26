@@ -166,6 +166,7 @@ class KEpsilonHighReFormulation(Formulation):
             scheme_type = settings["scheme_type"].GetString()
             if (scheme_type == "steady"):
                 self.is_steady_simulation = True
+                self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, 0.0)
             elif (scheme_type == "transient"):
                 self.is_steady_simulation = False
                 default_settings = Kratos.Parameters('''{
