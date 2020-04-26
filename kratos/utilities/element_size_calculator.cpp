@@ -150,8 +150,9 @@ double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &r
     const Node<3>& r_node_5 = rGeometry[5];
 
     // Calculate face centers (top and bottom face)
-    array_1d<double,4> low_dseta = 0.25 * (r_node_0.Coordinates() + r_node_1.Coordinates() + r_node_2.Coordinates() );
-    array_1d<double,4> high_dseta = 0.25 * (r_node_3.Coordinates() + r_node_4.Coordinates() + r_node_5.Coordinates() );
+    double one_third = 1.0/3.0;
+    array_1d<double,3> low_dseta = one_third * (r_node_0.Coordinates() + r_node_1.Coordinates() + r_node_2.Coordinates() );
+    array_1d<double,3> high_dseta = one_third * (r_node_3.Coordinates() + r_node_4.Coordinates() + r_node_5.Coordinates() );
 
     //    0
     //   /  \
