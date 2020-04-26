@@ -64,31 +64,30 @@ public:
     {
     }
 
+    void CalculateConstants(const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateGaussPointData(const Vector& rShapeFunctions,
                                  const Matrix& rShapeFunctionDerivatives,
-                                 const ProcessInfo& rCurrentProcessInfo,
                                  const int Step = 0) override;
 
     double CalculateEffectiveKinematicViscosity(const Vector& rShapeFunctions,
-                                                const Matrix& rShapeFunctionDerivatives,
-                                                const ProcessInfo& rCurrentProcessInfo) const override;
+                                                const Matrix& rShapeFunctionDerivatives) const override;
 
     double CalculateReactionTerm(const Vector& rShapeFunctions,
-                                 const Matrix& rShapeFunctionDerivatives,
-                                 const ProcessInfo& rCurrentProcessInfo) const override;
+                                 const Matrix& rShapeFunctionDerivatives) const override;
 
     double CalculateSourceTerm(const Vector& rShapeFunctions,
-                               const Matrix& rShapeFunctionDerivatives,
-                               const ProcessInfo& rCurrentProcessInfo) const override;
+                               const Matrix& rShapeFunctionDerivatives) const override;
 
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
 
     double mGamma;
-    double mTurbulentKineticEnergy;
     double mTurbulentKinematicViscosity;
     double mKinematicViscosity;
     double mVelocityDivergence;
+    double mInvTkeSigma;
+    double mCmu;
 };
 
 ///@}

@@ -54,66 +54,56 @@ public:
         BoundedVector<double, TNumNodes>& rOutput,
         const Variable<double>& rDerivativeVariable,
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo) const = 0;
+        const Matrix& rShapeFunctionDerivatives) const = 0;
 
     virtual void CalculateEffectiveKinematicViscosityDerivatives(
         BoundedMatrix<double, TNumNodes, TDim>& rOutput,
         const Variable<array_1d<double, 3>>& rDerivativeVariable,
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo) const = 0;
+        const Matrix& rShapeFunctionDerivatives) const = 0;
 
-    virtual void CalculateReactionTermDerivatives(
-        BoundedVector<double, TNumNodes>& rOutput,
-        const Variable<double>& rDerivativeVariable,
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo) const = 0;
+    virtual void CalculateReactionTermDerivatives(BoundedVector<double, TNumNodes>& rOutput,
+                                                  const Variable<double>& rDerivativeVariable,
+                                                  const Vector& rShapeFunctions,
+                                                  const Matrix& rShapeFunctionDerivatives) const = 0;
 
     virtual void CalculateReactionTermDerivatives(
         BoundedMatrix<double, TNumNodes, TDim>& rOutput,
         const Variable<array_1d<double, 3>>& rDerivativeVariable,
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo) const = 0;
+        const Matrix& rShapeFunctionDerivatives) const = 0;
 
     virtual void CalculateSourceTermDerivatives(BoundedVector<double, TNumNodes>& rOutput,
                                                 const Variable<double>& rDerivativeVariable,
                                                 const Vector& rShapeFunctions,
-                                                const Matrix& rShapeFunctionDerivatives,
-                                                const ProcessInfo& rCurrentProcessInfo) const = 0;
+                                                const Matrix& rShapeFunctionDerivatives) const = 0;
 
     virtual void CalculateSourceTermDerivatives(
         BoundedMatrix<double, TNumNodes, TDim>& rOutput,
         const Variable<array_1d<double, 3>>& rDerivativeVariable,
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo) const = 0;
+        const Matrix& rShapeFunctionDerivatives) const = 0;
 
     virtual double CalculateEffectiveKinematicViscosityShapeSensitivity(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
         const ShapeParameter& rShapeDerivative,
         const double detJ_deriv,
-        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
-        const ProcessInfo& rCurrentProcessInfo) const = 0;
+        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const = 0;
 
     virtual double CalculateReactionTermShapeSensitivity(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
         const ShapeParameter& rShapeDerivative,
         const double detJ_deriv,
-        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
-        const ProcessInfo& rCurrentProcessInfo) const = 0;
+        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const = 0;
 
     virtual double CalculateSourceTermShapeSensitivity(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
         const ShapeParameter& rShapeDerivative,
         const double detJ_deriv,
-        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
-        const ProcessInfo& rCurrentProcessInfo) const = 0;
+        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const = 0;
 };
 } // namespace Kratos
 

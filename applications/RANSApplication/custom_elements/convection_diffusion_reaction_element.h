@@ -326,15 +326,16 @@ public:
         const GeometryType& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
+        r_current_data.CalculateConstants(rCurrentProcessInfo);
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
 
-            r_current_data.CalculateGaussPointData(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
             const double source = r_current_data.CalculateSourceTerm(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                gauss_shape_functions, r_shape_derivatives);
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {
@@ -505,6 +506,8 @@ public:
         const GeometryType& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
+        r_current_data.CalculateConstants(rCurrentProcessInfo);
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -515,14 +518,13 @@ public:
             BoundedVector<double, TNumNodes> velocity_convective_terms;
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
-            r_current_data.CalculateGaussPointData(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
             const double effective_kinematic_viscosity =
                 r_current_data.CalculateEffectiveKinematicViscosity(
-                    gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                    gauss_shape_functions, r_shape_derivatives);
 
             const double reaction = r_current_data.CalculateReactionTerm(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                gauss_shape_functions, r_shape_derivatives);
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {

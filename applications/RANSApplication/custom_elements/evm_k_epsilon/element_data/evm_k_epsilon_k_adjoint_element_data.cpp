@@ -45,23 +45,19 @@ const Variable<double>& KAdjointElementData<TDim, TNumNodes>::GetAdjointScalarRa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateGaussPointData(const Vector& rShapeFunctions,
-                                                                   const Matrix& rShapeFunctionDerivatives,
-                                                                   const ProcessInfo& rCurrentProcessInfo,
-                                                                   const int Step)
+void KAdjointElementData<TDim, TNumNodes>::CalculateGaussPointData(
+    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives, const int Step)
 {
     KRATOS_TRY
 
-    this->mInvTkeSigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
-    this->mCmu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    const double tke = RansCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions, Step);
     this->mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions, Step);
-    this->mTurbulentKineticEnergy = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions, Step);
     this->mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions, Step);
     this->mGamma = EvmKEpsilonElementDataUtilities::CalculateGamma(
-        this->mCmu, this->mTurbulentKineticEnergy, this->mTurbulentKinematicViscosity);
+        this->mCmu, tke, this->mTurbulentKinematicViscosity);
 
     this->mVelocityDivergence = RansCalculationUtilities::GetDivergence(
         this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives, Step);
@@ -136,8 +132,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityD
     BoundedVector<double, TNumNodes>& rOutput,
     const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
@@ -165,8 +160,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityD
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
@@ -188,13 +182,12 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
     BoundedVector<double, TNumNodes>& rOutput,
     const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
-    const double reaction = this->CalculateReactionTerm(
-        rShapeFunctions, rShapeFunctionDerivatives, rCurrentProcessInfo);
+    const double reaction =
+        this->CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
 
     rOutput.clear();
 
@@ -230,12 +223,11 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
-    const double reaction = this->CalculateReactionTerm(
-        rShapeFunctions, rShapeFunctionDerivatives, rCurrentProcessInfo);
+    const double reaction =
+        this->CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
     rOutput.clear();
 
     if (rDerivativeVariable == VELOCITY)
@@ -259,8 +251,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
     BoundedVector<double, TNumNodes>& rOutput,
     const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
@@ -294,8 +285,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
@@ -324,8 +314,7 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosit
     const Matrix& rShapeFunctionDerivatives,
     const ShapeParameter& rShapeDerivative,
     const double detJ_deriv,
-    const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const
 {
     return 0.0;
 }
@@ -336,11 +325,10 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermShapeSensitivi
     const Matrix& rShapeFunctionDerivatives,
     const ShapeParameter& rShapeDerivative,
     const double detJ_deriv,
-    const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const
 {
-    const double reaction = this->CalculateReactionTerm(
-        rShapeFunctions, rShapeFunctionDerivatives, rCurrentProcessInfo);
+    const double reaction =
+        this->CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
 
     if (reaction > 0.0)
     {
@@ -359,8 +347,7 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermShapeSensitivity
     const Matrix& rShapeFunctionDerivatives,
     const ShapeParameter& rShapeDerivative,
     const double detJ_deriv,
-    const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const
 {
     const double production_term =
         EvmKEpsilonElementDataUtilities::CalculateSourceTerm<TDim>(

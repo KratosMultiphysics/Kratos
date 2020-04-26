@@ -342,6 +342,8 @@ public:
         const GeometryType& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
+        r_current_data.CalculateConstants(rCurrentProcessInfo);
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -350,16 +352,15 @@ public:
             const array_1d<double, 3> velocity =
                 this->EvaluateInPoint(VELOCITY, gauss_shape_functions);
 
-            r_current_data.CalculateGaussPointData(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
             const double effective_kinematic_viscosity =
                 r_current_data.CalculateEffectiveKinematicViscosity(
-                    gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                    gauss_shape_functions, r_shape_derivatives);
 
             const double reaction = r_current_data.CalculateReactionTerm(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                gauss_shape_functions, r_shape_derivatives);
             const double source = r_current_data.CalculateSourceTerm(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                gauss_shape_functions, r_shape_derivatives);
 
             const double tau = StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
                 element_length, norm_2(velocity), reaction, effective_kinematic_viscosity,
@@ -606,6 +607,8 @@ public:
         const GeometryType& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
+        r_current_data.CalculateConstants(rCurrentProcessInfo);
+
         double scalar_multiplier = 0.0;
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
@@ -618,21 +621,20 @@ public:
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
             const double velocity_magnitude = norm_2(velocity);
 
-            r_current_data.CalculateGaussPointData(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
             const double effective_kinematic_viscosity =
                 r_current_data.CalculateEffectiveKinematicViscosity(
-                    gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                    gauss_shape_functions, r_shape_derivatives);
 
             const double reaction = r_current_data.CalculateReactionTerm(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                gauss_shape_functions, r_shape_derivatives);
 
             const double tau = StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
                 element_length, velocity_magnitude, reaction, effective_kinematic_viscosity,
                 bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
 
             const double source = r_current_data.CalculateSourceTerm(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                gauss_shape_functions, r_shape_derivatives);
             this->CalculateGradient(variable_gradient, primal_variable, r_shape_derivatives);
             const double velocity_dot_variable_gradient =
                 inner_prod(velocity, variable_gradient);
@@ -708,6 +710,8 @@ public:
         const GeometryType& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
+        r_current_data.CalculateConstants(rCurrentProcessInfo);
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -721,14 +725,13 @@ public:
             BoundedVector<double, TNumNodes> velocity_convective_terms;
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
-            r_current_data.CalculateGaussPointData(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
             const double effective_kinematic_viscosity =
                 r_current_data.CalculateEffectiveKinematicViscosity(
-                    gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                    gauss_shape_functions, r_shape_derivatives);
 
             const double reaction = r_current_data.CalculateReactionTerm(
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                gauss_shape_functions, r_shape_derivatives);
 
             const double tau = StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
                 element_length, norm_2(velocity), reaction, effective_kinematic_viscosity,

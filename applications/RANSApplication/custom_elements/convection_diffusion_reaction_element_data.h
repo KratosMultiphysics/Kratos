@@ -58,23 +58,20 @@ public:
     {
     }
 
+    virtual void CalculateConstants(const ProcessInfo& rCurrentProcessInfo) = 0;
+
     virtual void CalculateGaussPointData(const Vector& rShapeFunctions,
                                          const Matrix& rShapeFunctionDerivatives,
-                                         const ProcessInfo& rCurrentProcessInfo,
                                          const int Step) = 0;
 
     virtual double CalculateEffectiveKinematicViscosity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo) const = 0;
+        const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const = 0;
 
     virtual double CalculateReactionTerm(const Vector& rShapeFunctions,
-                                         const Matrix& rShapeFunctionDerivatives,
-                                         const ProcessInfo& rCurrentProcessInfo) const = 0;
+                                         const Matrix& rShapeFunctionDerivatives) const = 0;
 
     virtual double CalculateSourceTerm(const Vector& rShapeFunctions,
-                                       const Matrix& rShapeFunctionDerivatives,
-                                       const ProcessInfo& rCurrentProcessInfo) const = 0;
+                                       const Matrix& rShapeFunctionDerivatives) const = 0;
 
     const GeometryType& GetGeometry() const
     {

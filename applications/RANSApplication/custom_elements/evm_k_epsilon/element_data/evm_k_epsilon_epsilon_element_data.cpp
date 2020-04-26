@@ -77,25 +77,29 @@ GeometryData::IntegrationMethod EpsilonElementData<TDim>::GetIntegrationMethod()
 }
 
 template <unsigned int TDim>
+void EpsilonElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
+{
+    mC1 = rCurrentProcessInfo[TURBULENCE_RANS_C1];
+    mC2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
+    mCmu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    mInvEpsilonSigma = 1.0 / rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
+}
+
+template <unsigned int TDim>
 void EpsilonElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
                                                        const Matrix& rShapeFunctionDerivatives,
-                                                       const ProcessInfo& rCurrentProcessInfo,
                                                        const int Step)
 {
     KRATOS_TRY
 
-    mC1 = rCurrentProcessInfo[TURBULENCE_RANS_C1];
-    mC2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
-
-    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    const double tke = RansCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions, Step);
     mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions, Step);
     mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions, Step);
-    mTurbulentKineticEnergy = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions, Step);
     mGamma = EvmKEpsilonElementDataUtilities::CalculateGamma(
-        c_mu, mTurbulentKineticEnergy, mTurbulentKinematicViscosity);
+        mCmu, tke, mTurbulentKinematicViscosity);
 
     mVelocityDivergence = RansCalculationUtilities::GetDivergence(
         this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
@@ -109,27 +113,21 @@ void EpsilonElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunct
 
 template <unsigned int TDim>
 double EpsilonElementData<TDim>::CalculateEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo) const
+    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
 {
-    const double epsilon_sigma =
-        rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-    return mKinematicViscosity + mTurbulentKinematicViscosity / epsilon_sigma;
+    return mKinematicViscosity + mTurbulentKinematicViscosity * mInvEpsilonSigma;
 }
 
 template <unsigned int TDim>
 double EpsilonElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctions,
-                                                       const Matrix& rShapeFunctionDerivatives,
-                                                       const ProcessInfo& rCurrentProcessInfo) const
+                                                       const Matrix& rShapeFunctionDerivatives) const
 {
     return std::max(mC2 * mGamma + mC1 * 2.0 * mVelocityDivergence / 3.0, 0.0);
 }
 
 template <unsigned int TDim>
 double EpsilonElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions,
-                                                     const Matrix& rShapeFunctionDerivatives,
-                                                     const ProcessInfo& rCurrentProcessInfo) const
+                                                     const Matrix& rShapeFunctionDerivatives) const
 {
     double production = 0.0;
 

@@ -118,11 +118,14 @@ public:
     {
     }
 
-    int CalculateGeometryData()
+    int CalculateElementData()
     {
         RansCalculationUtilities::CalculateGeometryData(
             mrElementData.GetGeometry(), TElementDataType::GetIntegrationMethod(),
             mGaussWeights, mShapeFunctions, mShapeFunctionDerivatives);
+
+        mrElementData.CalculateConstants(mrProcessInfo);
+
         return mGaussWeights.size();
     }
 
@@ -131,9 +134,8 @@ public:
         const Vector& r_gauss_point_shape_functions = row(mShapeFunctions, GaussPointIndex);
         const Matrix& r_gauss_point_shape_function_derivatives =
             mShapeFunctionDerivatives[GaussPointIndex];
-        mrElementData.CalculateGaussPointData(r_gauss_point_shape_functions,
-                                              r_gauss_point_shape_function_derivatives,
-                                              mrProcessInfo);
+        mrElementData.CalculateGaussPointData(
+            r_gauss_point_shape_functions, r_gauss_point_shape_function_derivatives);
     }
 
     double CalculatePrimalMethod(const ElementDataMethods& rMethod, const int GaussPointIndex) const
@@ -146,16 +148,13 @@ public:
         {
         case ElementDataMethods::CalculateEffectiveKinematicViscosity:
             return mrElementData.CalculateEffectiveKinematicViscosity(
-                r_gauss_point_shape_functions,
-                r_gauss_point_shape_function_derivatives, mrProcessInfo);
+                r_gauss_point_shape_functions, r_gauss_point_shape_function_derivatives);
         case ElementDataMethods::CalculateReactionTerm:
             return mrElementData.CalculateReactionTerm(
-                r_gauss_point_shape_functions,
-                r_gauss_point_shape_function_derivatives, mrProcessInfo);
+                r_gauss_point_shape_functions, r_gauss_point_shape_function_derivatives);
         case ElementDataMethods::CalculateSourceTerm:
             return mrElementData.CalculateSourceTerm(
-                r_gauss_point_shape_functions,
-                r_gauss_point_shape_function_derivatives, mrProcessInfo);
+                r_gauss_point_shape_functions, r_gauss_point_shape_function_derivatives);
         }
 
         return 0.0;
@@ -176,17 +175,17 @@ public:
         case ElementDataMethods::CalculateEffectiveKinematicViscosity:
             mrElementData.CalculateEffectiveKinematicViscosityDerivatives(
                 rOutput, rVariable, r_gauss_point_shape_functions,
-                r_gauss_point_shape_function_derivatives, mrProcessInfo);
+                r_gauss_point_shape_function_derivatives);
             break;
         case ElementDataMethods::CalculateReactionTerm:
             mrElementData.CalculateReactionTermDerivatives(
                 rOutput, rVariable, r_gauss_point_shape_functions,
-                r_gauss_point_shape_function_derivatives, mrProcessInfo);
+                r_gauss_point_shape_function_derivatives);
             break;
         case ElementDataMethods::CalculateSourceTerm:
             mrElementData.CalculateSourceTermDerivatives(
                 rOutput, rVariable, r_gauss_point_shape_functions,
-                r_gauss_point_shape_function_derivatives, mrProcessInfo);
+                r_gauss_point_shape_function_derivatives);
             break;
         }
     }
@@ -278,8 +277,7 @@ std::function<void(BoundedMatrix<double, TNumNodes, TDim>& rOutput, const Elemen
                         return rElementDataWrapper.GetElementData().CalculateEffectiveKinematicViscosityShapeSensitivity(
                             rElementDataWrapper.GetShapeFunctions(GaussPointIndex),
                             rElementDataWrapper.GetShapeFunctionDerivatives(GaussPointIndex),
-                            rDeriv, detJ_deriv, rDN_dx_deriv,
-                            rElementDataWrapper.GetProcessInfo());
+                            rDeriv, detJ_deriv, rDN_dx_deriv);
                     };
                 break;
             case ElementDataMethods::CalculateReactionTerm:
@@ -290,8 +288,7 @@ std::function<void(BoundedMatrix<double, TNumNodes, TDim>& rOutput, const Elemen
                         return rElementDataWrapper.GetElementData().CalculateReactionTermShapeSensitivity(
                             rElementDataWrapper.GetShapeFunctions(GaussPointIndex),
                             rElementDataWrapper.GetShapeFunctionDerivatives(GaussPointIndex),
-                            rDeriv, detJ_deriv, rDN_dx_deriv,
-                            rElementDataWrapper.GetProcessInfo());
+                            rDeriv, detJ_deriv, rDN_dx_deriv);
                     };
                 break;
             case ElementDataMethods::CalculateSourceTerm:
@@ -302,8 +299,7 @@ std::function<void(BoundedMatrix<double, TNumNodes, TDim>& rOutput, const Elemen
                         return rElementDataWrapper.GetElementData().CalculateSourceTermShapeSensitivity(
                             rElementDataWrapper.GetShapeFunctions(GaussPointIndex),
                             rElementDataWrapper.GetShapeFunctionDerivatives(GaussPointIndex),
-                            rDeriv, detJ_deriv, rDN_dx_deriv,
-                            rElementDataWrapper.GetProcessInfo());
+                            rDeriv, detJ_deriv, rDN_dx_deriv);
                     };
                 break;
             }
@@ -385,7 +381,7 @@ void RunAdjointElementDataSensitivityTest(
         ElementDataWrapper<AdjointElementDataType> adjoint_element_data_wrapper(
             adjoint_element_data, r_adjoint_process_info);
         const int number_of_gauss_points =
-            adjoint_element_data_wrapper.CalculateGeometryData();
+            adjoint_element_data_wrapper.CalculateElementData();
 
         ElementType& r_primal_element = *(r_primal_container.begin() + i_element);
         GeometryType& r_primal_geometry = r_primal_element.GetGeometry();
@@ -402,11 +398,10 @@ void RunAdjointElementDataSensitivityTest(
             BoundedVector<double, TNumNodes> adjoint_sensitivities;
             AdjointMethod(adjoint_sensitivities, adjoint_element_data_wrapper, g);
 
-            primal_element_data_wrapper.CalculateGeometryData();
-
             for (auto process : rPrimalProcesses)
                 process->Execute();
 
+            primal_element_data_wrapper.CalculateElementData();
             primal_element_data_wrapper.CalculateGaussPointData(g);
 
             const double primal_value_0 = PrimalMethod(primal_element_data_wrapper, g);
@@ -417,7 +412,7 @@ void RunAdjointElementDataSensitivityTest(
                 NodeType& r_node = r_primal_geometry[i_node];
                 PerturbVariable(r_node) += Delta;
 
-                primal_element_data_wrapper.CalculateGeometryData();
+                primal_element_data_wrapper.CalculateElementData();
 
                 for (auto process : rPrimalProcesses)
                     process->Execute();

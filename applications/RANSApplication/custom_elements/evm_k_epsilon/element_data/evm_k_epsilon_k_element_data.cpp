@@ -75,23 +75,27 @@ GeometryData::IntegrationMethod KElementData<TDim>::GetIntegrationMethod()
 }
 
 template <unsigned int TDim>
+void KElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
+{
+    mCmu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    mInvTkeSigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
+}
+
+template <unsigned int TDim>
 void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
                                                  const Matrix& rShapeFunctionDerivatives,
-                                                 const ProcessInfo& rCurrentProcessInfo,
                                                  const int Step)
 {
     KRATOS_TRY
 
-    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-
+    const double tke = RansCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions);
     mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions);
-    mTurbulentKineticEnergy = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions);
     mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions);
     mGamma = EvmKEpsilonElementDataUtilities::CalculateGamma(
-        c_mu, mTurbulentKineticEnergy, mTurbulentKinematicViscosity);
+        mCmu, tke, mTurbulentKinematicViscosity);
 
     mVelocityDivergence = RansCalculationUtilities::GetDivergence(
         this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
@@ -104,26 +108,22 @@ void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
 }
 
 template <unsigned int TDim>
-double KElementData<TDim>::CalculateEffectiveKinematicViscosity(const Vector& rShapeFunctions,
-                                                                const Matrix& rShapeFunctionDerivatives,
-                                                                const ProcessInfo& rCurrentProcessInfo) const
+double KElementData<TDim>::CalculateEffectiveKinematicViscosity(
+    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
 {
-    const double tke_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
-    return mKinematicViscosity + mTurbulentKinematicViscosity / tke_sigma;
+    return mKinematicViscosity + mTurbulentKinematicViscosity * mInvTkeSigma;
 }
 
 template <unsigned int TDim>
 double KElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctions,
-                                                 const Matrix& rShapeFunctionDerivatives,
-                                                 const ProcessInfo& rCurrentProcessInfo) const
+                                                 const Matrix& rShapeFunctionDerivatives) const
 {
     return std::max(mGamma + (2.0 / 3.0) * mVelocityDivergence, 0.0);
 }
 
 template <unsigned int TDim>
 double KElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions,
-                                               const Matrix& rShapeFunctionDerivatives,
-                                               const ProcessInfo& rCurrentProcessInfo) const
+                                               const Matrix& rShapeFunctionDerivatives) const
 {
     double production = 0.0;
 

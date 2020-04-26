@@ -59,7 +59,8 @@ class KAdjointElementData
 {
 public:
     using PrimalBaseType = EvmKEpsilonElementDataUtilities::KElementData<TDim>;
-    using AdjointBaseType = ScalarConvectionDiffusionReactionAdjointElementDataExtension<TDim, TNumNodes>;
+    using AdjointBaseType =
+        ScalarConvectionDiffusionReactionAdjointElementDataExtension<TDim, TNumNodes>;
     using NodeType = Node<3>;
     using GeometryType = typename PrimalBaseType::GeometryType;
 
@@ -75,75 +76,62 @@ public:
 
     void CalculateGaussPointData(const Vector& rShapeFunctions,
                                  const Matrix& rShapeFunctionDerivatives,
-                                 const ProcessInfo& rCurrentProcessInfo,
                                  const int Step = 0) override;
 
     void CalculateEffectiveKinematicViscosityDerivatives(
         BoundedVector<double, TNumNodes>& rOutput,
         const Variable<double>& rDerivativeVariable,
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+        const Matrix& rShapeFunctionDerivatives) const override;
 
     void CalculateEffectiveKinematicViscosityDerivatives(
         BoundedMatrix<double, TNumNodes, TDim>& rOutput,
         const Variable<array_1d<double, 3>>& rDerivativeVariable,
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+        const Matrix& rShapeFunctionDerivatives) const override;
 
     void CalculateReactionTermDerivatives(BoundedVector<double, TNumNodes>& rOutput,
                                           const Variable<double>& rDerivativeVariable,
                                           const Vector& rShapeFunctions,
-                                          const Matrix& rShapeFunctionDerivatives,
-                                          const ProcessInfo& rCurrentProcessInfo) const override;
+                                          const Matrix& rShapeFunctionDerivatives) const override;
 
     void CalculateReactionTermDerivatives(BoundedMatrix<double, TNumNodes, TDim>& rOutput,
                                           const Variable<array_1d<double, 3>>& rDerivativeVariable,
                                           const Vector& rShapeFunctions,
-                                          const Matrix& rShapeFunctionDerivatives,
-                                          const ProcessInfo& rCurrentProcessInfo) const override;
+                                          const Matrix& rShapeFunctionDerivatives) const override;
 
     void CalculateSourceTermDerivatives(BoundedVector<double, TNumNodes>& rOutput,
                                         const Variable<double>& rDerivativeVariable,
                                         const Vector& rShapeFunctions,
-                                        const Matrix& rShapeFunctionDerivatives,
-                                        const ProcessInfo& rCurrentProcessInfo) const override;
+                                        const Matrix& rShapeFunctionDerivatives) const override;
 
     void CalculateSourceTermDerivatives(BoundedMatrix<double, TNumNodes, TDim>& rOutput,
                                         const Variable<array_1d<double, 3>>& rDerivativeVariable,
                                         const Vector& rShapeFunctions,
-                                        const Matrix& rShapeFunctionDerivatives,
-                                        const ProcessInfo& rCurrentProcessInfo) const override;
+                                        const Matrix& rShapeFunctionDerivatives) const override;
 
     double CalculateEffectiveKinematicViscosityShapeSensitivity(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
         const ShapeParameter& rShapeDerivative,
         const double detJ_deriv,
-        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const override;
 
     double CalculateReactionTermShapeSensitivity(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
         const ShapeParameter& rShapeDerivative,
         const double detJ_deriv,
-        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const override;
 
     double CalculateSourceTermShapeSensitivity(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
         const ShapeParameter& rShapeDerivative,
         const double detJ_deriv,
-        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const override;
 
 protected:
-    double mCmu;
-    double mInvTkeSigma;
-
     BoundedMatrix<double, TNumNodes, TDim> mNodalVelocity;
     BoundedVector<double, TNumNodes> mGaussTurbulentKinematicViscositySensitivitiesK;
     BoundedVector<double, TNumNodes> mGaussTurbulentKinematicViscositySensitivitiesEpsilon;
