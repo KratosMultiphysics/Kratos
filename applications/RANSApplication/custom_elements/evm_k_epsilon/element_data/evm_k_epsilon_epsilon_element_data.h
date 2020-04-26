@@ -18,6 +18,7 @@
 // Project includes
 #include "containers/variable.h"
 #include "geometries/geometry_data.h"
+#include "includes/node.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 
@@ -80,7 +81,7 @@ public:
                                const Matrix& rShapeFunctionDerivatives,
                                const ProcessInfo& rCurrentProcessInfo) const override;
 
-private:
+protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
 
     double mC1;
