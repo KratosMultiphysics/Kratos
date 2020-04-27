@@ -479,49 +479,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         Matrix &rNewOperator
     );
 
-    /**
-     * @brief This converts the indices from the 
-     * 3x3 rotation matrix to the 6x6
-     * http://mathworld.wolfram.com/EulerAngles.html
-     */
-    static int GetKfConversion(const int n);
-    static int GetLfConversion(const int n);
-
-    /**
-     * @brief This rotates a matrix from global to local coordinates
-     * Mloc = R * Mglob * trans(R)
-     */
-    static void RotateMatrixToLocalAxes(
-        const Matrix &rRotationMatrix, // global to local
-        Matrix &rLocalMatrix
-    );
-
-    /**
-     * @brief This rotates a matrix from global to local coordinates
-     * Mglob = trans(R) * Mloc * R
-     */
-    static void RotateMatrixToGlobalAxes(
-        const Matrix &rRotationMatrix, // global to local
-        Matrix &rGlobalMatrix
-    );
-
-    /**
-     * @brief This rotates the strain vector from global to local
-     * coordinates
-     */
-    static void RotateStrainVectorToLocalAxes(
-        const Matrix &rRotationMatrix, // global to local
-        Vector &rStrainVector          // it enters as global
-    );
-
-    /**
-     * @brief This rotates the stress vector from local to 
-     * global coordinates
-     */
-    static void RotateStressVectorToGlobalAxes(
-        const Matrix &rRotationMatrix, // global to local
-        Vector &rStressVector          // it enters as local
-    );
 
 private:
 
