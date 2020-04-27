@@ -60,12 +60,13 @@ namespace Kratos
  * IMPORTANT NOTE: AddEntries IS threasafe
 */
 
+template<class TIndexType=std::size_t>
 class SparseContiguousRowGraph
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
+    typedef TIndexType IndexType;
     typedef DenseVector<std::unordered_set<IndexType> > GraphType; //using a map since we need it ordered
     typedef typename GraphType::const_iterator const_row_iterator;
 
@@ -202,65 +203,61 @@ public:
         return mGraph;
     }
 
-    // IndexType ExportCSRArrays(
-    //     vector<IndexType>& rRowIndices,
-    //     vector<IndexType>& rColIndices
-    // ) //TODO: this function should be imported in the CSR matrix interface, not here
-    // {
-    //     //need to detect the number of rows this way since there may be gaps
-    //     IndexType nrows=0;
-    //     for(const auto& item : this->GetGraph())
-    //     {
-    //         nrows = std::max(nrows,item.first+1);
-    //     }
+    IndexType ExportCSRArrays(
+        vector<IndexType>& rRowIndices,
+        vector<IndexType>& rColIndices
+    ) const
+    {
+        //need to detect the number of rows this way since there may be gaps
+        IndexType nrows=Size();
 
-    //     if(rRowIndices.size() != nrows+1)
-    //     {
-    //         rRowIndices.resize(nrows+1, false);
-    //     }
-    //     //set it to zero in parallel to allow first touching
-    //     #pragma omp parallel for
-    //     for(int i=0; i<static_cast<int>(nrows+1); ++i)
-    //         rRowIndices[i] = 0;
+        if(rRowIndices.size() != nrows+1)
+        {
+            rRowIndices.resize(nrows+1, false);
+        }
+        //set it to zero in parallel to allow first touching
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(nrows+1); ++i)
+            rRowIndices[i] = 0;
 
-    //     //count the entries TODO: do the loop in parallel if possible
-    //     for(const auto& item : this->GetGraph())
-    //     {
-    //         rRowIndices[item.first+1] = item.second.size();
-    //     }
-    //     //sum entries
-    //     for(int i = 1; i<static_cast<int>(rRowIndices.size()); ++i){
-    //         rRowIndices[i] += rRowIndices[i-1];
-    //     }
+        //count the entries TODO: do the loop in parallel if possible
+        for(int i=0; i<static_cast<int>(nrows); ++i)
+            rRowIndices[i+1] = mGraph[i].size();
+
+        //sum entries
+        for(int i = 1; i<static_cast<int>(rRowIndices.size()); ++i){
+            rRowIndices[i] += rRowIndices[i-1];
+        }
 
 
-    //     IndexType nnz = rRowIndices[nrows];
-    //     if(rColIndices.size() != nnz){
-    //         rColIndices.resize(nnz, false);
-    //     }
-    //     //set it to zero in parallel to allow first touching
-    //     #pragma omp parallel for
-    //     for(int i=0; i<static_cast<int>(rColIndices.size());++i)
-    //         rColIndices[i] = 0;
+        IndexType nnz = rRowIndices[nrows];
+        if(rColIndices.size() != nnz){
+            rColIndices.resize(nnz, false);
+        }
+        //set it to zero in parallel to allow first touching
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rColIndices.size());++i)
+            rColIndices[i] = 0;
 
-    //     //count the entries TODO: do the loop in parallel if possible
-    //     for(const auto& item : this->GetGraph()){
-    //         IndexType start = rRowIndices[item.first];
+        //count the entries TODO: do the loop in parallel if possible
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(nrows); ++i){
+            IndexType start = rRowIndices[i];
 
-    //         IndexType counter = 0;
-    //         for(auto index : item.second){
-    //             rColIndices[start+counter] = index;
-    //             counter++;
-    //         }
-    //     }
+            IndexType counter = 0;
+            for(auto index : mGraph[i]){
+                rColIndices[start+counter] = index;
+                counter++;
+            }
+        }
 
-    //     //reorder columns
-    //     #pragma omp parallel for
-    //     for(int i=0; i<static_cast<int>(rRowIndices.size()-1);++i){
-    //         std::sort(rColIndices.begin()+rRowIndices[i], rColIndices.begin()+rRowIndices[i+1]);
-    //     }
-    //     return nrows;
-    // }
+        //reorder columns
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rRowIndices.size()-1);++i){
+            std::sort(rColIndices.begin()+rRowIndices[i], rColIndices.begin()+rRowIndices[i+1]);
+        }
+        return nrows;
+    }
 
     ///@}
     ///@name Operations
