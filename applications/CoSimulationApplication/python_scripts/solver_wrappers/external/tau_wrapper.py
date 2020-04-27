@@ -56,15 +56,6 @@ class TAUWrapper(CoSimulationSolverWrapper):
         print('TAUWrapper Initialize')
         super(TAUWrapper, self).Initialize()
 
-        for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_recv"].items():
-            interface_config = {
-                "comm_name" : comm_name.GetString(),
-                "model_part_name" : model_part_name
-            }
-            print("comm_name" , comm_name.GetString())
-            print("model_part_name" , model_part_name)
-
-            self.ImportCouplingInterface(interface_config)
         print('TAUWrapper Initialize')
 
     def AdvanceInTime(self, current_time):
@@ -99,6 +90,14 @@ class TAUWrapper(CoSimulationSolverWrapper):
         super(TAUWrapper, self).SolveSolutionStep()
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.SolveSolutionStep)
+
+        for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_recv"].items():
+            interface_config = {
+                "comm_name" : comm_name.GetString(),
+                "model_part_name" : model_part_name
+            }
+
+            self.ImportCouplingInterface(interface_config)
         print('TAUWrapper SolveSolutionStep End')
 
     def FinalizeSolutionStep(self):
