@@ -553,6 +553,7 @@ public:
             rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
 
             // Symmetrice matrices if enabled
+            // The ublas transpose function is called manually, because it is missing in the corresponding space
             if( mMakeMatricesSymmetricFlag ){
                 rStiffnessMatrix = 0.5 * ( rStiffnessMatrix + boost::numeric::ublas::trans(rStiffnessMatrix) );
                 rStiffnessMatrixPrevious = 0.5 * ( rStiffnessMatrixPrevious + boost::numeric::ublas::trans(rStiffnessMatrixPrevious) );
