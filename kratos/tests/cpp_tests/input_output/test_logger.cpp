@@ -31,7 +31,7 @@ namespace Kratos {
             KRATOS_CHECK_C_STRING_EQUAL(message.GetLabel().c_str(), "label");
             if (DataCommunicator::GetDefault().Rank() == 0) KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00");
             KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::INFO);
-            KRATOS_CHECK_EQUAL(message.GetFlags(), LoggerMessage::STATUS);
+            KRATOS_CHECK(message.GetFlags().Is(LoggerMessage::STATUS));
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFileName(), "Unknown");
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), "Unknown");
             KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), -1);
@@ -42,7 +42,7 @@ namespace Kratos {
 
             KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00\n");
             KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::DETAIL);
-            KRATOS_CHECK_EQUAL(message.GetFlags(), LoggerMessage::CRITICAL);
+            KRATOS_CHECK(message.GetFlags().Is(LoggerMessage::CRITICAL));
             KRATOS_CHECK_NOT_EQUAL(message.GetLocation().GetFileName().find("test_logger.cpp"), std::string::npos);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), KRATOS_CURRENT_FUNCTION);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), 40);
