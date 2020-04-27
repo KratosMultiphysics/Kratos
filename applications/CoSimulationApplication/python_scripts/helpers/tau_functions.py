@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import itertools, sys, re 
-import numpy as np 
-sys.path.append("/work/piquee/Softwares/TAU/TAU_2016.2/2016.2.0/bin/py_turb1eq")
+import numpy as np
 import tau_python 
 from tau_python import tau_msg
+import PyPara, PySurfDeflect
+from scipy.io import netcdf
 
 def findFileName0(list_of_interface_file_paths,working_path,word): 
     for file in list_of_interface_file_paths:
@@ -12,7 +13,7 @@ def findFileName0(list_of_interface_file_paths,working_path,word):
             return file
 
 def findFileName(list_of_interface_file_paths,working_path,word,this_step_out): 
-   # this_step_out +=1
+    # this_step_out +=1
     for file in list_of_interface_file_paths:
         if file.startswith('%s'%working_path + '%s'%word + '%s'%this_step_out): ####### i would like to make it general #######
             print file
@@ -28,7 +29,7 @@ def findInterfaceFileNumberOfLines(fname):
     return it
 
 def PrintBlockHeader(header):
- 	tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
+    tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
 
 def readTautoplt(fname_mod, fname_o, mesh_iteration, interface_file_name, para_path_mod):
     fs = open(fname_o,'r+')
@@ -36,13 +37,13 @@ def readTautoplt(fname_mod, fname_o, mesh_iteration, interface_file_name, para_p
     line = fs.readline()
     while line:
         if 'Primary grid filename:' in line:
-	    line = 'Primary grid filename:' + mesh_iteration + ' \n'
-	    fd.write(line) 
+            line = 'Primary grid filename:' + mesh_iteration + ' \n'
+            fd.write(line) 
             print line
             line = fs.readline()
         if 'Boundary mapping filename:' in line:
-	    line = 'Boundary mapping filename:' + para_path_mod + ' \n'
-	    fd.write(line)  
+            line = 'Boundary mapping filename:' + para_path_mod + ' \n'
+            fd.write(line)  
             print line
             line = fs.readline()
         if 'Restart-data prefix:' in line:
@@ -79,10 +80,10 @@ def readPressure(interface_file_name,interface_file_number_of_lines,error,veloci
         # write X,Y,Z,CP of the document in a vector = liste_number
         liste_number = []
         for i in xrange(interface_file_number_of_lines):
-           line = f.readline()
-           for elem in line.split():
-               liste_number.append(float(elem))
-	
+            line = f.readline()
+            for elem in line.split():
+                liste_number.append(float(elem))
+
         # write ElemTable of the document 
         elemTable_Sol = np.zeros([ElemsNr,4],dtype=int)
         k = 0
@@ -180,7 +181,6 @@ def calcAreaNormal(ElemsNr,elemTable,X,Y,Z,fIteration):
             fwrite.write("%f\n" % (area[i]))
     return area, normal
 
-		    
 # Calculate the Vector Force 
 def calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,fIteration):
     forcesTauNP = np.zeros(NodesNr*3)
@@ -208,3 +208,66 @@ def calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,fIteration)
         for i in xrange(0,len(forcesTauNP[:])):
             fwrite.write("%f\n" % (forcesTauNP[i]))
     return forcesTauNP
+
+# Execute the Mesh deformation of TAU  
+def meshDeformation(NodesNr,nodes,dispTau,dispTauOld,error, para_path_mod):
+
+    disp=np.zeros([NodesNr,3])#NodesNr
+    for i in xrange(0,NodesNr):#NodesNr
+        disp[i,0]=1*(dispTau[3*i+0]-dispTauOld[3*i+0])
+        disp[i,1]=1*(dispTau[3*i+1]-dispTauOld[3*i+1])
+        disp[i,2]=1*(dispTau[3*i+2]-dispTauOld[3*i+2])
+    Para = PyPara.Parafile(para_path_mod)
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para)
+    coords=np.zeros([NodesNr-error,6])#NodesNr
+
+    for i in xrange(0,NodesNr-error):
+        coords[i,0]=coordinates[0,i]
+        coords[i,1]=coordinates[1,i]
+        coords[i,2]=coordinates[2,i]  
+
+    globalID = np.zeros(NodesNr-error)  
+    for i in xrange(0,NodesNr-error):
+        xi = coords[i,0]
+        yi = coords[i,1]
+        zi = coords[i,2]
+        for k in xrange(0,NodesNr-error):
+            xk = nodes[3*k+0]
+            yk = nodes[3*k+1]
+            zk = nodes[3*k+2]
+            dist2 = (xi-xk)*(xi-xk) + (yi-yk)*(yi-yk) + (zi-zk)*(zi-zk)
+
+            if dist2 < 0.00001:
+                #K=k
+                globalID[i] = k
+            globalID = globalID.astype(int)
+        #print "%d found %d" % (i,K)
+        coords[i, 3] = disp[globalID[i], 0]
+        coords[i, 4] = disp[globalID[i], 1]
+        coords[i, 5] = disp[globalID[i], 2]
+
+    fname_new = 'interface_deformfile.nc'
+    ncf = netcdf.netcdf_file(fname_new, 'w')
+    # define dimensions
+    nops = 'no_of_points'
+    number_of_points = len(ids[:])
+    ncf.createDimension(nops, number_of_points)
+    # define variables
+    gid = ncf.createVariable('global_id', 'i', (nops,))
+    ncx = ncf.createVariable('x', 'd', (nops,))
+    ncy = ncf.createVariable('y', 'd', (nops,))
+    ncz = ncf.createVariable('z', 'd', (nops,))
+    ncdx = ncf.createVariable('dx', 'd', (nops,))
+    ncdy = ncf.createVariable('dy', 'd', (nops,))
+    ncdz = ncf.createVariable('dz', 'd', (nops,))
+    # write data
+    gid[:] = ids
+    ncx[:] = coords[:,0]
+    ncy[:] = coords[:,1]
+    ncz[:] = coords[:,2]
+    ncdx[:] = coords[:,3]
+    ncdy[:] = coords[:,4]
+    ncdz[:] = coords[:,5]
+    ncf.close()
+
+    return ids, coordinates, globalID, coords
