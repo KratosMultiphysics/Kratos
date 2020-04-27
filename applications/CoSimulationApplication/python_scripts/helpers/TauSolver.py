@@ -131,15 +131,9 @@ def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, 
 # read the solution file name in '/Outputs' and calculate the pressure ## ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen ##
 #------------------------------------------------------------------
 def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out):
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable_Sol,liste_number=tauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=tauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
 
-    elemTable = elemTable_Sol.astype(int)
-
-    with open('xpNode','w') as f:
-        for i in xrange(0,NodesNr):											
-            f.write('%d\t%f\t%f\t%f\t%f\n'%(i,X[i],Y[i],Z[i],P[i]))	
-
-    nodes,nodesID,elems,numNodesPerElem=tauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
+    nodes,nodesID,elems,element_types=tauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
   
     # calculating cp at the center of each interface element    
     pCell=tauFunctions.calcpCell(ElemsNr,P,X,elemTable)
@@ -195,32 +189,27 @@ def ExportData(conn_name, identifier):
     CoSimIO.ExportData(conn_name, identifier, data)
     print "TAU SOLVER After ExportData"
 
+
 def ExportMesh(conn_name, identifier):
     print "TAU SOLVER ExportMesh"
     # identifier is the data-name in json
-    print("conn_name = ", conn_name)
-    print("identifier = ", identifier)
-    # if identifier == "wing_fsi_interface":
-    #     nodal_coords, elem_connectivities, element_types = GetFluidMesh()
-    # else:
-    #     raise Exception
+    print "conn_name = ", conn_name
+    print "identifier = ", identifier
+    if identifier == "Fluid.Interface":
+        interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(
+            interface_file_path_pattern, mesh_file_path_pattern, this_step_out)
+        NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = tauFunctions.readPressure(
+            interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+        nodal_coords, nodesID, elem_connectivities, element_types = tauFunctions.interfaceMeshFluid(
+            NodesNr, ElemsNr, elemTable, X, Y, Z)
+        elem_connectivities -= 1
+        # nodal_coords, elem_connectivities, element_types = GetFluidMesh()
+    else:
+        raise Exception(
+            'TauSolver::ExportMesh::identifier "{}" not valid! Please use Fluid.Interface'.format(identifier))
 
-    # CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
+    CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
     print "TAU SOLVER ExportMesh End"
-
-def ImportMesh(conn_name, identifier):
-    print "TAU SOLVER ImportMesh"
-    # identifier is the data-name in json
-    print("conn_name = ", conn_name)
-    print("identifier = ", identifier)
-    # if identifier == "wing_fsi_interface":
-    #     nodal_coords, elem_connectivities, element_types = GetFluidMesh()
-    # else:
-    #     raise Exception
-
-    # CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
-    print "TAU SOLVER ImportMesh End"
-
 
 connection_name = "TAU"
 
@@ -239,7 +228,6 @@ CoSimIO.Register_FinalizeSolutionStep(connection_name, FinalizeSolutionStep)
 CoSimIO.Register_ImportData(connection_name, ImportData)
 CoSimIO.Register_ExportData(connection_name, ExportData)
 CoSimIO.Register_ExportMesh(connection_name, ExportMesh)
-CoSimIO.Register_ImportMesh(connection_name, ImportMesh)
 
 # Run the coupled simulation
 print "Before Run"

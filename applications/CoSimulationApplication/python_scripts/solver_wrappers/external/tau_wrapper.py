@@ -56,9 +56,15 @@ class TAUWrapper(CoSimulationSolverWrapper):
         print('TAUWrapper Initialize')
         super(TAUWrapper, self).Initialize()
 
-        interface_config = { "model_part_name" : self.model_part_name }
+        for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_recv"].items():
+            interface_config = {
+                "comm_name" : comm_name.GetString(),
+                "model_part_name" : model_part_name
+            }
+            print("comm_name" , comm_name.GetString())
+            print("model_part_name" , model_part_name)
 
-        self.ExportCouplingInterface(interface_config)
+            self.ImportCouplingInterface(interface_config)
         print('TAUWrapper Initialize')
 
     def AdvanceInTime(self, current_time):

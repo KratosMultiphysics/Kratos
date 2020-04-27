@@ -84,17 +84,17 @@ def readPressure(interface_file_name,interface_file_number_of_lines,error,veloci
                liste_number.append(float(elem))
 	
         # write ElemTable of the document 
-        elemTable_Sol = np.zeros([ElemsNr,4])
+        elemTable_Sol = np.zeros([ElemsNr,4],dtype=int)
         k = 0
         line = f.readline()
         while line:
-            elemTable_Sol[k,0]=float(line.split()[0]) 
-            elemTable_Sol[k,1]=float(line.split()[1])
-            elemTable_Sol[k,2]=float(line.split()[2])
-            elemTable_Sol[k,3]=float(line.split()[3])
-	    k=k+1
+            elemTable_Sol[k,0]=int(line.split()[0]) 
+            elemTable_Sol[k,1]=int(line.split()[1])
+            elemTable_Sol[k,2]=int(line.split()[2])
+            elemTable_Sol[k,3]=int(line.split()[3])
+            k=k+1
             line = f.readline()
-	
+
         # reshape content in X, Y, Z, Cp
         X=liste_number[(pos_X-2)*NodesNr:(pos_X-2+1)*NodesNr]
         Y=liste_number[(pos_Y-2)*NodesNr:(pos_Y-2+1)*NodesNr]
@@ -109,29 +109,29 @@ def readPressure(interface_file_name,interface_file_number_of_lines,error,veloci
 
     return NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable_Sol,liste_number
 
-def interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z):
-    nodes=np.zeros(NodesNr*3) # array to store the coordinates of the nodes in the fluid mesh: x1,y1,z1,x2,y2,z2,...
-    nodesID=np.zeros(NodesNr) # array to store the IDs of the nodes in the fluid mesh: IDnode1, IDnode2,...
-    elems =np.zeros(4*ElemsNr)# array to store the element table
-    numNodesPerElem=np.zeros(ElemsNr)
 
-    for i in xrange(0,NodesNr):
+def interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z):
+    # array to store the coordinates of the nodes in the fluid mesh: x1,y1,z1,x2,y2,z2,...
+    nodes = np.zeros(NodesNr*3)
+    # array to store the IDs of the nodes in the fluid mesh: IDnode1, IDnode2,...
+    nodesID = np.zeros(NodesNr, dtype=int)
+    elems = np.zeros(4*ElemsNr, dtype=int)  # array to store the element table
+    element_types = np.zeros(ElemsNr, dtype=int)
+
+    for i in xrange(0, NodesNr):
+        nodesID[i] = i+1
         nodes[3*i+0] = X[i]
         nodes[3*i+1] = Y[i]
         nodes[3*i+2] = Z[i]
-    #print "nodes1 %f %f %f"%(nodes[3*i+0],nodes[3*i+1],nodes[3*i+2])
 
-    for i in xrange(0,NodesNr):
-        nodesID[i] = i+1
+    for i in xrange(0, ElemsNr):
+        elems[i*4+0] = elemTable[i, 0]
+        elems[i*4+1] = elemTable[i, 1]
+        elems[i*4+2] = elemTable[i, 2]
+        elems[i*4+3] = elemTable[i, 3]
+        element_types[i] = 9
 
-    for i in xrange(0,ElemsNr): 
-        elems[i*4+0]=elemTable[i,0]     
-        elems[i*4+1]=elemTable[i,1]
-        elems[i*4+2]=elemTable[i,2]
-        elems[i*4+3]=elemTable[i,3]
-        numNodesPerElem[i]=4;  
-
-    return nodes,nodesID,elems,numNodesPerElem
+    return nodes, nodesID, elems, element_types
 
 # Calculate the Pressure on the elements from the pressure on the nodes
 def calcpCell(ElemsNr,P,X,elemTable):
