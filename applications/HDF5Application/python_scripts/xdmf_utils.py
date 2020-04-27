@@ -422,6 +422,7 @@ def CreateXdmfTemporalGridFromMultifile(list_of_h5_files, h5path_to_mesh, h5path
     tgrid = TemporalGrid()
     for path in list_of_h5_files:
         with TryOpenH5File(path, "r") as file_:
+            sgrid = None
             if not file_:
                 continue
             if h5path_to_mesh in file_:
@@ -429,8 +430,9 @@ def CreateXdmfTemporalGridFromMultifile(list_of_h5_files, h5path_to_mesh, h5path
                     continue
                 sgrid = CreateXdmfSpatialGrid(file_[h5path_to_mesh])
             current_sgrid = SpatialGrid()
-            for g in sgrid.grids:
-                current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
+            if sgrid is not None:
+                for g in sgrid.grids:
+                    current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
             if h5path_to_results in file_:
                 for result in XdmfResults(file_[h5path_to_results]):
                     current_sgrid.add_attribute(result)
