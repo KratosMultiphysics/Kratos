@@ -161,8 +161,8 @@ Element::Pointer SolidShellElementSprism3D6N::Clone(
 
 void SolidShellElementSprism3D6N::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -201,8 +201,8 @@ void SolidShellElementSprism3D6N::EquationIdVector(
 
 void SolidShellElementSprism3D6N::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -1296,49 +1296,49 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 /******************************** SET DOUBLE VALUE *********************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /******************************** SET VECTOR VALUE *********************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /******************************** SET MATRIX VALUE *********************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /****************************** SET CONSTITUTIVE VALUE *****************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /******************************** GET DOUBLE VALUE *********************************/
@@ -1417,7 +1417,7 @@ void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
+int SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -1678,7 +1678,7 @@ void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurr
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::Initialize()
+void SolidShellElementSprism3D6N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 

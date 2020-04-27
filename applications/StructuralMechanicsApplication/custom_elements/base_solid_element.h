@@ -187,7 +187,7 @@ public:
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * @brief This resets the constitutive law
@@ -237,8 +237,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -247,8 +247,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Returns the used integration method
@@ -463,7 +463,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<bool>& rVariable,
         std::vector<bool>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -475,7 +475,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<int>& rVariable,
         std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -487,7 +487,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -499,7 +499,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -511,7 +511,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -523,7 +523,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-     void SetValueOnIntegrationPoints(
+     void SetValuesOnIntegrationPoints(
          const Variable<ConstitutiveLaw::Pointer>& rVariable,
          std::vector<ConstitutiveLaw::Pointer>& rValues,
          const ProcessInfo& rCurrentProcessInfo
@@ -535,7 +535,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-     void SetValueOnIntegrationPoints(
+     void SetValuesOnIntegrationPoints(
          const Variable<array_1d<double, 3 > >& rVariable,
          std::vector<array_1d<double, 3 > > rValues,
          const ProcessInfo& rCurrentProcessInfo
@@ -547,7 +547,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-     void SetValueOnIntegrationPoints(
+     void SetValuesOnIntegrationPoints(
          const Variable<array_1d<double, 6 > >& rVariable,
          std::vector<array_1d<double, 6 > > rValues,
          const ProcessInfo& rCurrentProcessInfo
@@ -662,7 +662,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo the current process info instance
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access

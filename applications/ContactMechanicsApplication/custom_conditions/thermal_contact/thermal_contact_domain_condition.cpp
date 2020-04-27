@@ -189,7 +189,7 @@ void ThermalContactDomainCondition::GetSecondDerivativesVector( Vector& rValues,
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
                                                                  std::vector<double>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
@@ -199,7 +199,7 @@ void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
                                                                  std::vector<Vector>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
@@ -210,7 +210,7 @@ void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<
 //*********************************SET MATRIX VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                                                  std::vector<Matrix>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {

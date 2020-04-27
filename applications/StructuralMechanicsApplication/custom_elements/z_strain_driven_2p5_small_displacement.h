@@ -149,7 +149,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
      /**
       * @brief Set a double Value on the Element Constitutive Law
@@ -157,7 +157,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo

@@ -290,8 +290,7 @@ namespace Kratos
             process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
 
             CppTestsUtilities::Create2DGeometry(r_model_part, "SmallDisplacementElement2D3N", false);
 
@@ -304,9 +303,11 @@ namespace Kratos
             p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
+
             for (auto& ielem : r_model_part.Elements()) {
-                ielem.Initialize();
-                ielem.InitializeSolutionStep(process_info);
+                ielem.Initialize(r_const_process_info);
+                ielem.InitializeSolutionStep(r_const_process_info);
             }
 
             // Set DISPLACEMENT_X and other variables
@@ -353,8 +354,7 @@ namespace Kratos
             process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
 
             CppTestsUtilities::Create3DGeometry(r_model_part, "SmallDisplacementElement3D4N", false);
 
@@ -367,9 +367,11 @@ namespace Kratos
             p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
+
             for (auto& ielem : r_model_part.Elements()) {
-                ielem.Initialize();
-                ielem.InitializeSolutionStep(process_info);
+                ielem.Initialize(r_const_process_info);
+                ielem.InitializeSolutionStep(r_const_process_info);
             }
 
             // Set DISPLACEMENT_X and other variables

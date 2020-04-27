@@ -88,15 +88,10 @@ public:
     virtual bool IsPhantom(){return false;}
     virtual int CheckSide(SphericParticle* p_particle){return 1.0;}
 
-    /*
-    double mTgOfFrictionAngle;
-    double mYoungModulus;
-    double mPoissonRatio;
-    */
-
-    double GetYoung();
-    double GetPoisson();
-    double GetTgOfFrictionAngle();
+    double GetYoung() const;
+    double GetPoisson() const;
+    double GetTgOfStaticFrictionAngle() const;
+    double GetTgOfDynamicFrictionAngle() const;
 
     std::vector<SphericParticle*> mNeighbourSphericParticles;
     std::vector<array_1d <double, 3> > mRightHandSideVector;
