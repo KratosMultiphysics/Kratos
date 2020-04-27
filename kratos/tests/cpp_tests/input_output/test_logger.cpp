@@ -18,7 +18,6 @@
 #include "includes/data_communicator.h"
 #include "utilities/openmp_utils.h"
 
-
 namespace Kratos {
     namespace Testing {
 
