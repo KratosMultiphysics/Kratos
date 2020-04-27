@@ -12,6 +12,7 @@ this_scripts_path = "/home/inigo/software/kratosMerge/Kratos/applications/CoSimu
 sys.path.append(this_scripts_path)
 
 import tau_functions as tauFunctions
+import numpy as np
 
 #-------------------------------------------------------------------------------
 # Definitions
@@ -46,13 +47,12 @@ deformfile = Para.get_para_value('RBF basis coordinates and deflections filename
 this_step_out = 0 ### TO do  read from TAU
 # Start Time
 startTime = 0 ### TO do  read from TAU
+NodesNr = 0
 
 #------------------------------------------------------------------
 # Convert the initial TAU Mesh in '.dat' to find the information necessary  ######### TO DO ######### maybe at first !!!!!!
 #-------------------------------------------------------------------
 tauFunctions.PrintBlockHeader("Initial TAU Mesh at time %s" %(str(time)))
-
-
 
 ##### CoSimulation #####
 def AdvanceInTime(current_time):
@@ -132,6 +132,7 @@ def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, 
 #------------------------------------------------------------------
 def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out):
     NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=tauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+    print 'NodesNr = ', NodesNr
 
     nodes,nodesID,elems,element_types=tauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
   
@@ -168,23 +169,28 @@ def FinalizeSolutionStep():
 
 def ImportData(conn_name, identifier):
     print "TAU SOLVER ImportData"
-    #data = CoSimIO.ImportData(conn_name, identifier)
-    print "TAU SOLVER After ImportData"
+    data = CoSimIO.ImportData(conn_name, identifier)
 
     # TODO do sth with the data
     # identifier is the data-name in json
-    if identifier == "displacements":
+    if identifier == "Interface_disp":
+        # print 'data = ', data
+        # for i in xrange(data.size()):
+        #     print "displacement = ", data[i]
+        print 'NodesNr = ', NodesNr
         pass
     else:
-        raise Exception
+        raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
+    print "TAU SOLVER After ImportData"
 
 def ExportData(conn_name, identifier):
     print "TAU SOLVER ExportData"
     # identifier is the data-name in json
-    if identifier == "forces":
-        data = GetFluidForces()
+    if identifier == "Interface_force":
+        interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out)
+        data = caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out)
     else:
-        raise Exception
+        raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
     CoSimIO.ExportData(conn_name, identifier, data)
     print "TAU SOLVER After ExportData"
