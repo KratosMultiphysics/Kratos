@@ -23,6 +23,21 @@ int SimplifiedBilinear3DLaw::Check(const Properties& rMaterialProperties,const G
     KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
 
     // Verify Properties variables
+    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+    if(rMaterialProperties.Has(YOUNG_MODULUS)) {
+        KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "YOUNG_MODULUS not defined" << std::endl;
+    }
+
+    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
+    if(rMaterialProperties.Has(POISSON_RATIO)) {
+        KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] < -1.0) << "POISSON_RATIO has an invalid value lower than -1.0" << std::endl;
+        KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] >= 0.5) << "POISSON_RATIO has an invalid value greater or equal to 0.5 " << std::endl;
+    } else {
+        KRATOS_ERROR << "POISSON_RATIO not defined" << std::endl;
+    }
+
     KRATOS_CHECK_VARIABLE_KEY(MAX_COMPRESSIVE_STRESS);
     if(rMaterialProperties.Has(MAX_COMPRESSIVE_STRESS)) {
         KRATOS_ERROR_IF(rMaterialProperties[MAX_COMPRESSIVE_STRESS] < 0.0) << "MAX_COMPRESSIVE_STRESS has an invalid value " << std::endl;
@@ -35,14 +50,6 @@ int SimplifiedBilinear3DLaw::Check(const Properties& rMaterialProperties,const G
         KRATOS_ERROR_IF(rMaterialProperties[MAX_TENSILE_STRESS] < 0.0) << "MAX_TENSILE_STRESS has an invalid value " << std::endl;
     } else {
         KRATOS_ERROR << "MAX_TENSILE_STRESS not defined" << std::endl;
-    }
-
-    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
-    if(rMaterialProperties.Has(POISSON_RATIO)) {
-        KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] < -1.0) << "POISSON_RATIO has an invalid value lower than -1.0" << std::endl;
-        KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] >= 0.5) << "POISSON_RATIO has an invalid value greater or equal to 0.5 " << std::endl;
-    } else {
-        KRATOS_ERROR << "POISSON_RATIO not defined" << std::endl;
     }
 
     KRATOS_CHECK_VARIABLE_KEY(FRICTION_COEFFICIENT);
@@ -133,11 +140,11 @@ void SimplifiedBilinear3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLaw
 
 {
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
+    rVariables.YoungModulus = MaterialProperties[YOUNG_MODULUS];
+    rVariables.PoissonCoefficient = MaterialProperties[POISSON_RATIO];
     rVariables.MaxCompresiveStress = MaterialProperties[MAX_COMPRESSIVE_STRESS];
     rVariables.MaxTensileStress = MaterialProperties[MAX_TENSILE_STRESS];
-    rVariables.YoungModulus = 85.0e6 * pow(MaterialProperties[MAX_COMPRESSIVE_STRESS] + 8.0e6, 0.33333333333333333333333333333);
     rVariables.YieldStress = rVariables.YoungModulus;
-    rVariables.PoissonCoefficient = MaterialProperties[POISSON_RATIO];
     rVariables.FrictionCoefficient = MaterialProperties[FRICTION_COEFFICIENT];
 }
 
