@@ -117,6 +117,15 @@ namespace Kratos
             std::vector<double>& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
+        void CalculateOnIntegrationPoints(
+            const Variable<array_1d<double, 3 > >& rVariable,
+            std::vector< array_1d<double, 3 > >& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector>& rVariable,
+            std::vector<Vector>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function updates the internal normal force w.r.t. the current deformations
@@ -130,10 +139,6 @@ namespace Kratos
          */
         void CreateTransformationMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
 
-        void CalculateOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
