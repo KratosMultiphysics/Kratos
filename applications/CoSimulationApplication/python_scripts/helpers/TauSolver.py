@@ -54,8 +54,8 @@ tauFunctions.PrintBlockHeader("Initial TAU Mesh at time %s" %(str(time)))
 def AdvanceInTime(current_time):
     print "TAU SOLVER AdvanceInTime"
     print "current time = ", current_time
-    # ts_tau = 0.005 ### TO do  read from TAU
-    ts_tau = 0.5
+    ts_tau = 0.005 ### TO do  read from TAU
+    # ts_tau = 0.5
     return current_time + ts_tau
 
 #------------------------------------------------------------------
