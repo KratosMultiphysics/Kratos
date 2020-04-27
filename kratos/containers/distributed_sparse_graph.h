@@ -70,7 +70,7 @@ public:
     ///@{
     typedef std::size_t IndexType; //note that this could be different from the one in the basetype
     typedef SparseContiguousRowGraph LocalGraphType; //using a map since we need it ordered
-    typedef SparseGraph NonLocalGraphType; //using a map since we need it ordered
+    typedef SparseGraph<IndexType> NonLocalGraphType; //using a map since we need it ordered
 
     /// Pointer definition of DistributedSparseGraph
     KRATOS_CLASS_POINTER_DEFINITION(DistributedSparseGraph);

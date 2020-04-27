@@ -16,6 +16,7 @@
 #include "testing/testing.h"
 #include "containers/sparse_graph.h"
 #include "containers/sparse_contiguous_row_graph.h"
+#include "containers/csr_matrix.h"
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
 
@@ -194,8 +195,8 @@ bool CheckGraph(
 }
 
 bool CheckCSRGraphArrays(
-    const vector<SparseGraph::IndexType>& rRowIndices,
-    const vector<SparseGraph::IndexType>& rColIndices,
+    const vector<IndexType>& rRowIndices,
+    const vector<IndexType>& rColIndices,
     const MatrixMapType& rReferenceGraph)
 {
     auto N = rRowIndices.size()-1;
@@ -252,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
-    SparseGraph Agraph;
+    SparseGraph<> Agraph;
     for(const auto& c : connectivities)
         Agraph.AddEntries(c);
 
@@ -304,6 +305,21 @@ KRATOS_TEST_CASE_IN_SUITE(GraphContiguousRowConstruction, KratosCoreFastSuite)
 
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
+{
+    const auto connectivities = ElementConnectivities();
+    auto reference_A_map = GetReferenceMatrixAsMap();
+
+    SparseContiguousRowGraph Agraph(40);
+    for(const auto& c : connectivities)
+        Agraph.AddEntries(c);
+    Agraph.Finalize();
+
+    CsrMatrix<double> A(Agraph);
+
+
+}
+
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphContiguousRowConstruction, KratosCoreFastSuite)
 {
@@ -344,7 +360,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
     auto connectivities = RandomElementConnectivities(block_size,nodes_in_elem, 0,nel,ndof,standard_dev);
 
     double start_graph = OpenMPUtils::GetCurrentTime();
-    auto pAgraph = AssembleGraph<SparseGraph>(connectivities, ndof*block_size);
+    auto pAgraph = AssembleGraph<SparseGraph<>>(connectivities, ndof*block_size);
     double end_graph = OpenMPUtils::GetCurrentTime();
 
     std::cout << "SparseGraph time = " << end_graph-start_graph << std::endl;

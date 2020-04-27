@@ -59,12 +59,13 @@ namespace Kratos
  * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
 */
 
+template<class TIndexType=std::size_t>
 class SparseGraph
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
+    typedef TIndexType IndexType;
     typedef std::map<IndexType, std::unordered_set<IndexType> > GraphType; //using a map since we need it ordered
     typedef typename GraphType::const_iterator const_row_iterator;
 
@@ -124,7 +125,7 @@ public:
         return false;
     }
 
-    const GraphType::mapped_type& operator[](const IndexType& Key) const
+    const typename GraphType::mapped_type& operator[](const IndexType& Key) const
     {
 		return (mGraph.find(Key))->second;
     }
@@ -190,7 +191,7 @@ public:
     IndexType ExportCSRArrays(
         vector<IndexType>& rRowIndices,
         vector<IndexType>& rColIndices
-    )
+    ) const
     {
         //need to detect the number of rows this way since there may be gaps
         IndexType nrows=this->Size();
@@ -449,14 +450,16 @@ private:
 
 
 /// input stream function
+template<class TIndexType=std::size_t>
 inline std::istream& operator >> (std::istream& rIStream,
-                SparseGraph& rThis){
+                SparseGraph<TIndexType>& rThis){
                     return rIStream;
                 }
 
 /// output stream function
+template<class TIndexType=std::size_t>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const SparseGraph& rThis)
+                const SparseGraph<TIndexType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
