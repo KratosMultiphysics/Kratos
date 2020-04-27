@@ -510,7 +510,7 @@ void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, in
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::SetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
+void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )

@@ -4,11 +4,17 @@ import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics import eigen_solver_factory
 
 from math import sqrt, sin, cos, pi, exp, atan
 
 from KratosMultiphysics import kratos_utilities as kratos_utils
-external_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication")
+eigen_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
+if eigen_solvers_application_available:
+    import KratosMultiphysics.EigenSolversApplication as EiSA
+    feast_available = EiSA.HasFEAST()
+else:
+    feast_available = False
 
 class SpringDamperElementTests(KratosUnittest.TestCase):
     def setUp(self):
@@ -296,14 +302,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), \
                 current_analytical_displacement_y_2,delta=5e-2)
 
-    @KratosUnittest.skipUnless(external_solvers_application_available,"Missing required application: ExternalSolversApplication")
+    @KratosUnittest.skipUnless(feast_available,"FEAST is missing")
     def test_undamped_mdof_system_eigen(self):
-        import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-        if not hasattr(KratosMultiphysics.ExternalSolversApplication, "PastixSolver"):
-            self.skipTest("Pastix Solver is not available")
-
         current_model = KratosMultiphysics.Model()
-
         mp = self._set_up_mdof_system(current_model)
 
         #set parameters
@@ -313,32 +314,27 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS,[400.0,400.0,400.0])
 
         #create solver
-        eigen_solver_parameters = KratosMultiphysics.Parameters("""
-            {
-                "solver_type": "FEAST",
-                "print_feast_output": false,
-                "perform_stochastic_estimate": false,
-                "solve_eigenvalue_problem": true,
-                "lambda_min": 0.0,
-                "lambda_max": 4.0e5,
-                "number_of_eigenvalues": 2,
-                "search_dimension": 18,
-                "linear_solver_settings": {
-                    "solver_type" : "pastix",
-                    "echo_level" : 0
-                }
-            }""")
-        feast_system_solver = ExternalSolversApplication.PastixComplexSolver(eigen_solver_parameters["linear_solver_settings"])
-        eigen_solver = ExternalSolversApplication.FEASTSolver(eigen_solver_parameters, feast_system_solver)
-        scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
+        eigensolver_settings = KratosMultiphysics.Parameters("""{
+            "solver_type": "feast",
+            "symmetric": true,
+            "e_min": 0.0,
+            "e_max": 4.0e5,
+            "subspace_size": 18
+        }""")
+
+        eigen_solver = eigen_solver_factory.ConstructSolver(eigensolver_settings)
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
 
-        solver = StructuralMechanicsApplication.EigensolverStrategy(
-            mp,
-            scheme,
-            builder_and_solver)
+        eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
+        mass_matrix_diagonal_value = 1.0
+        stiffness_matrix_diagonal_value = -1.0
+        eig_strategy = StructuralMechanicsApplication.EigensolverStrategy(mp,
+                                                                    eigen_scheme,
+                                                                    builder_and_solver,
+                                                                    mass_matrix_diagonal_value,
+                                                                    stiffness_matrix_diagonal_value)
 
-        solver.Solve()
+        eig_strategy.Solve()
 
         current_eigenvalues = [ev for ev in mp.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]]
         analytical_eigenvalues = [5,20]

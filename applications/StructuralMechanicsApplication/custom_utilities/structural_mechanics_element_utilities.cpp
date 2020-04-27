@@ -29,7 +29,7 @@ namespace StructuralMechanicsElementUtilities {
 int SolidElementCheck(
     const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo,
-    std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
     )
 {
     const auto& r_geometry = rElement.GetGeometry();
@@ -65,7 +65,7 @@ int SolidElementCheck(
     } else {
         KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  rElement.Id() << std::endl;
     }
-    
+
     // Check constitutive law
     if ( rConstitutiveLaws.size() > 0 ) {
         return rConstitutiveLaws[0]->Check( r_properties, r_geometry, rCurrentProcessInfo );
@@ -202,7 +202,7 @@ double GetDensityForMassMatrixComputation(const Element& rElement)
 void CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
-    /*const*/ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const std::size_t MatrixSize)
 {
     KRATOS_TRY;

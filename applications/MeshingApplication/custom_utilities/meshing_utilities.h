@@ -63,26 +63,6 @@ namespace MeshingUtilities
     typedef ElementsArrayType::iterator ElementItType;
 
     /**
-     * @brief This method ensured that the properties of elements and conditions are on the model part (it does recursively in all model parts)
-     * @param ModelPart The model part where ensure properties
-     * @param RemovePreviousProperties If we clear previous properties and ensure only the properties existing in the elements and conditions (true by default)
-     */
-    void KRATOS_API(MESHING_APPLICATION) RecursiveEnsureModelPartOwnsProperties(
-        ModelPart& rModelPart,
-        const bool RemovePreviousProperties = true
-        );
-
-    /**
-     * @brief This method ensured that the properties of elements and conditions are on the model part
-     * @param ModelPart The model part where ensure properties
-     * @param RemovePreviousProperties If we clear previous properties and ensure only the properties existing in the elements and conditions (true by default)
-     */
-    void KRATOS_API(MESHING_APPLICATION) EnsureModelPartOwnsProperties(
-        ModelPart& rModelPart,
-        const bool RemovePreviousProperties = true
-        );
-
-    /**
      * @brief This computes the element size depending of a whole model part and it assigns to the ELEMENT_H variable
      * @param ModelPart The model part where compute the  and block them
      * @param ThisParameters The parameters

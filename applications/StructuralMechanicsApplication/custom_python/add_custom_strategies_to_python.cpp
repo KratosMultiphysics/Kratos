@@ -93,7 +93,18 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Eigensolver Strategy
     py::class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>(), py::arg("model_part"), py::arg("scheme"), py::arg("builder_and_solver"), py::arg("compute_model_decomposition")=false)
+        .def(py::init<ModelPart&,
+             BaseSchemeType::Pointer,
+             BuilderAndSolverPointer,
+             double,
+             double,
+             bool>(),
+                py::arg("model_part"),
+                py::arg("scheme"),
+                py::arg("builder_and_solver"),
+                py::arg("mass_matrix_diagonal_value"),
+                py::arg("stiffness_matrix_diagonal_value"),
+                py::arg("compute_modal_decomposition")=false)
             ;
 
     // Prebuckling Strategy

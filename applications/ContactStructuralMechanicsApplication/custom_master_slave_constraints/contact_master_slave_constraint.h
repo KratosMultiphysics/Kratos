@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/linear_master_slave_constraint.h"
+#include "constraints/linear_master_slave_constraint.h"
 
 namespace Kratos
 {

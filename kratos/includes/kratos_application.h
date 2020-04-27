@@ -30,7 +30,7 @@
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
 #include "includes/master_slave_constraint.h"
-#include "includes/linear_master_slave_constraint.h"
+#include "constraints/linear_master_slave_constraint.h"
 #include "includes/geometrical_object.h"
 
 /* Geometries definition */
@@ -64,8 +64,8 @@
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
- 
-/** 
+
+/**
  * @class KratosApplication
  * @brief This class defines the interface with kernel for all applications in Kratos.
  * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole sistem correctly.
@@ -80,7 +80,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
-       
+
     /// Pointer definition of KratosApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosApplication);
 
@@ -138,7 +138,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     void RegisterDEMVariables();                  //TODO: move to application
     void RegisterFSIVariables();                  //TODO: move to application
     void RegisterMATVariables();                  //TODO: move to application
-    void RegisterLegacyStructuralAppVariables();  //TODO: move to application
     void RegisterGlobalPointerVariables();
 
     const std::string& Name() const { return mApplicationName; }
@@ -226,7 +225,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<Geometry<Node<3>>>::ComponentsContainerType& GetGeometries() {
         return *mpGeometries;
     }
-    
+
     KratosComponents<Element>::ComponentsContainerType& GetElements() {
         return *mpElements;
     }
@@ -255,7 +254,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     {
         mpGeometries->insert(GeometryComponents.begin(), GeometryComponents.end());
     }
-    
+
     void SetComponents(KratosComponents<Element>::ComponentsContainerType const&
             ElementComponents)
 
@@ -330,7 +329,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         rOStream << "Geometries:" << std::endl;
 
         KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
-        
+
         rOStream << "Elements:" << std::endl;
 
         KratosComponents<Element>().PrintData(rOStream);
@@ -360,7 +359,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@}
     ///@name Protected member Variables
     ///@{
-       
+
     std::string mApplicationName;
 
     // General geometries must be defined
@@ -484,7 +483,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::ComponentsContainerType* mpArray1D9VariableComponents;
 
     KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
-    
+
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;

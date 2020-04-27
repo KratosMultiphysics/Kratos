@@ -137,9 +137,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ShockDetectionProcess() = default;
-
     /// Constructor with default shock sensor variable for double shock variable
     ShockDetectionProcess(
         ModelPart& rModelPart,

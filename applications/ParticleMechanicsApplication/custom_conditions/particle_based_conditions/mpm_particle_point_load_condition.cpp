@@ -73,22 +73,18 @@ namespace Kratos
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-        // Get imposed displacement and normal vector
-        const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
-        const array_1d<double, 3 > & point_load = this->GetValue (POINT_LOAD);
-
         // Prepare variables
         GeneralVariables Variables;
 
         // Calculating shape function
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
 
         // Here MP contribution in terms of force are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             for (unsigned int j = 0; j < dimension; j++)
             {
-                rNodalForce(j,i) = Variables.N[i] * point_load[j];
+                rNodalForce(j,i) = Variables.N[i] * m_point_load[j];
             }
         }
 
@@ -164,12 +160,9 @@ namespace Kratos
 
         Variables.CurrentDisp = CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
 
-
-        const array_1d<double,3> & xg = this->GetValue(MPC_COORD);
-
         array_1d<double,3> delta_xg = ZeroVector(3);
 
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
+        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -183,9 +176,24 @@ namespace Kratos
         }
 
         // Update the Material Point Condition Position
-        const array_1d<double,3>& new_xg = xg + delta_xg ;
-        this -> SetValue(MPC_COORD,new_xg);
-
+        m_xg += delta_xg ;
     }
 
+    void MPMParticlePointLoadCondition::SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR_IF(rValues.size() > 1)
+            << "Only 1 value per integration point allowed! Passed values vector size: "
+            << rValues.size() << std::endl;
+
+        if (rVariable == POINT_LOAD) {
+            m_point_load = rValues[0];
+        }
+        else {
+            MPMParticleBaseLoadCondition::SetValuesOnIntegrationPoints(
+                rVariable, rValues, rCurrentProcessInfo);
+        }
+    }
 } // Namespace Kratos
