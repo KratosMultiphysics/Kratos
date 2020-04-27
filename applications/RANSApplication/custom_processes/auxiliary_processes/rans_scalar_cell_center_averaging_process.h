@@ -65,7 +65,7 @@ public:
     RansScalarCellCenterAveragingProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansScalarCellCenterAveragingProcess() override;
+    ~RansScalarCellCenterAveragingProcess() override = default;
 
     ///@}
     ///@name Operators

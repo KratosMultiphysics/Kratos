@@ -108,9 +108,7 @@ public:
     }
 
     /// Destructor.
-    ~ResidualBasedBossakVelocityScheme() override
-    {
-    }
+    ~ResidualBasedBossakVelocityScheme() override = default;
 
     ///@}
     ///@name Operators

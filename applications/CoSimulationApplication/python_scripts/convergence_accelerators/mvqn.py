@@ -19,9 +19,9 @@ import numpy as np
 from copy import deepcopy
 from collections import deque
 
-def Create(settings, solver_wrapper):
+def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
-    return MVQNConvergenceAccelerator(settings, solver_wrapper)
+    return MVQNConvergenceAccelerator(settings)
 
 ## Class MVQNConvergenceAccelerator.
 # This class contains the implementation of the MVQN method and helper functions.
@@ -30,8 +30,8 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
-    def __init__( self, settings, solver_wrapper):
-        super(MVQNConvergenceAccelerator, self).__init__(settings, solver_wrapper)
+    def __init__( self, settings):
+        super(MVQNConvergenceAccelerator, self).__init__(settings)
 
         horizon = self.settings["horizon"].GetInt()
         self.alpha = self.settings["alpha"].GetDouble()

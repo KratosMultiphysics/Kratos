@@ -109,9 +109,6 @@ public:
   {
     ModelPart::PropertiesType &elemProperties = itElem->GetProperties();
 
-    double density = 0;
-    double bulk_modulus = 0;
-    double viscosity = 0;
     double flow_index = 1;
     double yield_shear = 0;
     double adaptive_exponent = 0;
@@ -125,9 +122,10 @@ public:
     double inertial_number_one = 0;
     double alpha_parameter = 0;
 
-    density = elemProperties[DENSITY];
-    bulk_modulus = elemProperties[BULK_MODULUS];
-    viscosity = elemProperties[DYNAMIC_VISCOSITY];
+    double density = elemProperties[DENSITY];
+    double bulk_modulus = elemProperties[BULK_MODULUS];
+    double viscosity = elemProperties[DYNAMIC_VISCOSITY];
+    unsigned int node_property_id = elemProperties.Id();
 
     if (elemProperties.Has(YIELD_SHEAR))
     {
@@ -175,6 +173,7 @@ public:
       rGeom[i].FastGetSolutionStepValue(INERTIAL_NUMBER_ONE) = inertial_number_one;
       rGeom[i].FastGetSolutionStepValue(INFINITE_FRICTION) = infinite_friction;
       rGeom[i].FastGetSolutionStepValue(ALPHA_PARAMETER) = alpha_parameter;
+      rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = node_property_id;
     }
   }
 

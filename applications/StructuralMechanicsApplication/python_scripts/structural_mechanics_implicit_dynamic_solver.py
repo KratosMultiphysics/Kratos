@@ -95,9 +95,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
                 bdf_parameters = KratosMultiphysics.Parameters(""" {
                     "domain_size"           : 3,
                     "integration_order"     : 2,
-                    "variable"              : ["DISPLACEMENT","ROTATION"],
-                    "first_derivative"      : ["VELOCITY","ANGULAR_VELOCITY"],
-                    "second_derivative"     : ["ACCELERATION","ANGULAR_ACCELERATION"]
+                    "solution_variables"    : ["DISPLACEMENT","ROTATION"]
                 } """)
                 bdf_parameters["domain_size"].SetInt(process_info[KratosMultiphysics.DOMAIN_SIZE])
                 mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(order, bdf_parameters)

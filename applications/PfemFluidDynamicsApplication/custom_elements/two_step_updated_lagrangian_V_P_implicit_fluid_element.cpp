@@ -62,19 +62,12 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeMaterialParame
                                                                                      ProcessInfo &currentProcessInfo,
                                                                                      ElementalVariables &rElementalVariables)
 {
-  double FluidBulkModulus = 0;
-  double FluidYieldShear = 0;
-  double staticFrictionCoefficient = 0;
-  double regularizationCoefficient = 0;
-  // double inertialNumberThreshold=0;
   double timeStep = currentProcessInfo[DELTA_TIME];
 
-  this->EvaluatePropertyFromANotRigidNode(Density, DENSITY);
-  this->EvaluatePropertyFromANotRigidNode(FluidBulkModulus, BULK_MODULUS);
-  this->EvaluatePropertyFromANotRigidNode(FluidYieldShear, YIELD_SHEAR);
-  this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient, STATIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient, REGULARIZATION_COEFFICIENT);
-  // this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
+  Density = this->GetProperties()[DENSITY];
+  double FluidBulkModulus = this->GetProperties()[BULK_MODULUS];
+  double FluidYieldShear = this->GetProperties()[YIELD_SHEAR];
+  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
 
   if (FluidBulkModulus == 0)
   {
@@ -105,7 +98,7 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeMaterialParame
   else
   {
     // std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
-    this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff, DYNAMIC_VISCOSITY);
+    DeviatoricCoeff = this->GetProperties()[DYNAMIC_VISCOSITY];
   }
 
   // this->ComputeMaterialParametersGranularGas(rElementalVariables,VolumetricCoeff,DeviatoricCoeff);
@@ -130,15 +123,10 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeMaterialParame
 template <unsigned int TDim>
 double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeNonLinearViscosity(double &equivalentStrainRate)
 {
-  double FluidViscosity = 0;
 
-  double FluidFlowIndex = 0;
-  double FluidYieldShear = 0;
-  double FluidAdaptiveExponent = 0;
-  this->EvaluatePropertyFromANotRigidNode(FluidViscosity, DYNAMIC_VISCOSITY);
-  this->EvaluatePropertyFromANotRigidNode(FluidFlowIndex, FLOW_INDEX);
-  this->EvaluatePropertyFromANotRigidNode(FluidYieldShear, YIELD_SHEAR);
-  this->EvaluatePropertyFromANotRigidNode(FluidAdaptiveExponent, ADAPTIVE_EXPONENT);
+  double FluidViscosity = this->GetProperties()[DYNAMIC_VISCOSITY];
+  double FluidYieldShear = this->GetProperties()[YIELD_SHEAR];
+  double FluidAdaptiveExponent = this->GetProperties()[ADAPTIVE_EXPONENT];
   double exponent = -FluidAdaptiveExponent * equivalentStrainRate;
   if (equivalentStrainRate != 0)
   {
@@ -159,20 +147,9 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeMaterialParame
                                                                                                 ProcessInfo &currentProcessInfo,
                                                                                                 ElementalVariables &rElementalVariables)
 {
-
-  this->EvaluatePropertyFromANotRigidNode(Density, DENSITY);
-
-  double staticFrictionCoefficient = 0;
-  double dynamicFrictionCoefficient = 0;
-  double inertialNumberZero = 0;
-  double grainDiameter = 0;
-  double grainDensity = 0;
-
-  this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient, STATIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient, DYNAMIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(inertialNumberZero, INERTIAL_NUMBER_ZERO);
-  this->EvaluatePropertyFromANotRigidNode(grainDiameter, GRAIN_DIAMETER);
-  this->EvaluatePropertyFromANotRigidNode(grainDensity, GRAIN_DENSITY);
+  Density = this->GetProperties()[DENSITY];
+  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
+  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
   double temperature = 5.0;
   double gZero = 0;
   double voidRatioS = 0.35;
@@ -249,17 +226,11 @@ double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeJopMuIrheolo
 {
   double FluidViscosity = 0;
 
-  double staticFrictionCoefficient = 0;
-  double dynamicFrictionCoefficient = 0;
-  double inertialNumberZero = 0;
-  double grainDiameter = 0;
-  double grainDensity = 0;
-
-  this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient, STATIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient, DYNAMIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(inertialNumberZero, INERTIAL_NUMBER_ZERO);
-  this->EvaluatePropertyFromANotRigidNode(grainDiameter, GRAIN_DIAMETER);
-  this->EvaluatePropertyFromANotRigidNode(grainDensity, GRAIN_DENSITY);
+  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
+  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
+  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
+  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
+  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
 
   double meanPressure = rElementalVariables.MeanPressure;
   if (meanPressure > 0)
@@ -292,19 +263,12 @@ template <unsigned int TDim>
 double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBercovierMuIrheologyViscosity(ElementalVariables &rElementalVariables)
 {
   double FluidViscosity = 0;
-  double staticFrictionCoefficient = 0;
-  double dynamicFrictionCoefficient = 0;
-  double inertialNumberZero = 0;
-  double grainDiameter = 0;
-  double grainDensity = 0;
-  double regularizationCoefficient = 0;
-
-  this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient, STATIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient, DYNAMIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(inertialNumberZero, INERTIAL_NUMBER_ZERO);
-  this->EvaluatePropertyFromANotRigidNode(grainDiameter, GRAIN_DIAMETER);
-  this->EvaluatePropertyFromANotRigidNode(grainDensity, GRAIN_DENSITY);
-  this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient, REGULARIZATION_COEFFICIENT);
+  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
+  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
+  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
+  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
+  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
+  double regularizationCoefficient = this->GetProperties()[REGULARIZATION_COEFFICIENT];
 
   double meanPressure = rElementalVariables.MeanPressure;
   if (meanPressure > 0)
@@ -337,19 +301,12 @@ template <unsigned int TDim>
 double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputePapanastasiouMuIrheologyViscosity(ElementalVariables &rElementalVariables)
 {
   double FluidViscosity = 0;
-  double staticFrictionCoefficient = 0;
-  double dynamicFrictionCoefficient = 0;
-  double inertialNumberZero = 0;
-  double grainDiameter = 0;
-  double grainDensity = 0;
-  double regularizationCoefficient = 0;
-
-  this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient, STATIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient, DYNAMIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(inertialNumberZero, INERTIAL_NUMBER_ZERO);
-  this->EvaluatePropertyFromANotRigidNode(grainDiameter, GRAIN_DIAMETER);
-  this->EvaluatePropertyFromANotRigidNode(grainDensity, GRAIN_DENSITY);
-  this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient, REGULARIZATION_COEFFICIENT);
+  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
+  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
+  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
+  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
+  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
+  double regularizationCoefficient = this->GetProperties()[REGULARIZATION_COEFFICIENT];
 
   double pressure = rElementalVariables.MeanPressure;
   if (pressure > 0)
@@ -393,23 +350,14 @@ template <unsigned int TDim>
 double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBarkerMuIrheologyViscosity(ElementalVariables &rElementalVariables)
 {
   double FluidViscosity = 0;
-  double staticFrictionCoefficient = 0;
-  double dynamicFrictionCoefficient = 0;
-  double inertialNumberZero = 0;
-  double grainDiameter = 0;
-  double grainDensity = 0;
-  double inertialNumberThreshold = 0;
-  double infiniteFrictionCoefficient = 0;
-  double alphaParameter = 0;
-
-  this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient, STATIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient, DYNAMIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(inertialNumberZero, INERTIAL_NUMBER_ZERO);
-  this->EvaluatePropertyFromANotRigidNode(grainDiameter, GRAIN_DIAMETER);
-  this->EvaluatePropertyFromANotRigidNode(grainDensity, GRAIN_DENSITY);
-  this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold, INERTIAL_NUMBER_ONE);
-  this->EvaluatePropertyFromANotRigidNode(infiniteFrictionCoefficient, INFINITE_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(alphaParameter, ALPHA_PARAMETER);
+  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
+  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
+  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
+  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
+  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
+  double inertialNumberThreshold = this->GetProperties()[INERTIAL_NUMBER_ONE];
+  double infiniteFrictionCoefficient = this->GetProperties()[INFINITE_FRICTION];
+  double alphaParameter = this->GetProperties()[ALPHA_PARAMETER];
 
   double meanPressure = rElementalVariables.MeanPressure;
   if (meanPressure > 0)
@@ -451,25 +399,16 @@ double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBarkerBercov
 {
 
   double FluidViscosity = 0;
-  double staticFrictionCoefficient = 0;
-  double dynamicFrictionCoefficient = 0;
-  double inertialNumberZero = 0;
-  double grainDiameter = 0;
-  double grainDensity = 0;
-  double inertialNumberThreshold = 0;
-  double infiniteFrictionCoefficient = 0;
-  double alphaParameter = 0;
-  double regularizationCoefficient = 0;
 
-  this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient, STATIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient, DYNAMIC_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(inertialNumberZero, INERTIAL_NUMBER_ZERO);
-  this->EvaluatePropertyFromANotRigidNode(grainDiameter, GRAIN_DIAMETER);
-  this->EvaluatePropertyFromANotRigidNode(grainDensity, GRAIN_DENSITY);
-  this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold, INERTIAL_NUMBER_ONE);
-  this->EvaluatePropertyFromANotRigidNode(infiniteFrictionCoefficient, INFINITE_FRICTION);
-  this->EvaluatePropertyFromANotRigidNode(alphaParameter, ALPHA_PARAMETER);
-  this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient, REGULARIZATION_COEFFICIENT);
+  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
+  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
+  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
+  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
+  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
+  double inertialNumberThreshold = this->GetProperties()[INERTIAL_NUMBER_ONE];
+  double infiniteFrictionCoefficient = this->GetProperties()[INFINITE_FRICTION];
+  double alphaParameter = this->GetProperties()[ALPHA_PARAMETER];
+  double regularizationCoefficient = this->GetProperties()[REGULARIZATION_COEFFICIENT];
 
   double meanPressure = rElementalVariables.MeanPressure;
   if (meanPressure > 0)

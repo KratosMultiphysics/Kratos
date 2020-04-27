@@ -62,15 +62,9 @@ RansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver>::Ra
 }
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-RansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver>::~RansWallDistanceCalculationProcess()
-{
-}
-
-template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 int RansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver>::Check()
 {
     KRATOS_TRY
-
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
@@ -119,9 +113,9 @@ void RansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver
 
     VariableUtils variable_utilities;
 
-    variable_utilities.SetScalarVar(DISTANCE, 1.0, r_model_part.Nodes());
-    variable_utilities.SetScalarVarForFlag(DISTANCE, 0.0, r_model_part.Nodes(),
-                                           r_wall_flag, mWallFlagVariableValue);
+    variable_utilities.SetVariable(DISTANCE, 1.0, r_model_part.Nodes());
+    variable_utilities.SetVariable(DISTANCE, 0.0, r_model_part.Nodes(),
+                                   r_wall_flag, mWallFlagVariableValue);
 
     const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
 

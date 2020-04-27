@@ -89,7 +89,7 @@ public:
                             const Variable<double>& rAreaVar,
                             const unsigned int max_levels,
                             const double max_distance,
-                            Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                            Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse())
     {
         KRATOS_TRY
 
@@ -159,19 +159,19 @@ public:
         if(rModelPart.GetCommunicator().TotalProcesses() > 1)
             is_distributed = true;
 
+        array_1d<double,TDim+1> visited;
+        const int elem_size = rModelPart.Elements().size();
+        const int node_size = rModelPart.Nodes().size();
+
         //check that variables needed are in the model part
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"distance Variable is not in the model part","");
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
         if(is_distributed == true)
-            if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
+            if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
                 KRATOS_THROW_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","");
-
-                        array_1d<double,TDim+1> visited;
-        const int elem_size = rModelPart.Elements().size();
-        const int node_size = rModelPart.Nodes().size();
 
         // set to zero the distance
         #pragma omp parallel for
@@ -718,15 +718,17 @@ private:
         if(rModelPart.GetCommunicator().TotalProcesses() > 1)
             is_distributed = true;
 
+        const int node_size = rModelPart.Nodes().size();
+
         //check that variables needed are in the model part
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"distance Variable is not in the model part","");
 
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
         if(is_distributed == true)
-            if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
+            if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
                  KRATOS_THROW_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
 
 		KRATOS_CATCH("")
@@ -1091,9 +1093,6 @@ private:
 template< unsigned int TDim>
 const Kratos::Flags ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
 
-template< unsigned int TDim>
-const Kratos::Flags ParallelDistanceCalculator<TDim>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0, false));
-
 ///@}
 ///@name Input and output
 ///@{
@@ -1124,5 +1123,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED  defined
-
-

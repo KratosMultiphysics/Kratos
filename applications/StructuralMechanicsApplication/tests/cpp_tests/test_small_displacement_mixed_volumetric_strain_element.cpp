@@ -41,6 +41,8 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
@@ -72,12 +74,12 @@ namespace Testing
         Vector RHS = ZeroVector(9);
         Matrix LHS = ZeroMatrix(9,9);
 
-        p_element->Initialize(); // Initialize the element to initialize the constitutive law
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({51153.8,51153.8,-9388.35,-12692.3,-38461.5,18114.3,-38461.5,-12692.3,3966.35});
+        const std::vector<double> expected_RHS({51153.8, 51153.8, -1822.18, -12692.3, -38461.5, 10548.1, -38461.5, -12692.3, 3966.35});
         const std::vector<double> expected_LHS_row_0({778846, 9615.38, -317308, -394231, -384615, -317308, -384615, 375000, -317308});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -91,6 +93,8 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
@@ -126,12 +130,12 @@ namespace Testing
         Vector RHS = ZeroVector(12);
         Matrix LHS = ZeroMatrix(12,12);
 
-        p_element->Initialize(); // Initialize the element to initialize the constitutive law
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({-23221.2,56875,-104295,23221.2,55288.5,-120849,18461.5,-55288.5,-6554.49,-18461.5,-56875,74631.4});
+        const std::vector<double> expected_RHS({-23221.2, 56875, -51086.2, 23221.2, 55288.5, -54338.5, 18461.5, -55288.5, -33158.8, -18461.5, -56875, -18483.7});
         const std::vector<double> expected_LHS_row_0({519231,4807.69,-317308,-134615,-379808,-317308,-259615,-4807.69,-158654,-125000,379808,-158654});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -145,6 +149,8 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
@@ -184,12 +190,12 @@ namespace Testing
         Vector RHS = ZeroVector(32);
         Matrix LHS = ZeroMatrix(32,32);
 
-        p_element->Initialize(); // Initialize the element to initialize the constitutive law
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({-4144.23,16003.2,-12609,6444.44,4144.23,15544.9,-12838.1,-2736.11,2769.23,-34775.6,7309.29,52041.7,-2769.23,-35234,7767.63,88458.3,-2072.12,17617,-6621.79,-59972.2,2072.12,17387.8,-6392.63,-60048.6,1384.62,1842.95,11921.5,-50715.3,-1384.62,1613.78,11463.1,-41534.7});
+        const std::vector<double> expected_RHS({-4144.23, 16003.2, -12609, -7830.25, 4144.23, 15544.9, -12838.1, -9873.46, 2769.23, -34775.6, 7309.29, 2080.25, -2769.23, -35234, 7767.63, 9947.53, -2072.12, 17617, -6621.79, -17148.1, 2072.12, 17387.8, -6392.63, -17224.5, 1384.62, 1842.95, 11921.5, -15028.5, -1384.62, 1613.78, 11463.1, -12985.3});
         const std::vector<double> expected_LHS_row_0({286752,22756.4,22756.4,-91666.7,-30341.9,-105449,-105449,-91666.7,-79273.5,-22756.4,-52724.4,-45833.3,15170.9,105449,11378.2,-45833.3,15170.9,11378.2,105449,-45833.3,-79273.5,-52724.4,-22756.4,-45833.3,-71688,-11378.2,-11378.2,-22916.7,-56517.1,52724.4,52724.4,-22916.7});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -224,6 +230,8 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
@@ -242,7 +250,7 @@ namespace Testing
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
         // Initialize the element to initialize the constitutive law
-        p_element->Initialize();
+        p_element->Initialize(r_process_info);
 
         // Set a fake displacement and volumetric strain field to compute the residual
         const double alpha = -2.0e-5;
@@ -251,7 +259,7 @@ namespace Testing
 
         Vector RHS = ZeroVector(9);
         Matrix LHS = ZeroMatrix(9,9);
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Perturb the previous displacement and volumetric strain field to compute the residual
         const double alpha_perturbed = 1.25e-5;
@@ -259,7 +267,7 @@ namespace Testing
         LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed);
 
         Vector RHS_perturbed = ZeroVector(9);
-        p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
+        p_element->CalculateRightHandSide(RHS_perturbed, r_process_info);
 
         // Calculate the perturbation RHS
         const double delta_alpha = alpha_perturbed - alpha;
@@ -267,7 +275,7 @@ namespace Testing
         LinearPerturbationField(r_model_part, delta_alpha, delta_beta);
 
         Vector RHS_delta = ZeroVector(9);
-        p_element->CalculateRightHandSide(RHS_delta, r_model_part.GetProcessInfo());
+        p_element->CalculateRightHandSide(RHS_delta, r_process_info);
 
         // Check the error
         const Vector RHS_error = RHS_perturbed - (RHS + RHS_delta);
@@ -297,6 +305,8 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
@@ -316,7 +326,7 @@ namespace Testing
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 1, element_nodes, p_elem_prop);
 
         // Initialize the element to initialize the constitutive law
-        p_element->Initialize();
+        p_element->Initialize(r_process_info);
 
         // Set a fake displacement and volumetric strain field to compute the residual
         const double alpha = -2.0;
@@ -326,7 +336,7 @@ namespace Testing
 
         Vector RHS = ZeroVector(16);
         Matrix LHS = ZeroMatrix(16,16);
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Perturb the previous displacement and volumetric strain field to compute the residual
         const double alpha_perturbed = 1.25;
@@ -335,7 +345,7 @@ namespace Testing
         LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed, gamma_perturbed);
 
         Vector RHS_perturbed = ZeroVector(16);
-        p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
+        p_element->CalculateRightHandSide(RHS_perturbed, r_process_info);
 
         // Calculate the perturbation RHS
         const double delta_alpha = alpha_perturbed - alpha;
@@ -344,7 +354,7 @@ namespace Testing
         LinearPerturbationField(r_model_part, delta_alpha, delta_beta, delta_gamma);
 
         Vector RHS_delta = ZeroVector(16);
-        p_element->CalculateRightHandSide(RHS_delta, r_model_part.GetProcessInfo());
+        p_element->CalculateRightHandSide(RHS_delta, r_process_info);
 
         // Check the error
         const Vector RHS_error = RHS_perturbed - (RHS + RHS_delta);
@@ -374,6 +384,8 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(REACTION);
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -415,7 +427,7 @@ namespace Testing
 
         // Initialize the elements to initialize the constitutive law
         for (auto &r_elem : r_model_part.Elements()) {
-            r_elem.Initialize();
+            r_elem.Initialize(r_process_info);
         }
 
         // Construct the linear solver pointer
@@ -456,7 +468,7 @@ namespace Testing
         // Check results
         const double tolerance = 1.0e-6;
         const double expected_vol_strain = 1.4965e-05;
-        const std::vector<double> expected_disp = {-0.00244356,0.00247349,0};
+        const std::vector<double> expected_disp = {-0.000318007, 0.000347937, 0};
         KRATOS_CHECK_VECTOR_NEAR(p_node_3->FastGetSolutionStepValue(DISPLACEMENT), expected_disp, tolerance);
         KRATOS_CHECK_NEAR(p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN), expected_vol_strain, tolerance);
 
