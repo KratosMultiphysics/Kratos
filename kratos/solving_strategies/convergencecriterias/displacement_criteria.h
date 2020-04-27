@@ -65,6 +65,9 @@ public:
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
+    /// The definition of the current class
+    typedef DisplacementCriteria< TSparseSpace, TDenseSpace > ClassType;
+
     typedef TSparseSpace SparseSpaceType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -141,6 +144,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * Compute relative and absolute error.
@@ -256,11 +272,6 @@ public:
     {
         return "displacement_criteria";
     }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
 
     ///@}
     ///@name Access

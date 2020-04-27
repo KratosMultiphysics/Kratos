@@ -360,6 +360,7 @@ namespace Kratos
             py::class_< ConvergenceCriteriaType,
                     ConvergenceCriteriaPointerType >(m,"ConvergenceCriteria")
                     .def(py::init<>())
+                    .def("Create", &ConvergenceCriteriaType::Create)
                     .def("SetActualizeRHSFlag", &ConvergenceCriteriaType::SetActualizeRHSFlag)
                     .def("GetActualizeRHSflag", &ConvergenceCriteriaType::GetActualizeRHSflag)
                     .def("PreCriteria", &ConvergenceCriteriaType::PreCriteria)
