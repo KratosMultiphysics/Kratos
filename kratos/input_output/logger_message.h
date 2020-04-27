@@ -143,7 +143,7 @@ KRATOS_DEFINE_LOCAL_FLAG(STOP);
   ///@{
 
   explicit LoggerMessage(std::string const& TheLabel)
-  : mLabel(TheLabel), mFullLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mFlags(LoggerMessage::STATUS), mMessageSource(), mDistributedFilter(DistributedFilter::FromRoot()) {}
+  : mLabel(TheLabel), mFullLabel(TheLabel), mLevel(0), mSeverity(Severity::INFO), mFlags(LoggerMessage::STATUS), mMessageSource(), mDistributedFilter(DistributedFilter::FromRoot()) {}
 
   LoggerMessage(LoggerMessage const& Other)
   : mLabel(Other.mLabel), mFullLabel(Other.mFullLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mFlags(Other.mFlags), mMessageSource(Other.mMessageSource), mDistributedFilter(Other.mDistributedFilter) {}
