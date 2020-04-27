@@ -114,8 +114,8 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::CyclePeriodPerIntegrationPoin
                         rCycleFound = true;
                     }
             }
-            r_elem.SetValueOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
-            r_elem.SetValueOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
+            r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
+            r_elem.SetValuesOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
         }    
     }
 }
@@ -257,9 +257,9 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeAndCyclesUpdate(double In
             local_number_of_cycles[i] += local_cycles_increment;
             global_number_of_cycles[i] += local_cycles_increment;
         }
-        r_elem.SetValueOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
-        r_elem.SetValueOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
-        r_elem.SetValueOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
+        r_elem.SetValuesOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
+        r_elem.SetValuesOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
+        r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
     }
     r_process_info[TIME_INCREMENT] = time_increment - 0.0;
 
