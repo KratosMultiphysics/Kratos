@@ -364,20 +364,6 @@ public:
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector< array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
