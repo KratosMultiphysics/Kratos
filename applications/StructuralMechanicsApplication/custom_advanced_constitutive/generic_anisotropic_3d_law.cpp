@@ -99,20 +99,26 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     if (flag_stress) {
 
         // Here we compute the rotation tensors due to the angles of the local and global axes
-        Matrix rotation_matrix(Dimension, Dimension), constitutive_rotation_matrix(VoigtSize, VoigtSize);
+        Matrix rotation_matrix(Dimension, Dimension), voigt_rotation_matrix(VoigtSize, VoigtSize),
+        inv_voigt_rotation_matrix(VoigtSize, VoigtSize);
+
         if (r_material_properties.Has(EULER_ANGLE_PHI) &&
             std::abs(r_material_properties[EULER_ANGLE_PHI]) + 
             std::abs(r_material_properties[EULER_ANGLE_THETA]) + 
             std::abs(r_material_properties[EULER_ANGLE_HI]) > machine_tolerance) {
                 ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                     r_material_properties[EULER_ANGLE_PHI], r_material_properties[EULER_ANGLE_THETA],
-                    r_material_properties[EULER_ANGLE_HI],rotation_matrix);
-                ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorConstitutiveMatrix(
+                    r_material_properties[EULER_ANGLE_HI], rotation_matrix);
+                ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                     rotation_matrix,
-                    constitutive_rotation_matrix);
+                    voigt_rotation_matrix);
+                ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
+                    trans(rotation_matrix),
+                    inv_voigt_rotation_matrix);
         } else {
-            noalias(rotation_matrix)              = IdentityMatrix(Dimension, Dimension);
-            noalias(constitutive_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
+            noalias(rotation_matrix)           = IdentityMatrix(Dimension, Dimension);
+            noalias(voigt_rotation_matrix)     = IdentityMatrix(VoigtSize, VoigtSize);
+            noalias(inv_voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }
         
         // We compute the mappers As and Ae
@@ -123,27 +129,33 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
         this->CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
         this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
+
+        // Now we rotate the As and the orthotropic constitutive tensor
+        anisotropic_elastic_matrix = prod(voigt_rotation_matrix, Matrix(prod(anisotropic_elastic_matrix, trans(voigt_rotation_matrix))));
+        stress_mapper = prod(voigt_rotation_matrix, Matrix(prod(stress_mapper, trans(voigt_rotation_matrix))));
+        stress_mapper_inv = prod(voigt_rotation_matrix, Matrix(prod(stress_mapper_inv, trans(voigt_rotation_matrix))));
+
         ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
                                                                                     isotropic_elastic_matrix, stress_mapper, 
                                                                                     strain_mapper);
         
-        // Now we map the strains to the isotropic fictitious space: Eiso = Ae*Ereal
         Vector &r_iso_strain_vector = values_iso_cl.GetStrainVector();
-        r_iso_strain_vector = prod(strain_mapper, real_strain_vector); // mapped
-
         // Now we rotate the strain according to the local axes
-        ConstitutiveLawUtilities<VoigtSize>::RotateStrainVectorToLocalAxes(rotation_matrix, r_iso_strain_vector);
+        // r_iso_strain_vector = prod((inv_voigt_rotation_matrix), r_iso_strain_vector);
+
+        // Now we map the strains to the isotropic fictitious space: Eiso = Ae*Ereal
+        r_iso_strain_vector = prod(strain_mapper, real_strain_vector); // mapped
 
         // Integrate the isotropic constitutive law
         mpIsotropicCL->CalculateMaterialResponsePK2(values_iso_cl);
         const Vector& r_iso_stress_vector = values_iso_cl.GetStressVector();
 
         // We map the stresses to the real space: Sreal = inv(As)Siso
-        Vector &r_real_stress_vector  = rValues.GetStressVector();
+        Vector &r_real_stress_vector = rValues.GetStressVector();
         noalias(r_real_stress_vector) = prod(stress_mapper_inv, r_iso_stress_vector);
 
-        // Now we revert the rotation to the obtain the global stress
-        ConstitutiveLawUtilities<VoigtSize>::RotateStressVectorToGlobalAxes(rotation_matrix, r_real_stress_vector);
+        // we return to the global coordinates the stress
+        // r_real_stress_vector = prod(voigt_rotation_matrix, r_real_stress_vector);
 
         if (flag_const_tensor) {
             // Finally we map the tangent tensor: C_aniso = inv(As)*C_iso*Ae
@@ -152,7 +164,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
             noalias(r_anisotropic_tangent_matrix) = prod(stress_mapper_inv, Matrix(prod(r_isotropic_tangent, strain_mapper)));
 
             // We rotate the tangent tensor to the global coordinates
-            ConstitutiveLawUtilities<VoigtSize>::RotateMatrixToGlobalAxes(constitutive_rotation_matrix, r_anisotropic_tangent_matrix);
+            // r_anisotropic_tangent_matrix = prod(voigt_rotation_matrix, Matrix(prod(r_anisotropic_tangent_matrix, trans(voigt_rotation_matrix))));
         }  
     }
 } // End CalculateMaterialResponseCauchy
@@ -282,7 +294,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
             ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                 r_material_properties[EULER_ANGLE_PHI], r_material_properties[EULER_ANGLE_THETA],
                 r_material_properties[EULER_ANGLE_HI],rotation_matrix);
-            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorConstitutiveMatrix(
+            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                 rotation_matrix,
                 constitutive_rotation_matrix);
     } else {

@@ -1070,12 +1070,13 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperator(
         rRotationOperator.resize(Dimension, Dimension);
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
 
-    const double cos1 = std::cos(EulerAngle1 * Globals::Pi / 180.0);
-    const double sin1 = std::sin(EulerAngle1 * Globals::Pi / 180.0);
-    const double cos2 = std::cos(EulerAngle2 * Globals::Pi / 180.0);
-    const double sin2 = std::sin(EulerAngle2 * Globals::Pi / 180.0);
-    const double cos3 = std::cos(EulerAngle3 * Globals::Pi / 180.0);
-    const double sin3 = std::sin(EulerAngle3 * Globals::Pi / 180.0);
+    const double pi_over_180 = Globals::Pi / 180.0;
+    const double cos1 = std::cos(EulerAngle1 * pi_over_180);
+    const double sin1 = std::sin(EulerAngle1 * pi_over_180);
+    const double cos2 = std::cos(EulerAngle2 * pi_over_180);
+    const double sin2 = std::sin(EulerAngle2 * pi_over_180);
+    const double cos3 = std::cos(EulerAngle3 * pi_over_180);
+    const double sin3 = std::sin(EulerAngle3 * pi_over_180);
 
     rRotationOperator(0, 0) = cos1 * cos3 - sin1 * cos2 * sin3;
     rRotationOperator(0, 1) = sin1 * cos3 + cos1 * cos2 * sin3;
