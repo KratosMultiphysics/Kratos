@@ -27,20 +27,9 @@ Prep = PyPrep.Preprocessing(para_path_mod)
 Solver = PySolv.Solver(para_path_mod)
 Deform = PyDeform.Deformation(para_path_mod)
 
-# Surfaces where Cp has to be written 
-surfaces = ["MEMBRANE"] # 
-# get the name of the file where the deformation of the TAU Mesh are saved
-deformfile = Para.get_para_value('RBF basis coordinates and deflections filename') # 
-# Initialize TimeStep
-this_step_out = 0 ### TO do  read from TAU
-# Start Time
-startTime = 0 ### TO do  read from TAU
+# Initialize variables
+this_step_out = 0
 NodesNr = 0
-
-#------------------------------------------------------------------
-# Convert the initial TAU Mesh in '.dat' to find the information necessary  ######### TO DO ######### maybe at first !!!!!!
-#-------------------------------------------------------------------
-tauFunctions.PrintBlockHeader("Initial TAU Mesh at time %s" %(str(time)))
 
 ##### CoSimulation #####
 def AdvanceInTime(current_time):
