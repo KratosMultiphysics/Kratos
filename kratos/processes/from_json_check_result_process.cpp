@@ -151,21 +151,6 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
                     }
                 }
             }
-            for (auto& p_var_component : mpNodalVariableComponentsList) {
-                const auto& r_var_database = r_node_database.GetVariableData(*p_var_component);
-
-                #pragma omp parallel for reduction(+:check_counter)
-                for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                    auto it_node = it_node_begin + i;
-
-                    const double result = it_node->FastGetSolutionStepValue(*p_var_component);
-                    const double reference = r_var_database.GetValue(i, time);
-                    if (!CheckValues(result, reference)) {
-                        FailMessage(it_node->Id(), "Node", result, reference, p_var_component->Name());
-                        check_counter += 1;
-                    }
-                }
-            }
             for (auto& p_var_array : mpNodalVariableArrayList) {
                 const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
 
@@ -214,21 +199,6 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
                     const double reference = r_var_database.GetValue(i, time);
                     if (!CheckValues(result, reference)) {
                         FailMessage(it_node->Id(), "Node", result, reference, p_var_double->Name());
-                        check_counter += 1;
-                    }
-                }
-            }
-            for (auto& p_var_component : mpNodalVariableComponentsList) {
-                const auto& r_var_database = r_node_database.GetVariableData(*p_var_component);
-
-                #pragma omp parallel for reduction(+:check_counter)
-                for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                    auto it_node = it_node_begin + i;
-
-                    const double result = it_node->GetValue(*p_var_component);
-                    const double reference = r_var_database.GetValue(i, time);
-                    if (!CheckValues(result, reference)) {
-                        FailMessage(it_node->Id(), "Node", result, reference, p_var_component->Name());
                         check_counter += 1;
                     }
                 }
@@ -424,10 +394,6 @@ void FromJSONCheckResultProcess::InitializeDatabases()
         nodal_variables_ids[aux_size + i] = mpNodalVariableDoubleList[i]->Key();
     }
     aux_size += mpNodalVariableDoubleList.size();
-    for (IndexType i = 0; i < mpNodalVariableComponentsList.size(); ++i) {
-        nodal_variables_ids[aux_size + i] = mpNodalVariableComponentsList[i]->Key();
-    }
-    aux_size += mpNodalVariableComponentsList.size();
     for (IndexType i = 0; i < mpNodalVariableArrayList.size(); ++i) {
         nodal_variables_ids[aux_size + i] = mpNodalVariableArrayList[i]->Key();
         nodal_values_sizes[aux_size + i] = 3;
@@ -500,16 +466,6 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     for (auto& p_var_double : mpNodalVariableDoubleList) {
         auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_double);
         const std::string& r_variable_name = p_var_double->Name();
-        for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            const std::string node_identifier = "NODE_" + GetNodeIdentifier(*it_node);
-            const auto& r_vector = results[node_identifier][r_variable_name].GetVector();
-            r_var_database.SetValues(r_time, r_vector, i);
-        }
-    }
-    for (auto& p_var_component : mpNodalVariableComponentsList) {
-        auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_component);
-        const std::string& r_variable_name = p_var_component->Name();
         for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
             const std::string node_identifier = "NODE_" + GetNodeIdentifier(*it_node);
@@ -674,8 +630,6 @@ void FromJSONCheckResultProcess::FillVariablesList(
     for (const std::string& r_variable_name : rNodalVariablesNames) {
         if (KratosComponents<Variable<double>>::Has(r_variable_name)){
             mpNodalVariableDoubleList.push_back(&(KratosComponents< Variable<double>>::Get(r_variable_name)));
-        } else if (KratosComponents<VariableComponent<ComponentType>>::Has(r_variable_name)) {
-            mpNodalVariableComponentsList.push_back(&(KratosComponents<VariableComponent<ComponentType>>::Get(r_variable_name)));
         } else if (KratosComponents<Variable<array_1d<double, 3> >>::Has(r_variable_name)) {
             mpNodalVariableArrayList.push_back(&(KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name)));
         } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {

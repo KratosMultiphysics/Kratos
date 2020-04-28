@@ -614,9 +614,6 @@ public:
     /// The node type definiton
     typedef Node<3> NodeType;
 
-    /// Definition of component
-    typedef VectorComponentAdaptor<array_1d<double, 3>> ComponentType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -870,7 +867,6 @@ private:
 
     /* The vectors storing the variables of study */
     std::vector<const Variable<double>*> mpNodalVariableDoubleList;                     /// The scalar variable list to compute
-    std::vector<const VariableComponent<ComponentType>*> mpNodalVariableComponentsList; /// The scalar variable list to compute (components) // TODO: To be replaced once components are unified
     std::vector<const Variable<array_1d<double,3>>*> mpNodalVariableArrayList;          /// The array variable list to compute
     std::vector<const Variable<Vector>*> mpNodalVariableVectorList;                     /// The vector variable list to compute
 
