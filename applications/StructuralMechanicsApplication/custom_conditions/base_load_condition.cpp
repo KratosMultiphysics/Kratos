@@ -159,7 +159,7 @@ void BaseLoadCondition::GetDofList(
 void BaseLoadCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
@@ -184,7 +184,7 @@ void BaseLoadCondition::GetValuesVector(
 void BaseLoadCondition::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
@@ -209,7 +209,7 @@ void BaseLoadCondition::GetFirstDerivativesVector(
 void BaseLoadCondition::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
