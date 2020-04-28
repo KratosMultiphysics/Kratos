@@ -130,7 +130,7 @@ public:
         return mpPrimalElement->GetIntegrationMethod();
     }
 
-    void GetValuesVector(Vector& values, int Step = 0) override;
+    void GetValuesVector(Vector& values, int Step = 0) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
