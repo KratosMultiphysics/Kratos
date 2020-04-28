@@ -87,6 +87,16 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor. (with parameters)
+     * @details It takes two different convergence criteria in order to work
+     */
+    explicit And_Criteria(Kratos::Parameters Settings)
+        :BaseType()
+    {
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
+
+    /**
      * @brief Default constructor.
      * @details It takes two different convergence criteria in order to work
      * @param pFirstCriterion The first convergence criteria
