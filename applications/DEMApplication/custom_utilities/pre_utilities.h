@@ -83,6 +83,38 @@ class PreUtilities
         p_properties->SetValue(CLUSTER_INFORMATION, cl_info);
     }
 
+    void PrintNumberOfNeighboursHistogram(const ModelPart& rSpheresModelPart, std::string const& filename) {
+        std::vector<int> number_of_spheres_with_i_neighbours;
+        number_of_spheres_with_i_neighbours.resize(20);
+        for(int i=0; i<(int)number_of_spheres_with_i_neighbours.size(); i++) {number_of_spheres_with_i_neighbours[i] = 0;}
+
+        const ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType::ptr_const_iterator begin = pElements.ptr_begin();
+
+        for(int i=0; i<(int)pElements.size(); i++) {
+            ElementsArrayType::ptr_const_iterator it = begin + i;
+            const Element& el = **it;
+            const SphericContinuumParticle* p_cont_sphere = dynamic_cast<const SphericContinuumParticle*>(&el);
+            if(p_cont_sphere) {
+                unsigned int size = p_cont_sphere->mContinuumInitialNeighborsSize;
+                if(size > number_of_spheres_with_i_neighbours.size() - 1) size = number_of_spheres_with_i_neighbours.size() - 1;
+                number_of_spheres_with_i_neighbours[size] += 1;
+            } else {
+                const SphericParticle* p_sphere = dynamic_cast<const SphericParticle*>(&el);
+                unsigned int size = p_sphere->mNeighbourElements.size();
+                if(size > number_of_spheres_with_i_neighbours.size() - 1) size = number_of_spheres_with_i_neighbours.size() - 1;
+                number_of_spheres_with_i_neighbours[size] += 1;
+            }
+        }
+        std::ofstream outputfile(filename, std::ios_base::out | std::ios_base::app);
+        outputfile << "number_of_neighbours   percentage_of_spheres_with_that_number_of_neighbours    number_of_spheres_with_that_number_of_neighbours\n";
+        for(int i=0; i<(int)number_of_spheres_with_i_neighbours.size(); i++) {
+            const double percentage = (double)(number_of_spheres_with_i_neighbours[i]) / (double)(rSpheresModelPart.NumberOfElements(0)) * 100.0;
+            outputfile <<i<<"        "<<percentage<<"        "<<number_of_spheres_with_i_neighbours[i]<<"\n";
+        }
+
+    }
+
 
     void FillAnalyticSubModelPartUtility(ModelPart& rSpheresModelPart, ModelPart& rAnalyticSpheresModelPart){
         ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
