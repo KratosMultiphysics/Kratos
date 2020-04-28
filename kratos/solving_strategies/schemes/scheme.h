@@ -184,6 +184,12 @@ public:
         mElementsAreInitialized = false;
         mConditionsAreInitialized = false;
     }
+    /**
+     * @brief Default Constructor with Parameters
+     */
+    explicit Scheme(Parameters ThisParameters) : Scheme()
+    {
+    }
 
     /** Copy Constructor.
      */
