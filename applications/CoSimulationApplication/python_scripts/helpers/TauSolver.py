@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-import shutil, sys, glob, os, time, subprocess, json
-import numpy as np
+import shutil, sys, os, time, json
 import CoSimIO
-import PyPara, PyPrep, PySolv, PyDeform, PySurfDeflect
+import PyPara, PyPrep, PySolv, PyDeform
 
 with open('tau_settings.json') as json_file:
     tau_settings = json.load(json_file)
