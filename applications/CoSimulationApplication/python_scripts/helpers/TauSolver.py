@@ -62,101 +62,9 @@ def SolveSolutionStep():
     tau_plt_init_tecplot_params(para_path_mod)
     tau_solver_write_output_conditional()
 
-#------------------------------------------------------------------
-# find the solution file name in '/Outputs' and convert in .dat ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen
-#------------------------------------------------------------------
-def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out):
-    list_of_interface_file_paths = glob.glob(interface_file_path_pattern + "*") 
-    print "list_of_interface_file_path = ", list_of_interface_file_paths 
-
-    interface_file_name = tauFunctions.findFileName(list_of_interface_file_paths, interface_file_path_pattern, "airfoilSol.pval.unsteady_i=",this_step_out+1) 
-    print "interface_file_name = ", interface_file_name 
-
-    list_of_meshes = glob.glob(mesh_file_path_pattern+ "*") 
-    print "list_of_meshes = ", list_of_meshes 
-    print "this_step_out = ", this_step_out 
-    if this_step_out == 0:
-        mesh_iteration = tauFunctions.findFileName0(list_of_meshes, mesh_file_path_pattern,'airfoil_Structured_scaliert.grid')
-    else:
-        mesh_iteration = tauFunctions.findFileName(list_of_meshes, mesh_file_path_pattern,'airfoil_Structured_scaliert.grid.def.', this_step_out)
-    print "mesh_iteration = ", mesh_iteration
-
-    tauFunctions.PrintBlockHeader("Start Writting Solution Data at time %s" %(str(time)))
-    subprocess.call('rm ' +  working_path + '/Tautoplt.cntl' ,shell=True)
-    tauFunctions.readTautoplt(working_path + 'Tautoplt.cntl', working_path + 'Tautoplt_initial.cntl', mesh_iteration, interface_file_name,working_path + para_path_mod)
-    subprocess.call(TAU_path + 'tau2plt ' + working_path + '/Tautoplt.cntl' ,shell=True)
-    tauFunctions.PrintBlockHeader("Stop Writting Solution Data at time %s" %(str(time)))
-
-    if interface_file_name + '.dat' not in glob.glob(interface_file_path_pattern + "*"):
-        interface_file_name = interface_file_name[0:interface_file_name.find('+')]+ interface_file_name[interface_file_name.find('+')+1:len(interface_file_name)]
-    
-    if 'surface' not in interface_file_name + '.dat':
-        interface_file_name_surface = interface_file_name[0:interface_file_name.find('.pval')]+ '.surface.' + interface_file_name[interface_file_name.find('.pval')+1:len(interface_file_name)]
-    else: 
-        interface_file_name_surface = interface_file_name
-
-    interface_file_number_of_lines = tauFunctions.findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
-    print 'interface_file_number_of_lines =', interface_file_number_of_lines
-
-    return interface_file_name_surface, interface_file_number_of_lines
-
-#------------------------------------------------------------------
-# read the solution file name in '/Outputs' and calculate the pressure ## ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen ##
-#------------------------------------------------------------------
-def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out):
-    global NodesNr
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=tauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
-    print 'NodesNr = ', NodesNr
-
-    nodes,nodesID,elems,element_types=tauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
-  
-    # calculating cp at the center of each interface element    
-    pCell=tauFunctions.calcpCell(ElemsNr,P,X,elemTable)
-
-    # calculating element area and normal vector
-    area,normal = tauFunctions.calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(this_step_out+1))
-
-    # calculating the force vector
-    forcesTauNP = tauFunctions.calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(this_step_out+1))
-
-    return forcesTauNP
-
-#------------------------------------------------------------------
-# Deformation
-#------------------------------------------------------------------
-def deformMesh(dispTau):
-    global dispTauOld
-
-    ##-------------------------------------------------------------------------------
-    ##  Deformation
-    ##-------------------------------------------------------------------------------	
-    if tau_mpi_rank() == 0:
-        print "deformationstart"
-        interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out)
-
-        NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=tauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
-
-        nodes,nodesID,elems,element_types=tauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
-
-        if(this_step_out==0):
-            dispTauOld=np.zeros(3*NodesNr)
-            dispTau_transpose = np.transpose(dispTau)
-            print 'dispTau =', dispTau_transpose
-
-        [ids,coordinates,globalID,coords]=tauFunctions.meshDeformation(NodesNr,nodes,dispTau,dispTauOld,0,para_path_mod)
-        PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
-        print "afterPySurfDeflect"
-
-
-    Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1) 
-
-
-    for i in xrange(0,3*NodesNr):
-        dispTauOld[i]=dispTau[i]
-    print "afterDeformation"
-
 def FinalizeSolutionStep():
-    print("TAU SOLVER FinalizeSolutionStep")
+    if tau_settings["echo_level"] > 0:
+        print("TAU SOLVER FinalizeSolutionStep")
     global this_step_out
     tau_parallel_sync()
     Solver.finalize()
@@ -166,7 +74,8 @@ def FinalizeSolutionStep():
     this_step_out += 1
 
 def ImportData(conn_name, identifier):
-    print "TAU SOLVER ImportData"
+    if tau_settings["echo_level"] > 0:
+        print "TAU SOLVER ImportData"
     data = CoSimIO.ImportData(conn_name, identifier)
 
     # TODO do sth with the data
@@ -208,6 +117,92 @@ def ExportMesh(conn_name, identifier):
 
     CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
     print "TAU SOLVER ExportMesh End"
+
+# find the solution file name in '/Outputs' and convert in .dat 
+def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out):
+    list_of_interface_file_paths = glob.glob(interface_file_path_pattern + "*") 
+    print "list_of_interface_file_path = ", list_of_interface_file_paths 
+
+    interface_file_name = tauFunctions.findFileName(list_of_interface_file_paths, interface_file_path_pattern, "airfoilSol.pval.unsteady_i=",this_step_out+1) 
+    print "interface_file_name = ", interface_file_name 
+
+    list_of_meshes = glob.glob(mesh_file_path_pattern+ "*") 
+    print "list_of_meshes = ", list_of_meshes 
+    print "this_step_out = ", this_step_out 
+    if this_step_out == 0:
+        mesh_iteration = tauFunctions.findFileName0(list_of_meshes, mesh_file_path_pattern,'airfoil_Structured_scaliert.grid')
+    else:
+        mesh_iteration = tauFunctions.findFileName(list_of_meshes, mesh_file_path_pattern,'airfoil_Structured_scaliert.grid.def.', this_step_out)
+    print "mesh_iteration = ", mesh_iteration
+
+    tauFunctions.PrintBlockHeader("Start Writting Solution Data at time %s" %(str(time)))
+    subprocess.call('rm ' +  working_path + '/Tautoplt.cntl' ,shell=True)
+    tauFunctions.readTautoplt(working_path + 'Tautoplt.cntl', working_path + 'Tautoplt_initial.cntl', mesh_iteration, interface_file_name,working_path + para_path_mod)
+    subprocess.call(TAU_path + 'tau2plt ' + working_path + '/Tautoplt.cntl' ,shell=True)
+    tauFunctions.PrintBlockHeader("Stop Writting Solution Data at time %s" %(str(time)))
+
+    if interface_file_name + '.dat' not in glob.glob(interface_file_path_pattern + "*"):
+        interface_file_name = interface_file_name[0:interface_file_name.find('+')]+ interface_file_name[interface_file_name.find('+')+1:len(interface_file_name)]
+    
+    if 'surface' not in interface_file_name + '.dat':
+        interface_file_name_surface = interface_file_name[0:interface_file_name.find('.pval')]+ '.surface.' + interface_file_name[interface_file_name.find('.pval')+1:len(interface_file_name)]
+    else: 
+        interface_file_name_surface = interface_file_name
+
+    interface_file_number_of_lines = tauFunctions.findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
+    print 'interface_file_number_of_lines =', interface_file_number_of_lines
+
+    return interface_file_name_surface, interface_file_number_of_lines
+
+# read the solution file name in '/Outputs' and calculate the pressure
+def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out):
+    global NodesNr
+    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=tauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+    print 'NodesNr = ', NodesNr
+
+    nodes,nodesID,elems,element_types=tauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
+  
+    # calculating cp at the center of each interface element    
+    pCell=tauFunctions.calcpCell(ElemsNr,P,X,elemTable)
+
+    # calculating element area and normal vector
+    area,normal = tauFunctions.calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(this_step_out+1))
+
+    # calculating the force vector
+    forcesTauNP = tauFunctions.calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(this_step_out+1))
+
+    return forcesTauNP
+
+#------------------------------------------------------------------
+# Deformation
+#------------------------------------------------------------------
+def deformMesh(dispTau):
+    global dispTauOld
+
+    if tau_mpi_rank() == 0:
+        print "deformationstart"
+        interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out)
+
+        NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=tauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+
+        nodes,nodesID,elems,element_types=tauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
+
+        if(this_step_out==0):
+            dispTauOld=np.zeros(3*NodesNr)
+            dispTau_transpose = np.transpose(dispTau)
+            print 'dispTau =', dispTau_transpose
+
+        [ids,coordinates,globalID,coords]=tauFunctions.meshDeformation(NodesNr,nodes,dispTau,dispTauOld,0,para_path_mod)
+        PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
+        print "afterPySurfDeflect"
+
+
+    Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1) 
+
+
+    for i in xrange(0,3*NodesNr):
+        dispTauOld[i]=dispTau[i]
+    print "afterDeformation"
 
 connection_name = "TAU"
 
