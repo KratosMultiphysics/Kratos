@@ -38,7 +38,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteDifferenceUtility
 {
 public:
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 

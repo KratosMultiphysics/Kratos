@@ -278,8 +278,7 @@ private:
     ModelPart& mrModelPart;                                           /// The model part to compute
 
     bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
-    std::vector<const Variable<double>*> mrOriginVariableDoubleList;  /// The scalar variable list to compute
-    std::vector<const ComponentType*> mrOriginVariableComponentsList; /// The scalar variable list to compute (components)
+    const Variable<double>* mrOriginVariable;                         /// The scalar variable list to compute
     const Variable<double>* mpRatioReferenceVariable;                 /// Variable used to compute the anisotropic ratio
 
     Parameters mThisParameters;                                       /// Here configurations are stored
