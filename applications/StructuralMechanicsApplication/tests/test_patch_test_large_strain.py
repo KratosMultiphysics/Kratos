@@ -453,7 +453,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_TL_2D_triangle_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._TL_2D_triangle(builder_type, linearize_on_old_iteration,7 )
+        self._TL_2D_triangle(builder_type, linearize_on_old_iteration,2 )
 
     def test_TL_2D_triangle_elimination(self):
         builder_type = "elimination_builder"
@@ -512,7 +512,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_TL_2D_quadrilateral_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._TL_2D_quadrilateral(builder_type, linearize_on_old_iteration,7 )
+        self._TL_2D_quadrilateral(builder_type, linearize_on_old_iteration,2 )
 
     def test_TL_2D_quadrilateral_elimination(self):
         builder_type = "elimination_builder"
@@ -573,7 +573,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_TL_3D_tetra_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._TL_3D_tetra(builder_type, linearize_on_old_iteration,8 )
+        self._TL_3D_tetra(builder_type, linearize_on_old_iteration,2 )
 
     def test_TL_3D_tetra_elimination(self):
         builder_type = "elimination_builder"
@@ -642,7 +642,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_TL_3D_prism_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._TL_3D_prism(builder_type, linearize_on_old_iteration,7 )
+        self._TL_3D_prism(builder_type, linearize_on_old_iteration,2 )
 
     def test_TL_3D_prism_elimination(self):
         builder_type = "elimination_builder"
@@ -711,7 +711,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_TL_3D_hexa_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._TL_3D_hexa(builder_type, linearize_on_old_iteration,12 )
+        self._TL_3D_hexa(builder_type, linearize_on_old_iteration,2 )
 
     def test_TL_3D_hexa_elimination(self):
         builder_type = "elimination_builder"
@@ -768,7 +768,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_triangle_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,10 )
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,2 )
 
     def test_UL_2D_triangle_elimination(self):
         builder_type = "elimination_builder"
@@ -827,7 +827,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_quadrilateral_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._UL_2D_quadrilateral(builder_type, linearize_on_old_iteration, 12 )
+        self._UL_2D_quadrilateral(builder_type, linearize_on_old_iteration, 2 )
 
     def test_UL_2D_quadrilateral_elimination(self):
         builder_type = "elimination_builder"
@@ -898,7 +898,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_3D_hexa_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._UL_3D_hexa(builder_type, linearize_on_old_iteration,15 )
+        self._UL_3D_hexa(builder_type, linearize_on_old_iteration,2 )
 
     def test_UL_3D_hexa_elimination(self):
         builder_type = "elimination_builder"
