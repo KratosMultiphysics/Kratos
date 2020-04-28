@@ -75,8 +75,8 @@ namespace MPMParticleGeneratorUtility
         array_1d<double, 3> mp_acceleration = ZeroVector(3);
         array_1d<double, 3> mp_volume_acceleration = ZeroVector(3);
 
-        Vector mp_cauchy_stress_vector = ZeroVector(6);
-        Vector mp_almansi_strain_vector = ZeroVector(6);
+        std::vector<Vector> mp_cauchy_stress_vector = { ZeroVector(6) };
+        std::vector<Vector> mp_almansi_strain_vector = { ZeroVector(6) };
         double mp_pressure = 0.0;
 
         double mp_mass;
@@ -170,19 +170,27 @@ namespace MPMParticleGeneratorUtility
                             Element::Pointer p_element = new_element.Create(
                                 new_element_id, p_new_geometry, p_properties);
 
+                            const ProcessInfo process_info = ProcessInfo();
+                            std::vector<double> mp_mass_vector(1);
+                            mp_mass_vector[0] = mp_mass;
+                            std::vector<double> mp_volume_vector(1);
+                            mp_volume_vector[0] = mp_volume;
+
                             // Setting particle element's initial condition
-                            p_element->SetValue(MP_MASS, mp_mass);
-                            p_element->SetValue(MP_VOLUME, mp_volume);
-                            p_element->SetValue(MP_COORD, coords);
-                            p_element->SetValue(MP_DISPLACEMENT, mp_displacement);
-                            p_element->SetValue(MP_VELOCITY, mp_velocity);
-                            p_element->SetValue(MP_ACCELERATION, mp_acceleration);
-                            p_element->SetValue(MP_VOLUME_ACCELERATION, mp_volume_acceleration);
-                            p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector);
-                            p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector);
+                            p_element->SetValuesOnIntegrationPoints(MP_MASS, mp_mass_vector, process_info);
+                            p_element->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume_vector, process_info);
+                            p_element->SetValuesOnIntegrationPoints(MP_COORD, { coords }, process_info);
+                            p_element->SetValuesOnIntegrationPoints(MP_DISPLACEMENT, { mp_displacement }, process_info);
+                            p_element->SetValuesOnIntegrationPoints(MP_VELOCITY, { mp_velocity }, process_info);
+                            p_element->SetValuesOnIntegrationPoints(MP_ACCELERATION, { mp_acceleration }, process_info);
+                            p_element->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, { mp_volume_acceleration }, process_info);
+                            p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, { mp_cauchy_stress_vector }, process_info);
+                            p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, { mp_almansi_strain_vector }, process_info);
 
                             if (IsMixedFormulation) {
-                                p_element->SetValue(MP_PRESSURE, mp_pressure);
+                                std::vector<double> mp_pressure = { 0.0 };
+
+                                p_element->SetValuesOnIntegrationPoints(MP_PRESSURE, mp_pressure, process_info);
                             }
 
                             // Add the MP Element to the model part
