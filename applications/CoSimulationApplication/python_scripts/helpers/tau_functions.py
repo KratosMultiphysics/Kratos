@@ -44,6 +44,23 @@ def findSolutionAndConvert(working_path, TAU_path, this_step_out, para_path_mod)
 
     return interface_file_name_surface, interface_file_number_of_lines
 
+# read the solution file name in '/Outputs' and calculate the pressure
+def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out):
+    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+
+    nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
+  
+    # calculating cp at the center of each interface element    
+    pCell=calcpCell(ElemsNr,P,X,elemTable)
+
+    # calculating element area and normal vector
+    area,normal = calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(this_step_out+1))
+
+    # calculating the force vector
+    forcesTauNP = calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(this_step_out+1))
+
+    return forcesTauNP
+
 
 def findFileName0(list_of_interface_file_paths,working_path,word): 
     for file in list_of_interface_file_paths:

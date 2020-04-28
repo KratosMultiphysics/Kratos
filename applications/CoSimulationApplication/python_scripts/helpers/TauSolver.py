@@ -20,15 +20,12 @@ para_path='airfoil_Structured.cntl'
 para_path_mod = para_path + ".mod"
 shutil.copy(para_path, para_path_mod)
 
-# Initialize Tau python classes
+# Initialize Tau python classes and auxiliary variable this_step_out
 Para = PyPara.Parafile(para_path_mod)
 Prep = PyPrep.Preprocessing(para_path_mod)
 Solver = PySolv.Solver(para_path_mod)
 Deform = PyDeform.Deformation(para_path_mod)
-
-# Initialize variables
 this_step_out = 0
-NodesNr = 0
 
 def AdvanceInTime(current_time):
     # Preprocessing needs to be done before getting the time and time step
@@ -91,7 +88,7 @@ def ExportData(conn_name, identifier):
     # identifier is the data-name in json
     if identifier == "Interface_force":
         interface_file_name_surface, interface_file_number_of_lines = tauFunctions.findSolutionAndConvert(working_path, tau_path, this_step_out, para_path_mod)
-        data = caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out)
+        data = tauFunctions.caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -121,28 +118,6 @@ def ExportMesh(conn_name, identifier):
     if tau_settings["echo_level"] > 0:
         print "TAU SOLVER ExportMesh End"
 
-# read the solution file name in '/Outputs' and calculate the pressure
-def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out):
-    global NodesNr
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=tauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
-    print 'NodesNr = ', NodesNr
-
-    nodes,nodesID,elems,element_types=tauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
-  
-    # calculating cp at the center of each interface element    
-    pCell=tauFunctions.calcpCell(ElemsNr,P,X,elemTable)
-
-    # calculating element area and normal vector
-    area,normal = tauFunctions.calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(this_step_out+1))
-
-    # calculating the force vector
-    forcesTauNP = tauFunctions.calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(this_step_out+1))
-
-    return forcesTauNP
-
-#------------------------------------------------------------------
-# Deformation
-#------------------------------------------------------------------
 def deformMesh(dispTau):
     global dispTauOld
 
