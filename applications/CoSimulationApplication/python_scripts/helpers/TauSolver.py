@@ -8,36 +8,25 @@ with open('tau_settings.json') as json_file:
 
 TAU_path = data["tau_path"]
 sys.path.append(data["kratos_path"])
-sys.path.append( TAU_path + "py_turb1eq/")
+sys.path.append(TAU_path + "py_turb1eq/")
+working_path = os.getcwd() + '/'
+interface_file_path_pattern =  working_path + "Outputs/"
+mesh_file_path_pattern = working_path + "Mesh/"
 
 import tau_functions as tauFunctions
-import numpy as np 
-import tau_python 
+import numpy as np
 
-#-------------------------------------------------------------------------------
-# Definitions
-#-------------------------------------------------------------------------------
 # Definition of the parameter file
 para_path='airfoil_Structured.cntl'
 para_path_mod = para_path + ".mod"
 shutil.copy(para_path, para_path_mod)
-working_path = os.getcwd() + '/'
-interface_file_path_pattern =  working_path + "Outputs/"
-mesh_file_path_pattern = working_path + "Mesh/"
-print 'working_path = ', working_path
-print 'TAU_path = ', TAU_path
 
-#-------------------------------------------------------------------------------
-# Init Tau python classes + get the informations necessary for the preprocessing 
-#-------------------------------------------------------------------------------
+# Initialize Tau python classes
 Para = PyPara.Parafile(para_path_mod)
 Prep = PyPrep.Preprocessing(para_path_mod)
 Solver = PySolv.Solver(para_path_mod)
 Deform = PyDeform.Deformation(para_path_mod)
 
-# Definitions
-# Primary grid filename
-grid = Para.get_para_value("Primary grid filename") # 
 # Surfaces where Cp has to be written 
 surfaces = ["MEMBRANE"] # 
 # get the name of the file where the deformation of the TAU Mesh are saved
