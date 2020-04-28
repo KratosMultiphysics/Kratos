@@ -5,29 +5,24 @@ import tau_python
 from tau_python import tau_msg
 import PyPara, PySurfDeflect
 from scipy.io import netcdf
-with open('tau_settings.json') as json_file:
-    tau_settings = json.load(json_file)
-
-TAU_path = tau_settings["tau_path"]
-working_path = os.getcwd() + '/'
-interface_file_path_pattern =  working_path + "Outputs/"
-mesh_file_path_pattern = working_path + "Mesh/"
 
 # find the solution file name in '/Outputs' and convert in .dat 
-def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out, para_path_mod):
-    list_of_interface_file_paths = glob.glob(interface_file_path_pattern + "*") 
+def findSolutionAndConvert(working_path, TAU_path, this_step_out, para_path_mod):
+    outputs_path =  working_path + "Outputs/"
+    list_of_interface_file_paths = glob.glob(outputs_path + "*") 
     print "list_of_interface_file_path = ", list_of_interface_file_paths 
 
-    interface_file_name = findFileName(list_of_interface_file_paths, interface_file_path_pattern, "airfoilSol.pval.unsteady_i=",this_step_out+1) 
+    interface_file_name = findFileName(list_of_interface_file_paths, outputs_path, "airfoilSol.pval.unsteady_i=",this_step_out+1) 
     print "interface_file_name = ", interface_file_name 
 
-    list_of_meshes = glob.glob(mesh_file_path_pattern+ "*") 
+    mesh_path = working_path + "Mesh/"
+    list_of_meshes = glob.glob(mesh_path+ "*") 
     print "list_of_meshes = ", list_of_meshes 
     print "this_step_out = ", this_step_out 
     if this_step_out == 0:
-        mesh_iteration = findFileName0(list_of_meshes, mesh_file_path_pattern,'airfoil_Structured_scaliert.grid')
+        mesh_iteration = findFileName0(list_of_meshes, mesh_path,'airfoil_Structured_scaliert.grid')
     else:
-        mesh_iteration = findFileName(list_of_meshes, mesh_file_path_pattern,'airfoil_Structured_scaliert.grid.def.', this_step_out)
+        mesh_iteration = findFileName(list_of_meshes, mesh_path,'airfoil_Structured_scaliert.grid.def.', this_step_out)
     print "mesh_iteration = ", mesh_iteration
 
     PrintBlockHeader("Start Writting Solution Data at time %s" %(str(time)))
@@ -36,7 +31,7 @@ def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, 
     subprocess.call(TAU_path + 'tau2plt ' + working_path + '/Tautoplt.cntl' ,shell=True)
     PrintBlockHeader("Stop Writting Solution Data at time %s" %(str(time)))
 
-    if interface_file_name + '.dat' not in glob.glob(interface_file_path_pattern + "*"):
+    if interface_file_name + '.dat' not in glob.glob(outputs_path + "*"):
         interface_file_name = interface_file_name[0:interface_file_name.find('+')]+ interface_file_name[interface_file_name.find('+')+1:len(interface_file_name)]
     
     if 'surface' not in interface_file_name + '.dat':
