@@ -26,6 +26,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             solver_module_name = "mpm_quasi_static_solver"
         elif (solver_type == "Static" or solver_type == "static"):
             solver_module_name = "mpm_static_solver"
+        elif (solver_type == "CoupledTime" or solver_type == "coupled_time"):
+            solver_module_name = "mpm_coupled_time_solver"
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"static\", \"dynamic\", \"quasi_static\""

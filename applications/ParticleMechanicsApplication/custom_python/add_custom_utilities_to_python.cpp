@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/mpm_search_element_utility.h"
 #include "custom_utilities/mpm_particle_generator_utility.h"
+#include "custom_utilities/mpm_temporal_coupling_utility.h"
 
 
 namespace Kratos{
@@ -42,6 +43,11 @@ namespace Python{
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", &MPMParticleGeneratorUtility::GenerateMaterialPointElement);
         m.def("GenerateMaterialPointCondition", &MPMParticleGeneratorUtility::GenerateMaterialPointCondition);
+
+        pybind11::class_< MPMTemporalCouplingUtility>(m, "MPMTemporalCouplingUtility")
+            .def(pybind11::init<>())
+            .def("CalculateCorrectiveLagrangianMultipliers", &MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliers);
+            ;
     }
 
 }  // namespace Python.
