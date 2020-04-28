@@ -69,49 +69,6 @@ void SimplifiedBilinear3DLaw::InitializeMaterial( const Properties& rMaterialPro
     mStateVariable = 1.0;
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void SimplifiedBilinear3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
-{
-    //Check
-    rValues.CheckAllParameters();
-
-    //Initialize main variables
-    Flags& Options = rValues.GetOptions();
-    ConstitutiveLawVariables Variables;
-    this->InitializeConstitutiveLawVariables(Variables,rValues);
-
-    this->ComputeEquivalentStrain(Variables,rValues);
-    this->CheckLoadingFunction(Variables,rValues);
-
-    if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
-    {
-        if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
-        {
-            // COMPUTE_CONSTITUTIVE_TENSOR
-            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-
-            this->ComputeConstitutiveMatrix(rConstitutiveMatrix,Variables,rValues);
-        }
-        else
-        {
-            // COMPUTE_CONSTITUTIVE_TENSOR && COMPUTE_STRESS
-            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-            Vector& rStressVector = rValues.GetStressVector();
-
-            this->ComputeConstitutiveMatrix(rConstitutiveMatrix,Variables,rValues);
-            this->ComputeStressVector(rStressVector,Variables,rValues);
-        }
-    }
-    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
-    {
-        // COMPUTE_STRESS
-        Vector& rStressVector = rValues.GetStressVector();
-
-        this->ComputeStressVector(rStressVector,Variables,rValues);
-    }
-}
-
 //----------------------------------------------------------------------------------------
 
 void SimplifiedBilinear3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
