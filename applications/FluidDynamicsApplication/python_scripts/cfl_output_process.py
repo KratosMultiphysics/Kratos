@@ -13,7 +13,7 @@ else:
     msg += " Please install/compile it and try again."
     raise Exception(msg)
 
-from math import pow, sqrt
+from math import sqrt
 
 
 def Factory(settings, model):
@@ -166,8 +166,8 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             y_std = 0.0
 
         # qunatifying the global max
-        # TODO: @Mate, where should we put the id of the element, where max is?
-        x_max, max_id = current_container.Max(self.model_part, KratosMultiphysics.CFL_NUMBER, "value")
+        # TODO: @Mate, where should we put the id of the element, where max is (second bland output argument is max_id)?
+        x_max, _ = current_container.Max(self.model_part, KratosMultiphysics.CFL_NUMBER, "value")
         return [y_mean, y_std, x_max, how_many, how_many1]
 
     def _EvaluateCFL(self):
