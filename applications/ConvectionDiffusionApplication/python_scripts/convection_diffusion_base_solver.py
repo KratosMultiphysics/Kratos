@@ -513,14 +513,14 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         if element_name == "EulerianConvDiff":
             if domain_size == 2:
                 if num_nodes_elements == 3:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiffEpoxy2D")
                 else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D4N")
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiffEpoxy2D4N")
             else:
                 if num_nodes_elements == 4:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiffEpoxy3D")
                 else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiffEpoxy3D8N")
         elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement"):
             name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)

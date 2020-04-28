@@ -28,6 +28,7 @@
 #include "custom_elements/conv_diff_3d.h"
 #include "custom_elements/eulerian_diff.h"
 #include "custom_elements/eulerian_conv_diff.h"
+#include "custom_elements/eulerian_conv_diff_epoxy.h"
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/adjoint_diffusion_element.h"
 
@@ -224,6 +225,12 @@ private:
     const EulerianConvectionDiffusionElement<2,4>  mEulerianConvDiff2D4N;
     const EulerianConvectionDiffusionElement<3,4>  mEulerianConvDiff3D;
     const EulerianConvectionDiffusionElement<3,8>  mEulerianConvDiff3D8N;
+
+    const EulerianConvectionDiffusionEpoxyElement<2, 3>  mEulerianConvDiffEpoxy2D;
+    const EulerianConvectionDiffusionEpoxyElement<2, 4>  mEulerianConvDiffEpoxy2D4N;
+    const EulerianConvectionDiffusionEpoxyElement<3, 4>  mEulerianConvDiffEpoxy3D;
+    const EulerianConvectionDiffusionEpoxyElement<3, 8>  mEulerianConvDiffEpoxy3D8N;
+
     const EulerianDiffusionElement<2,3>  mEulerianDiffusion2D;
     const EulerianDiffusionElement<3,4>  mEulerianDiffusion3D;
 

@@ -36,6 +36,10 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mEulerianConvDiff2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mEulerianConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mEulerianConvDiff3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mEulerianConvDiffEpoxy2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mEulerianConvDiffEpoxy2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mEulerianConvDiffEpoxy3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mEulerianConvDiffEpoxy3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
       mEulerianDiffusion2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mEulerianDiffusion3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -81,6 +85,8 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_VARIABLE(TRANSFER_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(ADJOINT_HEAT_TRANSFER)
 
+    KRATOS_REGISTER_VARIABLE(DEGREE_OF_CURE)
+    KRATOS_REGISTER_VARIABLE(GLASS_TRANSITION_TEMPERATURE)
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
@@ -89,6 +95,10 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff2D4N", mEulerianConvDiff2D4N);
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff3D", mEulerianConvDiff3D);
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff3D8N", mEulerianConvDiff3D8N);
+    KRATOS_REGISTER_ELEMENT("EulerianConvDiffEpoxy2D", mEulerianConvDiffEpoxy2D);
+    KRATOS_REGISTER_ELEMENT("EulerianConvDiffEpoxy2D4N", mEulerianConvDiffEpoxy2D4N);
+    KRATOS_REGISTER_ELEMENT("EulerianConvDiffEpoxy3D", mEulerianConvDiffEpoxy3D);
+    KRATOS_REGISTER_ELEMENT("EulerianConvDiffEpoxy3D8N", mEulerianConvDiffEpoxy3D8N);
     KRATOS_REGISTER_ELEMENT("EulerianDiffusion2D", mEulerianDiffusion2D);
     KRATOS_REGISTER_ELEMENT("EulerianDiffusion3D", mEulerianDiffusion3D);
     KRATOS_REGISTER_ELEMENT("ConvDiff2D", mConvDiff2D);
