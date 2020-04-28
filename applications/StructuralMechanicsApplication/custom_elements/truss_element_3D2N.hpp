@@ -117,14 +117,14 @@ namespace Kratos
             std::vector<double>& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-        void GetValueOnIntegrationPoints(
-            const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
+        void CalculateOnIntegrationPoints(
             const Variable<array_1d<double, 3 > >& rVariable,
             std::vector< array_1d<double, 3 > >& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector>& rVariable,
+            std::vector<Vector>& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
@@ -139,20 +139,6 @@ namespace Kratos
          */
         void CreateTransformationMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
 
-        void CalculateOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void CalculateOnIntegrationPoints(
-            const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector< array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,

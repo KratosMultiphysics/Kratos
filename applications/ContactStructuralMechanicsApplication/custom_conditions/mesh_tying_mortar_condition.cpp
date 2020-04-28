@@ -6343,46 +6343,6 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
     KRATOS_CATCH( "" );
 }
 
-
-//******************************* GET DOUBLE VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET ARRAY_1D VALUE *******************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET VECTOR VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 
