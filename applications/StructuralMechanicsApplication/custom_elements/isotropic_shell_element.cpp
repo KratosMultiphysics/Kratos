@@ -941,17 +941,6 @@ void IsotropicShellElement::NicePrint(const Matrix& A)
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-
-
-//************************************************************************************
-//************************************************************************************
 void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
