@@ -472,7 +472,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     /**
      * @brief This converts the 
      * 3x3 rotation matrix to the 6x6
-     * http://mathworld.wolfram.com/EulerAngles.html
+     * Cook et al., "Concepts and applications
+     * of finite element analysis"
      */
     static void CalculateRotationOperatorVoigt(
         const Matrix &rOldOperator,
