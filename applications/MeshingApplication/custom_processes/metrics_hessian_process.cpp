@@ -37,9 +37,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
 
     // We push the list of double variables
     if (KratosComponents<Variable<double>>::Has(r_metric_variable_name)) {
-        mrOriginVariableDoubleList.push_back(&KratosComponents<Variable<double>>::Get(r_metric_variable_name));
-    } else if (KratosComponents<ComponentType>::Has(r_metric_variable_name)) {
-        mrOriginVariableComponentsList.push_back(&KratosComponents<ComponentType>::Get(r_metric_variable_name));
+        mrOriginVariable = &KratosComponents<Variable<double>>::Get(r_metric_variable_name);
     } else {
         KRATOS_ERROR << "Only components and doubles are allowed as variables" << std::endl;
     }
@@ -52,32 +50,9 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     ModelPart& rThisModelPart,
     Variable<double>& rVariable,
     Parameters ThisParameters
-    ) : mrModelPart(rThisModelPart)
+    ) : mrModelPart(rThisModelPart),
+        mrOriginVariable(&rVariable)
 {
-    // We push the list of double variables
-    mrOriginVariableDoubleList.push_back(&rVariable);
-
-    // TODO: Remove this warning in the future
-    KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
-
-    // We check the parameters
-    const Parameters default_parameters = GetDefaultParameters();
-    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-    InitializeVariables(ThisParameters);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
-    ModelPart& rThisModelPart,
-    ComponentType& rVariable,
-    Parameters ThisParameters
-    ):mrModelPart(rThisModelPart)
-{
-    // We push the components list
-    mrOriginVariableComponentsList.push_back(&rVariable);
-
     // TODO: Remove this warning in the future
     KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
 
@@ -98,17 +73,9 @@ void ComputeHessianSolMetricProcess::Execute()
     // Some checks
     NodesArrayType& r_nodes_array = mrModelPart.Nodes();
     if (!mNonHistoricalVariable) {
-        if (mrOriginVariableDoubleList.size() > 0) {
-            VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], r_nodes_array);
-        } else {
-            VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], r_nodes_array);
-        }
+        VariableUtils().CheckVariableExists(*mrOriginVariable, r_nodes_array);
     } else {
-        if (mrOriginVariableDoubleList.size() > 0) {
-            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableDoubleList[0])) << "Variable " << mrOriginVariableDoubleList[0]->Name() << " not defined on non-historial database" << std::endl;
-        } else {
-            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableComponentsList[0])) << "Variable " << mrOriginVariableComponentsList[0]->Name() << " not defined on non-historial database" << std::endl;
-        }
+        KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariable)) << "Variable " << mrOriginVariable->Name() << " not defined on non-historial database" << std::endl;
     }
 
     // Checking NODAL_H
@@ -246,7 +213,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
 
         // Saving auxiliar value
-        const double value = mNonHistoricalVariable ? (mrOriginVariableDoubleList.size() > 0 ? it_node->GetValue(*mrOriginVariableDoubleList[0]) : it_node->GetValue(*mrOriginVariableComponentsList[0])) : (mrOriginVariableDoubleList.size() > 0 ? it_node->FastGetSolutionStepValue(*mrOriginVariableDoubleList[0]) : it_node->FastGetSolutionStepValue(*mrOriginVariableComponentsList[0]));
+        const double value = mNonHistoricalVariable ? it_node->GetValue(*mrOriginVariable) : it_node->FastGetSolutionStepValue(*mrOriginVariable);
         it_node->SetValue(NODAL_MAUX, value * normalization_factor);
     }
 
