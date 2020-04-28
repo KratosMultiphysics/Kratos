@@ -22,6 +22,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
         print("Hellow world wrapper")
 
         wrapper_settings = self.settings["solver_wrapper_settings"]
+        self.coupling_interface_imported = False
 
         start_external_solver = wrapper_settings["start_external_solver"].GetBool()
         print("start_external_solver = ", start_external_solver)
@@ -73,7 +74,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
             self.ImportData(data_config)
             print('tau_wrapper advanceintime Finish')
             print(data_config["time"])
-            return 100.0#data_config["time"]
+            return data_config["time"]
         else:
             return 100.0
 
@@ -91,13 +92,15 @@ class TAUWrapper(CoSimulationSolverWrapper):
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.SolveSolutionStep)
 
-        for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_recv"].items():
-            interface_config = {
-                "comm_name" : comm_name.GetString(),
-                "model_part_name" : model_part_name
-            }
+        if not self.coupling_interface_imported:
+            for model_part_name, comm_name in self.settings["solver_wrapper_settings"]["model_parts_recv"].items():
+                interface_config = {
+                    "comm_name" : comm_name.GetString(),
+                    "model_part_name" : model_part_name
+                }
 
-            self.ImportCouplingInterface(interface_config)
+                self.ImportCouplingInterface(interface_config)
+                self.coupling_interface_imported = True
         print('TAUWrapper SolveSolutionStep End')
 
     def FinalizeSolutionStep(self):
