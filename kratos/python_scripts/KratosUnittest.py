@@ -105,7 +105,7 @@ class TestCase(TestCase):
 
 def skipIfApplicationsNotAvailable(*application_names):
     '''Skips the test if required applications are not available'''
-    required_but_not_available_apps = GetNotAvailableApplications(application_names)
+    required_but_not_available_apps = GetNotAvailableApplications(*application_names)
     reason_for_skip = 'Required Applications are missing: {}'.format('", "'.join(required_but_not_available_apps))
     return skipIf(len(required_but_not_available_apps) > 0, reason_for_skip)
 
