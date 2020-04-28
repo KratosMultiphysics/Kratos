@@ -200,6 +200,8 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
     Matrix& rElasticityTensor,
     const Properties& rMaterialProperties)
 {
+    KRATOS_TRY
+
     if (rElasticityTensor.size1() != VoigtSize || rElasticityTensor.size2() != VoigtSize)
         rElasticityTensor.resize(VoigtSize, VoigtSize, false);
     noalias(rElasticityTensor) = ZeroMatrix(VoigtSize, VoigtSize);
@@ -239,6 +241,8 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
     rElasticityTensor(3, 3) = Gxy;
     rElasticityTensor(4, 4) = Gyz;
     rElasticityTensor(5, 5) = Gxz;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
