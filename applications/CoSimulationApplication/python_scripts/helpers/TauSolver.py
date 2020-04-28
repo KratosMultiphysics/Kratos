@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 import shutil, sys, glob, os, time, subprocess, json
+import numpy as np
 import CoSimIO
 import PyPara, PyPrep, PySolv, PyDeform, PySurfDeflect
 
 with open('tau_settings.json') as json_file:
-    data = json.load(json_file)
+    tau_settings = json.load(json_file)
 
-TAU_path = data["tau_path"]
-sys.path.append(data["kratos_path"])
+TAU_path = tau_settings["tau_path"]
+sys.path.append(tau_settings["kratos_path"])
 sys.path.append(TAU_path + "py_turb1eq/")
 working_path = os.getcwd() + '/'
 interface_file_path_pattern =  working_path + "Outputs/"
 mesh_file_path_pattern = working_path + "Mesh/"
 
+# tau_functions can only be imported after appending kratos' path
 import tau_functions as tauFunctions
-import numpy as np
 
 # Definition of the parameter file
 para_path='airfoil_Structured.cntl'
@@ -31,47 +32,35 @@ Deform = PyDeform.Deformation(para_path_mod)
 this_step_out = 0
 NodesNr = 0
 
-##### CoSimulation #####
 def AdvanceInTime(current_time):
-    print "TAU SOLVER AdvanceInTime"
-    print "current time = ", current_time
+    # Preprocessing needs to be done before getting the time and time step
     tauFunctions.PrintBlockHeader("Start Preprocessing at time %s" %(str(time)))
     Prep.run(write_dualgrid=False,free_primgrid=False) 
     tauFunctions.PrintBlockHeader("Stop Preprocessing at time %s" %(str(time)))
     tauFunctions.PrintBlockHeader("Initialize Solver at time %s" %(str(time)))
     Solver.init(verbose = 1, reset_steps = True, n_time_steps = 1)
-    ts_tau = 0.005 ### TO do  read from TAU
-    # ts_tau = 0.5
-    time_step = Para.get_para_value('Unsteady physical time step size')
-    tau_current_time = tau_solver_unsteady_get_physical_time()
-    print 'tau_current_time = ', tau_current_time
-    print 'tau_time_step = ', time_step
-    print 'current_time = ', current_time
-    return current_time + ts_tau
 
-#------------------------------------------------------------------
-#         ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen #########
-#-------------------------------------------------------------------
-#def InitializePreprocessingStep():
+    # Get current time and time step from tau
+    tau_current_time = float(tau_solver_unsteady_get_physical_time())
+    tau_time_step = float(Para.get_para_value('Unsteady physical time step size'))
 
+    if tau_settings["echo_level"] > 0:
+        print "TAU SOLVER AdvanceInTime"
+        print 'tau_current_time = ', tau_current_time
+        print 'tau_time_step = ', tau_time_step
+    return tau_current_time + tau_time_step
 
-#------------------------------------------------------------------
-#  Preprocessing und Solving Initialize       ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen #########
-#-------------------------------------------------------------------
 def InitializeSolutionStep():
-    print("TAU SOLVER InitializeSolutionStep")
+    if tau_settings["echo_level"] > 0:
+        print("TAU SOLVER InitializeSolutionStep")
 
-#------------------------------------------------------------------
-# Solving Solve       ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen #########
-#-------------------------------------------------------------------
 def SolveSolutionStep():
-    print("TAU SOLVER SolveSolutionStep")
+    if tau_settings["echo_level"] > 0:
+        print("TAU SOLVER SolveSolutionStep")
     Solver.outer_loop()
     Solver.output()
     tau_plt_init_tecplot_params(para_path_mod)
     tau_solver_write_output_conditional()
-    # interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out)
-    # forcesTauNP = caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out)
 
 #------------------------------------------------------------------
 # find the solution file name in '/Outputs' and convert in .dat ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen
