@@ -74,27 +74,7 @@ public:
 
 protected:
 
-protected:
-
-    struct ConstitutiveLawVariables
-    {
-        double YieldStress;
-        double YoungModulus;
-        double MaxTensileStress;
-        double MaxCompresiveStress;
-        double PoissonCoefficient;
-        double FrictionCoefficient;
-
-        Matrix CompressionMatrix;
-        Matrix WeightMatrix;
-
-        double EquivalentStrain;
-        bool LoadingFlag;
-        double LoadingFunction;
-    };
-
     // Member Variables
-    double mStateVariable;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
