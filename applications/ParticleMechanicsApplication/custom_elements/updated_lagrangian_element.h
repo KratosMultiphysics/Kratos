@@ -636,19 +636,19 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-        rSerializer.save("MP", mMP);
+        //rSerializer.save("MP", mMP);
         rSerializer.save("ConstitutiveLawVector", mpConstitutiveLaw);
         rSerializer.save("DeformationGradientF0", mDeformationGradientF0);
         rSerializer.save("DeterminantF0", mDeterminantF0);
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-        rSerializer.load("MP", mMP);
+        //rSerializer.load("MP", mMP);
         rSerializer.load("ConstitutiveLawVector", mpConstitutiveLaw);
         rSerializer.load("DeformationGradientF0", mDeformationGradientF0);
         rSerializer.load("DeterminantF0", mDeterminantF0);

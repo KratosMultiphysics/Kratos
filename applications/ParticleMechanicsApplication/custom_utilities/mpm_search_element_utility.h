@@ -77,6 +77,7 @@ namespace MPMSearchElementUtility
 
                 std::vector<array_1d<double, 3>> xg;
                 element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rMPMModelPart.GetProcessInfo());
+
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;

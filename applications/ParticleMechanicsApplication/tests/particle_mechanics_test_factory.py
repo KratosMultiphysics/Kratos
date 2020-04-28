@@ -91,3 +91,6 @@ class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(
 ### Slip Boundary Tests
 class SlipBoundaryTest(ParticleMechanicsTestFactory):
     file_name = "slip_tests/slip_boundary_test"
+
+if __name__ == '__main__':
+    KratosUnittest.main()
