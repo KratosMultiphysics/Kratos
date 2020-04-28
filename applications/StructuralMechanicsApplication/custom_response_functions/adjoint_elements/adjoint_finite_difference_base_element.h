@@ -120,9 +120,9 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
 
     IntegrationMethod GetIntegrationMethod() const override
@@ -364,22 +364,8 @@ public:
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector< array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     // Sensitivity functions
 
@@ -422,6 +408,10 @@ public:
      * Gets the pointer to the primal element.
      */
     Element::Pointer pGetPrimalElement()
+    {
+        return mpPrimalElement;
+    }
+    const Element::Pointer pGetPrimalElement() const
     {
         return mpPrimalElement;
     }

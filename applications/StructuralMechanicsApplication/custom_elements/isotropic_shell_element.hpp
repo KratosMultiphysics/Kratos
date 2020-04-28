@@ -109,9 +109,9 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
@@ -123,10 +123,6 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
     void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
@@ -135,7 +131,7 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    int  Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access

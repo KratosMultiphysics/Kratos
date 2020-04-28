@@ -51,7 +51,7 @@ CrBeamElement2D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 CrBeamElement2D2N::~CrBeamElement2D2N() {}
 
 void CrBeamElement2D2N::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
 {
     if (rResult.size() != msElementSize) {
         rResult.resize(msElementSize);
@@ -68,7 +68,7 @@ void CrBeamElement2D2N::EquationIdVector(EquationIdVectorType& rResult,
 }
 
 void CrBeamElement2D2N::GetDofList(DofsVectorType& rElementalDofList,
-                                   ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rElementalDofList.size() != msElementSize) {
@@ -790,15 +790,6 @@ void CrBeamElement2D2N::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-void CrBeamElement2D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
 
 CrBeamElement2D2N::IntegrationMethod
 CrBeamElement2D2N::GetIntegrationMethod() const
@@ -925,7 +916,7 @@ void CrBeamElement2D2N::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();

@@ -109,7 +109,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Prebuckling Strategy
     py::class_< PrebucklingStrategyType, typename PrebucklingStrategyType::Pointer,BaseSolvingStrategyType >(m,"PrebucklingStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, BuilderAndSolverPointer, ConvergenceCriteriaPointer, int, double, double, double, double >())
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, BuilderAndSolverPointer, ConvergenceCriteriaPointer, int, Parameters >())
         .def("GetSolutionFoundFlag", &PrebucklingStrategyType::GetSolutionFoundFlag)
         ;
     py::class_< FormfindingStrategyType,typename FormfindingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingStrategy")

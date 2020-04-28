@@ -51,7 +51,7 @@ CrBeamElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 CrBeamElement3D2N::~CrBeamElement3D2N() {}
 
 void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
 {
     if (rResult.size() != msElementSize) {
         rResult.resize(msElementSize);
@@ -72,7 +72,7 @@ void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
 }
 
 void CrBeamElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
-                                   ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rElementalDofList.size() != msElementSize) {
@@ -1272,16 +1272,6 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
 
 void CrBeamElement3D2N::AssembleSmallInBigMatrix(
     Matrix SmallMatrix,
@@ -1645,7 +1635,7 @@ double CrBeamElement3D2N::CalculateShearModulus() const
     KRATOS_CATCH("")
 }
 
-int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();

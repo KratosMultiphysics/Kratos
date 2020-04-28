@@ -232,7 +232,9 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     const int num_nodes = static_cast<int>(r_nodes_array.size());
 
     // We get the normalization factor
-    const double normalization_factor = mThisParameters["normalization_factor"].GetDouble();
+    const Normalization normalization_method = ConvertNormalization(mThisParameters["normalization_method"].GetString());
+    const double normalization_factor = normalization_method == Normalization::CONSTANT ? mThisParameters["normalization_factor"].GetDouble() : 1.0;
+    const double normalization_alpha = mThisParameters["normalization_alpha"].GetDouble();
 
     // Initialize auxiliar variables
     const auto& it_nodes_begin = r_nodes_array.begin();
@@ -352,9 +354,31 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         }
     }
 
+    // We normalize the value of the NODAL_AREA
+    if (normalization_method == Normalization::VALUE) {
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < num_nodes; ++i_node) {
+            auto it_node = it_nodes_begin + i_node;
+            const double factor = it_node->GetValue(NODAL_MAUX);
+            if (factor > std::numeric_limits<double>::epsilon()) {
+                it_node->GetValue(NODAL_AREA) *= factor;
+            }
+        }
+    } else if (normalization_method == Normalization::NORM_GRADIENT) {
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < num_nodes; ++i_node) {
+            auto it_node = it_nodes_begin + i_node;
+            const double factor = norm_2(it_node->GetValue(AUXILIAR_GRADIENT)) * it_node->GetValue(NODAL_H) + normalization_alpha * it_node->GetValue(NODAL_MAUX);
+            if (factor > std::numeric_limits<double>::epsilon()) {
+                it_node->GetValue(NODAL_AREA) *= factor;
+            }
+        }
+    }
+
+    // We average considering the NODAL_AREA
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = r_nodes_array.begin() + i_node;
+        auto it_node = it_nodes_begin + i_node;
         const double nodal_area = it_node->GetValue(NODAL_AREA);
         if (nodal_area > std::numeric_limits<double>::epsilon()) {
             it_node->GetValue(AUXILIAR_HESSIAN) /= nodal_area;
@@ -491,6 +515,8 @@ const Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
             "metric_variable"                      : "DISTANCE",
             "non_historical_metric_variable"       : false,
             "normalization_factor"                 : 1.0,
+            "normalization_alpha"                  : 0.0,
+            "normalization_method"                 : "constant",
             "estimate_interpolation_error"         : false,
             "interpolation_error"                  : 1.0e-6,
             "mesh_dependent_constant"              : 0.28125
@@ -542,6 +568,8 @@ void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParamete
     mThisParameters.AddValue("metric_variable", ThisParameters["hessian_strategy_parameters"]["metric_variable"]);
     mThisParameters.AddValue("non_historical_metric_variable", ThisParameters["hessian_strategy_parameters"]["non_historical_metric_variable"]);
     mThisParameters.AddValue("normalization_factor", ThisParameters["hessian_strategy_parameters"]["normalization_factor"]);
+    mThisParameters.AddValue("normalization_alpha", ThisParameters["hessian_strategy_parameters"]["normalization_alpha"]);
+    mThisParameters.AddValue("normalization_method", ThisParameters["hessian_strategy_parameters"]["normalization_method"]);
     mThisParameters.AddValue("estimate_interpolation_error", considered_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"]);
     mThisParameters.AddValue("mesh_dependent_constant", considered_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"]);
     mThisParameters.AddValue("hmin_over_hmax_anisotropic_ratio", considered_parameters["enforced_anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"]);

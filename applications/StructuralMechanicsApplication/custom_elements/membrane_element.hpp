@@ -81,11 +81,11 @@ namespace Kratos
 
     void EquationIdVector(
       EquationIdVectorType& rResult,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
       DofsVectorType& ElementalDofList,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -115,17 +115,13 @@ namespace Kratos
       Vector& rValues,
       int Step = 0) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void CalculateOnIntegrationPoints(
       const Variable<array_1d<double, 3>>& rVariable,
       std::vector<array_1d<double, 3>>& rOutput,
       const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(
-      const Variable<array_1d<double, 3>>& rVariable,
-      std::vector<array_1d<double, 3>>& rOutput,
-      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix,ProcessInfo& rCurrentProcessInfo) override;
 
@@ -366,9 +362,6 @@ namespace Kratos
      */
     void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
 
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
         std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
