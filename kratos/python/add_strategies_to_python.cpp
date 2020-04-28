@@ -416,6 +416,9 @@ namespace Kratos
 
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer > ())
+                .def(py::init<LinearSolverType::Pointer, Parameters >() )
+                .def(py::init<LinearSolverType::Pointer > ())
+                .def("Create", &BuilderAndSolverType::Create)
                 .def("SetCalculateReactionsFlag", &BuilderAndSolverType::SetCalculateReactionsFlag)
                 .def("GetCalculateReactionsFlag", &BuilderAndSolverType::GetCalculateReactionsFlag)
                 .def("SetDofSetIsInitializedFlag", &BuilderAndSolverType::SetDofSetIsInitializedFlag)
@@ -528,6 +531,7 @@ namespace Kratos
 
             py::class_< ResidualBasedNewtonRaphsonStrategyType, typename ResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
                 (m,"ResidualBasedNewtonRaphsonStrategy")
+                .def(py::init<ModelPart&, Parameters >() ) 
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters>())
