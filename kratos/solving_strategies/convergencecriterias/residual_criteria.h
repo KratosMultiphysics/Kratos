@@ -66,6 +66,9 @@ public:
     /// The definition of the base ConvergenceCriteria
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
+    /// The definition of the current class
+    typedef ResidualCriteria< TSparseSpace, TDenseSpace > ClassType;
+
     /// The data type
     typedef typename BaseType::TDataType TDataType;
 
@@ -141,6 +144,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Criterias that need to be called after getting the solution
@@ -248,10 +264,6 @@ public:
     {
         BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
     }
-
-    ///@}
-    ///@name Operations
-    ///@{
 
     ///@}
     ///@name Access

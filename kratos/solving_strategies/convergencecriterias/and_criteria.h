@@ -67,6 +67,9 @@ public:
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
+    /// The definition of the current class
+    typedef And_Criteria< TSparseSpace, TDenseSpace > ClassType;
+
     typedef TSparseSpace SparseSpaceType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -122,6 +125,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief It sets the level of echo for the solving strategy
@@ -292,10 +308,6 @@ public:
 
         KRATOS_CATCH("");
     }
-
-    ///@}
-    ///@name Operations
-    ///@{
 
     ///@}
     ///@name Access

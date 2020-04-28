@@ -361,20 +361,22 @@ namespace Kratos
 
             // Convergence criteria base class
             py::class_< ConvergenceCriteriaType,
-                ConvergenceCriteriaPointerType >(m,"ConvergenceCriteria")
-                .def(py::init<>())
-                .def("SetActualizeRHSFlag", &ConvergenceCriteriaType::SetActualizeRHSFlag)
-                .def("GetActualizeRHSflag", &ConvergenceCriteriaType::GetActualizeRHSflag)
-                .def("PreCriteria", &ConvergenceCriteriaType::PreCriteria)
-                .def("PostCriteria", &ConvergenceCriteriaType::PostCriteria)
-                .def("Initialize", &ConvergenceCriteriaType::Initialize)
-                .def("InitializeNonLinearIteration", &ConvergenceCriteriaType::InitializeNonLinearIteration)
-                .def("InitializeSolutionStep", &ConvergenceCriteriaType::InitializeSolutionStep)
-                .def("FinalizeNonLinearIteration", &ConvergenceCriteriaType::FinalizeNonLinearIteration)
-                .def("FinalizeSolutionStep", &ConvergenceCriteriaType::FinalizeSolutionStep)
-                .def("Check", &ConvergenceCriteriaType::Check)
-                .def("SetEchoLevel", &ConvergenceCriteriaType::SetEchoLevel)
-                ;
+                    ConvergenceCriteriaPointerType >(m,"ConvergenceCriteria")
+                    .def(py::init<>())
+                    .def("Create", &ConvergenceCriteriaType::Create)
+                    .def("SetActualizeRHSFlag", &ConvergenceCriteriaType::SetActualizeRHSFlag)
+                    .def("GetActualizeRHSflag", &ConvergenceCriteriaType::GetActualizeRHSflag)
+                    .def("PreCriteria", &ConvergenceCriteriaType::PreCriteria)
+                    .def("PostCriteria", &ConvergenceCriteriaType::PostCriteria)
+                    .def("Initialize", &ConvergenceCriteriaType::Initialize)
+                    .def("InitializeNonLinearIteration", &ConvergenceCriteriaType::InitializeNonLinearIteration)
+                    .def("InitializeSolutionStep", &ConvergenceCriteriaType::InitializeSolutionStep)
+                    .def("FinalizeNonLinearIteration", &ConvergenceCriteriaType::FinalizeNonLinearIteration)
+                    .def("FinalizeSolutionStep", &ConvergenceCriteriaType::FinalizeSolutionStep)
+                    .def("Check", &ConvergenceCriteriaType::Check)
+                    .def("SetEchoLevel", &ConvergenceCriteriaType::SetEchoLevel)
+                    .def("Info", &ConvergenceCriteriaType::Info)
+                    ;
 
             py::class_< DisplacementCriteria<SparseSpaceType, LocalSpaceType >,
                 typename DisplacementCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
