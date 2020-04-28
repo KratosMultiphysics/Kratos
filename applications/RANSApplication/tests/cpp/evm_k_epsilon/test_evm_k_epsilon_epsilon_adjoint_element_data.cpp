@@ -35,7 +35,7 @@ namespace Kratos
 namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateEffectiveKinematicViscosityDerivative_TURBULENT_KINETIC_ENERGY,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateEffectiveKi
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateEffectiveKinematicViscosityDerivative_TURBULENT_ENERGY_DISSIPATION_RATE,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateEffectiveKi
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateEffectiveKinematicViscosityDerivative_VELOCITY,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -76,7 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateEffectiveKi
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateEffectiveKinematicViscosityDerivative_SHAPE_SENSITIVITY,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateEffectiveKi
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateReactionTermDerivative_TURBULENT_KINETIC_ENERGY,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateReactionTer
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateReactionTermDerivative_TURBULENT_ENERGY_DISSIPATION_RATE,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -118,7 +118,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateReactionTer
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateReactionTermDerivative_VELOCITY,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -131,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateReactionTer
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateReactionTermDerivative_SHAPE_SENSITIVITY,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -145,7 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateReactionTer
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateSourceTermDerivative_TURBULENT_KINETIC_ENERGY,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -159,7 +159,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateSourceTermD
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateSourceTermDerivative_TURBULENT_ENERGY_DISSIPATION_RATE,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -173,7 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateSourceTermD
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateSourceTermDerivative_VELOCITY,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
@@ -186,7 +186,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateSourceTermD
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilonElementData_CalculateSourceTermDerivative_SHAPE_SENSITIVITY,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     using primal_element_data_type =
         EvmKEpsilonElementDataUtilities::EpsilonElementData<2>;
