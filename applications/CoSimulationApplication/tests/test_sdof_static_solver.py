@@ -24,8 +24,9 @@ class TestSdofStaticSolver(KratosUnittest.TestCase):
         self.time = 0.0
 
     @classmethod
-    def tearDown(self):
+    def tearDownClass(self):
         kratos_utilities.DeleteFileIfExisting("result.dat")
+        kratos_utilities.DeleteFileIfExisting('fsi_sdof_static/results_final_sdof.dat')
 
     def __CompareResults(self, reference, result):
         ref = np.loadtxt(reference, skiprows=1)
@@ -55,6 +56,8 @@ class TestSdofStaticSolver(KratosUnittest.TestCase):
         parameter_file_name = "fsi_sdof_static/ProjectParametersSDoF.json"
         with open(parameter_file_name, 'r') as parameter_file:
             settings = json.load(parameter_file)
+
+        settings["output_parameters"]["write_output_file"] = True
 
         system = SDoFStaticSolver(settings)
         system.Initialize()
