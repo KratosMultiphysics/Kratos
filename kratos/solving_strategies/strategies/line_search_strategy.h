@@ -91,6 +91,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(LineSearchStrategy);
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef LineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
+
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -146,7 +148,7 @@ public:
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
-    
+
     /**
      * Constructor with pointer to BuilderAndSolver
      * @param rModelPart The model part of the problem
@@ -239,6 +241,18 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename SolvingStrategyType::Pointer Create(
+        ModelPart& rModelPart,
+        ) const override
+        Parameters ThisParameters
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     ///@}
     ///@name Access
@@ -357,7 +371,7 @@ protected:
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
 
         TSystemVectorType aux(Dx);
-        
+
         double x1 = mFirstAlphaValue;
         double x2 = mSecondAlphaValue;
 
@@ -370,11 +384,11 @@ protected:
         //solution of x1*Dx
         TSparseSpace::Assign(aux,x1-xprevious, Dx);
         xprevious = x1;
-        BaseType::UpdateDatabase(A,aux,b,MoveMesh); 
+        BaseType::UpdateDatabase(A,aux,b,MoveMesh);
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
         double r1 = TSparseSpace::Dot(aux,b);
-        
+
         double rmax = std::abs(r1);
         while(!converged && it < mMaxLineSearchIterations) {
 
@@ -397,12 +411,12 @@ protected:
             double x = 1.0;
             if(std::abs(r1 - r2) > 1e-10)
                 x =  (r1*x2 - r2*x1)/(r1 - r2);
-            
+
             if(x < mMinAlpha) {
                 x = mMinAlpha;
             } else if(x > mMaxAlpha) {
                 x = mMaxAlpha;
-            }                
+            }
 
             //Perform final update
             TSparseSpace::Assign(aux,x-xprevious, Dx);
@@ -460,7 +474,7 @@ protected:
             "line_search_tolerance"      : 0.5
         })");
         default_settings.AddMissingParameters(base_default_settings);
-        return default_settings;    
+        return default_settings;
     }
 
     /**
