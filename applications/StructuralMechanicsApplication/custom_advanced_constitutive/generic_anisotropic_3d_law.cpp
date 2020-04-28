@@ -306,12 +306,9 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
             ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                 (rotation_matrix),
                 voigt_rotation_matrix);
-        double aux_det = 0.0;
-        MathUtils<double>::InvertMatrix(voigt_rotation_matrix, inv_voigt_rotation_matrix, aux_det);
     } else {
-        noalias(rotation_matrix)           = IdentityMatrix(Dimension, Dimension);
-        noalias(voigt_rotation_matrix)     = IdentityMatrix(VoigtSize, VoigtSize);
-        noalias(inv_voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
+        noalias(rotation_matrix)       = IdentityMatrix(Dimension, Dimension);
+        noalias(voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
     }
     
     // We compute the mappers As and Ae
@@ -504,6 +501,28 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             ConstitutiveLaw::Parameters values_iso_cl = rParameterValues;
             values_iso_cl.SetMaterialProperties(r_props_iso_cl);
 
+            // Here we compute the rotation tensors due to the angles of the local and global axes
+            Matrix rotation_matrix(Dimension, Dimension), voigt_rotation_matrix(VoigtSize, VoigtSize),
+            inv_voigt_rotation_matrix(VoigtSize, VoigtSize);
+
+            if (r_material_properties.Has(EULER_ANGLE_PHI) &&
+                std::abs(r_material_properties[EULER_ANGLE_PHI]) + 
+                std::abs(r_material_properties[EULER_ANGLE_THETA]) + 
+                std::abs(r_material_properties[EULER_ANGLE_HI]) > machine_tolerance) {
+                    ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
+                        r_material_properties[EULER_ANGLE_PHI], r_material_properties[EULER_ANGLE_THETA],
+                        r_material_properties[EULER_ANGLE_HI], rotation_matrix);
+                    ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
+                        (rotation_matrix),
+                        voigt_rotation_matrix);
+                double aux_det = 0.0;
+                MathUtils<double>::InvertMatrix(voigt_rotation_matrix, inv_voigt_rotation_matrix, aux_det);
+            } else {
+                noalias(rotation_matrix)           = IdentityMatrix(Dimension, Dimension);
+                noalias(voigt_rotation_matrix)     = IdentityMatrix(VoigtSize, VoigtSize);
+                noalias(inv_voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
+            }
+
             // We compute the mappers As and Ae
             Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
             Matrix stress_mapper_inv(VoigtSize, VoigtSize); // The inverse of As
@@ -518,7 +537,12 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             Matrix invAe(VoigtSize, VoigtSize);
             double aux_det;
             MathUtils<double>::InvertMatrix(strain_mapper, invAe, aux_det);
+            
+            // We mapp to the local anisotropic space
             rValue = prod(invAe, r_plastic_strain);
+
+            // We rotate to the global system
+            rValue = prod(inv_voigt_rotation_matrix, r_plastic_strain);
             return rValue;
         }
     }
