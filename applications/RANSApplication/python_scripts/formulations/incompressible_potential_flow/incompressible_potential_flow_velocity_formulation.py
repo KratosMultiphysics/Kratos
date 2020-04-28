@@ -30,7 +30,9 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
             "linear_solver_settings": {
                 "solver_type": "amgcl"
             },
-            "echo_level": 0
+            "echo_level": 0,
+            "relative_tolerance": 1e-12,
+            "absolute_tolerance": 1e-12
         }""")
 
         self.settings.ValidateAndAssignDefaults(defaults)
@@ -49,7 +51,8 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
         solver_settings = self.settings
         linear_solver = CreateLinearSolver(solver_settings["linear_solver_settings"])
         builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(linear_solver, self.IsPeriodic(), self.GetCommunicator())
-        convergence_criteria = CreateResidualCriteria(1e-12, 1e-12)
+        convergence_criteria = CreateResidualCriteria(solver_settings["relative_tolerance"].GetDouble(),
+                                                      solver_settings["absolute_tolerance"].GetDouble())
         self.velocity_strategy = CreateResidualBasedNewtonRaphsonStrategy(
                     self.velocity_model_part, CreateIncremantalUpdateScheme(), linear_solver,
                     convergence_criteria, builder_and_solver, 2, False, False, False)
@@ -85,6 +88,8 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
             self.is_converged = self.velocity_strategy.SolveSolutionStep()
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.GetName(), "Solved  formulation.")
+            if (self.is_converged):
+                Kratos.Logger.PrintInfo(self.GetName(), "*** CONVERGENCE ACHIEVED ****")
         return True
 
     def ExecuteAfterCouplingSolveStep(self):
