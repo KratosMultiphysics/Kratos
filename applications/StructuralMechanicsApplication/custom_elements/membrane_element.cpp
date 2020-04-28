@@ -1036,7 +1036,7 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
 void MembraneElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -1074,7 +1074,7 @@ void MembraneElement::CalculateDampingMatrix(
 
 void MembraneElement::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;

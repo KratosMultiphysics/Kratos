@@ -264,15 +264,15 @@ public:
         mpPrimalElement->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
     }
 
-    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rCurrentProcessInfo);
     }
 
     void AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<double >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<double >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rRHSVector,
                                     rRHSVariable,
@@ -281,9 +281,9 @@ public:
     }
 
     void AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<array_1d<double,3> >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<array_1d<double,3> >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rRHSVector,
                                 rRHSVariable,
@@ -292,9 +292,9 @@ public:
     }
 
     void AddExplicitContribution(const MatrixType& rLHSMatrix,
-                                const Variable<MatrixType>& rLHSVariable,
-                                Variable<Matrix>& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override
+                                 const Variable<MatrixType>& rLHSVariable,
+                                 const Variable<Matrix>& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rLHSMatrix,
                                 rLHSVariable,

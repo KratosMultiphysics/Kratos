@@ -825,7 +825,7 @@ double CrBeamElement2D2N::Modulus2Pi(double A) const
 
 void CrBeamElement2D2N::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // FORCE- & Moment- Residual is 3D vector
