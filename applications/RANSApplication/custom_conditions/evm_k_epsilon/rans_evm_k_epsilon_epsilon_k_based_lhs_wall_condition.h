@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#ifndef KRATOS_RANS_EVM_K_EPSILON_EPSILON_K_BASED_WALL_CONDITION_H
-#define KRATOS_RANS_EVM_K_EPSILON_EPSILON_K_BASED_WALL_CONDITION_H
+#ifndef KRATOS_RANS_EVM_K_EPSILON_EPSILON_K_BASED_LHS_WALL_CONDITION_H
+#define KRATOS_RANS_EVM_K_EPSILON_EPSILON_K_BASED_LHS_WALL_CONDITION_H
 
 // System includes
 
@@ -57,14 +57,14 @@ namespace Kratos
  */
 
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class RansEvmKEpsilonEpsilonKBasedWallCondition : public Condition
+class RansEvmKEpsilonEpsilonKBasedLHSWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RansEvmKEpsilonEpsilonKBasedWallCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmKEpsilonEpsilonKBasedWallCondition);
+    /// Pointer definition of RansEvmKEpsilonEpsilonKBasedLHSWallCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmKEpsilonEpsilonKBasedLHSWallCondition);
 
     using NodeType = Node<3>;
     using PropertiesType = Properties;
@@ -84,7 +84,7 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmKEpsilonEpsilonKBasedWallCondition(IndexType NewId = 0)
+    explicit RansEvmKEpsilonEpsilonKBasedLHSWallCondition(IndexType NewId = 0)
         : Condition(NewId)
     {
     }
@@ -94,7 +94,7 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmKEpsilonEpsilonKBasedWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
+    RansEvmKEpsilonEpsilonKBasedLHSWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
         : Condition(NewId, ThisNodes)
     {
     }
@@ -104,7 +104,7 @@ public:
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmKEpsilonEpsilonKBasedWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    RansEvmKEpsilonEpsilonKBasedLHSWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {
     }
@@ -115,35 +115,35 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    RansEvmKEpsilonEpsilonKBasedWallCondition(IndexType NewId,
-                                              GeometryType::Pointer pGeometry,
-                                              PropertiesType::Pointer pProperties)
+    RansEvmKEpsilonEpsilonKBasedLHSWallCondition(IndexType NewId,
+                                                 GeometryType::Pointer pGeometry,
+                                                 PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
-    RansEvmKEpsilonEpsilonKBasedWallCondition(RansEvmKEpsilonEpsilonKBasedWallCondition const& rOther)
+    RansEvmKEpsilonEpsilonKBasedLHSWallCondition(RansEvmKEpsilonEpsilonKBasedLHSWallCondition const& rOther)
         : Condition(rOther)
     {
     }
 
     /// Destructor.
-    ~RansEvmKEpsilonEpsilonKBasedWallCondition() override = default;
+    ~RansEvmKEpsilonEpsilonKBasedLHSWallCondition() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator
-    RansEvmKEpsilonEpsilonKBasedWallCondition& operator=(
-        RansEvmKEpsilonEpsilonKBasedWallCondition const& rOther);
+    RansEvmKEpsilonEpsilonKBasedLHSWallCondition& operator=(
+        RansEvmKEpsilonEpsilonKBasedLHSWallCondition const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// Create a new RansEvmKEpsilonEpsilonKBasedWallCondition object.
+    /// Create a new RansEvmKEpsilonEpsilonKBasedLHSWallCondition object.
     /**
       @param NewId Index of the new condition
       @param ThisNodes An array containing the nodes of the new condition
@@ -336,7 +336,7 @@ private:
 
     ///@}
 
-}; // Class RansEvmKEpsilonEpsilonKBasedWallCondition
+}; // Class RansEvmKEpsilonEpsilonKBasedLHSWallCondition
 
 ///@}
 
@@ -350,7 +350,7 @@ private:
 /// input stream function
 template <unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                RansEvmKEpsilonEpsilonKBasedWallCondition<TNumNodes>& rThis)
+                                RansEvmKEpsilonEpsilonKBasedLHSWallCondition<TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -358,7 +358,7 @@ inline std::istream& operator>>(std::istream& rIStream,
 /// output stream function
 template <unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansEvmKEpsilonEpsilonKBasedWallCondition<TNumNodes>& rThis)
+                                const RansEvmKEpsilonEpsilonKBasedLHSWallCondition<TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -373,4 +373,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_RANS_EVM_K_EPSILON_EPSILON_K_BASED_WALL_CONDITION_H
+#endif // KRATOS_RANS_EVM_K_EPSILON_EPSILON_K_BASED_LHS_WALL_CONDITION_H

@@ -48,11 +48,11 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
         if (wall_function_type == "turbulent_kinetic_energy_based_lhs"):
             # this wall condition is most preferred, but since it is changing the LHS, positivity preserving quality of
             # stabilization methods are not guranteed.
-            condition_name = "RansEvmKEpsilonEpsilonWall"
+            condition_name = "RansEvmKEpsilonEpsilonKBasedLHSWallCondition"
         elif (wall_function_type == "turbulent_kinetic_energy_based_rhs"):
             # this wall condition is more preferred, but fails if turbulent kinetic energy singularities is found,
-            # since this only changes RHS, stabilization gurantees positivity preservation
-            condition_name = "RansEvmKEpsilonEpsilonKBasedWallCondition"
+            # since this only changes RHS, stabilization guarantees positivity preservation
+            condition_name = "RansEvmKEpsilonEpsilonKBasedRHSWallCondition"
         elif wall_function_type == "velocity_based_rhs":
             # this one works even with turbulent kinetic energy singularities, since this also modifies only the RHS
             # positivity preserving quality is guranteed
