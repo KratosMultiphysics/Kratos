@@ -64,6 +64,8 @@ public:
 
     typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
 
+    typedef ResidualBasedBossakDisplacementScheme<TSparseSpace, TDenseSpace> ClassType;
+
     typedef typename ImplicitBaseType::TDataType                             TDataType;
 
     typedef typename ImplicitBaseType::DofsArrayType                     DofsArrayType;
@@ -181,6 +183,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Recalculates the Newmark coefficients, taking into account the alpha parameters

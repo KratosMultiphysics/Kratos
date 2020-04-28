@@ -121,6 +121,17 @@ public:
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Convergence criteria factory
+    typedef BaseFactory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
+
+    /// Scheme factory
+    typedef BaseFactory<TSchemeType> SchemeFactoryType;
+
+    /// Builder and solver factory
+    typedef BaseFactory< TBuilderAndSolverType, TLinearSolver > BuilderAndSolverFactoryType;
 
     /*@} */
     /**@name Life Cycle

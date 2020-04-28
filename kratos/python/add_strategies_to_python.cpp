@@ -258,6 +258,7 @@ namespace Kratos
 
             py::class_< BaseSchemeType, typename BaseSchemeType::Pointer >(m,"Scheme")
                 .def(py::init< >())
+                .def("Create", &BaseSchemeType::Create)
                 .def("Initialize", &BaseSchemeType::Initialize)
                 .def("SchemeIsInitialized", &BaseSchemeType::SchemeIsInitialized)
                 .def("ElementsAreInitialized", &BaseSchemeType::ElementsAreInitialized)
