@@ -84,10 +84,12 @@ def ImportData(conn_name, identifier):
         deformMesh(data)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
-    print "TAU SOLVER After ImportData"
+    if tau_settings["echo_level"] > 0:
+        print "TAU SOLVER After ImportData"
 
 def ExportData(conn_name, identifier):
-    print "TAU SOLVER ExportData"
+    if tau_settings["echo_level"] > 0:
+        print "TAU SOLVER ExportData"
     # identifier is the data-name in json
     if identifier == "Interface_force":
         interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out)
@@ -96,19 +98,22 @@ def ExportData(conn_name, identifier):
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
     CoSimIO.ExportData(conn_name, identifier, data)
-    print "TAU SOLVER After ExportData"
+    if tau_settings["echo_level"] > 0:
+        print "TAU SOLVER After ExportData"
 
 
 def ExportMesh(conn_name, identifier):
-    print "TAU SOLVER ExportMesh"
+    if tau_settings["echo_level"] > 0:
+        print "TAU SOLVER ExportMesh"
+        print "conn_name = ", conn_name
+        print "identifier = ", identifier
     # identifier is the data-name in json
-    print "conn_name = ", conn_name
-    print "identifier = ", identifier
     if identifier == "Fluid.Interface":
         interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(
             interface_file_path_pattern, mesh_file_path_pattern, this_step_out)
         NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = tauFunctions.readPressure(interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
         nodal_coords, nodesID, elem_connectivities, element_types = tauFunctions.interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z)
+        # In vtk format element connectivities start from 0, not from 1
         elem_connectivities -= 1
         # nodal_coords, elem_connectivities, element_types = GetFluidMesh()
     else:
@@ -116,7 +121,8 @@ def ExportMesh(conn_name, identifier):
             'TauSolver::ExportMesh::identifier "{}" not valid! Please use Fluid.Interface'.format(identifier))
 
     CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
-    print "TAU SOLVER ExportMesh End"
+    if tau_settings["echo_level"] > 0:
+        print "TAU SOLVER ExportMesh End"
 
 # find the solution file name in '/Outputs' and convert in .dat 
 def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, this_step_out):
@@ -222,12 +228,8 @@ CoSimIO.Register_ImportData(connection_name, ImportData)
 CoSimIO.Register_ExportData(connection_name, ExportData)
 CoSimIO.Register_ExportMesh(connection_name, ExportMesh)
 
-# Run the coupled simulation
-print "Before Run"
-CoSimIO.Run(connection_name) #this returns after the entire CoSim is done
+# Run the coupled simulation, this returns after the entire CoSim is done
+CoSimIO.Run(connection_name)
 
 CoSimIO.Disconnect(connection_name)
-
-Solver.finalize()
-Para.free_parameters()
 tau("exit")
