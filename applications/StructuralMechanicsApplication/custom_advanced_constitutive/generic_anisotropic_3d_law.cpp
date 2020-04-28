@@ -218,7 +218,7 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
     const double vzy = vyz * Ez / Ey;
 
     if (vyx > 0.5 || vzx > 0.5 || vzy > 0.5)
-        KRATOS_THROW_ERROR(std::invalid_argument, "One of the cross poisson ratio is greater than 0.5", "")
+        KRATOS_THROW_ERROR(std::invalid_argument, "One of the cross poisson ratios is greater than 0.5", "")
 
     const double Gxy   = 1.0 / ((1.0 + vyx) / Ex + (1.0 + vxy) / Ey);
     const double Gxz   = 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
