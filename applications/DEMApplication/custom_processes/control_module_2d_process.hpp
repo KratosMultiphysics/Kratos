@@ -62,6 +62,7 @@ public:
                 "young_modulus" : 1.0e9,
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
+                "stiffness_alpha": 1.0,
                 "start_time" : 0.0,
                 "stress_averaging_time": 1e-7
             }  )" );
@@ -80,6 +81,7 @@ public:
         mUpdateStiffness = rParameters["update_stiffness"].GetBool();
         mReactionStressOld = 0.0;
         mStiffness = rParameters["young_modulus"].GetDouble()/mCompressionLength; // mStiffness is actually a stiffness over an area
+        mStiffnessAlpha = rParameters["stiffness_alpha"].GetDouble();
         mStressAveragingTime = rParameters["stress_averaging_time"].GetDouble();
         mVectorOfLastStresses.resize(0);
 
@@ -361,7 +363,8 @@ public:
         if (mAlternateAxisLoading == true && mApplyCM == true && mIsEndStep == true) {
             double ReactionStress = CalculateReactionStress();
             if(mUpdateStiffness == true) {
-                mStiffness = EstimateStiffness(ReactionStress,mCMTimeStep);
+                double K_estimated = EstimateStiffness(ReactionStress,mCMTimeStep);
+                mStiffness = mStiffnessAlpha * K_estimated + (1.0 - mStiffnessAlpha) * mStiffness;
             }
         }
     }
@@ -415,6 +418,7 @@ protected:
     bool mIsEndStep;
     unsigned int mStep;
     double mCMTimeStep;
+    double mStiffnessAlpha;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
