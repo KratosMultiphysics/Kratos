@@ -76,6 +76,8 @@ class ResidualBasedNewtonRaphsonStrategy
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -535,6 +537,19 @@ class ResidualBasedNewtonRaphsonStrategy
 
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT: **/
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the

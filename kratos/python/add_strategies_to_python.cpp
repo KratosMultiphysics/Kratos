@@ -497,6 +497,7 @@ namespace Kratos
             py::class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy")
                     .def(py::init<ModelPart&, Parameters >() )
                     .def(py::init < ModelPart&, bool >())
+                    .def("Create", &BaseSolvingStrategyType::Create)
                     .def("Predict", &BaseSolvingStrategyType::Predict)
                     .def("Initialize", &BaseSolvingStrategyType::Initialize)
                     .def("Solve", &BaseSolvingStrategyType::Solve)

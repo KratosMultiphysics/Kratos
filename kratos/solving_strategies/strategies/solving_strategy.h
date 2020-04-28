@@ -82,6 +82,8 @@ public:
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> TBuilderAndSolverType;
 
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              ClassType;
+
     typedef typename ModelPart::DofType                                             TDofType;
 
     typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
@@ -147,6 +149,19 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the

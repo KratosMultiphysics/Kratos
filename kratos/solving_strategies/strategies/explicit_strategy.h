@@ -57,6 +57,8 @@ namespace Kratos
 
       typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
+      typedef ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
+
       typedef typename BaseType::TDataType TDataType;
 
       typedef TSparseSpace SparseSpaceType;
@@ -132,6 +134,22 @@ namespace Kratos
       ~ExplicitStrategy () override {}
 
 
+
+//***************************************************************************
+//***************************************************************************
+
+/**
+ * @brief Create method
+ * @param rModelPart The model part of the problem
+ * @param ThisParameters The configuration parameters
+ */
+typename BaseType::Pointer Create(
+    ModelPart& rModelPart,
+    Parameters ThisParameters
+    ) const override
+{
+    return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+}
 
 //***************************************************************************
 //***************************************************************************
