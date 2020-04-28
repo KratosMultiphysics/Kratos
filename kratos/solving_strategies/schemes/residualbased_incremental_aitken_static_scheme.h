@@ -62,6 +62,8 @@ public:
 
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
 
+    typedef ResidualBasedIncrementalAitkenStaticScheme<TSparseSpace, TDenseSpace> ClassType;
+
     typedef typename BaseType::TDataType TDataType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -115,6 +117,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /// Initialize the iteration counter at the begining of each solution step
     /**
