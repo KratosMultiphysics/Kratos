@@ -120,7 +120,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         strategy.Solve()
 
     def _create_strategy(self, mp, builder_type, linearize_on_previous_iteration):
-        #define a minimal newton raphson solver
+        # Define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         if(builder_type == "elimination_builder"):
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
@@ -128,8 +128,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
             raise Exception("builder_type unknown")
-        KratosMultiphysics.Logger.PrintInfo("LargeStrain","----",builder_and_solver)
-        #define a minimal newton raphson solver
+        # Define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-20)
@@ -149,7 +148,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                                                                         compute_reactions,
                                                                         reform_step_dofs,
                                                                         move_mesh_flag)
-        strategy.SetEchoLevel(1)
+        strategy.SetEchoLevel(0)
         strategy.SetUseOldStiffnessInFirstIterationFlag(linearize_on_previous_iteration)
 
         return strategy

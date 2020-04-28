@@ -507,7 +507,7 @@ public:
         const bool MoveMesh
         ) override
     {
-        KRATOS_INFO("BlockBuilderAndSolver")
+        KRATOS_INFO_IF("BlockBuilderAndSolver", this->GetEchoLevel() > 0)
             << "Linearizing on Old iteration" << std::endl;
 
         if(rModelPart.GetBufferSize() == 1) {
@@ -548,7 +548,7 @@ public:
         }
 
         //TODO: Here we need to take the vector from other ones because
-        //we cannot create a trilinos vector without a communicator. To be improved!
+        // We cannot create a trilinos vector without a communicator. To be improved!
         TSystemVectorType dx_prediction(rDx);
         TSystemVectorType rhs_addition(rb); //we know it is zero here, so we do not need to set it
 
@@ -596,9 +596,8 @@ public:
         this->Build(pScheme, rModelPart, rA, rb);
 
         // Put back the prediction into the database
-        // UpdateDatabase(rA, dx_prediction, rb, BaseType::MoveMeshFlag(), true);
-        TSparseSpace::InplaceMult(dx_prediction, -1.00); //change sign to dx_prediction
-        TSparseSpace::UnaliasedAdd(rDx, 1.00, dx_prediction);
+        TSparseSpace::InplaceMult(dx_prediction, -1.0); //change sign to dx_prediction
+        TSparseSpace::UnaliasedAdd(rDx, 1.0, dx_prediction);
 
         // Use UpdateDatabase to bring back the solution
         // to where it was taking into account BCs
@@ -616,7 +615,7 @@ public:
 
         // Apply rb -= A*dx_prediction
         TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
-        TSparseSpace::UnaliasedAdd(rb, -1.00, rhs_addition);
+        TSparseSpace::UnaliasedAdd(rb, -1.0, rhs_addition);
 
         for(auto& dof : FixedDofs)
             dof.FixDof();
