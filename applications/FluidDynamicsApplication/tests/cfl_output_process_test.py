@@ -1,5 +1,4 @@
 import KratosMultiphysics as km
-import KratosMultiphysics.FluidDynamicsApplication as kfd
 
 from fluid_analysis_without_solution import FluidAnalysisWithoutSolution
 
@@ -12,6 +11,7 @@ class CFLOutputProcessTest(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = True
 
+    @UnitTest.skipIfApplicationsNotAvailable("StatisticsApplication")
     def testCFLOutput(self):
         work_folder = "Cavity"
         settings_file_name = "cfl_output_test_parameters.json"
