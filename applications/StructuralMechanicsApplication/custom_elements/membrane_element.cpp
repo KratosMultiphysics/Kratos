@@ -199,8 +199,7 @@ void MembraneElement::CalculateLocalSystem(
 
 void MembraneElement::GetValuesVector(
     Vector& rValues,
-    int Step)
-
+    int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -224,8 +223,7 @@ void MembraneElement::GetValuesVector(
 
 void MembraneElement::GetFirstDerivativesVector(
     Vector& rValues,
-    int Step)
-
+    int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType mat_size = number_of_nodes * 3;
@@ -249,8 +247,7 @@ void MembraneElement::GetFirstDerivativesVector(
 
 void MembraneElement::GetSecondDerivativesVector(
     Vector& rValues,
-    int Step)
-
+    int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType mat_size = number_of_nodes * 3;

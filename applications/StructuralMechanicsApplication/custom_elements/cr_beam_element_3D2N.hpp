@@ -218,15 +218,15 @@ public:
 
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     /**
      * @brief This function is used to assemble single transformation matrix in the big global rotation matrix
