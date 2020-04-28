@@ -973,25 +973,6 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
     }
 }
 
-void MembraneElement::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
-void MembraneElement::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                        std::vector<Vector>& rValues,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
 void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
