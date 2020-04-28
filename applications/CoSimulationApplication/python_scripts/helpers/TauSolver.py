@@ -73,10 +73,12 @@ def ImportData(conn_name, identifier):
         print "TAU SOLVER ImportData"
     data = CoSimIO.ImportData(conn_name, identifier)
 
-    # TODO do sth with the data
     # identifier is the data-name in json
     if identifier == "Interface_disp":
-        deformMesh(data)
+        # Deform mesh
+        if tau_mpi_rank() == 0:
+            TauFunctions.ExecuteBeforeMeshDeformation(data,this_step_out,para_path_mod,working_path,tau_path)
+        Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
     if tau_settings["echo_level"] > 0:
@@ -93,13 +95,12 @@ def ExportData(conn_name, identifier):
 
     CoSimIO.ExportData(conn_name, identifier, data)
     if tau_settings["echo_level"] > 0:
+        print 'data = ', data
         print "TAU SOLVER After ExportData"
 
 def ExportMesh(conn_name, identifier):
     if tau_settings["echo_level"] > 0:
         print "TAU SOLVER ExportMesh"
-        print "conn_name = ", conn_name
-        print "identifier = ", identifier
     # identifier is the data-name in json
     if identifier == "Fluid.Interface":
         nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, tau_path, this_step_out, para_path_mod)
@@ -110,34 +111,6 @@ def ExportMesh(conn_name, identifier):
     CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
     if tau_settings["echo_level"] > 0:
         print "TAU SOLVER ExportMesh End"
-
-def deformMesh(dispTau):
-    global dispTauOld
-
-    if tau_mpi_rank() == 0:
-        print "deformationstart"
-        interface_file_name_surface, interface_file_number_of_lines = TauFunctions.findSolutionAndConvert(working_path, tau_path, this_step_out, para_path_mod)
-
-        NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=TauFunctions.readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
-
-        nodes,nodesID,elems,element_types=TauFunctions.interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
-
-        if(this_step_out==0):
-            dispTauOld=np.zeros(3*NodesNr)
-            dispTau_transpose = np.transpose(dispTau)
-            print 'dispTau =', dispTau_transpose
-
-        [ids,coordinates,globalID,coords]=TauFunctions.meshDeformation(NodesNr,nodes,dispTau,dispTauOld,0,para_path_mod)
-        PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
-        print "afterPySurfDeflect"
-
-
-    Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1) 
-
-
-    for i in xrange(0,3*NodesNr):
-        dispTauOld[i]=dispTau[i]
-    print "afterDeformation"
 
 connection_name = "TAU"
 

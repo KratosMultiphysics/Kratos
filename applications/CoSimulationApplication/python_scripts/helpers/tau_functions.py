@@ -279,6 +279,29 @@ def calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,fIteration)
             fwrite.write("%f\n" % (forcesTauNP[i]))
     return forcesTauNP
 
+def ExecuteBeforeMeshDeformation(dispTau,this_step_out,para_path_mod,working_path,tau_path):
+    global dispTauOld
+    print "deformationstart"
+    interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(working_path, tau_path, this_step_out, para_path_mod)
+
+    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+
+    nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
+
+    if(this_step_out==0):
+        dispTauOld=np.zeros(3*NodesNr)
+        dispTau_transpose = np.transpose(dispTau)
+        print 'dispTau =', dispTau_transpose
+    print 'dispTauOld = ', dispTauOld
+
+    [ids,coordinates,globalID,coords]=meshDeformation(NodesNr,nodes,dispTau,dispTauOld,0,para_path_mod)
+    PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
+    print "afterPySurfDeflect"
+
+    for i in xrange(0,3*NodesNr):
+        dispTauOld[i]=dispTau[i]
+    print "afterDeformation"
+
 # Execute the Mesh deformation of TAU  
 def meshDeformation(NodesNr,nodes,dispTau,dispTauOld,error, para_path_mod):
 
