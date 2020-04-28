@@ -27,7 +27,7 @@ void SimplifiedBilinear2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
         rVariables.EquivalentStrain = 1.0;
         if (mStateVariable == 1.0)
         {
-            if((StrainVector[0] * rVariables.YieldStress) > rVariables.MaxTensileStress)
+            if(fabs(StrainVector[0] * rVariables.YieldStress) > rVariables.MaxTensileStress)
             {
 			    rVariables.EquivalentStrain = 0.0;
 			}
@@ -43,7 +43,7 @@ void SimplifiedBilinear2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
         rVariables.EquivalentStrain = 1.0;
         if (mStateVariable == 1.0)
         {
-		    if((StrainVector[0] * rVariables.YieldStress) > rVariables.MaxTensileStress)
+		    if(fabs(StrainVector[0] * rVariables.YieldStress) > rVariables.MaxTensileStress)
             {
 			    rVariables.EquivalentStrain = 0.0;
 			}
@@ -138,10 +138,10 @@ const Vector& StrainVector = rValues.GetStrainVector();
 
         rStressVector[1] = rVariables.YoungModulus * StrainVector[1];
 
-        const double shear_modulus = rVariables.YoungModulus / (2.0 * (1.0 + rVariables.PoissonCoefficient));
+        const double shear_modulus = rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));
 
         double friction_stress = fabs(shear_modulus * StrainVector[0]);
-        double max_friction_stress = fabs(rVariables.FrictionCoefficient * rStressVector[2] * StrainVector[0]);
+        double max_friction_stress = fabs(rVariables.FrictionCoefficient * rStressVector[1]);
         if (friction_stress > max_friction_stress) friction_stress = max_friction_stress;
 
         const double eps = std::numeric_limits<double>::epsilon();
