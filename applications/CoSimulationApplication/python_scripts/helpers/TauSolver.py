@@ -60,12 +60,13 @@ def SolveSolutionStep():
 def FinalizeSolutionStep():
     if tau_settings["echo_level"] > 0:
         print("TAU SOLVER FinalizeSolutionStep")
-    global this_step_out
+
     tau_parallel_sync()
     Solver.finalize()
     tau_free_dualgrid()
     tau_free_prims()
     Para.free_parameters()
+    global this_step_out
     this_step_out += 1
 
 def ImportData(conn_name, identifier):
