@@ -61,7 +61,7 @@ def CheckIfApplicationsAvailable(*application_names):
     available_apps = GetListOfAvailableApplications()
     return all(app_name in available_apps for app_name in application_names)
 
-def GetNotAvailableApplications(*application_names):
+def GetNotAvailableApplications(application_names):
     """Returns a list of applications that are not available out of a provided list of applications
     """
     available_apps = GetListOfAvailableApplications()
