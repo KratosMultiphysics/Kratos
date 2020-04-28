@@ -12,7 +12,7 @@
          "buffer_size": 3
      },
      "output_parameters":{
-        "write_output_file": true,
+        "write_output_file": false,
         "file_name": "fsi_sdof_static/results_final_sdof.dat"
      }
 
