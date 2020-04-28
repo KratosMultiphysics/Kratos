@@ -2,7 +2,7 @@
     "problem_data"                     : {
         "problem_name"    : "naca0012",
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 1,
+        "echo_level"      : 0,
         "start_time"      : 0.0,
         "end_time"        : 1.0
     },
@@ -11,11 +11,8 @@
         "ale_boundary_parts"     : ["Body2D_Body"],
         "mesh_motion_solver_settings"                     :{
             "solver_type" : "structural_similarity",
-            "linear_solver_settings" : {
-                "solver_type"             : "ExternalSolversApplication.super_lu"
-            },
             "reform_dofs_each_step" : false,
-            "echo_level": 1
+            "echo_level": 0
         },
 
         "fluid_solver_settings"  :{
@@ -27,10 +24,9 @@
                 "input_filename" : "fsi_sdof_static/naca0012_small"
             },
             "maximum_iterations"     : 5,
-            "echo_level"             : 1,
+            "echo_level"             : 0,
             "linear_solver_settings"  : {
-                    "solver_type"             : "ExternalSolversApplication.super_lu",
-                    "verbosity"               : 0
+                    "solver_type"             : "EigenSolversApplication.sparse_lu"
             },
             "volume_model_part_name" : "Parts_Parts_Auto1",
             "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
