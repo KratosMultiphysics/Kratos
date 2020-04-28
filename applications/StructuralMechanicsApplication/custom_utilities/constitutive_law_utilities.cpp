@@ -1063,7 +1063,7 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperator(
     const double EulerAngle1, // phi
     const double EulerAngle2, // theta
     const double EulerAngle3, // hi
-    Matrix& rRotationOperator // local to global coordinates
+    Matrix& rRotationOperator // global to local coordinates
 )
 {
     if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
