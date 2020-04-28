@@ -120,7 +120,7 @@ public:
         return mpPrimalCondition->GetIntegrationMethod();
     }
 
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override;
+    void GetValuesVector(Vector& rValues, int Step = 0 ) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
