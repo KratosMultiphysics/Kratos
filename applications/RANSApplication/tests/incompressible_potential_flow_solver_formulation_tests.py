@@ -11,6 +11,7 @@ class IncompressiblePotentialFlowSolverFormulationTest(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
+    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
     def testIncompressiblePotentialFlow(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_incompressible_potential_flow_parameters.json"
@@ -19,6 +20,7 @@ class IncompressiblePotentialFlowSolverFormulationTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "OpenMP")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testIncompressiblePotentialFlowMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_incompressible_potential_flow_parameters.json"

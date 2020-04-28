@@ -13,7 +13,8 @@
         "solver_type": "CoupledRANS",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "backward_facing_step"
+            "input_filename": "backward_facing_step",
+            "partition_in_memory": true
         },
         "echo_level": 0,
         "volume_model_part_name": "Parts_fluid",

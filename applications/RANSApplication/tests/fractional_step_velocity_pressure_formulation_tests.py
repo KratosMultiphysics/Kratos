@@ -11,6 +11,7 @@ class FractionalStepVelocityPressureFormulationTest(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
+    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
     def testFractionalStepVelocityPressure(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_fractional_step_velocity_pressure_parameters.json"
@@ -19,6 +20,7 @@ class FractionalStepVelocityPressureFormulationTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "OpenMP")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testFractionalStepVelocityPressureMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_fractional_step_velocity_pressure_parameters.json"

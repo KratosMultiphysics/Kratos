@@ -11,6 +11,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
+    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
     def testMonolithicKEpsilonHighReAfcTkeLhs(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -19,6 +20,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "OpenMP", "algebraic_flux_corrected", "turbulent_kinetic_energy_based_lhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
     def testMonolithicKEpsilonHighReAfcTkeRhs(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -27,6 +29,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "OpenMP", "algebraic_flux_corrected", "turbulent_kinetic_energy_based_rhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
     def testMonolithicKEpsilonHighReAfcVelocityRhs(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -35,6 +38,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "OpenMP", "algebraic_flux_corrected", "velocity_based_rhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
     def testMonolithicKEpsilonHighReRfcTkeLhs(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -43,6 +47,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "OpenMP", "residual_based_flux_corrected", "turbulent_kinetic_energy_based_lhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
     def testMonolithicKEpsilonHighReRfcTkeRhs(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -51,6 +56,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "OpenMP", "residual_based_flux_corrected", "turbulent_kinetic_energy_based_rhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
     def testMonolithicKEpsilonHighReRfcVelocityRhs(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -59,6 +65,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "OpenMP", "residual_based_flux_corrected", "velocity_based_rhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testMonolithicKEpsilonHighReAfcTkeLhsMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -67,6 +74,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "MPI", "algebraic_flux_corrected", "turbulent_kinetic_energy_based_lhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testMonolithicKEpsilonHighReAfcTkeRhsMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -75,6 +83,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "MPI", "algebraic_flux_corrected", "turbulent_kinetic_energy_based_rhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testMonolithicKEpsilonHighReAfcVelocityRhsMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -83,6 +92,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "MPI", "algebraic_flux_corrected", "velocity_based_rhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testMonolithicKEpsilonHighReRfcTkeLhsMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -91,6 +101,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "MPI", "residual_based_flux_corrected", "turbulent_kinetic_energy_based_lhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testMonolithicKEpsilonHighReRfcTkeRhsMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
@@ -99,6 +110,7 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
             self._runTest(settings_file_name, "MPI", "residual_based_flux_corrected", "turbulent_kinetic_energy_based_rhs")
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testMonolithicKEpsilonHighReRfcVelocityRhsMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
