@@ -75,8 +75,8 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
         for( WeakElementItType it_elem = r_neigh_elements.begin(); it_elem != r_neigh_elements.end(); ++it_elem) {
 
             auto& r_process_info = BaseType::mThisModelPart.GetProcessInfo();
-            it_elem->GetValueOnIntegrationPoints(*BaseType::mpStressVariable,stress_vector, r_process_info);
-            it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES, coordinates_vector, r_process_info);
+            it_elem->CalculateOnIntegrationPoints(*BaseType::mpStressVariable,stress_vector, r_process_info);
+            it_elem->CalculateOnIntegrationPoints(INTEGRATION_COORDINATES, coordinates_vector, r_process_info);
 
             KRATOS_INFO_IF("ContactSPRErrorProcess", BaseType::mEchoLevel > 3)
             << "\tElement: " << it_elem->Id() << std::endl

@@ -43,7 +43,7 @@ class ParticleJsonOutputProcess(JsonOutputProcess):
                             if (count == 0):
                                 data["RESULTANT"][variable_name] = []
                     elif variable_type == "Array":
-                        if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
+                        if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
                             if (self.resultant_solution == False):
                                 data["PARTICLE_" + str(mp.Id)][variable_name + "_X"] = []
                                 data["PARTICLE_" + str(mp.Id)][variable_name + "_Y"] = []
@@ -104,7 +104,7 @@ class ParticleJsonOutputProcess(JsonOutputProcess):
                                 else:
                                     data["RESULTANT"][variable_name][-1] += value
                         elif variable_type == "Array":
-                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
+                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
                                 if (self.resultant_solution == False):
                                     data["PARTICLE_" + str(mp.Id)][variable_name + "_X"].append(value[0])
                                     data["PARTICLE_" + str(mp.Id)][variable_name + "_Y"].append(value[1])
