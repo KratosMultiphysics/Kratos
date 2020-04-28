@@ -105,6 +105,17 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@{
 
     /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters)
+    {
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
+
+    /**
      * Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
@@ -115,7 +126,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedNewtonRaphsonStrategy(
+    explicit ResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -124,7 +135,7 @@ class ResidualBasedNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        : BaseType(rModelPart, MoveMeshFlag),
           mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
@@ -173,7 +184,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedNewtonRaphsonStrategy(
+    explicit ResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -183,7 +194,7 @@ class ResidualBasedNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        : BaseType(rModelPart, MoveMeshFlag),
           mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),

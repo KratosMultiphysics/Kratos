@@ -90,6 +90,7 @@ public:
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(LineSearchStrategy);
 
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> SolvingStrategyType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef LineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
 
@@ -119,8 +120,17 @@ public:
 
     ///@}
     ///@name Life Cycle
-
     ///@{
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit LineSearchStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters)
+    {
+    }
 
     /**
      * Default Constructor
@@ -133,7 +143,7 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    LineSearchStrategy(
+    explicit LineSearchStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -142,7 +152,7 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
+        ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
         Parameters default_settings = this->GetDefaultSettings();
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
@@ -150,7 +160,7 @@ public:
     }
 
     /**
-     * Constructor with pointer to BuilderAndSolver
+     * @brief Constructor specifying the builder and solver
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
@@ -161,7 +171,7 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    LineSearchStrategy(
+    explicit LineSearchStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -171,7 +181,7 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
+        ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
         Parameters default_settings = this->GetDefaultSettings();
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
@@ -192,7 +202,7 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         Parameters Settings
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,Settings)
+        ): BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,Settings)
     {
         Parameters default_settings = this->GetDefaultSettings();
         Settings.ValidateAndAssignDefaults(default_settings);
@@ -215,7 +225,7 @@ public:
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters Settings
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,Settings)
+        ): BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,Settings)
     {
         Parameters default_settings = this->GetDefaultSettings();
         Settings.ValidateAndAssignDefaults(default_settings);
@@ -229,7 +239,6 @@ public:
     ~LineSearchStrategy() override
     {
     }
-
 
 
     ///@}
@@ -248,8 +257,8 @@ public:
      */
     typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
-        ) const override
         Parameters ThisParameters
+        ) const override
     {
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }

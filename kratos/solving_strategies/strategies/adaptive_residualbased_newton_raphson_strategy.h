@@ -124,27 +124,26 @@ public:
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    /// Linear solver factory
-    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
-
-    /// Convergence criteria factory
-    typedef BaseFactory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
-
-    /// Scheme factory
-    typedef BaseFactory<TSchemeType> SchemeFactoryType;
-
-    /// Builder and solver factory
-    typedef BaseFactory< TBuilderAndSolverType, TLinearSolver > BuilderAndSolverFactoryType;
-
     /*@} */
     /**@name Life Cycle
     */
     /*@{ */
 
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters)
+    {
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
+
     /** Constructor.
     */
     AdaptiveResidualBasedNewtonRaphsonStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -156,8 +155,7 @@ public:
         double ReductionFactor = 0.5,
         double IncreaseFactor = 1.3,
         int NumberOfCycles = 5
-    )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
         //set flags to default values
@@ -213,8 +211,23 @@ public:
         KRATOS_CATCH("")
     }
 
-    AdaptiveResidualBasedNewtonRaphsonStrategy(
-        ModelPart& model_part,
+    /**
+     * Constructor specifying the builder and solver
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param ReductionFactor The factor of reduction
+     * @param IncreaseFactor The increase factor
+     * @param NumberOfCycles The number of cycles
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -227,8 +240,7 @@ public:
         double ReductionFactor = 0.5,
         double IncreaseFactor = 1.3,
         int NumberOfCycles = 5
-    )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
         //set flags to default values
@@ -780,8 +792,6 @@ public:
 
         return mA;
     }
-
-
 
     /*@} */
     /**@name Inquiry */
