@@ -6,6 +6,11 @@ from tau_python import tau_msg
 import PyPara, PySurfDeflect
 from scipy.io import netcdf
 
+def ComputeForces(working_path, tau_path, this_step_out, para_path_mod):
+    interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(working_path, tau_path, this_step_out, para_path_mod)
+    forces = caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out)
+    return forces
+
 # find the solution file name in '/Outputs' and convert in .dat 
 def findSolutionAndConvert(working_path, TAU_path, this_step_out, para_path_mod):
     outputs_path =  working_path + "Outputs/"
@@ -60,6 +65,15 @@ def caculatePressure(interface_file_name_surface, interface_file_number_of_lines
     forcesTauNP = calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(this_step_out+1))
 
     return forcesTauNP
+
+def GetFluidMesh(working_path, tau_path, this_step_out, para_path_mod):
+    interface_file_name_surface, interface_file_number_of_lines = findSolutionAndConvert(
+            working_path, tau_path, this_step_out, para_path_mod)
+    NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = readPressure(interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+    nodal_coords, nodesID, elem_connectivities, element_types = interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z)
+    # In vtk format element connectivities start from 0, not from 1
+    elem_connectivities -= 1
+    return nodal_coords, elem_connectivities, element_types
 
 
 def findFileName0(list_of_interface_file_paths,working_path,word): 
