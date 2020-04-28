@@ -7,58 +7,58 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ignasi de Pouplana
+//  Main authors:    Javier San Mauro Saiz
+//                   Joaquin Irazabal Gonzalez
 //
 
-#if !defined (KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED)
-#define  KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_SIMPLIFIED_BILINEAR_3D_LAW_H_INCLUDED)
+#define  KRATOS_SIMPLIFIED_BILINEAR_3D_LAW_H_INCLUDED
 
 // System includes
-#include <cmath>
 
 // Project includes
 #include "includes/serializer.h"
-#include "includes/checks.h"
-#include "includes/constitutive_law.h"
 
 // Application includes
+#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) BilinearCohesive3DLaw : public ConstitutiveLaw
+class KRATOS_API(POROMECHANICS_APPLICATION) SimplifiedBilinear3DLaw : public BilinearCohesive3DLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(BilinearCohesive3DLaw);
+    /// Definition of the base class
+    typedef BilinearCohesive3DLaw BaseType;
+
+    KRATOS_CLASS_POINTER_DEFINITION(SimplifiedBilinear3DLaw);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default Constructor
-    BilinearCohesive3DLaw()
+    SimplifiedBilinear3DLaw()
     {
     }
 
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<BilinearCohesive3DLaw>(BilinearCohesive3DLaw(*this));
+        return Kratos::make_shared<SimplifiedBilinear3DLaw>(SimplifiedBilinear3DLaw(*this));
     }
 
     // Copy Constructor
-    BilinearCohesive3DLaw (const BilinearCohesive3DLaw& rOther) : ConstitutiveLaw(rOther)
+    SimplifiedBilinear3DLaw (const SimplifiedBilinear3DLaw& rOther) : BilinearCohesive3DLaw(rOther)
     {
     }
 
     // Destructor
-    ~BilinearCohesive3DLaw() override
+    ~SimplifiedBilinear3DLaw() override
     {
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void GetLawFeatures(Features& rFeatures) override;
 
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -72,37 +72,9 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
-
-    void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
 
-    struct ConstitutiveLawVariables
-    {
-        double CriticalDisplacement;
-        double DamageThreshold;
-        double YieldStress;
-        double YoungModulus;
-        double PoissonCoefficient;
-        double FrictionCoefficient;
-        double PenaltyStiffness;
-        double MaxTensileStress;
-        double MaxCompresiveStress;
-
-        Matrix CompressionMatrix;
-        Matrix WeightMatrix;
-
-        double EquivalentStrain;
-        bool LoadingFlag;
-        double LoadingFunction;
-    };
-
     // Member Variables
-
-    double mStateVariable;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -119,7 +91,6 @@ protected:
     virtual void ComputeStressVector(Vector& rStressVector,
                                         ConstitutiveLawVariables& rVariables,
                                         Parameters& rValues);
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -138,6 +109,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class BilinearCohesive3DLaw
+}; // Class SimplifiedBilinear3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED  defined
+#endif // KRATOS_SIMPLIFIED_BILINEAR_3D_LAW_H_INCLUDED  defined
