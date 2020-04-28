@@ -12,6 +12,7 @@ sys.path.append( TAU_path + "py_turb1eq/")
 
 import tau_functions as tauFunctions
 import numpy as np 
+import tau_python 
 
 #-------------------------------------------------------------------------------
 # Definitions
@@ -23,6 +24,8 @@ shutil.copy(para_path, para_path_mod)
 working_path = os.getcwd() + '/'
 interface_file_path_pattern =  working_path + "Outputs/"
 mesh_file_path_pattern = working_path + "Mesh/"
+print 'working_path = ', working_path
+print 'TAU_path = ', TAU_path
 
 #-------------------------------------------------------------------------------
 # Init Tau python classes + get the informations necessary for the preprocessing 
@@ -54,8 +57,18 @@ tauFunctions.PrintBlockHeader("Initial TAU Mesh at time %s" %(str(time)))
 def AdvanceInTime(current_time):
     print "TAU SOLVER AdvanceInTime"
     print "current time = ", current_time
+    tauFunctions.PrintBlockHeader("Start Preprocessing at time %s" %(str(time)))
+    Prep.run(write_dualgrid=False,free_primgrid=False) 
+    tauFunctions.PrintBlockHeader("Stop Preprocessing at time %s" %(str(time)))
+    tauFunctions.PrintBlockHeader("Initialize Solver at time %s" %(str(time)))
+    Solver.init(verbose = 1, reset_steps = True, n_time_steps = 1)
     ts_tau = 0.005 ### TO do  read from TAU
     # ts_tau = 0.5
+    time_step = Para.get_para_value('Unsteady physical time step size')
+    tau_current_time = tau_solver_unsteady_get_physical_time()
+    print 'tau_current_time = ', tau_current_time
+    print 'tau_time_step = ', time_step
+    print 'current_time = ', current_time
     return current_time + ts_tau
 
 #------------------------------------------------------------------
@@ -68,11 +81,6 @@ def AdvanceInTime(current_time):
 #  Preprocessing und Solving Initialize       ############  ich glaube es muss in ein Schleife sein - für jede Schritte muss mann es machen #########
 #-------------------------------------------------------------------
 def InitializeSolutionStep():
-    tauFunctions.PrintBlockHeader("Start Preprocessing at time %s" %(str(time)))
-    Prep.run(write_dualgrid=False,free_primgrid=False) 
-    tauFunctions.PrintBlockHeader("Stop Preprocessing at time %s" %(str(time)))
-    tauFunctions.PrintBlockHeader("Initialize Solver at time %s" %(str(time)))
-    Solver.init(verbose = 1, reset_steps = True, n_time_steps = 1)
     print("TAU SOLVER InitializeSolutionStep")
 
 #------------------------------------------------------------------
@@ -98,10 +106,12 @@ def findSolutionAndConvert(interface_file_path_pattern, mesh_file_path_pattern, 
     print "interface_file_name = ", interface_file_name 
 
     list_of_meshes = glob.glob(mesh_file_path_pattern+ "*") 
+    print "list_of_meshes = ", list_of_meshes 
+    print "this_step_out = ", this_step_out 
     if this_step_out == 0:
         mesh_iteration = tauFunctions.findFileName0(list_of_meshes, mesh_file_path_pattern,'airfoil_Structured_scaliert.grid')
     else:
-        mesh_iteration = tauFunctions.findFileName(list_of_meshes, mesh_file_path_pattern,'airfoil_Structured_scaliert.grid', this_step_out)
+        mesh_iteration = tauFunctions.findFileName(list_of_meshes, mesh_file_path_pattern,'airfoil_Structured_scaliert.grid.def.', this_step_out)
     print "mesh_iteration = ", mesh_iteration
 
     tauFunctions.PrintBlockHeader("Start Writting Solution Data at time %s" %(str(time)))
@@ -181,6 +191,11 @@ def deformMesh(dispTau):
 def FinalizeSolutionStep():
     print("TAU SOLVER FinalizeSolutionStep")
     global this_step_out
+    tau_parallel_sync()
+    Solver.finalize()
+    tau_free_dualgrid()
+    tau_free_prims()
+    Para.free_parameters()
     this_step_out += 1
 
 def ImportData(conn_name, identifier):
