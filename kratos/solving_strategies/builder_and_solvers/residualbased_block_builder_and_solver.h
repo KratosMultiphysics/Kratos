@@ -519,6 +519,33 @@ public:
                 << " Old Stiffness on First Iteration. \n"
                 << "setting mUseOldStiffnessInFirstIteration=false " << std::endl;
         }
+        // KRATOS_WATCH("start")
+        // KRATOS_WATCH(rModelPart.Nodes()[124].IsFixed(DISPLACEMENT_X))
+        // std::cout << "node 124 current = "
+        //     << rModelPart.Nodes()[124].FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
+        // std::cout << "node 124 old = "
+        //     << rModelPart.Nodes()[124].FastGetSolutionStepValue(DISPLACEMENT,1) << std::endl;
+        // KRATOS_WATCH(rModelPart.Nodes()[124].GetInitialPosition())
+        // KRATOS_WATCH(rModelPart.Nodes()[124].Coordinates())
+
+        // KRATOS_WATCH(rModelPart.Nodes()[179].IsFixed(DISPLACEMENT_X))
+        // std::cout << "node 179 current = "
+        //     << rModelPart.Nodes()[179].FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
+        // std::cout << "node 179 old = "
+        //     << rModelPart.Nodes()[179].FastGetSolutionStepValue(DISPLACEMENT,1) << std::endl;
+        // KRATOS_WATCH(rModelPart.Nodes()[179].GetInitialPosition())
+        // KRATOS_WATCH(rModelPart.Nodes()[179].Coordinates())
+
+
+        DofsArrayType FixedDofs;
+        for(auto it = BaseType::mDofSet.ptr_begin(); it!=BaseType::mDofSet.ptr_end(); ++it)
+        {
+            if((*it)->IsFixed())
+            {
+                FixedDofs.push_back(*(it.base()));
+                (*it)->FreeDof(); //we need to free the dofs otherwise the update would not update them
+            }
+        }
 
         //TODO: Here we need to take the vector from other ones because
         //we cannot create a trilinos vector without a communicator. To be improved!
@@ -549,6 +576,23 @@ public:
             }
         }
 
+        // KRATOS_WATCH("before build")
+        // KRATOS_WATCH(rModelPart.Nodes()[124].IsFixed(DISPLACEMENT_X))
+        // std::cout << "node 124 current = "
+        //     << rModelPart.Nodes()[124].FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
+        // std::cout << "node 124 old = "
+        //     << rModelPart.Nodes()[124].FastGetSolutionStepValue(DISPLACEMENT,1) << std::endl;
+        // KRATOS_WATCH(rModelPart.Nodes()[124].GetInitialPosition())
+        // KRATOS_WATCH(rModelPart.Nodes()[124].Coordinates())
+
+        // KRATOS_WATCH(rModelPart.Nodes()[179].IsFixed(DISPLACEMENT_X))
+        // std::cout << "node 179 current = "
+        //     << rModelPart.Nodes()[179].FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
+        // std::cout << "node 179 old = "
+        //     << rModelPart.Nodes()[179].FastGetSolutionStepValue(DISPLACEMENT,1) << std::endl;
+        // KRATOS_WATCH(rModelPart.Nodes()[179].GetInitialPosition())
+        // KRATOS_WATCH(rModelPart.Nodes()[179].Coordinates())
+
         this->Build(pScheme, rModelPart, rA, rb);
 
         // Put back the prediction into the database
@@ -569,9 +613,13 @@ public:
             }
         }
 
+
         // Apply rb -= A*dx_prediction
         TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
         TSparseSpace::UnaliasedAdd(rb, -1.00, rhs_addition);
+
+        for(auto& dof : FixedDofs)
+            dof.FixDof();
 
         if (!rModelPart.MasterSlaveConstraints().empty()) {
             this->ApplyConstraints(pScheme, rModelPart, rA, rb);
@@ -579,6 +627,24 @@ public:
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
         // TODO: Here we should use SystemSolveWithPhysics
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+
+        // KRATOS_WATCH("after solve")
+        // KRATOS_WATCH(rModelPart.Nodes()[124].IsFixed(DISPLACEMENT_X))
+        // std::cout << "node 124 current = "
+        //     << rModelPart.Nodes()[124].FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
+        // std::cout << "node 124 old = "
+        //     << rModelPart.Nodes()[124].FastGetSolutionStepValue(DISPLACEMENT,1) << std::endl;
+        // KRATOS_WATCH(rModelPart.Nodes()[124].GetInitialPosition())
+        // KRATOS_WATCH(rModelPart.Nodes()[124].Coordinates())
+
+        // KRATOS_WATCH(rModelPart.Nodes()[179].IsFixed(DISPLACEMENT_X))
+        // std::cout << "node 179 current = "
+        //     << rModelPart.Nodes()[179].FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
+        // std::cout << "node 179 old = "
+        //     << rModelPart.Nodes()[179].FastGetSolutionStepValue(DISPLACEMENT,1) << std::endl;
+        // KRATOS_WATCH(rModelPart.Nodes()[179].GetInitialPosition())
+        // KRATOS_WATCH(rModelPart.Nodes()[179].Coordinates())
+
     }
 
     /**
