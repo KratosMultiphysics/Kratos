@@ -37,7 +37,7 @@ import test_mortar_mapper
 import test_mortar_utilities
 import test_skin_detection_process
 import test_sparse_multiplication
-import test_variable_component
+import test_variables
 import test_variable_redistribution
 import test_object_printing
 import test_array_1d_interface
@@ -103,7 +103,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixSum]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixTranspose]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixMultiplication]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_component.TestVariableComponent]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variables.TestVariables]))
     smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testLinearFunction'))
     smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testSharpCorners'))
     smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testVector'))
