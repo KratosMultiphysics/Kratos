@@ -18,6 +18,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 
 // Application includes
@@ -54,9 +55,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    AlgebraicFluxCorrectedScalarSteadyScheme(const double RelaxationFactor)
+    AlgebraicFluxCorrectedScalarSteadyScheme(const double RelaxationFactor, const Flags rBoundaryFlags)
         : BaseType(),
           mRelaxationFactor(RelaxationFactor),
+          mBoundaryFlags(rBoundaryFlags),
           mrPeriodicIdVar(Variable<int>::StaticObject())
     {
         KRATOS_INFO("AlgebraicFluxCorrectedScalarSteadyScheme")
@@ -67,8 +69,12 @@ public:
     }
 
     AlgebraicFluxCorrectedScalarSteadyScheme(const double RelaxationFactor,
+                                             const Flags rBoundaryFlags,
                                              const Variable<int>& rPeriodicIdVar)
-        : BaseType(), mRelaxationFactor(RelaxationFactor), mrPeriodicIdVar(rPeriodicIdVar)
+        : BaseType(),
+          mRelaxationFactor(RelaxationFactor),
+          mBoundaryFlags(rBoundaryFlags),
+          mrPeriodicIdVar(rPeriodicIdVar)
     {
         KRATOS_INFO("AlgebraicFluxCorrectedScalarSteadyScheme")
             << " Using periodic residual based algebraic flux corrected scheme "
@@ -86,6 +92,8 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
+
+        BaseType::Initialize(rModelPart);
 
         if (mrPeriodicIdVar != Variable<int>::StaticObject())
         {
@@ -124,6 +132,13 @@ public:
             }
         }
 
+        // Allocate auxiliary memory.
+        const auto num_threads = OpenMPUtils::GetNumThreads();
+        mAntiDiffusiveFlux.resize(num_threads);
+        mAntiDiffusiveFluxCoefficients.resize(num_threads);
+        mValues.resize(num_threads);
+        mAuxMatrix.resize(num_threads);
+
         KRATOS_CATCH("");
     }
 
@@ -153,14 +168,16 @@ public:
 
 #pragma omp parallel
         {
-            Matrix left_hand_side, artificial_diffusion;
+            Matrix left_hand_side, artificial_diffusion, aux_matrix;
             Vector right_hand_side, values;
             std::vector<IndexType> equation_ids;
 #pragma omp for
             for (int i = 0; i < number_of_elements; ++i)
             {
                 ModelPart::ElementType& r_element = *(r_elements.begin() + i);
-                this->CalculateSystemMatrix(r_element, left_hand_side, r_current_process_info);
+                this->CalculateSystemMatrix<Element>(r_element, left_hand_side,
+                                                     right_hand_side, aux_matrix,
+                                                     r_current_process_info);
                 this->CalculateArtificialDiffusionMatrix(artificial_diffusion, left_hand_side);
                 r_element.GetValuesVector(values);
                 r_element.EquationIdVector(equation_ids, r_current_process_info);
@@ -298,28 +315,20 @@ public:
     {
         KRATOS_TRY;
 
-        rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
-        rCurrentElement->CalculateLocalSystem(
-            LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        const auto k = OpenMPUtils::ThisThread();
 
-        Matrix SteadyLHS;
-        rCurrentElement->CalculateLocalVelocityContribution(
-            SteadyLHS, RHS_Contribution, CurrentProcessInfo);
+        this->CalculateSystemMatrix<Element>(*rCurrentElement, LHS_Contribution, RHS_Contribution,
+                                             mAuxMatrix[k], CurrentProcessInfo);
         rCurrentElement->EquationIdVector(EquationId, CurrentProcessInfo);
 
-        if (SteadyLHS.size1() != 0)
-            noalias(LHS_Contribution) += SteadyLHS;
-
-        Matrix artificial_diffusion;
-        this->CalculateArtificialDiffusionMatrix(artificial_diffusion, LHS_Contribution);
+        this->CalculateArtificialDiffusionMatrix(mAuxMatrix[k], LHS_Contribution);
 
         AddAntiDiffusiveFluxes(RHS_Contribution, LHS_Contribution,
-                               *rCurrentElement, artificial_diffusion);
-        noalias(LHS_Contribution) += artificial_diffusion;
+                               *rCurrentElement, mAuxMatrix[k]);
+        noalias(LHS_Contribution) += mAuxMatrix[k];
 
-        Vector U;
-        rCurrentElement->GetValuesVector(U);
-        noalias(RHS_Contribution) -= prod(LHS_Contribution, U);
+        rCurrentElement->GetValuesVector(mValues[k]);
+        noalias(RHS_Contribution) -= prod(LHS_Contribution, mValues[k]);
 
         KRATOS_CATCH("");
     }
@@ -332,17 +341,12 @@ public:
     {
         KRATOS_TRY;
 
-        rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
-        rCurrentCondition->CalculateLocalSystem(
-            LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        const auto k = OpenMPUtils::ThisThread();
 
-        Matrix SteadyLHS;
-        rCurrentCondition->CalculateLocalVelocityContribution(
-            SteadyLHS, RHS_Contribution, CurrentProcessInfo);
+        this->CalculateSystemMatrix<Condition>(*rCurrentCondition,
+                                               LHS_Contribution, RHS_Contribution,
+                                               mAuxMatrix[k], CurrentProcessInfo);
         rCurrentCondition->EquationIdVector(EquationId, CurrentProcessInfo);
-
-        if (SteadyLHS.size1() != 0)
-            noalias(LHS_Contribution) += SteadyLHS;
 
         KRATOS_CATCH("");
     }
@@ -354,8 +358,8 @@ public:
     {
         KRATOS_TRY;
 
-        Matrix LHS_Contribution;
-        CalculateSystemContributions(rCurrentElement, LHS_Contribution, rRHS_Contribution,
+        const auto k = OpenMPUtils::ThisThread();
+        CalculateSystemContributions(rCurrentElement, mAuxMatrix[k], rRHS_Contribution,
                                      rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
@@ -368,10 +372,9 @@ public:
     {
         KRATOS_TRY;
 
-        Matrix LHS_Contribution;
-        Condition_CalculateSystemContributions(rCurrentCondition, LHS_Contribution,
-                                               rRHS_Contribution, rEquationId,
-                                               rCurrentProcessInfo);
+        const auto k = OpenMPUtils::ThisThread();
+        Condition_CalculateSystemContributions(rCurrentCondition, mAuxMatrix[k], rRHS_Contribution,
+                                               rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -394,31 +397,36 @@ private:
     DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
 
     double mRelaxationFactor;
-
+    const Flags mBoundaryFlags;
     const Variable<int>& mrPeriodicIdVar;
 
+    std::vector<LocalSystemMatrixType> mAuxMatrix;
+    std::vector<LocalSystemMatrixType> mAntiDiffusiveFluxCoefficients;
+    std::vector<LocalSystemMatrixType> mAntiDiffusiveFlux;
+    std::vector<LocalSystemVectorType> mValues;
+
     template <typename TItem>
-    void CalculateSystemMatrix(TItem& rItem, Matrix& rLeftHandSide, ProcessInfo& rCurrentProcessInfo)
+    void CalculateSystemMatrix(TItem& rItem,
+                               LocalSystemMatrixType& rLeftHandSide,
+                               LocalSystemVectorType& rRightHandSide,
+                               LocalSystemMatrixType& rAuxMatrix,
+                               ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        Vector rhs;
-
         rItem.InitializeNonLinearIteration(rCurrentProcessInfo);
-        rItem.CalculateLocalSystem(rLeftHandSide, rhs, rCurrentProcessInfo);
+        rItem.CalculateLocalSystem(rLeftHandSide, rRightHandSide, rCurrentProcessInfo);
+        rItem.CalculateLocalVelocityContribution(rAuxMatrix, rRightHandSide, rCurrentProcessInfo);
 
-        Matrix SteadyLHS;
-        rItem.CalculateLocalVelocityContribution(SteadyLHS, rhs, rCurrentProcessInfo);
-
-        if (SteadyLHS.size1() != 0)
-            noalias(rLeftHandSide) += SteadyLHS;
+        if (rAuxMatrix.size1() != 0)
+            noalias(rLeftHandSide) += rAuxMatrix;
 
         KRATOS_CATCH("");
     }
 
     void CalculateArtificialDiffusionMatrix(Matrix& rOutput, const Matrix& rInput)
     {
-        const int size = rInput.size1();
+        const IndexType size = rInput.size1();
 
         if (rOutput.size1() != size || rOutput.size2() != size)
         {
@@ -427,19 +435,19 @@ private:
 
         rOutput = ZeroMatrix(size, size);
 
-        for (int i = 0; i < size; ++i)
+        for (IndexType i = 0; i < size; ++i)
         {
-            for (int j = i + 1; j < size; ++j)
+            for (IndexType j = i + 1; j < size; ++j)
             {
                 rOutput(i, j) = -std::max(std::max(rInput(i, j), rInput(j, i)), 0.0);
                 rOutput(j, i) = rOutput(i, j);
             }
         }
 
-        for (int i = 0; i < size; ++i)
+        for (IndexType i = 0; i < size; ++i)
         {
             double value = 0.0;
-            for (int j = 0; j < size; ++j)
+            for (IndexType j = 0; j < size; ++j)
             {
                 value -= rOutput(i, j);
             }
@@ -448,71 +456,27 @@ private:
     }
 
     template <typename TItem>
-    void AddAntiDiffusiveFluxesToLHS(Vector& rRHS, Matrix& rLHS, const TItem& rItem, const Matrix& rArtificialDiffusion)
-    {
-        Vector values;
-        rItem.GetValuesVector(values);
-
-        const int size = rRHS.size();
-        Matrix coeffs = ZeroMatrix(size, size);
-        Matrix f = ZeroMatrix(size, size);
-
-        for (int i = 0; i < size; ++i)
-        {
-            const ModelPart::NodeType& r_node_i = rItem.GetGeometry()[i];
-            double r_plus_i{0.0}, r_minus_i{0.0};
-            CalculateAntiDiffusiveFluxR(r_plus_i, r_minus_i, r_node_i);
-
-            for (int j = 0; j < size; ++j)
-            {
-                if (i != j)
-                {
-                    if (rLHS(j, i) <= rLHS(i, j))
-                    {
-                        f(i, j) = rArtificialDiffusion(i, j) * (values[j] - values[i]);
-
-                        if (f(i, j) > 0.0)
-                        {
-                            coeffs(i, j) = r_plus_i;
-                        }
-                        else if (f(i, j) < 0.0)
-                        {
-                            coeffs(i, j) = r_minus_i;
-                        }
-                        else
-                        {
-                            coeffs(i, j) = 1.0;
-                        }
-                        coeffs(j, i) = coeffs(i, j);
-                    }
-                }
-            }
-        }
-
-        for (int i = 0; i < size; ++i)
-        {
-            double row_sum = 0.0;
-            for (int j = 0; j < size; ++j)
-            {
-                const double value = (1.0 - coeffs(i, j)) * rArtificialDiffusion(i, j);
-                rLHS(i, j) += value;
-                row_sum += value;
-            }
-            rLHS(i, i) -= row_sum;
-        }
-    }
-
-    template <typename TItem>
-    void AddAntiDiffusiveFluxes(Vector& rRHS, Matrix& rLHS, TItem& rItem, const Matrix& rArtificialDiffusion)
+    void AddAntiDiffusiveFluxes(Vector& rRHS, const Matrix& rLHS, TItem& rItem, const Matrix& rArtificialDiffusion)
     {
         KRATOS_TRY
 
-        Vector values;
-        rItem.GetValuesVector(values);
-
+        const auto k = OpenMPUtils::ThisThread();
         const int size = rRHS.size();
-        Matrix coeffs = ZeroMatrix(size, size);
-        Matrix f = ZeroMatrix(size, size);
+
+        LocalSystemMatrixType& r_anti_diffusive_flux_coefficients =
+            mAntiDiffusiveFluxCoefficients[k];
+        LocalSystemMatrixType& r_anti_diffusive_flux = mAntiDiffusiveFlux[k];
+        LocalSystemVectorType& r_values = mValues[k];
+
+        rItem.GetValuesVector(r_values);
+        if (r_anti_diffusive_flux_coefficients.size1() != size ||
+            r_anti_diffusive_flux_coefficients.size2() != size)
+            r_anti_diffusive_flux_coefficients.resize(size, size, false);
+        if (r_anti_diffusive_flux.size1() != size || r_anti_diffusive_flux.size2() != size)
+            r_anti_diffusive_flux.resize(size, size, false);
+
+        noalias(r_anti_diffusive_flux_coefficients) = ZeroMatrix(size, size);
+        noalias(r_anti_diffusive_flux) = ZeroMatrix(size, size);
 
         for (int i = 0; i < size; ++i)
         {
@@ -524,88 +488,47 @@ private:
             {
                 if (i != j)
                 {
-                    f(i, j) = rArtificialDiffusion(i, j) * (values[j] - values[i]);
+                    r_anti_diffusive_flux(i, j) =
+                        rArtificialDiffusion(i, j) * (r_values[j] - r_values[i]);
 
                     if (rLHS(j, i) <= rLHS(i, j))
                     {
-                        if (f(i, j) > 0.0)
+                        if (r_anti_diffusive_flux(i, j) > 0.0)
                         {
-                            coeffs(i, j) = r_plus_i;
+                            r_anti_diffusive_flux_coefficients(i, j) = r_plus_i;
                         }
-                        else if (f(i, j) < 0.0)
+                        else if (r_anti_diffusive_flux(i, j) < 0.0)
                         {
-                            coeffs(i, j) = r_minus_i;
+                            r_anti_diffusive_flux_coefficients(i, j) = r_minus_i;
                         }
                         else
                         {
-                            coeffs(i, j) = 1.0;
+                            r_anti_diffusive_flux_coefficients(i, j) = 1.0;
                         }
-                        coeffs(j, i) = coeffs(i, j);
+                        r_anti_diffusive_flux_coefficients(j, i) =
+                            r_anti_diffusive_flux_coefficients(i, j);
                     }
                 }
             }
         }
-        Vector temp = ZeroVector(size);
+
         for (int i = 0; i < size; ++i)
         {
-            temp[i] = rRHS[i];
             for (int j = 0; j < size; ++j)
             {
-                temp[i] += coeffs(i, j) * f(i, j);
+                rRHS[i] += r_anti_diffusive_flux_coefficients(i, j) *
+                           r_anti_diffusive_flux(i, j);
             }
-        }
-
-        bool found_negatives = false;
-        // for (int i = 0; i < size; ++i)
-        // {
-        //     if (temp[i] < 0.0 && !rItem.GetGeometry()[i].Is(INLET))
-        //     {
-        //         found_negatives = true;
-        //     }
-        // }
-
-        if (!found_negatives)
-        {
-            noalias(rRHS) = temp;
         }
 
         KRATOS_CATCH("");
-    }
-
-    // template <typename TItem>
-    // void AddLumpedMassMatrix(Matrix& rLHS, TItem& rItem, const ProcessInfo& rCurrentProcessInfo) const
-    // {
-    //     const auto& r_geometry = rItem.GetGeometry();
-    //     const int number_of_nodes = r_geometry.PointsNumber();
-    //     double residual = 0.0;
-    //     rItem.Calculate(RESIDUAL, residual, rCurrentProcessInfo);qu
-
-    //     const double coefficient = CalculatePositivityPreservingMatrix(rLHS);
-
-    //     IdentityMatrix identity_matrix(number_of_nodes);
-    //     noalias(rLHS) += identity_matrix * (coefficient * residual);
-    // }
-
-    inline double CalculatePositivityPreservingMatrix(const Matrix& rInputMatrix) const
-    {
-        double coefficient = 0.0;
-        for (unsigned int a = 0; a < rInputMatrix.size1(); ++a)
-        {
-            double row_sum = 0.0;
-            for (unsigned int b = 0; b < rInputMatrix.size2(); ++b)
-            {
-                row_sum += rInputMatrix(a, b);
-            }
-            coefficient = std::max(coefficient, -row_sum);
-        }
-        return coefficient;
     }
 
     void CalculateAntiDiffusiveFluxR(double& rRPlus,
                                      double& rRMinus,
                                      const ModelPart::NodeType& rNode) const
     {
-        if (rNode.Is(SLIP) || rNode.Is(INLET))
+        if (rNode.Is(mBoundaryFlags))
         {
             rRMinus = 1.0;
             rRPlus = 1.0;
