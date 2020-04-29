@@ -354,7 +354,7 @@ double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCur
         << "Error on element -> " << rElement.Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
-    return a_inf * sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
+    return a_inf * std::sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
 }
 
 template <int Dim, int NumNodes>
@@ -427,7 +427,7 @@ double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const Proce
         << "Error on element -> " << rElement.Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
-    return a_inf * sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
+    return a_inf * std::sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
 }
 
 template <int Dim, int NumNodes>
@@ -437,7 +437,7 @@ double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurre
     // Aerodynamics, The MIT Press, London
 
     array_1d<double, Dim> velocity = ComputeVelocity<Dim, NumNodes>(rElement);
-    const double velocity_module = sqrt(inner_prod(velocity, velocity));
+    const double velocity_module = std::sqrt(inner_prod(velocity, velocity));
     const double local_speed_of_sound = ComputeLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
 
     return velocity_module / local_speed_of_sound;
@@ -500,7 +500,7 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
     for (unsigned int i = 0; i < Dim; i++){
         velocity[i] += free_stream_velocity[i];
     }
-    const double velocity_module = sqrt(inner_prod(velocity, velocity));
+    const double velocity_module = std::sqrt(inner_prod(velocity, velocity));
     const double local_speed_of_sound = ComputePerturbationLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
 
     return velocity_module / local_speed_of_sound;

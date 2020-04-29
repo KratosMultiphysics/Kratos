@@ -140,7 +140,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedofSoundSquared, CompressiblePotential
     const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
 
     array_1d<double, 2> velocity(2, 0.0);
-    velocity[0] = local_velocity_squared;
+    velocity[0] = std::sqrt(local_velocity_squared);
     
     const double local_speed_sound_squared = PotentialFlowUtilities::ComputeLocalSpeedofSoundSquared<2,3>(velocity, model_part.GetProcessInfo());
 
@@ -177,7 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumberSquared, CompressiblePotentialAp
     const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(reference_local_mach_squared, model_part.GetProcessInfo());
 
     array_1d<double, 2> velocity(2, 0.0);
-    velocity[0] = sqrt(local_velocity_squared);
+    velocity[0] = std::sqrt(local_velocity_squared);
 
     // computes mach number with clamping
     const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
@@ -198,7 +198,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredTra
     const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
 
     array_1d<double, 2> velocity(2, 0.0);
-    velocity[0] = sqrt(local_velocity_squared);
+    velocity[0] = std::sqrt(local_velocity_squared);
 
     // performs clamping on mach number
     const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
@@ -224,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSup
     const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
 
     array_1d<double, 2> velocity(2, 0.0);
-    velocity[0] = sqrt(local_velocity_squared);
+    velocity[0] = std::sqrt(local_velocity_squared);
 
     // performs clamping on mach number
     const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
