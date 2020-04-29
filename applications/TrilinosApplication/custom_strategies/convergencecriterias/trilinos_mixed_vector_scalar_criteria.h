@@ -167,18 +167,6 @@ public:
                             vector_correction_norm += dof_dx * dof_dx;
                             ++n_vector_dof;
                         }
-                        // if ((r_dof_var == VELOCITY_X) || (r_dof_var == VELOCITY_Y) || (r_dof_var == VELOCITY_Z))
-                        // {
-                        //     vector_solution_norm += dof_value * dof_value;
-                        //     vector_correction_norm += dof_dx * dof_dx;
-                        //     ++n_vector_dof;
-                        // }
-                        // else
-                        // {
-                        //     scalar_solution_norm += dof_value * dof_value;
-                        //     scalar_correction_norm += dof_dx * dof_dx;
-                        //     ++n_scalar_dof;
-                        // }
                     }
                 }
             }
@@ -193,11 +181,6 @@ public:
 
             // Calculate convergence values
             const double zero_tol = 1.0e-12;
-            // if(global_vector_solution_norm < zero_tol)
-            //     global_vector_solution_norm = 1.0;
-            // if(global_scalar_solution_norm < zero_tol)
-            //     global_scalar_solution_norm = 1.0;
-
             const TDataType vector_ratio = std::sqrt(global_vector_correction_norm/(global_vector_solution_norm < zero_tol ? 1.0 : global_vector_solution_norm));
             const TDataType scalar_ratio = std::sqrt(global_scalar_correction_norm/(global_scalar_solution_norm < zero_tol ? 1.0 : global_scalar_solution_norm));
             const TDataType vector_abs = std::sqrt(global_vector_correction_norm)/ static_cast<TDataType>(global_n_vector_dof);
@@ -205,8 +188,8 @@ public:
 
             KRATOS_INFO_IF("", this->GetEchoLevel() > 0)
                 << "CONVERGENCE CHECK:\n"
-                << " VELOC.: ratio = " << vector_ratio << "; exp.ratio = " << mVectorRatioTolerance << " abs = " << vector_abs << " exp.abs = " << mVectorAbsTolerance << "\n"
-                << " PRESS.: ratio = " << scalar_ratio << "; exp.ratio = " << mScalarRatioTolerance << " abs = " << scalar_abs << " exp.abs = " << mScalarAbsTolerance << std::endl;
+                << " " << mrVectorVariable.Name() << " : ratio = " << vector_ratio << "; exp.ratio = " << mVectorRatioTolerance << " abs = " << vector_abs << " exp.abs = " << mVectorAbsTolerance << "\n"
+                << " " << mrScalarVariable.Name() << " : ratio = " << scalar_ratio << "; exp.ratio = " << mScalarRatioTolerance << " abs = " << scalar_abs << " exp.abs = " << mScalarAbsTolerance << std::endl;
 
             if ((vector_ratio <= mVectorRatioTolerance || vector_abs <= mVectorAbsTolerance) &&
                 (scalar_ratio <= mScalarRatioTolerance || scalar_abs <= mScalarAbsTolerance)) {

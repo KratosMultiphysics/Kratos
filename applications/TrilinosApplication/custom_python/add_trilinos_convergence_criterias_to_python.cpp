@@ -29,7 +29,6 @@
 // Application includes
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_residual_criteria.h"
-#include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_mixed_vector_scalar_criteria.h"
 
 namespace Kratos
