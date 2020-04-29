@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_MASS_CONSERVATION_CHECK_PROCESS_H
-#define KRATOS_MASS_CONSERVATION_CHECK_PROCESS_H
+#ifndef KRATOS_MASS_CONSERVATION_UTILITY_H
+#define KRATOS_MASS_CONSERVATION_UTILITY_H
 
 // System includes
 #include <string>
@@ -20,8 +20,6 @@
 // External includes
 
 // Project includes
-#include "processes/process.h"
-#include "custom_elements/two_fluid_navier_stokes.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
@@ -55,14 +53,14 @@ namespace Kratos
 /// Utility to modify497 the distances of an embedded object in order to avoid bad intersections
 /// Besides, it also deactivate the full negative distance elements
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) MassConservationCheckProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) MassConservationUtility
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of DistanceModificationProcess
-    KRATOS_CLASS_POINTER_DEFINITION(MassConservationCheckProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(MassConservationUtility);
 
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
@@ -75,25 +73,24 @@ public:
     /**
      * @brief Constructor with separate paramters
      *
-     * @param rModelPart Complete model part (including boundaries) for the process to operate on
+     * @param rModelPart Complete model part (including boundaries) for the utility to operate on
      * @param CorrectionFreq Frequency of the correction (if wished) in time steps
      */
-    MassConservationCheckProcess(
-        ModelPart& rModelPart,
-        const int CorrectionFreq);
+    MassConservationUtility(
+        ModelPart& rModelPart);
 
     /**
      * @brief Constructor with Kratos parameters
      *
-     * @param rModelPart Complete model part (including boundaries) for the process to operate on
-     * @param rParameters Parameters for the process
+     * @param rModelPart Complete model part (including boundaries) for the utility to operate on
+     * @param rParameters Parameters for the utility
      */
-    MassConservationCheckProcess(
+    MassConservationUtility(
         ModelPart& rModelPart,
-        Parameters& rParameters);
+        Parameters rParameters);
 
     /// Destructor.
-    ~MassConservationCheckProcess() override {}
+    ~MassConservationUtility() {}
 
     ///@}
     ///@name Operators
@@ -138,14 +135,14 @@ public:
 
 
     /**
-     * @brief Initialization of the process including computation of inital volumes
+     * @brief Initialization of the utility including computation of inital volumes
      *
      * @return std::string Output message (can appear in log-file)
      */
     std::string Initialize();
 
     /**
-     * @brief Execution of the process in each time step (global conservation)
+     * @brief Execution of the utility in each time step (global conservation)
      *
      * @return std::string Output message (can appear in log-file)
      */
@@ -207,18 +204,18 @@ public:
     // ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "MassConservationCheckProcess";
+        buffer << "MassConservationUtility";
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "MassConservationCheckProcess";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "MassConservationUtility";}
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const {}
 
 
     ///@}
@@ -239,13 +236,13 @@ private:
     // Reference to the model part
     ModelPart& mrModelPart;
 
-    // Process parameters
-    int mCorrectionFreq = 1;
-
     // Inital volume with negative distance field ("water" volume)
     double mInitialNegativeVolume = -1.0;
     // Inital volume with positive distance field ("air" volume)
     double mInitialPositiveVolume = -1.0;
+
+    //Name of time variable
+    std::string mTimeVariableName;
 
     // Balance parameter resulting from an integration of the net inflow into the domain over time
     // The initial value is the "mInitialNegativeVolume" meaning "water" is considered here

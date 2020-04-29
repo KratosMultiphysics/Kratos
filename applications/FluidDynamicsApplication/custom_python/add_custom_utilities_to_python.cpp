@@ -36,7 +36,7 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
-#include "custom_utilities/mass_conservation_check_process.h"
+#include "custom_utilities/mass_conservation_utility.h"
 
 
 #include "utilities/split_tetrahedra.h"
@@ -182,21 +182,20 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Execute", &AccelerationLimitationUtilities::Execute)
         ;
 
-    py::class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>
-    (m,"MassConservationCheckProcess")
-    .def(py::init < ModelPart&, const int>())
-    .def(py::init< ModelPart&, Parameters& >())
-    .def("Initialize", &MassConservationCheckProcess::Initialize)
-    .def("ComputePositiveVolume", &MassConservationCheckProcess::ComputePositiveVolume)
-    .def("ComputeNegativeVolume", &MassConservationCheckProcess::ComputeNegativeVolume)
-    .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
-    .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
-    .def("ComputeBalancedVolume", &MassConservationCheckProcess::ComputeBalancedVolume)
-    .def("ComputeDtForConvection", &MassConservationCheckProcess::ComputeDtForConvection)
-    .def("ApplyLocalCorrection", &MassConservationCheckProcess::ApplyLocalCorrection)
-    .def("ApplyGlobalCorrection", &MassConservationCheckProcess::ApplyGlobalCorrection)
-    .def("ReCheckTheMassConservation", &MassConservationCheckProcess::ReCheckTheMassConservation)
-    .def("OrthogonalFlowIntoAir", &MassConservationCheckProcess::OrthogonalFlowIntoAir)
+    py::class_<MassConservationUtility>(m,"MassConservationUtility")
+    .def(py::init < ModelPart& >())
+    .def(py::init< ModelPart&, Parameters >())
+    .def("Initialize", &MassConservationUtility::Initialize)
+    .def("ComputePositiveVolume", &MassConservationUtility::ComputePositiveVolume)
+    .def("ComputeNegativeVolume", &MassConservationUtility::ComputeNegativeVolume)
+    .def("ComputeInterfaceArea", &MassConservationUtility::ComputeInterfaceArea)
+    .def("ComputeFlowOverBoundary", &MassConservationUtility::ComputeFlowOverBoundary)
+    .def("ComputeBalancedVolume", &MassConservationUtility::ComputeBalancedVolume)
+    .def("ComputeDtForConvection", &MassConservationUtility::ComputeDtForConvection)
+    .def("ApplyLocalCorrection", &MassConservationUtility::ApplyLocalCorrection)
+    .def("ApplyGlobalCorrection", &MassConservationUtility::ApplyGlobalCorrection)
+    .def("ReCheckTheMassConservation", &MassConservationUtility::ReCheckTheMassConservation)
+    .def("OrthogonalFlowIntoAir", &MassConservationUtility::OrthogonalFlowIntoAir)
     ;
 
 }

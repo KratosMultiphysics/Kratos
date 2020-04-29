@@ -15,7 +15,7 @@ if KratosMultiphysics.DataCommunicator.GetDefault().IsDistributed():
 def GetFilePath(fileName):
     return KratosMultiphysics.os.path.dirname(KratosMultiphysics.os.path.realpath(__file__)) + "/" + fileName
 
-class TestMassConservationCheckProcess(KratosUnittest.TestCase):
+class TestMassConservationUtility(KratosUnittest.TestCase):
     def setUp(self):
         self.comm = KratosMultiphysics.DataCommunicator.GetDefault()
         self.size = self.comm.Size()
@@ -76,7 +76,7 @@ class TestMassConservationCheckProcess(KratosUnittest.TestCase):
         for node in model_part.GetCommunicator().LocalMesh().Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - 0.5)
         settings = KratosMultiphysics.Parameters()
-        mass_conservation_process = KratosFluid.MassConservationCheckProcess(model_part, settings)
+        mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
         message = mass_conservation_process.Initialize()
         filtered_results = re.findall(r"[-+]?\d*\.\d+|\d+", message)
         self.assertAlmostEqual(float(filtered_results[0]), 0.5)
@@ -98,7 +98,7 @@ class TestMassConservationCheckProcess(KratosUnittest.TestCase):
             if cond.Id in outlet_conds:
                 cond.Set(KratosMultiphysics.OUTLET)
         settings = KratosMultiphysics.Parameters()
-        mass_conservation_process = KratosFluid.MassConservationCheckProcess(model_part, settings)
+        mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
         model_part.CloneTimeStep(0.1)
         model_part.ProcessInfo[KratosMultiphysics.TIME_CRT] = 0.1
         mass_conservation_process.Initialize()
@@ -130,7 +130,7 @@ class TestMassConservationCheckProcess(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY_Y, 1.0)
 
         settings = KratosMultiphysics.Parameters()
-        mass_conservation_process = KratosFluid.MassConservationCheckProcess(model_part, settings)
+        mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
         orthogonal_flow = mass_conservation_process.OrthogonalFlowIntoAir(1.0)
         self.assertAlmostEqual(orthogonal_flow,1.5)
 
@@ -145,7 +145,7 @@ class TestMassConservationCheckProcess(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY_Y, -1.0)
 
         settings = KratosMultiphysics.Parameters()
-        mass_conservation_process = KratosFluid.MassConservationCheckProcess(model_part, settings)
+        mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
         orthogonal_flow = mass_conservation_process.OrthogonalFlowIntoAir(1.0)
         self.assertAlmostEqual(orthogonal_flow,0.0)
 
@@ -160,7 +160,7 @@ class TestMassConservationCheckProcess(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY_Y, -1.0)
 
         settings = KratosMultiphysics.Parameters()
-        mass_conservation_process = KratosFluid.MassConservationCheckProcess(model_part, settings)
+        mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
         orthogonal_flow = mass_conservation_process.OrthogonalFlowIntoAir(-1.0)
         self.assertAlmostEqual(orthogonal_flow,1.5)
 
@@ -180,7 +180,7 @@ class TestMassConservationCheckProcess(KratosUnittest.TestCase):
             if cond.Id in outlet_conds:
                 cond.Set(KratosMultiphysics.OUTLET)
         settings = KratosMultiphysics.Parameters()
-        mass_conservation_process = KratosFluid.MassConservationCheckProcess(model_part, settings)
+        mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
         model_part.CloneTimeStep(0.1)
         mass_conservation_process.Initialize()
         mass_conservation_process.ComputeBalancedVolume()

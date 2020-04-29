@@ -21,7 +21,7 @@
 #include "custom_utilities/fluid_element_utilities.h"
 
 // Application includes
-#include "mass_conservation_check_process.h"
+#include "mass_conservation_utility.h"
 
 
 namespace Kratos
@@ -30,34 +30,28 @@ namespace Kratos
 /* Public functions *******************************************************/
 
 /// constructor
-MassConservationCheckProcess::MassConservationCheckProcess(
-        ModelPart& rModelPart,
-        const int CorrectionFreq)
-    : Process(),
-      mrModelPart(rModelPart),
-      mCorrectionFreq(CorrectionFreq) {
-
+MassConservationUtility::MassConservationUtility(
+    ModelPart& rModelPart)
+    : mrModelPart(rModelPart) {
 }
 
 
 
 /// constructor (direct input of settings)
-MassConservationCheckProcess::MassConservationCheckProcess(
+MassConservationUtility::MassConservationUtility(
     ModelPart& rModelPart,
-    Parameters& rParameters)
-    : Process(), mrModelPart(rModelPart) {
+    Parameters rParameters)
+    : mrModelPart(rModelPart) {
 
     const Parameters default_parameters = GetDefaultParameters();
-
     rParameters.ValidateAndAssignDefaults(default_parameters);
-
-    mCorrectionFreq = rParameters["correction_frequency_in_time_steps"].GetInt();
+    mTimeVariableName = rParameters["time_variable"].GetString();
 }
 
 
 
 /// Initialization function to find the initial volumes and print first lines in the log-file
-std::string MassConservationCheckProcess::Initialize(){
+std::string MassConservationUtility::Initialize(){
 
     double pos_vol = 0.0;
     double neg_vol = 0.0;
@@ -85,7 +79,7 @@ std::string MassConservationCheckProcess::Initialize(){
 
 
 
-std::string MassConservationCheckProcess::ComputeBalancedVolume(){
+std::string MassConservationUtility::ComputeBalancedVolume(){
 
     // performing all necessary calculations
     double pos_vol = 0.0;
@@ -101,7 +95,8 @@ std::string MassConservationCheckProcess::ComputeBalancedVolume(){
     mInterfaceArea = inter_area;
 
     // making a "time step forwards" and updating the
-    const double current_time = mrModelPart.GetProcessInfo()[TIME];
+    const Variable<double> &time_variable = KratosComponents<Variable<double>>::Get(mTimeVariableName);
+    const double current_time = mrModelPart.GetProcessInfo()[time_variable];
     const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
     mQNet0 = net_inflow_inlet + net_inflow_outlet;
@@ -124,7 +119,7 @@ std::string MassConservationCheckProcess::ComputeBalancedVolume(){
 
 
 
-double MassConservationCheckProcess::ComputeDtForConvection(){
+double MassConservationUtility::ComputeDtForConvection(){
 
     // a small step is set to avoid numerical problems
     double time_step_for_convection = 1.0e-7;
@@ -140,7 +135,7 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
                 time_step_for_convection = mWaterVolumeError / water_outflow_over_boundary;
             }
         } else {
-            KRATOS_ERROR << "Communication failed in MassConservationCheckProcess::ComputeDtForConvection()";
+            KRATOS_ERROR << "Communication failed in MassConservationUtility::ComputeDtForConvection()";
         }
     }
     else if ( mWaterVolumeError < 0.0 ){
@@ -153,7 +148,7 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
                 time_step_for_convection = - mWaterVolumeError / water_inflow_over_boundary;
             }
         } else {
-            KRATOS_ERROR << "Communication failed in MassConservationCheckProcess::ComputeDtForConvection()";
+            KRATOS_ERROR << "Communication failed in MassConservationUtility::ComputeDtForConvection()";
         }
     }
     else {
@@ -161,38 +156,36 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
         mAddWater = true;
     }
 
-    KRATOS_WARNING_IF("MassConservationCheckProcess", time_step_for_convection < 0.0) << "A time step smaller than 0.0 was computed." << std::endl;
+    KRATOS_WARNING_IF("MassConservationUtility", time_step_for_convection < 0.0) << "A time step smaller than 0.0 was computed." << std::endl;
 
     return time_step_for_convection;
 }
 
 
 
-void MassConservationCheckProcess::ApplyLocalCorrection( Variable<double>& rAuxDistVar ){
+void MassConservationUtility::ApplyLocalCorrection( Variable<double>& rAuxDistVar ){
 
-    if (mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 ){
-        const auto node_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
-        const int number_nodes = static_cast<int>(mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes());
+    const auto node_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
+    const int number_nodes = static_cast<int>(mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes());
 
-        for (int i_node = 0; i_node < number_nodes; ++i_node){
-            auto it_node = node_begin + i_node;
-            double& r_original_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
-            const double& r_aux_dist = it_node->GetValue( rAuxDistVar );
+    for (int i_node = 0; i_node < number_nodes; ++i_node){
+        auto it_node = node_begin + i_node;
+        double& r_original_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
+        const double& r_aux_dist = it_node->GetValue( rAuxDistVar );
 
-            if ( mAddWater ){
-                // choosing minimum to extend water domain
-                r_original_dist = std::min( r_original_dist, r_aux_dist );
-            } else {
-                // choosing maximum to extend water domain
-                r_original_dist = std::max( r_original_dist, r_aux_dist );
-            }
+        if ( mAddWater ){
+            // choosing minimum to extend water domain
+            r_original_dist = std::min( r_original_dist, r_aux_dist );
+        } else {
+            // choosing maximum to extend water domain
+            r_original_dist = std::max( r_original_dist, r_aux_dist );
         }
     }
 }
 
 
 
-void MassConservationCheckProcess::ReCheckTheMassConservation(){
+void MassConservationUtility::ReCheckTheMassConservation(){
 
     // recomputation based on the new distance field.
     double pos_vol = 0.0;
@@ -206,15 +199,13 @@ void MassConservationCheckProcess::ReCheckTheMassConservation(){
 
 
 
-void MassConservationCheckProcess::ApplyGlobalCorrection(){
+void MassConservationUtility::ApplyGlobalCorrection(){
 
     const double inter_area = mInterfaceArea;
 
-    // check if it is time for a correction (if wished for)
-    if (mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 1e-12){
+    if (inter_area > 1e-12){
         // if water is missing, a shift into negative direction increases the water volume
         const double shift_for_correction = - mWaterVolumeError / inter_area;
-
         ShiftDistanceField( shift_for_correction );
     }
 
@@ -222,7 +213,7 @@ void MassConservationCheckProcess::ApplyGlobalCorrection(){
 
 
 
-void MassConservationCheckProcess::ComputeVolumesAndInterface( double& rPositiveVolume, double& rNegativeVolume, double& rInterfaceArea ){
+void MassConservationUtility::ComputeVolumesAndInterface( double& rPositiveVolume, double& rNegativeVolume, double& rInterfaceArea ){
 
     // initalisation (necessary because no reduction for type reference)
     double pos_vol = 0.0;
@@ -268,7 +259,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& rPositive
 
             if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), nodal_distances); }
             else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), nodal_distances); }
-            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
+            else { KRATOS_ERROR << "The utility can not be applied on this kind of geometry" << std::endl; }
 
             // Call the positive side modified shape functions calculator (Gauss weights woulb be enough)
             // Object p_modified_sh_func has full knowledge of slit geometry
@@ -314,7 +305,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& rPositive
 
 
 
-double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double Factor )
+double MassConservationUtility::OrthogonalFlowIntoAir( const double Factor )
 {
     double outflow = 0.0;
 
@@ -348,7 +339,7 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double Factor 
 
             if ( r_geom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
             else if ( r_geom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
+            else { KRATOS_ERROR << "The utility can not be applied on this kind of element" << std::endl; }
 
             // Concerning their area, the positive and negative side of the interface are equal
             p_modified_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
@@ -395,7 +386,7 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double Factor 
 
 
 
-double MassConservationCheckProcess::ComputeInterfaceArea(){
+double MassConservationUtility::ComputeInterfaceArea(){
 
     double int_area = 0.0;
 
@@ -423,7 +414,7 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
 
             if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
             else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
+            else { KRATOS_ERROR << "The utility can not be applied on this kind of element" << std::endl; }
 
             // Concerning their area, the positive and negative side of the interface are equal
             p_modified_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
@@ -443,7 +434,7 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
 
 
 
-double MassConservationCheckProcess::ComputeNegativeVolume(){
+double MassConservationUtility::ComputeNegativeVolume(){
 
     double neg_vol = 0.0;
 
@@ -479,7 +470,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
 
             if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
             else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
+            else { KRATOS_ERROR << "The utility can not be applied on this kind of element" << std::endl; }
 
             // Call the negative side modified shape functions calculator
             // Object p_modified_sh_func has full knowledge of slit geometry
@@ -500,7 +491,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
 
 
 
-double MassConservationCheckProcess::ComputePositiveVolume(){
+double MassConservationUtility::ComputePositiveVolume(){
 
     double pos_vol = 0.0;
 
@@ -538,7 +529,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
 
             if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
             else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
+            else { KRATOS_ERROR << "The utility can not be applied on this kind of element" << std::endl; }
 
             // Call the positive side modified shape functions calculator (Gauss weights woulb be enough)
             // Object p_modified_sh_func has full knowledge of slit geometry
@@ -559,7 +550,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
 
 
 
-double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flags BoundaryFlag ){
+double MassConservationUtility::ComputeFlowOverBoundary( const Kratos::Flags BoundaryFlag ){
 
     // Convention: "mass" is considered as "water", meaning the volumes with a negative distance is considered
     double inflow_over_boundary = 0.0;
@@ -711,7 +702,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
 
 
-void MassConservationCheckProcess::ShiftDistanceField( const double DeltaDist ){
+void MassConservationUtility::ShiftDistanceField( const double DeltaDist ){
 
     // negative shift = "more water"
     // positive shift = "less water"
@@ -725,7 +716,7 @@ void MassConservationCheckProcess::ShiftDistanceField( const double DeltaDist ){
 
 
 
-void MassConservationCheckProcess::CalculateNormal2D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry){
+void MassConservationUtility::CalculateNormal2D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry){
 
     An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
     An[1] = - (pGeometry[1].X() - pGeometry[0].X());
@@ -734,7 +725,7 @@ void MassConservationCheckProcess::CalculateNormal2D(array_1d<double,3>& An, con
 
 
 
-void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry){
+void MassConservationUtility::CalculateNormal3D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry){
 
     array_1d<double,3> v1,v2;
     v1[0] = pGeometry[1].X() - pGeometry[0].X();
@@ -752,7 +743,7 @@ void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, con
 
 
 /// Function to convert Triangle3D3N into Triangle2D3N which can be handled by the splitting utilitity
-Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle( const Geometry<Node<3> >& rGeom ){
+Triangle2D3<Node<3>>::Pointer MassConservationUtility::GenerateAuxTriangle( const Geometry<Node<3> >& rGeom ){
 
     // Generating auxiliary "Triangle2D3" because the original geometry is "Triangle3D3"
 
@@ -795,7 +786,7 @@ Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle(
 
 
 
-void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rGeom,
+void MassConservationUtility::GenerateAuxLine( const Geometry<Node<3> >& rGeom,
                                                     const Vector& rDistance,
                                                     Line3D2<IndexedPoint>::Pointer& rpAuxLine,
                                                     array_1d<double, 3>& rAuxVelocity1,
@@ -837,16 +828,16 @@ void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rG
     rpAuxLine = Kratos::make_shared< Line3D2 < IndexedPoint > >( paux_point1, paux_point2 );
 }
 
-const Parameters MassConservationCheckProcess::GetDefaultParameters()
+const Parameters MassConservationUtility::GetDefaultParameters()
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "correction_frequency_in_time_steps"     : 20
+        "time_variable" : "TIME"
     })" );
     return default_parameters;
 }
 
-bool MassConservationCheckProcess::IsGeometryCut(
+bool MassConservationUtility::IsGeometryCut(
     const GeometryType &rGeometry,
     unsigned int &PtCountNeg,
     unsigned int &PtCountPos)
