@@ -102,7 +102,9 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         Matrix rotation_matrix(Dimension, Dimension), voigt_rotation_matrix(VoigtSize, VoigtSize),
         inv_voigt_rotation_matrix(VoigtSize, VoigtSize);
 
-        if (r_material_properties.Has(EULER_ANGLE_PHI) &&
+        if (r_material_properties.Has(EULER_ANGLE_PHI)   &&
+            r_material_properties.Has(EULER_ANGLE_THETA) &&
+            r_material_properties.Has(EULER_ANGLE_HI)    &&
             std::abs(r_material_properties[EULER_ANGLE_PHI]) + 
             std::abs(r_material_properties[EULER_ANGLE_THETA]) + 
             std::abs(r_material_properties[EULER_ANGLE_HI]) > machine_tolerance) {
@@ -126,7 +128,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
 
         ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
-        this->CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
+        ConstitutiveLawUtilities<VoigtSize>::CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
         this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
         ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
                                                                                     isotropic_elastic_matrix, stress_mapper, 
@@ -136,7 +138,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         r_iso_strain_vector = prod((voigt_rotation_matrix), r_iso_strain_vector);
 
         // Now we map the strains to the isotropic fictitious space: Eiso = Ae*Ereal,loc
-        r_iso_strain_vector = prod(strain_mapper, r_iso_strain_vector); // mapped
+        r_iso_strain_vector = prod(strain_mapper, r_iso_strain_vector);
 
         // Integrate the isotropic constitutive law
         mpIsotropicCL->CalculateMaterialResponsePK2(values_iso_cl);
@@ -160,38 +162,6 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         }  
     }
 } // End CalculateMaterialResponseCauchy
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void GenericAnisotropic3DLaw::CalculateElasticMatrix(
-    Matrix& rElasticityTensor,
-    const Properties& rMaterialProperties)
-{
-    const double E = rMaterialProperties[YOUNG_MODULUS];
-    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
-    const double lambda =
-        E * poisson_ratio / ((1. + poisson_ratio) * (1.0 - 2.0 * poisson_ratio));
-    const double mu = E / (2.0 + 2.0 * poisson_ratio);
-
-    if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
-        rElasticityTensor.resize(6, 6, false);
-    rElasticityTensor.clear();
-
-    rElasticityTensor(0, 0) = lambda + 2.0 * mu;
-    rElasticityTensor(0, 1) = lambda;
-    rElasticityTensor(0, 2) = lambda;
-    rElasticityTensor(1, 0) = lambda;
-    rElasticityTensor(1, 1) = lambda + 2.0 * mu;
-    rElasticityTensor(1, 2) = lambda;
-    rElasticityTensor(2, 0) = lambda;
-    rElasticityTensor(2, 1) = lambda;
-    rElasticityTensor(2, 2) = lambda + 2.0 * mu;
-    rElasticityTensor(3, 3) = mu;
-    rElasticityTensor(4, 4) = mu;
-    rElasticityTensor(5, 5) = mu;
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -293,10 +263,11 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     values_iso_cl.SetMaterialProperties(r_props_iso_cl);
 
     // Here we compute the rotation tensors due to the angles of the local and global axes
-    Matrix rotation_matrix(Dimension, Dimension), voigt_rotation_matrix(VoigtSize, VoigtSize),
-    inv_voigt_rotation_matrix(VoigtSize, VoigtSize);
+    Matrix rotation_matrix(Dimension, Dimension), voigt_rotation_matrix(VoigtSize, VoigtSize);
 
-    if (r_material_properties.Has(EULER_ANGLE_PHI) &&
+    if (r_material_properties.Has(EULER_ANGLE_PHI)   &&
+        r_material_properties.Has(EULER_ANGLE_THETA) &&
+        r_material_properties.Has(EULER_ANGLE_HI)    &&
         std::abs(r_material_properties[EULER_ANGLE_PHI]) + 
         std::abs(r_material_properties[EULER_ANGLE_THETA]) + 
         std::abs(r_material_properties[EULER_ANGLE_HI]) > machine_tolerance) {
@@ -307,8 +278,8 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
                 (rotation_matrix),
                 voigt_rotation_matrix);
     } else {
-        noalias(rotation_matrix)       = IdentityMatrix(Dimension, Dimension);
-        noalias(voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
+        noalias(rotation_matrix)           = IdentityMatrix(Dimension, Dimension);
+        noalias(voigt_rotation_matrix)     = IdentityMatrix(VoigtSize, VoigtSize);
     }
     
     // We compute the mappers As and Ae
@@ -317,7 +288,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
 
     ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
-    this->CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
+    ConstitutiveLawUtilities<VoigtSize>::CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
     this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
     ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
                                                                                 isotropic_elastic_matrix, stress_mapper, 
@@ -505,7 +476,9 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             Matrix rotation_matrix(Dimension, Dimension), voigt_rotation_matrix(VoigtSize, VoigtSize),
             inv_voigt_rotation_matrix(VoigtSize, VoigtSize);
 
-            if (r_material_properties.Has(EULER_ANGLE_PHI) &&
+            if (r_material_properties.Has(EULER_ANGLE_PHI)   &&
+                r_material_properties.Has(EULER_ANGLE_THETA) &&
+                r_material_properties.Has(EULER_ANGLE_HI)    &&
                 std::abs(r_material_properties[EULER_ANGLE_PHI]) + 
                 std::abs(r_material_properties[EULER_ANGLE_THETA]) + 
                 std::abs(r_material_properties[EULER_ANGLE_HI]) > machine_tolerance) {
@@ -529,7 +502,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
 
             ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rParameterValues, stress_mapper, stress_mapper_inv);
-            this->CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
+            ConstitutiveLawUtilities<VoigtSize>::CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
             this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
             ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
                                                                                         isotropic_elastic_matrix, stress_mapper, 
@@ -537,7 +510,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             Matrix invAe(VoigtSize, VoigtSize);
             double aux_det;
             MathUtils<double>::InvertMatrix(strain_mapper, invAe, aux_det);
-            
+
             // We mapp to the local anisotropic space
             rValue = prod(invAe, r_plastic_strain);
 

@@ -480,6 +480,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         Matrix &rNewOperator
     );
 
+    /**
+     * @brief This computes the isotropic 
+     * elastic constitutive matrix
+     */
+    static void CalculateElasticMatrix(
+        Matrix &rElasticityTensor,
+        const Properties &rMaterialProperties
+        );
 
 private:
 
