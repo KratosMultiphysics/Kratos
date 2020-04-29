@@ -35,11 +35,11 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Para
 {
     this->CalculateMaterialResponsePK2(rValues);
 
-    Vector& stress_vector                = rValues.GetStressVector();
+    Vector& r_stress_vector              = rValues.GetStressVector();
     const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
     const double determinant_f           = rValues.GetDeterminantF();
 
-    this->TransformStresses(stress_vector, deformation_gradient_f, determinant_f,
+    this->TransformStresses(r_stress_vector, deformation_gradient_f, determinant_f,
                             ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_PK1);
 }
 
@@ -50,11 +50,11 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::P
 {
     this->CalculateMaterialResponsePK2(rValues);
 
-    Vector& stress_vector                = rValues.GetStressVector();
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f           = rValues.GetDeterminantF();
+    Vector& r_stress_vector                = rValues.GetStressVector();
+    const Matrix& deformation_gradient_f   = rValues.GetDeformationGradientF();
+    const double determinant_f             = rValues.GetDeterminantF();
 
-    this->TransformStresses(stress_vector, deformation_gradient_f, determinant_f,
+    this->TransformStresses(r_stress_vector, deformation_gradient_f, determinant_f,
                             ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
@@ -65,11 +65,11 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw
 {
     this->CalculateMaterialResponsePK2(rValues);
 
-    Vector& stress_vector                = rValues.GetStressVector();
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f           = rValues.GetDeterminantF();
+    Vector& r_stress_vector                = rValues.GetStressVector();
+    const Matrix& deformation_gradient_f   = rValues.GetDeformationGradientF();
+    const double determinant_f             = rValues.GetDeterminantF();
 
-    this->TransformStresses(stress_vector, deformation_gradient_f, determinant_f,
+    this->TransformStresses(r_stress_vector, deformation_gradient_f, determinant_f,
                             ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_Kirchhoff);
 }
 
@@ -177,18 +177,19 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
     noalias(rElasticityTensor) = ZeroMatrix(VoigtSize, VoigtSize);
 
     const double Ex  = rMaterialProperties[YOUNG_MODULUS_X];
-	const double Ey  = rMaterialProperties[YOUNG_MODULUS_Y];
-	const double Ez  = rMaterialProperties[YOUNG_MODULUS_Z];
-	const double vxy = rMaterialProperties[POISSON_RATIO_XY];
-	const double vyz = rMaterialProperties[POISSON_RATIO_YZ];
-	const double vxz = rMaterialProperties[POISSON_RATIO_XZ];
+    const double Ey  = rMaterialProperties[YOUNG_MODULUS_Y];
+    const double Ez  = rMaterialProperties[YOUNG_MODULUS_Z];
+    const double vxy = rMaterialProperties[POISSON_RATIO_XY];
+    const double vyz = rMaterialProperties[POISSON_RATIO_YZ];
+    const double vxz = rMaterialProperties[POISSON_RATIO_XZ];
 
     const double vyx = vxy * Ey / Ex;
     const double vzx = vxz * Ez / Ex;
     const double vzy = vyz * Ez / Ey;
 
-    if (vyx > 0.5 || vzx > 0.5 || vzy > 0.5)
-        KRATOS_THROW_ERROR(std::invalid_argument, "One of the cross poisson ratios is greater than 0.5", "")
+    KRATOS_ERROR_IF(vyx > 0.5) << "The Poisson_yx is greater than 0.5." << std::endl;
+    KRATOS_ERROR_IF(vzx > 0.5) << "The Poisson_zx is greater than 0.5." << std::endl;
+    KRATOS_ERROR_IF(vzy > 0.5) << "The Poisson_zy is greater than 0.5." << std::endl;
 
     const double Gxy   = 1.0 / ((1.0 + vyx) / Ex + (1.0 + vxy) / Ey);
     const double Gxz   = 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
@@ -541,15 +542,7 @@ void GenericAnisotropic3DLaw::InitializeMaterial(
     KRATOS_ERROR_IF_NOT(mpIsotropicCL->GetStrainSize() == 6) << "The slave CL has a dimension lower than 3, not possible" << std::endl;
 
     // Let's check variables
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X not defined in properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y not defined in properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY)) << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY not defined in properties" << std::endl;
-    if (VoigtSize == 6) {
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Z))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Z not defined in properties" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XZ)) << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XZ not defined in properties" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO_YZ)) << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO_YZ not defined in properties" << std::endl;
-    }
-
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO not defined in properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS_X))  << "YOUNG_MODULUS_X not defined in properties"  << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS_Y))  << "YOUNG_MODULUS_Y not defined in properties"  << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO_XY)) << "POISSON_RATIO_XY not defined in properties" << std::endl;

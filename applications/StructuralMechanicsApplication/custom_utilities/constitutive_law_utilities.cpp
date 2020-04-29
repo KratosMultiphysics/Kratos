@@ -958,18 +958,20 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatri
         rAsInv.resize(VoigtSize, VoigtSize);
     }
     noalias(rAsInv) = ZeroMatrix(VoigtSize, VoigtSize);
+    const Vector &r_iso_aniso_yield_ratios = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
+    KRATOS_ERROR_IF_NOT(r_iso_aniso_yield_ratios.size() == VoigtSize) << "The length of the ISOTROPIC_ANISOTROPIC_YIELD_RATIO is not correct" << std::endl;
 
     if (VoigtSize == 6) {
-        rAs(0, 0) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X];
-        rAs(1, 1) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y];
-        rAs(2, 2) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Z];
-        rAs(3, 3) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY];
-        rAs(4, 4) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_YZ];
-        rAs(5, 5) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XZ];        
+        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
+        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
+        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
+        rAs(3, 3) = r_iso_aniso_yield_ratios(3);
+        rAs(4, 4) = r_iso_aniso_yield_ratios(4);
+        rAs(5, 5) = r_iso_aniso_yield_ratios(5);
     } else {
-        rAs(0, 0) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_X];
-        rAs(1, 1) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_Y];
-        rAs(2, 2) = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO_XY]; 
+        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
+        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
+        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
     }
     for (IndexType i = 0; i < VoigtSize; ++i)
         rAsInv(i, i) = 1.0 / rAs(i, i);
