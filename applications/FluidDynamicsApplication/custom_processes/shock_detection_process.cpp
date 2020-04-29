@@ -53,11 +53,7 @@ void ShockDetectionProcess::ExecuteInitializeSolutionStep()
     }
 
     // Perform the edge based shock detection
-    if (mShockVariableIsDouble) {
-        EdgeBasedShockDetectionSpecialization<>(*mpShockDoubleVariable, *mpShockGradientVariable);
-    } else {
-        EdgeBasedShockDetectionSpecialization<>(*mpShockComponentVariable, *mpShockGradientVariable);
-    }
+    EdgeBasedShockDetectionSpecialization<>(*mpShockDoubleVariable, *mpShockGradientVariable);
 }
 
 void ShockDetectionProcess::Execute()
@@ -71,14 +67,6 @@ void ShockDetectionProcess::Execute()
 
 void ShockDetectionProcess::EdgeBasedShockDetection(
     const Variable<double>& rShockVariable,
-    const Variable<array_1d<double, 3>>& rShockGradientVariable)
-{
-    // Specialize the edge based shock detection
-    EdgeBasedShockDetectionSpecialization<>(rShockVariable, rShockGradientVariable);
-}
-
-void ShockDetectionProcess::EdgeBasedShockDetection(
-    const VariableComponentType& rShockVariable,
     const Variable<array_1d<double, 3>>& rShockGradientVariable)
 {
     // Specialize the edge based shock detection

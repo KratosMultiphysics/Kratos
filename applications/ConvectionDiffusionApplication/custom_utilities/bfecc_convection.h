@@ -68,6 +68,11 @@ public:
         std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
 
+        // Allocate non-historical variables
+        for (auto &r_node : rModelPart.Nodes()) {
+            r_node.SetValue(rVar, 0.0);
+        }
+
         //FIRST LOOP: estimate rVar(n+1)
         #pragma omp parallel for firstprivate(results,N,N_valid)
         for (int i = 0; i < nparticles; i++)

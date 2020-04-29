@@ -6,18 +6,27 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 # generate variables with the sources
-set( KRATOS_FREE_SURFACE_APPLICATION_SOURCES
+set( KRATOS_FREE_SURFACE_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/free_surface_application.cpp
-  	${CMAKE_CURRENT_SOURCE_DIR}/free_surface_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/free_surface_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_edgebased_levelset_solver_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/free_surface_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/edgebased_gid_io.cpp
 )
 
-# define library Kratos which defines the basic python interface
-pybind11_add_module(KratosFreeSurfaceApplication MODULE ${KRATOS_FREE_SURFACE_APPLICATION_SOURCES})
-target_link_libraries(KratosFreeSurfaceApplication KratosCore )
+set( KRATOS_FREE_SURFACE_PYTHON_INTERFACE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_edgebased_levelset_solver_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/free_surface_python_application.cpp
+)
+
+# FreeSurface core library (C++ parts)
+add_library(KratosFreeSurfaceCore SHARED ${KRATOS_FREE_SURFACE_APPLICATION_CORE_SOURCES})
+target_link_libraries(KratosFreeSurfaceCore PUBLIC KratosCore)
+set_target_properties(KratosFreeSurfaceCore PROPERTIES COMPILE_DEFINITIONS "FREE_SURFACE_APPLICATION=EXPORT,API")
+
+# FreeSurface python module
+pybind11_add_module(KratosFreeSurfaceApplication MODULE THIN_LTO ${KRATOS_FREE_SURFACE_PYTHON_INTERFACE_SOURCES})
+target_link_libraries(KratosFreeSurfaceApplication PRIVATE KratosFreeSurfaceCore )
 set_target_properties(KratosFreeSurfaceApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
@@ -32,6 +41,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosFreeSurfaceCore)
     cotire(KratosFreeSurfaceApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -55,4 +65,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
+install(TARGETS KratosFreeSurfaceCore DESTINATION libs )
 install(TARGETS KratosFreeSurfaceApplication DESTINATION libs )
