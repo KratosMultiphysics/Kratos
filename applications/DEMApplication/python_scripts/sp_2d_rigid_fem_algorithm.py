@@ -24,7 +24,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
         self.SettingGeometricalSPValues()
         self.CreateSPMeasuringRingSubmodelpart(self.spheres_model_part)
-        #self.RebuildSkinElements()
+        self.RebuildSkinElements()
 
     def SettingGeometricalSPValues(self):
 

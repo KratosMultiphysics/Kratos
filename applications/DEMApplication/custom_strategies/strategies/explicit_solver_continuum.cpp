@@ -277,59 +277,6 @@ namespace Kratos {
         }
     }
 
-    void ContinuumExplicitSolverStrategy::SetSkinParticlesInnerBoundary(ModelPart& r_model_part, const double inner_radius, const double detection_radius) {
-        auto& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
-
-        #pragma omp parallel for
-        for (int k = 0; k < (int)pNodes.size(); k++) {
-            auto it = pNodes.begin() + k;
-            const array_1d<double, 3>& coords = it->Coordinates();
-            array_1d<double, 3> vector_distance_to_center;
-            noalias(vector_distance_to_center) = coords;
-            const double distance_to_center = MathUtils<double>::Norm3(vector_distance_to_center);
-            if(distance_to_center < inner_radius + detection_radius) {
-                it->FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
-            }
-        }
-    }
-
-    void ContinuumExplicitSolverStrategy::SetSkinParticlesOuterBoundary(ModelPart& r_model_part, const double outer_radius, const double detection_radius) {
-        auto& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
-
-        #pragma omp parallel for
-        for (int k = 0; k < (int)pNodes.size(); k++) {
-            auto it = pNodes.begin() + k;
-            const array_1d<double, 3>& coords = it->Coordinates();
-            array_1d<double, 3> vector_distance_to_center;
-            noalias(vector_distance_to_center) = coords;
-            const double distance_to_center = MathUtils<double>::Norm3(vector_distance_to_center);
-            const double radius = it->FastGetSolutionStepValue(RADIUS);
-            if (distance_to_center + radius > outer_radius - detection_radius) {
-                it->FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
-            }
-        }
-    }
-
-    void ContinuumExplicitSolverStrategy::SetSkinParticlesOuterBoundaryBlind(ModelPart& r_model_part, const double outer_radius, const array_1d<double, 3>& center, const double detection_radius) {
-
-        auto& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
-
-        #pragma omp parallel for
-        for (int k = 0; k < (int)pNodes.size(); k++) {
-            auto it = pNodes.begin() + k;
-            const array_1d<double, 3>& coords = it->Coordinates();
-            array_1d<double, 3> vector_distance_to_center;
-            noalias(vector_distance_to_center) = coords - center;
-            const double total_x_distance = fabs(vector_distance_to_center[0]);
-            const double total_y_distance = fabs(vector_distance_to_center[1]);
-            const double radius = it->FastGetSolutionStepValue(RADIUS);
-
-            if ((total_x_distance + radius > outer_radius - detection_radius) || (total_y_distance + radius > outer_radius - detection_radius)) {
-                it->FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
-            }
-        }
-    }
-
     void ContinuumExplicitSolverStrategy::ComputeSkinIncludingInnerVoids(ModelPart& rSpheresModelPart, const double factor_radius) {
 
         ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
