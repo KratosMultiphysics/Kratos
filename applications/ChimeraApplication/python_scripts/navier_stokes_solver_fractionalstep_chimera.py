@@ -117,6 +117,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
             solution_strategy = KratosChimera.FSStrategyForChimera(
                 computing_model_part,
                 fractional_step_settings,
-                self.settings["predictor_corrector"].GetBool())
+                self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool())
 
         return solution_strategy

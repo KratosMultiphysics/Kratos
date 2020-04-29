@@ -11,7 +11,7 @@
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// 
+//
 
 #ifndef KRATOS_FS_STRATEGY_FOR_CHIMERA_H
 #define KRATOS_FS_STRATEGY_FOR_CHIMERA_H
@@ -81,6 +81,17 @@ public:
                SolverSettingsType& rSolverConfig,
                bool PredictorCorrector):
         BaseType(rModelPart,rSolverConfig,PredictorCorrector)
+    {
+        KRATOS_WARNING("FSStrategyForChimera") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
+        this->InitializeStrategy(rSolverConfig,PredictorCorrector);
+    }
+
+    FSStrategyForChimera(
+        ModelPart &rModelPart,
+        SolverSettingsType &rSolverConfig,
+        bool PredictorCorrector,
+        bool CalculateReactionsFlag)
+        : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag)
     {
         this->InitializeStrategy(rSolverConfig,PredictorCorrector);
     }

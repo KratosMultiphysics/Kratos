@@ -73,8 +73,12 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         typename FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
         BaseSolvingStrategyType>(m, "FSStrategy")
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool>())
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool>())
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, const Kratos::Variable<int> &>())
-    .def("CalculateReactions", &FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::CalculateReactions)
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool, const Kratos::Variable<int> &>())
+    .def("CalculateReactions", [](FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>& self) {
+        KRATOS_WARNING("FSStrategy") << "\'CalculateReactions()\' exposure is deprecated. Use the constructor with the \'CalculateReactionsFlag\' instead." << std::endl;
+        self.CalculateReactions();})
     .def("AddIterationStep", &FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::AddIterationStep)
     .def("ClearExtraIterationSteps", &FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::ClearExtraIterationSteps);
 

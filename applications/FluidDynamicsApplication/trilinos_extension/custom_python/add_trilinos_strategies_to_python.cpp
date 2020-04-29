@@ -47,8 +47,12 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     using TrilinosFSStrategy = FSStrategy< TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
     py::class_< TrilinosFSStrategy, typename TrilinosFSStrategy::Pointer, TrilinosBaseSolvingStrategy >(m,"TrilinosFSStrategy")
     .def(py::init< ModelPart&, BaseSolverSettings&, bool >())
+    .def(py::init< ModelPart&, BaseSolverSettings&, bool, bool >())
     .def(py::init< ModelPart&, BaseSolverSettings&, bool, const Kratos::Variable<int>& >())
-    .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)
+    .def(py::init< ModelPart&, BaseSolverSettings&, bool, bool, const Kratos::Variable<int>& >())
+    .def("CalculateReactions", [](TrilinosFSStrategy& self) {
+        KRATOS_WARNING("TrilinosFSStrategy") << "\'CalculateReactions()\' exposure is deprecated. Use the constructor with the \'CalculateReactionsFlag\' instead." << std::endl;
+        self.CalculateReactions();})
     .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
     .def("ClearExtraIterationSteps",&TrilinosFSStrategy::ClearExtraIterationSteps)
     ;

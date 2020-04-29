@@ -13,21 +13,18 @@
 #ifndef KRATOS_FS_STRATEGY_H
 #define KRATOS_FS_STRATEGY_H
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
-#include "utilities/openmp_utils.h"
 #include "processes/process.h"
-#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
-
+// Application includes
 #include "custom_utilities/solver_settings.h"
 
 namespace Kratos {
@@ -58,8 +55,22 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class FSStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+/**
+ * @brief Fractional-step strategy for incompressible Navier-Stokes formulation
+ * This strategy implements a splitting scheme for the incompressible Navier-Stokes equations.
+ * It is intended to be used in combination with the FractionalStep element in the FluidDynamicsApplicatoin.
+ * The fractional step index, which is stored in the ProcessInfo, takes the values
+ * 1 : Momentum step (calculate fractional step velocity)
+ * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
+ * 4 : Pressure step
+ * 5 : Computation of projections
+ * 6 : End of step velocity
+ * @tparam TSparseSpace Sparse space template type
+ * @tparam TDenseSpace Dense space template type
+ * @tparam TLinearSolver Linear solver template type
+ */
+template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
+class FSStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -86,8 +97,10 @@ public:
                SolverSettingsType& rSolverConfig,
                bool PredictorCorrector):
         BaseType(rModelPart,false),
+        mCalculateReactionsFlag(false),
         mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {
+        KRATOS_WARNING("FSStrategy") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
         InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
@@ -96,7 +109,34 @@ public:
                bool PredictorCorrector,
                const Kratos::Variable<int>& PeriodicVar):
         BaseType(rModelPart,false),
+        mCalculateReactionsFlag(false),
         mrPeriodicIdVar(PeriodicVar)
+    {
+        KRATOS_WARNING("FSStrategy") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
+        InitializeStrategy(rSolverConfig,PredictorCorrector);
+    }
+
+    FSStrategy(
+        ModelPart& rModelPart,
+        SolverSettingsType& rSolverConfig,
+        bool PredictorCorrector,
+        bool CalculateReactionsFlag)
+        : BaseType(rModelPart,false)
+        , mCalculateReactionsFlag(CalculateReactionsFlag)
+        , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    {
+        InitializeStrategy(rSolverConfig,PredictorCorrector);
+    }
+
+    FSStrategy(
+        ModelPart& rModelPart,
+        SolverSettingsType& rSolverConfig,
+        bool PredictorCorrector,
+        bool CalculateReactionsFlag,
+        const Kratos::Variable<int>& PeriodicVar)
+        : BaseType(rModelPart,false)
+        , mCalculateReactionsFlag(CalculateReactionsFlag)
+        , mrPeriodicIdVar(PeriodicVar)
     {
         InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
@@ -119,7 +159,7 @@ public:
         if (mUseSlipConditions) {
             auto& r_model_part = BaseType::GetModelPart();
 #pragma omp parallel for
-            for (int i_cond = 0; i_cond < r_model_part.NumberOfConditions(); ++i_cond) {
+            for (int i_cond = 0; i_cond < static_cast<int>(r_model_part.NumberOfConditions()); ++i_cond) {
                 auto it_cond = r_model_part.ConditionsBegin() + i_cond;
                 if (it_cond->Is(SLIP)) {
                     auto& r_geom = it_cond->GetGeometry();
@@ -171,40 +211,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    double Solve() override
-    {
-        double NormDp = 0.0;
-        if (mPredictorCorrector)
-        {
-            bool Converged = false;
-            const unsigned int echo_level = BaseType::GetEchoLevel();
-
-            // Iterative solution for pressure
-            for(unsigned int it = 0; it < mMaxPressureIter; ++it)
-            {
-                KRATOS_INFO_IF("FSStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
-
-                NormDp = this->SolveStep();
-
-                Converged = this->CheckPressureConvergence(NormDp);
-
-                if ( Converged )
-                {
-                    KRATOS_INFO_IF("FSStrategy", echo_level > 0) << "Predictor-corrector converged in " << it+1 << " iterations." << std::endl;
-                    break;
-                }
-            }
-            KRATOS_INFO_IF("FSStrategy", !Converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
-        }
-        else
-        {
-            // Solve for fractional step velocity, then update pressure once
-            NormDp = this->SolveStep();
-        }
-
-        return NormDp;
-    }
-
     void InitializeSolutionStep() override
     {
         // Initialize BDF2 coefficients
@@ -213,13 +219,37 @@ public:
 
     bool SolveSolutionStep() override
     {
-        double norm_dp = this->Solve();
-        /* If not doing predictor corrector iterations, norm_dp will
-         * typically be "large" since we are not iterating on pressure.
-         * It makes no sense to report that the iteration didn't converge
-         * based on this.
-         */
-        return mPredictorCorrector ? this->CheckPressureConvergence(norm_dp) : true;
+        double norm_dp = 0.0;
+        bool converged = false;
+        if (mPredictorCorrector) {
+            const unsigned int echo_level = BaseType::GetEchoLevel();
+            // Iterative solution for pressure
+            for (unsigned int it = 0; it < mMaxPressureIter; ++it) {
+                KRATOS_INFO_IF("FSStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
+                norm_dp = this->SolveStep();
+                converged = this->CheckPressureConvergence(norm_dp);
+                if (converged) {
+                    KRATOS_INFO_IF("FSStrategy", echo_level > 0) << "Predictor-corrector converged in " << it + 1 << " iterations." << std::endl;
+                    break;
+                }
+            }
+            KRATOS_WARNING_IF("FSStrategy", !converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
+        } else {
+            // Solve for fractional step velocity, then update pressure once
+            norm_dp = this->SolveStep();
+            // If not doing predictor corrector iterations, norm_dp will
+            // typically be "large" since we are not iterating on pressure.
+            // It makes no sense to report that the iteration didn't converge
+            // based on this.
+            converged = true;
+        }
+
+        // Calculate reactions
+        if (mCalculateReactionsFlag) {
+            CalculateReactions();
+        }
+
+        return converged;
     }
 
     void FinalizeSolutionStep() override
@@ -229,64 +259,58 @@ public:
         }
     }
 
-    virtual void CalculateReactions()
-    {
+    //TODO: Move to private section as soon as we remove the Python exposure
+    /**
+     * @brief Calculates the reactions
+     * This methods calculates the reactions of the momentum equation.
+     * These are computed as minus the RHS and saved in the REACTION variable
+     */
+virtual void CalculateReactions()
+{
+    auto &r_model_part = BaseType::GetModelPart();
+    auto &r_process_info = r_model_part.GetProcessInfo();
 
-        ModelPart& rModelPart = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    // Set fractional step index to the momentum equation step
+    const int original_step = r_process_info[FRACTIONAL_STEP];
+    r_process_info.SetValue(FRACTIONAL_STEP, 1);
 
-        // Set fractional step index to the momentum equation step
-        int OriginalStep = rCurrentProcessInfo[FRACTIONAL_STEP];
-        rCurrentProcessInfo.SetValue(FRACTIONAL_STEP,1);
-
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                itNode->FastGetSolutionStepValue(REACTION) = ZeroVector(3);
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(r_model_part.NumberOfNodes()); ++i_node) {
+            auto it_node = r_model_part.NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(REACTION) = ZeroVector(3);
         }
 
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
+        LocalSystemVectorType RHS_Contribution;
+        LocalSystemMatrixType LHS_Contribution;
 
-            LocalSystemVectorType RHS_Contribution;
-            LocalSystemMatrixType LHS_Contribution;
+#pragma omp parallel for private(RHS_Contribution, LHS_Contribution)
+        for (int i_elem = 0; i_elem < static_cast<int>(r_model_part.NumberOfElements()); ++i_elem) {
+            // Build local system
+            auto it_elem = r_model_part.ElementsBegin() + i_elem;
+            it_elem->CalculateLocalSystem(
+                LHS_Contribution,
+                RHS_Contribution,
+                r_process_info);
 
-            for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-
-                //itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
-
-                // Build local system
-                itElem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-
-                Element::GeometryType& rGeom = itElem->GetGeometry();
-                unsigned int NumNodes = rGeom.PointsNumber();
-                unsigned int index = 0;
-
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    rGeom[i].SetLock();
-                    array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION);
-                    for (unsigned int d = 0; d < mDomainSize; ++d)
-                        rReaction[d] -= RHS_Contribution[index++];
-                    rGeom[i].UnSetLock();
+            // Accumulate minus the RHS as the reaction
+            unsigned int index = 0;
+            auto& r_geom = it_elem->GetGeometry();
+            const unsigned int n_nodes = r_geom.PointsNumber();
+            for (unsigned int i = 0; i < n_nodes; ++i) {
+                r_geom[i].SetLock();
+                auto& r_reaction = r_geom[i].FastGetSolutionStepValue(REACTION);
+                for (unsigned int d = 0; d < mDomainSize; ++d) {
+                    r_reaction[d] -= RHS_Contribution[index++];
                 }
+                r_geom[i].UnSetLock();
             }
         }
 
-        rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
+        // Synchronize the local REACTION values
+        r_model_part.GetCommunicator().AssembleCurrentData(REACTION);
 
         // Reset original fractional step index
-        rCurrentProcessInfo.SetValue(FRACTIONAL_STEP,OriginalStep);
+        r_process_info.SetValue(FRACTIONAL_STEP, original_step);
     }
 
     virtual void AddIterationStep(Process::Pointer pNewStep)
@@ -315,6 +339,24 @@ public:
         int StrategyLevel = Level > 0 ? Level - 1 : 0;
         mpMomentumStrategy->SetEchoLevel(StrategyLevel);
         mpPressureStrategy->SetEchoLevel(StrategyLevel);
+    }
+
+    /**
+     * @brief This method sets the flag mCalculateReactionsFlag
+     * @param CalculateReactionsFlag The flag that tells if the reactions are computed
+     */
+    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
+    {
+        mCalculateReactionsFlag = CalculateReactionsFlag;
+    }
+
+    /**
+     * @brief This method returns the flag mCalculateReactionsFlag
+     * @return The flag that tells if the reactions are computed
+     */
+    bool GetCalculateReactionsFlag()
+    {
+        return mCalculateReactionsFlag;
     }
 
     ///@}
@@ -381,14 +423,7 @@ protected:
 
     bool mReformDofSet;
 
-    // Fractional step index.
-    /*  1 : Momentum step (calculate fractional step velocity)
-      * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
-      * 4 : Pressure step
-      * 5 : Computation of projections
-      * 6 : End of step velocity
-      */
-//    unsigned int mStepId;
+    bool mCalculateReactionsFlag;
 
     /// Scheme for the solution of the momentum equation
     StrategyPointerType mpMomentumStrategy;
@@ -400,7 +435,6 @@ protected:
 
     const Kratos::Variable<int>& mrPeriodicIdVar;
 
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -410,9 +444,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Calculate the coefficients for time iteration.
     /**
-     * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME and BDF_COEFFICIENTS variables.
+     * @brief Set the Time Coefficients object
+     * Calculate the coefficients for the BDF2 time iteration.
+     * These are stored in the BDF_COEFFICIENTS variable of the ProcessInfo container.
      */
     void SetTimeCoefficients()
     {
@@ -459,12 +494,9 @@ protected:
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
         bool Converged = false;
-        int Rank = rModelPart.GetCommunicator().MyPID();
-
         for(unsigned int it = 0; it < mMaxVelocityIter; ++it)
         {
-            if ( BaseType::GetEchoLevel() > 1 && Rank == 0)
-                std::cout << "Momentum iteration " << it << std::endl;
+            KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 1) << "Momentum iteration " << it << std::endl;
 
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
@@ -484,14 +516,12 @@ protected:
 
             if (Converged)
             {
-                if ( BaseType::GetEchoLevel() > 0 && Rank == 0)
-                    std::cout << "Fractional velocity converged in " << it+1 << " iterations." << std::endl;
+                KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Fractional velocity converged in " << it + 1 << " iterations." << std::endl;
                 break;
             }
         }
 
-        if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
-            std::cout << "Fractional velocity iterations did not converge." << std::endl;
+        KRATOS_INFO_IF("FSStrategy", !Converged && BaseType::GetEchoLevel() > 0) << "Fractional velocity iterations did not converge." << std::endl;
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
@@ -500,36 +530,24 @@ protected:
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
-                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const double old_press = it_node->FastGetSolutionStepValue(PRESSURE);
+            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -old_press;
         }
 
-        if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-            std::cout << "Calculating Pressure." << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) += itNode->FastGetSolutionStepValue(PRESSURE);
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) += it_node->FastGetSolutionStepValue(PRESSURE);
         }
 
         // 3. Compute end-of-step velocity
-        if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-            std::cout << "Updating Velocity." << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Updating Velocity." << std::endl;
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
@@ -554,34 +572,23 @@ protected:
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         double NormV = 0.00;
-
-#pragma omp parallel reduction(+:NormV)
-        {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
-
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-                const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
-
-                for (unsigned int d = 0; d < 3; ++d)
-                    NormV += Vel[d] * Vel[d];
+#pragma omp parallel for reduction(+:NormV)
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            const auto it_node = rModelPart.NodesBegin() + i_node;
+            const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int d = 0; d < 3; ++d) {
+                NormV += r_vel[d] * r_vel[d];
             }
         }
-
         NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
         NormV = sqrt(NormV);
 
-        if (NormV == 0.0) NormV = 1.00;
+        const double zero_tol = 1.0e-12;
+        const double Ratio = (NormV < zero_tol) ? NormDv : NormDv / NormV;
 
-        double Ratio = NormDv / NormV;
-
-        KRATOS_INFO_IF("Fractional Step Strategy : ", BaseType::GetEchoLevel() > 0) << "CONVERGENCE CHECK:" << std::endl;
-        KRATOS_INFO_IF("Fractional Step Strategy : ", BaseType::GetEchoLevel() > 0) <<  std::scientific << std::setprecision(8)
-                                                                                    << "FRAC VEL.: ratio = "
-                                                                                    << Ratio <<"; exp.ratio = " << mVelocityTolerance
-                                                                                    << " abs = " << NormDv << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "CONVERGENCE CHECK:" << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0)
+            <<  std::scientific << std::setprecision(8) << "FRAC VEL.: ratio = " << Ratio <<"; exp.ratio = " << mVelocityTolerance << " abs = " << NormDv << std::endl;
 
         if (Ratio < mVelocityTolerance)
             return true;
@@ -594,29 +601,19 @@ protected:
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         double NormP = 0.00;
-
-#pragma omp parallel reduction(+:NormP)
-        {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
-
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-                const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
-                NormP += Pr * Pr;
-            }
+#pragma omp parallel for reduction(+:NormP)
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            const auto it_node = rModelPart.NodesBegin() + i_node;
+            const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
+            NormP += Pr * Pr;
         }
-
         NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
         NormP = sqrt(NormP);
 
-        if (NormP == 0.0) NormP = 1.00;
+        const double zero_tol = 1.0e-12;
+        const double Ratio = (NormP < zero_tol) ? NormDp : NormDp / NormP;
 
-        double Ratio = NormDp / NormP;
-
-        if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Pressure relative error: " << Ratio << std::endl;
+        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Pressure relative error: " << Ratio << std::endl;
 
         if (Ratio < mPressureTolerance)
         {
@@ -631,31 +628,19 @@ protected:
     {
         array_1d<double,3> Out = ZeroVector(3);
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-            {
-                itNode->FastGetSolutionStepValue(CONV_PROJ) = ZeroVector(3);
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) = ZeroVector(3);
-                itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0;
-                itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(CONV_PROJ) = ZeroVector(3);
+            it_node->FastGetSolutionStepValue(PRESS_PROJ) = ZeroVector(3);
+            it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
+            it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
         }
 
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-
-            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
-            {
-                itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo());
-            }
+#pragma omp parallel for
+        for (int i_elem = 0; i_elem < static_cast<int>(rModelPart.NumberOfElements()); ++i_elem) {
+            const auto it_elem = rModelPart.ElementsBegin() + i_elem;
+            it_elem->Calculate(CONV_PROJ, Out, rModelPart.GetProcessInfo());
         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(CONV_PROJ);
@@ -666,19 +651,13 @@ protected:
         // If there are periodic conditions, add contributions from both sides to the periodic nodes
         this->PeriodicConditionProjectionCorrection(rModelPart);
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-            {
-                const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
-                itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
+            it_node->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
+            it_node->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
+            it_node->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
         }
     }
 
@@ -688,28 +667,16 @@ protected:
 
         array_1d<double,3> Out = ZeroVector(3);
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-            {
-                itNode->FastGetSolutionStepValue(FRACT_VEL) = ZeroVector(3);
-            }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(FRACT_VEL) = ZeroVector(3);
         }
 
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-
-            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
-            {
-                itElem->Calculate(VELOCITY,Out,rModelPart.GetProcessInfo());
-            }
+#pragma omp parallel for
+        for (int i_elem = 0; i_elem < static_cast<int>(rModelPart.NumberOfElements()); ++i_elem) {
+            const auto it_elem = rModelPart.ElementsBegin() + i_elem;
+            it_elem->Calculate(VELOCITY, Out, rModelPart.GetProcessInfo());
         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(FRACT_VEL);
@@ -721,40 +688,28 @@ protected:
 
         if (mDomainSize > 2)
         {
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator NodesBegin;
-                ModelPart::NodeIterator NodesEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-                {
-                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if ( ! itNode->IsFixed(VELOCITY_X) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Y) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Z) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
-                }
+#pragma omp parallel for
+            for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+                auto it_node = rModelPart.NodesBegin() + i_node;
+                const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                if ( ! it_node->IsFixed(VELOCITY_X) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                if ( ! it_node->IsFixed(VELOCITY_Y) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                if ( ! it_node->IsFixed(VELOCITY_Z) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_Z) += it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
             }
         }
         else
         {
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator NodesBegin;
-                ModelPart::NodeIterator NodesEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-                {
-                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if ( ! itNode->IsFixed(VELOCITY_X) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Y) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                }
+#pragma omp parallel for
+            for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+                auto it_node = rModelPart.NodesBegin() + i_node;
+                const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                if ( ! it_node->IsFixed(VELOCITY_X) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                if ( ! it_node->IsFixed(VELOCITY_Y) )
+                    it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
             }
         }
     }
@@ -969,6 +924,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
 
     ///@}
     ///@name Private Operators
