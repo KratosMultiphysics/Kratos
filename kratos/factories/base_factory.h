@@ -31,6 +31,14 @@
 
 namespace Kratos
 {
+///@name Type Definitions
+///@{
+
+typedef TUblasSparseSpace<double> SparseSpaceType;
+typedef TUblasDenseSpace<double> LocalSpaceType;
+typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+
+///@}
 ///@name Kratos Classes
 ///@{
 
@@ -331,14 +339,10 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@}
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSparseSpaceType;
-typedef LinearSolver<SparseSpaceType,LocalSparseSpaceType> LinearSolverType;
-
-typedef SolvingStrategy<SparseSpaceType, LocalSparseSpaceType, LinearSolverType> SolvingStrategyType;
-typedef BuilderAndSolver<SparseSpaceType, LocalSparseSpaceType, LinearSolverType> BuilderAndSolverType;
-typedef Scheme<SparseSpaceType,LocalSparseSpaceType> SchemeType;
-typedef ConvergenceCriteria<SparseSpaceType,LocalSparseSpaceType> ConvergenceCriteriaType;
+typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+typedef Scheme<SparseSpaceType,LocalSpaceType> SchemeType;
+typedef ConvergenceCriteria<SparseSpaceType,LocalSpaceType> ConvergenceCriteriaType;
 
 typedef BaseFactory<SolvingStrategyType> StrategyFactoryType;
 typedef BaseFactory<BuilderAndSolverType, LinearSolverType> BuilderAndSolverFactoryType;
