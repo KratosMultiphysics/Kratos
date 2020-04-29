@@ -81,27 +81,32 @@ namespace Testing
 
         // Compute RHS and LHS
         Vector rhs = ZeroVector(4);
+        Vector rhs_reference = ZeroVector(3);
         Matrix lhs = ZeroMatrix(4,4);
+        Matrix lhs_reference = ZeroMatrix(3,3);
 
-        p_element->Initialize();
         const ProcessInfo& const_process_info = model_part.GetProcessInfo();
+        p_element->Initialize(const_process_info);
         p_element->CalculateLocalSystem(lhs, rhs, const_process_info);
+
 
         KRATOS_CHECK_EQUAL(rhs.size(), 3);
         KRATOS_CHECK_EQUAL(lhs.size1(), 3);
         KRATOS_CHECK_EQUAL(lhs.size2(), 3);
-        KRATOS_CHECK_NEAR(rhs(0), 0.1186006876 , 1e-7);
-        KRATOS_CHECK_NEAR(rhs(1), 0.4123679368 , 1e-7);
-        KRATOS_CHECK_NEAR(rhs(2), 0.3265313756 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,0), 0.367583692212 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,1), -0.301736964939 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,2), -0.336905789443 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,0), 0.493383924505 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,1), 1.1281300063 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,2), 0.677825753415 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,0), 0.73444904995 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,1), 0.864023625302 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,2), 1.37324670269 , 1e-7);        
+        rhs_reference[0] = 0.1186006876;
+        rhs_reference[1] = 0.4123679368;
+        rhs_reference[2] = 0.3265313756;
+        lhs_reference(0,0) = 0.367583692212;
+        lhs_reference(0,1) = -0.301736964939;
+        lhs_reference(0,2) = -0.336905789443;
+        lhs_reference(1,0) = 0.493383924505;
+        lhs_reference(1,1) = 1.1281300063;
+        lhs_reference(1,2) = 0.677825753415;
+        lhs_reference(2,0) = 0.73444904995;
+        lhs_reference(2,1) = 0.864023625302;
+        lhs_reference(2,2) = 1.37324670269;
+        KRATOS_CHECK_VECTOR_NEAR(rhs,rhs_reference, 1e-7);
+        KRATOS_CHECK_MATRIX_NEAR(lhs,lhs_reference, 1e-7);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(LevelSetConvectionElement2DImplicit, KratosCoreFastSuite) {
@@ -159,27 +164,31 @@ namespace Testing
 
         // Compute RHS and LHS
         Vector rhs = ZeroVector(4);
+        Vector rhs_reference = ZeroVector(3);
         Matrix lhs = ZeroMatrix(4,4);
+        Matrix lhs_reference = ZeroMatrix(3,3);
 
-        p_element->Initialize();
         const ProcessInfo& const_process_info = model_part.GetProcessInfo();
+        p_element->Initialize(const_process_info);
         p_element->CalculateLocalSystem(lhs, rhs, const_process_info);
         
         KRATOS_CHECK_EQUAL(rhs.size(), 3);
         KRATOS_CHECK_EQUAL(lhs.size1(), 3);
         KRATOS_CHECK_EQUAL(lhs.size2(), 3);
-        KRATOS_CHECK_NEAR(rhs(0), 0.1186006876 , 1e-7);
-        KRATOS_CHECK_NEAR(rhs(1), 0.4123679368 , 1e-7);
-        KRATOS_CHECK_NEAR(rhs(2), 0.3265313756 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,0), 0.490708692212 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,1), -0.367257798272 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,2), -0.39450995611 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,0), 0.398175591172 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,1), 1.2075050063 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,2), 0.693659086748 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,0), 0.635282383283 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,1), 0.873919458635 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,2), 1.46251753603 , 1e-7);
+        rhs_reference[0] = 0.1186006876;
+        rhs_reference[1] = 0.4123679368;
+        rhs_reference[2] = 0.3265313756;
+        lhs_reference(0,0) = 0.490708692212;
+        lhs_reference(0,1) = -0.367257798272;
+        lhs_reference(0,2) = -0.39450995611;
+        lhs_reference(1,0) = 0.398175591172;
+        lhs_reference(1,1) = 1.2075050063;
+        lhs_reference(1,2) = 0.693659086748;
+        lhs_reference(2,0) = 0.635282383283;
+        lhs_reference(2,1) = 0.873919458635;
+        lhs_reference(2,2) = 1.46251753603;
+        KRATOS_CHECK_VECTOR_NEAR(rhs,rhs_reference, 1e-7);
+        KRATOS_CHECK_MATRIX_NEAR(lhs,lhs_reference, 1e-7);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(LevelSetConvectionElement3D, KratosCoreFastSuite) {
@@ -240,37 +249,40 @@ namespace Testing
 
         // Compute RHS and LHS
         Vector rhs = ZeroVector(5);
+        Vector rhs_reference = ZeroVector(4);
         Matrix lhs = ZeroMatrix(5,4);
+        Matrix lhs_reference = ZeroMatrix(4,4);
 
-        p_element->Initialize();
         const ProcessInfo& const_process_info = model_part.GetProcessInfo();
+        p_element->Initialize(const_process_info);
         p_element->CalculateLocalSystem(lhs, rhs, const_process_info);
 
         KRATOS_CHECK_EQUAL(rhs.size(), 4);
         KRATOS_CHECK_EQUAL(lhs.size1(), 4);
         KRATOS_CHECK_EQUAL(lhs.size2(), 4);
-        KRATOS_CHECK_NEAR(rhs(0), -0.0191355037271 , 1e-7);
-        KRATOS_CHECK_NEAR(rhs(1), 0.0913265708816 , 1e-7);
-        KRATOS_CHECK_NEAR(rhs(2), 0.0771336330894 , 1e-7);
-        KRATOS_CHECK_NEAR(rhs(3), 0.0771336330894 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,0), 0.0118217128739 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,1), -0.124973472054 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,2), -0.132050658822 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(0,3), -0.132050658822 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,0), 0.0952497205202 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,1), 0.224296426094 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,2), 0.133855853867 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(1,3), 0.133855853867 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,0), 0.13203719997 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,1), 0.16361977298 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,2), 0.264675745948 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(2,3), 0.167998225674 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(3,0), 0.13203719997 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(3,1), 0.16361977298 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(3,2), 0.167998225674 , 1e-7);
-        KRATOS_CHECK_NEAR(lhs(3,3), 0.264675745948 , 1e-7);
+        rhs_reference[0] = -0.0191355037271;
+        rhs_reference[1] = 0.0913265708816;
+        rhs_reference[2] = 0.0771336330894;
+        rhs_reference[3] = 0.0771336330894;
+        lhs_reference(0,0) = 0.0118217128739;
+        lhs_reference(0,1) = -0.124973472054;
+        lhs_reference(0,2) = -0.132050658822;
+        lhs_reference(0,3) = -0.132050658822;
+        lhs_reference(1,0) = 0.0952497205202;
+        lhs_reference(1,1) = 0.224296426094;
+        lhs_reference(1,2) = 0.133855853867;
+        lhs_reference(1,3) = 0.133855853867;
+        lhs_reference(2,0) = 0.13203719997;
+        lhs_reference(2,1) = 0.16361977298;
+        lhs_reference(2,2) = 0.264675745948;
+        lhs_reference(2,3) = 0.167998225674;
+        lhs_reference(3,0) = 0.13203719997;
+        lhs_reference(3,1) = 0.16361977298;
+        lhs_reference(3,2) = 0.167998225674;
+        lhs_reference(3,3) = 0.264675745948;
+        KRATOS_CHECK_VECTOR_NEAR(rhs,rhs_reference, 1e-7);
+        KRATOS_CHECK_MATRIX_NEAR(lhs,lhs_reference, 1e-7);
     }
-
     
 
 } // namespace Testing.
