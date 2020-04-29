@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela and Carlos Roig
+//  Main authors:    Jordi Cotela, Carlos Roig and Ruben Zorrilla
 //
 
 #ifndef KRATOS_TRILINOS_MIXED_VECTOR_SCALAR_CRITERIA_H
