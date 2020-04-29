@@ -17,6 +17,11 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
 
 # Shell tests
 from evm_k_epsilon_tests import EvmKEpsilonTest
+from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
+from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
+from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
+from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKEpsilonHighReTest
+from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
 
 
 def AssembleTestSuites():
@@ -38,7 +43,22 @@ def AssembleTestSuites():
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
-    # nightlyMPISuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonTransientMPI'))
+    nightlyMPISuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlowMPI')))
+    nightlyMPISuite.addTest((FractionalStepVelocityPressureFormulationTest('testFractionalStepVelocityPressureMPI')))
+    nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureMPI')))
+    nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcTkeRhsMPI')))
+    nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcTkeRhsMPI')))
+    nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcVelocityRhsMPI')))
+    nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcTkeRhsMPI')))
+    nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcTkeRhsMPI')))
+    nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcVelocityRhsMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeRhsMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeRhsMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocityRhsMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeRhsMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeRhsMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocityRhsMPI')))
+    nightlyMPISuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonTransientMPI'))
     # nightlyMPISuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyMPI'))
 
     ### Full MPI set ###########################################################
