@@ -34,6 +34,30 @@ class MPMCoupledTimeSolver(MPMSolver):
         self.time_step_ratio = self.settings["time_stepping"]["timestep_ratio"].GetDouble()
         self.time_step_2 = self.time_step_1/self.time_step_ratio
         self.time_step_index_1 = -1
+
+        gamma_1 = 10.0
+        gamma_2 = 10.0
+
+        if (self.settings["time_stepping"]["time_integration_method_1"].GetString() == "implicit"):
+            gamma_1 = 0.5
+        elif (self.settings["time_stepping"]["time_integration_method_1"].GetString() == "explicit"):
+            gamma_1 = 1.0
+        else:
+            raise Exception("Check the time_integration_method_1 in project parameters file")
+        if (self.settings["time_stepping"]["time_integration_method_2"].GetString() == "implicit"):
+            gamma_2 = 0.5
+        elif (self.settings["time_stepping"]["time_integration_method_2"].GetString() == "explicit"):
+            gamma_2 = 1.0
+        else:
+            raise Exception("Check the time_integration_method_2 in project parameters file")
+
+        # initialize mpm coupling utility class
+        self.coupling_utility = KratosParticle.MPMTemporalCouplingUtility(self.model_sub_domain_1,
+                                                                          self.model_sub_domain_2,
+                                                                          self.time_step_ratio,
+                                                                          self.time_step_2,
+                                                                          [gamma_1, gamma_2])
+
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Solver is constructed correctly.")
 
     @classmethod
@@ -57,8 +81,10 @@ class MPMCoupledTimeSolver(MPMSolver):
                 "materials_filename" : ""
             },
             "time_stepping"            : {
-            "time_step"         : 1,
-            "timestep_ratio"    : 2
+            "time_step"                          : 1,
+            "timestep_ratio"                     : 1,
+            "time_integration_method_1"          : "implicit",
+            "time_integration_method_2"          : "implicit"
             },
             "compute_reactions"                  : false,
             "convergence_criterion"              : "Residual_criteria",
@@ -146,8 +172,11 @@ class MPMCoupledTimeSolver(MPMSolver):
 
     def Initialize(self):
         # The particle solution strategy is created here if it does not already exist.
-        particle_solution_strategy = self._GetSolutionStrategy()
-        particle_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        particle_solution_strategy_1 = self._GetSolutionStrategy(1)
+        particle_solution_strategy_1.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        particle_solution_strategy_1 = self._GetSolutionStrategy(2)
+        particle_solution_strategy_2.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Generate material points
         self._GenerateMaterialPoint()
@@ -197,6 +226,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         if self.is_model_sub_domain_1_predict:
             self._GetSolutionStrategy(1).Initialize()
             self._GetSolutionStrategy(1).InitializeSolutionStep()
+            KratosParticle.InitializeSubDomain1Coupling()
         self._GetSolutionStrategy(2).Initialize()
         self._GetSolutionStrategy(2).InitializeSolutionStep()
 
@@ -210,7 +240,7 @@ class MPMCoupledTimeSolver(MPMSolver):
             is_converged = self._GetSolutionStrategy(1).SolveSolutionStep()
         is_converged = self._GetSolutionStrategy(2).SolveSolutionStep()
 
-        self.compute_and_apply_coupling_corrections ()
+        self.compute_and_apply_coupling_corrections()
         return is_converged
 
     def FinalizeSolutionStep(self):
@@ -358,6 +388,8 @@ class MPMCoupledTimeSolver(MPMSolver):
             self.model_sub_domain_2 = self.model.CreateModelPart("model_sub_domain_2") #Equivalent to model_part1 in the old format
             self.model_sub_domain_2.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
+        # TODO need to add temporal interface submodel part
+
     def _AddVariablesToModelPart(self, model_part):
         # Add displacements and reaction
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -493,8 +525,8 @@ class MPMCoupledTimeSolver(MPMSolver):
             self.model_sub_domain_2.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
         else:
             self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
-            self.model_sub_domain_1.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
-            self.model_sub_domain_2.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
+            self.model_sub_domain_1.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
+            self.model_sub_domain_2.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
         if analysis_type == "non_linear":
                 solution_strategy = self._CreateNewtonRaphsonStrategy(index)
         elif analysis_type == 'linear':

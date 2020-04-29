@@ -32,11 +32,24 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMTemporalCouplingUtility
 public:
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef typename SparseSpaceType::MatrixType SystemMatrixType;
-    //typedef typename TSparseSpace::MatrixType TSystemMatrixType;
 
     typedef std::size_t IndexType;
 
     typedef std::size_t SizeType;
+
+     /**
+      * @brief Constructor.
+      * @detail The MPM bossak method
+      */
+    MPMTemporalCouplingUtility(ModelPart & rModelPartSubDomain1, ModelPart & rModelPartSubDomain2,
+        unsigned int TimeStepRatio, double SmallTimestep, array_1d<double, 2> Gamma)
+        :mrModelPartSubDomain1(rModelPartSubDomain1), mrModelPartSubDomain2(rModelPartSubDomain2),
+        mTimeStepRatio(TimeStepRatio), mSmallTimestep(SmallTimestep), mGamma(Gamma)
+    {
+        //testsadfasdf
+        int testasdft = 1;
+        mJ = 1;
+    }
 
     /**
      * @brief Construct material points or particles from given initial mesh
@@ -44,16 +57,42 @@ public:
      */
     void CalculateCorrectiveLagrangianMultipliers(const SystemMatrixType& K_1, const SystemMatrixType& K_2);
 
-private:
-    Vector mSubDomain1InitialVelocity;
-    Vector mSubDomain1FinalVelocity;
+    void InitializeSubDomain1Coupling();
+
+protected:
+    void ComputeActiveInterfaceNodes();
+
+    void SetSubDomainInterfaceVelocity(ModelPart& rModelPart, Vector& rVelocityContainer);
+
+    void ComputeCouplingMatrix(const IndexType domainIndex, const Matrix& rEffectiveMassMatrix, Matrix& rCouplingMatrix, ModelPart& rModelPart);
+
+    void GetEffectiveMassMatrix(const IndexType domainIndex, ModelPart& rModelPart, Matrix& rMassMatrix, const SystemMatrixType& rK);
+
+    void InvertEffectiveMassMatrix(const SystemMatrixType& rMeff, Matrix& rInvMeff);
+
+    void ComputeLamda(const Matrix& rH, const Vector& rb, Vector& rLamda);
+
+    void ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& link_accel_1, 
+        const double timeStep, const bool correctInterface = true);
+
+    void ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& link_accel_1,
+        const double timeStep, const bool correctInterface = true);
+
+    void GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, SizeType activeNodes);
+
+    Vector mSubDomain1InitialInterfaceVelocity;
+    Vector mSubDomain1FinalInterfaceVelocity;
     Vector mSubDomain1AccumulatedLinkVelocity;
+    Vector mActiveInterfaceNodeIDs;
     Matrix mInvM1;
     Matrix mCoupling1;
     IndexType mJ;
-    IndexType mTimeStepRatio;
-    double mSmallTimestep;
-    array_1d<double, 2> mGamma;
+    const IndexType mTimeStepRatio;
+    const double mSmallTimestep;
+    const array_1d<double, 2> mGamma;
+    ModelPart& mrModelPartSubDomain1;
+    ModelPart& mrModelPartSubDomain2;
+    bool mActiveInterfaceNodesComputed = false;
 
 
 }; // end namespace MPMTemporalCouplingUtility
