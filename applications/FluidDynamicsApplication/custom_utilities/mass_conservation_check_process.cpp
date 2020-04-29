@@ -136,7 +136,7 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
         double water_outflow_over_boundary = OrthogonalFlowIntoAir( 1.0 );
         if ( r_comm.GetDataCommunicator().SumAll( water_outflow_over_boundary ) ){
             // checking if flow is sufficient (avoid division by 0)
-            if ( water_outflow_over_boundary > 1.0e-7 ){
+            if ( water_outflow_over_boundary > 1.0e-12 ){
                 time_step_for_convection = mWaterVolumeError / water_outflow_over_boundary;
             }
         } else {
@@ -149,7 +149,7 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
         double water_inflow_over_boundary = OrthogonalFlowIntoAir( -1.0 );
         if ( r_comm.GetDataCommunicator().SumAll( water_inflow_over_boundary ) ){
             // checking if flow is sufficient (avoid division by 0)
-            if ( water_inflow_over_boundary > 1.0e-7 ){
+            if ( water_inflow_over_boundary > 1.0e-12 ){
                 time_step_for_convection = - mWaterVolumeError / water_inflow_over_boundary;
             }
         } else {
@@ -211,7 +211,7 @@ void MassConservationCheckProcess::ApplyGlobalCorrection(){
     const double inter_area = mInterfaceArea;
 
     // check if it is time for a correction (if wished for)
-    if (mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 1e-7){
+    if (mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 1e-12){
         // if water is missing, a shift into negative direction increases the water volume
         const double shift_for_correction = - mWaterVolumeError / inter_area;
 

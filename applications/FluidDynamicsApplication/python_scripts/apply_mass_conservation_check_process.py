@@ -14,7 +14,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyMassConservationCheckProcess( Model, settings["Parameters"] )
 
-class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
+class ApplyMassConservationCheckProcess:
 
     def __init__(self, Model, settings):
 

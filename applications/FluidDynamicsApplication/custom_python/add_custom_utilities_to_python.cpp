@@ -36,6 +36,8 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
+#include "custom_utilities/mass_conservation_check_process.h"
+
 
 #include "utilities/split_tetrahedra.h"
 
@@ -179,6 +181,23 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetLimitAsMultipleOfGravitionalAcceleration", &AccelerationLimitationUtilities::SetLimitAsMultipleOfGravitionalAcceleration)
         .def("Execute", &AccelerationLimitationUtilities::Execute)
         ;
+
+    py::class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>
+    (m,"MassConservationCheckProcess")
+    .def(py::init < ModelPart&, const int>())
+    .def(py::init< ModelPart&, Parameters& >())
+    .def("Initialize", &MassConservationCheckProcess::Initialize)
+    .def("ComputePositiveVolume", &MassConservationCheckProcess::ComputePositiveVolume)
+    .def("ComputeNegativeVolume", &MassConservationCheckProcess::ComputeNegativeVolume)
+    .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
+    .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
+    .def("ComputeBalancedVolume", &MassConservationCheckProcess::ComputeBalancedVolume)
+    .def("ComputeDtForConvection", &MassConservationCheckProcess::ComputeDtForConvection)
+    .def("ApplyLocalCorrection", &MassConservationCheckProcess::ApplyLocalCorrection)
+    .def("ApplyGlobalCorrection", &MassConservationCheckProcess::ApplyGlobalCorrection)
+    .def("ReCheckTheMassConservation", &MassConservationCheckProcess::ReCheckTheMassConservation)
+    .def("OrthogonalFlowIntoAir", &MassConservationCheckProcess::OrthogonalFlowIntoAir)
+    ;
 
 }
 
