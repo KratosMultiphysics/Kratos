@@ -9,7 +9,8 @@ from scipy.io import netcdf
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
 def GetFluidMesh(working_path, tau_path, step, para_path_mod):
-    interface_file_name_surface = findSolutionAndConvert(working_path, tau_path, step, para_path_mod)
+    ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
+    interface_file_name_surface = findSolutionAndConvert(working_path, step)
     interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
     NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = readPressure(interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
@@ -19,7 +20,8 @@ def GetFluidMesh(working_path, tau_path, step, para_path_mod):
     return nodal_coords, elem_connectivities, element_types
 
 def ComputeForces(working_path, tau_path, step, para_path_mod):
-    interface_file_name_surface = findSolutionAndConvert(working_path, tau_path, step, para_path_mod)
+    ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
+    interface_file_name_surface = findSolutionAndConvert(working_path, step)
     interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
     forces = caculatePressure(interface_file_name_surface, interface_file_number_of_lines, step)
@@ -28,7 +30,7 @@ def ComputeForces(working_path, tau_path, step, para_path_mod):
 def ExecuteBeforeMeshDeformation(dispTau,step,para_path_mod,working_path,tau_path):
     global dispTauOld
     print "deformationstart"
-    interface_file_name_surface = findSolutionAndConvert(working_path, tau_path, step, para_path_mod)
+    interface_file_name_surface = findSolutionAndConvert(working_path, step)
     interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
 
@@ -69,22 +71,20 @@ def FindMeshFile(working_path, step):
         return FindFileName(mesh_path, pattern, step)
 
 
+def ConvertOutputToDat(working_path, tau_path, step, para_path_mod):
+    PrintBlockHeader("Start Writting Solution Data at time %s" % (str(time)))
+    subprocess.call('rm ' + working_path + '/Tautoplt.cntl', shell=True)
+    tautoplt_file_name = WriteTautoplt(working_path, step, para_path_mod)
+    command = tau_path + 'tau2plt ' + tautoplt_file_name
+    subprocess.call(command, shell=True)
+    PrintBlockHeader("Stop Writting Solution Data at time %s" % (str(time)))
+
+
 # find the solution file name in '/Outputs' and convert in .dat
-def findSolutionAndConvert(working_path, tau_path, step, para_path_mod):
+def findSolutionAndConvert(working_path, step):
     output_file_name = FindOutputFile(working_path, step)
-    mesh_file_name = FindMeshFile(working_path, step)
-
-    PrintBlockHeader("Start Writting Solution Data at time %s" %(str(time)))
-    subprocess.call('rm ' +  working_path + '/Tautoplt.cntl' ,shell=True)
-    readTautoplt(working_path + 'Tautoplt.cntl', working_path + 'Tautoplt_initial.cntl', mesh_file_name, output_file_name,working_path + para_path_mod)
-    subprocess.call(tau_path + 'tau2plt ' + working_path + '/Tautoplt.cntl' ,shell=True)
-    PrintBlockHeader("Stop Writting Solution Data at time %s" %(str(time)))
-
-    if 'surface' not in output_file_name + '.dat':
-        interface_file_name_surface = output_file_name[0:output_file_name.find('.pval')]+ '.surface.' + output_file_name[output_file_name.find('.pval')+1:len(output_file_name)]
-    else:
-        interface_file_name_surface = output_file_name
-
+    interface_file_name_surface = output_file_name[0:output_file_name.find(
+        '.pval')] + '.surface.' + output_file_name[output_file_name.find('.pval')+1:len(output_file_name)]
     return interface_file_name_surface
 
 
@@ -107,6 +107,35 @@ def FindFileName(path, name, step):
         if file.startswith('%s' % path + '%s' % name + '%s' % step):
             return file
     raise Exception('File: "{}" not found'.format(path + name))
+
+
+def WriteTautoplt(working_path, step, para_path_mod):
+    mesh_file_name = FindMeshFile(working_path, step)
+    parameter_file_name = working_path + para_path_mod
+    output_file_name = FindOutputFile(working_path, step)
+    tautoplt_file_name = working_path + 'Tautoplt.cntl'
+    tautoplt_file_writing = open(tautoplt_file_name, 'w')
+    tautoplt_file_reading = open(working_path + 'Tautoplt_initial.cntl', 'r+')
+    line = tautoplt_file_reading.readline()
+    while line:
+        if 'Primary grid filename:' in line:
+            line = 'Primary grid filename:' + mesh_file_name + ' \n'
+            tautoplt_file_writing.write(line)
+            line = tautoplt_file_reading.readline()
+        if 'Boundary mapping filename:' in line:
+            line = 'Boundary mapping filename:' + parameter_file_name + ' \n'
+            tautoplt_file_writing.write(line)
+            line = tautoplt_file_reading.readline()
+        if 'Restart-data prefix:' in line:
+            line = 'Restart-data prefix:' + output_file_name + ' \n'
+            tautoplt_file_writing.write(line)
+            line = tautoplt_file_reading.readline()
+        else:
+            line = tautoplt_file_reading.readline()
+            tautoplt_file_writing.write(line)
+    tautoplt_file_writing.close()
+    tautoplt_file_reading.close()
+    return tautoplt_file_name
 
 def findInterfaceFileNumberOfLines(fname):
     with open(fname,'r') as f:
@@ -136,32 +165,6 @@ def caculatePressure(interface_file_name_surface, interface_file_number_of_lines
     forcesTauNP = calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(step+1))
 
     return forcesTauNP
-
-def readTautoplt(fname_mod, fname_o, mesh_file_name, interface_file_name, para_path_mod):
-    fs = open(fname_o,'r+')
-    fd = open(fname_mod,'w')
-    line = fs.readline()
-    while line:
-        if 'Primary grid filename:' in line:
-            line = 'Primary grid filename:' + mesh_file_name + ' \n'
-            fd.write(line)
-            print line
-            line = fs.readline()
-        if 'Boundary mapping filename:' in line:
-            line = 'Boundary mapping filename:' + para_path_mod + ' \n'
-            fd.write(line)
-            print line
-            line = fs.readline()
-        if 'Restart-data prefix:' in line:
-            line = 'Restart-data prefix:' + interface_file_name + ' \n'
-            fd.write(line)
-            print line
-            line = fs.readline()
-        else:
-            line = fs.readline()
-            fd.write(line)
-    fd.close()
-    fs.close()
 
 
 # Read Cp from the solution file and calculate 'Pressure' on the nodes of TAU Mesh
