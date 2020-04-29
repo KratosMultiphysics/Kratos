@@ -56,6 +56,12 @@ public:
     using ConditionType = ModelPart::ConditionType;
     using ConditionGeometryType = ModelPart::ConditionType::GeometryType;
 
+    enum RegionTypes
+    {
+        ASSUMES_BOTH_REGIONS,
+        ASSUMES_LOG_REGION_ONLY
+    };
+
     /// Pointer definition of RansNutYPlusWallFunctionUpdateProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansNutYPlusWallFunctionUpdateProcess);
 
@@ -69,9 +75,15 @@ public:
 
     RansNutYPlusWallFunctionUpdateProcess(Model& rModel,
                                           const std::string& rModelPartName,
-                                          const double Cmu,
                                           const double VonKarman,
-                                          const double Beta,
+                                          const double MinValue,
+                                          const int EchoLevel);
+
+    RansNutYPlusWallFunctionUpdateProcess(Model& rModel,
+                                          const std::string& rModelPartName,
+                                          const double VonKarman,
+                                          const double BetaZero,
+                                          const double C1,
                                           const double MinValue,
                                           const int EchoLevel);
 
@@ -161,12 +173,13 @@ private:
 
     Model& mrModel;
     std::string mModelPartName;
-    double mCmu;
     double mVonKarman;
-    double mBeta;
+    double mBetaZero;
+    double mC1;
     double mMinValue;
     int mEchoLevel;
     bool mIsInitialized = false;
+    RegionTypes mRegionType;
 
     ///@}
     ///@name Private Operators

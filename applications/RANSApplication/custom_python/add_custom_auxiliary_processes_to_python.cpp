@@ -158,6 +158,7 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     py::class_<RansNutYPlusWallFunctionUpdateProcessType, RansNutYPlusWallFunctionUpdateProcessType::Pointer, Process>(
         m, "RansNutYPlusWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const int>())
         .def(py::init<Model&, const std::string&, const double, const double, const double, const double, const int>());
 
     using RansNutKEpsilonHighReCalculationProcessType = RansNutKEpsilonHighReCalculationProcess;
