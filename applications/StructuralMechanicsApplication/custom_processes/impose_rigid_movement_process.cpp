@@ -112,7 +112,7 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     const auto it_node_begin = r_nodes_array.begin();
 
     // List of variables
-    const SizeType number_of_double_variables = master_list_variables.size();
+    const SizeType number_of_variables = master_list_variables.size();
 
     // We get the relation and constant
     const double relation = mThisParameters["relation"].GetDouble();
@@ -131,8 +131,8 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
         for (int i = 0; i < number_of_nodes; ++i) {
             auto it_node = it_node_begin + i;
             if (it_node->Id() != p_master_node->Id()) {
-                for (IndexType i_var = 0; i_var < number_of_double_variables; ++i_var) {
-                    auto p_constraint = r_clone_constraint.Create(constraint_id + (i * number_of_double_variables + i_var) + 1, *p_master_node, *master_list_variables[i_var], *it_node, *slave_list_variables[i_var], relation, constant);
+                for (IndexType i_var = 0; i_var < number_of_variables; ++i_var) {
+                    auto p_constraint = r_clone_constraint.Create(constraint_id + (i * number_of_variables + i_var) + 1, *p_master_node, *master_list_variables[i_var], *it_node, *slave_list_variables[i_var], relation, constant);
                     (constraints_buffer).insert((constraints_buffer).begin(), p_constraint);
                 }
             }
