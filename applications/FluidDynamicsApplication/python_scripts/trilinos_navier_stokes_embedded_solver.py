@@ -144,11 +144,13 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
     def _CreateConvergenceCriterion(self):
-        convergence_criterion =  KratosTrilinos.TrilinosUPCriteria(
+        convergence_criterion = KratosTrilinos.TrilinosMixedVectorScalarCriteria(
             self.settings["relative_velocity_tolerance"].GetDouble(),
             self.settings["absolute_velocity_tolerance"].GetDouble(),
             self.settings["relative_pressure_tolerance"].GetDouble(),
-            self.settings["absolute_pressure_tolerance"].GetDouble())
+            self.settings["absolute_pressure_tolerance"].GetDouble(),
+            KratosMultiphysics.VELOCITY,
+            KratosMultiphysics.PRESSURE
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
