@@ -20,7 +20,8 @@ def GetFluidMesh(working_path, tau_path, step, para_path_mod):
     return nodal_coords, elem_connectivities, element_types
 
 def ComputeForces(working_path, tau_path, step, para_path_mod):
-    ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
+    if step > 0:
+        ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
     interface_file_name = FindInterfaceFile(working_path, step)
     interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name)
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
