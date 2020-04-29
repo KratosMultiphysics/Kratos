@@ -8,16 +8,22 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
     def __init__(self, model, project_parameters):
         super(DEMAnalysisStage2DSpRigidFem, self).__init__(model, project_parameters)
 
+        sp_project_parameters_file_name = "sp_2d_rigid_fem_parameters.json"
+
+        with open(sp_project_parameters_file_name,'r') as parameters_file:
+            sp_project_parameters = KratosMultiphysics.Parameters(parameters_file.read())
+
         # TEST NUMBER:
         # 1. CTW16, 2. CTW10, 3. CTW13, 4. CTW12, 5.Blind
-        self.test_number = project_parameters["test_number"].GetInt()
-        self.gmesh_with_inner_skin = project_parameters["gmesh_with_inner_skin"].GetBool()
-        self.compute_skin_factor = project_parameters["compute_skin_factor"].GetDouble()
-        self.inner_mesh_diameter = project_parameters["inner_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the finer mesh)
-        self.outer_mesh_diameter = project_parameters["outer_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the coarser mesh)
+        self.test_number = sp_project_parameters["test_number"].GetInt()
+        self.inner_mesh_diameter = sp_project_parameters["inner_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the finer mesh)
+        self.outer_mesh_diameter = sp_project_parameters["outer_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the coarser mesh)
         # The two values that follow may depend on the GiD mesh used. The higher the value, the more skin particles
-        self.inner_skin_factor = project_parameters["inner_skin_factor"].GetDouble() # 2.4
-        self.outer_skin_factor = project_parameters["outer_skin_factor"].GetDouble() # 0.8
+        self.inner_skin_factor = sp_project_parameters["inner_skin_factor"].GetDouble() # 2.4
+        self.outer_skin_factor = sp_project_parameters["outer_skin_factor"].GetDouble() # 0.8
+        self.use_gid_skin_mesh = sp_project_parameters["use_gid_skin_mesh"].GetBool()
+
+        self.automatic_skin_computation = project_parameters["AutomaticSkinComputation"].GetBool()
 
     def Initialize(self):
         super(DEMAnalysisStage2DSpRigidFem, self).Initialize()
@@ -64,9 +70,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
         self.PreUtilities.ResetSkinParticles(self.spheres_model_part)
 
-        if self.gmesh_with_inner_skin:
-            self.PreUtilities.ComputeSkinIncludingInnerVoids(self.spheres_model_part, self.compute_skin_factor)
-        else:
+        if not self.automatic_skin_computation and not self.use_gid_skin_mesh:
             self.PreUtilities.SetSkinParticlesInnerBoundary(self.spheres_model_part, self.inner_radius, self.inner_skin_factor * 0.5 * self.inner_mesh_diameter)
             if self.test_number < 5: # CTWs
                 self.PreUtilities.SetSkinParticlesOuterBoundary(self.spheres_model_part, self.outer_radius, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
