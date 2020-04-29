@@ -113,7 +113,6 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
 
     // List of variables
     const SizeType number_of_double_variables = master_list_variables.size();
-    const SizeType number_of_components_variables = master_list_variables.size();
 
     // We get the relation and constant
     const double relation = mThisParameters["relation"].GetDouble();
