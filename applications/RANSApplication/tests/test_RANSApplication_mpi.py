@@ -46,12 +46,15 @@ def AssembleTestSuites():
     nightlyMPISuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlowMPI')))
     nightlyMPISuite.addTest((FractionalStepVelocityPressureFormulationTest('testFractionalStepVelocityPressureMPI')))
     nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureMPI')))
+    ## fractional step tests
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcTkeRhsMPI')))
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcTkeRhsMPI')))
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcVelocityRhsMPI')))
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcTkeRhsMPI')))
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcTkeRhsMPI')))
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcVelocityRhsMPI')))
+
+    ### monolithic tests
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeRhsMPI')))
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeRhsMPI')))
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocityRhsMPI')))
