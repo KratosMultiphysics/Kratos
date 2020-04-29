@@ -1,5 +1,5 @@
-#if !defined(KRATOS_MEMBRANE_ELEMENT_H_INCLUDED )
-#define  KRATOS_MEMBRANE_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_IGA_MEMBRANE_ELEMENT_H_INCLUDED )
+#define  KRATOS_IGA_MEMBRANE_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -19,9 +19,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** Kirchhoff Membrane. 
+/** Kirchhoff IGA Membrane. 
 */
-class MembraneElement
+class IgaMembraneElement
     : public Element
 {
 protected:
@@ -117,8 +117,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MembraneElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MembraneElement);
+    /// Counted pointer of IgaMembraneElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IgaMembraneElement);
 
     /// Size types
     typedef std::size_t SizeType;
@@ -132,14 +132,14 @@ public:
     ///@{
 
     /// Constructor using an array of nodes
-    MembraneElement(
+    IgaMembraneElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {};
 
     /// Constructor using an array of nodes with properties
-    MembraneElement(
+    IgaMembraneElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -147,12 +147,12 @@ public:
     {};
 
     /// Default constructor necessary for serialization
-    MembraneElement()
+    IgaMembraneElement()
         : Element()
     {};
 
     /// Destructor.
-    virtual ~MembraneElement() = default;
+    virtual ~IgaMembraneElement() = default;
 
     ///@}
     ///@name Life Cycle
@@ -165,7 +165,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<MembraneElement>(
+        return Kratos::make_intrusive<IgaMembraneElement>(
             NewId, pGeom, pProperties);
     };
 
@@ -176,7 +176,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive< MembraneElement >(
+        return Kratos::make_intrusive< IgaMembraneElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -327,14 +327,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Kirchhoff MembraneElement #" << Id();
+        buffer << "Kirchhoff IgaMembraneElement #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Kirchhoff MembraneElement #" << Id();
+        rOStream << "Kirchhoff IgaMembraneElement #" << Id();
     }
 
     /// Print object's data.
@@ -470,9 +470,9 @@ private:
 
     ///@}
 
-};     // Class MembraneElement
+};     // Class IgaMembraneElement
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MEMBRANE_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_IGA_MEMBRANE_ELEMENT_H_INCLUDED  defined

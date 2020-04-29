@@ -20,7 +20,7 @@
 // Project includes
 
 // Application includes
-#include "custom_elements/membrane_element.h"
+#include "custom_elements/iga_membrane_element.h"
 
 
 
@@ -29,7 +29,7 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void MembraneElement::Initialize()
+    void IgaMembraneElement::Initialize()
     {
         KRATOS_TRY
 
@@ -66,7 +66,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void MembraneElement::InitializeMaterial()
+    void IgaMembraneElement::InitializeMaterial()
     {
         KRATOS_TRY
 
@@ -93,7 +93,7 @@ namespace Kratos
     ///@name Assembly
     ///@{
 
-    void MembraneElement::CalculateAll(
+    void IgaMembraneElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -193,7 +193,7 @@ namespace Kratos
     ///@name Kinematics
     ///@{
 
-    void MembraneElement::CalculateKinematics(
+    void IgaMembraneElement::CalculateKinematics(
         IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables
     )
@@ -228,7 +228,7 @@ namespace Kratos
     *
     *  The transformation from ε_12_cu to 2*ε_12_ca is included in T.
     */
-    void MembraneElement::CalculateTransformation(
+    void IgaMembraneElement::CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
         Matrix& rT
     )
@@ -279,7 +279,7 @@ namespace Kratos
         rT(2, 2) = 2 * (G(0, 0) * G(1, 1) + G(0, 1) * G(1, 0));
     }
 
-    void MembraneElement::CalculateConstitutiveVariables(
+    void IgaMembraneElement::CalculateConstitutiveVariables(
         IndexType IntegrationPointIndex,
         KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
@@ -306,7 +306,7 @@ namespace Kratos
             trans(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix), rThisConstitutiveVariablesMembrane.StrainVector);
    }
 
-    void MembraneElement::CalculateBMembrane(
+    void IgaMembraneElement::CalculateBMembrane(
         IndexType IntegrationPointIndex,
         Matrix& rB,
         const KinematicVariables& rActualKinematic)
@@ -338,7 +338,7 @@ namespace Kratos
         }
     }
 
-    void MembraneElement::CalculateSecondVariationStrain(
+    void IgaMembraneElement::CalculateSecondVariationStrain(
         IndexType IntegrationPointIndex,
         SecondVariations& rSecondVariationsStrain,
         const KinematicVariables& rActualKinematic)
@@ -380,7 +380,7 @@ namespace Kratos
     }
 
     //Prestress Transformation Matrix
-    void MembraneElement::CalculateTransformationmatrixPrestress(
+    void IgaMembraneElement::CalculateTransformationmatrixPrestress(
         const KinematicVariables& rActualKinematic,
         PrestresstransVariables& rPrestresstransVariables
     )
@@ -447,7 +447,7 @@ namespace Kratos
     ///@name Stiffness matrix assembly
     ///@{
 
-    inline void MembraneElement::CalculateAndAddKm(
+    inline void IgaMembraneElement::CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& rB,
         const Matrix& rD,
@@ -457,7 +457,7 @@ namespace Kratos
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(rB), Matrix(prod(rD, rB)));
     }
 
-    inline void MembraneElement::CalculateAndAddNonlinearKm(
+    inline void IgaMembraneElement::CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
@@ -485,7 +485,7 @@ namespace Kratos
     ///@name Dynamic Functions
     ///@{
 
-    void MembraneElement::GetValuesVector(
+    void IgaMembraneElement::GetValuesVector(
         Vector& rValues,
         int Step)
     {
@@ -506,7 +506,7 @@ namespace Kratos
         }
     }
 
-    void MembraneElement::GetFirstDerivativesVector(
+    void IgaMembraneElement::GetFirstDerivativesVector(
         Vector& rValues,
         int Step)
     {
@@ -526,7 +526,7 @@ namespace Kratos
         }
     }
 
-    void MembraneElement::GetSecondDerivativesVector(
+    void IgaMembraneElement::GetSecondDerivativesVector(
         Vector& rValues,
         int Step)
     {
@@ -546,7 +546,7 @@ namespace Kratos
         }
     }
 
-    void MembraneElement::EquationIdVector(
+    void IgaMembraneElement::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
     )
@@ -570,7 +570,7 @@ namespace Kratos
         KRATOS_CATCH("")
     };
 
-    void MembraneElement::GetDofList(
+    void IgaMembraneElement::GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo
     )
@@ -595,7 +595,7 @@ namespace Kratos
     ///@name Check
     ///@{
 
-    int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int IgaMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
@@ -617,7 +617,7 @@ namespace Kratos
         return 0;
     }
 
-    void MembraneElement::CalculateHessian(
+    void IgaMembraneElement::CalculateHessian(
         Matrix& Hessian,
         const Matrix& rDDN_DDe)
     {
@@ -647,7 +647,7 @@ namespace Kratos
     ///@}
 
     //...will be used later for postprocessing...
-    void MembraneElement::CalculatePresstressTensor(
+    void IgaMembraneElement::CalculatePresstressTensor(
         Vector& rPrestressTensor,
         KinematicVariables& rActualKinematic
     )
@@ -667,5 +667,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-
