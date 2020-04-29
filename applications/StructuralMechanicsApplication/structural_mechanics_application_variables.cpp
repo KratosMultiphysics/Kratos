@@ -320,6 +320,6 @@ KRATOS_CREATE_VARIABLE(bool, IMPOSED_Z_STRAIN_OPTION)
 // For anisotropy + orthotrophy
 // The ratios between the yield strength in the isotropic space and the anisotropic space
 // at each direction in local coordinates ratio_x = ft / ft,x 
-KRATOS_CREATE_VARIABLE( Vector, ISOTROPIC_ANISOTROPIC_YIELD_RATIO );
+KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS( ISOTROPIC_ANISOTROPIC_YIELD_RATIO );
 
 }

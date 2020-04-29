@@ -526,8 +526,8 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // For anisotropy + orthotrophy
     // The ratios between the yield strength in the isotropic space and the anisotropic space
-    // at each direction in local coordinates ratio_x = ft / ft,x 
-    KRATOS_REGISTER_VARIABLE( ISOTROPIC_ANISOTROPIC_YIELD_RATIO );
+    // at each direction in local coordinates ratio
+    KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(ISOTROPIC_ANISOTROPIC_YIELD_RATIO);
 
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)

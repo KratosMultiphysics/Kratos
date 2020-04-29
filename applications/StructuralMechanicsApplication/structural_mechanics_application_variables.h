@@ -345,7 +345,7 @@ namespace Kratos
     // For anisotropy + orthotrophy
     // The ratios between the yield strength in the isotropic space and the anisotropic space
     // at each direction in local coordinates ratio_x = ft / ft,x 
-    KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, Vector, ISOTROPIC_ANISOTROPIC_YIELD_RATIO );
+    KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(STRUCTURAL_MECHANICS_APPLICATION, ISOTROPIC_ANISOTROPIC_YIELD_RATIO );
 }
 
 #endif /* KRATOS_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */
