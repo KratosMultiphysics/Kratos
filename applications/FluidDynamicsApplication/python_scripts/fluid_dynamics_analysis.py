@@ -71,8 +71,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         return ["gravity",
                 "initial_conditions_process_list",
                 "boundary_conditions_process_list",
-                "auxiliar_process_list",
-                "mesh_adaptivity_processes"]
+                "auxiliar_process_list"]
 
     def _GetSimulationName(self):
         return "Fluid Dynamics Analysis"
