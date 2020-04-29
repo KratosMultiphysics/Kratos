@@ -21,6 +21,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBoss
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetBoundaryFlags
 
 class KEpsilonHighReKFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -35,7 +36,8 @@ class KEpsilonHighReKFormulation(Formulation):
             "echo_level"            : 2,
             "linear_solver_settings": {
                 "solver_type"  : "amgcl"
-            }
+            },
+            "boundary_flags": ["INLET", "STRUCTURE"]
         }""")
 
         self.settings.ValidateAndAssignDefaults(defaults)
@@ -136,7 +138,10 @@ class KEpsilonHighReKFormulation(Formulation):
     def SetStabilizationMethod(self, stabilization_method):
         if (stabilization_method == "algebraic_flux_corrected"):
             self.element_name = "RansEvmKEpsilonKAFC"
-            self.scheme_type = lambda x: CreateSteadyAlgeraicFluxCorrectedTransportScheme(x, self.IsPeriodic())
+            self.scheme_type = lambda x: CreateSteadyAlgeraicFluxCorrectedTransportScheme(
+                                                    x,
+                                                    GetBoundaryFlags(self.settings["boundary_flags"]),
+                                                    self.IsPeriodic())
         elif (stabilization_method == "residual_based_flux_corrected"):
             self.element_name = "RansEvmKEpsilonKResidualBasedFC"
             self.scheme_type = CreateSteadyScalarScheme

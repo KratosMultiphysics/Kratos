@@ -74,11 +74,11 @@ def CreateIncremantalUpdateScheme():
 def CreateSteadyScalarScheme(relaxation_factor):
     return steady_scalar_scheme(relaxation_factor)
 
-def CreateSteadyAlgeraicFluxCorrectedTransportScheme(relaxation_factor, is_periodic):
+def CreateSteadyAlgeraicFluxCorrectedTransportScheme(relaxation_factor, boundary_flags, is_periodic):
     if (is_periodic):
-        return afc_steady_scalar_scheme(relaxation_factor, KratosCFD.PATCH_INDEX)
+        return afc_steady_scalar_scheme(relaxation_factor, boundary_flags, KratosCFD.PATCH_INDEX)
     else:
-        return afc_steady_scalar_scheme(relaxation_factor)
+        return afc_steady_scalar_scheme(relaxation_factor, boundary_flags)
 
 def CreateBossakScalarScheme(bossak_value, relaxation_factor, scalar_variable,
                              scalar_rate_variable,
@@ -132,6 +132,16 @@ def GetConvergenceInfo(variable,
             absolute_error, absolute_tolerance)
     info += " ] - " + str(variable.Name())
     return info
+
+def GetBoundaryFlags(boundary_flags_parameters):
+    if (boundary_flags_parameters.size == 0):
+        raise Exception("No boundary flags were found")
+
+    flags = Kratos.KratosGlobals.GetFlag(boundary_flags_parameters[0].GetString())
+    for i in range(1, boundary_flags_parameters.size()):
+        flags |= Kratos.KratosGlobals.GetFlag(boundary_flags_parameters[i].GetString())
+
+    return (flags)
 
 def IsBufferInitialized(formulation):
     return (formulation.GetBaseModelPart().ProcessInfo[Kratos.STEP] + 1 >= formulation.GetMinimumBufferSize())
