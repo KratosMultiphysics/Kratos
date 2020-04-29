@@ -461,7 +461,7 @@ private:
         KRATOS_TRY
 
         const auto k = OpenMPUtils::ThisThread();
-        const int size = rRHS.size();
+        const auto size = rRHS.size();
 
         LocalSystemMatrixType& r_anti_diffusive_flux_coefficients =
             mAntiDiffusiveFluxCoefficients[k];
@@ -478,13 +478,13 @@ private:
         noalias(r_anti_diffusive_flux_coefficients) = ZeroMatrix(size, size);
         noalias(r_anti_diffusive_flux) = ZeroMatrix(size, size);
 
-        for (int i = 0; i < size; ++i)
+        for (IndexType i = 0; i < size; ++i)
         {
             const ModelPart::NodeType& r_node_i = rItem.GetGeometry()[i];
             double r_plus_i{0.0}, r_minus_i{0.0};
             CalculateAntiDiffusiveFluxR(r_plus_i, r_minus_i, r_node_i);
 
-            for (int j = 0; j < size; ++j)
+            for (IndexType j = 0; j < size; ++j)
             {
                 if (i != j)
                 {
@@ -512,9 +512,9 @@ private:
             }
         }
 
-        for (int i = 0; i < size; ++i)
+        for (IndexType i = 0; i < size; ++i)
         {
-            for (int j = 0; j < size; ++j)
+            for (IndexType j = 0; j < size; ++j)
             {
                 rRHS[i] += r_anti_diffusive_flux_coefficients(i, j) *
                            r_anti_diffusive_flux(i, j);
