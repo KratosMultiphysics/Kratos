@@ -175,7 +175,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         particle_solution_strategy_1 = self._GetSolutionStrategy(1)
         particle_solution_strategy_1.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        particle_solution_strategy_1 = self._GetSolutionStrategy(2)
+        particle_solution_strategy_2 = self._GetSolutionStrategy(2)
         particle_solution_strategy_2.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Generate material points

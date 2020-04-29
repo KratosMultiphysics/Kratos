@@ -253,7 +253,7 @@ namespace Kratos
         if (mGamma[domainIndex] == 1.0) // explicit
         {
             // We don't need to use the stiffness matrix. Just assemble the mass matrix from the nodes
-            SizeType number_of_active_nodes;
+            SizeType number_of_active_nodes = 0;
             GetNumberOfActiveModelPartNodes(rModelPart, number_of_active_nodes);
             const IndexType working_space_dim = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
@@ -305,7 +305,7 @@ namespace Kratos
 
 
     void MPMTemporalCouplingUtility::ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& rLinkAccel,
-        const double timeStep, const bool correctInterface = true)
+        const double timeStep, const bool correctInterface)
     {
         std::cout << "CHECK ApplyCorrectionImplicit" << std::endl;
 
@@ -344,7 +344,7 @@ namespace Kratos
 
 
     void MPMTemporalCouplingUtility::ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& rLinkAccel,
-        const double timeStep, const bool correctInterface = true)
+        const double timeStep, const bool correctInterface)
     {
         KRATOS_ERROR << "EXPLICIT NOT YET IMPLEMENTED" << std::endl;
         const SizeType working_space_dimension = rModelPart.ElementsBegin()->WorkingSpaceDimension();

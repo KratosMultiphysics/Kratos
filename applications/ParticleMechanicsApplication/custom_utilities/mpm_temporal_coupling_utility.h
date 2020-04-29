@@ -46,8 +46,6 @@ public:
         :mrModelPartSubDomain1(rModelPartSubDomain1), mrModelPartSubDomain2(rModelPartSubDomain2),
         mTimeStepRatio(TimeStepRatio), mSmallTimestep(SmallTimestep), mGamma(Gamma)
     {
-        //testsadfasdf
-        int testasdft = 1;
         mJ = 1;
     }
 
@@ -72,10 +70,10 @@ protected:
 
     void ComputeLamda(const Matrix& rH, const Vector& rb, Vector& rLamda);
 
-    void ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& link_accel_1, 
+    void ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& link_accel, 
         const double timeStep, const bool correctInterface = true);
 
-    void ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& link_accel_1,
+    void ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& link_accel,
         const double timeStep, const bool correctInterface = true);
 
     void GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, SizeType activeNodes);
