@@ -16,6 +16,11 @@ from evm_k_epsilon_tests import EvmKEpsilonTest
 from custom_process_tests import CustomProcessTest
 from adjoint_k_epsilon_sensitivity_2d import AdjointKEpsilonSensitivity2D
 import run_cpp_unit_tests
+from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
+from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
+from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
+from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKEpsilonHighReTest
+from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
 
 
 def AssembleTestSuites():
@@ -58,6 +63,27 @@ def AssembleTestSuites():
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteady'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
 
+    # incompressible potential flow tests
+    nightSuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlow')))
+
+    # monolithic tests
+    nightSuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressure')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeLhs')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeRhs')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocityRhs')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeLhs')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeRhs')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocityRhs')))
+
+    # fractional step tests
+    nightSuite.addTest((FractionalStepVelocityPressureFormulationTest('testFractionalStepVelocityPressure')))
+    nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcTkeLhs')))
+    nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcTkeRhs')))
+    nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcVelocityRhs')))
+    nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcTkeLhs')))
+    nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcTkeRhs')))
+    nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcVelocityRhs')))
+
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
 
@@ -83,7 +109,7 @@ if __name__ == '__main__':
             ["mpiexec", "-np", "2", "python3", "test_RANSApplication_mpi.py"],
             stdout=subprocess.PIPE,
             cwd=os.path.dirname(os.path.abspath(__file__)))
-        p.wait()
+        p.communicate()
         KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
     else:
         KratosMultiphysics.Logger.PrintInfo("Unittests", "\nSkipping mpi python tests due to missing dependencies")
