@@ -13,6 +13,7 @@
 #include "transonic_perturbation_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/kratos_flags.h"
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 #include "utilities/geometry_utilities.h"
@@ -22,6 +23,22 @@ namespace Kratos
 {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+
+    // check if inlet element
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+    const auto inlet = r_this.Is(INLET);
+
+    // assign upwind element to non-inlet element
+    if (inlet == 0) // not an inlet element
+    {
+        FindUpwindElement(rCurrentProcessInfo);
+    }
+
+}
+
 
 template <int TDim, int TNumNodes>
 Element::Pointer TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Create(
@@ -917,6 +934,95 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputePotentia
             GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / v_infinity_norm * (potential_jump));
         }
     }
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindElement(const ProcessInfo& rCurrentProcessInfo)
+{
+    // free stream values
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    // current element geometry
+    const GeometryType& rGeom = this->GetGeometry();
+
+    // make clockwise element edge vectors
+    array_1d<double, 3> first_edge(3, 0.0);
+    array_1d<double, 3> second_edge(3, 0.0);
+    array_1d<double, 3> third_edge(3, 0.0);
+
+    first_edge[0] = rGeom[0].X() - rGeom[1].X();
+    first_edge[1] = rGeom[0].Y() - rGeom[1].Y();
+
+    second_edge[0] = rGeom[1].X() - rGeom[2].X();
+    second_edge[1] = rGeom[1].Y() - rGeom[2].Y();
+
+    third_edge[0] = rGeom[2].X() - rGeom[0].X();
+    third_edge[1] = rGeom[2].Y() - rGeom[0].Y();
+
+    // find three inward pointing normal vectors of element edges
+    array_1d<double, 3> z_vector(3, 0.0);
+    z_vector[2] = 1.0;
+
+    array_1d<double, 3> first_edge_normal;
+    array_1d<double, 3> second_edge_normal;
+    array_1d<double, 3> third_edge_normal;
+
+    MathUtils<double>::CrossProduct(first_edge_normal, first_edge, z_vector);
+    MathUtils<double>::CrossProduct(second_edge_normal, second_edge, z_vector);
+    MathUtils<double>::CrossProduct(third_edge_normal, third_edge, z_vector);
+
+    // find component of normal vector in direction of free stream velocity
+    const double free_stream_velocity_norm = MathUtils<double>::Norm3(free_stream_velocity);
+
+    const double first_edge_normal_fs_comp  = inner_prod(first_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
+    const double second_edge_normal_fs_comp = inner_prod(second_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
+    const double third_edge_normal_fs_comp  = inner_prod(third_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
+
+    // get node IDs of upwind element
+    int upwind_element_one_node_id = 0;
+    int upwind_element_two_node_id = 0;
+
+    // vector between points 0 and 1 has biggest streamwise component
+    if(first_edge_normal_fs_comp > second_edge_normal_fs_comp && first_edge_normal_fs_comp > third_edge_normal_fs_comp)
+    {
+        upwind_element_one_node_id = 0;
+        upwind_element_two_node_id = 1;
+    }
+    // vector between points 1 and 2 has biggest streamwise component
+    else if(second_edge_normal_fs_comp > first_edge_normal_fs_comp && second_edge_normal_fs_comp > third_edge_normal_fs_comp)
+    {
+        upwind_element_one_node_id = 1;
+        upwind_element_two_node_id = 2;
+    }
+    // vector between points 0 and 2 has biggest streamwise component
+    else if(third_edge_normal_fs_comp > second_edge_normal_fs_comp && third_edge_normal_fs_comp > first_edge_normal_fs_comp)
+    {
+        upwind_element_one_node_id = 0;
+        upwind_element_two_node_id = 2;
+    }
+    else
+    {
+         KRATOS_WARNING("Transonic perturbation element: FindUpWindElement") <<
+        "no maximum streamwise component found" << std::endl;
+    }
+
+    // find elements attached to each node
+    const GlobalPointersVector<Element>& rNodeOneElementCandidates = rGeom[upwind_element_one_node_id].GetValue(NEIGHBOUR_ELEMENTS);
+    const GlobalPointersVector<Element>& rNodeTwoElementCandidates = rGeom[upwind_element_two_node_id].GetValue(NEIGHBOUR_ELEMENTS);
+
+    // find element which shares both nodes
+    for (SizeType i = 0; i < rNodeOneElementCandidates.size(); i++)
+    {
+        for (SizeType j = 0; j < rNodeTwoElementCandidates.size(); j++)
+        {
+            if(rNodeOneElementCandidates(i)->GetId() == rNodeTwoElementCandidates(j)->GetId())
+            {
+                mpUpwindElement = rNodeOneElementCandidates(i);
+                break;
+            }
+        }
+    }
+
 }
 
 template <int TDim, int TNumNodes>

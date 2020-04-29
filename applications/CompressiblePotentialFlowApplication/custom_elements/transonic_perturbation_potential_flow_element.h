@@ -138,6 +138,8 @@ public:
     ///@name Operations
     ///@{
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
@@ -211,6 +213,12 @@ protected:
                                     const ProcessInfo& rCurrentProcessInfo) const;
 
 private:
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    GlobalPointer<Element> mpUpwindElement;
+
     ///@name Private Operators
     ///@{
 
@@ -279,6 +287,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Serialization
