@@ -14,20 +14,17 @@
 #if !defined(KRATOS_GENERIC_RESIDUALBASED_SIMPLE_STEADY_SCALAR_SCHEME)
 #define KRATOS_GENERIC_RESIDUALBASED_SIMPLE_STEADY_SCALAR_SCHEME
 
+// System includes
+#include <vector>
+
 // Project includes
-#include "containers/array_1d.h"
-#include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/variables.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/openmp_utils.h"
 
-// debugging
-#include "input_output/vtk_output.h"
-
+// Application includes
 #include "custom_strategies/relaxed_dof_updater.h"
 
 namespace Kratos
@@ -57,14 +54,12 @@ public:
 
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    using GeometryType = Element::GeometryType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     GenericResidualBasedSimpleSteadyScalarScheme(const double RelaxationFactor)
-        : mRelaxationFactor(RelaxationFactor)
+        : BaseType(), mRelaxationFactor(RelaxationFactor)
     {
         KRATOS_INFO("GenericResidualBasedSimpleSteadyScalarScheme")
             << " Using residual based simple steady scheme with relaxation "
@@ -78,13 +73,17 @@ public:
     ///@name Operators
     ///@{
 
-    void InitializeSolutionStep(ModelPart& r_model_part,
-                                TSystemMatrixType& A,
-                                TSystemVectorType& Dx,
-                                TSystemVectorType& b) override
+    void Initialize(ModelPart& rModelPart) override
     {
-        BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
-        mIterationCounter = 0;
+        KRATOS_TRY
+
+        BaseType::Initialize(rModelPart);
+
+        // Allocate auxiliary memory.
+        const auto num_threads = OpenMPUtils::GetNumThreads();
+        mAuxMatrix.resize(num_threads);
+
+        KRATOS_CATCH("");
     }
 
     void Update(ModelPart& rModelPart,
@@ -113,17 +112,18 @@ public:
     {
         KRATOS_TRY;
 
+        const auto k = OpenMPUtils::ThisThread();
+
         rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
         rCurrentElement->CalculateLocalSystem(
             LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        Matrix SteadyLHS;
         rCurrentElement->CalculateLocalVelocityContribution(
-            SteadyLHS, RHS_Contribution, CurrentProcessInfo);
+            mAuxMatrix[k], RHS_Contribution, CurrentProcessInfo);
         rCurrentElement->EquationIdVector(EquationId, CurrentProcessInfo);
 
-        if (SteadyLHS.size1() != 0)
-            noalias(LHS_Contribution) += SteadyLHS;
+        if (mAuxMatrix[k].size1() != 0)
+            noalias(LHS_Contribution) += mAuxMatrix[k];
 
         KRATOS_CATCH("");
     }
@@ -136,17 +136,18 @@ public:
     {
         KRATOS_TRY;
 
+        const auto k = OpenMPUtils::ThisThread();
+
         rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
         rCurrentCondition->CalculateLocalSystem(
             LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        Matrix SteadyLHS;
         rCurrentCondition->CalculateLocalVelocityContribution(
-            SteadyLHS, RHS_Contribution, CurrentProcessInfo);
+            mAuxMatrix[k], RHS_Contribution, CurrentProcessInfo);
         rCurrentCondition->EquationIdVector(EquationId, CurrentProcessInfo);
 
-        if (SteadyLHS.size1() != 0)
-            noalias(LHS_Contribution) += SteadyLHS;
+        if (mAuxMatrix[k].size1() != 0)
+            noalias(LHS_Contribution) += mAuxMatrix[k];
 
         KRATOS_CATCH("");
     }
@@ -158,8 +159,8 @@ public:
     {
         KRATOS_TRY;
 
-        Matrix LHS_Contribution;
-        CalculateSystemContributions(rCurrentElement, LHS_Contribution, rRHS_Contribution,
+        const auto k = OpenMPUtils::ThisThread();
+        CalculateSystemContributions(rCurrentElement, mAuxMatrix[k], rRHS_Contribution,
                                      rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
@@ -172,10 +173,9 @@ public:
     {
         KRATOS_TRY;
 
-        Matrix LHS_Contribution;
-        Condition_CalculateSystemContributions(rCurrentCondition, LHS_Contribution,
-                                               rRHS_Contribution, rEquationId,
-                                               rCurrentProcessInfo);
+        const auto k = OpenMPUtils::ThisThread();
+        Condition_CalculateSystemContributions(rCurrentCondition, mAuxMatrix[k], rRHS_Contribution,
+                                               rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -193,19 +193,13 @@ private:
     ///@{
 
     // TSystemVectorType mPreviousB;
-
-    double mPreviousRelaxationFactor;
-
-    unsigned int mIterationCounter = 0;
-
-    VtkOutput* mVtkOutput;
-
     using DofUpdaterType = RelaxedDofUpdater<TSparseSpace>;
     using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
 
     DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
 
     double mRelaxationFactor;
+    std::vector<LocalSystemMatrixType> mAuxMatrix;
 
     ///@}
 };
