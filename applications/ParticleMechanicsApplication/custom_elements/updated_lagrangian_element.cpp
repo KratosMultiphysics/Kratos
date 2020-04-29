@@ -123,6 +123,12 @@ void UpdatedLagrangianElement::CalculateAll(
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters constitutive_law_parameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions = constitutive_law_parameters.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
     KinematicVariables kinematic_variables(WorkingSpaceDimension(), GetGeometry().size());
 
     CalculateKinematics(kinematic_variables, rCurrentProcessInfo);
@@ -133,6 +139,8 @@ void UpdatedLagrangianElement::CalculateAll(
         constitutive_variables,
         constitutive_law_parameters,
         ConstitutiveLaw::StressMeasure_Cauchy);
+
+    mpConstitutiveLaw->CalculateMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
     double integration_weight = CalculateIntegrationWeight(kinematic_variables);
 
@@ -167,7 +175,7 @@ void UpdatedLagrangianElement::CalculateConstitutiveVariables(
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
-) const
+)
 {
     // Set element specific options
     rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
@@ -186,8 +194,6 @@ void UpdatedLagrangianElement::CalculateConstitutiveVariables(
 
     rValues.SetShapeFunctionsValues(row(GetGeometry().ShapeFunctionsValues(), 0));
     rValues.SetShapeFunctionsDerivatives(GetGeometry().ShapeFunctionDerivatives(1, 0));
-
-    mpConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
 }
 
 void UpdatedLagrangianElement::CalculateKinematics(
@@ -405,6 +411,11 @@ void UpdatedLagrangianElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters constitutive_law_parameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions = constitutive_law_parameters.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     // Compute element kinematics F, DN_DX ...
     this->CalculateKinematics(kinematic_variables, rCurrentProcessInfo);

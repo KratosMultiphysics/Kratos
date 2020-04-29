@@ -584,7 +584,7 @@ protected:
         KinematicVariables& rDeformationGradient,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure) const;
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure);
 
     ///@}
     ///@name Protected Constitutive Law
