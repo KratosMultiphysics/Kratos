@@ -19,17 +19,17 @@ para_path='airfoil_Structured.cntl'
 para_path_mod = para_path + ".mod"
 shutil.copy(para_path, para_path_mod)
 
-# Initialize Tau python classes and auxiliary variable this_step_out
+# Initialize Tau python classes and auxiliary variable step
 Para = PyPara.Parafile(para_path_mod)
 Prep = PyPrep.Preprocessing(para_path_mod)
 Solver = PySolv.Solver(para_path_mod)
 Deform = PyDeform.Deformation(para_path_mod)
-this_step_out = 0
+step = 0
 
 def AdvanceInTime(current_time):
     # Preprocessing needs to be done before getting the time and time step
     TauFunctions.PrintBlockHeader("Start Preprocessing at time %s" %(str(time)))
-    Prep.run(write_dualgrid=False,free_primgrid=False) 
+    Prep.run(write_dualgrid=False,free_primgrid=False)
     TauFunctions.PrintBlockHeader("Stop Preprocessing at time %s" %(str(time)))
     TauFunctions.PrintBlockHeader("Initialize Solver at time %s" %(str(time)))
     Solver.init(verbose = 1, reset_steps = True, n_time_steps = 1)
@@ -65,8 +65,8 @@ def FinalizeSolutionStep():
     tau_free_dualgrid()
     tau_free_prims()
     Para.free_parameters()
-    global this_step_out
-    this_step_out += 1
+    global step
+    step += 1
 
 def ImportData(conn_name, identifier):
     if tau_settings["echo_level"] > 0:
@@ -77,7 +77,7 @@ def ImportData(conn_name, identifier):
     if identifier == "Interface_disp":
         # Deform mesh
         if tau_mpi_rank() == 0:
-            TauFunctions.ExecuteBeforeMeshDeformation(data,this_step_out,para_path_mod,working_path,tau_path)
+            TauFunctions.ExecuteBeforeMeshDeformation(data,step,para_path_mod,working_path,tau_path)
         Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
@@ -89,7 +89,7 @@ def ExportData(conn_name, identifier):
         print "TAU SOLVER ExportData"
     # identifier is the data-name in json
     if identifier == "Interface_force":
-        data = TauFunctions.ComputeForces(working_path, tau_path, this_step_out, para_path_mod)
+        data = TauFunctions.ComputeForces(working_path, tau_path, step, para_path_mod)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -103,7 +103,7 @@ def ExportMesh(conn_name, identifier):
         print "TAU SOLVER ExportMesh"
     # identifier is the data-name in json
     if identifier == "Fluid.Interface":
-        nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, tau_path, this_step_out, para_path_mod)
+        nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, tau_path, step, para_path_mod)
     else:
         raise Exception(
             'TauSolver::ExportMesh::identifier "{}" not valid! Please use Fluid.Interface'.format(identifier))

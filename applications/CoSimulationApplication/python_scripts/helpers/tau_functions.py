@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-import re, glob, subprocess, time
+import re, glob, subprocess, time, os
 import numpy as np
-import tau_python 
+import tau_python
 from tau_python import tau_msg
 # import tau_python.tau_msg as tau_msg
 import PyPara, PySurfDeflect
 from scipy.io import netcdf
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
-def GetFluidMesh(working_path, tau_path, this_step_out, para_path_mod):
-    interface_file_name_surface = findSolutionAndConvert(working_path, tau_path, this_step_out, para_path_mod)
+def GetFluidMesh(working_path, tau_path, step, para_path_mod):
+    interface_file_name_surface = findSolutionAndConvert(working_path, tau_path, step, para_path_mod)
     interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
     NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = readPressure(interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
@@ -18,17 +18,17 @@ def GetFluidMesh(working_path, tau_path, this_step_out, para_path_mod):
     elem_connectivities -= 1
     return nodal_coords, elem_connectivities, element_types
 
-def ComputeForces(working_path, tau_path, this_step_out, para_path_mod):
-    interface_file_name_surface = findSolutionAndConvert(working_path, tau_path, this_step_out, para_path_mod)
+def ComputeForces(working_path, tau_path, step, para_path_mod):
+    interface_file_name_surface = findSolutionAndConvert(working_path, tau_path, step, para_path_mod)
     interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
-    forces = caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out)
+    forces = caculatePressure(interface_file_name_surface, interface_file_number_of_lines, step)
     return forces
 
-def ExecuteBeforeMeshDeformation(dispTau,this_step_out,para_path_mod,working_path,tau_path):
+def ExecuteBeforeMeshDeformation(dispTau,step,para_path_mod,working_path,tau_path):
     global dispTauOld
     print "deformationstart"
-    interface_file_name_surface = findSolutionAndConvert(working_path, tau_path, this_step_out, para_path_mod)
+    interface_file_name_surface = findSolutionAndConvert(working_path, tau_path, step, para_path_mod)
     interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
 
@@ -36,7 +36,7 @@ def ExecuteBeforeMeshDeformation(dispTau,this_step_out,para_path_mod,working_pat
 
     nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
 
-    if(this_step_out==0):
+    if(step==0):
         dispTauOld=np.zeros(3*NodesNr)
         dispTau_transpose = np.transpose(dispTau)
         print 'dispTau =', dispTau_transpose
@@ -50,70 +50,63 @@ def ExecuteBeforeMeshDeformation(dispTau,this_step_out,para_path_mod,working_pat
         dispTauOld[i]=dispTau[i]
     print "afterDeformation"
 
-# find the solution file name in '/Outputs' and convert in .dat 
-def findSolutionAndConvert(working_path, TAU_path, this_step_out, para_path_mod):
-    outputs_path =  working_path + "Outputs/"
-    list_of_interface_file_paths = glob.glob(outputs_path + "*") 
-    print "list_of_interface_file_path = ", list_of_interface_file_paths 
 
-    interface_file_name = findFileName(list_of_interface_file_paths, outputs_path, "airfoilSol.pval.unsteady_i=",this_step_out+1) 
-    print "interface_file_name = ", interface_file_name 
+def FindOutputFile(working_path, step):
+    outputs_path = working_path + "Outputs/"
+    CheckIfPathExists(outputs_path)
+    ouput_file_pattern = "airfoilSol.pval.unsteady_i="
+    return FindFileName(outputs_path, ouput_file_pattern, step + 1)
 
+
+def FindMeshFile(working_path, step):
     mesh_path = working_path + "Mesh/"
-    list_of_meshes = glob.glob(mesh_path+ "*") 
-    print "list_of_meshes = ", list_of_meshes 
-    print "this_step_out = ", this_step_out 
-    if this_step_out == 0:
-        mesh_iteration = findFileName0(list_of_meshes, mesh_path,'airfoil_Structured_scaliert.grid')
+    CheckIfPathExists(mesh_path)
+    if step == 0:
+        pattern = 'airfoil_Structured_scaliert.grid'
+        return FindInitialMeshFileName(mesh_path, pattern)
     else:
-        mesh_iteration = findFileName(list_of_meshes, mesh_path,'airfoil_Structured_scaliert.grid.def.', this_step_out)
-    print "mesh_iteration = ", mesh_iteration
+        pattern = 'airfoil_Structured_scaliert.grid.def.'
+        return FindFileName(mesh_path, pattern, step)
+
+
+# find the solution file name in '/Outputs' and convert in .dat
+def findSolutionAndConvert(working_path, tau_path, step, para_path_mod):
+    output_file_name = FindOutputFile(working_path, step)
+    mesh_file_name = FindMeshFile(working_path, step)
 
     PrintBlockHeader("Start Writting Solution Data at time %s" %(str(time)))
     subprocess.call('rm ' +  working_path + '/Tautoplt.cntl' ,shell=True)
-    readTautoplt(working_path + 'Tautoplt.cntl', working_path + 'Tautoplt_initial.cntl', mesh_iteration, interface_file_name,working_path + para_path_mod)
-    subprocess.call(TAU_path + 'tau2plt ' + working_path + '/Tautoplt.cntl' ,shell=True)
+    readTautoplt(working_path + 'Tautoplt.cntl', working_path + 'Tautoplt_initial.cntl', mesh_file_name, output_file_name,working_path + para_path_mod)
+    subprocess.call(tau_path + 'tau2plt ' + working_path + '/Tautoplt.cntl' ,shell=True)
     PrintBlockHeader("Stop Writting Solution Data at time %s" %(str(time)))
 
-    if interface_file_name + '.dat' not in glob.glob(outputs_path + "*"):
-        interface_file_name = interface_file_name[0:interface_file_name.find('+')]+ interface_file_name[interface_file_name.find('+')+1:len(interface_file_name)]
-    
-    if 'surface' not in interface_file_name + '.dat':
-        interface_file_name_surface = interface_file_name[0:interface_file_name.find('.pval')]+ '.surface.' + interface_file_name[interface_file_name.find('.pval')+1:len(interface_file_name)]
-    else: 
-        interface_file_name_surface = interface_file_name
+    if 'surface' not in output_file_name + '.dat':
+        interface_file_name_surface = output_file_name[0:output_file_name.find('.pval')]+ '.surface.' + output_file_name[output_file_name.find('.pval')+1:len(output_file_name)]
+    else:
+        interface_file_name_surface = output_file_name
 
     return interface_file_name_surface
 
-# read the solution file name in '/Outputs' and calculate the pressure
-def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, this_step_out):
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
 
-    nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
-  
-    # calculating cp at the center of each interface element    
-    pCell=calcpCell(ElemsNr,P,X,elemTable)
+def CheckIfPathExists(path):
+    if not os.path.exists(path):
+        raise Exception('Path: "{}" not found'.format(path))
 
-    # calculating element area and normal vector
-    area,normal = calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(this_step_out+1))
 
-    # calculating the force vector
-    forcesTauNP = calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(this_step_out+1))
-
-    return forcesTauNP
-
-def findFileName0(list_of_interface_file_paths,working_path,word): 
-    for file in list_of_interface_file_paths:
-        if file.startswith('%s'%working_path + '%s'%word): ####### i would like to make it general #######
-            print file
+def FindInitialMeshFileName(path, name):
+    files_list = glob.glob(path + "*")
+    for file in files_list:
+        if file.startswith('%s' % path + '%s' % name):
             return file
+    raise Exception('File: "{}" not found'.format(path + name))
 
-def findFileName(list_of_interface_file_paths,working_path,word,this_step_out): 
-    # this_step_out +=1
-    for file in list_of_interface_file_paths:
-        if file.startswith('%s'%working_path + '%s'%word + '%s'%this_step_out): ####### i would like to make it general #######
-            print file
+
+def FindFileName(path, name, step):
+    files_list = glob.glob(path + "*")
+    for file in files_list:
+        if file.startswith('%s' % path + '%s' % name + '%s' % step):
             return file
+    raise Exception('File: "{}" not found'.format(path + name))
 
 def findInterfaceFileNumberOfLines(fname):
     with open(fname,'r') as f:
@@ -127,19 +120,36 @@ def findInterfaceFileNumberOfLines(fname):
 def PrintBlockHeader(header):
     tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
 
-def readTautoplt(fname_mod, fname_o, mesh_iteration, interface_file_name, para_path_mod):
+# read the solution file name in '/Outputs' and calculate the pressure
+def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, step):
+    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+
+    nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
+
+    # calculating cp at the center of each interface element
+    pCell=calcpCell(ElemsNr,P,X,elemTable)
+
+    # calculating element area and normal vector
+    area,normal = calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(step+1))
+
+    # calculating the force vector
+    forcesTauNP = calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(step+1))
+
+    return forcesTauNP
+
+def readTautoplt(fname_mod, fname_o, mesh_file_name, interface_file_name, para_path_mod):
     fs = open(fname_o,'r+')
     fd = open(fname_mod,'w')
     line = fs.readline()
     while line:
         if 'Primary grid filename:' in line:
-            line = 'Primary grid filename:' + mesh_iteration + ' \n'
-            fd.write(line) 
+            line = 'Primary grid filename:' + mesh_file_name + ' \n'
+            fd.write(line)
             print line
             line = fs.readline()
         if 'Boundary mapping filename:' in line:
             line = 'Boundary mapping filename:' + para_path_mod + ' \n'
-            fd.write(line)  
+            fd.write(line)
             print line
             line = fs.readline()
         if 'Restart-data prefix:' in line:
@@ -157,9 +167,9 @@ def readTautoplt(fname_mod, fname_o, mesh_iteration, interface_file_name, para_p
 # Read Cp from the solution file and calculate 'Pressure' on the nodes of TAU Mesh
 def readPressure(interface_file_name,interface_file_number_of_lines,error,velocity):
     with open(interface_file_name,'r') as f:
-        header1 = f.readline()  #liest document linie für linie durch 
-        header2 = f.readline() 
-        print "Careful ---- headers 2 = ", header2 #5 readline- Annahme fünf spalten 
+        header1 = f.readline()  #liest document linie für linie durch
+        header2 = f.readline()
+        print "Careful ---- headers 2 = ", header2 #5 readline- Annahme fünf spalten
         header2_split = header2.split()
         pos_X = header2_split.index('"x"')
         pos_Y = header2_split.index('"y"')
@@ -169,7 +179,7 @@ def readPressure(interface_file_name,interface_file_number_of_lines,error,veloci
         header4 = f.readline()
         header5 = f.readline()
 
-        d=[int(s) for s in re.findall(r'\b\d+\b', header4)]  #find all sucht muster im document 
+        d=[int(s) for s in re.findall(r'\b\d+\b', header4)]  #find all sucht muster im document
         NodesNr = d[0]
         ElemsNr = d[1]
 
@@ -180,12 +190,12 @@ def readPressure(interface_file_name,interface_file_number_of_lines,error,veloci
             for elem in line.split():
                 liste_number.append(float(elem))
 
-        # write ElemTable of the document 
+        # write ElemTable of the document
         elemTable_Sol = np.zeros([ElemsNr,4],dtype=int)
         k = 0
         line = f.readline()
         while line:
-            elemTable_Sol[k,0]=int(line.split()[0]) 
+            elemTable_Sol[k,0]=int(line.split()[0])
             elemTable_Sol[k,1]=int(line.split()[1])
             elemTable_Sol[k,2]=int(line.split()[2])
             elemTable_Sol[k,3]=int(line.split()[3])
@@ -235,11 +245,11 @@ def calcpCell(ElemsNr,P,X,elemTable):
     pCell = np.zeros(ElemsNr); # cp for interface elements
     #print 'len(elemTable) = ', len(elemTable)
     with open('xp','w') as f:
-        for i in xrange(0,ElemsNr): 
+        for i in xrange(0,ElemsNr):
             pCell[i] = 0.25* (P[elemTable[i,0]-1] + P[elemTable[i,1]-1] + P[elemTable[i,2]-1] + P[elemTable[i,3]-1]);
             x= 0.25* (X[elemTable[i,0]-1] + X[elemTable[i,1]-1] + X[elemTable[i,2]-1] + X[elemTable[i,3]-1]);
             f.write('%d\t%f\t%f\n'%(i,x,pCell[i]))
-    
+
     return pCell
 
 
@@ -277,7 +287,7 @@ def calcAreaNormal(ElemsNr,elemTable,X,Y,Z,fIteration):
             fwrite.write("%f\n" % (area[i]))
     return area, normal
 
-# Calculate the Vector Force 
+# Calculate the Vector Force
 def calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,fIteration):
     forcesTauNP = np.zeros(NodesNr*3)
     for i in xrange(0,ElemsNr):
@@ -305,7 +315,7 @@ def calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,fIteration)
             fwrite.write("%f\n" % (forcesTauNP[i]))
     return forcesTauNP
 
-# Execute the Mesh deformation of TAU  
+# Execute the Mesh deformation of TAU
 def meshDeformation(NodesNr,nodes,dispTau,dispTauOld,error, para_path_mod):
 
     disp=np.zeros([NodesNr,3])#NodesNr
@@ -320,9 +330,9 @@ def meshDeformation(NodesNr,nodes,dispTau,dispTauOld,error, para_path_mod):
     for i in xrange(0,NodesNr-error):
         coords[i,0]=coordinates[0,i]
         coords[i,1]=coordinates[1,i]
-        coords[i,2]=coordinates[2,i]  
+        coords[i,2]=coordinates[2,i]
 
-    globalID = np.zeros(NodesNr-error)  
+    globalID = np.zeros(NodesNr-error)
     for i in xrange(0,NodesNr-error):
         xi = coords[i,0]
         yi = coords[i,1]
