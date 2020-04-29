@@ -108,6 +108,14 @@ void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
 }
 
 template <unsigned int TDim>
+array_1d<double, 3> KElementData<TDim>::CalculateEffectiveVelocity(
+    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
+{
+    return RansCalculationUtilities::EvaluateInPoint(this->GetGeometry(),
+                                                     VELOCITY, rShapeFunctions);
+}
+
+template <unsigned int TDim>
 double KElementData<TDim>::CalculateEffectiveKinematicViscosity(
     const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
 {

@@ -513,12 +513,12 @@ public:
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
 
-            const array_1d<double, 3>& velocity =
-                this->EvaluateInPoint(VELOCITY, gauss_shape_functions);
+            r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
+            const array_1d<double, 3>& velocity = r_current_data.CalculateEffectiveVelocity(
+                gauss_shape_functions, r_shape_derivatives);
             BoundedVector<double, TNumNodes> velocity_convective_terms;
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
-            r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
             const double effective_kinematic_viscosity =
                 r_current_data.CalculateEffectiveKinematicViscosity(
                     gauss_shape_functions, r_shape_derivatives);

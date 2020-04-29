@@ -112,6 +112,14 @@ void EpsilonElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunct
 }
 
 template <unsigned int TDim>
+array_1d<double, 3> EpsilonElementData<TDim>::CalculateEffectiveVelocity(
+    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
+{
+    return RansCalculationUtilities::EvaluateInPoint(this->GetGeometry(),
+                                                     VELOCITY, rShapeFunctions);
+}
+
+template <unsigned int TDim>
 double EpsilonElementData<TDim>::CalculateEffectiveKinematicViscosity(
     const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
 {

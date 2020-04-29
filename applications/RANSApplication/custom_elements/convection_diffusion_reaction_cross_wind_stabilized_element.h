@@ -362,10 +362,9 @@ public:
             this->CalculateContravariantMetricTensor(
                 contravariant_metric_tensor, r_parameter_derivatives[g]);
 
-            const array_1d<double, 3> velocity =
-                this->EvaluateInPoint(VELOCITY, gauss_shape_functions);
-
             element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
+            const array_1d<double, 3>& velocity = element_data.CalculateEffectiveVelocity(
+                gauss_shape_functions, r_shape_derivatives);
             const double effective_kinematic_viscosity =
                 element_data.CalculateEffectiveKinematicViscosity(
                     gauss_shape_functions, r_shape_derivatives);
@@ -603,13 +602,13 @@ public:
             this->CalculateContravariantMetricTensor(
                 contravariant_metric_tensor, r_parameter_derivatives[g]);
 
-            const array_1d<double, 3>& velocity =
-                this->EvaluateInPoint(VELOCITY, gauss_shape_functions);
+            element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
+            const array_1d<double, 3>& velocity = element_data.CalculateEffectiveVelocity(
+                gauss_shape_functions, r_shape_derivatives);
             BoundedVector<double, TNumNodes> velocity_convective_terms;
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
             const double velocity_magnitude = norm_2(velocity);
 
-            element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
             const double effective_kinematic_viscosity =
                 element_data.CalculateEffectiveKinematicViscosity(
                     gauss_shape_functions, r_shape_derivatives);
@@ -742,12 +741,11 @@ public:
             const double mass = gauss_weights[g] * (1.0 / TNumNodes);
             this->AddLumpedMassMatrix(rMassMatrix, mass);
 
-            const array_1d<double, 3>& velocity =
-                this->EvaluateInPoint(VELOCITY, gauss_shape_functions);
+            element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
+            const array_1d<double, 3>& velocity = element_data.CalculateEffectiveVelocity(
+                gauss_shape_functions, r_shape_derivatives);
             BoundedVector<double, TNumNodes> velocity_convective_terms;
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
-
-            element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
 
             const double effective_kinematic_viscosity =
                 element_data.CalculateEffectiveKinematicViscosity(

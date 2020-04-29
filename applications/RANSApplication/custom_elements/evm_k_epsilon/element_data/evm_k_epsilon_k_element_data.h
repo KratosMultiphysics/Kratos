@@ -70,6 +70,9 @@ public:
                                  const Matrix& rShapeFunctionDerivatives,
                                  const int Step = 0) override;
 
+    array_1d<double, 3> CalculateEffectiveVelocity(const Vector& rShapeFunctions,
+                                                   const Matrix& rShapeFunctionDerivatives) const override;
+
     double CalculateEffectiveKinematicViscosity(const Vector& rShapeFunctions,
                                                 const Matrix& rShapeFunctionDerivatives) const override;
 
