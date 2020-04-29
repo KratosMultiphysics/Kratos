@@ -186,8 +186,8 @@ public:
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     double GetEdgeNormalVelocityComponent(const array_1d<double, 3>& rEdgeVector,
-                                        const ProcessInfo& rCurrentProcessInfo);                                 
-    
+                                        const ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -293,7 +293,7 @@ private:
 
     void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
 
-    double ComputeEdgeNormalVelocityComponent(const ProcessInfo& rCurrentProcessInfo, 
+    double ComputeEdgeNormalVelocityComponent(const ProcessInfo& rCurrentProcessInfo,
                                               const array_1d<double, 3>& rEdgeVector);
 
     ///@}

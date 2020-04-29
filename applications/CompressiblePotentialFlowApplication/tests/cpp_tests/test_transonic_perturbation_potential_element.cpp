@@ -252,26 +252,26 @@ KRATOS_TEST_CASE_IN_SUITE(FindUpwindElement, TransonicPotentialApplicationFastSu
 
     // make clockwise element edge vectors
     array_1d<double, 3> first_edge(3, 0.0);
-    array_1d<double, 3> second_edge(3, 0.0);
-    array_1d<double, 3> third_edge(3, 0.0);
+//     array_1d<double, 3> second_edge(3, 0.0);
+//     array_1d<double, 3> third_edge(3, 0.0);
 
     first_edge[0] = rGeom[0].X() - rGeom[1].X();
     first_edge[1] = rGeom[0].Y() - rGeom[1].Y();
 
-    second_edge[0] = rGeom[1].X() - rGeom[2].X();
-    second_edge[1] = rGeom[1].Y() - rGeom[2].Y();
+//     second_edge[0] = rGeom[1].X() - rGeom[2].X();
+//     second_edge[1] = rGeom[1].Y() - rGeom[2].Y();
 
-    third_edge[0] = rGeom[2].X() - rGeom[0].X();
-    third_edge[1] = rGeom[2].Y() - rGeom[0].Y();
+//     third_edge[0] = rGeom[2].X() - rGeom[0].X();
+//     third_edge[1] = rGeom[2].Y() - rGeom[0].Y();
 
     // find edge vector components in free stream velocity direction
-    double first_edge_velocity_component = TransonicGetEdgeNormalVelocityComponent(first_edge, model_part.GetProcessInfo());
-    double second_edge_velocity_component = GetEdgeNormalVelocityComponent(second_edge, model_part.GetProcessInfo());
-    double third_edge_velocity_component = GetEdgeNormalVelocityComponent(third_edge, model_part.GetProcessInfo());
+    double first_edge_velocity_component = pElement->TransonicPerturbationPotentialFlowElement::GetEdgeNormalVelocityComponent<2,3>(first_edge, model_part.GetProcessInfo());
+//     double second_edge_velocity_component = pElement->TransonicPerturbationPotentialFlowElement::GetEdgeNormalVelocityComponent(second_edge, model_part.GetProcessInfo());
+//     double third_edge_velocity_component = pElement->TransonicPerturbationPotentialFlowElement::GetEdgeNormalVelocityComponent(third_edge, model_part.GetProcessInfo());
 
-    KRATOS_CHECK_NEAR(first_edge_velocity_component, 0, 1e-15);
-    KRATOS_CHECK_NEAR(second_edge_velocity_component, -1, 1e-15);
-    KRATOS_CHECK_NEAR(third_edge_velocity_component, 1, 1e-15);
+    KRATOS_CHECK_NEAR(first_edge_velocity_component, 0.0, 1e-15);
+//     KRATOS_CHECK_NEAR(second_edge_velocity_component, -1.0, 1e-15);
+//     KRATOS_CHECK_NEAR(third_edge_velocity_component, 1.0, 1e-15);
 
 }
 

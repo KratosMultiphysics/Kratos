@@ -336,9 +336,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
 }
 
 template <int TDim, int TNumNodes>
-double GetEdgeNormalVelocityComponent(const array_1d<double, 3>& rEdgeVector, const ProcessInfo& rCurrentProcessInfo)
+double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEdgeNormalVelocityComponent(
+    const array_1d<double, 3>& rEdgeVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    return ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, rEdgeVector);
+    const double edge_normal_velocity_component = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, rEdgeVector);
+    return edge_normal_velocity_component;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -958,7 +961,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
     const double first_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, first_edge);
     const double second_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, second_edge);
     const double third_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, third_edge);
-    
+
     // get node IDs of upwind element
     int upwind_element_one_node_id = 0;
     int upwind_element_two_node_id = 0;
@@ -1008,7 +1011,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
 
 template <int TDim, int TNumNodes>
 double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputeEdgeNormalVelocityComponent(
-    const ProcessInfo& rCurrentProcessInfo, 
+    const ProcessInfo& rCurrentProcessInfo,
     const array_1d<double, 3>& rEdgeVector)
 {
     // free stream values
