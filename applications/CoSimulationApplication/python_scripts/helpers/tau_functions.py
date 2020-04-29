@@ -10,10 +10,10 @@ from scipy.io import netcdf
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
 def GetFluidMesh(working_path, tau_path, step, para_path_mod):
     ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
-    interface_file_name_surface = findSolutionAndConvert(working_path, step)
-    interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
+    interface_file_name = FindInterfaceFile(working_path, step)
+    interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name)
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
-    NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = readPressure(interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+    NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = readPressure(interface_file_name, interface_file_number_of_lines, 0, 20)
     nodal_coords, nodesID, elem_connectivities, element_types = interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z)
     # In vtk format element connectivities start from 0, not from 1
     elem_connectivities -= 1
@@ -21,20 +21,20 @@ def GetFluidMesh(working_path, tau_path, step, para_path_mod):
 
 def ComputeForces(working_path, tau_path, step, para_path_mod):
     ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
-    interface_file_name_surface = findSolutionAndConvert(working_path, step)
-    interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
+    interface_file_name = FindInterfaceFile(working_path, step)
+    interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name)
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
-    forces = caculatePressure(interface_file_name_surface, interface_file_number_of_lines, step)
+    forces = caculatePressure(interface_file_name, interface_file_number_of_lines, step)
     return forces
 
 def ExecuteBeforeMeshDeformation(dispTau,step,para_path_mod,working_path,tau_path):
     global dispTauOld
     print "deformationstart"
-    interface_file_name_surface = findSolutionAndConvert(working_path, step)
-    interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name_surface + '.dat')
+    interface_file_name = FindInterfaceFile(working_path, step)
+    interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name)
     print 'interface_file_number_of_lines =', interface_file_number_of_lines
 
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name, interface_file_number_of_lines, 0, 20)
 
     nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
 
@@ -79,13 +79,12 @@ def ConvertOutputToDat(working_path, tau_path, step, para_path_mod):
     subprocess.call(command, shell=True)
     PrintBlockHeader("Stop Writting Solution Data at time %s" % (str(time)))
 
-
-# find the solution file name in '/Outputs' and convert in .dat
-def findSolutionAndConvert(working_path, step):
+def FindInterfaceFile(working_path, step):
     output_file_name = FindOutputFile(working_path, step)
-    interface_file_name_surface = output_file_name[0:output_file_name.find(
+    interface_file_name = output_file_name[0:output_file_name.find(
         '.pval')] + '.surface.' + output_file_name[output_file_name.find('.pval')+1:len(output_file_name)]
-    return interface_file_name_surface
+    CheckIfPathExists(interface_file_name)
+    return interface_file_name + '.dat'
 
 
 def CheckIfPathExists(path):
@@ -150,8 +149,8 @@ def PrintBlockHeader(header):
     tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
 
 # read the solution file name in '/Outputs' and calculate the pressure
-def caculatePressure(interface_file_name_surface, interface_file_number_of_lines, step):
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name_surface + '.dat', interface_file_number_of_lines, 0, 20)
+def caculatePressure(interface_file_name, interface_file_number_of_lines, step):
+    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name, interface_file_number_of_lines, 0, 20)
 
     nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
 
