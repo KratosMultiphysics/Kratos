@@ -217,7 +217,7 @@ void DisplacementControlCondition::GetDofList(
 void DisplacementControlCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType mat_size = number_of_nodes * GetBlockSize();
