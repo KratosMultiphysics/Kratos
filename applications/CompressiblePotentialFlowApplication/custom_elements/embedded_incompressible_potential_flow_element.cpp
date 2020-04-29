@@ -196,12 +196,12 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
     PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    auto penalty_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
-    auto penalty_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
+    auto stabilization_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
+    auto stabilization_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
     auto stabilization_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
 
-    noalias(rLeftHandSideMatrix) +=  stabilization_factor*penalty_term_potential;
-    noalias(rRightHandSideVector) += stabilization_factor*(penalty_term_nodal_gradient-prod(penalty_term_potential, potential));
+    noalias(rLeftHandSideMatrix) +=  stabilization_factor*stabilization_term_potential;
+    noalias(rRightHandSideVector) += stabilization_factor*(stabilization_term_nodal_gradient-prod(stabilization_term_potential, potential));
 }
 
 template <>
