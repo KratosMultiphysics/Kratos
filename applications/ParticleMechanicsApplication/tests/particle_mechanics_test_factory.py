@@ -66,6 +66,9 @@ class BeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanics
 class BeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/linear_self_weight_load_2D_quad_test"
 
+class BeamCantileverDynamicConsistentMassTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test"
+
 ### Cook's Membrane Tests
 class CooksMembraneCompressibleTest(ParticleMechanicsTestFactory):
     file_name = "cooks_membrane_tests/compressible_cook_membrane_2D_test"
@@ -91,6 +94,3 @@ class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(
 ### Slip Boundary Tests
 class SlipBoundaryTest(ParticleMechanicsTestFactory):
     file_name = "slip_tests/slip_boundary_test"
-
-if __name__ == '__main__':
-    KratosUnittest.main()

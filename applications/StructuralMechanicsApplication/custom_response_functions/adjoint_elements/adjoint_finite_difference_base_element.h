@@ -364,20 +364,6 @@ public:
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector< array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -466,12 +452,12 @@ protected:
         }
 
         // Build vector of variables containing the DOF-variables of the primal problem
-        std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>*> primal_solution_variable_list;
+        std::vector<Variable<double>*> primal_solution_variable_list;
         (mHasRotationDofs) ? primal_solution_variable_list = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z, &ROTATION_X, &ROTATION_Y, &ROTATION_Z} :
                              primal_solution_variable_list = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
 
         // Build vector of variables containing the DOF-variables of the adjoint problem
-        std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>*> adjoint_solution_variable_list;
+        std::vector<Variable<double>*> adjoint_solution_variable_list;
         (mHasRotationDofs) ? adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z, &ADJOINT_ROTATION_X, &ADJOINT_ROTATION_Y, &ADJOINT_ROTATION_Z} :
                              adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z};
 
