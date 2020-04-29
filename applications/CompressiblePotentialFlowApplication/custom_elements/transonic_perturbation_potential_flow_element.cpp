@@ -26,19 +26,11 @@ namespace Kratos
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-
-    // check if inlet element
-    const TransonicPerturbationPotentialFlowElement& r_this = *this;
-    const auto inlet = r_this.Is(INLET);
-
-    // assign upwind element to non-inlet element
-    if (inlet == 0) // not an inlet element
+    if ( ~(this->Is(INLET)) ) // not an inlet element
     {
         FindUpwindElement(rCurrentProcessInfo);
     }
-
 }
-
 
 template <int TDim, int TNumNodes>
 Element::Pointer TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Create(
@@ -341,6 +333,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
         }
         rValues[0] = v;
     }
+}
+
+template <int TDim, int TNumNodes>
+double GetEdgeNormalVelocityComponent(const array_1d<double, 3>& rEdgeVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    return ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, rEdgeVector);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -939,9 +937,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputePotentia
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindElement(const ProcessInfo& rCurrentProcessInfo)
 {
-    // free stream values
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-
     // current element geometry
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -959,25 +954,11 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
     third_edge[0] = rGeom[2].X() - rGeom[0].X();
     third_edge[1] = rGeom[2].Y() - rGeom[0].Y();
 
-    // find three inward pointing normal vectors of element edges
-    array_1d<double, 3> z_vector(3, 0.0);
-    z_vector[2] = 1.0;
-
-    array_1d<double, 3> first_edge_normal;
-    array_1d<double, 3> second_edge_normal;
-    array_1d<double, 3> third_edge_normal;
-
-    MathUtils<double>::CrossProduct(first_edge_normal, first_edge, z_vector);
-    MathUtils<double>::CrossProduct(second_edge_normal, second_edge, z_vector);
-    MathUtils<double>::CrossProduct(third_edge_normal, third_edge, z_vector);
-
-    // find component of normal vector in direction of free stream velocity
-    const double free_stream_velocity_norm = MathUtils<double>::Norm3(free_stream_velocity);
-
-    const double first_edge_normal_fs_comp  = inner_prod(first_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
-    const double second_edge_normal_fs_comp = inner_prod(second_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
-    const double third_edge_normal_fs_comp  = inner_prod(third_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
-
+    // find component of element edge normal vector in direction of free stream velocity
+    const double first_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, first_edge);
+    const double second_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, second_edge);
+    const double third_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, third_edge);
+    
     // get node IDs of upwind element
     int upwind_element_one_node_id = 0;
     int upwind_element_two_node_id = 0;
@@ -1023,6 +1004,29 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
         }
     }
 
+}
+
+template <int TDim, int TNumNodes>
+double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputeEdgeNormalVelocityComponent(
+    const ProcessInfo& rCurrentProcessInfo, 
+    const array_1d<double, 3>& rEdgeVector)
+{
+    // free stream values
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    // make z vector
+    array_1d<double, 3> z_vector(3, 0.0);
+    z_vector[2] = 1.0;
+
+    // compute inward facing edge normal vector
+    array_1d<double, 3> edge_normal;
+    MathUtils<double>::CrossProduct(edge_normal, rEdgeVector, z_vector);
+
+    // compute euclidean norm of velocity
+    const double free_stream_velocity_norm = MathUtils<double>::Norm3(free_stream_velocity);
+
+    // compute component of edge normal vector in free stream direction
+    return inner_prod(edge_normal, free_stream_velocity) / free_stream_velocity_norm;;
 }
 
 template <int TDim, int TNumNodes>
