@@ -59,6 +59,7 @@ class MPMSolver(PythonSolver):
             "max_iteration"                      : 20,
             "pressure_dofs"                      : false,
             "axis_symmetric_flag"                : false,
+            "consistent_mass_matrix"             : false,
             "block_builder"                      : true,
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
@@ -377,6 +378,11 @@ class MPMSolver(PythonSolver):
 
     def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
+        is_consistent_mass_matrix = self.settings["consistent_mass_matrix"].GetBool()
+        if is_consistent_mass_matrix:
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
+        else:
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
         if analysis_type == "non_linear":
                 solution_strategy = self._CreateNewtonRaphsonStrategy()
         elif analysis_type == 'linear':
