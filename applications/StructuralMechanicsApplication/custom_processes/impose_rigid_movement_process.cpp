@@ -62,20 +62,20 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     }
 
     // Getting list of variables
-    std::vector<const Variable<double>*> master_double_list_variables, slave_double_list_variables;
+    std::vector<const Variable<double>*> master_list_variables, slave_list_variables;
     const std::string& master_variable_name = mThisParameters["master_variable_name"].GetString();
     // The master variable
     if(KratosComponents<Variable<double>>::Has(master_variable_name)){
         const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(master_variable_name);
-        master_double_list_variables.push_back(&r_variable);
+        master_list_variables.push_back(&r_variable);
     } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(master_variable_name)) {
         const Variable<double>& r_variable_x = KratosComponents<Variable<double>>::Get(master_variable_name+"_X");
-        master_double_list_variables.push_back(&r_variable_x);
+        master_list_variables.push_back(&r_variable_x);
         const Variable<double>& r_variable_y = KratosComponents<Variable<double>>::Get(master_variable_name+"_Y");
-        master_double_list_variables.push_back(&r_variable_y);
+        master_list_variables.push_back(&r_variable_y);
         if (r_root_model_part.GetProcessInfo()[DOMAIN_SIZE] == 3) {
             const Variable<double>& r_variable_z = KratosComponents<Variable<double>>::Get(master_variable_name+"_Z");
-            master_double_list_variables.push_back(&r_variable_z);
+            master_list_variables.push_back(&r_variable_z);
         }
     } else {
         KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
@@ -85,22 +85,22 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     if (slave_variable_name != "") {
         if(KratosComponents<Variable<double>>::Has(slave_variable_name)){
             const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(slave_variable_name);
-            slave_double_list_variables.push_back(&r_variable);
+            slave_list_variables.push_back(&r_variable);
         } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(slave_variable_name)) {
             const Variable<double>& r_variable_x = KratosComponents<Variable<double>>::Get(slave_variable_name+"_X");
-            slave_double_list_variables.push_back(&r_variable_x);
+            slave_list_variables.push_back(&r_variable_x);
             const Variable<double>& r_variable_y = KratosComponents<Variable<double>>::Get(slave_variable_name+"_Y");
-            slave_double_list_variables.push_back(&r_variable_y);
+            slave_list_variables.push_back(&r_variable_y);
             if (r_root_model_part.GetProcessInfo()[DOMAIN_SIZE] == 3) {
                 const Variable<double>& r_variable_z = KratosComponents<Variable<double>>::Get(slave_variable_name+"_Z");
-                slave_double_list_variables.push_back(&r_variable_z);
+                slave_list_variables.push_back(&r_variable_z);
             }
         } else {
             KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
         }
     } else { // Else we consider exactly the same list of variables
-        for (auto& r_var : master_double_list_variables)
-            slave_double_list_variables.push_back(r_var);
+        for (auto& r_var : master_list_variables)
+            slave_list_variables.push_back(r_var);
     }
 
     // Getting index of the master node
@@ -112,8 +112,8 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     const auto it_node_begin = r_nodes_array.begin();
 
     // List of variables
-    const SizeType number_of_double_variables = master_double_list_variables.size();
-    const SizeType number_of_components_variables = master_double_list_variables.size();
+    const SizeType number_of_double_variables = master_list_variables.size();
+    const SizeType number_of_components_variables = master_list_variables.size();
 
     // We get the relation and constant
     const double relation = mThisParameters["relation"].GetDouble();
@@ -133,7 +133,7 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
             auto it_node = it_node_begin + i;
             if (it_node->Id() != p_master_node->Id()) {
                 for (IndexType i_var = 0; i_var < number_of_double_variables; ++i_var) {
-                    auto p_constraint = r_clone_constraint.Create(constraint_id + (i * number_of_double_variables + i_var) + 1, *p_master_node, *master_double_list_variables[i_var], *it_node, *slave_double_list_variables[i_var], relation, constant);
+                    auto p_constraint = r_clone_constraint.Create(constraint_id + (i * number_of_double_variables + i_var) + 1, *p_master_node, *master_list_variables[i_var], *it_node, *slave_list_variables[i_var], relation, constant);
                     (constraints_buffer).insert((constraints_buffer).begin(), p_constraint);
                 }
             }
