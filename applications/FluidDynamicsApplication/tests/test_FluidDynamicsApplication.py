@@ -29,6 +29,7 @@ from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
 from test_mass_conservation_check_process import TestMassConservationCheckProcess
+from cfl_output_process_test import CFLOutputProcessTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -101,6 +102,7 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
 
 
     # For very long tests that should not be in nighly and you can use to validate
