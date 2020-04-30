@@ -271,7 +271,6 @@ public:
     {
         auto &r_model_part = BaseType::GetModelPart();
         auto &r_process_info = r_model_part.GetProcessInfo();
-        const int n_nodes = r_model_part.NumberOfNodes();
         const int n_elems = r_model_part.NumberOfElements();
 
         // Set fractional step index to the momentum equation step
