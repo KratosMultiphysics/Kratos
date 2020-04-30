@@ -115,7 +115,7 @@ void UpdatedLagrangianElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
 void UpdatedLagrangianElement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag
 )
@@ -198,7 +198,7 @@ void UpdatedLagrangianElement::CalculateConstitutiveVariables(
 
 void UpdatedLagrangianElement::CalculateKinematics(
     KinematicVariables& rKinematicVariables,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

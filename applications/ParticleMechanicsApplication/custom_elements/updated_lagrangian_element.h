@@ -358,7 +358,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -532,7 +532,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag);
 
@@ -572,7 +572,7 @@ protected:
     /// Calculates Element Kinematics
     void CalculateKinematics(
         KinematicVariables& rKinematicVariables,
-        ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo);
 
     /// Calculation of the Deformation Matrix B
     virtual void CalculateBMatrix(
