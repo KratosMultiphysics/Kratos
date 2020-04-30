@@ -174,7 +174,7 @@ void StokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
     v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
 
     MathUtils<double>::CrossProduct(An,v1,v2);
-    An *= 0.5; // ? Why 0.5 ?
+    An *= 0.5;
 }
 
 template <>
@@ -182,15 +182,14 @@ void StokesWallCondition<3,4>::CalculateNormal(array_1d<double,3>& An )
 {
     Geometry<Node<3> >& pGeometry = this->GetGeometry();
 
-    array_1d<double,3> v1,v2;
-    v1[0] = pGeometry[1].X() - pGeometry[0].X();
-    v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
-    v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+    array_1d<double, 3> v1, v2;// diagonals of the polygon
+    v1[0] = pGeometry[2].X() - pGeometry[0].X();
+    v1[1] = pGeometry[2].Y() - pGeometry[0].Y();
+    v1[2] = pGeometry[2].Z() - pGeometry[0].Z();
 
-    v2[0] = pGeometry[2].X() - pGeometry[0].X();
-    v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
-    v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
-
+    v2[0] = pGeometry[3].X() - pGeometry[1].X();
+    v2[1] = pGeometry[3].Y() - pGeometry[1].Y();
+    v2[2] = pGeometry[3].Z() - pGeometry[1].Z();
     MathUtils<double>::CrossProduct(An,v1,v2);
     An *= 0.5;
 }
