@@ -101,8 +101,14 @@ class ResidualBasedNewtonRaphsonStrategy
 
     ///@}
     ///@name Life Cycle
-
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedNewtonRaphsonStrategy() : BaseType()
+    {
+    }
 
     /**
      * @brief Default constructor. (with parameters)

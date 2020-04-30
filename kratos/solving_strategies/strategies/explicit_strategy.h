@@ -103,6 +103,12 @@ namespace Kratos
           //typedef GlobalPointersVector<Element > ParticleWeakVector;
           //typedef GlobalPointersVector<Element >::iterator ParticleWeakIterator;
 
+    /**
+     * @brief Default constructor
+     */
+    explicit ExplicitStrategy() : BaseType()
+    {
+    }
 
     /**
      * @brief Default constructor. (with parameters)

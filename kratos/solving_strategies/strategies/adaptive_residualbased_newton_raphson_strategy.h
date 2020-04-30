@@ -130,6 +130,13 @@ public:
     /*@{ */
 
     /**
+     * @brief Default constructor
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
