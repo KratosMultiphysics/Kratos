@@ -103,6 +103,10 @@ public:
 
     /// Constructor with  filenames.
 	ReorderConsecutiveModelPartIO(
+        std::wstring const& Filename,
+        const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse());
+
+    ReorderConsecutiveModelPartIO(
         std::string const& Filename,
         const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse());
 

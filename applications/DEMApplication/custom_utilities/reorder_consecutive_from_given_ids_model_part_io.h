@@ -17,7 +17,7 @@ class ReorderConsecutiveFromGivenIdsModelPartIO : public ReorderConsecutiveModel
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ReorderConsecutiveFromGivenIdsModelPartIO);
     ReorderConsecutiveFromGivenIdsModelPartIO(
-        std::string const& Filename,
+        std::wstring const& Filename,
         const int node_id = 0,
         const int element_id = 0,
         const int condition_id = 0,

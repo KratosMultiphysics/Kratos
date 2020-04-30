@@ -83,6 +83,9 @@ public:
 
     /// Constructor with filenames.
     ModelPartIO(
+        std::wstring const& Filename,
+        const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
+    ModelPartIO(
         std::string const& Filename,
         const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
@@ -398,8 +401,8 @@ private:
 
     SizeType mNumberOfLines;
 
-    std::string mBaseFilename;
-    std::string mFilename;
+    std::wstring mBaseFilename;
+    std::wstring mFilename;
     Flags mOptions;
 
     Kratos::shared_ptr<std::iostream> mpStream;

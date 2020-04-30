@@ -13,6 +13,8 @@
 
 // System includes
 #include<unordered_set>
+#include <codecvt>
+
 
 // External includes
 
@@ -26,10 +28,13 @@
 namespace Kratos
 {
 /// Constructor with  filenames.
-ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
+ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options):
+    ModelPartIO(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(Filename), Options) {}
+
+ModelPartIO::ModelPartIO(std::wstring const& Filename, const Flags Options)
     : mNumberOfLines(1)
     , mBaseFilename(Filename)
-    , mFilename(Filename + ".mdpa")
+    , mFilename(Filename + L".mdpa")
     , mOptions(Options)
 {
     Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
@@ -62,7 +67,7 @@ ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
     // Store the pointer as a regular std::iostream
     mpStream = pFile;
 
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(Filename + ".time");
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(Filename + L".time");
 }
 
 /// Constructor with stream
@@ -625,10 +630,11 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {
-        std::stringstream buffer;
-        buffer << mBaseFilename << "_" << i << ".mdpa";
-        std::ofstream* p_ofstream = new std::ofstream(buffer.str().c_str());
-        KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << buffer.str() << std::endl;
+        std::wstringstream buffer;
+        buffer << mBaseFilename << L"_" << i << L".mdpa";
+        std::ofstream* p_ofstream = new std::ofstream(buffer.str().c_str());        
+        std::string narrow_char_buffer = std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(buffer.str());
+        KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << narrow_char_buffer << std::endl;
 
         output_files.push_back(p_ofstream);
     }

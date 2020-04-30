@@ -206,14 +206,14 @@ void  AddIOToPython(pybind11::module& m)
 
     py::class_<ModelPartIO, ModelPartIO::Pointer, IO>(
        m, "ModelPartIO")
-        .def(py::init<std::string const&>())
-        .def(py::init<std::string const&, const Flags>())
+        .def(py::init<std::wstring const&>())
+        .def(py::init<std::wstring const&, const Flags>())
     ;
 
 
     py::class_<ReorderConsecutiveModelPartIO, ReorderConsecutiveModelPartIO::Pointer, ModelPartIO>(m,"ReorderConsecutiveModelPartIO")
-        .def(py::init<std::string const&>())
-        .def(py::init<std::string const&, const Flags>())
+        .def(py::init<std::wstring const&>())
+        .def(py::init<std::wstring const&, const Flags>())
     ;
 #ifdef JSON_INCLUDED
     py::class_<KratosJsonIO, KratosJsonIO::Pointer, IO>(m,

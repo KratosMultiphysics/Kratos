@@ -140,6 +140,20 @@ int Timer::SetOuputFile(std::string const& rOutputFileName)
     return msOutputFile.is_open();
 }
 
+int Timer::SetOuputFile(std::wstring const& rOutputFileName)
+{
+    if(msOutputFile.is_open())
+        msOutputFile.close();
+
+    msOutputFile.open(rOutputFileName.c_str());
+
+    if (msPrintIntervalInformation) {
+        msOutputFile << "                                         Start      \t\tStop          \t\tElapsed" << std::endl;
+    }
+
+    return msOutputFile.is_open();
+}
+
 int Timer::CloseOuputFile()
 {
     if(msOutputFile.is_open())

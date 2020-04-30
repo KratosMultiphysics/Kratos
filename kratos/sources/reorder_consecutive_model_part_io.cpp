@@ -10,26 +10,17 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
+// System includes
+#include <codecvt>
 
 // Project includes
 #include "includes/reorder_consecutive_model_part_io.h"
 
 
-
 namespace Kratos
 {
     /// Constructor with  filenames.
-    ReorderConsecutiveModelPartIO::ReorderConsecutiveModelPartIO(std::string const& Filename, const Flags Options )
+    ReorderConsecutiveModelPartIO::ReorderConsecutiveModelPartIO(std::wstring const& Filename, const Flags Options )
         : ModelPartIO(Filename, Options),
 		mNumberOfNodes(0),
 		mNumberOfElements(0),
@@ -39,6 +30,9 @@ namespace Kratos
 		mConditionIdMap()
     {
     }
+
+	ReorderConsecutiveModelPartIO::ReorderConsecutiveModelPartIO(std::string const& Filename, const Flags Options):
+    ReorderConsecutiveModelPartIO(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(Filename), Options) {}
 
 
     /// Destructor.

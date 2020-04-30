@@ -190,7 +190,9 @@ public:
      * @brief This method sets the output file *.time that will store the timing
      * @param rOutputFileName The name of the output file
      */
+
     static int SetOuputFile(std::string const& rOutputFileName);
+    static int SetOuputFile(std::wstring const& rOutputFileName);
 
     /**
      * @brief This method closes the output file
