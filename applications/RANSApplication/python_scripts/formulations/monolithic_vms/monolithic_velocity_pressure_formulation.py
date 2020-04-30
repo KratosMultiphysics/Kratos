@@ -77,6 +77,8 @@ class MonolithicVelocityPressureFormulation(Formulation):
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
         self.SetMaxCouplingIterations(1)
 
+        self.SetConditionName("RansVMSMonolithicKBasedWallCondition")
+
         Kratos.Logger.PrintInfo(self.GetName(), "Construction of formulation finished.")
 
     def AddVariables(self):
@@ -115,7 +117,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
     def PrepareModelPart(self):
         self.monolithic_model_part = CreateFormulationModelPart(self,
                                                                 "VMS",
-                                                                "RansVMSMonolithicKBasedWallCondition")
+                                                                self.condition_name)
         Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
 
     def Initialize(self):
@@ -264,3 +266,6 @@ class MonolithicVelocityPressureFormulation(Formulation):
 
     def GetModelPart(self):
         return self.monolithic_model_part
+
+    def SetConditionName(self, condition_name):
+        self.condition_name = condition_name
