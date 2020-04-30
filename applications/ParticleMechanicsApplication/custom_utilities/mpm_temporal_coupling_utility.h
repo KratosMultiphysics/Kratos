@@ -41,9 +41,9 @@ public:
       * @brief Constructor.
       * @detail The MPM bossak method
       */
-    MPMTemporalCouplingUtility(ModelPart & rModelPartSubDomain1, ModelPart & rModelPartSubDomain2,
+    MPMTemporalCouplingUtility(ModelPart & rModelPartGrid, ModelPart & rModelPartSubDomain1, ModelPart & rModelPartSubDomain2,
         unsigned int TimeStepRatio, double SmallTimestep, double gamma1, double gamma2)
-        :mrModelPartSubDomain1(rModelPartSubDomain1), mrModelPartSubDomain2(rModelPartSubDomain2),
+        :mrModelPartGrid(rModelPartGrid), mrModelPartSubDomain1(rModelPartSubDomain1), mrModelPartSubDomain2(rModelPartSubDomain2),
         mTimeStepRatio(TimeStepRatio), mSmallTimestep(SmallTimestep)
     {
         // TODO change gamma input arg to vector or array_1d and set mGamma back to const
@@ -81,18 +81,28 @@ protected:
 
     void GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, SizeType activeNodes);
 
+    void Check();
+
+    void PrintNodeIdsAndCoords(ModelPart& rModelPart);
+
     Vector mSubDomain1InitialInterfaceVelocity;
     Vector mSubDomain1FinalInterfaceVelocity;
     Vector mSubDomain1AccumulatedLinkVelocity;
-    Vector mActiveInterfaceNodeIDs;
+
     Matrix mInvM1;
+
     Matrix mCoupling1;
+
     IndexType mJ;
     const IndexType mTimeStepRatio;
     const double mSmallTimestep;
     array_1d<double, 2> mGamma;
+
+    ModelPart& mrModelPartGrid;
     ModelPart& mrModelPartSubDomain1;
     ModelPart& mrModelPartSubDomain2;
+
+    Vector mActiveInterfaceNodeIDs;
     bool mActiveInterfaceNodesComputed = false;
 
 

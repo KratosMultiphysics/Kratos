@@ -30,11 +30,12 @@ class MPMCoupledTimeSolver(MPMSolver):
 
         # Default settings
         self.min_buffer_size = 2
+        self.tolerance = 1e-6
 
         self.time_step_1 = self.settings["time_stepping"]["time_step"].GetDouble()
         self.time_step_ratio = self.settings["time_stepping"]["timestep_ratio"].GetInt()
         self.time_step_2 = self.time_step_1/self.time_step_ratio
-        self.time_step_index_1 = -1
+        self.time_step_index_j = 0;
 
         gamma_1 = 10.0
         gamma_2 = 10.0
@@ -53,7 +54,8 @@ class MPMCoupledTimeSolver(MPMSolver):
             raise Exception("Check the time_integration_method_2 in project parameters file")
 
         # initialize mpm coupling utility class
-        self.coupling_utility = KratosParticle.MPMTemporalCouplingUtility(self.model_sub_domain_1,
+        self.coupling_utility = KratosParticle.MPMTemporalCouplingUtility(self.grid_model_part,
+                                                                          self.model_sub_domain_1,
                                                                           self.model_sub_domain_2,
                                                                           self.time_step_ratio,
                                                                           self.time_step_2,
@@ -84,15 +86,12 @@ class MPMCoupledTimeSolver(MPMSolver):
 
     ### Solver public functions
 
-    def GetComputingModelPart(self, index):
+    def GetComputingSubModelPart(self, index):
         if index == 1:
             return self.model_sub_domain_1
         elif index == 2:
             return self.model_sub_domain_2
 
-        #if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-        #    raise Exception("The ComputingModelPart was not created yet!")
-        #return self.model.GetModelPart(self.settings["model_part_name"].GetString())
 
     def Initialize(self):
         # The particle solution strategy is created here if it does not already exist.
@@ -107,21 +106,23 @@ class MPMCoupledTimeSolver(MPMSolver):
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Solver is initialized correctly.")
 
+
     def AdvanceInTime(self, current_time):
         self.dt = self.time_step_1
-        self.new_time = current_time + self.dt
+        new_time = current_time + self.dt
 
-        self.time_step_index_1 += 1
-        if self.time_step_index_1 == 0:
+        self.time_step_index_j += 1
+
+        if self.time_step_index_j == 1:
             self.is_model_sub_domain_1_predict = True
         else:
             self.is_model_sub_domain_1_predict = False
 
-        if self.time_step_index_1 == self.time_step_ratio:
+        if self.time_step_index_j == self.time_step_ratio:
             self.is_model_sub_domain_1_correct = True
+            time_step_index_j = 0
         else:
             self.is_model_sub_domain_1_correct = False
-
 
         self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.grid_model_part.CloneTimeStep(new_time)
@@ -132,6 +133,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         self.model_sub_domain_2.CloneTimeStep(new_time)
 
         return new_time
+
 
     def _is_time_step_solved(self, index):
         if index == 1:
@@ -145,19 +147,22 @@ class MPMCoupledTimeSolver(MPMSolver):
             else:
                 return False
 
+
     def InitializeSolutionStep(self):
         self._SearchElement()
         if self.is_model_sub_domain_1_predict:
             self._GetSolutionStrategy(1).Initialize()
             self._GetSolutionStrategy(1).InitializeSolutionStep()
-            KratosParticle.InitializeSubDomain1Coupling()
+            self.coupling_utility.InitializeSubDomain1Coupling()
         self._GetSolutionStrategy(2).Initialize()
         self._GetSolutionStrategy(2).InitializeSolutionStep()
+
 
     def Predict(self):
         if self.is_model_sub_domain_1_predict:
             self._GetSolutionStrategy(1).Predict()
         self._GetSolutionStrategy(2).Predict()
+
 
     def SolveSolutionStep(self):
         if self.is_model_sub_domain_1_predict:
@@ -167,6 +172,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         self.compute_and_apply_coupling_corrections()
         return is_converged
 
+
     def FinalizeSolutionStep(self):
         if self.is_model_sub_domain_1_correct:
             self._GetSolutionStrategy(1).FinalizeSolutionStep()
@@ -174,37 +180,83 @@ class MPMCoupledTimeSolver(MPMSolver):
         self._GetSolutionStrategy(2).FinalizeSolutionStep()
         self._GetSolutionStrategy(2).Clear()
 
+
     def Check(self):
         self._GetSolutionStrategy(1).Check()
         self._GetSolutionStrategy(2).Check()
+
 
     def Clear(self):
         self._GetSolutionStrategy(1).Clear()
         self._GetSolutionStrategy(2).Clear()
 
-    ### Solver special protected functions
 
     def compute_and_apply_coupling_corrections(self):
-        KratosParticle.CalculateCorrectiveLagrangianMultipliers(_GetSolutionStrategy(1).GetSystemMatrix(), _GetSolutionStrategy(2).GetSystemMatrix())
+        self.coupling_utility.CalculateCorrectiveLagrangianMultipliers(
+            self._GetSolutionStrategy(1).GetSystemMatrix(), 
+            self._GetSolutionStrategy(2).GetSystemMatrix())
+
+
+    def _GetLinearSolver(self,index):
+        if index == 1:
+            if not hasattr(self, '_linear_solver_1'):
+                self._linear_solver_1 = self._CreateLinearSolver()
+                print("::[MPMCoupledTimeSolver]::    Created linear solver 1")
+            return self._linear_solver_1
+        if index == 2:
+            if not hasattr(self, '_linear_solver_2'):
+                self._linear_solver_2 = self._CreateLinearSolver()
+                print("::[MPMCoupledTimeSolver]::    Created linear solver 2")
+            return self._linear_solver_2
+
+    def _GetConvergenceCriteria(self, index):
+        if index == 1:
+            if not hasattr(self, '_convergence_criterion_1'):
+                self._convergence_criterion_1 = self._CreateConvergenceCriteria(index)
+                print("::[MPMCoupledTimeSolver]::    Created convergence criteria 1")
+            return self._convergence_criterion
+        if index == 2:
+            if not hasattr(self, '_convergence_criterion_2'):
+                self._convergence_criterion_2 = self._CreateConvergenceCriteria(index)
+                print("::[MPMCoupledTimeSolver]::    Created convergence criteria 2")
+            return self._convergence_criterion
+
+    def _GetBuilderAndSolver(self, index):
+        if index == 1:
+            if not hasattr(self, '_builder_and_solver_1'):
+                self._builder_and_solver_1 = self._CreateBuilderAndSolver()
+                print("::[MPMCoupledTimeSolver]::    Created builder and solver 1")
+            return self._builder_and_solver
+        if index == 2:
+            if not hasattr(self, '_builder_and_solver_2'):
+                self._builder_and_solver_2 = self._CreateBuilderAndSolver()
+                print("::[MPMCoupledTimeSolver]::    Created builder and solver 2")
+            return self._builder_and_solver
+
 
     def _GetSolutionScheme(self, index):
         if index == 1:
-            if not hasattr(self, '_solution_scheme'):
-                self._solution_scheme_1 = self._CreateSolutionScheme()
+            if not hasattr(self, '_solution_scheme_1'):
+                self._solution_scheme_1 = self._CreateSolutionScheme(index)
+                print("::[MPMCoupledTimeSolver]::    Created scheme 1")
             return self._solution_scheme_1
         if index == 2:
-            if not hasattr(self, '_solution_scheme'):
-                self._solution_scheme_2 = self._CreateSolutionScheme()
+            if not hasattr(self, '_solution_scheme_2'):
+                self._solution_scheme_2 = self._CreateSolutionScheme(index)
+                print("::[MPMCoupledTimeSolver]::    Created scheme 2")
             return self._solution_scheme_2
+
 
     def _GetSolutionStrategy(self, index):
         if index == 1:
             if not hasattr(self, '_solution_strategy_1'):
-                self._solution_strategy_1 = self._CreateSolutionStrategy(1)
+                self._solution_strategy_1 = self._CreateSolutionStrategy(index)
+                print("::[MPMCoupledTimeSolver]::    Created strategy 1")
             return self._solution_strategy_1
         if index == 2:
             if not hasattr(self, '_solution_strategy_2'):
-                self._solution_strategy_2 = self._CreateSolutionStrategy(2)
+                self._solution_strategy_2 = self._CreateSolutionStrategy(index)
+                print("::[MPMCoupledTimeSolver]::    Created strategy 2")
             return self._solution_strategy_2
 
     ### Solver protected functions
@@ -239,6 +291,7 @@ class MPMCoupledTimeSolver(MPMSolver):
                         print('element ',element.Id,' with x = ',mp_coord[0][i],' added to subdomain 2')
                         self.model_sub_domain_2.AddElement(element,0)
 
+
     def _SearchElement(self):
         for element in self.model_sub_domain_1.Elements:
             mp_coord = element.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.material_point_model_part.ProcessInfo)
@@ -247,6 +300,7 @@ class MPMCoupledTimeSolver(MPMSolver):
                     if not mp_coord[0][i] < self.interface_criteria_origin[i]:
                         self.model_sub_domain_2.AddElement(element)
                         self.model_sub_domain_1.RemoveElement(element)
+
         for element in self.model_sub_domain_2.Elements:
             mp_coord = element.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.material_point_model_part.ProcessInfo)
             for i in range(3):
@@ -266,6 +320,7 @@ class MPMCoupledTimeSolver(MPMSolver):
             err_msg += "\" is not available for ParticleMechanicsApplication!\n"
             err_msg += "Available options are: \"bin_based\""
             raise Exception(err_msg)
+
 
     def _AddModelPartContainers(self):
         domain_size = self._GetDomainSize()
@@ -302,6 +357,7 @@ class MPMCoupledTimeSolver(MPMSolver):
             self.model_sub_domain_2 = self.model.CreateModelPart("model_sub_domain_2") #Equivalent to model_part1 in the old format
             self.model_sub_domain_2.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
+
     def _AddVariablesToModelPart(self, model_part):
         # Add displacements and reaction
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -317,6 +373,10 @@ class MPMCoupledTimeSolver(MPMSolver):
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
 
+        # MPM dynamic variables
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
 
@@ -326,9 +386,6 @@ class MPMCoupledTimeSolver(MPMSolver):
             model_part.AddNodalSolutionStepVariable(KratosParticle.PRESSURE_REACTION)
             model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MPRESSURE)
 
-    def _AddDynamicVariables(self, model_part):
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
 
     def _ModelPartReading(self):
         # reading the model part of the background grid
@@ -344,20 +401,20 @@ class MPMCoupledTimeSolver(MPMSolver):
         else:
             raise Exception("Other input options are not implemented yet.")
 
+
     def _AddTemporalInterfaceSubModelPartToGrid(self):
         self.grid_model_part.CreateSubModelPart("temporal_interface")
         temporal_interface = self.grid_model_part.GetSubModelPart("temporal_interface")
-        tolerance = 1e-6
         for node in self.grid_model_part.Nodes:
             if self.interface_criteria_normal[0] == 1:
-                if abs(node.X - self.interface_criteria_origin[0]) < tolerance:
+                if abs(node.X - self.interface_criteria_origin[0]) < self.tolerance:
                     temporal_interface.AddNodes([node.Id])
                     print('Added interface node ', node.Id, ' at x = ',node.X)
             elif self.interface_criteria_normal[1] == 1:
-                if abs(node.Y - self.interface_criteria_origin[1]) < tolerance:
+                if abs(node.Y - self.interface_criteria_origin[1]) < self.tolerance:
                     temporal_interface.AddNodes([node.Id])
             elif self.interface_criteria_normal[2] == 1:
-                if abs(node.Z - self.interface_criteria_origin[2]) < tolerance:
+                if abs(node.Z - self.interface_criteria_origin[2]) < self.tolerance:
                     temporal_interface.AddNodes([node.Id])
             else:
                 raise Exception("Only simple interface definitions allowed so far.")
@@ -406,7 +463,7 @@ class MPMCoupledTimeSolver(MPMSolver):
 
         return convergence_criterion
 
-    def _CreateSolutionScheme(self):
+    def _CreateSolutionScheme(self, index):
         grid_model_part = self.GetGridModelPart()
         domain_size = self._GetDomainSize()
         block_size  = domain_size
@@ -438,17 +495,20 @@ class MPMCoupledTimeSolver(MPMSolver):
         is_consistent_mass_matrix = self.settings["consistent_mass_matrix"].GetBool()
         if is_consistent_mass_matrix:
             self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
-            self.model_sub_domain_1.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
-            self.model_sub_domain_2.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
         else:
             self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
-            self.model_sub_domain_1.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
-            self.model_sub_domain_2.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
         if analysis_type == "non_linear":
-                solution_strategy = self._CreateNewtonRaphsonStrategy(index)
+            solution_strategy = self._CreateNewtonRaphsonStrategy(index)
         elif analysis_type == 'linear':
-                self.material_point_model_part.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
-                solution_strategy = self._CreateLinearStrategy(index);
+            if index == 1:
+                self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
+            if index == 2:
+                self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
+            solution_strategy = self._CreateLinearStrategy(index)
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
@@ -456,9 +516,9 @@ class MPMCoupledTimeSolver(MPMSolver):
         return solution_strategy
 
     def _CreateNewtonRaphsonStrategy(self, index):
-        computing_model_part = self.GetComputingModelPart(index)
+        computing_model_part = self.GetComputingSubModelPart(index)
         solution_scheme = self._GetSolutionScheme(index)
-        linear_solver = self._GetLinearSolver()
+        linear_solver = self._GetLinearSolver(index)
         convergence_criterion = self._GetConvergenceCriteria()
         builder_and_solver = self._GetBuilderAndSolver()
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
@@ -473,9 +533,9 @@ class MPMCoupledTimeSolver(MPMSolver):
                                                                         self.settings["move_mesh_flag"].GetBool())
 
     def _CreateLinearStrategy(self, index):
-        computing_model_part = self.GetComputingModelPart(index)
+        computing_model_part = self.GetComputingSubModelPart(index)
         solution_scheme = self._GetSolutionScheme(index)
-        linear_solver = self._GetLinearSolver()
+        linear_solver = self._GetLinearSolver(index)
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
         calc_norm_dx_flag = False ## hard-coded, but can be changed upon implementation
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,

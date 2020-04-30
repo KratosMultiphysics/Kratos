@@ -108,13 +108,10 @@ namespace Kratos
     void MPMTemporalCouplingUtility::InitializeSubDomain1Coupling()
     {
         KRATOS_TRY
-
+        Check();
         ComputeActiveInterfaceNodes();
-
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
-
         SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1InitialInterfaceVelocity);
-
         KRATOS_CATCH("")
     }
 
@@ -123,8 +120,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        // Find active nodes along interface
-        ModelPart& r_interface = mrModelPartSubDomain1.GetSubModelPart("temporal_interface");
+        ModelPart& r_interface = mrModelPartGrid.GetSubModelPart("temporal_interface");
         Vector interface_nodes_are_active = ZeroVector(r_interface.Nodes().size());
 
         // Computes active interface coupling nodes from sub domain 1 at the start of the large timestep
@@ -145,9 +141,9 @@ namespace Kratos
         {
             if (interface_nodes_are_active[i])
             {
-                active_counter += 1;
                 auto it_node = it_node_begin + i;
                 mActiveInterfaceNodeIDs[active_counter] = it_node->GetId();
+                active_counter += 1;
             }
         }
 
@@ -162,7 +158,7 @@ namespace Kratos
         Vector& rVelocityContainer)
     {
         // Compute velocity of active interface nodes for sub domain 
-        ModelPart& r_interface = rModelPart.GetSubModelPart("temporal_interface");
+        //ModelPart& r_interface = rModelPart.GetSubModelPart("temporal_interface");
         const IndexType working_space_dim = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         rVelocityContainer.resize(mActiveInterfaceNodeIDs.size() * working_space_dim, false);
         rVelocityContainer = ZeroVector(mActiveInterfaceNodeIDs.size() * working_space_dim);
@@ -170,14 +166,16 @@ namespace Kratos
         // Add to vector
         for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
         {
-            auto current_node = r_interface.pGetNode(mActiveInterfaceNodeIDs[i]);
+            auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
             const array_1d <double, 3> nodal_velocity = current_node->FastGetSolutionStepValue(VELOCITY);
-
+            std::cout << nodal_velocity << std::endl;
             for (IndexType k = 0; k < working_space_dim; ++k)
             {
                 rVelocityContainer[working_space_dim * i + k] = nodal_velocity[k];
             }
         }
+        std::cout << rVelocityContainer << std::endl;
+        int asdfas = 1;
     }
 
 
@@ -393,5 +391,40 @@ namespace Kratos
         }
     }
 
+
+    void MPMTemporalCouplingUtility::Check()
+    {
+        KRATOS_ERROR_IF_NOT(mrModelPartGrid.HasSubModelPart("temporal_interface"))
+            << "Model part " << mrModelPartGrid.Name()
+            << " is missing a submodel part called temporal_interface\n" << mrModelPartGrid << std::endl;
+
+        KRATOS_ERROR_IF_NOT(mrModelPartSubDomain1.NumberOfElements() > 0)
+            << "Model part " << mrModelPartSubDomain1.Name()
+            << " has no elements in it!\n" << mrModelPartSubDomain1 << std::endl;
+
+        KRATOS_ERROR_IF_NOT(mrModelPartSubDomain2.NumberOfElements() > 0)
+            << "Model part " << mrModelPartSubDomain2.Name()
+            << " has no elements in it!\n" << mrModelPartSubDomain2 << std::endl;
+
+        KRATOS_ERROR_IF(mTimeStepRatio == 0) << "Timestep ratio = 0. You must enter a positive integrer > 0." << std::endl;
+
+        for (size_t i = 0; i < mGamma.size(); ++i)
+            if (mGamma[i] != 0.5 && mGamma[i] != 1.0)
+                KRATOS_ERROR << "Gamma must equal 1.0 or 0.5. Gamma[" << i << "] = " << mGamma[i] << std::endl;
+
+
+        //PrintNodeIdsAndCoords(mrModelPartGrid);
+    }
+
+
+    void MPMTemporalCouplingUtility::PrintNodeIdsAndCoords(ModelPart& rModelPart)
+    {
+        std::cout << "\n" << rModelPart.Name() << "  ----------------------" << std::endl;
+        for (size_t i = 0; i < rModelPart.Nodes().size(); ++i)
+        {
+            auto node = rModelPart.NodesBegin() + i;
+            std::cout << "node " << node->GetId() << ", coords = (" << node->X() << ", " << node->Y() << ", " << node->Z() << ")" << std::endl;
+        }
+    }
  // end namespace MPMTemporalCouplingUtility
 } // end namespace Kratos
