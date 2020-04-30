@@ -114,7 +114,7 @@ public:
     /**
      * @brief Default constructor
      */
-    explicit SolvingStrategy()
+    explicit SolvingStrategy() : mpModelPart(nullptr)
     {
     }
 
@@ -124,7 +124,7 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : mrModelPart(rModelPart)
+        : mpModelPart(&rModelPart)
     {
         const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
         SetMoveMeshFlag(move_mesh_flag);
@@ -138,7 +138,7 @@ public:
     explicit SolvingStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
-        ) : mrModelPart(rModelPart)
+        ) : mpModelPart(&rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
@@ -361,11 +361,11 @@ public:
 
     /**
      * @brief Operations to get the pointer to the model
-     * @return mrModelPart: The model part member variable
+     * @return mpModelPart: The model part member variable
      */
     inline ModelPart& GetModelPart()
     {
-        return mrModelPart;
+        return *mpModelPart;
     };
 
     /**
@@ -489,7 +489,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart;
 
     bool mMoveMeshFlag;
 
