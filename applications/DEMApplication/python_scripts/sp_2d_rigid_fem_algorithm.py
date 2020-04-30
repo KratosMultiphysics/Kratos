@@ -2,6 +2,7 @@ import KratosMultiphysics
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 from KratosMultiphysics.DEMApplication import mesh_creator_sphere
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
+import math
 
 class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
@@ -31,6 +32,39 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.SettingGeometricalSPValues()
         self.CreateSPMeasuringRingSubmodelpart(self.spheres_model_part)
         self.RebuildSkinElements()
+
+        sandstone_target_porosity, actual_porosity, sp_porosity_multiplier = self.ComputePorosityParameters(self.spheres_model_part)
+        porosity_message = "\nPorosity in sandstones should be around %.2f and the obtained value is %.2f" % (sandstone_target_porosity, actual_porosity) + \
+        "\nSand production results should therefore be multiplied by a factor of %.2f\n" % sp_porosity_multiplier
+        print(porosity_message)
+        with open('sp_porosity.txt', 'w') as poro_file:
+            poro_file.write(porosity_message)
+
+    def ComputePorosityParameters(self, spheres_model_part):
+
+        total_cylinders_volume = 0.0 # Remember we are here in 2D with 1m depth
+        self.unit_depth = 1.0
+        for node in spheres_model_part.Nodes:
+            radius = node.GetSolutionStepValue(KratosMultiphysics.RADIUS)
+            total_cylinders_volume +=  math.pi * radius * radius * self.unit_depth
+
+        total_spheres_volume = (2.0/3.0) * total_cylinders_volume
+        actual_solid_fraction = total_spheres_volume / self.ComputeSpecimenFullVolume()
+        actual_porosity = 1.0 - actual_solid_fraction
+
+        sandstone_target_porosity = 0.25 # Porosity values in sandstones are in the range of 25%
+        target_solid_fraction = 1.0 - sandstone_target_porosity
+
+        sp_porosity_multiplier = target_solid_fraction / actual_solid_fraction
+
+        return sandstone_target_porosity, actual_porosity, sp_porosity_multiplier
+
+    def ComputeSpecimenFullVolume(self):
+
+        if self.test_number < 5:
+            return math.pi * (self.outer_radius * self.outer_radius - self.inner_radius * self.inner_radius) * self.unit_depth
+        else:
+            return (4.0 * self.outer_radius * self.outer_radius - math.pi * self.inner_radius * self.inner_radius) * self.unit_depth
 
     def SettingGeometricalSPValues(self):
 
