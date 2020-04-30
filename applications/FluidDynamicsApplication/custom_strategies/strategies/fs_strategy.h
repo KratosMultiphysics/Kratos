@@ -280,7 +280,7 @@ public:
         // Allocate and initialize values for REACTION calculation
         LocalSystemVectorType RHS_Contribution;
         LocalSystemMatrixType LHS_Contribution;
-        VariableUtils::SetHistoricalVariableToZero(REACTION, r_model_part.Nodes());
+        VariableUtils::SetHistoricalVariableToZero<array_1d<double,3>>(REACTION, r_model_part.Nodes());
 
 #pragma omp parallel for private(RHS_Contribution, LHS_Contribution)
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
@@ -672,7 +672,7 @@ protected:
         const int n_elems = rModelPart.NumberOfElements();
 
         array_1d<double,3> Out = ZeroVector(3);
-        VariableUtils::SetHistoricalVariableToZero(FRACT_VEL, rModelPart.Nodes());
+        VariableUtils::SetHistoricalVariableToZero<array_1d<double,3>>(FRACT_VEL, rModelPart.Nodes());
 
 #pragma omp parallel for
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
