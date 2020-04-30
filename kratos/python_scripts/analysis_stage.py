@@ -362,7 +362,10 @@ class AnalysisStage(object):
         return "Analysis"
 
     def _CheckIfModelIsModified(self):
-        # We check of some model part requires reinitialize
+        """ This checks the flag MODIFIED in all the modelparts belonging to the analysis model. Returns true if at least one of the model parts is modified
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
         modified_model = False
         if hasattr(self, 'model'):
             model_part_names = self.model.GetModelPartNames()
@@ -374,14 +377,20 @@ class AnalysisStage(object):
         return modified_model
 
     def _SetModelIsModified(self):
-        # Set the MODIFIED flag
+        """ This sets the flag MODIFIED in all the modelparts belonging to the analysis model
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
         if hasattr(self, 'model'):
             model_part_names = self.model.GetModelPartNames()
             for model_part_name in model_part_names:
                 self.model.GetModelPart(model_part_name).Set(KratosMultiphysics.MODIFIED, True)
 
     def _ResetModelIsModified(self):
-        # Reset the MODIFIED flag
+        """ This resets the flag MODIFIED in all the modelparts belonging to the analysis model
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
         if hasattr(self, 'model'):
             model_part_names = self.model.GetModelPartNames()
             for model_part_name in model_part_names:
