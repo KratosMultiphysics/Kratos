@@ -46,6 +46,7 @@ MassConservationUtility::MassConservationUtility(
     const Parameters default_parameters = GetDefaultParameters();
     rParameters.ValidateAndAssignDefaults(default_parameters);
     mTimeVariableName = rParameters["time_variable"].GetString();
+    mCorrectBackwards = rParameters["correct_backwards"].GetBool();
 }
 
 
@@ -138,7 +139,7 @@ double MassConservationUtility::ComputeDtForConvection(){
             KRATOS_ERROR << "Communication failed in MassConservationUtility::ComputeDtForConvection()";
         }
     }
-    else if ( mWaterVolumeError < 0.0 ){
+    else if ( mWaterVolumeError < 0.0 && mCorrectBackwards) {
         // case: water volume was gained by mistake
         mAddWater = false;
         double water_inflow_over_boundary = OrthogonalFlowIntoAir( -1.0 );
@@ -832,7 +833,8 @@ const Parameters MassConservationUtility::GetDefaultParameters()
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "time_variable" : "TIME"
+        "time_variable"     : "TIME",
+        "correct_backwards" : true
     })" );
     return default_parameters;
 }

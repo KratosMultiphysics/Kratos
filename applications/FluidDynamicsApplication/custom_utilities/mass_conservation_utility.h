@@ -244,6 +244,9 @@ private:
     //Name of time variable
     std::string mTimeVariableName;
 
+    //Option to correct backwards or not (it might be problematic in some cases)
+    bool mCorrectBackwards;
+
     // Balance parameter resulting from an integration of the net inflow into the domain over time
     // The initial value is the "mInitialNegativeVolume" meaning "water" is considered here
     double mTheoreticalNegativeVolume = -1.0;
@@ -319,7 +322,7 @@ private:
                             Line3D2<IndexedPoint>::Pointer& rpAuxLine,
                             array_1d<double, 3>& rAuxVelocity1,
                             array_1d<double, 3>& rAuxVelocity2 );
-    
+
     bool IsGeometryCut(const Geometry<Node<3>> &rGeom, unsigned int &PtCountNeg, unsigned int &PtCountPos);
 
     ///@}
