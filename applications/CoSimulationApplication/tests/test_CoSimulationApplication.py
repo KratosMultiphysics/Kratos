@@ -21,6 +21,7 @@ if numpy_available:
     from test_coupling_operations import TestScalingOperation
     from test_flower_coupling import TestFLOWerCoupling
     from test_sdof_solver import TestSdofSolver
+    from test_sdof_static_solver import TestSdofStaticSolver
     from test_convergence_criteria import TestConvergenceCriteria
     from test_convergence_criteria import TestConvergenceCriteriaWrapper
     from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
@@ -51,6 +52,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofSolver]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofStaticSolver]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteria]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteriaWrapper]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverGetSolver]))

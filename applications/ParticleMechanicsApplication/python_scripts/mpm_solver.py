@@ -387,7 +387,10 @@ class MPMSolver(PythonSolver):
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         analysis_type = self.settings["analysis_type"].GetString()
         is_consistent_mass_matrix = self.settings["consistent_mass_matrix"].GetBool()
-        self.grid_model_part.ProcessInfo.SetValue(KratosParticle.USE_CONSISTENT_MASS_MATRIX, is_consistent_mass_matrix)
+        if is_consistent_mass_matrix:
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
+        else:
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
         if analysis_type == "non_linear":
                 solution_strategy = self._CreateNewtonRaphsonStrategy()
         elif analysis_type == 'linear':
