@@ -1,0 +1,18 @@
+name: Build Docker Images for CI
+# this workflow creates the Docker-Images used in the Continuous Integration (CI)
+# It intentionally creates all images, such that they are on the same state
+
+on:
+  pull_request:
+    paths:
+    - 'scripts/docker_files/docker_file_ci_ubuntu_20_04/DockerFile'
+    - '.github/workflows/build_docker_images_for_ci.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build . --file scripts/docker_files/docker_file_ci_ubuntu_20_04/DockerFile --tag kratosmultiphysics/kratos-image-ci-ubuntu-20-04
