@@ -67,7 +67,7 @@ class DistributedGiDOutputProcess(GiDOutputProcess):
         KM.ParallelEnvironment.GetDefaultDataCommunicator().Barrier()
 
     def _CreateCuttingUtility(self):
-        if not IsApplicationAvailable("TrilinosApplication"):
+        if not CheckIfApplicationsAvailable("TrilinosApplication"):
             raise Exception("Defining output cuts requires the TrilinosApplication, which appears to be unavailable.")
         self.epetra_comm = KratosTrilinos.CreateCommunicator()
         return KratosTrilinos.TrilinosCuttingApplication(self.epetra_comm)

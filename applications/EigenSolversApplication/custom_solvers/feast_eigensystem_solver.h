@@ -130,7 +130,7 @@ class FEASTEigensystemSolver
     {
         Parameters default_params(R"(
         {
-            "solver_type" : "eigen_feast",
+            "solver_type" : "feast",
             "symmetric" : true,
             "number_of_eigenvalues" : 0,
             "search_lowest_eigenvalues" : false,

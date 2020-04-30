@@ -117,7 +117,7 @@ public:
 	{
 		KRATOS_TRY;
 
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 		double strain_energy = 0.0;
 
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
@@ -243,7 +243,7 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 		// Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
 		for (auto& elem_i : mrModelPart.Elements())
@@ -347,7 +347,7 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 		// Computation of \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} )
 		for (auto& cond_i : mrModelPart.Conditions())
