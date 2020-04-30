@@ -253,13 +253,11 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeEdgeNormalVelocityComponent, TransonicPotential
     pElement->Initialize(model_part.GetProcessInfo());
 
     // find edge vector components in free stream velocity direction
-    double first_edge_velocity_component = pElement->GetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_X);
-    double second_edge_velocity_component = pElement->GetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_Y);
-    double third_edge_velocity_component = pElement->GetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_Z);
+    auto edge_velocity_components = pElement->GetValue(EDGE_NORMAL_VELOCITY_COMPONENTS);
 
-    KRATOS_CHECK_NEAR(first_edge_velocity_component, 0.0, 1e-15);
-    KRATOS_CHECK_NEAR(second_edge_velocity_component, -1.0, 1e-15);
-    KRATOS_CHECK_NEAR(third_edge_velocity_component, 1.0, 1e-15);
+    KRATOS_CHECK_NEAR(edge_velocity_components[0], 0.0, 1e-15);
+    KRATOS_CHECK_NEAR(edge_velocity_components[1], -1.0, 1e-15);
+    KRATOS_CHECK_NEAR(edge_velocity_components[2], 1.0, 1e-15);
 }
 
 } // namespace Testing

@@ -953,9 +953,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
     const double second_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, second_edge);
     const double third_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, third_edge);
 
-    this->SetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_X, first_edge_normal_fs_comp);
-    this->SetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_Y, second_edge_normal_fs_comp);
-    this->SetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_Z, third_edge_normal_fs_comp);
+    vector<double> edge_normal_velocity_components (3);
+    edge_normal_velocity_components[0] = first_edge_normal_fs_comp;
+    edge_normal_velocity_components[1] = second_edge_normal_fs_comp;
+    edge_normal_velocity_components[2] = third_edge_normal_fs_comp;
+
+    this->SetValue(EDGE_NORMAL_VELOCITY_COMPONENTS, edge_normal_velocity_components);
 
     // get node IDs of upwind element
     int upwind_element_one_node_id = 0;
