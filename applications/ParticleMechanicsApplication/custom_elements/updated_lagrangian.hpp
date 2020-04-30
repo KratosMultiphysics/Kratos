@@ -123,7 +123,7 @@ protected:
         // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
         double accumulated_plastic_deviatoric_strain;
 
-        explicit MaterialPointVariables(SizeType WorkingSpaceDimension)
+        explicit MaterialPointVariables()
         {
             // MP_MASS
             mass = 1.0;
@@ -131,15 +131,6 @@ protected:
             density = 1.0;
             // MP_VOLUME
             volume = 1.0;
-
-            SizeType strain_size = (WorkingSpaceDimension == 2)
-                ? 3
-                : 6;
-
-            // MP_CAUCHY_STRESS_VECTOR
-            cauchy_stress_vector = ZeroVector(strain_size);
-            // MP_ALMANSI_STRAIN_VECTOR
-            almansi_strain_vector = ZeroVector(strain_size);
 
             // MP_DELTA_PLASTIC_STRAIN
             delta_plastic_strain = 1.0;
@@ -482,7 +473,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             ProcessInfo& rCurrentProcessInfo) override;
+                             const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -493,6 +484,11 @@ public:
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                 ProcessInfo& rCurrentProcessInfo) override;
 
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
     //************************************************************************************
@@ -539,6 +535,10 @@ public:
     ///@}
     ///@name Access Get Values
     ///@{
+
+    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
         std::vector<int>& rValues,
@@ -607,7 +607,6 @@ protected:
      */
     bool mFinalizedStep;
 
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -640,7 +639,8 @@ protected:
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
                                     Vector& rVolumeForce,
-                                    const double& rIntegrationWeight);
+                                    const double& rIntegrationWeight,
+                                    const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -674,6 +674,10 @@ protected:
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
             const double& rIntegrationWeight);
+
+    /// Calculation of the Explicit Stresses from velocity gradient.
+    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+        GeneralVariables& rVariables);
 
 
     /**
@@ -799,11 +803,6 @@ protected:
      * Calculation of the Volume Change of the Element
      */
     virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
-    /**
-     * Calculation of the Volume Force of the Element
-     */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, GeneralVariables& rVariables);
 
     ///@name Protected LifeCycle
     ///@{

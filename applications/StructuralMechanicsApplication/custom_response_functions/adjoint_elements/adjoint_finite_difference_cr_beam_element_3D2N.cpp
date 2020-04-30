@@ -64,7 +64,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
