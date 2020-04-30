@@ -85,7 +85,7 @@ void CrBeamElement2D2N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void CrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step)
+void CrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -105,7 +105,7 @@ void CrBeamElement2D2N::GetValuesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void CrBeamElement2D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void CrBeamElement2D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -126,7 +126,7 @@ void CrBeamElement2D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void CrBeamElement2D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void CrBeamElement2D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
     if (rValues.size() != msElementSize) {
@@ -790,15 +790,6 @@ void CrBeamElement2D2N::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-void CrBeamElement2D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
 
 CrBeamElement2D2N::IntegrationMethod
 CrBeamElement2D2N::GetIntegrationMethod() const
@@ -834,7 +825,7 @@ double CrBeamElement2D2N::Modulus2Pi(double A) const
 
 void CrBeamElement2D2N::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // FORCE- & Moment- Residual is 3D vector
