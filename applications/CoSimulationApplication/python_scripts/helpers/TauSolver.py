@@ -55,6 +55,7 @@ def SolveSolutionStep():
     Solver.output()
     tau_plt_init_tecplot_params(para_path_mod)
     tau_solver_write_output_conditional()
+    TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
 
 def FinalizeSolutionStep():
     if tau_settings["echo_level"] > 0:
@@ -77,7 +78,7 @@ def ImportData(conn_name, identifier):
     if identifier == "Interface_disp":
         # Deform mesh
         if tau_mpi_rank() == 0:
-            TauFunctions.ExecuteBeforeMeshDeformation(data,step,para_path_mod,working_path,tau_path)
+            TauFunctions.ExecuteBeforeMeshDeformation(data, working_path, step, para_path_mod)
         Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
@@ -89,7 +90,7 @@ def ExportData(conn_name, identifier):
         print "TAU SOLVER ExportData"
     # identifier is the data-name in json
     if identifier == "Interface_force":
-        data = TauFunctions.ComputeForces(working_path, tau_path, step, para_path_mod)
+        data = TauFunctions.ComputeForces(working_path, step, para_path_mod)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -103,7 +104,7 @@ def ExportMesh(conn_name, identifier):
         print "TAU SOLVER ExportMesh"
     # identifier is the data-name in json
     if identifier == "Fluid.Interface":
-        nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, tau_path, step, para_path_mod)
+        nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, para_path_mod)
     else:
         raise Exception(
             'TauSolver::ExportMesh::identifier "{}" not valid! Please use Fluid.Interface'.format(identifier))

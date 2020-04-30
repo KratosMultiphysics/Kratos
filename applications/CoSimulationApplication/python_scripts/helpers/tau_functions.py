@@ -8,34 +8,25 @@ import PyPara, PySurfDeflect
 from scipy.io import netcdf
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
-def GetFluidMesh(working_path, tau_path, step, para_path_mod):
-    ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
+def GetFluidMesh(working_path, step, para_path_mod):
     interface_file_name = FindInterfaceFile(working_path, step)
-    interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name)
-    print 'interface_file_number_of_lines =', interface_file_number_of_lines
-    NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = readPressure(interface_file_name, interface_file_number_of_lines, 0, 20)
+    NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = readPressure(interface_file_name, 0, 20)
     nodal_coords, nodesID, elem_connectivities, element_types = interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z)
     # In vtk format element connectivities start from 0, not from 1
     elem_connectivities -= 1
     return nodal_coords, elem_connectivities, element_types
 
-def ComputeForces(working_path, tau_path, step, para_path_mod):
-    if step > 0:
-        ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
+def ComputeForces(working_path, step, para_path_mod):
     interface_file_name = FindInterfaceFile(working_path, step)
-    interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name)
-    print 'interface_file_number_of_lines =', interface_file_number_of_lines
-    forces = caculatePressure(interface_file_name, interface_file_number_of_lines, step)
+    forces = caculatePressure(interface_file_name, step)
     return forces
 
-def ExecuteBeforeMeshDeformation(dispTau,step,para_path_mod,working_path,tau_path):
+def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod):
     global dispTauOld
     print "deformationstart"
     interface_file_name = FindInterfaceFile(working_path, step)
-    interface_file_number_of_lines = findInterfaceFileNumberOfLines(interface_file_name)
-    print 'interface_file_number_of_lines =', interface_file_number_of_lines
 
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name, interface_file_number_of_lines, 0, 20)
+    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure(interface_file_name, 0, 20)
 
     nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
 
@@ -137,21 +128,21 @@ def WriteTautoplt(working_path, step, para_path_mod):
     tautoplt_file_reading.close()
     return tautoplt_file_name
 
-def findInterfaceFileNumberOfLines(fname):
-    with open(fname,'r') as f:
-        it = 0
-        pattern = {'E+', 'E-'}
+
+def FindInterfaceFileLinesNumber(fname):
+    with open(fname, 'r') as f:
+        lines_number = 0
         for line in f:
             if 'E+' in line or 'E-' in line:
-                it = it+1
-    return it
+                lines_number += 1
+    return lines_number
 
 def PrintBlockHeader(header):
     tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
 
 # read the solution file name in '/Outputs' and calculate the pressure
-def caculatePressure(interface_file_name, interface_file_number_of_lines, step):
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure( interface_file_name, interface_file_number_of_lines, 0, 20)
+def caculatePressure(interface_file_name, step):
+    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure(interface_file_name, 0, 20)
 
     nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
 
@@ -168,7 +159,9 @@ def caculatePressure(interface_file_name, interface_file_number_of_lines, step):
 
 
 # Read Cp from the solution file and calculate 'Pressure' on the nodes of TAU Mesh
-def readPressure(interface_file_name,interface_file_number_of_lines,error,velocity):
+def readPressure(interface_file_name,error,velocity):
+    interface_file_lines_number = FindInterfaceFileLinesNumber(interface_file_name)
+    print 'interface_file_lines_number =', interface_file_lines_number
     with open(interface_file_name,'r') as f:
         header1 = f.readline()  #liest document linie für linie durch
         header2 = f.readline()
@@ -188,7 +181,7 @@ def readPressure(interface_file_name,interface_file_number_of_lines,error,veloci
 
         # write X,Y,Z,CP of the document in a vector = liste_number
         liste_number = []
-        for i in xrange(interface_file_number_of_lines):
+        for i in xrange(interface_file_lines_number):
             line = f.readline()
             for elem in line.split():
                 liste_number.append(float(elem))
