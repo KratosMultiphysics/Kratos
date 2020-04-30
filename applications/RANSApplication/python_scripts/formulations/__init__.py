@@ -5,8 +5,10 @@ import KratosMultiphysics as Kratos
 from .incompressible_potential_flow import IncompressiblePotentialFlowFormulation
 from .fractional_step.fractional_step_velocity_pressure_formulation import FractionalStepVelocityPressureFormulation
 from .fractional_step.fractional_step_k_epsilon_high_re_formulation import FractionalStepKEpsilonHighReFormulation
+from .fractional_step.fractional_step_k_omega_formulation import FractionalStepKOmegaFormulation
 from .monolithic_vms.monolithic_velocity_pressure_formulation import MonolithicVelocityPressureFormulation
 from .monolithic_vms.monolithic_k_epsilon_high_re_formulation import MonolithicKEpsilonHighReFormulation
+from .monolithic_vms.monolithic_k_omega_formulation import MonolithicKOmegaFormulation
 
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
@@ -14,8 +16,10 @@ def Factory(model_part, settings):
         ["incompressible_potential_flow", IncompressiblePotentialFlowFormulation],
         ["fractional_step", FractionalStepVelocityPressureFormulation],
         ["fractional_step_k_epsilon_high_re", FractionalStepKEpsilonHighReFormulation],
+        ["fractional_step_k_omega", FractionalStepKOmegaFormulation],
         ["monolithic", MonolithicVelocityPressureFormulation],
-        ["monolithic_k_epsilon_high_re", MonolithicKEpsilonHighReFormulation]
+        ["monolithic_k_epsilon_high_re", MonolithicKEpsilonHighReFormulation],
+        ["monolithic_k_omega", MonolithicKOmegaFormulation]
     ]
 
     formulation_names_list = [formulations_list[i][0] for i in range(len(formulations_list))]

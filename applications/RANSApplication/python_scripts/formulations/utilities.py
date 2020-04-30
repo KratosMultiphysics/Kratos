@@ -1,7 +1,9 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.RANSApplication as KratosRANS
 
 from KratosMultiphysics import IsDistributedRun
+from KratosMultiphysics import VariableUtils
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
@@ -101,6 +103,16 @@ def CalculateNormalsOnConditions(model_part):
 
         Kratos.Logger.PrintInfo("NormalCalculationUtils",
                                 "Condition normals calculated.")
+
+def InitializeYPlusVariablesInConditions(model_part):
+    if (not RansVariableUtilities.IsAnalysisStepCompleted(
+            model_part, "CONDITION_TURBULENCE_VARIABLE_INITIALIZATION")):
+        VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.RANS_Y_PLUS, model_part.Conditions)
+        VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.FRICTION_VELOCITY, model_part.Conditions)
+        RansVariableUtilities.AddAnalysisStep(model_part,
+                                              "CONDITION_TURBULENCE_VARIABLE_INITIALIZATION")
+        Kratos.Logger.PrintInfo("Initialization",
+                                "Initialized condition variables.")
 
 
 def CreateFormulationModelPart(formulation, element_name, condition_name):
