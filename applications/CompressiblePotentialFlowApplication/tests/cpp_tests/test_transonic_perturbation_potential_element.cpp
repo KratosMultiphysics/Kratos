@@ -241,7 +241,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, Tran
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FindUpwindElement, TransonicPotentialApplicationFastSuite){
+KRATOS_TEST_CASE_IN_SUITE(ComputeEdgeNormalVelocityComponent, TransonicPotentialApplicationFastSuite){
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -250,32 +250,16 @@ KRATOS_TEST_CASE_IN_SUITE(FindUpwindElement, TransonicPotentialApplicationFastSu
 
     const auto rGeom = pElement->GetGeometry();
 
-    // make clockwise element edge vectors
-    array_1d<double, 3> first_edge(3, 0.0);
-    array_1d<double, 3> second_edge(3, 0.0);
-    array_1d<double, 3> third_edge(3, 0.0);
-
-    first_edge[0] = rGeom[0].X() - rGeom[1].X();
-    first_edge[1] = rGeom[0].Y() - rGeom[1].Y();
-
-    second_edge[0] = rGeom[1].X() - rGeom[2].X();
-    second_edge[1] = rGeom[1].Y() - rGeom[2].Y();
-
-    third_edge[0] = rGeom[2].X() - rGeom[0].X();
-    third_edge[1] = rGeom[2].Y() - rGeom[0].Y();
+    pElement->Initialize(model_part.GetProcessInfo());
 
     // find edge vector components in free stream velocity direction
     double first_edge_velocity_component = pElement->GetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_X);
     double second_edge_velocity_component = pElement->GetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_Y);
     double third_edge_velocity_component = pElement->GetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_Z);
 
-//     double second_edge_velocity_component = pElement->TransonicPerturbationPotentialFlowElement::GetEdgeNormalVelocityComponent(second_edge, model_part.GetProcessInfo());
-//     double third_edge_velocity_component = pElement->TransonicPerturbationPotentialFlowElement::GetEdgeNormalVelocityComponent(third_edge, model_part.GetProcessInfo());
-
     KRATOS_CHECK_NEAR(first_edge_velocity_component, 0.0, 1e-15);
     KRATOS_CHECK_NEAR(second_edge_velocity_component, -1.0, 1e-15);
     KRATOS_CHECK_NEAR(third_edge_velocity_component, 1.0, 1e-15);
-
 }
 
 } // namespace Testing
