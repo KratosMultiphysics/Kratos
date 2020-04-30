@@ -126,8 +126,10 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
         r_omega_gradient, this->GetGeometry(), TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
         rShapeFunctionDerivatives, Step);
 
-    mSigmaD = EvmKOmegaElementDataUtilities::CalculateSigmaD(
-        mTurbulentKineticEnergyGradient, r_omega_gradient);
+    mSigmaD = 0.0;
+
+    // mSigmaD = EvmKOmegaElementDataUtilities::CalculateSigmaD(
+    //     mTurbulentKineticEnergyGradient, r_omega_gradient);
 
 
     KRATOS_CATCH("");
