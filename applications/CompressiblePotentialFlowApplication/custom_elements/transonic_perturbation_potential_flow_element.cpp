@@ -23,14 +23,14 @@ namespace Kratos
 {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
-template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    if ( ~(this->Is(INLET)) ) // not an inlet element
-    {
-        FindUpwindElement(rCurrentProcessInfo);
-    }
-}
+// template <int TDim, int TNumNodes>
+// void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+// {
+//     if ( ~(this->Is(INLET)) ) // not an inlet element
+//     {
+//         FindUpwindElement(rCurrentProcessInfo);
+//     }
+// }
 
 template <int TDim, int TNumNodes>
 Element::Pointer TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Create(
@@ -335,14 +335,14 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
     }
 }
 
-template <int TDim, int TNumNodes>
-double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEdgeNormalVelocityComponent(
-    const array_1d<double, 3>& rEdgeVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    const double edge_normal_velocity_component = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, rEdgeVector);
-    return edge_normal_velocity_component;
-}
+// template <int TDim, int TNumNodes>
+// double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEdgeNormalVelocityComponent(
+//     const array_1d<double, 3>& rEdgeVector,
+//     const ProcessInfo& rCurrentProcessInfo)
+// {
+//     const double edge_normal_velocity_component = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, rEdgeVector);
+//     return edge_normal_velocity_component;
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
@@ -961,6 +961,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
     const double first_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, first_edge);
     const double second_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, second_edge);
     const double third_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, third_edge);
+
+    this->SetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_X, first_edge_normal_fs_comp);
+    this->SetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_Y, second_edge_normal_fs_comp);
+    this->SetValue(EDGE_NORMAL_VELOCITY_COMPONENTS_Z, third_edge_normal_fs_comp);
 
     // get node IDs of upwind element
     int upwind_element_one_node_id = 0;

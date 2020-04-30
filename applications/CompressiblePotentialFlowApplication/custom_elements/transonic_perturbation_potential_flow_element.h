@@ -138,7 +138,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    // void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
@@ -185,8 +185,8 @@ public:
                                      std::vector<array_1d<double, 3>>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    double GetEdgeNormalVelocityComponent(const array_1d<double, 3>& rEdgeVector,
-                                        const ProcessInfo& rCurrentProcessInfo);
+    // double GetEdgeNormalVelocityComponent(const array_1d<double, 3>& rEdgeVector,
+    //                                     const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Inquiry
