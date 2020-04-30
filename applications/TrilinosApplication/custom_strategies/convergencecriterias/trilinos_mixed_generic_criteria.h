@@ -221,7 +221,7 @@ public:
             std::vector<TDataType> var_ratio(mVariableSize, 0.0);
             std::vector<TDataType> var_abs(mVariableSize, 0.0);
             for(int i = 0; i < mVariableSize; i++) {
-                var_ratio[i] = std::sqrt(global_increase_norms_vector[i]) / std::sqrt(global_solution_norms_vector[i]);
+                var_ratio[i] = std::sqrt(global_increase_norms_vector[i] / global_solution_norms_vector[i]);
                 var_abs[i] = std::sqrt(global_increase_norms_vector[i]) / static_cast<TDataType>(global_dofs_count[i]);
             }
 
