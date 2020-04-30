@@ -188,7 +188,8 @@ public:
      * @param rResult vector of results of this quadrature point.
      */
     Vector& DeterminantOfJacobian(
-        Vector& rResult, IntegrationMethod ThisMethod) const override
+        Vector& rResult,
+        GeometryData::IntegrationMethod ThisMethod) const override
     {
         if (rResult.size() != 1)
             rResult.resize(1, false);
