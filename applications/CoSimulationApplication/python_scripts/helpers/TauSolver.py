@@ -90,7 +90,7 @@ def ExportData(conn_name, identifier):
         print "TAU SOLVER ExportData"
     # identifier is the data-name in json
     if identifier == "Interface_force":
-        data = TauFunctions.ComputeForces(working_path, step, para_path_mod)
+        data = TauFunctions.ComputeFluidForces(working_path, step)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 

@@ -7,28 +7,42 @@ from tau_python import tau_msg
 import PyPara, PySurfDeflect
 from scipy.io import netcdf
 
+echo_level = 1
+
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
 def GetFluidMesh(working_path, step, para_path_mod):
     interface_file_name = FindInterfaceFile(working_path, step)
-    NodesNr, ElemsNr, X, Y, Z, CP, P, elemTable, liste_number = readPressure(interface_file_name, 0, 20)
+    NodesNr, ElemsNr, X, Y, Z, P, elemTable = readPressure(interface_file_name, 20)
     nodal_coords, nodesID, elem_connectivities, element_types = interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z)
     # In vtk format element connectivities start from 0, not from 1
     elem_connectivities -= 1
     return nodal_coords, elem_connectivities, element_types
 
-def ComputeForces(working_path, step, para_path_mod):
+
+def ComputeFluidForces(working_path, step):
     interface_file_name = FindInterfaceFile(working_path, step)
-    forces = caculatePressure(interface_file_name, step)
-    return forces
+
+    NodesNr, ElemsNr, X, Y, Z, P, elemTable = readPressure(interface_file_name, 20)
+
+    # calculating cp at the center of each interface element
+    pCell=calcpCell(ElemsNr,P,X,elemTable)
+
+    # calculating element area and normal vector
+    area,normal = calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(step+1))
+
+    # calculating the force vector
+    fluid_forces = calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(step+1))
+
+    return fluid_forces
 
 def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod):
     global dispTauOld
     print "deformationstart"
     interface_file_name = FindInterfaceFile(working_path, step)
 
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure(interface_file_name, 0, 20)
+    NodesNr,ElemsNr,X,Y,Z,P,elemTable=readPressure(interface_file_name, 20)
 
-    nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
+    nodes,nodesID,elem_connectivities,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
 
     if(step==0):
         dispTauOld=np.zeros(3*NodesNr)
@@ -36,7 +50,7 @@ def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod):
         print 'dispTau =', dispTau_transpose
     print 'dispTauOld = ', dispTauOld
 
-    [ids,coordinates,globalID,coords]=meshDeformation(NodesNr,nodes,dispTau,dispTauOld,0,para_path_mod)
+    [ids,coordinates,globalID,coords]=meshDeformation(NodesNr,nodes,dispTau,dispTauOld,para_path_mod)
     PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
     print "afterPySurfDeflect"
 
@@ -129,7 +143,7 @@ def WriteTautoplt(working_path, step, para_path_mod):
     return tautoplt_file_name
 
 
-def FindInterfaceFileLinesNumber(fname):
+def CountInterfaceFileLinesNumber(fname):
     with open(fname, 'r') as f:
         lines_number = 0
         for line in f:
@@ -140,32 +154,17 @@ def FindInterfaceFileLinesNumber(fname):
 def PrintBlockHeader(header):
     tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
 
-# read the solution file name in '/Outputs' and calculate the pressure
-def caculatePressure(interface_file_name, step):
-    NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable,liste_number=readPressure(interface_file_name, 0, 20)
-
-    nodes,nodesID,elems,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
-
-    # calculating cp at the center of each interface element
-    pCell=calcpCell(ElemsNr,P,X,elemTable)
-
-    # calculating element area and normal vector
-    area,normal = calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(step+1))
-
-    # calculating the force vector
-    forcesTauNP = calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(step+1))
-
-    return forcesTauNP
-
 
 # Read Cp from the solution file and calculate 'Pressure' on the nodes of TAU Mesh
-def readPressure(interface_file_name,error,velocity):
-    interface_file_lines_number = FindInterfaceFileLinesNumber(interface_file_name)
-    print 'interface_file_lines_number =', interface_file_lines_number
+def readPressure(interface_file_name,velocity):
+    interface_file_lines_number = CountInterfaceFileLinesNumber(interface_file_name)
+    if echo_level > 0:
+        print 'interface_file_lines_number =', interface_file_lines_number
     with open(interface_file_name,'r') as f:
-        header1 = f.readline()  #liest document linie für linie durch
+        header1 = f.readline()
         header2 = f.readline()
-        print "Careful ---- headers 2 = ", header2 #5 readline- Annahme fünf spalten
+        if echo_level > 0:
+            print "header2 = ", header2
         header2_split = header2.split()
         pos_X = header2_split.index('"x"')
         pos_Y = header2_split.index('"y"')
@@ -175,11 +174,11 @@ def readPressure(interface_file_name,error,velocity):
         header4 = f.readline()
         header5 = f.readline()
 
-        d=[int(s) for s in re.findall(r'\b\d+\b', header4)]  #find all sucht muster im document
+        d=[int(s) for s in re.findall(r'\b\d+\b', header4)]
         NodesNr = d[0]
         ElemsNr = d[1]
 
-        # write X,Y,Z,CP of the document in a vector = liste_number
+        # write X,Y,Z,CP of the document in a list
         liste_number = []
         for i in xrange(interface_file_lines_number):
             line = f.readline()
@@ -203,14 +202,14 @@ def readPressure(interface_file_name,error,velocity):
         Y=liste_number[(pos_Y-2)*NodesNr:(pos_Y-2+1)*NodesNr]
         Z=liste_number[(pos_Z-2)*NodesNr:(pos_Z-2+1)*NodesNr]
         CP=liste_number[(pos_Cp-2)*NodesNr:(pos_Cp-2+1)*NodesNr]
-        X=X[0:NodesNr-error]
-        Y=Y[0:NodesNr-error]
-        Z=Z[0:NodesNr-error]
-        CP=CP[0:NodesNr-error]
+        X=X[0:NodesNr]
+        Y=Y[0:NodesNr]
+        Z=Z[0:NodesNr]
+        CP=CP[0:NodesNr]
         P=[x*velocity*velocity*0.5*1.2 for x in CP]
         P=np.array(P)
 
-    return NodesNr,ElemsNr,X,Y,Z,CP,P,elemTable_Sol,liste_number
+    return NodesNr,ElemsNr,X,Y,Z,P,elemTable_Sol
 
 
 def interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z):
@@ -218,7 +217,7 @@ def interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z):
     nodes = np.zeros(NodesNr*3)
     # array to store the IDs of the nodes in the fluid mesh: IDnode1, IDnode2,...
     nodesID = np.zeros(NodesNr, dtype=int)
-    elems = np.zeros(4*ElemsNr, dtype=int)  # array to store the element table
+    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)  # array to store the element table
     element_types = np.zeros(ElemsNr, dtype=int)
 
     for i in xrange(0, NodesNr):
@@ -228,33 +227,41 @@ def interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z):
         nodes[3*i+2] = Z[i]
 
     for i in xrange(0, ElemsNr):
-        elems[i*4+0] = elemTable[i, 0]
-        elems[i*4+1] = elemTable[i, 1]
-        elems[i*4+2] = elemTable[i, 2]
-        elems[i*4+3] = elemTable[i, 3]
+        elem_connectivities[i*4+0] = elemTable[i, 0]
+        elem_connectivities[i*4+1] = elemTable[i, 1]
+        elem_connectivities[i*4+2] = elemTable[i, 2]
+        elem_connectivities[i*4+3] = elemTable[i, 3]
         element_types[i] = 9
 
-    return nodes, nodesID, elems, element_types
+    return nodes, nodesID, elem_connectivities, element_types
+
+
 
 # Calculate the Pressure on the elements from the pressure on the nodes
-def calcpCell(ElemsNr,P,X,elemTable):
-    pCell = np.zeros(ElemsNr); # cp for interface elements
-    #print 'len(elemTable) = ', len(elemTable)
-    with open('xp','w') as f:
-        for i in xrange(0,ElemsNr):
-            pCell[i] = 0.25* (P[elemTable[i,0]-1] + P[elemTable[i,1]-1] + P[elemTable[i,2]-1] + P[elemTable[i,3]-1]);
-            x= 0.25* (X[elemTable[i,0]-1] + X[elemTable[i,1]-1] + X[elemTable[i,2]-1] + X[elemTable[i,3]-1]);
-            f.write('%d\t%f\t%f\n'%(i,x,pCell[i]))
+def calcpCell(ElemsNr, P, X, elemTable):
+    pCell = np.zeros(ElemsNr)  # cp for interface elements
+
+    for i in range(ElemsNr):
+        for k in range(4):
+            pCell[i] += 0.25 * P[elemTable[i, k]-1]
+
+    if echo_level > 0:
+        with open('xp', 'w') as f:
+            for i in range(ElemsNr):
+                x = 0.0
+                for k in range(4):
+                    x += 0.25 * X[elemTable[i, k]-1]
+                f.write('%d\t%f\t%f\n' % (i, x, pCell[i]))
 
     return pCell
 
 
 # Calculate the area and the normal of the area for each cell - element of TAU Mesh
 def calcAreaNormal(ElemsNr,elemTable,X,Y,Z,fIteration):
-    area = np.zeros(ElemsNr); # area of each interface element
-    normal = np.zeros([ElemsNr,3]) # element normal vector
-    A = np.zeros(3);
-    B = np.zeros(3);
+    area = np.zeros(ElemsNr)
+    normal = np.zeros([ElemsNr,3])
+    A = np.zeros(3)
+    B = np.zeros(3)
     for i in xrange(0,ElemsNr):
         A[0] = X[elemTable[i,2]-1] - X[elemTable[i,0]-1]
         A[1] = Y[elemTable[i,2]-1] - Y[elemTable[i,0]-1]
@@ -262,7 +269,7 @@ def calcAreaNormal(ElemsNr,elemTable,X,Y,Z,fIteration):
         B[0] = X[elemTable[i,3]-1] - X[elemTable[i,1]-1]
         B[1] = Y[elemTable[i,3]-1] - Y[elemTable[i,1]-1]
         B[2] = Z[elemTable[i,3]-1] - Z[elemTable[i,1]-1]
-        a=np.cross(A,B)   #np quasi ein matematischer provider
+        a=np.cross(A,B)
         norm=np.linalg.norm(a)
         a=a/norm
         normal[i,0]=a[0]
@@ -312,7 +319,7 @@ def calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,fIteration)
     return forcesTauNP
 
 # Execute the Mesh deformation of TAU
-def meshDeformation(NodesNr,nodes,dispTau,dispTauOld,error, para_path_mod):
+def meshDeformation(NodesNr,nodes,dispTau,dispTauOld, para_path_mod):
 
     disp=np.zeros([NodesNr,3])#NodesNr
     for i in xrange(0,NodesNr):#NodesNr
@@ -321,19 +328,19 @@ def meshDeformation(NodesNr,nodes,dispTau,dispTauOld,error, para_path_mod):
         disp[i,2]=1*(dispTau[3*i+2]-dispTauOld[3*i+2])
     Para = PyPara.Parafile(para_path_mod)
     ids, coordinates = PySurfDeflect.read_tau_grid(Para)
-    coords=np.zeros([NodesNr-error,6])#NodesNr
+    coords=np.zeros([NodesNr,6])#NodesNr
 
-    for i in xrange(0,NodesNr-error):
+    for i in xrange(0,NodesNr):
         coords[i,0]=coordinates[0,i]
         coords[i,1]=coordinates[1,i]
         coords[i,2]=coordinates[2,i]
 
-    globalID = np.zeros(NodesNr-error)
-    for i in xrange(0,NodesNr-error):
+    globalID = np.zeros(NodesNr)
+    for i in xrange(0,NodesNr):
         xi = coords[i,0]
         yi = coords[i,1]
         zi = coords[i,2]
-        for k in xrange(0,NodesNr-error):
+        for k in xrange(0,NodesNr):
             xk = nodes[3*k+0]
             yk = nodes[3*k+1]
             zk = nodes[3*k+2]
