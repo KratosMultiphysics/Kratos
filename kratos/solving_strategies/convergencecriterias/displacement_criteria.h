@@ -86,6 +86,12 @@ public:
     ///@name Life Cycle
     ///@{
 
+    //* Constructor.
+    explicit DisplacementCriteria()
+        : BaseType()
+    {
+    }
+
     /** Constructor.
     */
     explicit DisplacementCriteria(Kratos::Parameters Settings)

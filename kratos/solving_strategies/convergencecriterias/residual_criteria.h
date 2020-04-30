@@ -92,6 +92,12 @@ public:
     ///@{
 
     //* Constructor.
+    explicit ResidualCriteria()
+        : BaseType()
+    {
+    }
+
+    //* Constructor.
     explicit ResidualCriteria(Kratos::Parameters Settings)
         : BaseType()
     {

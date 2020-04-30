@@ -85,6 +85,12 @@ public:
     ///@name Life Cycle
     ///@{
 
+    //* Constructor.
+    explicit Or_Criteria()
+        : BaseType()
+    {
+    }
+
     /**
      * @brief Default constructor. (with parameters)
      * @details It takes two different convergence criteria in order to work
