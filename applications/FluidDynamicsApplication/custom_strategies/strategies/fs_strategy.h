@@ -23,6 +23,7 @@
 #include "includes/cfd_variables.h"
 #include "processes/process.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "custom_utilities/solver_settings.h"
@@ -277,14 +278,10 @@ public:
         const int original_step = r_process_info[FRACTIONAL_STEP];
         r_process_info.SetValue(FRACTIONAL_STEP, 1);
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(REACTION) = REACTION.Zero();
-        }
-
+        // Allocate and initialize values for REACTION calculation
         LocalSystemVectorType RHS_Contribution;
         LocalSystemMatrixType LHS_Contribution;
+        VariableUtils::SetHistoricalVariableToZero(REACTION, r_model_part.Nodes());
 
 #pragma omp parallel for private(RHS_Contribution, LHS_Contribution)
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
@@ -467,7 +464,7 @@ protected:
             double Rho = OldDt / Dt;
             double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
 
-            Vector &BDFcoeffs = r_process_info[BDF_COEFFICIENTS];
+            Vector& BDFcoeffs = r_process_info[BDF_COEFFICIENTS];
             BDFcoeffs.resize(3, false);
 
             BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
@@ -479,7 +476,7 @@ protected:
             double Dt = r_process_info[DELTA_TIME];
             double TimeCoeff = 1.0 / Dt;
 
-            Vector &BDFcoeffs = r_process_info[BDF_COEFFICIENTS];
+            Vector& BDFcoeffs = r_process_info[BDF_COEFFICIENTS];
             BDFcoeffs.resize(2, false);
 
             BDFcoeffs[0] = TimeCoeff; //coefficient for step n+1 (1/Dt)
@@ -676,12 +673,7 @@ protected:
         const int n_elems = rModelPart.NumberOfElements();
 
         array_1d<double,3> Out = ZeroVector(3);
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = rModelPart.NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(FRACT_VEL) = FRACT_VEL.Zero();
-        }
+        VariableUtils::SetHistoricalVariableToZero(FRACT_VEL, rModelPart.Nodes());
 
 #pragma omp parallel for
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
