@@ -97,6 +97,13 @@ INCLUDE ( ExternalProject )
 # Install XMC library
 if (NOT DEFINED XMC_INCLUDE_DIR)
 	message ( STATUS "Automatic installation of XMC library" )
+	execute_process(COMMAND ls ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_VARIABLE FSLS)
+	message ("BEFORE:\n ${FSLS}")
+	message ("*****************")
+	file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
+	execute_process(COMMAND ls ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_VARIABLE FSLS)
+	message ("AFTER:\n ${FSLS}")
+	message ("*****************")
 	EXTERNALPROJECT_ADD ( XMC
 		PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries"
 		SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC"
