@@ -34,6 +34,7 @@ class MonolithicKEpsilonHighReFormulation(Formulation):
             self.AddFormulation(self.incompressible_potential_flow_formulation)
 
         self.monolithic_formulation = MonolithicVelocityPressureFormulation(model_part, settings["monolithic_flow_solver_settings"])
+        self.monolithic_formulation.SetConditionName("RansVMSMonolithicKBasedWallCondition")
         self.AddFormulation(self.monolithic_formulation)
 
         self.k_epsilon_formulation = KEpsilonHighReFormulation(model_part, settings["k_epsilon_high_re_solver_settings"])
