@@ -9,12 +9,12 @@
 
 # current order and links
 # 1AfterMeshGeneration
-# -ExtractSurfaceTriangles
+# -ExtractSurfaceTriangles - aux run on calculate, folder and file save
 # -GenerateOBJFile
 
 # 2GenerateSPHFileFromOBJFile
 # -call_SphereTree
-# -CleanSPHFile
+
 
 # 3GenerateClusterFile
 
@@ -51,75 +51,47 @@ proc InitGIDProject { dir } {
     #     WarnWinText $msg
     #     return 1
     # }
+
+    # Save ProblemTypePath
+    set ::DEMClusters::ProblemTypePath $dir
+}
+
+
+proc AfterReadGIDProject { filename } {
+
+    # Save ProblemPath
+    set projectpath $filename
+    append projectpath .gid
+    set ::DEMClusters::ProblemPath $projectpath
+
+    # Save ProblemName
+    if {[regexp -all {\\} $filename] > 0} {
+        # Windows
+        regsub -all {\\} $filename { } filename
+    } else {
+        # Unix
+        regsub -all {/} $filename { } filename
+    }
+    set filename [lreplace $filename 0 [expr { [llength $filename]-2 }]]
+    set ::DEMClusters::ProblemName $filename
 }
 
 
 proc BeforeMeshGeneration {elementsize} {
-    W "execute BeforeMeshGeneration"
+
 }
 
 proc AfterMeshGeneration {fail} {
-    W "execute AfterMeshGeneration"
-    ExtractSurfaceTriangles 
+
 }
 
-proc ExtractSurfaceTriangles { } {
-    # set all_mesh [GiD_EntitiesLayers get Layer0 all_mesh]
-    # W "all_mesh"
-    # W $all_mesh
-    # If <over> is all_mesh then is obtained a list with 2 sublists: node id's and element id's
-    # List of triangles defined by: its vertex and vertex normals
-    #                               faces: ordered vertex ids
-
-    
-    set triangles [GiD_Mesh list -element_type {triangle} element]
-    set tetrahedra [GiD_Mesh list -element_type {tetrahedra} element]
-    W $triangles
-    W $tetrahedra
-
-
-    set triangle_nodes [list]
-    # set element_ids [GiD_EntitiesGroups get $groupid elements] ;               # get ids of all elements in cgroupid
-    # #array set is_external_element [DEM::write::Compute_External_Elements 3 $groupid $element_ids]
-
-    foreach element_id $triangles { ;
-        set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;   # get the nodes of the element
-        lappend triangle_nodes {*}$element_nodes ;                              # add those nodes to the nodes_to_delete list
-    }
-    W "triangle_nodes"
-    W $triangle_nodes
-    #     triangle_nodes
-    # 2 6 7 6 9 7 2 6 1 6 4 1 6 9 4 9 8 4 9 7 8 7 3 8 7 2 3 2 1 3 1 4 3 4 8 3
-
-
-
-
-
-
-    # set ElementInfo [GiD_Mesh get element $ElemId]
-    # #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
-    # return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]"
-
-
-
-    # TODO: Call GenerateOBJFile with the information extracted from the surface mesh
-    # GenerateOBJFile
-}
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
-    # TODO:  On running calculate it will just to to locate and run a DEMClusters.bat
-
-    # Write file
-    #source [file join $problemtypedir file.tcl]
-
-    # TODO: move out and create a button to call this. Do not depend on proc BeforeRunCalculation
-    # WriteSphereTreeParameters.json
-    # set TableDict [lindex $MDPAOutput 1]
-    # source [file join $problemtypedir SphereTreeParameters.tcl]
-    # WriteSphereTreeParameters $basename $dir $problemtypedir $TableDict
-
+    source [file join $problemtypedir OBJFile.tcl]
+    set OBJOutput [ExtractSurfaceTriangles_ext $basename $dir $problemtypedir]
 }
+
 
 proc GenerateOBJFile { } {
     
@@ -158,20 +130,28 @@ proc GenerateSPHFileFromOBJFile { } {
     call_SphereTree
 }
 
+
+namespace eval DEMClusters {
+    variable ProblemName ""
+    variable ProblemPath ""
+    variable ProblemTypePath ""
+}
+
+
 proc call_SphereTree { } {
 
     W "executing call_SphereTree"
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     if {$Algorithm == "MakeTreeMedial"} {
-        call_TreeMedial
+        ::DEMClusters::call_TreeMedial
     } elseif {$Algorithm == "MakeTreeGrid"} {
-        call_makeTreeGrid
+        ::DEMClusters::call_makeTreeGrid
     } elseif {$Algorithm == "MakeTreeSpawn"} {
-        call_makeTreeSpawn
+        ::DEMClusters::call_makeTreeSpawn
     } elseif {$Algorithm == "MakeTreeOctree"} {
-        call_makeTreeOctree        
+        ::DEMClusters::call_makeTreeOctree        
     } elseif {$Algorithm == "MakeTreeHubbard"} {
-        call_makeTreeHubbard
+        ::DEMClusters::call_makeTreeHubbard
     } else {
         W "Select a valid algorithm"
     }
@@ -180,7 +160,7 @@ proc call_SphereTree { } {
     
 }
 
-proc call_TreeMedial { } {
+proc DEMClusters::call_TreeMedial { } {
 
     W "executing call_TreeMedial"
 
@@ -200,9 +180,20 @@ proc call_TreeMedial { } {
     #TODO: now define the arguments and call the external script sphereTree:
     set argv {$Algorithm -depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename}
 
-    set program [lindex $argv 0]
+    W "path:"
+    W $::DEMClusters::ProblemTypePath
+
+    #set program [lindex $argv 0]
+    # define  problemtypedir and the tcl environment from the init
+    set program  [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
     set arguments [lrange $argv 1 end]
     # Execute external script
+
+    W $program
+    W $arguments
+
+    exec $program {*}$arguments
+
 
     # works with default apps but not with custom exes
     #exec notepad myfile.txt &
@@ -273,7 +264,7 @@ proc call_TreeMedial { } {
 
 }
 
-proc call_makeTreeGrid { } {
+proc DEMClusters::call_makeTreeGrid { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set branch [GiD_AccessValue get gendata branch]
@@ -306,7 +297,7 @@ proc call_makeTreeGrid { } {
     #                         to the end of the output file.
 }
 
-proc call_makeTreeSpawn { } {
+proc DEMClusters::call_makeTreeSpawn { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set branch [GiD_AccessValue get gendata branch]
@@ -339,7 +330,7 @@ proc call_makeTreeSpawn { } {
     #                         to the end of the output file.
 }
 
-proc call_makeTreeOctree { } {
+proc DEMClusters::call_makeTreeOctree { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set depth [GiD_AccessValue get gendata depth]
@@ -358,7 +349,7 @@ proc call_makeTreeOctree { } {
     # -nopause            Don't pause when processing, i.e. batch mode
 }
 
-proc call_makeTreeHubbard { } {
+proc DEMClusters::call_makeTreeHubbard { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set branch [GiD_AccessValue get gendata branch]

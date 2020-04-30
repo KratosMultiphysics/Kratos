@@ -1,0 +1,84 @@
+BOOK:SphereTree
+NUMBER: 1 CONDITION: Body_Part
+CONDTYPE: over group
+GROUPALLOW: surfaces volumes elements
+QUESTION: Young_Modulus
+VALUE: 3.0e7
+HELP: Units in IS: N/m2
+END CONDITION
+BOOK:Loads
+NUMBER: 2 CONDITION: Force
+CONDTYPE: over group
+GROUPALLOW: points nodes
+QUESTION: FORCE_X#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Force_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Force_X,#CURRENT#)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS for both 2D and 3D cases: N.
+QUESTION: Imposed_Force_X#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Force_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force_X_Table,#CURRENT#)
+QUESTION: Force_X_Table(Time,Force_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: FORCE_Y#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Force_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Force_Y,#CURRENT#)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS for both 2D and 3D cases: N.
+QUESTION: Imposed_Force_Y#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Force_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force_Y_Table,#CURRENT#)
+QUESTION: Force_Y_Table(Time,Force_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: FORCE_Z#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Force_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Force_Z,#CURRENT#)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS for both 2D and 3D cases: N.
+QUESTION: Imposed_Force_Z#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Force_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force_Z_Table,#CURRENT#)
+QUESTION: Force_Z_Table(Time,Force_Z)
+VALUE: #N# 2 0.0 0.0
+END CONDITION
+NUMBER: 3 CONDITION: Normal_Load
+CONDTYPE: over group
+GROUPALLOW: lines surfaces faces
+QUESTION: NORMAL_LOAD#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Normal_Load_Distribution,Uniform,HIDE,Normal_Pressure_Value,0.0,HIDE,Imposed_Normal_Load,Constant)(true,RESTORE,Normal_Load_Distribution,#CURRENT#,RESTORE,Normal_Pressure_Value,#CURRENT#,RESTORE,Imposed_Normal_Load,#CURRENT#)
+QUESTION: Normal_Load_Distribution#CB#(Uniform,Hydrostatic)
+VALUE: Uniform
+DEPENDENCIES: (Uniform,RESTORE,Normal_Pressure_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Reference_Coordinate,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Normal_Pressure_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Reference_Coordinate,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
+QUESTION: Normal_Pressure_Value
+VALUE: 0.0
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2. A positive value corresponds to a compressive load.
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Z
+QUESTION: Reference_Coordinate
+VALUE: 0.0
+HELP: Coordinate of the chosen direction at which the load is 0.0
+QUESTION: Specific_Weight
+VALUE: 10000.0
+HELP: Units in IS: N/m3. A positive value leads to a compressive load.
+QUESTION: Imposed_Normal_Load#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Normal_Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Normal_Load_Table,#CURRENT#)
+QUESTION: Normal_Load_Table(Time,Value)
+VALUE: #N# 2 0.0 0.0
+HELP: If Normal_Load_Distribution is set to Uniform, Value means Normal_Pressure_Value. If Normal_Load_Distribution is Hydrostatic, Value means Reference_Coordinate.
+QUESTION: TANGENTIAL_LOAD#CB#(true,false)
+VALUE: false
+DEPENDENCIES: (false,HIDE,Tangential_Pressure_Value,0.0,HIDE,Imposed_Tangential_Load,Constant)(true,RESTORE,Tangential_Pressure_Value,#CURRENT#,RESTORE,Imposed_Tangential_Load,#CURRENT#)
+QUESTION: Tangential_Pressure_Value
+VALUE: 0.0
+HELP: Only for 2D cases. Units in IS: N/m.
+QUESTION: Imposed_Tangential_Load#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Tangential_Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Tangential_Load_Table,#CURRENT#)
+QUESTION: Tangential_Load_Table(Time,Tangential_Load)
+VALUE: #N# 2 0.0 0.0
+END CONDITION

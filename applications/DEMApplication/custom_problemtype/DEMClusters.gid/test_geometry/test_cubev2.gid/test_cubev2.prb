@@ -1,0 +1,31 @@
+PROBLEM DATA
+TITLE: Sphere_Tree_Algorithm_Settings
+QUESTION: Algorithm#CB#(MakeTreeMedial,MakeTreeSpawn,MakeTreeGrid,MakeTreeHubbard,MakeTreeOctree)
+VALUE: MakeTreeMedial
+DEPENDENCIES: (MakeTreeMedial,RESTORE,branch,#CURRENT#)(MakeTreeGrid,HIDE,branch,8)(MakeTreeOctree,HIDE,branch,8)
+QUESTION: branch
+VALUE: 8
+QUESTION: depth
+VALUE: 3
+QUESTION: testerLevels
+VALUE: 2
+QUESTION: numCover
+VALUE: 10000
+QUESTION: minCover
+VALUE: 5
+QUESTION: initSpheres
+VALUE: 1000
+QUESTION: minSpheres
+VALUE: 200
+QUESTION: erFact
+VALUE: 2
+QUESTION: numSamples
+VALUE: 500
+QUESTION: minSamples
+VALUE: 1
+QUESTION: GenericBool#CB#(true,false)
+VALUE: false
+HELP: Help
+END PROBLEM DATA
+INTERVAL DATA
+END INTERVAL DATA
