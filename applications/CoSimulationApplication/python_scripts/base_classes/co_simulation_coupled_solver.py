@@ -120,6 +120,9 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         self.time = 0.0
         for solver in self.solver_wrappers.values():
             solver_time = solver.AdvanceInTime(current_time)
+            print('solver name = ', solver.name)
+            print('time ', self.time)
+            print('solver time', solver_time)
             if solver_time != 0.0: # solver provides time
                 if self.time == 0.0: # first time a solver returns a time different from 0.0
                     self.time = solver_time
