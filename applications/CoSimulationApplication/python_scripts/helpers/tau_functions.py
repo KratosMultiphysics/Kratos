@@ -4,6 +4,7 @@ import numpy as np
 import tau_python
 from tau_python import tau_msg
 # import tau_python.tau_msg as tau_msg
+sys.path.append('/opt/rh/python27/root/usr/lib64')
 import PyPara, PySurfDeflect
 from scipy.io import netcdf
 
