@@ -99,6 +99,13 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip() : BaseType()
+    {
+    }
+
+    /**
      * @brief Constructor. The pseudo static scheme (parameters)
      * @param ThisParameters Configuration parameters
      */
