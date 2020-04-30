@@ -154,7 +154,6 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE_X"],
-                "check_for_flag"       : "ACTIVE",
                 "input_file_name"      : "ALM_frictional_contact_test_2D/evolution_load_test_LM_results.json",
                 "historical_value"     : false,
                 "model_part_name"      : "Structure.Parts_Parts_Auto1",
