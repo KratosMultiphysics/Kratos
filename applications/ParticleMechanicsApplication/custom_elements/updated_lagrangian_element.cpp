@@ -182,10 +182,9 @@ void UpdatedLagrangianElement::CalculateConstitutiveVariables(
     rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
     rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-    Matrix FT = prod(rKinematicVariables.F, mDeformationGradientF0);
-
+    rKinematicVariables.FT = prod(rKinematicVariables.F, mDeformationGradientF0);
     rValues.SetDeterminantF(rKinematicVariables.detFT);
-    rValues.SetDeformationGradientF(FT);
+    rValues.SetDeformationGradientF(rKinematicVariables.FT);
 
     rValues.SetStrainVector(rThisConstitutiveVariables.StrainVector);
     rValues.SetStressVector(rThisConstitutiveVariables.StressVector);

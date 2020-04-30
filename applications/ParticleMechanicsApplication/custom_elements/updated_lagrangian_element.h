@@ -139,8 +139,10 @@ protected:
         double  detF;
         // DeterminantFT
         double  detFT;
-        // Deformation Gradient
+        // Deformation Gradient (of current increment)
         Matrix  F;
+        // Deformation Gradient (total)
+        Matrix  FT;
         // Shape Function Derivatives in global space
         Matrix  DN_DX;
 
