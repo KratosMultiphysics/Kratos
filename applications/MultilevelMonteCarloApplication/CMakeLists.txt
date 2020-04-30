@@ -2,6 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMultilevelMonteCarloApplication ****")
 
+include(FetchContent)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## define application core sources (pure C++ parts)
@@ -82,7 +83,7 @@ install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
 # Install pycompss mockup library
 if(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
 	message ( STATUS "Automatic installation of PyCOMPSs mockup library" )
-	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/PyCOMPSs KratosMultiphysics/ )
+	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/PyCOMPSs KratosMultiphysics/${CURRENT_DIR_NAME} )
 else (USING_PYCOMPSS)
 	message ( STATUS "Manual installation of PyCOMPSs" )
 endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
@@ -93,24 +94,24 @@ endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
 #####
 ############################################################################
 # reference: https://cmake.org/cmake/help/git-stage/module/ExternalProject.html
-INCLUDE ( ExternalProject )
 # Install XMC library
 if (NOT DEFINED XMC_INCLUDE_DIR)
-	message ( STATUS "Automatic installation of XMC library" )
-	EXTERNALPROJECT_ADD ( XMC
-		PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries"
-		SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC"
+    message ( STATUS "Automatic installation of XMC library" )
+    # Note: name HAS to be in non-caps
+	FetchContent_Declare(
+        xmc
 		GIT_REPOSITORY https://gitlab.com/RiccardoRossi/exaqute-xmc
 		GIT_TAG f4bf7b2742c6336f1c094e801d83577ce3eb07cc
-		CONFIGURE_COMMAND ""
-		BUILD_COMMAND ""
-		INSTALL_COMMAND ""
-		)
-	## install python files
-	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/ )
+    )
+    FetchContent_GetProperties(xmc)
+    if(NOT xmc_POPULATED)
+        FetchContent_Populate(xmc)
+    endif(NOT xmc_POPULATED)
+    ## install python files
+	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${xmc_SOURCE_DIR} KratosMultiphysics/${CURRENT_DIR_NAME} )
 else (NOT DEFINED XMC_INCLUDE_DIR)
 	message ( STATUS "Manual installation of XMC from source directory: ${XMC_INCLUDE_DIR}" )
 	INCLUDE_DIRECTORIES(${XMC_INCLUDE_DIR})
-        ## install python filesi
-	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${XMC_INCLUDE_DIR} KratosMultiphysics/ )
+    ## install python filesi
+	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${XMC_INCLUDE_DIR} KratosMultiphysics/${CURRENT_DIR_NAME} )
 endif(NOT DEFINED XMC_INCLUDE_DIR)
