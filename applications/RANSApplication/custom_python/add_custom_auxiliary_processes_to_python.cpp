@@ -35,6 +35,8 @@
 #include "custom_processes/auxiliary_processes/rans_wall_function_update_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_update_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_update_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_k_omega_update_process.h"
+#include "custom_processes/auxiliary_processes/rans_k_omega_wall_function_process.h"
 
 // RANS sensitivity processes
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
@@ -154,6 +156,12 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
+    using RansNutKOmegaUpdateProcessType = RansNutKOmegaUpdateProcess;
+    py::class_<RansNutKOmegaUpdateProcessType, RansNutKOmegaUpdateProcessType::Pointer, Process>(
+        m, "RansNutKOmegaUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const int>());
+
     using RansNutYPlusWallFunctionUpdateProcessType = RansNutYPlusWallFunctionUpdateProcess;
     py::class_<RansNutYPlusWallFunctionUpdateProcessType, RansNutYPlusWallFunctionUpdateProcessType::Pointer, Process>(
         m, "RansNutYPlusWallFunctionUpdateProcess")
@@ -176,6 +184,12 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         m, "RansWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const int>());
+
+    using RansKOmegaWallFunctionProcessType = RansKOmegaWallFunctionProcess;
+    py::class_<RansKOmegaWallFunctionProcessType, RansKOmegaWallFunctionProcessType::Pointer, Process>(
+        m, "RansKOmegaWallFunctionProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&>());
 }
 
 } // namespace Python.
