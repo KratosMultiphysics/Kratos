@@ -280,7 +280,7 @@ public:
 #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(REACTION) = ZeroVector(3);
+            it_node->FastGetSolutionStepValue(REACTION) = REACTION.Zero();
         }
 
         LocalSystemVectorType RHS_Contribution;
@@ -639,8 +639,8 @@ protected:
 #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = rModelPart.NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(CONV_PROJ) = ZeroVector(3);
-            it_node->FastGetSolutionStepValue(PRESS_PROJ) = ZeroVector(3);
+            it_node->FastGetSolutionStepValue(CONV_PROJ) = CONV_PROJ.Zero();
+            it_node->FastGetSolutionStepValue(PRESS_PROJ) = PRESS_PROJ.Zero();
             it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
             it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
         }
@@ -680,7 +680,7 @@ protected:
 #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = rModelPart.NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(FRACT_VEL) = ZeroVector(3);
+            it_node->FastGetSolutionStepValue(FRACT_VEL) = FRACT_VEL.Zero();
         }
 
 #pragma omp parallel for
@@ -844,8 +844,8 @@ protected:
 
                      // reset for next iteration
                      itNode->GetValue(NODAL_AREA) = 0.0;
-                     itNode->GetValue(CONV_PROJ) = ZeroVector(3);
-                     itNode->GetValue(PRESS_PROJ) = ZeroVector(3);
+                     itNode->GetValue(CONV_PROJ) = CONV_PROJ.Zero();
+                     itNode->GetValue(PRESS_PROJ) = PRESS_PROJ.Zero();
                      itNode->GetValue(DIVPROJ) = 0.0;
                  }
              }
