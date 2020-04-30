@@ -89,7 +89,9 @@ public:
     /**
      * @brief Default constructor
      */
-    explicit ResidualBasedPseudoStaticDisplacementScheme() : BaseType()
+    explicit ResidualBasedPseudoStaticDisplacementScheme()
+        : DerivedBaseType(0.0),
+          mRayleighBeta(NODAL_MAUX)
     {
     }
 
