@@ -15,13 +15,14 @@ from KratosMultiphysics.ParticleMechanicsApplication.mpm_solver import MPMSolver
 from KratosMultiphysics import auxiliary_solver_utilities
 
 def CreateSolver(model, custom_settings):
-    return MPMSolver(model, custom_settings)
+    return MPMCoupledTimeSolver(model, custom_settings)
 
 class MPMCoupledTimeSolver(MPMSolver):
 
     ### Solver constructor
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
+        print('\n\n\n ====================== USING COUPLED TIME SOLVER ====================== \n\n\n')
+        #self._validate_settings_in_baseclass=True # To be removed eventually
         super(MPMCoupledTimeSolver, self).__init__(model, custom_settings)
 
         # Add model part containers
@@ -31,7 +32,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         self.min_buffer_size = 2
 
         self.time_step_1 = self.settings["time_stepping"]["time_step"].GetDouble()
-        self.time_step_ratio = self.settings["time_stepping"]["timestep_ratio"].GetDouble()
+        self.time_step_ratio = self.settings["time_stepping"]["timestep_ratio"].GetInt()
         self.time_step_2 = self.time_step_1/self.time_step_ratio
         self.time_step_index_1 = -1
 
@@ -56,98 +57,32 @@ class MPMCoupledTimeSolver(MPMSolver):
                                                                           self.model_sub_domain_2,
                                                                           self.time_step_ratio,
                                                                           self.time_step_2,
-                                                                          [gamma_1, gamma_2])
+                                                                          gamma_1, gamma_2)
 
-        KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Solver is constructed correctly.")
+        # TODO read from parameters
+        self.interface_criteria_normal = [1,0,0]
+        self.interface_criteria_origin = [2,0,0]
+
+        KratosMultiphysics.Logger.PrintInfo("::[MPMCoupledTimeSolver]:: ", "Construction finished.")
 
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""
         {
-            "model_part_name" : "MPM_Material",
-            "domain_size"     : -1,
-            "echo_level"      : 0,
-            "time_stepping"   : { },
             "analysis_type"   : "linear",
-            "grid_model_import_settings" : {
-                "input_type"     : "mdpa",
-                "input_filename" : "unknown_name_Grid"
-            },
-            "model_import_settings" : {
-                "input_type"        : "mdpa",
-                "input_filename"    : "unknown_name_Body"
-            },
-            "material_import_settings" : {
-                "materials_filename" : ""
-            },
+            "scheme_type"   : "newmark",
+            "newmark_beta"  : 0.25,
             "time_stepping"            : {
             "time_step"                          : 1,
             "timestep_ratio"                     : 1,
             "time_integration_method_1"          : "implicit",
             "time_integration_method_2"          : "implicit"
-            },
-            "compute_reactions"                  : false,
-            "convergence_criterion"              : "Residual_criteria",
-            "displacement_relative_tolerance"    : 1.0E-4,
-            "displacement_absolute_tolerance"    : 1.0E-9,
-            "residual_relative_tolerance"        : 1.0E-4,
-            "residual_absolute_tolerance"        : 1.0E-9,
-            "max_iteration"                      : 20,
-            "pressure_dofs"                      : false,
-            "axis_symmetric_flag"                : false,
-            "consistent_mass_matrix"             : false,
-            "block_builder"                      : true,
-            "move_mesh_flag"                     : false,
-            "problem_domain_sub_model_part_list" : [],
-            "processes_sub_model_part_list"      : [],
-            "auxiliary_variables_list"           : [],
-            "auxiliary_dofs_list"                : [],
-            "auxiliary_reaction_list"            : [],
-            "element_search_settings"            : {
-                "search_algorithm_type"          : "bin_based",
-                "max_number_of_results"          : 1000,
-                "searching_tolerance"            : 1.0E-5
-            },
-            "linear_solver_settings"             : {
-                "solver_type" : "amgcl",
-                "smoother_type":"damped_jacobi",
-                "krylov_type": "cg",
-                "coarsening_type": "aggregation",
-                "max_iteration": 200,
-                "provide_coordinates": false,
-                "gmres_krylov_space_dimension": 100,
-                "verbosity" : 0,
-                "tolerance": 1e-7,
-                "scaling": false,
-                "block_size": 3,
-                "use_block_matrices_if_possible" : true,
-                "coarse_enough" : 50
             }
         }""")
-        this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMCoupledTimeSolver, cls).GetDefaultSettings())
         return this_defaults
 
     ### Solver public functions
-
-    def AddVariables(self):
-        # Add variables to background grid model part
-        self._AddVariablesToModelPart(self.grid_model_part)
-
-        KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Variables are added.")
-
-    def ImportModelPart(self):
-        # Read model part
-        self._ModelPartReading()
-        KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Models are imported.")
-
-    def PrepareModelPart(self):
-        # Set buffer size
-        self._SetBufferSize()
-
-        # Executes the check and prepare model process
-        self.__ExecuteCheckAndPrepare()
-
-        KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "ModelPart prepared for Solver.")
 
     def GetComputingModelPart(self, index):
         if index == 1:
@@ -158,17 +93,6 @@ class MPMCoupledTimeSolver(MPMSolver):
         #if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
         #    raise Exception("The ComputingModelPart was not created yet!")
         #return self.model.GetModelPart(self.settings["model_part_name"].GetString())
-
-    def GetGridModelPart(self):
-        if not self.model.HasModelPart("Background_Grid"):
-            raise Exception("The GridModelPart was not created yet!")
-        return self.model.GetModelPart("Background_Grid")
-
-    def AddDofs(self):
-        # Add dofs to background grid model part
-        self._AddDofsToModelPart(self.grid_model_part)
-
-        KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","DOFs are added.")
 
     def Initialize(self):
         # The particle solution strategy is created here if it does not already exist.
@@ -262,32 +186,16 @@ class MPMCoupledTimeSolver(MPMSolver):
 
     def compute_and_apply_coupling_corrections(self):
         KratosParticle.CalculateCorrectiveLagrangianMultipliers(_GetSolutionStrategy(1).GetSystemMatrix(), _GetSolutionStrategy(2).GetSystemMatrix())
-        # assemble H()
-        # compute lamda()
-        self.apply_corrections(2)
-        if self.is_model_sub_domain_1_correct:
-            self.apply_corrections(1)
-        return True #
 
-    def _GetSolutionScheme(self):
-        if not hasattr(self, '_solution_scheme'):
-            self._solution_scheme = self._CreateSolutionScheme()
-        return self._solution_scheme
-
-    def _GetConvergenceCriteria(self):
-        if not hasattr(self, '_convergence_criterion'):
-            self._convergence_criterion = self._CreateConvergenceCriteria()
-        return self._convergence_criterion
-
-    def _GetLinearSolver(self):
-        if not hasattr(self, '_linear_solver'):
-            self._linear_solver = self._CreateLinearSolver()
-        return self._linear_solver
-
-    def _GetBuilderAndSolver(self):
-        if not hasattr(self, '_builder_and_solver'):
-            self._builder_and_solver = self._CreateBuilderAndSolver()
-        return self._builder_and_solver
+    def _GetSolutionScheme(self, index):
+        if index == 1:
+            if not hasattr(self, '_solution_scheme'):
+                self._solution_scheme_1 = self._CreateSolutionScheme()
+            return self._solution_scheme_1
+        if index == 2:
+            if not hasattr(self, '_solution_scheme'):
+                self._solution_scheme_2 = self._CreateSolutionScheme()
+            return self._solution_scheme_2
 
     def _GetSolutionStrategy(self, index):
         if index == 1:
@@ -319,27 +227,33 @@ class MPMCoupledTimeSolver(MPMSolver):
         KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, axis_symmetric_flag, pressure_dofs)
         KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
 
-        for element in material_point_model_part.Elements:
-            element.CalculateOnIntegrationPoints(MP_COORD, mp_coord, material_point_model_part.ProcessInfo())
+        # TODO generalize interface definition
+        for element in self.material_point_model_part.Elements:
+            mp_coord = element.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.material_point_model_part.ProcessInfo)
             for i in range(3):
-                if mp_coord[0][i] < self.criteria[i]:
-                    model_sub_domain_1.AddElement(element)
-                else:
-                    model_sub_domain_2.AddElement(element)
+                if self.interface_criteria_normal[i] == 1:
+                    if mp_coord[0][i] < self.interface_criteria_origin[i]:
+                        print('element ',element.Id,' with x = ',mp_coord[0][i],' added to subdomain 1')
+                        self.model_sub_domain_1.AddElement(element,0)
+                    else:
+                        print('element ',element.Id,' with x = ',mp_coord[0][i],' added to subdomain 2')
+                        self.model_sub_domain_2.AddElement(element,0)
 
     def _SearchElement(self):
-        for element in model_sub_domain_1.Elements:
-            element.CalculateOnIntegrationPoints(MP_COORD, mp_coord, material_point_model_part.ProcessInfo())
+        for element in self.model_sub_domain_1.Elements:
+            mp_coord = element.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.material_point_model_part.ProcessInfo)
             for i in range(3):
-                if not mp_coord[0][i] < self.criteria[i]:
-                    model_sub_domain_2.AddElement(element)
-                    model_sub_domain_1.RemoveElement(element)
-        for element in model_sub_domain_2.Elements:
-            element.CalculateOnIntegrationPoints(MP_COORD, mp_coord, material_point_model_part.ProcessInfo())
+                if self.interface_criteria_normal[i] == 1:
+                    if not mp_coord[0][i] < self.interface_criteria_origin[i]:
+                        self.model_sub_domain_2.AddElement(element)
+                        self.model_sub_domain_1.RemoveElement(element)
+        for element in self.model_sub_domain_2.Elements:
+            mp_coord = element.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.material_point_model_part.ProcessInfo)
             for i in range(3):
-                if not mp_coord[0][i] >= self.criteria[i]:
-                    model_sub_domain_1.AddElement(element)
-                    model_sub_domain_2.RemoveElement(element)
+                if self.interface_criteria_normal[i] == 1:
+                    if not mp_coord[0][i] >= self.interface_criteria_origin[i]:
+                        self.model_sub_domain_1.AddElement(element)
+                        self.model_sub_domain_2.RemoveElement(element)
 
         searching_alg_type = self.settings["element_search_settings"]["search_algorithm_type"].GetString()
         max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
@@ -388,8 +302,6 @@ class MPMCoupledTimeSolver(MPMSolver):
             self.model_sub_domain_2 = self.model.CreateModelPart("model_sub_domain_2") #Equivalent to model_part1 in the old format
             self.model_sub_domain_2.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        # TODO need to add temporal interface submodel part
-
     def _AddVariablesToModelPart(self, model_part):
         # Add displacements and reaction
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -422,6 +334,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         # reading the model part of the background grid
         if(self.settings["grid_model_import_settings"]["input_type"].GetString() == "mdpa"):
             self._ImportModelPart(self.grid_model_part, self.settings["grid_model_import_settings"])
+            self._AddTemporalInterfaceSubModelPartToGrid()
         else:
             raise Exception("Other input options are not implemented yet.")
 
@@ -430,6 +343,25 @@ class MPMCoupledTimeSolver(MPMSolver):
             self._ImportModelPart(self.initial_mesh_model_part, self.settings["model_import_settings"])
         else:
             raise Exception("Other input options are not implemented yet.")
+
+    def _AddTemporalInterfaceSubModelPartToGrid(self):
+        self.grid_model_part.CreateSubModelPart("temporal_interface")
+        temporal_interface = self.grid_model_part.GetSubModelPart("temporal_interface")
+        tolerance = 1e-6
+        for node in self.grid_model_part.Nodes:
+            if self.interface_criteria_normal[0] == 1:
+                if abs(node.X - self.interface_criteria_origin[0]) < tolerance:
+                    temporal_interface.AddNodes([node.Id])
+                    print('Added interface node ', node.Id, ' at x = ',node.X)
+            elif self.interface_criteria_normal[1] == 1:
+                if abs(node.Y - self.interface_criteria_origin[1]) < tolerance:
+                    temporal_interface.AddNodes([node.Id])
+            elif self.interface_criteria_normal[2] == 1:
+                if abs(node.Z - self.interface_criteria_origin[2]) < tolerance:
+                    temporal_interface.AddNodes([node.Id])
+            else:
+                raise Exception("Only simple interface definitions allowed so far.")
+
 
     def _AddDofsToModelPart(self, model_part):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
@@ -474,47 +406,32 @@ class MPMCoupledTimeSolver(MPMSolver):
 
         return convergence_criterion
 
-    def _CreateLinearSolver(self):
-        linear_solver_configuration = self.settings["linear_solver_settings"]
-        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-            from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
-            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
-        else:
-            # using a default linear solver (selecting the fastest one available)
-            import KratosMultiphysics.kratos_utilities as kratos_utils
-            if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-                from KratosMultiphysics import EigenSolversApplication
-            elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-                from KratosMultiphysics import ExternalSolversApplication
-
-            linear_solvers_by_speed = [
-                "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
-                "sparse_lu",  # EigenSolversApplication
-                "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
-                "super_lu",   # ExternalSolversApplication
-                "skyline_lu_factorization" # in Core, always available, but slow
-            ]
-
-            for solver_name in linear_solvers_by_speed:
-                if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
-                    linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
-                    KratosMultiphysics.Logger.PrintInfo('::[MPMSolver]:: ',\
-                        'Using "' + solver_name + '" as default linear solver')
-                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
-
-        raise Exception("Linear-Solver could not be constructed!")
-
-    def _CreateBuilderAndSolver(self):
-        linear_solver = self._GetLinearSolver()
-        if self.settings["block_builder"].GetBool():
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        else:
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        return builder_and_solver
-
     def _CreateSolutionScheme(self):
-        """Create the solution scheme for interested problem."""
-        raise Exception("Solution Scheme creation must be implemented in the derived class.")
+        grid_model_part = self.GetGridModelPart()
+        domain_size = self._GetDomainSize()
+        block_size  = domain_size
+
+        # Setting the time integration schemes
+        scheme_type = self.settings["scheme_type"].GetString()
+        if(scheme_type == "newmark"):
+            damp_factor_m = 0.0
+            newmark_beta = self.settings["newmark_beta"].GetDouble()
+        else:
+            err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
+            err_msg += "Available options are: \"newmark\""
+            raise Exception(err_msg)
+
+        is_dynamic = self._IsDynamic()
+
+        return KratosParticle.MPMResidualBasedBossakScheme( grid_model_part,
+                                                            domain_size,
+                                                            block_size,
+                                                            damp_factor_m,
+                                                            newmark_beta,
+                                                            is_dynamic)
+
+    def _IsDynamic(self):
+        return True
 
     def _CreateSolutionStrategy(self, index):
         analysis_type = self.settings["analysis_type"].GetString()
@@ -540,7 +457,7 @@ class MPMCoupledTimeSolver(MPMSolver):
 
     def _CreateNewtonRaphsonStrategy(self, index):
         computing_model_part = self.GetComputingModelPart(index)
-        solution_scheme = self._GetSolutionScheme()
+        solution_scheme = self._GetSolutionScheme(index)
         linear_solver = self._GetLinearSolver()
         convergence_criterion = self._GetConvergenceCriteria()
         builder_and_solver = self._GetBuilderAndSolver()
@@ -557,7 +474,7 @@ class MPMCoupledTimeSolver(MPMSolver):
 
     def _CreateLinearStrategy(self, index):
         computing_model_part = self.GetComputingModelPart(index)
-        solution_scheme = self._GetSolutionScheme()
+        solution_scheme = self._GetSolutionScheme(index)
         linear_solver = self._GetLinearSolver()
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
         calc_norm_dx_flag = False ## hard-coded, but can be changed upon implementation

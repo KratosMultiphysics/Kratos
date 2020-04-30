@@ -42,10 +42,13 @@ public:
       * @detail The MPM bossak method
       */
     MPMTemporalCouplingUtility(ModelPart & rModelPartSubDomain1, ModelPart & rModelPartSubDomain2,
-        unsigned int TimeStepRatio, double SmallTimestep, array_1d<double, 2> Gamma)
+        unsigned int TimeStepRatio, double SmallTimestep, double gamma1, double gamma2)
         :mrModelPartSubDomain1(rModelPartSubDomain1), mrModelPartSubDomain2(rModelPartSubDomain2),
-        mTimeStepRatio(TimeStepRatio), mSmallTimestep(SmallTimestep), mGamma(Gamma)
+        mTimeStepRatio(TimeStepRatio), mSmallTimestep(SmallTimestep)
     {
+        // TODO change gamma input arg to vector or array_1d and set mGamma back to const
+        mGamma[0] = gamma1;
+        mGamma[1] = gamma2;
         mJ = 1;
     }
 
@@ -87,7 +90,7 @@ protected:
     IndexType mJ;
     const IndexType mTimeStepRatio;
     const double mSmallTimestep;
-    const array_1d<double, 2> mGamma;
+    array_1d<double, 2> mGamma;
     ModelPart& mrModelPartSubDomain1;
     ModelPart& mrModelPartSubDomain2;
     bool mActiveInterfaceNodesComputed = false;
