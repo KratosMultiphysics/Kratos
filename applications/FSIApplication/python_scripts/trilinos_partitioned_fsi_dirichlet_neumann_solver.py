@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Import applications
+import KratosMultiphysics.MetisApplication
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural

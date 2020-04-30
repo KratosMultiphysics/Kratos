@@ -3,6 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
 
 # Import applications
+import KratosMultiphysics.MetisApplication                          # Mesh artitioning (always import before Trilinos)
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 from KratosMultiphysics.FluidDynamicsApplication import TrilinosExtension as TrilinosFluid
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory

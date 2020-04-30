@@ -3,6 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
+import KratosMultiphysics.MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver

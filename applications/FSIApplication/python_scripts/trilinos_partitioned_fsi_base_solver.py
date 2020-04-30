@@ -8,6 +8,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
+import KratosMultiphysics.MetisApplication
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
