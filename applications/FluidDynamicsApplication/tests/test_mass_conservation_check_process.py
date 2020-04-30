@@ -5,7 +5,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 from KratosMultiphysics.FluidDynamicsApplication.apply_mass_conservation_check_process import ApplyMassConservationCheckProcess
-import sys
 import re
 
 if KratosMultiphysics.DataCommunicator.GetDefault().IsDistributed():
@@ -29,6 +28,7 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
             kratos_utils.DeleteFileIfExisting(self.file_name + "_" + str(self.rank) + ".mdpa")
             self.comm.Barrier()
 
+    @staticmethod
     def _SetParameters(self, name, use_memory):
         parameters = """{
             "echo_level" : 0,
@@ -61,7 +61,7 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
 
     def _ImportModelPart(self, model_part, import_settings):
         if self.comm.IsDistributed():
-            distributed_model_part_importer = KratosMPI.distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, import_settings)
+            distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, import_settings)
             distributed_model_part_importer.ImportModelPart()
             distributed_model_part_importer.CreateCommunicators()
         else:
@@ -215,10 +215,9 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
             14: -0.05344725574988601,15: 0.4487503962770498,16: -0.5042584883219816,17: -0.00027154466803484535,
             18: 0.5,19: -0.5867198935872885,20: -0.09537629393576269,21: 0.40337851653918727,22: -0.5466292414006754,
             23: -0.05774088594966558,24: 0.4494118475239448,25: -0.5256186306939375,26: -1e-07,27: 0.49984147049824706}
-        for node in model_part.GetCommunicator().LocalMesh().Nodes: 
+        for node in model_part.GetCommunicator().LocalMesh().Nodes:
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), results.get(node.Id))
         self.assertAlmostEqual(model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME], 0.1)
-        
 
 
 if __name__ == '__main__':
