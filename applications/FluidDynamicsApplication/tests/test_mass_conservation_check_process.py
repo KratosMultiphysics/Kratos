@@ -8,7 +8,6 @@ from KratosMultiphysics.FluidDynamicsApplication.apply_mass_conservation_check_p
 import re
 
 if KratosMultiphysics.DataCommunicator.GetDefault().IsDistributed():
-    import KratosMultiphysics.mpi as KratosMPI
     import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
 
 def GetFilePath(fileName):
@@ -50,9 +49,9 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         if self.comm.IsDistributed():
             model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        
+
         model_part.SetBufferSize(3)
-        
+
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             import_settings = KratosMultiphysics.Parameters(self.parameters)
             self._ImportModelPart(model_part, import_settings)
