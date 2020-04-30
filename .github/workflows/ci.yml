@@ -66,7 +66,7 @@ jobs:
     - name: Running small tests
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/KratosMultiphysics/MultilevelMonteCarloApplication
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         ls ${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/KratosMultiphysics/MultilevelMonteCarloApplication
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3

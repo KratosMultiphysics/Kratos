@@ -82,7 +82,7 @@ install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
 # Install pycompss mockup library
 if(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
 	message ( STATUS "Automatic installation of PyCOMPSs mockup library" )
-	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/PyCOMPSs KratosMultiphysics/${CURRENT_DIR_NAME} )
+	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/PyCOMPSs KratosMultiphysics/ )
 else (USING_PYCOMPSS)
 	message ( STATUS "Manual installation of PyCOMPSs" )
 endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
@@ -107,11 +107,10 @@ if (NOT DEFINED XMC_INCLUDE_DIR)
 		INSTALL_COMMAND ""
 		)
 	## install python files
-	message("MLMC INSTALL PATHS: ${INSTALL_PYTHON_USING_LINKS}, ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC, KratosMultiphysics/${CURRENT_DIR_NAME}" )
-	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME} )
+	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/ )
 else (NOT DEFINED XMC_INCLUDE_DIR)
 	message ( STATUS "Manual installation of XMC from source directory: ${XMC_INCLUDE_DIR}" )
 	INCLUDE_DIRECTORIES(${XMC_INCLUDE_DIR})
-        ## install python files
-	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${XMC_INCLUDE_DIR} KratosMultiphysics/${CURRENT_DIR_NAME} )
+        ## install python filesi
+	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${XMC_INCLUDE_DIR} KratosMultiphysics/ )
 endif(NOT DEFINED XMC_INCLUDE_DIR)
