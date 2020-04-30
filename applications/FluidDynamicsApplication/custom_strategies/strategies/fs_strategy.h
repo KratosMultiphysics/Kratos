@@ -158,8 +158,9 @@ public:
         // Set up nodes to use slip conditions if needed.
         if (mUseSlipConditions) {
             auto& r_model_part = BaseType::GetModelPart();
+            const int n_conds = r_model_part.NumberOfConditions();
 #pragma omp parallel for
-            for (int i_cond = 0; i_cond < static_cast<int>(r_model_part.NumberOfConditions()); ++i_cond) {
+            for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
                 auto it_cond = r_model_part.ConditionsBegin() + i_cond;
                 if (it_cond->Is(SLIP)) {
                     auto& r_geom = it_cond->GetGeometry();
@@ -265,17 +266,19 @@ public:
      * This methods calculates the reactions of the momentum equation.
      * These are computed as minus the RHS and saved in the REACTION variable
      */
-virtual void CalculateReactions()
-{
-    auto &r_model_part = BaseType::GetModelPart();
-    auto &r_process_info = r_model_part.GetProcessInfo();
+    virtual void CalculateReactions()
+    {
+        auto &r_model_part = BaseType::GetModelPart();
+        auto &r_process_info = r_model_part.GetProcessInfo();
+        const int n_nodes = r_model_part.NumberOfNodes();
+        const int n_elems = r_model_part.NumberOfElements();
 
-    // Set fractional step index to the momentum equation step
-    const int original_step = r_process_info[FRACTIONAL_STEP];
-    r_process_info.SetValue(FRACTIONAL_STEP, 1);
+        // Set fractional step index to the momentum equation step
+        const int original_step = r_process_info[FRACTIONAL_STEP];
+        r_process_info.SetValue(FRACTIONAL_STEP, 1);
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(r_model_part.NumberOfNodes()); ++i_node) {
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(REACTION) = ZeroVector(3);
         }
@@ -284,7 +287,7 @@ virtual void CalculateReactions()
         LocalSystemMatrixType LHS_Contribution;
 
 #pragma omp parallel for private(RHS_Contribution, LHS_Contribution)
-        for (int i_elem = 0; i_elem < static_cast<int>(r_model_part.NumberOfElements()); ++i_elem) {
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
             // Build local system
             auto it_elem = r_model_part.ElementsBegin() + i_elem;
             it_elem->CalculateLocalSystem(
@@ -489,6 +492,7 @@ protected:
     virtual double SolveStep()
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
+        const int n_nodes = rModelPart.NumberOfNodes();
 
         // 1. Fractional step momentum iteration
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
@@ -531,7 +535,7 @@ protected:
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = rModelPart.NodesBegin() + i_node;
             const double old_press = it_node->FastGetSolutionStepValue(PRESSURE);
             it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -old_press;
@@ -541,7 +545,7 @@ protected:
         double NormDp = mpPressureStrategy->Solve();
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = rModelPart.NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) += it_node->FastGetSolutionStepValue(PRESSURE);
         }
@@ -570,10 +574,11 @@ protected:
     bool CheckFractionalStepConvergence(const double NormDv)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
+        const int n_nodes = rModelPart.NumberOfNodes();
 
         double NormV = 0.00;
 #pragma omp parallel for reduction(+:NormV)
-        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
             const auto it_node = rModelPart.NodesBegin() + i_node;
             const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
             for (unsigned int d = 0; d < 3; ++d) {
@@ -599,10 +604,11 @@ protected:
     bool CheckPressureConvergence(const double NormDp)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
+        const int n_nodes = rModelPart.NumberOfNodes();
 
         double NormP = 0.00;
 #pragma omp parallel for reduction(+:NormP)
-        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
             const auto it_node = rModelPart.NodesBegin() + i_node;
             const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
             NormP += Pr * Pr;
@@ -627,9 +633,11 @@ protected:
     virtual void ComputeSplitOssProjections(ModelPart& rModelPart)
     {
         array_1d<double,3> Out = ZeroVector(3);
+        const int n_nodes = rModelPart.NumberOfNodes();
+        const int n_elems = rModelPart.NumberOfElements();
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = rModelPart.NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(CONV_PROJ) = ZeroVector(3);
             it_node->FastGetSolutionStepValue(PRESS_PROJ) = ZeroVector(3);
@@ -638,7 +646,7 @@ protected:
         }
 
 #pragma omp parallel for
-        for (int i_elem = 0; i_elem < static_cast<int>(rModelPart.NumberOfElements()); ++i_elem) {
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
             const auto it_elem = rModelPart.ElementsBegin() + i_elem;
             it_elem->Calculate(CONV_PROJ, Out, rModelPart.GetProcessInfo());
         }
@@ -652,7 +660,7 @@ protected:
         this->PeriodicConditionProjectionCorrection(rModelPart);
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = rModelPart.NodesBegin() + i_node;
             const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
             it_node->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
@@ -664,17 +672,19 @@ protected:
     virtual void CalculateEndOfStepVelocity()
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
+        const int n_nodes = rModelPart.NumberOfNodes();
+        const int n_elems = rModelPart.NumberOfElements();
 
         array_1d<double,3> Out = ZeroVector(3);
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = rModelPart.NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(FRACT_VEL) = ZeroVector(3);
         }
 
 #pragma omp parallel for
-        for (int i_elem = 0; i_elem < static_cast<int>(rModelPart.NumberOfElements()); ++i_elem) {
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
             const auto it_elem = rModelPart.ElementsBegin() + i_elem;
             it_elem->Calculate(VELOCITY, Out, rModelPart.GetProcessInfo());
         }
@@ -689,7 +699,7 @@ protected:
         if (mDomainSize > 2)
         {
 #pragma omp parallel for
-            for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            for (int i_node = 0; i_node < n_nodes; ++i_node) {
                 auto it_node = rModelPart.NodesBegin() + i_node;
                 const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
                 if ( ! it_node->IsFixed(VELOCITY_X) )
@@ -703,7 +713,7 @@ protected:
         else
         {
 #pragma omp parallel for
-            for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node) {
+            for (int i_node = 0; i_node < n_nodes; ++i_node) {
                 auto it_node = rModelPart.NodesBegin() + i_node;
                 const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
                 if ( ! it_node->IsFixed(VELOCITY_X) )
