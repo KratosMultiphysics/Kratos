@@ -21,9 +21,9 @@
 #include "custom_elements/incompressible_potential_flow/laplace_element.h"
 #include "includes/checks.h"
 #include "includes/define.h"
+#include "includes/variables.h"
 
 // Application includes
-#include "includes/variables.h"
 #include "rans_application_variables.h"
 
 namespace Kratos
