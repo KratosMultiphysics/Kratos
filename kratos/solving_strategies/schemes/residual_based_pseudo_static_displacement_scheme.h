@@ -87,6 +87,13 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedPseudoStaticDisplacementScheme() : BaseType()
+    {
+    }
+
+    /**
      * @brief Constructor. The pseudo static scheme (parameters)
      * @param ThisParameters Parameters with the Rayleigh variable
      */

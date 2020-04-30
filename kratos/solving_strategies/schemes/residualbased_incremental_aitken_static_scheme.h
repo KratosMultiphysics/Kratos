@@ -88,6 +88,13 @@ public:
     }
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedIncrementalAitkenStaticScheme() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      * @param ThisParameters Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
     */
