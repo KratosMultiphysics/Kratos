@@ -29,7 +29,7 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
             self.comm.Barrier()
 
     @staticmethod
-    def _SetParameters(self, name, use_memory):
+    def _SetParameters(name, use_memory):
         parameters = """{
             "echo_level" : 0,
             "model_import_settings" : {
