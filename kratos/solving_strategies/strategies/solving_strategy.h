@@ -112,6 +112,13 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit SolvingStrategy()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters

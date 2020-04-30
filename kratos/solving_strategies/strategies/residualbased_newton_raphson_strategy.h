@@ -119,6 +119,13 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedNewtonRaphsonStrategy() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
