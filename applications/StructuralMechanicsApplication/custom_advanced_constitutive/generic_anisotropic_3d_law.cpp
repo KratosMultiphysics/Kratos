@@ -86,7 +86,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
-    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    //const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
@@ -249,14 +249,6 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     const Vector real_strain_vector         = rValues.GetStrainVector();
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
-
-    // Previous flags saved
-    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-
     // We create the rValues for the isotropic CL
     const auto it_cl_begin                    = r_material_properties.GetSubProperties().begin();
     const auto& r_props_iso_cl                = *(it_cl_begin);
@@ -302,9 +294,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     r_iso_strain_vector = prod(strain_mapper, r_iso_strain_vector); // mapped
 
     // Integrate the isotropic constitutive law
-    mpIsotropicCL->FinalizeMaterialResponsePK2(values_iso_cl);
-    const Vector& r_iso_stress_vector = values_iso_cl.GetStressVector();
-    
+    mpIsotropicCL->FinalizeMaterialResponsePK2(values_iso_cl); 
 }
 
 /***********************************************************************************/
@@ -582,8 +572,6 @@ void GenericAnisotropic3DLaw::CalculateCauchyGreenStrain(
     Vector& rStrainVector
     )
 {
-    const SizeType space_dimension = this->WorkingSpaceDimension();
-
     // Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
     KRATOS_DEBUG_ERROR_IF(F.size1()!= Dimension || F.size2() != Dimension)
