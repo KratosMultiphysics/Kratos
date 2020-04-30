@@ -106,18 +106,26 @@ class KOmegaFormulation(Formulation):
         beta_zero = process_info[KratosRANS.TURBULENCE_RANS_BETA_ZERO]
         c1 = process_info[KratosRANS.TURBULENCE_RANS_K_C1]
 
-        nut_wall_process = KratosRANS.RansKOmegaWallFunctionProcess(
-                                            model,
-                                            wall_model_part_name)
-
-        self.AddProcess(nut_wall_process)
-
         nut_process = KratosRANS.RansNutKOmegaUpdateProcess(
                                             model,
                                             self.GetBaseModelPart().Name,
                                             1e-12,
                                             self.echo_level)
         self.AddProcess(nut_process)
+
+        # nut_wall_process = KratosRANS.RansKOmegaWallFunctionProcess(
+        #                                     model,
+        #                                     wall_model_part_name)
+
+        # self.AddProcess(nut_wall_process)
+
+        nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
+                                            model,
+                                            wall_model_part_name,
+                                            kappa,
+                                            1e-12,
+                                            self.echo_level)
+        self.AddProcess(nut_wall_process)
 
         # nut_wall_process_2 = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
         #                                     model,

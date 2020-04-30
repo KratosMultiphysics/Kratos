@@ -59,7 +59,6 @@
 // monolithic conditions
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.h"
 #include "custom_conditions/monolithic/rans_vms_monolithic_k_based_wall_condition.h"
-#include "custom_conditions/monolithic/rans_vms_monolithic_wall_condition.h"
 
 // k-epsilon
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_k_based_lhs_wall_condition.h"
@@ -68,8 +67,7 @@
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
 
 // k-omega
-#include "custom_conditions/evm_k_omega/rans_evm_k_omega_k_wall_condition.h"
-#include "custom_conditions/evm_k_omega/rans_evm_k_omega_omega_wall_condition.h"
+#include "custom_conditions/evm_k_omega/rans_evm_k_omega_omega_k_based_wall_condition.h"
 
 // Adjoint element includes
 #include "custom_elements/evm_k_epsilon/rans_evm_epsilon_adjoint.h"
@@ -307,9 +305,6 @@ private:
     const RansVMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWallCondition2D2N;
     const RansVMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWallCondition3D3N;
 
-    const RansVMSMonolithicWallCondition<2> mRansVMSMonolithicWallCondition2D2N;
-    const RansVMSMonolithicWallCondition<3> mRansVMSMonolithicWallCondition3D3N;
-
     /// k-epsilon turbulence model conditions
     const RansEvmKEpsilonEpsilonVelocityBasedWallCondition<2> mRansEvmKEpsilonEpsilonVelocityBasedWallCondition2D2N;
     const RansEvmKEpsilonEpsilonVelocityBasedWallCondition<3> mRansEvmKEpsilonEpsilonVelocityBasedWallCondition3D3N;
@@ -324,11 +319,8 @@ private:
     const RansEvmKEpsilonEpsilonWall<3> mRansEvmKEpsilonEpsilonWall3D3N;
 
     // k-omega turbulence model conditions
-    const RansEvmKOmegaKWallCondition<2> mRansEvmKOmegaKWallCondition2D2N;
-    const RansEvmKOmegaKWallCondition<3> mRansEvmKOmegaKWallCondition3D3N;
-
-    const RansEvmKOmegaOmegaWallCondition<2> mRansEvmKOmegaOmegaWallCondition2D2N;
-    const RansEvmKOmegaOmegaWallCondition<3> mRansEvmKOmegaOmegaWallCondition3D3N;
+    const RansEvmKOmegaOmegaKBasedWallCondition<2> mRansEvmKOmegaOmegaKBasedWallCondition2D2N;
+    const RansEvmKOmegaOmegaKBasedWallCondition<3> mRansEvmKOmegaOmegaKBasedWallCondition3D3N;
 
     // k-epsilon adjoint elements
     const RansEvmEpsilonAdjoint<2, 3> mRansEvmEpsilonAdjoint2D3N;

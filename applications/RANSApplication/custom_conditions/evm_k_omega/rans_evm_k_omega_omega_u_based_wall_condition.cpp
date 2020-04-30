@@ -26,13 +26,13 @@
 #include "rans_application_variables.h"
 
 // Include base h
-#include "rans_evm_k_omega_k_wall_condition.h"
+#include "rans_evm_k_omega_omega_u_based_wall_condition.h"
 
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKOmegaKWallCondition<TDim, TNumNodes>& RansEvmKOmegaKWallCondition<TDim, TNumNodes>::operator=(
-    RansEvmKOmegaKWallCondition<TDim, TNumNodes> const& rOther)
+RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>& RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::operator=(
+    RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes> const& rOther)
 {
     Condition::operator=(rOther);
 
@@ -40,22 +40,23 @@ RansEvmKOmegaKWallCondition<TDim, TNumNodes>& RansEvmKOmegaKWallCondition<TDim, 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer RansEvmKOmegaKWallCondition<TDim, TNumNodes>::Create(
+Condition::Pointer RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<RansEvmKOmegaKWallCondition>(
+    return Kratos::make_intrusive<RansEvmKOmegaOmegaUBasedWallCondition>(
         NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer RansEvmKOmegaKWallCondition<TDim, TNumNodes>::Create(
+Condition::Pointer RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<RansEvmKOmegaKWallCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<RansEvmKOmegaOmegaUBasedWallCondition>(
+        NewId, pGeom, pProperties);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer RansEvmKOmegaKWallCondition<TDim, TNumNodes>::Clone(
+Condition::Pointer RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::Clone(
     IndexType NewId, NodesArrayType const& rThisNodes) const
 {
     Condition::Pointer pNewCondition =
@@ -68,7 +69,7 @@ Condition::Pointer RansEvmKOmegaKWallCondition<TDim, TNumNodes>::Clone(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
@@ -82,7 +83,7 @@ void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
@@ -92,7 +93,7 @@ void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateRightHandSide(
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     if (rRightHandSideVector.size() != TNumNodes)
@@ -102,7 +103,7 @@ void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateRightHandSide(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateDampingMatrix(
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::CalculateDampingMatrix(
     MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     VectorType RHS;
@@ -110,7 +111,7 @@ void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateDampingMatrix(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateLocalVelocityContribution(
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::CalculateLocalVelocityContribution(
     MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -134,7 +135,7 @@ void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::CalculateLocalVelocityContrib
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int RansEvmKOmegaKWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -149,9 +150,11 @@ int RansEvmKOmegaKWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(
+            TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
 
-        KRATOS_CHECK_DOF_IN_NODE(TURBULENT_KINETIC_ENERGY, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
     }
 
     return Check;
@@ -160,36 +163,40 @@ int RansEvmKOmegaKWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                                    ProcessInfo& rCurrentProcessInfo)
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::EquationIdVector(
+    EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
-        rResult[i] =
-            Condition::GetGeometry()[i].GetDof(TURBULENT_KINETIC_ENERGY).EquationId();
+        rResult[i] = Condition::GetGeometry()[i]
+                         .GetDof(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
+                         .EquationId();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& ConditionDofList,
-                                                              ProcessInfo& CurrentProcessInfo)
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::GetDofList(
+    DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo)
 {
     if (ConditionDofList.size() != TNumNodes)
         ConditionDofList.resize(TNumNodes);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
-        ConditionDofList[i] = Condition::GetGeometry()[i].pGetDof(TURBULENT_KINETIC_ENERGY);
+        ConditionDofList[i] =
+            Condition::GetGeometry()[i].pGetDof(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::GetValuesVector(VectorType& rValues,
+                                                                             int Step)
 {
     this->GetFirstDerivativesVector(rValues, Step);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step)
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::GetFirstDerivativesVector(
+    Vector& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -198,13 +205,14 @@ void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vec
     IndexType LocalIndex = 0;
     for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
     {
-        rValues[LocalIndex++] =
-            rGeom[iNode].FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY, Step);
+        rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
+            TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, Step);
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step)
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::GetSecondDerivativesVector(
+    Vector& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -213,106 +221,94 @@ void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::GetSecondDerivativesVector(Ve
     IndexType LocalIndex = 0;
     for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
     {
-        rValues[LocalIndex++] =
-            rGeom[iNode].FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY_RATE, Step);
+        rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
+            TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, Step);
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::string RansEvmKOmegaKWallCondition<TDim, TNumNodes>::Info() const
+std::string RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "RansEvmKOmegaKWallCondition" << TNumNodes << "N";
+    buffer << "RansEvmKOmegaOmegaUBasedWallCondition" << TNumNodes << "N";
     return buffer.str();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "RansEvmKOmegaKWallCondition";
+    rOStream << "RansEvmKOmegaOmegaUBasedWallCondition";
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::AddLocalVelocityContribution(
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::AddLocalVelocityContribution(
     MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    // const GeometryType& r_geometry = this->GetGeometry();
-    // // Get Shape function data
-    // Vector gauss_weights;
-    // Matrix shape_functions;
-    // RansCalculationUtilities::CalculateConditionGeometryData(
-    //     r_geometry, this->GetIntegrationMethod(), gauss_weights, shape_functions);
-    // const IndexType num_gauss_points = gauss_weights.size();
+    const GeometryType& r_geometry = this->GetGeometry();
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    RansCalculationUtilities::CalculateConditionGeometryData(
+        r_geometry, this->GetIntegrationMethod(), gauss_weights, shape_functions);
+    const IndexType num_gauss_points = gauss_weights.size();
 
-    // const double k_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
-    // const double k_c1 = rCurrentProcessInfo[TURBULENCE_RANS_K_C1];
+    const double omega_sigma =
+        rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA];
+    const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+    const double kappa = rCurrentProcessInfo[WALL_VON_KARMAN];
+    const double y_plus_limit = rCurrentProcessInfo[RANS_Y_PLUS_LIMIT];
 
-    // KRATOS_ERROR_IF(!(this->Has(RANS_Y_PLUS)))
-    //     << "RANS_Y_PLUS value is not set in " << this->Info() << " at "
-    //     << this->GetGeometry() << "\n";
+    KRATOS_ERROR_IF(!(this->Has(RANS_Y_PLUS)))
+        << "RANS_Y_PLUS value is not set in " << this->Info() << " at "
+        << this->GetGeometry() << "\n";
 
-    // KRATOS_ERROR_IF(!(this->Has(FRICTION_VELOCITY)))
-    //     << "FRICTION_VELOCITY value is not set in " << this->Info() << " at "
-    //     << this->GetGeometry() << "\n";
+    const double y_plus = std::max(this->GetValue(RANS_Y_PLUS), y_plus_limit);
 
-    // const double y_plus_limit = rCurrentProcessInfo[RANS_Y_PLUS_LIMIT];
-    // const double y_plus_lower_limit = rCurrentProcessInfo[RANS_Y_PLUS_LOWER_LIMIT];
-    // const double y_plus = std::max(this->GetValue(RANS_Y_PLUS), y_plus_lower_limit);
-    // const double u_tau = norm_2(this->GetValue(FRICTION_VELOCITY));
+    if (y_plus > 0.0)
+    {
+        for (IndexType g = 0; g < num_gauss_points; ++g)
+        {
+            const Vector& gauss_shape_functions = row(shape_functions, g);
 
-    // if (this->Id() == 6280)
-    // {
-    // KRATOS_WATCH(this->Id());
-    // KRATOS_WATCH(y_plus);
-    // KRATOS_WATCH(u_tau);
-    // KRATOS_WATCH(y_plus_limit);
-    // KRATOS_WATCH(y_plus_lower_limit);
-    // }
+            const double nu = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+            const double nu_t = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
+            const double tke = RansCalculationUtilities::EvaluateInPoint(
+                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
 
-    // activate the wall law for linear region
-    // log region : do nothing Neumann condition
-    // if (y_plus < y_plus_limit)
-    // {
-    //     for (IndexType g = 0; g < num_gauss_points; ++g)
-    //     {
-    //         const Vector& gauss_shape_functions = row(shape_functions, g);
-
-    //         const double nu = RansCalculationUtilities::EvaluateInPoint(
-    //             r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
-    //         const double nu_t = RansCalculationUtilities::EvaluateInPoint(
-    //             r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
-
-    //         const double value = gauss_weights[g] * (nu + nu_t * k_sigma) *
-    //                              2.0 * k_c1 * std::pow(u_tau, 3) * y_plus / nu;
-    //         noalias(rRightHandSideVector) -= gauss_shape_functions * value;
-    //     }
-    // }
-
+            const double value = gauss_weights[g] * (nu + omega_sigma * nu_t) *
+                                 std::pow(u_tau, 3) /
+                                 (kappa * std::pow(c_mu_25 * y_plus * nu, 2));
+            noalias(rRightHandSideVector) += gauss_shape_functions * value;
+        }
+    }
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKOmegaKWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+void RansEvmKOmegaOmegaUBasedWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
 }
 
 // template instantiation
 
-template class RansEvmKOmegaKWallCondition<2>;
-template class RansEvmKOmegaKWallCondition<3>;
+template class RansEvmKOmegaOmegaUBasedWallCondition<2>;
+template class RansEvmKOmegaOmegaUBasedWallCondition<3>;
 
 } // namespace Kratos.

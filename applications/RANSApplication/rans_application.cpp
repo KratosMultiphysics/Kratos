@@ -73,8 +73,6 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmKEpsilonVmsMonolithicWall3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansVMSMonolithicKBasedWallCondition2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
       mRansVMSMonolithicKBasedWallCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansVMSMonolithicWallCondition2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-      mRansVMSMonolithicWallCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonEpsilonVelocityBasedWallCondition2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
       mRansEvmKEpsilonEpsilonVelocityBasedWallCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonEpsilonKBasedLHSWallCondition2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
@@ -83,10 +81,8 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmKEpsilonEpsilonKBasedRHSWallCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonEpsilonWall2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
       mRansEvmKEpsilonEpsilonWall3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansEvmKOmegaKWallCondition2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-      mRansEvmKOmegaKWallCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansEvmKOmegaOmegaWallCondition2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-      mRansEvmKOmegaOmegaWallCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaOmegaKBasedWallCondition2D2N(0,Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+      mRansEvmKOmegaOmegaKBasedWallCondition3D3N(0,Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmEpsilonAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmEpsilonAdjoint3D4N(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mRansEvmKAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
@@ -200,9 +196,6 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWallCondition2D2N", mRansVMSMonolithicKBasedWallCondition2D2N);
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWallCondition3D3N", mRansVMSMonolithicKBasedWallCondition3D3N);
 
-    KRATOS_REGISTER_CONDITION("RansVMSMonolithicWallCondition2D2N", mRansVMSMonolithicWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("RansVMSMonolithicWallCondition3D3N", mRansVMSMonolithicWallCondition3D3N);
-
     // registering low re k-epsilon elements
     KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonLowReK2D3N", mRansEvmKEpsilonLowReK2D);
     KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonLowReK3D4N", mRansEvmKEpsilonLowReK3D);
@@ -266,11 +259,8 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansEvmKOmegaOmegaCrossWindStabilized3D4N", mRansEvmKOmegaOmegaCrossWindStabilized3D);
 
     // registering k-omega conditions
-    KRATOS_REGISTER_CONDITION("RansEvmKOmegaKWallCondition2D2N", mRansEvmKOmegaKWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("RansEvmKOmegaKWallCondition3D3N", mRansEvmKOmegaKWallCondition3D3N);
-
-    KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaWallCondition2D2N", mRansEvmKOmegaOmegaWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaWallCondition3D3N", mRansEvmKOmegaOmegaWallCondition3D3N);
+    KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaKBasedWallCondition2D2N", mRansEvmKOmegaOmegaKBasedWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaKBasedWallCondition3D3N", mRansEvmKOmegaOmegaKBasedWallCondition3D3N);
 
     // Registering adjoint elements
     KRATOS_REGISTER_ELEMENT("RansEvmEpsilonAdjoint2D3N", mRansEvmEpsilonAdjoint2D3N);

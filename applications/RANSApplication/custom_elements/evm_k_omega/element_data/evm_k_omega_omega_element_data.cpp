@@ -121,16 +121,12 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
     mBeta = EvmKOmegaElementDataUtilities::CalculateBeta<TDim>(
         mVelocityGradient, mVelocityDivergence, mOmega, mBetaZero, mBetaStar);
 
-    array_1d<double, 3> r_omega_gradient;
     RansCalculationUtilities::CalculateGradient(
-        r_omega_gradient, this->GetGeometry(), TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
-        rShapeFunctionDerivatives, Step);
+        mTurbulentSpecificEnergyDissipationRateGradient, this->GetGeometry(),
+        TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rShapeFunctionDerivatives, Step);
 
-    mSigmaD = 0.0;
-
-    // mSigmaD = EvmKOmegaElementDataUtilities::CalculateSigmaD(
-    //     mTurbulentKineticEnergyGradient, r_omega_gradient);
-
+    mSigmaD = EvmKOmegaElementDataUtilities::CalculateSigmaD(
+        mTurbulentKineticEnergyGradient, mTurbulentSpecificEnergyDissipationRateGradient);
 
     KRATOS_CATCH("");
 }
@@ -142,8 +138,7 @@ array_1d<double, 3> OmegaElementData<TDim>::CalculateEffectiveVelocity(
     const array_1d<double, 3>& r_velocity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), VELOCITY, rShapeFunctions);
 
-    return r_velocity - mTurbulentKineticEnergyGradient *
-                            (mSigmaD * mTurbulentKinematicViscosity / mTurbulentKineticEnergy);
+    return r_velocity;
 }
 
 template <unsigned int TDim>
@@ -158,7 +153,7 @@ double OmegaElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctio
                                                      const Matrix& rShapeFunctionDerivatives) const
 {
     return std::max(mBeta * mTurbulentKineticEnergy / mTurbulentKinematicViscosity +
-                        mGamma * 2.0 * mVelocityDivergence / (3.0 * mTurbulentKinematicViscosity),
+                        mGamma * 2.0 * mVelocityDivergence / 3.0,
                     0.0);
 }
 
@@ -172,6 +167,11 @@ double OmegaElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions
         mVelocityGradient, mTurbulentKinematicViscosity);
 
     production *= (mGamma / mTurbulentKinematicViscosity);
+
+    production += inner_prod(mTurbulentKineticEnergyGradient,
+                             mTurbulentSpecificEnergyDissipationRateGradient) *
+                  mSigmaD / mOmega;
+
     return production;
 }
 

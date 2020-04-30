@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#ifndef KRATOS_RANS_EVM_K_OMEGA_OMEGA_WALL_CONDITION_H
-#define KRATOS_RANS_EVM_K_OMEGA_OMEGA_WALL_CONDITION_H
+#ifndef KRATOS_RANS_EVM_K_OMEGA_OMEGA_U_BASED_WALL_CONDITION_H
+#define KRATOS_RANS_EVM_K_OMEGA_OMEGA_U_BASED_WALL_CONDITION_H
 
 // System includes
 
@@ -57,14 +57,14 @@ namespace Kratos
  */
 
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class RansEvmKOmegaOmegaWallCondition : public Condition
+class RansEvmKOmegaOmegaUBasedWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RansEvmKOmegaOmegaWallCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmKOmegaOmegaWallCondition);
+    /// Pointer definition of RansEvmKOmegaOmegaUBasedWallCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmKOmegaOmegaUBasedWallCondition);
 
     using NodeType = Node<3>;
     using PropertiesType = Properties;
@@ -84,7 +84,7 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmKOmegaOmegaWallCondition(IndexType NewId = 0)
+    explicit RansEvmKOmegaOmegaUBasedWallCondition(IndexType NewId = 0)
         : Condition(NewId)
     {
     }
@@ -94,7 +94,7 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmKOmegaOmegaWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
+    RansEvmKOmegaOmegaUBasedWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
         : Condition(NewId, ThisNodes)
     {
     }
@@ -104,7 +104,7 @@ public:
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmKOmegaOmegaWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    RansEvmKOmegaOmegaUBasedWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {
     }
@@ -115,34 +115,35 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    RansEvmKOmegaOmegaWallCondition(IndexType NewId,
-                                    GeometryType::Pointer pGeometry,
-                                    PropertiesType::Pointer pProperties)
+    RansEvmKOmegaOmegaUBasedWallCondition(IndexType NewId,
+                                                 GeometryType::Pointer pGeometry,
+                                                 PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
-    RansEvmKOmegaOmegaWallCondition(RansEvmKOmegaOmegaWallCondition const& rOther)
+    RansEvmKOmegaOmegaUBasedWallCondition(RansEvmKOmegaOmegaUBasedWallCondition const& rOther)
         : Condition(rOther)
     {
     }
 
     /// Destructor.
-    ~RansEvmKOmegaOmegaWallCondition() override = default;
+    ~RansEvmKOmegaOmegaUBasedWallCondition() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator
-    RansEvmKOmegaOmegaWallCondition& operator=(RansEvmKOmegaOmegaWallCondition const& rOther);
+    RansEvmKOmegaOmegaUBasedWallCondition& operator=(
+        RansEvmKOmegaOmegaUBasedWallCondition const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// Create a new RansEvmKOmegaOmegaWallCondition object.
+    /// Create a new RansEvmKOmegaOmegaUBasedWallCondition object.
     /**
       @param NewId Index of the new condition
       @param ThisNodes An array containing the nodes of the new condition
@@ -335,7 +336,7 @@ private:
 
     ///@}
 
-}; // Class RansEvmKOmegaOmegaWallCondition
+}; // Class RansEvmKOmegaOmegaUBasedWallCondition
 
 ///@}
 
@@ -349,7 +350,7 @@ private:
 /// input stream function
 template <unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                RansEvmKOmegaOmegaWallCondition<TNumNodes>& rThis)
+                                RansEvmKOmegaOmegaUBasedWallCondition<TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -357,7 +358,7 @@ inline std::istream& operator>>(std::istream& rIStream,
 /// output stream function
 template <unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansEvmKOmegaOmegaWallCondition<TNumNodes>& rThis)
+                                const RansEvmKOmegaOmegaUBasedWallCondition<TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -372,4 +373,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_RANS_EVM_K_OMEGA_OMEGA_WALL_CONDITION_H
+#endif // KRATOS_RANS_EVM_K_OMEGA_OMEGA_U_BASED_WALL_CONDITION_H

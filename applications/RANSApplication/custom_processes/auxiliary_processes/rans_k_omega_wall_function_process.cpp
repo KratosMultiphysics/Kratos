@@ -75,19 +75,19 @@ void RansKOmegaWallFunctionProcess::ExecuteInitialize()
 {
     if (mIsConstrained)
     {
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        const int number_of_nodes = r_model_part.NumberOfNodes();
+    const int number_of_nodes = r_model_part.NumberOfNodes();
 #pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
-            r_node.Fix(TURBULENT_KINETIC_ENERGY);
-            r_node.Fix(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
-        }
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
+        // r_node.Fix(TURBULENT_KINETIC_ENERGY);
+        // r_node.Fix(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
+    }
 
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << "Fixed k_omega dofs in " << mModelPartName << ".\n";
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+        << "Fixed k_omega dofs in " << mModelPartName << ".\n";
     }
 
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
@@ -127,9 +127,10 @@ void RansKOmegaWallFunctionProcess::Execute()
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
-    VariableUtils().SetHistoricalVariableToZero(TURBULENT_KINETIC_ENERGY, r_nodes);
-    VariableUtils().SetHistoricalVariableToZero(
-        TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_nodes);
+    // VariableUtils().SetHistoricalVariableToZero(TURBULENT_KINETIC_ENERGY, r_nodes);
+    // VariableUtils().SetHistoricalVariableToZero(
+    //     TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_nodes);
+    VariableUtils().SetHistoricalVariableToZero(TURBULENT_VISCOSITY, r_nodes);
 
     ModelPart::ConditionsContainerType& r_conditions = r_model_part.Conditions();
     const int number_of_conditions = r_conditions.size();
@@ -145,37 +146,43 @@ void RansKOmegaWallFunctionProcess::Execute()
     {
         ModelPart::ConditionType& r_condition = *(r_conditions.begin() + i_cond);
         const double y_plus = std::max(r_condition.GetValue(RANS_Y_PLUS), mYPlusLowerLimit);
-        const double u_tau = norm_2(r_condition.GetValue(FRICTION_VELOCITY));
+        // const double u_tau = norm_2(r_condition.GetValue(FRICTION_VELOCITY));
 
-        const double omega_vis = 6.0 * std::pow(u_tau / y_plus, 2) / (mBetaZero);
-        const double omega_log = std::pow(u_tau / mCmu25, 2) / (mKappa * y_plus);
-        const double omega = std::sqrt(std::pow(omega_vis, 2) + std::pow(omega_log, 2));
+        // const double omega_vis = 6.0 * std::pow(u_tau / y_plus, 2) / (mBetaZero);
+        // const double omega_log = std::pow(u_tau / mCmu25, 2) / (mKappa * y_plus);
+        // const double omega = std::sqrt(std::pow(omega_vis, 2) + std::pow(omega_log, 2));
 
-        const double tke_low = mC1 * std::pow(y_plus * u_tau, 2);
-        const double tke_high = std::pow(u_tau / mCmu25, 2);
+        // const double tke_low = mC1 * std::pow(y_plus * u_tau, 2);
+        // const double tke_high = std::pow(u_tau / mCmu25, 2);
 
         ModelPart::ConditionType::GeometryType& r_geometry = r_condition.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
             ModelPart::NodeType& r_node = r_geometry[i_node];
             const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
+            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+            const double u_tau = mCmu25 * std::sqrt(std::max(0.0, tke));
+
+            const double omega = std::pow(u_tau / mCmu25, 2) / (mKappa * y_plus * nu);
+            const double nu_t = mKappa * y_plus * nu;
 
             r_node.SetLock();
-            r_node.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE) +=
-                omega / nu;
-            if (y_plus > mYPlusLimit)
-            {
-                r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) += tke_high;
-            }
-            else
-            {
-                r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) += tke_low;
-            }
+            // r_node.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE) += omega;
+            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) += nu_t;
+            // if (y_plus > mYPlusLimit)
+            // {
+            //     r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) += tke_high;
+            // }
+            // else
+            // {
+            //     r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) += tke_low;
+            // }
             r_node.UnSetLock();
         }
     }
 
-    r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_KINETIC_ENERGY);
+    // r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_KINETIC_ENERGY);
+    r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_VISCOSITY);
     r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
 
     const int number_of_nodes = r_nodes.size();
@@ -185,10 +192,14 @@ void RansKOmegaWallFunctionProcess::Execute()
         ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
         const double count = r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
 
-        double& omega = r_node.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
-        omega = std::max(omega / count, 1e-12);
-        double& tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-        tke = std::max(tke / count, 1e-12);
+        // double& omega = r_node.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
+        // omega = std::max(omega / count, 1e-12);
+        double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+        nu_t = std::max(nu_t / count, 1e-12);
+        double& nu = r_node.FastGetSolutionStepValue(VISCOSITY);
+        nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nu_t;
+        // double& tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+        // tke = std::max(tke / count, 1e-12);
     }
 
     KRATOS_CATCH("");

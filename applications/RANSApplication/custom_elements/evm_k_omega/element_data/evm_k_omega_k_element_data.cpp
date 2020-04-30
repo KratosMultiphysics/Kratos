@@ -95,8 +95,8 @@ void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
 {
     KRATOS_TRY
 
-    mOmega = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rShapeFunctions);
+    mTurbulentKineticEnergy = RansCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions);
     mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions);
     mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
@@ -131,7 +131,9 @@ template <unsigned int TDim>
 double KElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctions,
                                                  const Matrix& rShapeFunctionDerivatives) const
 {
-    return std::max(mBetaStar * mOmega + (2.0 / 3.0) * mVelocityDivergence, 0.0);
+    return std::max(mBetaStar * mTurbulentKineticEnergy / mTurbulentKinematicViscosity +
+                        (2.0 / 3.0) * mVelocityDivergence,
+                    0.0);
 }
 
 template <unsigned int TDim>

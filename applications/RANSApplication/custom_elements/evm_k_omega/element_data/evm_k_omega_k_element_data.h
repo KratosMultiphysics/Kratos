@@ -89,10 +89,10 @@ public:
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
     double mTurbulentKinematicViscosity;
+    double mTurbulentKineticEnergy;
     double mKinematicViscosity;
     double mVelocityDivergence;
     double mSigmaK;
-    double mOmega;
     double mBetaStar;
 };
 
