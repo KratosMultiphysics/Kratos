@@ -123,7 +123,6 @@ class ResidualBasedNewtonRaphsonStrategy
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
-          mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
@@ -137,14 +136,14 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(mpLinearSolver));
+            new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+        mpBuilderAndSolver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
         // Tells to the Builder And Solver if the system matrix and vectors need to
         // be reshaped at each step or not
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        mpBuilderAndSolver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
@@ -182,7 +181,6 @@ class ResidualBasedNewtonRaphsonStrategy
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
-          mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
@@ -195,12 +193,22 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY
 
+        // Getting builder and solver
+        auto p_builder_and_solver = GetBuilderAndSolver();
+
         // Tells to the builder and solver if the reactions have to be Calculated or not
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+        p_builder_and_solver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
         // Tells to the Builder And Solver if the system matrix and vectors need to
         //be reshaped at each step or not
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        p_builder_and_solver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+
+        // We check if the linear solver considered for the builder and solver is consistent
+        auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
+        if (p_linear_solver != pNewLinearSolver) {
+            KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to strategy:\n" << pNewLinearSolver->Info() << "\n instead of:\n" << p_linear_solver->Info() << std::endl;
+            p_builder_and_solver->SetLinearSystemSolver(pNewLinearSolver);
+        }
 
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
@@ -231,7 +239,6 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         Parameters Settings)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, Settings),
-          mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mSolutionStepIsInitialized(false),
@@ -246,14 +253,14 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(mpLinearSolver));
+            new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+        mpBuilderAndSolver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
         // Tells to the Builder And Solver if the system matrix and vectors need to
         // be reshaped at each step or not
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        mpBuilderAndSolver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
@@ -285,7 +292,6 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters Settings)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, Settings),
-          mpLinearSolver(pNewLinearSolver),
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
@@ -299,12 +305,22 @@ class ResidualBasedNewtonRaphsonStrategy
         Settings.AddMissingParameters(default_settings);
         this->AssignSettings(Settings);
 
+        // Getting builder and solver
+        auto p_builder_and_solver = GetBuilderAndSolver();
+
         // Tells to the builder and solver if the reactions have to be Calculated or not
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+        p_builder_and_solver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
         // Tells to the Builder And Solver if the system matrix and vectors need to
         //be reshaped at each step or not
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        p_builder_and_solver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+
+        // We check if the linear solver considered for the builder and solver is consistent
+        auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
+        if (p_linear_solver != pNewLinearSolver) {
+            KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to strategy:\n" << pNewLinearSolver->Info() << "\n instead of:\n" << p_linear_solver->Info() << std::endl;
+            p_builder_and_solver->SetLinearSystemSolver(pNewLinearSolver);
+        }
 
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
@@ -1060,7 +1076,6 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@name Member Variables
     ///@{
 
-    typename TLinearSolver::Pointer mpLinearSolver; /// The pointer to the linear solver considered
     typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employed
     typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria; /// The pointer to the convergence criteria employed
