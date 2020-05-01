@@ -8,7 +8,7 @@ import sys
 sys.path.append('/opt/rh/python27/root/usr/lib64')
 import PyPara
 # import PySurfDeflect
-from scipy.io import netcdf
+# from scipy.io import netcdf
 
 echo_level = 1
 
@@ -359,27 +359,27 @@ def meshDeformation(NodesNr,nodes,dispTau,dispTauOld, para_path_mod):
         coords[i, 5] = disp[globalID[i], 2]
 
     fname_new = 'interface_deformfile.nc'
-    ncf = netcdf.netcdf_file(fname_new, 'w')
+    # ncf = netcdf.netcdf_file(fname_new, 'w')
     # define dimensions
     nops = 'no_of_points'
     number_of_points = len(ids[:])
-    ncf.createDimension(nops, number_of_points)
+    # ncf.createDimension(nops, number_of_points)
     # define variables
-    gid = ncf.createVariable('global_id', 'i', (nops,))
-    ncx = ncf.createVariable('x', 'd', (nops,))
-    ncy = ncf.createVariable('y', 'd', (nops,))
-    ncz = ncf.createVariable('z', 'd', (nops,))
-    ncdx = ncf.createVariable('dx', 'd', (nops,))
-    ncdy = ncf.createVariable('dy', 'd', (nops,))
-    ncdz = ncf.createVariable('dz', 'd', (nops,))
-    # write data
-    gid[:] = ids
-    ncx[:] = coords[:,0]
-    ncy[:] = coords[:,1]
-    ncz[:] = coords[:,2]
-    ncdx[:] = coords[:,3]
-    ncdy[:] = coords[:,4]
-    ncdz[:] = coords[:,5]
-    ncf.close()
+    # gid = ncf.createVariable('global_id', 'i', (nops,))
+    # ncx = ncf.createVariable('x', 'd', (nops,))
+    # ncy = ncf.createVariable('y', 'd', (nops,))
+    # ncz = ncf.createVariable('z', 'd', (nops,))
+    # ncdx = ncf.createVariable('dx', 'd', (nops,))
+    # ncdy = ncf.createVariable('dy', 'd', (nops,))
+    # ncdz = ncf.createVariable('dz', 'd', (nops,))
+    # # write data
+    # gid[:] = ids
+    # ncx[:] = coords[:,0]
+    # ncy[:] = coords[:,1]
+    # ncz[:] = coords[:,2]
+    # ncdx[:] = coords[:,3]
+    # ncdy[:] = coords[:,4]
+    # ncdz[:] = coords[:,5]
+    # ncf.close()
 
     return ids, coordinates, globalID, coords
