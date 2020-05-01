@@ -111,10 +111,12 @@ def FindInitialMeshFileName(path, name):
 
 def FindFileName(path, name, step):
     files_list = glob.glob(path + "*")
+    if echo_level > 0:
+        print 'files_list =', files_list
     for file in files_list:
         if file.startswith('%s' % path + '%s' % name + '%s' % step):
             return file
-    raise Exception('File: "{}" not found'.format(path + name))
+    raise Exception('File: "{}" not found'.format(path + name + step))
 
 
 def WriteTautoplt(working_path, step, para_path_mod):
