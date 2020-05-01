@@ -178,8 +178,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
-    double SolveStep() override
+    std::tuple<bool,double> SolveStep() override
     {
 
         double start_solve_time = OpenMPUtils::GetCurrentTime();
@@ -260,7 +259,8 @@ protected:
         const double stop_solve_time = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("FSStrategyForChimera", BaseType::GetEchoLevel() >= 1) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
 
-        return norm_dp;
+        // Set the output tuple as the fractional velocity convergence and pressure norm
+        return std::make_tuple(converged, norm_dp);
     }
 
 

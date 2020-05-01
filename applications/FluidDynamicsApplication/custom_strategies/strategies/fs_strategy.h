@@ -221,15 +221,14 @@ public:
 
     bool SolveSolutionStep() override
     {
-        double norm_dp = 0.0;
         bool converged = false;
         if (mPredictorCorrector) {
             const unsigned int echo_level = BaseType::GetEchoLevel();
             // Iterative solution for pressure
             for (unsigned int it = 0; it < mMaxPressureIter; ++it) {
                 KRATOS_INFO_IF("FSStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
-                norm_dp = this->SolveStep();
-                converged = this->CheckPressureConvergence(norm_dp);
+                const auto convergence_output = this->SolveStep();
+                converged = this->CheckPressureConvergence(std::get<1>(convergence_output));
                 if (converged) {
                     KRATOS_INFO_IF("FSStrategy", echo_level > 0) << "Predictor-corrector converged in " << it + 1 << " iterations." << std::endl;
                     break;
@@ -238,12 +237,13 @@ public:
             KRATOS_WARNING_IF("FSStrategy", !converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
         } else {
             // Solve for fractional step velocity, then update pressure once
-            norm_dp = this->SolveStep();
+            const auto convergence_output = this->SolveStep();
             // If not doing predictor corrector iterations, norm_dp will
             // typically be "large" since we are not iterating on pressure.
             // It makes no sense to report that the iteration didn't converge
-            // based on this.
-            converged = true;
+            // based on this. Hence, what we report is the convergence of the
+            // fractional step velocity.
+            converged = std::get<0>(convergence_output);
         }
 
         // Calculate reactions
@@ -485,7 +485,7 @@ protected:
         KRATOS_CATCH("");
     }
 
-    virtual double SolveStep()
+    virtual std::tuple<bool,double> SolveStep()
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
         const int n_nodes = rModelPart.NumberOfNodes();
@@ -563,8 +563,8 @@ protected:
              iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
             (*iExtraSteps)->Execute();
 
-
-        return NormDp;
+        // Set the output tuple as the fractional velocity convergence and pressure norm
+        return std::make_tuple(Converged, NormDp);
     }
 
     bool CheckFractionalStepConvergence(const double NormDv)
