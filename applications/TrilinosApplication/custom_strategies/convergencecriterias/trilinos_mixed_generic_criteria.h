@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela, Riccardo Rossi, Carlos Roig and Ruben Zorrilla
 //
@@ -62,8 +62,6 @@ public:
     typedef std::vector<std::tuple<VariableData, TDataType, TDataType>> ConvergenceVariableListType;
 
     typedef std::size_t KeyType;
-
-    typedef std::size_t IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -168,7 +166,7 @@ public:
 #pragma omp parallel
             {
                 // Local thread variables
-                IndexType dof_id;
+                int dof_id;
                 TDataType dof_dx;
                 TDataType dof_value;
 
@@ -185,9 +183,9 @@ public:
 #pragma omp for
                 for (int i = 0; i < n_dofs; i++) {
                     auto it_dof = rDofSet.begin() + i;
-                    if (it_dof->IsFree() && it_dof->FastGetSolutionStepValue(PARTITION_INDEX) == rank) {
+                    if (it_dof->IsFree() && it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
                         dof_id = it_dof->EquationId();
-                        dof_value = it_dof->FastGetSolutionStepValue(0);
+                        dof_value = it_dof->GetSolutionStepValue(0);
                         dof_dx = local_dx[mpDofImport->TargetMap().LID(dof_id)];
 
                         const auto &r_current_variable = it_dof->GetVariable();
