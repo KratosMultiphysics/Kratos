@@ -44,12 +44,11 @@ public:
     MPMTemporalCouplingUtility(ModelPart & rModelPartGrid, ModelPart & rModelPartSubDomain1, ModelPart & rModelPartSubDomain2,
         unsigned int TimeStepRatio, double SmallTimestep, double gamma1, double gamma2)
         :mrModelPartGrid(rModelPartGrid), mrModelPartSubDomain1(rModelPartSubDomain1), mrModelPartSubDomain2(rModelPartSubDomain2),
-        mTimeStepRatio(TimeStepRatio), mSmallTimestep(SmallTimestep)
+        mTimeStepRatio(TimeStepRatio), mSmallTimestep(SmallTimestep), mJ(1)
     {
         // TODO change gamma input arg to vector or array_1d and set mGamma back to const
         mGamma[0] = gamma1;
         mGamma[1] = gamma2;
-        mJ = 1;
     }
 
     /**
@@ -71,6 +70,8 @@ protected:
 
     void InvertEffectiveMassMatrix(const SystemMatrixType& rMeff, Matrix& rInvMeff);
 
+    void AssembleCondensationMatrixH(Matrix& rH, const Matrix& rInvM2, const Matrix& rCoupling2);
+
     void ComputeLamda(const Matrix& rH, const Vector& rb, Vector& rLamda);
 
     void ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& link_accel, 
@@ -85,12 +86,13 @@ protected:
 
     void PrintNodeIdsAndCoords(ModelPart& rModelPart);
 
+    void PrintMatrix(const Matrix& rMatrix);
+
     Vector mSubDomain1InitialInterfaceVelocity;
     Vector mSubDomain1FinalInterfaceVelocity;
     Vector mSubDomain1AccumulatedLinkVelocity;
 
     Matrix mInvM1;
-
     Matrix mCoupling1;
 
     IndexType mJ;
@@ -104,6 +106,8 @@ protected:
 
     Vector mActiveInterfaceNodeIDs;
     bool mActiveInterfaceNodesComputed = false;
+
+    const bool m_delete_print_interface_vel = true;
 
 
 }; // end namespace MPMTemporalCouplingUtility

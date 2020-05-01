@@ -32,11 +32,17 @@ namespace Kratos
 
         // Store inverted mass matrix and coupling matrix for sub-domain 1 for the whole timestep
         if (mJ == 1) {
+            std::cout << "K_1 =\n" << K_1 << std::endl;
+            std::cout << "K_2 =\n" << K_2 << std::endl;
             Matrix eff_mass_mat_1;
-            GetEffectiveMassMatrix(1, mrModelPartSubDomain1, eff_mass_mat_1, K_1);
+            GetEffectiveMassMatrix(0, mrModelPartSubDomain1, eff_mass_mat_1, K_1);
             InvertEffectiveMassMatrix(eff_mass_mat_1, mInvM1);
-            ComputeCouplingMatrix(1, eff_mass_mat_1, mCoupling1, mrModelPartSubDomain1);
+            ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, mrModelPartSubDomain1);
             SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1FinalInterfaceVelocity);
+
+            // reset accumulated link velocities at the start of every big timestep
+            mSubDomain1AccumulatedLinkVelocity.resize(eff_mass_mat_1.size1(), false);
+            mSubDomain1AccumulatedLinkVelocity = ZeroVector(eff_mass_mat_1.size1());
         }
 
         // Interpolate subdomain 1 velocities
@@ -47,21 +53,21 @@ namespace Kratos
 
         // Invert sub domain 2 mass matrix
         Matrix eff_mass_mat_2;
-        GetEffectiveMassMatrix(2, mrModelPartSubDomain2, eff_mass_mat_2, K_2);
+        GetEffectiveMassMatrix(1, mrModelPartSubDomain2, eff_mass_mat_2, K_2);
         Matrix InvM2;
         InvertEffectiveMassMatrix(eff_mass_mat_2, InvM2);
 
         // Establish sub domain 2 coupling matrix
         Matrix Coupling2;
-        ComputeCouplingMatrix(2, eff_mass_mat_2, Coupling2, mrModelPartSubDomain2);
+        ComputeCouplingMatrix(1, eff_mass_mat_2, Coupling2, mrModelPartSubDomain2);
 
         // Get sub domain 2 free velocities
         Vector subDomain2freeVelocities;
         SetSubDomainInterfaceVelocity(mrModelPartSubDomain2, subDomain2freeVelocities);
 
         // Assemble condensation operator H
-        Matrix H = -1.0 * mSmallTimestep * mGamma[0] * mInvM1 
-            - mSmallTimestep * mGamma[1] * InvM2;
+        Matrix H;
+        AssembleCondensationMatrixH(H, InvM2, Coupling2);
 
         // Assemble condensed unbalanced interface velocities
         Vector b = SubDomain1InterpolatedVelocities + 
@@ -168,14 +174,18 @@ namespace Kratos
         {
             auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
             const array_1d <double, 3> nodal_velocity = current_node->FastGetSolutionStepValue(VELOCITY);
-            std::cout << nodal_velocity << std::endl;
             for (IndexType k = 0; k < working_space_dim; ++k)
             {
                 rVelocityContainer[working_space_dim * i + k] = nodal_velocity[k];
             }
         }
-        std::cout << rVelocityContainer << std::endl;
-        int asdfas = 1;
+
+        if (m_delete_print_interface_vel)
+        {
+            std::cout << rModelPart.Name() << "Interface vel = " << rVelocityContainer << std::endl;
+            int asdfas = 1;
+        }
+        
     }
 
 
@@ -190,7 +200,7 @@ namespace Kratos
         const IndexType working_space_dim = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
         // resize matrix
-        const double coupling_entry = (domainIndex == 1)
+        const double coupling_entry = (domainIndex == 0)
             ? 1.0
             : -1.0;
         const IndexType size_1 = mActiveInterfaceNodeIDs.size()* working_space_dim;
@@ -212,7 +222,7 @@ namespace Kratos
                 auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
 
                 // get position of current active interface node in the system matrix
-                const IndexType dof_position = current_node->GetDofPosition(DISPLACEMENT_X);
+                const IndexType dof_position = current_node->GetDof(DISPLACEMENT_X).EquationId();
                 for (IndexType k = 0; k < working_space_dim; ++k)
                 {
                     rCouplingMatrix(working_space_dim * i + k, dof_position + k) = coupling_entry;
@@ -237,9 +247,9 @@ namespace Kratos
                 }
             }
         }
-        
 
-        std::cout << "Coupling matrix " << domainIndex << " =\n" << rCouplingMatrix << std::endl;
+        std::cout << "Domain " << domainIndex << " coupling matrix " << std::endl;
+        PrintMatrix(rCouplingMatrix);
 
         KRATOS_CATCH("")
     }
@@ -275,7 +285,7 @@ namespace Kratos
         else if (mGamma[domainIndex] == 0.5) // implicit
         {
             // The system matrix already includes the mass matrix contribution
-            const double time_step = (domainIndex == 1)
+            const double time_step = (domainIndex == 0)
                 ? mTimeStepRatio * mSmallTimestep
                 : mSmallTimestep;
             rEffectiveMassMatrix = time_step * time_step / 4.0 * rK;
@@ -291,7 +301,37 @@ namespace Kratos
     {
         if (rInvMeff.size1() != rMeff.size1() || rInvMeff.size2() != rMeff.size2())
             rInvMeff.resize(rMeff.size1(), rMeff.size2(), false);
-        //rInvK = inv(rK);
+
+        const bool is_slow_invert = true; // TODO get a better way to invert
+
+        if (is_slow_invert)
+        {
+            double matrix_det;
+            Kratos::MathUtils<double>::GeneralizedInvertMatrix(rMeff, rInvMeff, matrix_det);
+        }
+        else
+        {
+            KRATOS_ERROR << "NOT YET DONE";
+        }
+    }
+
+
+    void MPMTemporalCouplingUtility::AssembleCondensationMatrixH(Matrix& rH, const Matrix& rInvM2, const Matrix& rCoupling2)
+    {
+        Matrix H1temp = mGamma[0] * mSmallTimestep * prod(mCoupling1, mInvM1);
+        Matrix H1 = prod(H1temp, trans(mCoupling1));
+
+        Matrix H2temp = mGamma[1] * mSmallTimestep * prod(rCoupling2, rInvM2);
+        Matrix H2 = prod(H2temp, trans(rCoupling2));
+
+        if (rH.size1() != H1.size1() || rH.size2() != H1.size2()) rH.resize(H1.size1(), H1.size2(), false);
+        rH = ZeroMatrix(H1.size1(), H1.size2());
+
+        rH -= H1;
+        rH -= H2;
+
+        std::cout << "H = " << std::endl;
+        PrintMatrix(rH);
     }
 
 
@@ -299,43 +339,92 @@ namespace Kratos
     {
         if (rLamda.size() != rb.size()) rLamda.resize(rb.size(), false);
         // lamda = inv(H)*b;
+
+        if (norm_2(rb) < std::numeric_limits<double>::epsilon())
+        {
+            std::cout << "Interface velocities were equal and did not need correction. Something is probably wrong." << std::endl;
+            rLamda = ZeroVector(rb.size());
+        }
+        else
+        {
+            const bool is_slow_solve = true; // TODO get a better way to solve
+
+            if (is_slow_solve)
+            {
+                double matrix_det;
+                Matrix inv_H;
+                Kratos::MathUtils<double>::GeneralizedInvertMatrix(rH, inv_H, matrix_det);
+                std::cout << "rH = " << std::endl;
+                PrintMatrix(rH);
+                std::cout << "invH = " << std::endl;
+                PrintMatrix(inv_H);
+                std::cout << "rb = " << rb << std::endl;
+                rLamda = prod(inv_H, rb);
+                std::cout << rLamda << std::endl;
+            }
+            else
+            {
+                KRATOS_ERROR << "NOT YET DONE";
+            }
+        }
     }
 
 
     void MPMTemporalCouplingUtility::ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& rLinkAccel,
         const double timeStep, const bool correctInterface)
     {
-        std::cout << "CHECK ApplyCorrectionImplicit" << std::endl;
-
         const SizeType working_space_dimension = rModelPart.ElementsBegin()->WorkingSpaceDimension();
-        bool add_correction = true;
-
-        // Add corrections entries
         const auto it_node_begin = rModelPart.NodesBegin();
-        for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
-            auto current_node = it_node_begin + i;
 
-            if (!correctInterface) {
-                // check if we are on a interface node now
-                for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); ++j) {
-                    if (current_node->GetId() == mActiveInterfaceNodeIDs[j]) {
-                        add_correction = false;
-                        break;
+        // TODO find a better way of doing this
+        Vector is_interface_node;
+        if (!correctInterface)
+        {
+            is_interface_node = ZeroVector(mCoupling1.size2()); // active nodes in sub domain 1
+            IndexType active_node_index = 0;
+            for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
+                auto current_node = it_node_begin + i;
+                if (current_node->Is(ACTIVE)) {
+                    is_interface_node[active_node_index] = false;
+                    const IndexType current_node_id = current_node->GetId();
+                    for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); j++) {
+                        if (current_node_id == mActiveInterfaceNodeIDs[j]) {
+                            is_interface_node[active_node_index] = true;
+                            break;
+                        }
                     }
+                    active_node_index += 1;
                 }
             }
+        }
 
-            if (add_correction) {
-                // get position of current active interface node in the system matrix
-                const IndexType dof_position = current_node->GetDofPosition(DISPLACEMENT_X);
+        // Add corrections entries
+        bool add_correction = false;
+        IndexType active_node_index = 0;
+        for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
+            auto current_node = it_node_begin + i;
+            if (current_node->Is(ACTIVE)) 
+            {
+                add_correction = (correctInterface)
+                    ? true
+                    : !is_interface_node[active_node_index];
+                if (add_correction) {
+                    // implicit arrangement - get position of current active interface node in the system matrix
+                    const IndexType dof_position = current_node->GetDof(DISPLACEMENT_X).EquationId();
 
-                array_1d<double, 3>& r_nodal_disp = current_node->FastGetSolutionStepValue(DISPLACEMENT);
-                array_1d<double, 3>& r_nodal_accel = current_node->FastGetSolutionStepValue(ACCELERATION);
+                    array_1d<double, 3>& r_nodal_disp = current_node->FastGetSolutionStepValue(DISPLACEMENT);
+                    array_1d<double, 3>& r_nodal_accel = current_node->FastGetSolutionStepValue(ACCELERATION);
 
-                for (IndexType k = 0; k < working_space_dimension; ++k) {
-                    r_nodal_disp[dof_position + k] += 0.25 * timeStep * timeStep * rLinkAccel[dof_position + k];
-                    r_nodal_accel[dof_position + k] += rLinkAccel[dof_position + k];
+                    for (IndexType k = 0; k < working_space_dimension; ++k) {
+                        r_nodal_disp[k] += 0.25 * timeStep * timeStep * rLinkAccel[dof_position + k];
+                        r_nodal_accel[k] += rLinkAccel[dof_position + k];
+                    }
                 }
+                else
+                {
+                    std::cout << "skipped correction for active node index " << active_node_index;
+                }
+                active_node_index += 1;
             }
         }
     }
@@ -425,6 +514,21 @@ namespace Kratos
             auto node = rModelPart.NodesBegin() + i;
             std::cout << "node " << node->GetId() << ", coords = (" << node->X() << ", " << node->Y() << ", " << node->Z() << ")" << std::endl;
         }
+    }
+
+
+    void MPMTemporalCouplingUtility::PrintMatrix(const Matrix& rMatrix)
+    {
+        for (size_t i = 0; i < rMatrix.size1(); ++i)
+        {
+            std::cout << "|";
+            for (size_t j = 0; j < rMatrix.size2(); ++j)
+            {
+                std::cout << "\t" << rMatrix(i, j);
+            }
+            std::cout << "\t|\n";
+        }
+        std::cout << std::endl;
     }
  // end namespace MPMTemporalCouplingUtility
 } // end namespace Kratos
