@@ -30,7 +30,6 @@
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_residual_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_mixed_generic_criteria.h"
-#include "custom_strategies/convergencecriterias/trilinos_mixed_vector_scalar_criteria.h"
 
 namespace Kratos
 {
@@ -91,12 +90,6 @@ void  AddConvergenceCriterias(pybind11::module& m)
             TrilinosConvergenceCriteria>
             (m,"TrilinosOrCriteria")
             .def(py::init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
-
-    py::class_<
-        TrilinosMixedVectorScalarCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosMixedVectorScalarCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosConvergenceCriteria>(m, "TrilinosMixedVectorScalarCriteria")
-        .def(py::init< double, double, double, double, Variable<array_1d<double,3>>&, Variable<double>& >());
 
     typedef typename TrilinosMixedGenericCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::ConvergenceVariableListType ConvergenceVariableListType;
     py::class_<
