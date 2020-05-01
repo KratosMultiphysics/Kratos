@@ -377,55 +377,37 @@ namespace Kratos
         const SizeType working_space_dimension = rModelPart.ElementsBegin()->WorkingSpaceDimension();
         const auto it_node_begin = rModelPart.NodesBegin();
 
-        // TODO find a better way of doing this
-        Vector is_interface_node;
-        if (!correctInterface)
-        {
-            is_interface_node = ZeroVector(mCoupling1.size2()); // active nodes in sub domain 1
-            IndexType active_node_index = 0;
-            for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
-                auto current_node = it_node_begin + i;
-                if (current_node->Is(ACTIVE)) {
-                    is_interface_node[active_node_index] = false;
-                    const IndexType current_node_id = current_node->GetId();
-                    for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); j++) {
-                        if (current_node_id == mActiveInterfaceNodeIDs[j]) {
-                            is_interface_node[active_node_index] = true;
-                            break;
-                        }
-                    }
-                    active_node_index += 1;
-                }
+
+        if (!correctInterface) {
+            for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); j++) {
+                auto interface_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[j]);
+                interface_node->Set(ACTIVE, false);
             }
         }
 
         // Add corrections entries
-        bool add_correction = false;
-        IndexType active_node_index = 0;
-        for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
+        for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) 
+        {
             auto current_node = it_node_begin + i;
             if (current_node->Is(ACTIVE)) 
             {
-                add_correction = (correctInterface)
-                    ? true
-                    : !is_interface_node[active_node_index];
-                if (add_correction) {
-                    // implicit arrangement - get position of current active interface node in the system matrix
-                    const IndexType dof_position = current_node->GetDof(DISPLACEMENT_X).EquationId();
+                // implicit arrangement - get position of current active interface node in the system matrix
+                const IndexType dof_position = current_node->GetDof(DISPLACEMENT_X).EquationId();
 
-                    array_1d<double, 3>& r_nodal_disp = current_node->FastGetSolutionStepValue(DISPLACEMENT);
-                    array_1d<double, 3>& r_nodal_accel = current_node->FastGetSolutionStepValue(ACCELERATION);
+                array_1d<double, 3>& r_nodal_disp = current_node->FastGetSolutionStepValue(DISPLACEMENT);
+                array_1d<double, 3>& r_nodal_accel = current_node->FastGetSolutionStepValue(ACCELERATION);
 
-                    for (IndexType k = 0; k < working_space_dimension; ++k) {
-                        r_nodal_disp[k] += 0.25 * timeStep * timeStep * rLinkAccel[dof_position + k];
-                        r_nodal_accel[k] += rLinkAccel[dof_position + k];
-                    }
+                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                    r_nodal_disp[k] += 0.25 * timeStep * timeStep * rLinkAccel[dof_position + k];
+                    r_nodal_accel[k] += rLinkAccel[dof_position + k];
                 }
-                else
-                {
-                    std::cout << "skipped correction for active node index " << active_node_index << std::endl;
-                }
-                active_node_index += 1;
+            }
+        }
+
+        if (!correctInterface) {
+            for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); j++) {
+                auto interface_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[j]);
+                interface_node->Set(ACTIVE, true);
             }
         }
     }
