@@ -32,8 +32,8 @@ namespace Kratos
 
         // Store inverted mass matrix and coupling matrix for sub-domain 1 for the whole timestep
         if (mJ == 1) {
-            std::cout << "K_1 =\n" << K_1 << std::endl;
-            std::cout << "K_2 =\n" << K_2 << std::endl;
+            //std::cout << "K_1 =\n" << K_1 << std::endl;
+            //std::cout << "K_2 =\n" << K_2 << std::endl;
             Matrix eff_mass_mat_1;
             GetEffectiveMassMatrix(0, mrModelPartSubDomain1, eff_mass_mat_1, K_1);
             InvertEffectiveMassMatrix(eff_mass_mat_1, mInvM1);
@@ -103,6 +103,7 @@ namespace Kratos
         // Increment small timestep counter
         mJ += 1;
         if (mJ > mTimeStepRatio) {
+            // reset counters
             mActiveInterfaceNodesComputed = false;
             mJ = 1;
         }
@@ -248,8 +249,8 @@ namespace Kratos
             }
         }
 
-        std::cout << "Domain " << domainIndex << " coupling matrix " << std::endl;
-        PrintMatrix(rCouplingMatrix);
+        //std::cout << "Domain " << domainIndex << " coupling matrix " << std::endl;
+        //PrintMatrix(rCouplingMatrix);
 
         KRATOS_CATCH("")
     }
@@ -330,8 +331,8 @@ namespace Kratos
         rH -= H1;
         rH -= H2;
 
-        std::cout << "H = " << std::endl;
-        PrintMatrix(rH);
+        //std::cout << "H = " << std::endl;
+        //PrintMatrix(rH);
     }
 
 
@@ -354,13 +355,13 @@ namespace Kratos
                 double matrix_det;
                 Matrix inv_H;
                 Kratos::MathUtils<double>::GeneralizedInvertMatrix(rH, inv_H, matrix_det);
-                std::cout << "rH = " << std::endl;
-                PrintMatrix(rH);
-                std::cout << "invH = " << std::endl;
-                PrintMatrix(inv_H);
-                std::cout << "rb = " << rb << std::endl;
+                //std::cout << "rH = " << std::endl;
+                //PrintMatrix(rH);
+                //std::cout << "invH = " << std::endl;
+                //PrintMatrix(inv_H);
+                //std::cout << "rb = " << rb << std::endl;
                 rLamda = prod(inv_H, rb);
-                std::cout << rLamda << std::endl;
+                std::cout << "rLamda = " << rLamda << std::endl;
             }
             else
             {
@@ -422,7 +423,7 @@ namespace Kratos
                 }
                 else
                 {
-                    std::cout << "skipped correction for active node index " << active_node_index;
+                    std::cout << "skipped correction for active node index " << active_node_index << std::endl;
                 }
                 active_node_index += 1;
             }

@@ -111,18 +111,22 @@ class MPMCoupledTimeSolver(MPMSolver):
         self.dt = self.time_step_1
         new_time = current_time + self.dt
 
+        print("\n\n ===== AdvanceInTime, j=",self.time_step_index_j)
+
         self.time_step_index_j += 1
+
+        if self.time_step_index_j > self.time_step_ratio:
+            self.time_step_index_j = 1
+
+        if self.time_step_index_j == self.time_step_ratio:
+            self.is_model_sub_domain_1_correct = True
+        else:
+            self.is_model_sub_domain_1_correct = False
 
         if self.time_step_index_j == 1:
             self.is_model_sub_domain_1_predict = True
         else:
             self.is_model_sub_domain_1_predict = False
-
-        if self.time_step_index_j == self.time_step_ratio:
-            self.is_model_sub_domain_1_correct = True
-            time_step_index_j = 0
-        else:
-            self.is_model_sub_domain_1_correct = False
 
         self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.grid_model_part.CloneTimeStep(new_time)
