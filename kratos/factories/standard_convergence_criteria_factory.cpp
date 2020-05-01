@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "factories/base_factory.h"
 #include "factories/standard_convergence_criteria_factory.h"
 #include "spaces/ublas_space.h"
 
@@ -33,23 +34,22 @@ namespace Kratos
         typedef TUblasSparseSpace<double> SpaceType;
         typedef TUblasDenseSpace<double> LocalSpaceType;
 
-        typedef ConvergenceCriteria<SpaceType,  LocalSpaceType> ConvergenceCriteriaType;
         typedef DisplacementCriteria<SpaceType,  LocalSpaceType> DisplacementCriteriaType;
         typedef ResidualCriteria<SpaceType,  LocalSpaceType> ResidualCriteriaType;
         typedef And_Criteria<SpaceType,  LocalSpaceType> And_CriteriaType;
         typedef Or_Criteria<SpaceType,  LocalSpaceType> Or_CriteriaType;
 
         //NOTE: here we must create persisting objects for the linear solvers
-        static auto DisplacementCriteriaFactory = StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, DisplacementCriteriaType>();
-        static auto ResidualCriteriaFactory= StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, ResidualCriteriaType>();
-        static auto And_CriteriaFactory= StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, And_CriteriaType>();
-        static auto Or_CriteriaFactory= StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, Or_CriteriaType>();
+        static DisplacementCriteriaType msDisplacementCriteria;
+        static ResidualCriteriaType msResidualCriteria;
+        static And_CriteriaType msAnd_Criteria;
+        static Or_CriteriaType msOr_Criteria;
 
         // Registration of convergence solvers
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA(DisplacementCriteriaType::Name(), DisplacementCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA(ResidualCriteriaType::Name(), ResidualCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA(And_CriteriaType::Name(), And_CriteriaFactory );
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA(Or_CriteriaType::Name(), Or_CriteriaFactory );
+        KRATOS_REGISTER_CONVERGENCE_CRITERIA(DisplacementCriteriaType::Name(), msDisplacementCriteria);
+        KRATOS_REGISTER_CONVERGENCE_CRITERIA(ResidualCriteriaType::Name(), msResidualCriteria);
+        KRATOS_REGISTER_CONVERGENCE_CRITERIA(And_CriteriaType::Name(), msAnd_Criteria );
+        KRATOS_REGISTER_CONVERGENCE_CRITERIA(Or_CriteriaType::Name(), msOr_Criteria );
     };
 } // Namespace Kratos
 
