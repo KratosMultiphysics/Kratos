@@ -60,6 +60,8 @@ public:
     /// Pointer definition of ResidualBasedIncrementalAitkenStaticScheme
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedIncrementalAitkenStaticScheme);
 
+    typedef Scheme<TSparseSpace,TDenseSpace> BaseSchemeType;
+
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
 
     typedef ResidualBasedIncrementalAitkenStaticScheme<TSparseSpace, TDenseSpace> ClassType;
@@ -129,7 +131,7 @@ public:
      * @brief Create method
      * @param ThisParameters The configuration parameters
      */
-    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    typename BaseSchemeType::Pointer Create(Parameters ThisParameters) const override
     {
         return Kratos::make_shared<ClassType>(ThisParameters);
     }
