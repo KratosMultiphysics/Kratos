@@ -28,25 +28,24 @@
 // fractional step
 #include "custom_elements/fractional_step/rans_fractional_step.h"
 
-// k-epsilon turbulence model
+// stabilized generic convection diffusion reaction elements
+#include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
+#include "custom_elements/convection_diffusion_reaction_element.h"
+#include "custom_elements/convection_diffusion_reaction_residual_based_fc_element.h"
+
+// k-epsilon turbulence model element data
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_epsilon_element_data.h"
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_k_element_data.h"
+
+// old elements (to be removed)
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon_afc_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon_cross_wind_stabilized_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon_residual_based_fc_element.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k_afc_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k_cross_wind_stabilized_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k_residual_based_fc_element.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
 
 // k-omega turbulence model
-#include "custom_elements/evm_k_omega/rans_evm_k_omega_k_afc_element.h"
-#include "custom_elements/evm_k_omega/rans_evm_k_omega_k_cross_wind_stabilized_element.h"
-#include "custom_elements/evm_k_omega/rans_evm_k_omega_k_residual_based_fc_element.h"
-#include "custom_elements/evm_k_omega/rans_evm_k_omega_omega_afc_element.h"
-#include "custom_elements/evm_k_omega/rans_evm_k_omega_omega_cross_wind_stabilized_element.h"
-#include "custom_elements/evm_k_omega/rans_evm_k_omega_omega_residual_based_fc_element.h"
+#include "custom_elements/element_data/evm_k_omega/evm_k_omega_k_element_data.h"
+#include "custom_elements/element_data/evm_k_omega/evm_k_omega_omega_element_data.h"
 
 // Condition includes
 // incompressible potential flow conditions
@@ -242,47 +241,47 @@ private:
 
     /// k-epsilon turbulence model elements
     /// Algebraic flux correction based elements
-    const RansEvmKEpsilonKAFCElement<2, 3> mRansEvmKEpsilonKAFC2D;
-    const RansEvmKEpsilonKAFCElement<3, 4> mRansEvmKEpsilonKAFC3D;
+    const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonElementDataUtilities::KElementData<2>> mRansEvmKEpsilonKAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKEpsilonElementDataUtilities::KElementData<3>> mRansEvmKEpsilonKAFC3D;
 
-    const RansEvmKEpsilonEpsilonAFCElement<2, 3> mRansEvmKEpsilonEpsilonAFC2D;
-    const RansEvmKEpsilonEpsilonAFCElement<3, 4> mRansEvmKEpsilonEpsilonAFC3D;
+    const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonElementDataUtilities::EpsilonElementData<2>> mRansEvmKEpsilonEpsilonAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKEpsilonElementDataUtilities::EpsilonElementData<3>> mRansEvmKEpsilonEpsilonAFC3D;
 
     /// Residual based flux corrected elements
-    const RansEvmKEpsilonKResidualBasedFCElement<2, 3> mRansEvmKEpsilonKResidualBasedFC2D;
-    const RansEvmKEpsilonKResidualBasedFCElement<3, 4> mRansEvmKEpsilonKResidualBasedFC3D;
+    const ConvectionDiffusionReactionResidualBasedFCElement<2, 3, EvmKEpsilonElementDataUtilities::KElementData<2>> mRansEvmKEpsilonKResidualBasedFC2D;
+    const ConvectionDiffusionReactionResidualBasedFCElement<3, 4, EvmKEpsilonElementDataUtilities::KElementData<3>> mRansEvmKEpsilonKResidualBasedFC3D;
 
-    const RansEvmKEpsilonEpsilonResidualBasedFCElement<2, 3> mRansEvmKEpsilonEpsilonResidualBasedFC2D;
-    const RansEvmKEpsilonEpsilonResidualBasedFCElement<3, 4> mRansEvmKEpsilonEpsilonResidualBasedFC3D;
+    const ConvectionDiffusionReactionResidualBasedFCElement<2, 3, EvmKEpsilonElementDataUtilities::EpsilonElementData<2>> mRansEvmKEpsilonEpsilonResidualBasedFC2D;
+    const ConvectionDiffusionReactionResidualBasedFCElement<3, 4, EvmKEpsilonElementDataUtilities::EpsilonElementData<3>> mRansEvmKEpsilonEpsilonResidualBasedFC3D;
 
     /// Cross wind stabilization based elements
-    const RansEvmKEpsilonKCrossWindStabilizedElement<2, 3> mRansEvmKEpsilonKCrossWindStabilized2D;
-    const RansEvmKEpsilonKCrossWindStabilizedElement<3, 4> mRansEvmKEpsilonKCrossWindStabilized3D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonElementDataUtilities::KElementData<2>> mRansEvmKEpsilonKCrossWindStabilized2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonElementDataUtilities::KElementData<3>> mRansEvmKEpsilonKCrossWindStabilized3D;
 
-    const RansEvmKEpsilonEpsilonCrossWindStabilizedElement<2, 3> mRansEvmKEpsilonEpsilonCrossWindStabilized2D;
-    const RansEvmKEpsilonEpsilonCrossWindStabilizedElement<3, 4> mRansEvmKEpsilonEpsilonCrossWindStabilized3D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonElementDataUtilities::EpsilonElementData<2>> mRansEvmKEpsilonEpsilonCrossWindStabilized2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonElementDataUtilities::EpsilonElementData<3>> mRansEvmKEpsilonEpsilonCrossWindStabilized3D;
 
     /// k-omega turbulence model elements
     /// Algebraic flux correction based elements
-    const RansEvmKOmegaKAFCElement<2, 3> mRansEvmKOmegaKAFC2D;
-    const RansEvmKOmegaKAFCElement<3, 4> mRansEvmKOmegaKAFC3D;
+    const ConvectionDiffusionReactionElement<2, 3, EvmKOmegaElementDataUtilities::KElementData<2>> mRansEvmKOmegaKAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKOmegaElementDataUtilities::KElementData<3>> mRansEvmKOmegaKAFC3D;
 
-    const RansEvmKOmegaOmegaAFCElement<2, 3> mRansEvmKOmegaOmegaAFC2D;
-    const RansEvmKOmegaOmegaAFCElement<3, 4> mRansEvmKOmegaOmegaAFC3D;
+    const ConvectionDiffusionReactionElement<2, 3, EvmKOmegaElementDataUtilities::OmegaElementData<2>> mRansEvmKOmegaOmegaAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKOmegaElementDataUtilities::OmegaElementData<3>> mRansEvmKOmegaOmegaAFC3D;
 
     /// Residual based flux corrected elements
-    const RansEvmKOmegaKResidualBasedFCElement<2, 3> mRansEvmKOmegaKResidualBasedFC2D;
-    const RansEvmKOmegaKResidualBasedFCElement<3, 4> mRansEvmKOmegaKResidualBasedFC3D;
+    const ConvectionDiffusionReactionResidualBasedFCElement<2, 3, EvmKOmegaElementDataUtilities::KElementData<2>> mRansEvmKOmegaKResidualBasedFC2D;
+    const ConvectionDiffusionReactionResidualBasedFCElement<3, 4, EvmKOmegaElementDataUtilities::KElementData<3>> mRansEvmKOmegaKResidualBasedFC3D;
 
-    const RansEvmKOmegaOmegaResidualBasedFCElement<2, 3> mRansEvmKOmegaOmegaResidualBasedFC2D;
-    const RansEvmKOmegaOmegaResidualBasedFCElement<3, 4> mRansEvmKOmegaOmegaResidualBasedFC3D;
+    const ConvectionDiffusionReactionResidualBasedFCElement<2, 3, EvmKOmegaElementDataUtilities::OmegaElementData<2>> mRansEvmKOmegaOmegaResidualBasedFC2D;
+    const ConvectionDiffusionReactionResidualBasedFCElement<3, 4, EvmKOmegaElementDataUtilities::OmegaElementData<3>> mRansEvmKOmegaOmegaResidualBasedFC3D;
 
     /// Cross wind stabilization based elements
-    const RansEvmKOmegaKCrossWindStabilizedElement<2, 3> mRansEvmKOmegaKCrossWindStabilized2D;
-    const RansEvmKOmegaKCrossWindStabilizedElement<3, 4> mRansEvmKOmegaKCrossWindStabilized3D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKOmegaElementDataUtilities::KElementData<2>> mRansEvmKOmegaKCrossWindStabilized2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKOmegaElementDataUtilities::KElementData<3>> mRansEvmKOmegaKCrossWindStabilized3D;
 
-    const RansEvmKOmegaOmegaCrossWindStabilizedElement<2, 3> mRansEvmKOmegaOmegaCrossWindStabilized2D;
-    const RansEvmKOmegaOmegaCrossWindStabilizedElement<3, 4> mRansEvmKOmegaOmegaCrossWindStabilized3D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKOmegaElementDataUtilities::OmegaElementData<2>> mRansEvmKOmegaOmegaCrossWindStabilized2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKOmegaElementDataUtilities::OmegaElementData<3>> mRansEvmKOmegaOmegaCrossWindStabilized3D;
 
     /// low re k-epsilon elements
     const RansEvmKEpsilonLowReKElement<2, 3> mRansEvmKEpsilonLowReK2D;

@@ -22,7 +22,7 @@
 #include "includes/variables.h"
 
 // Application includes
-#include "custom_elements/evm_k_epsilon/element_data/evm_k_epsilon_element_data_utilities.h"
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_element_data_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "evm_k_omega_element_data_utilities.h"
 #include "rans_application_variables.h"

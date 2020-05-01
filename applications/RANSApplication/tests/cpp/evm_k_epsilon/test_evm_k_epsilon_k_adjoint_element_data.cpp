@@ -27,8 +27,8 @@
 #include "test_k_epsilon_utilities.h"
 
 // Element data includes
-#include "custom_elements/evm_k_epsilon/element_data/evm_k_epsilon_k_adjoint_element_data.h"
-#include "custom_elements/evm_k_epsilon/element_data/evm_k_epsilon_k_element_data.h"
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_k_adjoint_element_data.h"
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_k_element_data.h"
 
 namespace Kratos
 {

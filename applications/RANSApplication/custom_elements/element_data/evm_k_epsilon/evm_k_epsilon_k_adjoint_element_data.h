@@ -26,7 +26,7 @@
 
 // Application includes
 #include "custom_elements/convection_diffusion_reaction_adjoint_element_data_extension.h"
-#include "custom_elements/evm_k_epsilon/element_data/evm_k_epsilon_k_element_data.h"
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_k_element_data.h"
 
 namespace Kratos
 {

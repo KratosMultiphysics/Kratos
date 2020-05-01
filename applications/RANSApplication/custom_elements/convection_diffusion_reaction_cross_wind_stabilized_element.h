@@ -86,6 +86,9 @@ public:
 
     using ConvectionDiffusionReactionDataType = TConvectionDiffusionReactionData;
 
+    using CurrentElementType =
+        ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ConvectionDiffusionReactionCrossWindStabilizedElement
@@ -169,11 +172,9 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to Create base "
-                        "ConvectionDiffusionReactionCrossWindStabilizedElement "
-                        "instances."
-                     << std::endl;
+        KRATOS_TRY
+        return Kratos::make_intrusive<CurrentElementType>(
+            NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -188,11 +189,8 @@ public:
                             GeometryType::Pointer pGeom,
                             PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to Create base "
-                        "ConvectionDiffusionReactionCrossWindStabilizedElement "
-                        "instances."
-                     << std::endl;
+        KRATOS_TRY
+        return Kratos::make_intrusive<CurrentElementType>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -205,11 +203,9 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to Clone base "
-                        "ConvectionDiffusionReactionCrossWindStabilizedElement "
-                        "instances."
-                     << std::endl;
+        KRATOS_TRY
+        return Kratos::make_intrusive<CurrentElementType>(
+            NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
         KRATOS_CATCH("");
     }
 

@@ -20,47 +20,47 @@
 #include "includes/variables.h"
 
 // Application includes
-#include "custom_elements/evm_k_epsilon/element_data/evm_k_epsilon_adjoint_element_data_utilities.h"
-#include "custom_elements/evm_k_epsilon/element_data/evm_k_epsilon_element_data_utilities.h"
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_adjoint_element_data_utilities.h"
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_element_data_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
-#include "evm_k_epsilon_k_adjoint_element_data.h"
+#include "evm_k_epsilon_epsilon_adjoint_element_data.h"
 
 namespace Kratos
 {
 namespace EvmKEpsilonAdjointElementDataUtilities
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<double>& KAdjointElementData<TDim, TNumNodes>::GetAdjointScalarVariable()
+const Variable<double>& EpsilonAdjointElementData<TDim, TNumNodes>::GetAdjointScalarVariable()
 {
-    return RANS_SCALAR_1_ADJOINT_1;
+    return RANS_SCALAR_2_ADJOINT_1;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<double>& KAdjointElementData<TDim, TNumNodes>::GetAdjointScalarRateVariable()
+const Variable<double>& EpsilonAdjointElementData<TDim, TNumNodes>::GetAdjointScalarRateVariable()
 {
-    return RANS_SCALAR_1_ADJOINT_3;
+    return RANS_SCALAR_2_ADJOINT_3;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateGaussPointData(
+void EpsilonAdjointElementData<TDim, TNumNodes>::CalculateGaussPointData(
     const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives, const int Step)
 {
     KRATOS_TRY
 
     const double tke = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions, Step);
-    this->mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions, Step);
+
     this->mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions, Step);
+    this->mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions, Step);
     this->mGamma = EvmKEpsilonElementDataUtilities::CalculateGamma(
         this->mCmu, tke, this->mTurbulentKinematicViscosity);
-
     this->mVelocityDivergence = RansCalculationUtilities::GetDivergence(
-        this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives, Step);
+        this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
 
     RansCalculationUtilities::CalculateGradient<TDim>(
         this->mVelocityGradient, this->GetGeometry(), VELOCITY,
@@ -102,8 +102,8 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateGaussPointData(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::Check(const GeometryType& rGeometry,
-                                                 const ProcessInfo& rCurrentProcessInfo)
+void EpsilonAdjointElementData<TDim, TNumNodes>::Check(const GeometryType& rGeometry,
+                                                       const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const int number_of_nodes = rGeometry.PointsNumber();
@@ -115,20 +115,20 @@ void KAdjointElementData<TDim, TNumNodes>::Check(const GeometryType& rGeometry,
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_1, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_SCALAR_1_ADJOINT_1, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_SCALAR_1_ADJOINT_3, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_SCALAR_2_ADJOINT_1, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_SCALAR_2_ADJOINT_3, r_node);
 
-        KRATOS_CHECK_DOF_IN_NODE(RANS_SCALAR_1_ADJOINT_1, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(RANS_SCALAR_2_ADJOINT_1, r_node);
     }
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityDerivatives(
+void EpsilonAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityDerivatives(
     BoundedVector<double, TNumNodes>& rOutput,
     const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
@@ -138,13 +138,13 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityD
 
     if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY)
     {
-        noalias(rOutput) =
-            this->mGaussTurbulentKinematicViscositySensitivitiesK * this->mInvTkeSigma;
+        noalias(rOutput) = this->mGaussTurbulentKinematicViscositySensitivitiesK *
+                           this->mInvEpsilonSigma;
     }
     else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE)
     {
-        noalias(rOutput) =
-            this->mGaussTurbulentKinematicViscositySensitivitiesEpsilon * this->mInvTkeSigma;
+        noalias(rOutput) = this->mGaussTurbulentKinematicViscositySensitivitiesEpsilon *
+                           this->mInvEpsilonSigma;
     }
     else
     {
@@ -156,7 +156,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityD
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityDerivatives(
+void EpsilonAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
@@ -178,7 +178,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityD
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
+void EpsilonAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
     BoundedVector<double, TNumNodes>& rOutput,
     const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
@@ -215,11 +215,13 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
                      << rDerivativeVariable.Name();
     }
 
+    noalias(rOutput) = rOutput * this->mC2;
+
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
+void EpsilonAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
@@ -234,7 +236,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
     {
         if (reaction > 0.0)
         {
-            noalias(rOutput) = rShapeFunctionDerivatives * (2.0 / 3.0);
+            noalias(rOutput) = rShapeFunctionDerivatives * (this->mC1 * 2.0 / 3.0);
         }
     }
     else
@@ -247,7 +249,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
+void EpsilonAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
     BoundedVector<double, TNumNodes>& rOutput,
     const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
@@ -258,17 +260,26 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
     const double production_term =
         EvmKEpsilonElementDataUtilities::CalculateSourceTerm<TDim>(
             this->mVelocityGradient, this->mTurbulentKinematicViscosity);
+    BoundedVector<double, TNumNodes> production_sensitivities;
 
     if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY)
     {
         EvmKEpsilonAdjointElementDataUtilities::CalculateProductionScalarSensitivities<TNumNodes>(
-            rOutput, this->mTurbulentKinematicViscosity, production_term,
-            this->mGaussTurbulentKinematicViscositySensitivitiesK);
+            production_sensitivities, this->mTurbulentKinematicViscosity,
+            production_term, this->mGaussTurbulentKinematicViscositySensitivitiesK);
+
+        EvmKEpsilonAdjointElementDataUtilities::CalculateGaussThetaTkeSensitivity<TNumNodes>(
+            rOutput, this->mCmu, this->mGamma, this->mTurbulentKinematicViscosity,
+            this->mGaussTurbulentKinematicViscositySensitivitiesK, rShapeFunctions);
     }
     else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE)
     {
         EvmKEpsilonAdjointElementDataUtilities::CalculateProductionScalarSensitivities<TNumNodes>(
-            rOutput, this->mTurbulentKinematicViscosity, production_term,
+            production_sensitivities, this->mTurbulentKinematicViscosity, production_term,
+            this->mGaussTurbulentKinematicViscositySensitivitiesEpsilon);
+
+        EvmKEpsilonAdjointElementDataUtilities::CalculateGaussThetaEpsilonSensitivity<TNumNodes>(
+            rOutput, this->mGamma, this->mTurbulentKinematicViscosity,
             this->mGaussTurbulentKinematicViscositySensitivitiesEpsilon);
     }
     else
@@ -277,11 +288,14 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
                      << rDerivativeVariable.Name();
     }
 
+    noalias(rOutput) = rOutput * production_term + production_sensitivities * this->mGamma;
+    noalias(rOutput) = rOutput * this->mC1;
+
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
+void EpsilonAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
@@ -298,6 +312,8 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
         EvmKEpsilonAdjointElementDataUtilities::CalculateProductionVelocitySensitivities<TDim, TNumNodes>(
             rOutput, this->mTurbulentKinematicViscosity, production_term,
             this->mVelocityGradient, rShapeFunctionDerivatives);
+
+        noalias(rOutput) = rOutput * (this->mC1 * this->mGamma);
     }
     else
     {
@@ -309,7 +325,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityShapeSensitivity(
+double EpsilonAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityShapeSensitivity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ShapeParameter& rShapeDerivative,
@@ -320,7 +336,7 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosit
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermShapeSensitivity(
+double EpsilonAdjointElementData<TDim, TNumNodes>::CalculateReactionTermShapeSensitivity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ShapeParameter& rShapeDerivative,
@@ -332,8 +348,8 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermShapeSensitivi
 
     if (reaction > 0.0)
     {
-        return (2.0 / 3.0) * RansCalculationUtilities::GetDivergence(
-                                 this->GetGeometry(), VELOCITY, rDN_Dx_deriv);
+        return (this->mC1 * 2.0 / 3.0) * RansCalculationUtilities::GetDivergence(
+                                             this->GetGeometry(), VELOCITY, rDN_Dx_deriv);
     }
     else
     {
@@ -342,7 +358,7 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermShapeSensitivi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermShapeSensitivity(
+double EpsilonAdjointElementData<TDim, TNumNodes>::CalculateSourceTermShapeSensitivity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ShapeParameter& rShapeDerivative,
@@ -354,13 +370,14 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermShapeSensitivity
             this->mVelocityGradient, this->mTurbulentKinematicViscosity);
 
     return EvmKEpsilonAdjointElementDataUtilities::CalculateProductionShapeSensitivities<TDim, TNumNodes>(
-        this->mTurbulentKinematicViscosity, 0.0, production_term,
-        this->mNodalVelocity, rShapeFunctionDerivatives, rDN_Dx_deriv);
+               this->mTurbulentKinematicViscosity, 0.0, production_term,
+               this->mNodalVelocity, rShapeFunctionDerivatives, rDN_Dx_deriv) *
+           this->mC1 * this->mGamma;
 }
 
 // template instantiations
-template class KAdjointElementData<2, 3>;
-template class KAdjointElementData<3, 4>;
+template class EpsilonAdjointElementData<2, 3>;
+template class EpsilonAdjointElementData<3, 4>;
 
 } // namespace EvmKEpsilonAdjointElementDataUtilities
 } // namespace Kratos

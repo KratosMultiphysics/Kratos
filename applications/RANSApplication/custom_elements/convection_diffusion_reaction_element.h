@@ -82,6 +82,9 @@ public:
 
     using ConvectionDiffusionReactionDataType = TConvectionDiffusionReactionData;
 
+    using CurrentElementType =
+        ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ConvectionDiffusionReactionElement
@@ -162,10 +165,9 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to Create base "
-                        "ConvectionDiffusionReactionElement instances."
-                     << std::endl;
+        KRATOS_TRY
+        return Kratos::make_intrusive<CurrentElementType>(
+            NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -180,10 +182,8 @@ public:
                             GeometryType::Pointer pGeom,
                             PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to Create base "
-                        "ConvectionDiffusionReactionElement instances."
-                     << std::endl;
+        KRATOS_TRY
+        return Kratos::make_intrusive<CurrentElementType>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -196,10 +196,9 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to Clone base "
-                        "ConvectionDiffusionReactionElement instances."
-                     << std::endl;
+        KRATOS_TRY
+        return Kratos::make_intrusive<CurrentElementType>(
+            NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
         KRATOS_CATCH("");
     }
 

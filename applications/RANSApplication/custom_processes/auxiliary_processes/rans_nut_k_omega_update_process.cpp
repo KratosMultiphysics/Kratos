@@ -21,7 +21,6 @@
 #include "includes/define.h"
 
 // Application includes
-#include "custom_elements/evm_k_omega/element_data/evm_k_omega_element_data_utilities.h"
 #include "custom_utilities/rans_check_utilities.h"
 #include "rans_application_variables.h"
 
