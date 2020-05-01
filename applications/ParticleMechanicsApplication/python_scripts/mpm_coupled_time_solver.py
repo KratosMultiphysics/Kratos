@@ -92,15 +92,6 @@ class MPMCoupledTimeSolver(MPMSolver):
         elif index == 2:
             return self.model_sub_domain_2
 
-    def GetGridModelPart(self,index):
-        if index == 1:
-            if not self.model.HasModelPart("Background_Grid_1"):
-                raise Exception("The GridModelPart1 was not created yet!")
-            return self.model.GetModelPart("Background_Grid_1")
-        if index == 2:
-            if not self.model.HasModelPart("Background_Grid_2"):
-                raise Exception("The GridModelPart2 was not created yet!")
-            return self.model.GetModelPart("Background_Grid_2")
 
     def Initialize(self):
         # The particle solution strategy is created here if it does not already exist.
@@ -137,10 +128,8 @@ class MPMCoupledTimeSolver(MPMSolver):
         else:
             self.is_model_sub_domain_1_predict = False
 
-        self.grid_model_part_1.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.grid_model_part_1.CloneTimeStep(new_time)
-        self.grid_model_part_2.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.grid_model_part_2.CloneTimeStep(new_time)
+        self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.grid_model_part.CloneTimeStep(new_time)
 
         self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.model_sub_domain_1.CloneTimeStep(new_time)
@@ -166,23 +155,29 @@ class MPMCoupledTimeSolver(MPMSolver):
     def InitializeSolutionStep(self):
         self._SearchElement()
         if self.is_model_sub_domain_1_predict:
+            print('Initialize sd1')
             self._GetSolutionStrategy(1).Initialize()
             self._GetSolutionStrategy(1).InitializeSolutionStep()
             self.coupling_utility.InitializeSubDomain1Coupling()
         self._GetSolutionStrategy(2).Initialize()
         self._GetSolutionStrategy(2).InitializeSolutionStep()
+        print('Initialize sd2')
 
 
     def Predict(self):
         if self.is_model_sub_domain_1_predict:
+            print('Predict sd1')
             self._GetSolutionStrategy(1).Predict()
         self._GetSolutionStrategy(2).Predict()
+        print('Predict sd2')
 
 
     def SolveSolutionStep(self):
         if self.is_model_sub_domain_1_predict:
             is_converged = self._GetSolutionStrategy(1).SolveSolutionStep()
+            print('solve sd1')
         is_converged = self._GetSolutionStrategy(2).SolveSolutionStep()
+        print('solve sd2')
 
         self.compute_and_apply_coupling_corrections()
         return is_converged
@@ -192,8 +187,10 @@ class MPMCoupledTimeSolver(MPMSolver):
         if self.is_model_sub_domain_1_correct:
             self._GetSolutionStrategy(1).FinalizeSolutionStep()
             self._GetSolutionStrategy(1).Clear()
+            print('finalize sd1')
         self._GetSolutionStrategy(2).FinalizeSolutionStep()
         self._GetSolutionStrategy(2).Clear()
+        print('finalize sd2')
 
 
     def Check(self):
@@ -224,7 +221,6 @@ class MPMCoupledTimeSolver(MPMSolver):
                 print("::[MPMCoupledTimeSolver]::    Created linear solver 2")
             return self._linear_solver_2
 
-
     def _GetConvergenceCriteria(self, index):
         if index == 1:
             if not hasattr(self, '_convergence_criterion_1'):
@@ -236,7 +232,6 @@ class MPMCoupledTimeSolver(MPMSolver):
                 self._convergence_criterion_2 = self._CreateConvergenceCriteria(index)
                 print("::[MPMCoupledTimeSolver]::    Created convergence criteria 2")
             return self._convergence_criterion
-
 
     def _GetBuilderAndSolver(self, index):
         if index == 1:
@@ -287,10 +282,37 @@ class MPMCoupledTimeSolver(MPMSolver):
         self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
         self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
 
-        self.model_sub_domain_1.SetNodes(self.grid_model_part_1.GetNodes())
-        self.model_sub_domain_2.SetNodes(self.grid_model_part_2.GetNodes())
-        self.model_sub_domain_1.SetBufferSize(self.grid_model_part_1.GetBufferSize())
-        self.model_sub_domain_2.SetBufferSize(self.grid_model_part_2.GetBufferSize())
+        self.model_sub_domain_1.SetNodes(self.grid_model_part.GetNodes())
+        self.model_sub_domain_2.SetNodes(self.grid_model_part.GetNodes())
+
+        # Transfer temporal interface into sub domains
+        self.model_sub_domain_1.CreateSubModelPart("temporal_interface")
+        sub_domain_1_temporal_interface = self.model_sub_domain_1.GetSubModelPart("temporal_interface")
+        self.model_sub_domain_2.CreateSubModelPart("temporal_interface")
+        sub_domain_2_temporal_interface = self.model_sub_domain_2.GetSubModelPart("temporal_interface")
+        grid_temporal_interface = self.grid_model_part.GetSubModelPart("temporal_interface")
+        id_offset = 100 # TODO this should be the max node ID in the grid modelpart
+        id_counter = 0
+        #print('before interface add',self.model_sub_domain_2)
+        for interface_node in grid_temporal_interface.Nodes:
+            sub_domain_1_temporal_interface.AddNodes([interface_node.Id]) #add into sub domain 1 sub model part
+            sub_domain_2_temporal_interface.AddNodes([interface_node.Id]) # TODO update
+            #self.model_sub_domain_2.RemoveNode(interface_node.Id)
+            #id_counter += 1
+            #self.model_sub_domain_2.CreateNewNode(id_offset+id_counter,interface_node.X,interface_node.Y,interface_node.Z)
+            #sub_domain_2_temporal_interface.AddNodes([id_offset+id_counter])
+        #sub_domain_2_temporal_interface.Properties = self.initial_mesh_model_part.Properties
+        #print('after interface add',self.model_sub_domain_2)
+        #self._AddVariablesToModelPart(sub_domain_2_temporal_interface)
+        #sub_domain_2_temporal_interface.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        print(sub_domain_1_temporal_interface)
+        print(sub_domain_2_temporal_interface)
+
+
+        self.model_sub_domain_1.SetBufferSize(self.grid_model_part.GetBufferSize())
+        self.model_sub_domain_2.SetBufferSize(self.grid_model_part.GetBufferSize())
+
+        print('----------- SETTING GRID NODES INTO SUB DOMAIN MODEL PARTS ----------------')
 
         # Generate MP Element and Condition
         KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, axis_symmetric_flag, pressure_dofs)
@@ -330,8 +352,8 @@ class MPMCoupledTimeSolver(MPMSolver):
         max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
         searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
         if (searching_alg_type == "bin_based"):
-            KratosParticle.SearchElement(self.grid_model_part_1, self.model_sub_domain_1, max_number_of_search_results, searching_tolerance)
-            KratosParticle.SearchElement(self.grid_model_part_2, self.model_sub_domain_2, max_number_of_search_results, searching_tolerance)
+            KratosParticle.SearchElement(self.grid_model_part, self.model_sub_domain_1, max_number_of_search_results, searching_tolerance)
+            KratosParticle.SearchElement(self.grid_model_part, self.model_sub_domain_2, max_number_of_search_results, searching_tolerance)
         else:
             err_msg  = "The requested searching algorithm \"" + searching_alg_type
             err_msg += "\" is not available for ParticleMechanicsApplication!\n"
@@ -359,15 +381,10 @@ class MPMCoupledTimeSolver(MPMSolver):
             self.initial_mesh_model_part = self.model.CreateModelPart(initial_mesh_model_part_name) #Equivalent to model_part2 in the old format
             self.initial_mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        # Grid model part 1 definition
-        if not self.model.HasModelPart("Background_Grid_1"):
-            self.grid_model_part_1 = self.model.CreateModelPart("Background_Grid_1") #Equivalent to model_part1 in the old format
-            self.grid_model_part_1.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
-        # Grid model part 2 definition
-        if not self.model.HasModelPart("Background_Grid_2"):
-            self.grid_model_part_2 = self.model.CreateModelPart("Background_Grid_2") #Equivalent to model_part1 in the old format
-            self.grid_model_part_2.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        # Grid model part definition
+        if not self.model.HasModelPart("Background_Grid"):
+            self.grid_model_part = self.model.CreateModelPart("Background_Grid") #Equivalent to model_part1 in the old format
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         # model sub domain 1
         if not self.model.HasModelPart("model_sub_domain_1"):
@@ -381,6 +398,8 @@ class MPMCoupledTimeSolver(MPMSolver):
 
 
     def _AddVariablesToModelPart(self, model_part):
+        print("\n\n ----------- _AddVariablesToModelPart -------------------")
+        print(model_part)
         # Add displacements and reaction
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -425,6 +444,7 @@ class MPMCoupledTimeSolver(MPMSolver):
 
 
     def _AddTemporalInterfaceSubModelPartToGrid(self):
+        print('----------- adding temporal interface to grid  ----------------')
         self.grid_model_part.CreateSubModelPart("temporal_interface")
         temporal_interface = self.grid_model_part.GetSubModelPart("temporal_interface")
         for node in self.grid_model_part.Nodes:
@@ -486,7 +506,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         return convergence_criterion
 
     def _CreateSolutionScheme(self, index):
-        grid_model_part = self.GetGridModelPart(index)
+        grid_model_part = self.GetGridModelPart()
         domain_size = self._GetDomainSize()
         block_size  = domain_size
 
@@ -613,4 +633,3 @@ class MPMCoupledTimeSolver(MPMSolver):
         else:
             materials_imported = False
         return materials_imported
-
