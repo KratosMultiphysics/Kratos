@@ -298,6 +298,11 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@}
 
+void RegisterStrategies();
+void RegisterBuilderAndSolvers();
+void RegisterSchemes();
+void RegisterConvergenceCriterias();
+
 typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
 typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
 typedef Scheme<SparseSpaceType,LocalSpaceType> SchemeType;

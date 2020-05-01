@@ -28,12 +28,9 @@
 #include "includes/master_slave_constraint.h"
 
 /* Factories */
+#include "factories/base_factory.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "factories/standard_preconditioner_factory.h"
-#include "factories/standard_scheme_factory.h"
-#include "factories/standard_strategy_factory.h"
-#include "factories/standard_convergence_criteria_factory.h"
-#include "factories/standard_builder_and_solver_factory.h"
 
 namespace Kratos {
 
@@ -186,7 +183,7 @@ void KratosApplication::RegisterKratosCore() {
     //Register general geometries:
     // Point register:
     Serializer::Register("Point", mPointPrototype);
-    
+
     // Register + KratosComponents
     KRATOS_REGISTER_GEOMETRY("Point2D", mPoint2DPrototype);
     KRATOS_REGISTER_GEOMETRY("Point3D", mPoint3DPrototype);
