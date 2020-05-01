@@ -1092,10 +1092,10 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@name Member Variables
     ///@{
 
-    typename TLinearSolver::Pointer mpLinearSolver = nullptr; /// The pointer to the linear solver considered. WARNING: The B&S has one, and here another!! Check this
-    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
-    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
-    typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria employed
+    typename TLinearSolver::Pointer mpLinearSolver; /// The pointer to the linear solver considered
+    typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
+    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employed
+    typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria; /// The pointer to the convergence criteria employed
 
     TSystemVectorPointerType mpDx; /// The incremement in the solution
     TSystemVectorPointerType mpb; /// The RHS vector of the system of equations
