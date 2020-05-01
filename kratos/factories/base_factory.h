@@ -164,22 +164,7 @@ public:
      */
     bool Has(const std::string& rClassName) const override
     {
-        return KratosComponents< FactoryType >::Has( rClassName );
-    }
-
-    /**
-     * @brief This method creates a new class
-     * @param Settings The settings of the factory
-     * @return The pointer to the class of interest
-     */
-    virtual typename ClassType::Pointer Create(Kratos::Parameters Settings) const
-    {
-        const std::string& r_name = Settings["name"].GetString();
-        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
-                                            "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
-                                            KratosComponents< FactoryType >() << std::endl;
-        const auto& aux = KratosComponents< FactoryType >::Get( r_name );
-        return aux.CreateClass(Settings);
+        return KratosComponents<ClassType>::Has( rClassName );
     }
 
     /**
@@ -188,14 +173,32 @@ public:
      * @param Settings The settings of the factory
      * @return The pointer to the class of interest
      */
-    virtual typename ClassType::Pointer Create(Model& rModel, Kratos::Parameters Settings) const
+    template<typename = std::enable_if<std::is_same<TAuxiliarClass, TClass>::value>>
+    typename ClassType::Pointer Create(Kratos::Parameters Settings) const
     {
         const std::string& r_name = Settings["name"].GetString();
         KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
                                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
-                                            KratosComponents< FactoryType >() << std::endl;
-        const auto& aux = KratosComponents< FactoryType >::Get( r_name );
-        return aux.CreateClass(rModel, Settings);
+                                            KratosComponents<ClassType>() << std::endl;
+        const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
+        return aux.Create(Settings);
+    }
+
+    /**
+     * @brief This method creates a new class
+     * @param rModel The model containing the problem
+     * @param Settings The settings of the factory
+     * @return The pointer to the class of interest
+     */
+    template<typename = std::enable_if<std::is_same<TAuxiliarClass, Model>::value>>
+    typename ClassType::Pointer Create(Model& rModel, Kratos::Parameters Settings) const
+    {
+        const std::string& r_name = Settings["name"].GetString();
+        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
+                                            "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
+                                            KratosComponents<ClassType>() << std::endl;
+        const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
+        return aux.Create(rModel, Settings);
     }
 
     /**
@@ -204,30 +207,32 @@ public:
      * @param Settings The settings of the factory
      * @return The pointer to the class of interest
      */
-    virtual typename ClassType::Pointer Create(ModelPart& rModelPart, Kratos::Parameters Settings) const
+    template<typename = std::enable_if<std::is_same<TAuxiliarClass, ModelPart>::value>>
+    typename ClassType::Pointer Create(ModelPart& rModelPart, Kratos::Parameters Settings) const
     {
         const std::string& r_name = Settings["name"].GetString();
         KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
                                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
-                                            KratosComponents< FactoryType >() << std::endl;
-        const auto& aux = KratosComponents< FactoryType >::Get( r_name );
-        return aux.CreateClass(rModelPart, Settings);
+                                            KratosComponents<ClassType>() << std::endl;
+        const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
+        return aux.Create(rModelPart, Settings);
     }
 
     /**
      * @brief This method creates a new class
-     * @param pAuxiliarClass The pointer to the auxiliar class
+     * @param pLinearSolver The pointer to the linear solver
      * @param Settings The settings of the factory
      * @return The pointer to the class of interest
      */
-    virtual typename ClassType::Pointer Create(typename AuxiliarClassType::Pointer pAuxiliarClass, Kratos::Parameters Settings) const
+    template<typename = std::enable_if<std::is_same<TAuxiliarClass, LinearSolverType>::value>>
+    typename ClassType::Pointer Create(typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings) const
     {
         const std::string& r_name = Settings["name"].GetString();
         KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
                                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
-                                            KratosComponents< FactoryType >() << std::endl;
-        const auto& aux = KratosComponents< FactoryType >::Get( r_name );
-        return aux.CreateClass(pAuxiliarClass, Settings);
+                                            KratosComponents<ClassType>() << std::endl;
+        const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
+        return aux.Create(pLinearSolver, Settings);
     }
 
     ///@}
@@ -269,52 +274,6 @@ public:
     }
 
     ///@}
-protected:
-    ///@name Protected Operators
-    ///@{
-
-    /**
-     * @brief This method is an auxiliar method to create a new class with settings
-     * @param Settings The settings of the factory
-     * @return The pointer to the class of interest
-     */
-    virtual typename ClassType::Pointer CreateClass(Kratos::Parameters Settings)  const
-    {
-        KRATOS_ERROR << "Calling the base class BaseFactory" << std::endl;
-    }
-
-    /**
-     * @brief This method is an auxiliar method to create a new class with Model and settings
-     * @param rModel The model containing the problem
-     * @param Settings The settings of the factory
-     * @return The pointer to the class of interest
-     */
-    virtual typename ClassType::Pointer CreateClass(Model& rModel, Kratos::Parameters Settings)  const
-    {
-        KRATOS_ERROR << "Calling the base class BaseFactory" << std::endl;
-    }
-
-    /**
-     * @brief This method is an auxiliar method to create a new class with model part and settings
-     * @param rModelPart The model part containing the problem
-     * @param Settings The settings of the factory
-     * @return The pointer to the class of interest
-     */
-    virtual typename ClassType::Pointer CreateClass(ModelPart& rModelPart, Kratos::Parameters Settings)  const
-    {
-        KRATOS_ERROR << "Calling the base class BaseFactory" << std::endl;
-    }
-
-    /**
-     * @brief This method is an auxiliar method to create a new class with auxiliar class and settings
-     * @param pAuxiliarClass The pointer to the auxiliar class
-     * @param Settings The settings of the factory
-     * @return The pointer to the class of interest
-     */
-    virtual typename ClassType::Pointer CreateClass(typename AuxiliarClassType::Pointer pAuxiliarClass, Kratos::Parameters Settings)  const
-    {
-        KRATOS_ERROR << "Calling the base class BaseFactory" << std::endl;
-    }
 };
 
 ///@}
@@ -344,42 +303,37 @@ typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> Buil
 typedef Scheme<SparseSpaceType,LocalSpaceType> SchemeType;
 typedef ConvergenceCriteria<SparseSpaceType,LocalSpaceType> ConvergenceCriteriaType;
 
-typedef BaseFactory<SolvingStrategyType> StrategyFactoryType;
-typedef BaseFactory<BuilderAndSolverType, LinearSolverType> BuilderAndSolverFactoryType;
-typedef BaseFactory<SchemeType> SchemeFactoryType;
-typedef BaseFactory<ConvergenceCriteriaType> ConvergenceCriteriaFactoryType;
-
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<StrategyFactoryType>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<SolvingStrategyType>;
 
 #ifdef KRATOS_REGISTER_STRATEGY
 #undef KRATOS_REGISTER_STRATEGY
 #endif
 #define KRATOS_REGISTER_STRATEGY(name, reference) \
-    KratosComponents<StrategyFactoryType>::Add(name, reference);
+    KratosComponents<SolvingStrategyType>::Add(name, reference);
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<BuilderAndSolverFactoryType>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<BuilderAndSolverType>;
 
 #ifdef KRATOS_REGISTER_BUILDER_AND_SOLVER
 #undef KRATOS_REGISTER_BUILDER_AND_SOLVER
 #endif
 #define KRATOS_REGISTER_BUILDER_AND_SOLVER(name, reference) \
-    KratosComponents<BuilderAndSolverFactoryType>::Add(name, reference);
+    KratosComponents<BuilderAndSolverType>::Add(name, reference);
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<SchemeFactoryType>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<SchemeType>;
 
 #ifdef KRATOS_REGISTER_SCHEME
 #undef KRATOS_REGISTER_SCHEME
 #endif
 #define KRATOS_REGISTER_SCHEME(name, reference) \
-    KratosComponents<SchemeFactoryType>::Add(name, reference);
+    KratosComponents<SchemeType>::Add(name, reference);
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ConvergenceCriteriaFactoryType>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ConvergenceCriteriaType>;
 
 #ifdef KRATOS_REGISTER_CONVERGENCE_CRITERIA
 #undef KRATOS_REGISTER_CONVERGENCE_CRITERIA
 #endif
 #define KRATOS_REGISTER_CONVERGENCE_CRITERIA(name, reference) \
-    KratosComponents<ConvergenceCriteriaFactoryType>::Add(name, reference);
+    KratosComponents<ConvergenceCriteriaType>::Add(name, reference);
 
 }  // namespace Kratos.
 
