@@ -192,8 +192,7 @@ public:
         // We check if the linear solver considered for the builder and solver is consistent
         auto p_linear_solver = pNewBuilderAndSolver->GetLinearSystemSolver();
         if (p_linear_solver != pNewLinearSolver) {
-            KRATOS_WARNING("ResidualBasedLinearStrategy") << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to strategy:\n" << pNewLinearSolver->Info() << "\n instead of:\n" << p_linear_solver->Info() << std::endl;
-            pNewBuilderAndSolver->SetLinearSystemSolver(pNewLinearSolver);
+            KRATOS_WARNING("ResidualBasedLinearStrategy") << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
         }
 
         // Set flag to start correcty the calculations
