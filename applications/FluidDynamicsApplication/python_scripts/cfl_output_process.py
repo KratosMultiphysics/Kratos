@@ -1,11 +1,19 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # other imports
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
-from statistics import mean, stdev
+if CheckIfApplicationsAvailable("StatisticsApplication"):
+    from KratosMultiphysics.StatisticsApplication import SpatialMethods as spatial_methods
+else:
+    msg = "CFLOutputProcess requires StatisticsApplication which is not found."
+    msg += " Please install/compile it and try again."
+    raise Exception(msg)
+
+from math import sqrt
 
 
 def Factory(settings, model):
@@ -37,7 +45,7 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             }
             """)
 
-  
+
         # Detect "End" as a tag and replace it by a large number
         if(params.Has("interval")):
             if(params["interval"][1].IsString()):
@@ -61,6 +69,11 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         # getting output limit for summarization
         self.cfl_output_limit = params["cfl_output_limit"].GetDouble()
 
+        # TODO: Is it ok to do this check? If not, distribution calculation is going to be messy with if conditions for
+        #       case with cfl_output_limit <= 1.0
+        if (self.cfl_output_limit <= 1.0):
+            raise Exception("Please provide cfl_output_limit greater than 1.0")
+
         self.format = params["print_format"].GetString()
         self.output_step = params["output_step"].GetInt()
         self.print_to_screen = params["print_to_screen"].GetBool()
@@ -75,16 +88,24 @@ class CFLOutputProcess(KratosMultiphysics.Process):
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
                                                                    file_handler_params, file_header).file
 
+        self.distribution_params = KratosMultiphysics.Parameters('''{
+            "number_of_value_groups" : 1,
+            "min_value"              : "min",
+            "max_value"              : "max"
+        }''')
+        self.distribution_params["min_value"].SetDouble(min(self.cfl_output_limit, 1.0))
+        self.distribution_params["max_value"].SetDouble(max(self.cfl_output_limit, 1.0))
+
     def ExecuteFinalizeSolutionStep(self):
 
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         current_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])) and (current_step % self.output_step == 0):
-            cfl_value = self._EvaluateCFL()
+            self._EvaluateCFL()
+            output = self._CalculateWithRespectToThreshold()
 
             if (self.model_part.GetCommunicator().MyPID() == 0):
-                output = self._SummarizeCFL(cfl_value)
                 output_vals = [format(val, self.format) for val in output]
 
                 # not formatting time in order to not lead to problems with time recognition
@@ -122,45 +143,35 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo(
             "CFLOutputProcess", "Current time: " + result_msg)
 
-    def _CalculateWithRespectToThreshold(self, x):
+    def _CalculateWithRespectToThreshold(self):
+        current_container = spatial_methods.NonHistorical.Elements.NormMethods
 
-        y = [val for val in x if val < self.cfl_output_limit]
-        y1 = [val for val in x if val < 1.0]
+        _, _, _, group_histogram, group_percentage_distribution, group_means, group_variances = current_container.Distribution(
+            self.model_part, KratosMultiphysics.CFL_NUMBER, "value", self.distribution_params)
+
         # % of element with cfl above threshold
-        how_many = ((len(x)-len(y))/len(x))*100
+        how_many = group_percentage_distribution[-1]*100.0
         # % of element with cfl above 1
-        how_many1 = ((len(x)-len(y1))/len(x))*100
+        how_many1 = (1.0 - group_percentage_distribution[0])*100.0
 
         # quantifying the mean and std for values below the threshold
-        y_mean = mean(y)
-        y_std = stdev(y)
+        total_elements_in_threshold_range = group_histogram[0] + group_histogram[1]
+        if (total_elements_in_threshold_range > 0):
+            y_mean = (group_means[0] * group_histogram[0] + group_means[1] * group_histogram[1]) / total_elements_in_threshold_range
+
+            threshold_sum_squared = (group_variances[0] + pow(group_means[0], 2)) * group_histogram[0] + (group_variances[1] + pow(group_means[1], 2)) * group_histogram[1]
+            y_std = sqrt((threshold_sum_squared  - total_elements_in_threshold_range * pow(y_mean, 2)) / (total_elements_in_threshold_range - 1.0))
+        else:
+            y_mean = 0.0
+            y_std = 0.0
 
         # qunatifying the global max
-        x_max = max(x)
+        # TODO: @Mate, where should we put the id of the element, where max is (second bland output argument is max_id)?
+        x_max, _ = current_container.Max(self.model_part, KratosMultiphysics.CFL_NUMBER, "value")
         return [y_mean, y_std, x_max, how_many, how_many1]
 
     def _EvaluateCFL(self):
-
         if (self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             KratosCFD.EstimateDtUtility2D.CalculateLocalCFL(self.model_part)
         else:
             KratosCFD.EstimateDtUtility3D.CalculateLocalCFL(self.model_part)
-
-        local_cfl = []
-        for elem in self.model_part.Elements:
-            local_cfl.append(elem.GetValue(KratosMultiphysics.CFL_NUMBER))
-
-        local_cfl = self.model_part.GetCommunicator().GetDataCommunicator().GathervDoubles(local_cfl, 0)
-
-        return local_cfl
-
-    def _SummarizeCFL(self, local_cfl):
-
-        global_cfl = []
-        for k in local_cfl:
-            global_cfl.extend(k)
-
-        cfl_mean, cfl_std, cfl_max, cfl_how_many, cfl_how_many1 = self._CalculateWithRespectToThreshold(
-            global_cfl)
-
-        return [cfl_mean, cfl_std, cfl_max, cfl_how_many, cfl_how_many1]
