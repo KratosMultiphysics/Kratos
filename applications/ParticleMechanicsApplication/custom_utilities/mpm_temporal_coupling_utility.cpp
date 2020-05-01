@@ -18,6 +18,7 @@
 
 #include "custom_utilities/mpm_temporal_coupling_utility.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -29,6 +30,11 @@ namespace Kratos
         KRATOS_TRY
 
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
+
+        // TODO delete
+        std::vector<Vector> ele_cauchy = { ZeroVector(3) };
+        mrModelPartSubDomain1.ElementsBegin()->CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, ele_cauchy, mrModelPartSubDomain1.GetProcessInfo());
+        std::cout << "ele_cauchy = " << ele_cauchy[0] << std::endl;
 
         // Store inverted mass matrix and coupling matrix for sub-domain 1 for the whole timestep
         if (mJ == 1) {
@@ -44,6 +50,10 @@ namespace Kratos
             mSubDomain1AccumulatedLinkVelocity.resize(eff_mass_mat_1.size1(), false);
             mSubDomain1AccumulatedLinkVelocity = ZeroVector(eff_mass_mat_1.size1());
         }
+
+        PrintNodeIdsAndCoords(mrModelPartSubDomain1);
+        PrintNodeIdsAndCoords(mrModelPartSubDomain2);
+        PrintNodeIdsAndCoords(mrModelPartGrid);
 
         // Interpolate subdomain 1 velocities
         const Vector SubDomain1InterpolatedVelocities = (mJ == mTimeStepRatio)
@@ -119,6 +129,12 @@ namespace Kratos
         ComputeActiveInterfaceNodes();
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
         SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1InitialInterfaceVelocity);
+
+        // TODO delete
+        std::vector<Vector> ele_cauchy = { ZeroVector(3) };
+        mrModelPartSubDomain1.ElementsBegin()->CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, ele_cauchy, mrModelPartSubDomain1.GetProcessInfo());
+        std::cout << "first ele_cauchy = " << ele_cauchy[0] << std::endl;
+
         KRATOS_CATCH("")
     }
 
@@ -174,10 +190,11 @@ namespace Kratos
         for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
         {
             auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
-            const array_1d <double, 3> nodal_velocity = current_node->FastGetSolutionStepValue(VELOCITY);
+            const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
+            const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
             for (IndexType k = 0; k < working_space_dim; ++k)
             {
-                rVelocityContainer[working_space_dim * i + k] = nodal_velocity[k];
+                rVelocityContainer[working_space_dim * i + k] = nodal_momentum[k]/ nodal_mass;
             }
         }
 
@@ -377,7 +394,6 @@ namespace Kratos
         const SizeType working_space_dimension = rModelPart.ElementsBegin()->WorkingSpaceDimension();
         const auto it_node_begin = rModelPart.NodesBegin();
 
-
         if (!correctInterface) {
             for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); j++) {
                 auto interface_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[j]);
@@ -495,7 +511,8 @@ namespace Kratos
         for (size_t i = 0; i < rModelPart.Nodes().size(); ++i)
         {
             auto node = rModelPart.NodesBegin() + i;
-            std::cout << "node " << node->GetId() << ", coords = (" << node->X() << ", " << node->Y() << ", " << node->Z() << ")" << std::endl;
+            //std::cout << "node " << node->GetId() << ", coords = (" << node->X() << ", " << node->Y() << ", " << node->Z() << ")" << std::endl;
+            std::cout << "node " << node->GetId() << ", mom = (" << node->FastGetSolutionStepValue(NODAL_MOMENTUM) << std::endl;
         }
     }
 

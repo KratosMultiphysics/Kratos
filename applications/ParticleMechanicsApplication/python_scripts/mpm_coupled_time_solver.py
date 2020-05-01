@@ -92,6 +92,15 @@ class MPMCoupledTimeSolver(MPMSolver):
         elif index == 2:
             return self.model_sub_domain_2
 
+    def GetGridModelPart(self,index):
+        if index == 1:
+            if not self.model.HasModelPart("Background_Grid_1"):
+                raise Exception("The GridModelPart1 was not created yet!")
+            return self.model.GetModelPart("Background_Grid_1")
+        if index == 2:
+            if not self.model.HasModelPart("Background_Grid_2"):
+                raise Exception("The GridModelPart2 was not created yet!")
+            return self.model.GetModelPart("Background_Grid_2")
 
     def Initialize(self):
         # The particle solution strategy is created here if it does not already exist.
@@ -128,8 +137,10 @@ class MPMCoupledTimeSolver(MPMSolver):
         else:
             self.is_model_sub_domain_1_predict = False
 
-        self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.grid_model_part.CloneTimeStep(new_time)
+        self.grid_model_part_1.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.grid_model_part_1.CloneTimeStep(new_time)
+        self.grid_model_part_2.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.grid_model_part_2.CloneTimeStep(new_time)
 
         self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.model_sub_domain_1.CloneTimeStep(new_time)
@@ -213,6 +224,7 @@ class MPMCoupledTimeSolver(MPMSolver):
                 print("::[MPMCoupledTimeSolver]::    Created linear solver 2")
             return self._linear_solver_2
 
+
     def _GetConvergenceCriteria(self, index):
         if index == 1:
             if not hasattr(self, '_convergence_criterion_1'):
@@ -224,6 +236,7 @@ class MPMCoupledTimeSolver(MPMSolver):
                 self._convergence_criterion_2 = self._CreateConvergenceCriteria(index)
                 print("::[MPMCoupledTimeSolver]::    Created convergence criteria 2")
             return self._convergence_criterion
+
 
     def _GetBuilderAndSolver(self, index):
         if index == 1:
@@ -274,10 +287,10 @@ class MPMCoupledTimeSolver(MPMSolver):
         self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
         self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
 
-        self.model_sub_domain_1.SetNodes(self.grid_model_part.GetNodes())
-        self.model_sub_domain_2.SetNodes(self.grid_model_part.GetNodes())
-        self.model_sub_domain_1.SetBufferSize(self.grid_model_part.GetBufferSize())
-        self.model_sub_domain_2.SetBufferSize(self.grid_model_part.GetBufferSize())
+        self.model_sub_domain_1.SetNodes(self.grid_model_part_1.GetNodes())
+        self.model_sub_domain_2.SetNodes(self.grid_model_part_2.GetNodes())
+        self.model_sub_domain_1.SetBufferSize(self.grid_model_part_1.GetBufferSize())
+        self.model_sub_domain_2.SetBufferSize(self.grid_model_part_2.GetBufferSize())
 
         # Generate MP Element and Condition
         KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, axis_symmetric_flag, pressure_dofs)
@@ -317,8 +330,8 @@ class MPMCoupledTimeSolver(MPMSolver):
         max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
         searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
         if (searching_alg_type == "bin_based"):
-            KratosParticle.SearchElement(self.grid_model_part, self.model_sub_domain_1, max_number_of_search_results, searching_tolerance)
-            KratosParticle.SearchElement(self.grid_model_part, self.model_sub_domain_2, max_number_of_search_results, searching_tolerance)
+            KratosParticle.SearchElement(self.grid_model_part_1, self.model_sub_domain_1, max_number_of_search_results, searching_tolerance)
+            KratosParticle.SearchElement(self.grid_model_part_2, self.model_sub_domain_2, max_number_of_search_results, searching_tolerance)
         else:
             err_msg  = "The requested searching algorithm \"" + searching_alg_type
             err_msg += "\" is not available for ParticleMechanicsApplication!\n"
@@ -346,10 +359,15 @@ class MPMCoupledTimeSolver(MPMSolver):
             self.initial_mesh_model_part = self.model.CreateModelPart(initial_mesh_model_part_name) #Equivalent to model_part2 in the old format
             self.initial_mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        # Grid model part definition
-        if not self.model.HasModelPart("Background_Grid"):
-            self.grid_model_part = self.model.CreateModelPart("Background_Grid") #Equivalent to model_part1 in the old format
-            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        # Grid model part 1 definition
+        if not self.model.HasModelPart("Background_Grid_1"):
+            self.grid_model_part_1 = self.model.CreateModelPart("Background_Grid_1") #Equivalent to model_part1 in the old format
+            self.grid_model_part_1.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+        # Grid model part 2 definition
+        if not self.model.HasModelPart("Background_Grid_2"):
+            self.grid_model_part_2 = self.model.CreateModelPart("Background_Grid_2") #Equivalent to model_part1 in the old format
+            self.grid_model_part_2.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         # model sub domain 1
         if not self.model.HasModelPart("model_sub_domain_1"):
@@ -468,7 +486,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         return convergence_criterion
 
     def _CreateSolutionScheme(self, index):
-        grid_model_part = self.GetGridModelPart()
+        grid_model_part = self.GetGridModelPart(index)
         domain_size = self._GetDomainSize()
         block_size  = domain_size
 
