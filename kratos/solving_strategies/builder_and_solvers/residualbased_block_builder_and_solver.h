@@ -26,6 +26,7 @@
 #include "includes/key_hash.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
@@ -510,20 +511,18 @@ public:
         KRATOS_INFO_IF("BlockBuilderAndSolver", this->GetEchoLevel() > 0)
             << "Linearizing on Old iteration" << std::endl;
 
-        if(rModelPart.GetBufferSize() == 1) {
-            KRATOS_ERROR << "BlockBuilderAndSolver: \n"
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() == 1) << "BlockBuilderAndSolver: \n"
                 << "The buffer size needs to be at least 2 in order to use \n"
-                << "BuildAndSolve_LinearizedOnOldIteration \n"
+                << "BuildAndSolveLinearizedOnPreviousIteration \n"
                 << "current buffer size for modelpart: " << rModelPart.Name() << std::endl
                 << "is :" << rModelPart.GetBufferSize()
-                << " Old Stiffness on First Iteration. \n"
-                << "setting mUseOldStiffnessInFirstIteration=false " << std::endl;
-        }
+                << " Please set IN THE STRATEGY SETTINGS "
+                << " UseOldStiffnessInFirstIteration=false " << std::endl;
 
-        DofsArrayType FixedDofs;
+        DofsArrayType fixed_dofs;
         for(auto& dof : BaseType::mDofSet){
             if(dof.IsFixed()){
-                FixedDofs.push_back(&dof);
+                fixed_dofs.push_back(&dof);
                 dof.FreeDof();
             }
         }
@@ -547,14 +546,8 @@ public:
 
         // Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
         pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
-        const auto it_node_begin = rModelPart.NodesBegin();
         if (MoveMesh) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i) {
-                auto it_node = it_node_begin + i;
-                noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates()
-                                                + it_node->FastGetSolutionStepValue(DISPLACEMENT);
-            }
+            VariableUtils().UpdateCurrentPosition(rModelPart.Nodes(),DISPLACEMENT,0);
         }
 
         this->Build(pScheme, rModelPart, rA, rb);
@@ -568,12 +561,7 @@ public:
         // it is done here so that constraints are correctly taken into account right after
         pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
         if (MoveMesh) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i) {
-                auto it_node = it_node_begin + i;
-                noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates()
-                                                + it_node->FastGetSolutionStepValue(DISPLACEMENT);
-            }
+            VariableUtils().UpdateCurrentPosition(rModelPart.Nodes(),DISPLACEMENT,0);
         }
 
 
@@ -581,14 +569,13 @@ public:
         TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
         TSparseSpace::UnaliasedAdd(rb, -1.0, rhs_addition);
 
-        for(auto& dof : FixedDofs)
+        for(auto& dof : fixed_dofs)
             dof.FixDof();
 
         if (!rModelPart.MasterSlaveConstraints().empty()) {
             this->ApplyConstraints(pScheme, rModelPart, rA, rb);
         }
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
-        // TODO: Here we should use SystemSolveWithPhysics
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
     }
 
