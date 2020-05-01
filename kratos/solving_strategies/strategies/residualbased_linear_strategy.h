@@ -285,12 +285,9 @@ public:
         // If the linear solver has not been deallocated, clean it before
         // deallocating mpA. This prevents a memory error with the the ML
         // solver (which holds a reference to it).
-        auto p_builder_and_solver = GetBuilderAndSolver();
-        if (p_builder_and_solver != nullptr) {
-            auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
-            if (p_linear_solver != nullptr) {
-                p_linear_solver->Clear();
-            }
+        auto p_linear_solver = this->GetLinearSystemSolver();
+        if (p_linear_solver != nullptr) {
+            p_linear_solver->Clear();
         }
 
         // Deallocating system vectors to avoid errors in MPI. Clear calls
@@ -342,6 +339,33 @@ public:
     {
         return mpBuilderAndSolver;
     };
+
+    /**
+     * @brief This method return the linear solver used
+     * @return mpLinearSystemSolver The linear solver used
+     */
+    typename TLinearSolver::Pointer GetLinearSystemSolver()
+    {
+        if (mpBuilderAndSolver != nullptr) {
+            return mpBuilderAndSolver->GetLinearSystemSolver();
+        } else {
+            KRATOS_WARNING("ResidualBasedLinearStrategy") << "BuilderAndSolver is not initialized. Please assign one before accesing the linear solver" << std::endl;
+            return nullptr;
+        }
+    }
+
+    /**
+     * @brief This method sets the linear solver to be used
+     * @param pLinearSystemSolver The linear solver to be used
+     */
+    void SetLinearSystemSolver(typename TLinearSolver::Pointer pLinearSystemSolver)
+    {
+        if (mpBuilderAndSolver != nullptr) {
+            mpBuilderAndSolver->SetLinearSystemSolver(pLinearSystemSolver);
+        } else {
+            KRATOS_WARNING("ResidualBasedLinearStrategy") << "BuilderAndSolver is not initialized. Please assign one before accesing the linear solver" << std::endl;
+        }
+    }
 
     /**
      * @brief This method sets the flag mCalculateReactionsFlag
@@ -521,12 +545,9 @@ public:
         KRATOS_TRY;
 
         // If the preconditioner is saved between solves, it should be cleared here.
-        auto p_builder_and_solver = GetBuilderAndSolver();
-        if (p_builder_and_solver != nullptr) {
-            auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
-            if (p_linear_solver != nullptr) {
-                p_linear_solver->Clear();
-            }
+        auto p_linear_solver = this->GetLinearSystemSolver();
+        if (p_linear_solver != nullptr) {
+            p_linear_solver->Clear();
         }
 
         // Clearing the system of equations
@@ -538,6 +559,7 @@ public:
             SparseSpaceType::Clear(mpb);
 
         // Setting to zero the internal flag to ensure that the dof sets are recalculated
+        auto p_builder_and_solver = GetBuilderAndSolver();
         if (p_builder_and_solver != nullptr) {
             p_builder_and_solver->SetDofSetIsInitializedFlag(false);
             p_builder_and_solver->Clear();
