@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "factories/base_factory.h"
 #include "factories/standard_builder_and_solver_factory.h"
 #include "spaces/ublas_space.h"
 
@@ -33,20 +34,19 @@ namespace Kratos
         typedef TUblasDenseSpace<double> LocalSpaceType;
         typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
 
-        typedef BuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> BuilderAndSolverType;
         typedef ResidualBasedEliminationBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
         typedef ResidualBasedEliminationBuilderAndSolverWithConstraints<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
         typedef ResidualBasedBlockBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
 
         //NOTE: here we must create persisting objects for the builder and solvers
-        static auto ResidualBasedEliminationBuilderAndSolverFactory = StandardBuilderAndSolverFactory<BuilderAndSolverType, LinearSolverType, ResidualBasedEliminationBuilderAndSolverType>();
-        static auto ResidualBasedEliminationBuilderAndSolverWithConstraintsFactory = StandardBuilderAndSolverFactory<BuilderAndSolverType, LinearSolverType, ResidualBasedEliminationBuilderAndSolverWithConstraintsType>();
-        static auto ResidualBasedBlockBuilderAndSolverFactory = StandardBuilderAndSolverFactory<BuilderAndSolverType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType>();
+        static ResidualBasedEliminationBuilderAndSolverType msResidualBasedEliminationBuilderAndSolver;
+        static ResidualBasedEliminationBuilderAndSolverWithConstraintsType msResidualBasedEliminationBuilderAndSolverWithConstraints;
+        static ResidualBasedBlockBuilderAndSolverType msResidualBasedBlockBuilderAndSolver;
 
         // Registration of convergence solvers
-        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverType::Name(), ResidualBasedEliminationBuilderAndSolverFactory);
-        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Name(), ResidualBasedEliminationBuilderAndSolverWithConstraintsFactory);
-        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedBlockBuilderAndSolverType::Name(), ResidualBasedBlockBuilderAndSolverFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverType::Name(), msResidualBasedEliminationBuilderAndSolver);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Name(), msResidualBasedEliminationBuilderAndSolverWithConstraints);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedBlockBuilderAndSolverType::Name(), msResidualBasedBlockBuilderAndSolver);
     };
 } // Namespace Kratos
 
