@@ -400,8 +400,13 @@ class ResidualBasedNewtonRaphsonStrategy
         // If the linear solver has not been deallocated, clean it before
         // deallocating mpA. This prevents a memory error with the the ML
         // solver (which holds a reference to it).
-        auto p_linear_solver = GetBuilderAndSolver()->GetLinearSystemSolver();
-        if (p_linear_solver != nullptr) p_linear_solver->Clear();
+        auto p_builder_and_solver = GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
+            if (p_linear_solver != nullptr) {
+                p_linear_solver->Clear();
+            }
+        }
 
         // Deallocating system vectors to avoid errors in MPI. Clear calls
         // TrilinosSpace::Clear for the vectors, which preserves the Map of
@@ -655,10 +660,16 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
-        // if the preconditioner is saved between solves, it
-        // should be cleared here.
-        GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
+        // If the preconditioner is saved between solves, it should be cleared here.
+        auto p_builder_and_solver = GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
+            if (p_linear_solver != nullptr) {
+                p_linear_solver->Clear();
+            }
+        }
 
+        // Clearing the system of equations
         if (mpA != nullptr)
             SparseSpaceType::Clear(mpA);
         if (mpDx != nullptr)
@@ -666,10 +677,16 @@ class ResidualBasedNewtonRaphsonStrategy
         if (mpb != nullptr)
             SparseSpaceType::Clear(mpb);
 
-        //setting to zero the internal flag to ensure that the dof sets are recalculated
-        GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
-        GetBuilderAndSolver()->Clear();
-        GetScheme()->Clear();
+        // Setting to zero the internal flag to ensure that the dof sets are recalculated
+        if (p_builder_and_solver != nullptr) {
+            p_builder_and_solver->SetDofSetIsInitializedFlag(false);
+            p_builder_and_solver->Clear();
+        }
+        // Clearing scheme
+        auto p_scheme = GetScheme();
+        if (p_scheme != nullptr) {
+            GetScheme()->Clear();
+        }
 
         mInitializeWasPerformed = false;
         mSolutionStepIsInitialized = false;
