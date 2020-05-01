@@ -45,7 +45,7 @@ typedef BaseFactory< SchemeType > SchemeFactoryType;
 typedef BuilderAndSolver< SpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 typedef BaseFactory< BuilderAndSolverType, LinearSolverType > BuilderAndSolverFactoryType;
 typedef SolvingStrategy< SpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
-typedef BaseFactory< SolvingStrategyType > StrategyFactoryType;
+typedef BaseFactory< SolvingStrategyType, ModelPart > StrategyFactoryType;
 
 void  AddFactoriesToPython(pybind11::module& m)
 {
