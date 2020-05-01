@@ -53,7 +53,7 @@ def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod):
         print 'dispTau =', dispTau_transpose
     print 'dispTauOld = ', dispTauOld
 
-    [ids,coordinates,globalID,coords]=meshDeformation(NodesNr,nodes,dispTau,dispTauOld,para_path_mod)
+    # [ids,coordinates,globalID,coords]=meshDeformation(NodesNr,nodes,dispTau,dispTauOld,para_path_mod)
     # PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
     print "afterPySurfDeflect"
 
@@ -322,64 +322,64 @@ def calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,fIteration)
     return forcesTauNP
 
 # Execute the Mesh deformation of TAU
-def meshDeformation(NodesNr,nodes,dispTau,dispTauOld, para_path_mod):
+# def meshDeformation(NodesNr,nodes,dispTau,dispTauOld, para_path_mod):
 
-    disp=np.zeros([NodesNr,3])#NodesNr
-    for i in xrange(0,NodesNr):#NodesNr
-        disp[i,0]=1*(dispTau[3*i+0]-dispTauOld[3*i+0])
-        disp[i,1]=1*(dispTau[3*i+1]-dispTauOld[3*i+1])
-        disp[i,2]=1*(dispTau[3*i+2]-dispTauOld[3*i+2])
-    Para = PyPara.Parafile(para_path_mod)
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para)
-    coords=np.zeros([NodesNr,6])#NodesNr
+#     disp=np.zeros([NodesNr,3])#NodesNr
+#     for i in xrange(0,NodesNr):#NodesNr
+#         disp[i,0]=1*(dispTau[3*i+0]-dispTauOld[3*i+0])
+#         disp[i,1]=1*(dispTau[3*i+1]-dispTauOld[3*i+1])
+#         disp[i,2]=1*(dispTau[3*i+2]-dispTauOld[3*i+2])
+#     Para = PyPara.Parafile(para_path_mod)
+#     ids, coordinates = PySurfDeflect.read_tau_grid(Para)
+#     coords=np.zeros([NodesNr,6])#NodesNr
 
-    for i in xrange(0,NodesNr):
-        coords[i,0]=coordinates[0,i]
-        coords[i,1]=coordinates[1,i]
-        coords[i,2]=coordinates[2,i]
+#     for i in xrange(0,NodesNr):
+#         coords[i,0]=coordinates[0,i]
+#         coords[i,1]=coordinates[1,i]
+#         coords[i,2]=coordinates[2,i]
 
-    globalID = np.zeros(NodesNr)
-    for i in xrange(0,NodesNr):
-        xi = coords[i,0]
-        yi = coords[i,1]
-        zi = coords[i,2]
-        for k in xrange(0,NodesNr):
-            xk = nodes[3*k+0]
-            yk = nodes[3*k+1]
-            zk = nodes[3*k+2]
-            dist2 = (xi-xk)*(xi-xk) + (yi-yk)*(yi-yk) + (zi-zk)*(zi-zk)
+#     globalID = np.zeros(NodesNr)
+#     for i in xrange(0,NodesNr):
+#         xi = coords[i,0]
+#         yi = coords[i,1]
+#         zi = coords[i,2]
+#         for k in xrange(0,NodesNr):
+#             xk = nodes[3*k+0]
+#             yk = nodes[3*k+1]
+#             zk = nodes[3*k+2]
+#             dist2 = (xi-xk)*(xi-xk) + (yi-yk)*(yi-yk) + (zi-zk)*(zi-zk)
 
-            if dist2 < 0.00001:
-                #K=k
-                globalID[i] = k
-            globalID = globalID.astype(int)
-        #print "%d found %d" % (i,K)
-        coords[i, 3] = disp[globalID[i], 0]
-        coords[i, 4] = disp[globalID[i], 1]
-        coords[i, 5] = disp[globalID[i], 2]
+#             if dist2 < 0.00001:
+#                 #K=k
+#                 globalID[i] = k
+#             globalID = globalID.astype(int)
+#         #print "%d found %d" % (i,K)
+#         coords[i, 3] = disp[globalID[i], 0]
+#         coords[i, 4] = disp[globalID[i], 1]
+#         coords[i, 5] = disp[globalID[i], 2]
 
-    fname_new = 'interface_deformfile.nc'
-    # ncf = netcdf.netcdf_file(fname_new, 'w')
-    # define dimensions
-    nops = 'no_of_points'
-    number_of_points = len(ids[:])
-    # ncf.createDimension(nops, number_of_points)
-    # define variables
-    # gid = ncf.createVariable('global_id', 'i', (nops,))
-    # ncx = ncf.createVariable('x', 'd', (nops,))
-    # ncy = ncf.createVariable('y', 'd', (nops,))
-    # ncz = ncf.createVariable('z', 'd', (nops,))
-    # ncdx = ncf.createVariable('dx', 'd', (nops,))
-    # ncdy = ncf.createVariable('dy', 'd', (nops,))
-    # ncdz = ncf.createVariable('dz', 'd', (nops,))
-    # # write data
-    # gid[:] = ids
-    # ncx[:] = coords[:,0]
-    # ncy[:] = coords[:,1]
-    # ncz[:] = coords[:,2]
-    # ncdx[:] = coords[:,3]
-    # ncdy[:] = coords[:,4]
-    # ncdz[:] = coords[:,5]
-    # ncf.close()
+#     fname_new = 'interface_deformfile.nc'
+#     # ncf = netcdf.netcdf_file(fname_new, 'w')
+#     # define dimensions
+#     nops = 'no_of_points'
+#     number_of_points = len(ids[:])
+#     # ncf.createDimension(nops, number_of_points)
+#     # define variables
+#     # gid = ncf.createVariable('global_id', 'i', (nops,))
+#     # ncx = ncf.createVariable('x', 'd', (nops,))
+#     # ncy = ncf.createVariable('y', 'd', (nops,))
+#     # ncz = ncf.createVariable('z', 'd', (nops,))
+#     # ncdx = ncf.createVariable('dx', 'd', (nops,))
+#     # ncdy = ncf.createVariable('dy', 'd', (nops,))
+#     # ncdz = ncf.createVariable('dz', 'd', (nops,))
+#     # # write data
+#     # gid[:] = ids
+#     # ncx[:] = coords[:,0]
+#     # ncy[:] = coords[:,1]
+#     # ncz[:] = coords[:,2]
+#     # ncdx[:] = coords[:,3]
+#     # ncdy[:] = coords[:,4]
+#     # ncdz[:] = coords[:,5]
+#     # ncf.close()
 
-    return ids, coordinates, globalID, coords
+#     return ids, coordinates, globalID, coords
