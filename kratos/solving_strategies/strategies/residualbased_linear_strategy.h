@@ -128,13 +128,10 @@ public:
         // Saving the scheme
         mpScheme = pScheme;
 
-        // Saving the linear solver
-        mpLinearSolver = pNewLinearSolver;
-
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
                              (
-                                 new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
+                                 new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewLinearSolver)
                              );
 
         // Set flag to start correcty the calculations
@@ -189,11 +186,15 @@ public:
         // Saving the scheme
         mpScheme = pScheme;
 
-        // Saving the linear solver
-        mpLinearSolver = pNewLinearSolver;
-
         // Setting up the  builder and solver
         mpBuilderAndSolver = pNewBuilderAndSolver;
+
+        // We check if the linear solver considered for the builder and solver is consistent
+        auto p_linear_solver = pNewBuilderAndSolver->GetLinearSystemSolver();
+        if (p_linear_solver != pNewLinearSolver) {
+            KRATOS_WARNING("ResidualBasedLinearStrategy") << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to strategy:\n" << pNewLinearSolver->Info() << "\n instead of:\n" << p_linear_solver->Info() << std::endl;
+            pNewBuilderAndSolver->SetLinearSystemSolver(pNewLinearSolver);
+        }
 
         // Set flag to start correcty the calculations
         mSolutionStepIsInitialized = false;
@@ -374,7 +375,7 @@ public:
             for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_begin+i)->Apply(rProcessInfo);
 
-            //the following is needed since we need to eventually compute time derivatives after applying 
+            //the following is needed since we need to eventually compute time derivatives after applying
             //Master slave relations
             TSparseSpace::SetToZero(rDx);
             this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
@@ -786,7 +787,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TLinearSolver::Pointer mpLinearSolver; /// The pointer to the linear solver considered
     typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employed
 
