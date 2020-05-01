@@ -258,7 +258,7 @@ public:
             rCurrentProcessInfo, true, true);
     }
 
-   /**
+    /**
     * @brief Calculate prestress tensor 
     * @param rPrestressTensor: The prestress tensor to be calculated
     * @param rMetric
@@ -266,7 +266,36 @@ public:
     void CalculatePresstressTensor(
         Vector& rPrestressTensor,
         KinematicVariables& rActualKinematic); 
-    //...will be used later for postprocessing...
+
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable: The variable we want to get
+    * @param rValues: The values obtained int the integration points
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * Calculate a Vector Variable on the Element Constitutive Law
+    * @param rVariable: The variable we want to get
+    * @param rValues: The values obtained int the integration points
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -360,6 +389,10 @@ private:
     *  shear part. */
     std::vector<Matrix> m_T_vector;
 
+    /* Transformation the stress tensor from the local cartesian 
+    *  to the curvilinear system in voigt notation. */
+    std::vector<Matrix> m_T_hat_vector;
+
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
@@ -386,7 +419,7 @@ private:
     // Computes transformation
     void CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
-        Matrix& rT);
+        Matrix& rT, Matrix& rT_hat);
 
     void CalculateBMembrane(
         IndexType IntegrationPointIndex,
