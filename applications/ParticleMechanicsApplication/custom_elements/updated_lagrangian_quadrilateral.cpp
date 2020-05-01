@@ -905,9 +905,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-        : false;
 
     mFinalizedStep = false;
 
