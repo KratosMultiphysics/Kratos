@@ -7,7 +7,7 @@ from tau_python import tau_msg
 import sys
 sys.path.append('/opt/rh/python27/root/usr/lib64')
 import PyPara
-# import PySurfDeflect
+import PySurfDeflect
 # from scipy.io import netcdf
 
 echo_level = 1
