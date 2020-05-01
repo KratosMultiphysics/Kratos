@@ -363,7 +363,7 @@ def meshDeformation(NodesNr,nodes,dispTau,dispTauOld, para_path_mod):
     nops = 'no_of_points'
     number_of_points = len(ids[:])
     ncf.createDimension(nops, number_of_points)
-    define variables
+    # define variables
     gid = ncf.createVariable('global_id', 'i', (nops,))
     ncx = ncf.createVariable('x', 'd', (nops,))
     ncy = ncf.createVariable('y', 'd', (nops,))
