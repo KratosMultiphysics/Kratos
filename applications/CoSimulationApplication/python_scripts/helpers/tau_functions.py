@@ -6,7 +6,8 @@ from tau_python import tau_msg
 # import tau_python.tau_msg as tau_msg
 import sys
 sys.path.append('/opt/rh/python27/root/usr/lib64')
-import PyPara, PySurfDeflect
+import PyPara
+# import PySurfDeflect
 from scipy.io import netcdf
 
 echo_level = 1
@@ -53,7 +54,7 @@ def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod):
     print 'dispTauOld = ', dispTauOld
 
     [ids,coordinates,globalID,coords]=meshDeformation(NodesNr,nodes,dispTau,dispTauOld,para_path_mod)
-    PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
+    # PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
     print "afterPySurfDeflect"
 
     for i in xrange(0,3*NodesNr):
