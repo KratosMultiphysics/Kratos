@@ -178,7 +178,7 @@ public:
     {
         const std::string& r_name = Settings["name"].GetString();
         KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
-                                            "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
+                                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
                                             KratosComponents<ClassType>() << std::endl;
         const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
         return aux.Create(Settings);
@@ -195,7 +195,7 @@ public:
     {
         const std::string& r_name = Settings["name"].GetString();
         KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
-                                            "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
+                                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
                                             KratosComponents<ClassType>() << std::endl;
         const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
         return aux.Create(rModel, Settings);
@@ -212,7 +212,7 @@ public:
     {
         const std::string& r_name = Settings["name"].GetString();
         KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
-                                            "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
+                                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
                                             KratosComponents<ClassType>() << std::endl;
         const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
         return aux.Create(rModelPart, Settings);
@@ -229,7 +229,7 @@ public:
     {
         const std::string& r_name = Settings["name"].GetString();
         KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
-                                            "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
+                                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
                                             KratosComponents<ClassType>() << std::endl;
         const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
         return aux.Create(pLinearSolver, Settings);
