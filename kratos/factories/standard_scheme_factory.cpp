@@ -31,36 +31,36 @@
 
 namespace Kratos
 {
-    void RegisterSchemes()
-    {
-        typedef TUblasSparseSpace<double> SparseSpaceType;
-        typedef TUblasDenseSpace<double> LocalSpaceType;
+void RegisterSchemes()
+{
+    typedef TUblasSparseSpace<double> SparseSpaceType;
+    typedef TUblasDenseSpace<double> LocalSpaceType;
 
-        typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticSchemeType;
-        typedef ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticSchemeSlipType;
-        typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
-        typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
-        typedef ResidualBasedPseudoStaticDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedPseudoStaticDisplacementSchemeType;
-        typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFDisplacementSchemeType;
-        typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFCustomSchemeType;
+    typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticSchemeType;
+    typedef ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticSchemeSlipType;
+    typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
+    typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+    typedef ResidualBasedPseudoStaticDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedPseudoStaticDisplacementSchemeType;
+    typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFDisplacementSchemeType;
+    typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFCustomSchemeType;
 
-        //NOTE: here we must create persisting objects for the linear solvers
-        static ResidualBasedIncrementalUpdateStaticSchemeType msResidualBasedIncrementalUpdateStaticScheme;
-        static ResidualBasedIncrementalUpdateStaticSchemeSlipType msResidualBasedIncrementalUpdateStaticSchemeSlip;
-        static ResidualBasedBossakDisplacementSchemeType msResidualBasedBossakDisplacementScheme;
-        static ResidualBasedNewmarkDisplacementSchemeType msResidualBasedNewmarkDisplacementScheme;
-        static ResidualBasedPseudoStaticDisplacementSchemeType msResidualBasedPseudoStaticDisplacementScheme;
-        static ResidualBasedBDFDisplacementSchemeType msResidualBasedBDFDisplacementScheme;
-        static ResidualBasedBDFCustomSchemeType msResidualBasedBDFCustomScheme;
+    //NOTE: here we must create persisting objects for the linear solvers
+    static ResidualBasedIncrementalUpdateStaticSchemeType msResidualBasedIncrementalUpdateStaticScheme;
+    static ResidualBasedIncrementalUpdateStaticSchemeSlipType msResidualBasedIncrementalUpdateStaticSchemeSlip;
+    static ResidualBasedBossakDisplacementSchemeType msResidualBasedBossakDisplacementScheme;
+    static ResidualBasedNewmarkDisplacementSchemeType msResidualBasedNewmarkDisplacementScheme;
+    static ResidualBasedPseudoStaticDisplacementSchemeType msResidualBasedPseudoStaticDisplacementScheme;
+    static ResidualBasedBDFDisplacementSchemeType msResidualBasedBDFDisplacementScheme;
+    static ResidualBasedBDFCustomSchemeType msResidualBasedBDFCustomScheme;
 
-        // Registration of convergence solvers
-        KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeType::Name(), msResidualBasedIncrementalUpdateStaticScheme);
-        KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeSlipType::Name(), msResidualBasedIncrementalUpdateStaticSchemeSlip);
-        KRATOS_REGISTER_SCHEME(ResidualBasedBossakDisplacementSchemeType::Name(), msResidualBasedBossakDisplacementScheme);
-        KRATOS_REGISTER_SCHEME(ResidualBasedNewmarkDisplacementSchemeType::Name(), msResidualBasedNewmarkDisplacementScheme);
-        KRATOS_REGISTER_SCHEME(ResidualBasedPseudoStaticDisplacementSchemeType::Name(), msResidualBasedPseudoStaticDisplacementScheme);
-        KRATOS_REGISTER_SCHEME(ResidualBasedBDFDisplacementSchemeType::Name(), msResidualBasedBDFDisplacementScheme);
-        KRATOS_REGISTER_SCHEME(ResidualBasedBDFCustomSchemeType::Name(), msResidualBasedBDFCustomScheme);
-    };
+    // Registration of convergence solvers
+    KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeType::Name(), msResidualBasedIncrementalUpdateStaticScheme);
+    KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeSlipType::Name(), msResidualBasedIncrementalUpdateStaticSchemeSlip);
+    KRATOS_REGISTER_SCHEME(ResidualBasedBossakDisplacementSchemeType::Name(), msResidualBasedBossakDisplacementScheme);
+    KRATOS_REGISTER_SCHEME(ResidualBasedNewmarkDisplacementSchemeType::Name(), msResidualBasedNewmarkDisplacementScheme);
+    KRATOS_REGISTER_SCHEME(ResidualBasedPseudoStaticDisplacementSchemeType::Name(), msResidualBasedPseudoStaticDisplacementScheme);
+    KRATOS_REGISTER_SCHEME(ResidualBasedBDFDisplacementSchemeType::Name(), msResidualBasedBDFDisplacementScheme);
+    KRATOS_REGISTER_SCHEME(ResidualBasedBDFCustomSchemeType::Name(), msResidualBasedBDFCustomScheme);
+};
 } // Namespace Kratos
 

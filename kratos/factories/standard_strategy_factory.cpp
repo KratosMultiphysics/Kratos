@@ -30,30 +30,30 @@
 
 namespace Kratos
 {
-    void RegisterStrategies()
-    {
-        typedef TUblasSparseSpace<double> SpaceType;
-        typedef TUblasDenseSpace<double> LocalSpaceType;
-        typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
+void RegisterStrategies()
+{
+    typedef TUblasSparseSpace<double> SpaceType;
+    typedef TUblasDenseSpace<double> LocalSpaceType;
+    typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
 
-        typedef ResidualBasedLinearStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedLinearStrategyType;
-        typedef ResidualBasedNewtonRaphsonStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedNewtonRaphsonStrategyType;
-        typedef AdaptiveResidualBasedNewtonRaphsonStrategy<SpaceType,  LocalSpaceType, LinearSolverType> AdaptiveResidualBasedNewtonRaphsonStrategyType;
-        typedef LineSearchStrategy<SpaceType,  LocalSpaceType, LinearSolverType> LineSearchStrategyType;
-        typedef ExplicitStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ExplicitStrategyType;
+    typedef ResidualBasedLinearStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedLinearStrategyType;
+    typedef ResidualBasedNewtonRaphsonStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedNewtonRaphsonStrategyType;
+    typedef AdaptiveResidualBasedNewtonRaphsonStrategy<SpaceType,  LocalSpaceType, LinearSolverType> AdaptiveResidualBasedNewtonRaphsonStrategyType;
+    typedef LineSearchStrategy<SpaceType,  LocalSpaceType, LinearSolverType> LineSearchStrategyType;
+    typedef ExplicitStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ExplicitStrategyType;
 
-        //NOTE: here we must create persisting objects for the strategies
-        static ResidualBasedLinearStrategyType msResidualBasedLinearStrategy;
-        static ResidualBasedNewtonRaphsonStrategyType msResidualBasedNewtonRaphsonStrategy;
-        static AdaptiveResidualBasedNewtonRaphsonStrategyType msAdaptiveResidualBasedNewtonRaphsonStrategy;
-        static LineSearchStrategyType msLineSearchStrategy;
-        static ExplicitStrategyType msExplicitStrategy;
+    //NOTE: here we must create persisting objects for the strategies
+    static ResidualBasedLinearStrategyType msResidualBasedLinearStrategy;
+    static ResidualBasedNewtonRaphsonStrategyType msResidualBasedNewtonRaphsonStrategy;
+    static AdaptiveResidualBasedNewtonRaphsonStrategyType msAdaptiveResidualBasedNewtonRaphsonStrategy;
+    static LineSearchStrategyType msLineSearchStrategy;
+    static ExplicitStrategyType msExplicitStrategy;
 
-        // Registration of strategies
-        KRATOS_REGISTER_STRATEGY(ResidualBasedLinearStrategyType::Name(), msResidualBasedLinearStrategy);
-        KRATOS_REGISTER_STRATEGY(ResidualBasedNewtonRaphsonStrategyType::Name(), msResidualBasedNewtonRaphsonStrategy);
-        KRATOS_REGISTER_STRATEGY(AdaptiveResidualBasedNewtonRaphsonStrategyType::Name(), msAdaptiveResidualBasedNewtonRaphsonStrategy);
-        KRATOS_REGISTER_STRATEGY(LineSearchStrategyType::Name(), msLineSearchStrategy);
-        KRATOS_REGISTER_STRATEGY(ExplicitStrategyType::Name(), msExplicitStrategy);
-    };
+    // Registration of strategies
+    KRATOS_REGISTER_STRATEGY(ResidualBasedLinearStrategyType::Name(), msResidualBasedLinearStrategy);
+    KRATOS_REGISTER_STRATEGY(ResidualBasedNewtonRaphsonStrategyType::Name(), msResidualBasedNewtonRaphsonStrategy);
+    KRATOS_REGISTER_STRATEGY(AdaptiveResidualBasedNewtonRaphsonStrategyType::Name(), msAdaptiveResidualBasedNewtonRaphsonStrategy);
+    KRATOS_REGISTER_STRATEGY(LineSearchStrategyType::Name(), msLineSearchStrategy);
+    KRATOS_REGISTER_STRATEGY(ExplicitStrategyType::Name(), msExplicitStrategy);
+};
 } // Namespace Kratos

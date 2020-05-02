@@ -27,25 +27,25 @@
 
 namespace Kratos
 {
-    void RegisterBuilderAndSolvers()
-    {
-        typedef TUblasSparseSpace<double> SpaceType;
-        typedef TUblasDenseSpace<double> LocalSpaceType;
-        typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
+void RegisterBuilderAndSolvers()
+{
+    typedef TUblasSparseSpace<double> SpaceType;
+    typedef TUblasDenseSpace<double> LocalSpaceType;
+    typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
 
-        typedef ResidualBasedEliminationBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
-        typedef ResidualBasedEliminationBuilderAndSolverWithConstraints<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
-        typedef ResidualBasedBlockBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
+    typedef ResidualBasedEliminationBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
+    typedef ResidualBasedEliminationBuilderAndSolverWithConstraints<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
+    typedef ResidualBasedBlockBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
 
-        //NOTE: here we must create persisting objects for the builder and solvers
-        static ResidualBasedEliminationBuilderAndSolverType msResidualBasedEliminationBuilderAndSolver;
-        static ResidualBasedEliminationBuilderAndSolverWithConstraintsType msResidualBasedEliminationBuilderAndSolverWithConstraints;
-        static ResidualBasedBlockBuilderAndSolverType msResidualBasedBlockBuilderAndSolver;
+    //NOTE: here we must create persisting objects for the builder and solvers
+    static ResidualBasedEliminationBuilderAndSolverType msResidualBasedEliminationBuilderAndSolver;
+    static ResidualBasedEliminationBuilderAndSolverWithConstraintsType msResidualBasedEliminationBuilderAndSolverWithConstraints;
+    static ResidualBasedBlockBuilderAndSolverType msResidualBasedBlockBuilderAndSolver;
 
-        // Registration of convergence solvers
-        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverType::Name(), msResidualBasedEliminationBuilderAndSolver);
-        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Name(), msResidualBasedEliminationBuilderAndSolverWithConstraints);
-        KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedBlockBuilderAndSolverType::Name(), msResidualBasedBlockBuilderAndSolver);
-    };
+    // Registration of convergence solvers
+    KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverType::Name(), msResidualBasedEliminationBuilderAndSolver);
+    KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Name(), msResidualBasedEliminationBuilderAndSolverWithConstraints);
+    KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedBlockBuilderAndSolverType::Name(), msResidualBasedBlockBuilderAndSolver);
+};
 } // Namespace Kratos
 
