@@ -520,10 +520,10 @@ public:
                 << " UseOldStiffnessInFirstIteration=false " << std::endl;
 
         DofsArrayType fixed_dofs;
-        for(auto& dof : BaseType::mDofSet){
-            if(dof.IsFixed()){
-                fixed_dofs.push_back(&dof);
-                dof.FreeDof();
+        for(auto& r_dof : BaseType::mDofSet){
+            if(r_dof.IsFixed()){
+                fixed_dofs.push_back(&r_dof);
+                r_dof.FreeDof();
             }
         }
 
