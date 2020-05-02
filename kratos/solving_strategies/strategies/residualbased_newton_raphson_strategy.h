@@ -581,7 +581,6 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    template<typename = std::enable_if<std::is_same<TSparseSpace, TUblasSparseSpace<double>>::value>> // NOTE: This is tenporal until the current PR is merged, then we will need to adapt the factories to TrilinosSpace
     typename BaseType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
