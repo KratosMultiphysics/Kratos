@@ -150,7 +150,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Setting up the default builder and solver
         const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
-        if (KratosComponents<ClassType>::Has( r_name )) {
+        if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
             mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(mpLinearSolver, ThisParameters["builder_and_solver_settings"]);
         } else {
             KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
