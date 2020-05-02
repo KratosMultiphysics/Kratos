@@ -37,6 +37,10 @@ set( KRATOS_TRILINOS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/amgcl_mpi_solver_impl.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_builder_and_solver_factory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_convergence_criteria_factory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_scheme_factory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_strategy_factory.cpp
 )
 
 # Sources for the Python module
