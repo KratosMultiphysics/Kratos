@@ -286,9 +286,10 @@ public:
         // If the linear solver has not been deallocated, clean it before
         // deallocating mpA. This prevents a memory error with the the ML
         // solver (which holds a reference to it).
-        auto p_linear_solver = this->GetLinearSystemSolver();
-        if (p_linear_solver != nullptr) {
-            p_linear_solver->Clear();
+        // NOTE: The linear solver is hold by the B&S
+        auto p_builder_and_solver = this->GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            p_builder_and_solver->Clear();
         }
 
         // Deallocating system vectors to avoid errors in MPI. Clear calls
@@ -545,10 +546,11 @@ public:
     {
         KRATOS_TRY;
 
-        // If the preconditioner is saved between solves, it should be cleared here.
-        auto p_linear_solver = this->GetLinearSystemSolver();
-        if (p_linear_solver != nullptr) {
-            p_linear_solver->Clear();
+        // Setting to zero the internal flag to ensure that the dof sets are recalculated. Also clear the linear solver stored in the B&S
+        auto p_builder_and_solver = GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            p_builder_and_solver->SetDofSetIsInitializedFlag(false);
+            p_builder_and_solver->Clear();
         }
 
         // Clearing the system of equations
@@ -559,12 +561,6 @@ public:
         if (mpb != nullptr)
             SparseSpaceType::Clear(mpb);
 
-        // Setting to zero the internal flag to ensure that the dof sets are recalculated
-        auto p_builder_and_solver = GetBuilderAndSolver();
-        if (p_builder_and_solver != nullptr) {
-            p_builder_and_solver->SetDofSetIsInitializedFlag(false);
-            p_builder_and_solver->Clear();
-        }
         // Clearing scheme
         auto p_scheme = GetScheme();
         if (p_scheme != nullptr) {
