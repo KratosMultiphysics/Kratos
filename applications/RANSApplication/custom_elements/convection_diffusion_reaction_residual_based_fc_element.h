@@ -837,10 +837,9 @@ public:
         buffer << "ConvectionDiffusionReactionResidualBasedFCElement #" << Id();
         return buffer.str();
     }
-    /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ConvectionDiffusionReactionResidualBasedFCElement #" << Id();
+        rOStream << "CDRRFC" << TConvectionDiffusionReactionData::GetName();
     }
 
     ///@}

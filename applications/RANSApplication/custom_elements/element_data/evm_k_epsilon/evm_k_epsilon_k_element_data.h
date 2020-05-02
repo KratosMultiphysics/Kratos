@@ -60,6 +60,8 @@ public:
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
 
+    static const std::string GetName() {return "KEpsilonKElementData";}
+
     KElementData(const GeomtryType& rGeometry) : BaseType(rGeometry)
     {
     }

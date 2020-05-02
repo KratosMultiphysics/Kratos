@@ -64,6 +64,8 @@ public:
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
 
+    static const std::string GetName() {return "KOmegaKElementData";}
+
     KElementData(const GeomtryType& rGeometry) : BaseType(rGeometry)
     {
     }

@@ -61,6 +61,10 @@ def Factory(settings, Model):
             KratosRANS.RansEpsilonTurbulentMixingLengthInletProcess
         ],
         [
+            "OmegaTurbulentMixingLengthInletProcess",
+            KratosRANS.RansOmegaTurbulentMixingLengthInletProcess
+        ],
+        [
             "ClipScalarVariableProcess",
             KratosRANS.RansClipScalarVariableProcess
         ],

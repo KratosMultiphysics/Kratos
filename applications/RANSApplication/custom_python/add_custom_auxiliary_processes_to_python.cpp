@@ -37,6 +37,7 @@
 #include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_update_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_k_omega_update_process.h"
 #include "custom_processes/auxiliary_processes/rans_k_omega_wall_function_process.h"
+#include "custom_processes/auxiliary_processes/rans_omega_turbulent_mixing_inlet_process.h"
 
 // RANS sensitivity processes
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
@@ -190,6 +191,13 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         m, "RansKOmegaWallFunctionProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&>());
+
+    using RansOmegaTurbulentMixingLengthInletProcessType =
+        RansOmegaTurbulentMixingLengthInletProcess;
+    py::class_<RansOmegaTurbulentMixingLengthInletProcessType,
+               RansOmegaTurbulentMixingLengthInletProcessType::Pointer, Process>(
+        m, "RansOmegaTurbulentMixingLengthInletProcess")
+        .def(py::init<Model&, Parameters&>());
 }
 
 } // namespace Python.

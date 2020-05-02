@@ -875,10 +875,10 @@ public:
         buffer << "ConvectionDiffusionReactionCrossWindStabilizedElement #" << Id();
         return buffer.str();
     }
-    /// Print information about this object.
+
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ConvectionDiffusionReactionCrossWindStabilizedElement #" << Id();
+        rOStream << "CDRCrossWind" << TConvectionDiffusionReactionData::GetName();
     }
 
     ///@}

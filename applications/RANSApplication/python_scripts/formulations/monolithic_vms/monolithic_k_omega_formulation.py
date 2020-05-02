@@ -34,8 +34,6 @@ class MonolithicKOmegaFormulation(Formulation):
             self.AddFormulation(self.incompressible_potential_flow_formulation)
 
         self.monolithic_formulation = MonolithicVelocityPressureFormulation(model_part, settings["monolithic_flow_solver_settings"])
-        # self.monolithic_formulation.SetConditionName("RansVMSMonolithicWallCondition")
-        self.monolithic_formulation.SetConditionName("RansVMSMonolithicKBasedWallCondition")
         self.AddFormulation(self.monolithic_formulation)
 
         self.k_omega_formulation = KOmegaFormulation(model_part, settings["k_omega_solver_settings"])

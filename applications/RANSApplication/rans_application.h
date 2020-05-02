@@ -20,37 +20,16 @@
 // Project includes
 #include "includes/kratos_application.h"
 
-// Element includes
-// incompressible potential flow
+// incompressible potential flow element includes
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
 
-// fractional step
-#include "custom_elements/fractional_step/rans_fractional_step.h"
-
-// stabilized generic convection diffusion reaction elements
-#include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
-#include "custom_elements/convection_diffusion_reaction_element.h"
-#include "custom_elements/convection_diffusion_reaction_residual_based_fc_element.h"
-
-// k-epsilon turbulence model element data
-#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_epsilon_element_data.h"
-#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_k_element_data.h"
-
-// old elements (to be removed)
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
-
-// k-omega turbulence model
-#include "custom_elements/element_data/evm_k_omega/evm_k_omega_k_element_data.h"
-#include "custom_elements/element_data/evm_k_omega/evm_k_omega_omega_element_data.h"
-
-// Condition includes
 // incompressible potential flow conditions
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_condition.h"
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_condition.h"
+
+// fractional step elements
+#include "custom_elements/fractional_step/rans_fractional_step.h"
 
 // fractional step conditions
 #include "custom_conditions/fractional_step/fs_high_re_k_wall_condition.h"
@@ -59,14 +38,41 @@
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.h"
 #include "custom_conditions/monolithic/rans_vms_monolithic_k_based_wall_condition.h"
 
-// k-epsilon
+// stabilized generic convection diffusion reaction elements
+#include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
+#include "custom_elements/convection_diffusion_reaction_element.h"
+#include "custom_elements/convection_diffusion_reaction_residual_based_fc_element.h"
+
+// scalar wall flux generic condition
+#include "custom_conditions/scalar_wall_flux_condition.h"
+
+// k-epsilon turbulence model element data
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_epsilon_element_data.h"
+#include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_k_element_data.h"
+
+// k-epsilon turbulence model condition data
+#include "custom_conditions/condition_data/evm_k_epsilon/evm_k_epsilon_epsilon_k_based_wall_condition_data.h"
+#include "custom_conditions/condition_data/evm_k_epsilon/evm_k_epsilon_epsilon_u_based_wall_condition_data.h"
+
+// k-omega turbulence model element data
+#include "custom_elements/element_data/evm_k_omega/evm_k_omega_k_element_data.h"
+#include "custom_elements/element_data/evm_k_omega/evm_k_omega_omega_element_data.h"
+
+// k-omega turbulence mode condition data
+#include "custom_conditions/condition_data/evm_k_omega/evm_k_omega_omega_k_based_wall_condition_data.h"
+#include "custom_conditions/condition_data/evm_k_omega/evm_k_omega_omega_u_based_wall_condition_data.h"
+
+// k-epsilon (to be removed)
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_k_based_lhs_wall_condition.h"
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_k_based_rhs_wall_condition.h"
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_velocity_based_wall_condition.h"
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
 
-// k-omega
-#include "custom_conditions/evm_k_omega/rans_evm_k_omega_omega_k_based_wall_condition.h"
+// old elements (to be removed)
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
 
 // Adjoint element includes
 #include "custom_elements/evm_k_epsilon/rans_evm_epsilon_adjoint.h"
@@ -239,6 +245,13 @@ private:
     const FSHighReKWallCondition<2, 2> mFSHighReKWallCondition2D2N;
     const FSHighReKWallCondition<3, 3> mFSHighReKWallCondition3D3N;
 
+    /// monolithic conditions
+    const RansEvmKEpsilonVmsMonolithicWall<2> mRansEvmKEpsilonVmsMonolithicWall2D2N;
+    const RansEvmKEpsilonVmsMonolithicWall<3> mRansEvmKEpsilonVmsMonolithicWall3D3N;
+
+    const RansVMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWallCondition2D2N;
+    const RansVMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWallCondition3D3N;
+
     /// k-epsilon turbulence model elements
     /// Algebraic flux correction based elements
     const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonElementDataUtilities::KElementData<2>> mRansEvmKEpsilonKAFC2D;
@@ -260,6 +273,13 @@ private:
 
     const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonElementDataUtilities::EpsilonElementData<2>> mRansEvmKEpsilonEpsilonCrossWindStabilized2D;
     const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonElementDataUtilities::EpsilonElementData<3>> mRansEvmKEpsilonEpsilonCrossWindStabilized3D;
+
+    // k-epsilon turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, EvmKEpsilonWallConditionDataUtilities::EpsilonKBasedWallConditionData> mRansEvmKEpsilonEpsilonKBasedWallCondition2D2N;
+    const ScalarWallFluxCondition<3, 3, EvmKEpsilonWallConditionDataUtilities::EpsilonKBasedWallConditionData> mRansEvmKEpsilonEpsilonKBasedWallCondition3D3N;
+
+    const ScalarWallFluxCondition<2, 2, EvmKEpsilonWallConditionDataUtilities::EpsilonUBasedWallConditionData> mRansEvmKEpsilonEpsilonUBasedWallCondition2D2N;
+    const ScalarWallFluxCondition<3, 3, EvmKEpsilonWallConditionDataUtilities::EpsilonUBasedWallConditionData> mRansEvmKEpsilonEpsilonUBasedWallCondition3D3N;
 
     /// k-omega turbulence model elements
     /// Algebraic flux correction based elements
@@ -283,6 +303,13 @@ private:
     const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKOmegaElementDataUtilities::OmegaElementData<2>> mRansEvmKOmegaOmegaCrossWindStabilized2D;
     const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKOmegaElementDataUtilities::OmegaElementData<3>> mRansEvmKOmegaOmegaCrossWindStabilized3D;
 
+    /// k-omega turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, EvmKOmegaWallConditionDataUtilities::OmegaKBasedWallConditionData> mRansEvmKOmegaOmegaKBasedWallCondition2D2N;
+    const ScalarWallFluxCondition<3, 3, EvmKOmegaWallConditionDataUtilities::OmegaKBasedWallConditionData> mRansEvmKOmegaOmegaKBasedWallCondition3D3N;
+
+    const ScalarWallFluxCondition<2, 2, EvmKOmegaWallConditionDataUtilities::OmegaUBasedWallConditionData> mRansEvmKOmegaOmegaUBasedWallCondition2D2N;
+    const ScalarWallFluxCondition<3, 3, EvmKOmegaWallConditionDataUtilities::OmegaUBasedWallConditionData> mRansEvmKOmegaOmegaUBasedWallCondition3D3N;
+
     /// low re k-epsilon elements
     const RansEvmKEpsilonLowReKElement<2, 3> mRansEvmKEpsilonLowReK2D;
     const RansEvmKEpsilonLowReKElement<3, 4> mRansEvmKEpsilonLowReK3D;
@@ -295,14 +322,6 @@ private:
 
     const RansEvmKEpsilonEpsilon<2, 3> mRansEvmKEpsilonEpsilon2D;
     const RansEvmKEpsilonEpsilon<3, 4> mRansEvmKEpsilonEpsilon3D;
-
-    /// monolithic conditions
-
-    const RansEvmKEpsilonVmsMonolithicWall<2> mRansEvmKEpsilonVmsMonolithicWall2D2N;
-    const RansEvmKEpsilonVmsMonolithicWall<3> mRansEvmKEpsilonVmsMonolithicWall3D3N;
-
-    const RansVMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWallCondition2D2N;
-    const RansVMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWallCondition3D3N;
 
     /// k-epsilon turbulence model conditions
     const RansEvmKEpsilonEpsilonVelocityBasedWallCondition<2> mRansEvmKEpsilonEpsilonVelocityBasedWallCondition2D2N;
@@ -318,8 +337,8 @@ private:
     const RansEvmKEpsilonEpsilonWall<3> mRansEvmKEpsilonEpsilonWall3D3N;
 
     // k-omega turbulence model conditions
-    const RansEvmKOmegaOmegaKBasedWallCondition<2> mRansEvmKOmegaOmegaKBasedWallCondition2D2N;
-    const RansEvmKOmegaOmegaKBasedWallCondition<3> mRansEvmKOmegaOmegaKBasedWallCondition3D3N;
+    // const RansEvmKOmegaOmegaKBasedWallCondition<2> mRansEvmKOmegaOmegaKBasedWallCondition2D2N;
+    // const RansEvmKOmegaOmegaKBasedWallCondition<3> mRansEvmKOmegaOmegaKBasedWallCondition3D3N;
 
     // k-epsilon adjoint elements
     const RansEvmEpsilonAdjoint<2, 3> mRansEvmEpsilonAdjoint2D3N;

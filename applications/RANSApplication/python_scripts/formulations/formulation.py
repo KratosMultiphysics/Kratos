@@ -110,6 +110,10 @@ class Formulation:
         self.__ExecuteFormulationMethods("SetTimeSchemeSettings", [settings])
         self.time_scheme_settings = settings
 
+    def SetWallFunctionSettings(self, settings):
+        self.__ExecuteFormulationMethods("SetWallFunctionSettings", [settings])
+        self.wall_function_settings = settings
+
     def GetTimeSchemeSettings(self):
         if (hasattr(self, "time_scheme_settings")):
             return self.time_scheme_settings
@@ -146,7 +150,9 @@ class Formulation:
     def GetInfo(self):
         info = "\n" + self.GetName()
         if (self.GetModelPart() is not None):
-            info += "\n   Model part: " + str(self.GetModelPart().Name)
+            info += "\n   Model part    : " + str(self.GetModelPart().Name)
+            info += "\n   Element name  : " + str(self.GetModelPart().GetElement(1)).split(":")[0]
+            info += "\n   Condition name: " + str(self.GetModelPart().GetCondition(1)).split(":")[0]
 
         if (str(self.GetMaxCouplingIterations()) != "N/A"):
             info += "\n   Max iterations: " + str(self.GetMaxCouplingIterations())

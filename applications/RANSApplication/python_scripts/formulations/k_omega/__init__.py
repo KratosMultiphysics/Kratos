@@ -101,10 +101,7 @@ class KOmegaFormulation(Formulation):
 
         process_info = model_part.ProcessInfo
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-        c_mu = process_info[KratosRANS.TURBULENCE_RANS_C_MU]
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
-        beta_zero = process_info[KratosRANS.TURBULENCE_RANS_BETA_ZERO]
-        c1 = process_info[KratosRANS.TURBULENCE_RANS_K_C1]
 
         nut_process = KratosRANS.RansNutKOmegaUpdateProcess(
                                             model,
@@ -113,12 +110,6 @@ class KOmegaFormulation(Formulation):
                                             self.echo_level)
         self.AddProcess(nut_process)
 
-        # nut_wall_process = KratosRANS.RansKOmegaWallFunctionProcess(
-        #                                     model,
-        #                                     wall_model_part_name)
-
-        # self.AddProcess(nut_wall_process)
-
         nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
                                             model,
                                             wall_model_part_name,
@@ -126,14 +117,6 @@ class KOmegaFormulation(Formulation):
                                             1e-12,
                                             self.echo_level)
         self.AddProcess(nut_wall_process)
-
-        # nut_wall_process_2 = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
-        #                                     model,
-        #                                     wall_model_part_name,
-        #                                     kappa,
-        #                                     1e-12,
-        #                                     self.echo_level)
-        # self.AddProcess(nut_wall_process_2)
 
         factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
         self.auxiliar_process_list = factory.ConstructListOfProcesses(

@@ -77,8 +77,6 @@ class MonolithicVelocityPressureFormulation(Formulation):
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
         self.SetMaxCouplingIterations(1)
 
-        self.SetConditionName("RansVMSMonolithicKBasedWallCondition")
-
         Kratos.Logger.PrintInfo(self.GetName(), "Construction of formulation finished.")
 
     def AddVariables(self):
@@ -261,11 +259,22 @@ class MonolithicVelocityPressureFormulation(Formulation):
         self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.RANS_Y_PLUS_LIMIT, self.y_plus_limit)
         self.GetBaseModelPart().ProcessInfo.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
 
+    def SetWallFunctionSettings(self, settings):
+        wall_function_region_type = "logarithmic_region_only"
+        if (settings.Has("wall_function_region_type")):
+            wall_function_region_type = settings[
+                "wall_function_region_type"].GetString()
+
+        if (wall_function_region_type == "logarithmic_region_only"):
+            self.condition_name = "RansVMSMonolithicKBasedWallCondition"
+        else:
+            msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+            msg += "Supported wall function region types are:\n"
+            msg += "\tlogarithmic_region_only\n"
+            raise Exception(msg)
+
     def GetStrategy(self):
         return self.solver
 
     def GetModelPart(self):
         return self.monolithic_model_part
-
-    def SetConditionName(self, condition_name):
-        self.condition_name = condition_name

@@ -174,11 +174,11 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         if (self.is_steady_simulation):
             self.fractional_step_model_part = CreateFormulationModelPart(self,
                                                                         "RansFractionalStep",
-                                                                        "RansFSHighReKWall")
+                                                                        self.condition_name)
         else:
             self.fractional_step_model_part = CreateFormulationModelPart(self,
                                                                         "FractionalStep",
-                                                                        "RansFSHighReKWall")
+                                                                        self.condition_name)
 
         Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
 
@@ -345,6 +345,20 @@ class FractionalStepVelocityPressureFormulation(Formulation):
 
     def GetModelPart(self):
         return self.fractional_step_model_part
+
+    def SetWallFunctionSettings(self, settings):
+        wall_function_region_type = "logarithmic_region_only"
+        if (settings.Has("wall_function_region_type")):
+            wall_function_region_type = settings[
+                "wall_function_region_type"].GetString()
+
+        if (wall_function_region_type == "logarithmic_region_only"):
+            self.condition_name = "RansFSHighReKWall"
+        else:
+            msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+            msg += "Supported wall function region types are:\n"
+            msg += "\tlogarithmic_region_only\n"
+            raise Exception(msg)
 
     def __CheckTransientConvergence(self, variable, settings):
         relative_error, absolute_error = RansVariableUtilities.CalculateTransientVariableConvergence(self.GetBaseModelPart(), variable)

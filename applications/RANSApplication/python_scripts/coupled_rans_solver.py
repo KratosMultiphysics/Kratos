@@ -41,6 +41,7 @@ class CoupledRANSSolver(PythonSolver):
             },
             "consider_periodic_conditions": false,
             "formulation_settings": {},
+            "wall_function_settings": {},
             "echo_level": 0,
             "volume_model_part_name": "volume_model_part",
             "skin_parts"   : [""],
@@ -96,6 +97,7 @@ class CoupledRANSSolver(PythonSolver):
         self.is_periodic = self.formulation.IsPeriodic()
 
         self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
+        self.formulation.SetWallFunctionSettings(self.settings["wall_function_settings"])
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if (scheme_type == "steady"):
             self.is_steady = True

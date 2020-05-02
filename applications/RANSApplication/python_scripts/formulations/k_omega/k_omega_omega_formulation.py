@@ -46,7 +46,7 @@ class KOmegaOmegaFormulation(Formulation):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def PrepareModelPart(self):
-        self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, "RansEvmKOmegaOmegaKBasedWallCondition")
+        self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, self.condition_name)
 
         Kratos.Logger.PrintInfo(self.GetName(),
                                 "Created formulation model part.")
@@ -148,3 +148,32 @@ class KOmegaOmegaFormulation(Formulation):
             self.scheme_type = CreateSteadyScalarScheme
         else:
             raise Exception("Unsupported stabilization method")
+
+    def SetWallFunctionSettings(self, settings):
+        wall_function_region_type = "logarithmic_region_only"
+        if (settings.Has("wall_function_region_type")):
+            wall_function_region_type = settings[
+                "wall_function_region_type"].GetString()
+
+        wall_friction_velocity_calculation_method = "velocity_based"
+        if (settings.Has("wall_friction_velocity_calculation_method")):
+            wall_friction_velocity_calculation_method = settings[
+                "wall_friction_velocity_calculation_method"].GetString()
+
+        if (wall_function_region_type == "logarithmic_region_only"):
+            if (wall_friction_velocity_calculation_method == "velocity_based"):
+                self.condition_name = "RansEvmKOmegaOmegaUBasedWallCondition"
+            elif (wall_friction_velocity_calculation_method ==
+                  "turbulent_kinetic_energy_based"):
+                self.condition_name = "RansEvmKOmegaOmegaKBasedWallCondition"
+            else:
+                msg = "Unsupported wall friction velocity calculation method. [ wall_friction_velocity_calculation_method = \"" + wall_friction_velocity_calculation_method + "\" ].\n"
+                msg += "Supported methods are:\n"
+                msg += "\tvelocity_based\n"
+                msg += "\tturbulent_kinetic_energy_based\n"
+                raise Exception(msg)
+        else:
+            msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+            msg += "Supported wall function region types are:\n"
+            msg += "\tlogarithmic_region_only\n"
+            raise Exception(msg)

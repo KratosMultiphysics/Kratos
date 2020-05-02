@@ -24,6 +24,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferIn
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetBoundaryFlags
 
+
 class KEpsilonHighReEpsilonFormulation(Formulation):
     def __init__(self, model_part, settings):
         super(KEpsilonHighReEpsilonFormulation,
@@ -46,35 +47,22 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def PrepareModelPart(self):
-        wall_function_type = self.settings["wall_function_type"].GetString()
-        if (wall_function_type == "turbulent_kinetic_energy_based_lhs"):
-            # this wall condition is most preferred, but since it is changing the LHS, positivity preserving quality of
-            # stabilization methods are not guranteed.
-            condition_name = "RansEvmKEpsilonEpsilonKBasedLHSWallCondition"
-        elif (wall_function_type == "turbulent_kinetic_energy_based_rhs"):
-            # this wall condition is more preferred, but fails if turbulent kinetic energy singularities is found,
-            # since this only changes RHS, stabilization guarantees positivity preservation
-            condition_name = "RansEvmKEpsilonEpsilonKBasedRHSWallCondition"
-        elif wall_function_type == "velocity_based_rhs":
-            # this one works even with turbulent kinetic energy singularities, since this also modifies only the RHS
-            # positivity preserving quality is guranteed
-            condition_name = "RansEvmKEpsilonEpsilonVelocityBasedWallCondition"
-        else:
-            raise Exception(
-                "Only \"turbulent_kinetic_energy_based_lhs\", \"turbulent_kinetic_energy_based_rhs\" and \"velocity_based_rhs\" wall function types supported. [ wall_function_type = \""
-                + wall_function_type + "\" ].")
-
-        self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, condition_name)
+        self.epsilon_model_part = CreateFormulationModelPart(
+            self, self.element_name, self.condition_name)
 
         Kratos.Logger.PrintInfo(self.GetName(),
                                 "Created formulation model part.")
 
     def Initialize(self):
-        VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.RANS_Y_PLUS, self.epsilon_model_part.Conditions)
-        VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.FRICTION_VELOCITY, self.epsilon_model_part.Conditions)
+        VariableUtils().SetNonHistoricalVariableToZero(
+            KratosRANS.RANS_Y_PLUS, self.epsilon_model_part.Conditions)
+        VariableUtils().SetNonHistoricalVariableToZero(
+            KratosRANS.FRICTION_VELOCITY, self.epsilon_model_part.Conditions)
 
         if (self.IsPeriodic()):
-            InitializePeriodicConditions(self.GetBaseModelPart(), self.epsilon_model_part, [KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE])
+            InitializePeriodicConditions(
+                self.GetBaseModelPart(), self.epsilon_model_part,
+                [KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE])
 
         solver_settings = self.settings
         linear_solver = CreateLinearSolver(
@@ -82,11 +70,12 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
         builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(
             linear_solver, self.IsPeriodic(), self.GetCommunicator())
         convergence_criteria = CreateResidualCriteria(
-                                self.settings["relative_tolerance"].GetDouble(),
-                                self.settings["absolute_tolerance"].GetDouble())
+            self.settings["relative_tolerance"].GetDouble(),
+            self.settings["absolute_tolerance"].GetDouble())
 
         if (self.is_steady_simulation):
-            scheme = self.scheme_type(self.settings["relaxation_factor"].GetDouble())
+            scheme = self.scheme_type(
+                self.settings["relaxation_factor"].GetDouble())
         else:
             scheme = CreateBossakScalarScheme(
                 self.epsilon_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA],
@@ -96,14 +85,13 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
                 KratosRANS.RANS_AUXILIARY_VARIABLE_2)
 
         self.solver = CreateResidualBasedNewtonRaphsonStrategy(
-            self.epsilon_model_part, scheme,
-            linear_solver, convergence_criteria, builder_and_solver, self.settings["max_iterations"].GetInt(), False,
-            False, False)
+            self.epsilon_model_part, scheme, linear_solver,
+            convergence_criteria, builder_and_solver,
+            self.settings["max_iterations"].GetInt(), False, False, False)
 
         builder_and_solver.SetEchoLevel(
             solver_settings["echo_level"].GetInt() - 3)
-        self.solver.SetEchoLevel(
-            solver_settings["echo_level"].GetInt() - 2)
+        self.solver.SetEchoLevel(solver_settings["echo_level"].GetInt() - 2)
         convergence_criteria.SetEchoLevel(
             solver_settings["echo_level"].GetInt() - 1)
 
@@ -142,9 +130,12 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
             elif (scheme_type == "transient"):
                 self.is_steady_simulation = False
             else:
-                raise Exception("Only \"steady\" and \"transient\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
+                raise Exception(
+                    "Only \"steady\" and \"transient\" scheme types supported. [ scheme_type = \""
+                    + scheme_type + "\" ]")
         else:
-            raise Exception("\"scheme_type\" is missing in time scheme settings")
+            raise Exception(
+                "\"scheme_type\" is missing in time scheme settings")
 
     def GetMaxCouplingIterations(self):
         return "N/A"
@@ -156,9 +147,8 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
         if (stabilization_method == "algebraic_flux_corrected"):
             self.element_name = "RansEvmKEpsilonEpsilonAFC"
             self.scheme_type = lambda x: CreateSteadyAlgeraicFluxCorrectedTransportScheme(
-                                                    x,
-                                                    GetBoundaryFlags(self.settings["boundary_flags"]),
-                                                    self.IsPeriodic())
+                x, GetBoundaryFlags(self.settings["boundary_flags"]),
+                self.IsPeriodic())
         elif (stabilization_method == "residual_based_flux_corrected"):
             self.element_name = "RansEvmKEpsilonEpsilonResidualBasedFC"
             self.scheme_type = CreateSteadyScalarScheme
@@ -167,3 +157,32 @@ class KEpsilonHighReEpsilonFormulation(Formulation):
             self.scheme_type = CreateSteadyScalarScheme
         else:
             raise Exception("Unsupported stabilization method")
+
+    def SetWallFunctionSettings(self, settings):
+        wall_function_region_type = "logarithmic_region_only"
+        if (settings.Has("wall_function_region_type")):
+            wall_function_region_type = settings[
+                "wall_function_region_type"].GetString()
+
+        wall_friction_velocity_calculation_method = "velocity_based"
+        if (settings.Has("wall_friction_velocity_calculation_method")):
+            wall_friction_velocity_calculation_method = settings[
+                "wall_friction_velocity_calculation_method"].GetString()
+
+        if (wall_function_region_type == "logarithmic_region_only"):
+            if (wall_friction_velocity_calculation_method == "velocity_based"):
+                self.condition_name = "RansEvmKEpsilonEpsilonUBasedWallCondition"
+            elif (wall_friction_velocity_calculation_method ==
+                  "turbulent_kinetic_energy_based"):
+                self.condition_name = "RansEvmKEpsilonEpsilonKBasedWallCondition"
+            else:
+                msg = "Unsupported wall friction velocity calculation method. [ wall_friction_velocity_calculation_method = \"" + wall_friction_velocity_calculation_method + "\" ].\n"
+                msg += "Supported methods are:\n"
+                msg += "\tvelocity_based\n"
+                msg += "\tturbulent_kinetic_energy_based\n"
+                raise Exception(msg)
+        else:
+            msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+            msg += "Supported wall function region types are:\n"
+            msg += "\tlogarithmic_region_only\n"
+            raise Exception(msg)

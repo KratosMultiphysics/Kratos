@@ -12,121 +12,85 @@ class MonolithicKEpsilonHighReTest(UnitTest.TestCase):
         self.print_output = False
 
     @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
-    def testMonolithicKEpsilonHighReAfcTkeLhs(self):
+    def testMonolithicKEpsilonHighReAfcTke(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "OpenMP", "algebraic_flux_corrected", "turbulent_kinetic_energy_based_lhs")
+            self._runTest(settings_file_name, "OpenMP", "algebraic_flux_corrected", "turbulent_kinetic_energy_based")
             kratos_utilities.DeleteTimeFiles(".")
 
     @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
-    def testMonolithicKEpsilonHighReAfcTkeRhs(self):
+    def testMonolithicKEpsilonHighReAfcVelocity(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "OpenMP", "algebraic_flux_corrected", "turbulent_kinetic_energy_based_rhs")
+            self._runTest(settings_file_name, "OpenMP", "algebraic_flux_corrected", "velocity_based")
             kratos_utilities.DeleteTimeFiles(".")
 
     @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
-    def testMonolithicKEpsilonHighReAfcVelocityRhs(self):
+    def testMonolithicKEpsilonHighReRfcTke(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "OpenMP", "algebraic_flux_corrected", "velocity_based_rhs")
+            self._runTest(settings_file_name, "OpenMP", "residual_based_flux_corrected", "turbulent_kinetic_energy_based")
             kratos_utilities.DeleteTimeFiles(".")
 
     @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
-    def testMonolithicKEpsilonHighReRfcTkeLhs(self):
+    def testMonolithicKEpsilonHighReRfcVelocity(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "OpenMP", "residual_based_flux_corrected", "turbulent_kinetic_energy_based_lhs")
-            kratos_utilities.DeleteTimeFiles(".")
-
-    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
-    def testMonolithicKEpsilonHighReRfcTkeRhs(self):
-        work_folder = "BackwardFacingStepTest"
-        settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
-
-        with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "OpenMP", "residual_based_flux_corrected", "turbulent_kinetic_energy_based_rhs")
-            kratos_utilities.DeleteTimeFiles(".")
-
-    @UnitTest.skipUnless(not km.IsDistributedRun(), "Running with MPI")
-    def testMonolithicKEpsilonHighReRfcVelocityRhs(self):
-        work_folder = "BackwardFacingStepTest"
-        settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
-
-        with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "OpenMP", "residual_based_flux_corrected", "velocity_based_rhs")
+            self._runTest(settings_file_name, "OpenMP", "residual_based_flux_corrected", "velocity_based")
             kratos_utilities.DeleteTimeFiles(".")
 
     @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
-    def testMonolithicKEpsilonHighReAfcTkeLhsMPI(self):
+    def testMonolithicKEpsilonHighReAfcTkeMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "MPI", "algebraic_flux_corrected", "turbulent_kinetic_energy_based_lhs")
+            self._runTest(settings_file_name, "MPI", "algebraic_flux_corrected", "turbulent_kinetic_energy_based")
             kratos_utilities.DeleteTimeFiles(".")
 
     @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
-    def testMonolithicKEpsilonHighReAfcTkeRhsMPI(self):
+    def testMonolithicKEpsilonHighReAfcVelocityMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "MPI", "algebraic_flux_corrected", "turbulent_kinetic_energy_based_rhs")
+            self._runTest(settings_file_name, "MPI", "algebraic_flux_corrected", "velocity_based")
             kratos_utilities.DeleteTimeFiles(".")
 
     @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
-    def testMonolithicKEpsilonHighReAfcVelocityRhsMPI(self):
+    def testMonolithicKEpsilonHighReRfcTkeMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "MPI", "algebraic_flux_corrected", "velocity_based_rhs")
+            self._runTest(settings_file_name, "MPI", "residual_based_flux_corrected", "turbulent_kinetic_energy_based")
             kratos_utilities.DeleteTimeFiles(".")
 
     @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
-    def testMonolithicKEpsilonHighReRfcTkeLhsMPI(self):
+    def testMonolithicKEpsilonHighReRfcVelocityMPI(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "MPI", "residual_based_flux_corrected", "turbulent_kinetic_energy_based_lhs")
+            self._runTest(settings_file_name, "MPI", "residual_based_flux_corrected", "velocity_based")
             kratos_utilities.DeleteTimeFiles(".")
 
-    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
-    def testMonolithicKEpsilonHighReRfcTkeRhsMPI(self):
-        work_folder = "BackwardFacingStepTest"
-        settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
-
-        with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "MPI", "residual_based_flux_corrected", "turbulent_kinetic_energy_based_rhs")
-            kratos_utilities.DeleteTimeFiles(".")
-
-    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
-    def testMonolithicKEpsilonHighReRfcVelocityRhsMPI(self):
-        work_folder = "BackwardFacingStepTest"
-        settings_file_name = "backward_facing_step_monolithic_k_epsilon_high_re_parameters.json"
-
-        with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._runTest(settings_file_name, "MPI", "residual_based_flux_corrected", "velocity_based_rhs")
-            kratos_utilities.DeleteTimeFiles(".")
-
-    def _runTest(self,settings_file_name, parallel_type, stabilization_method, condition_type):
+    def _runTest(self,settings_file_name, parallel_type, stabilization_method, wall_friction_calculation_method):
         model = km.Model()
         with open(settings_file_name,'r') as settings_file:
             file_data = settings_file.read()
 
         file_data = file_data.replace("<PARALLEL_TYPE>", parallel_type)
         file_data = file_data.replace("<STABILIZATION_METHOD>", stabilization_method)
-        file_data = file_data.replace("<CONDITION_TYPE>", condition_type)
+        file_data = file_data.replace("<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>", wall_friction_calculation_method)
         settings = km.Parameters(file_data)
 
         # to check the results: add output settings block if needed

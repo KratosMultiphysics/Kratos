@@ -622,7 +622,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ConvectionDiffusionReactionElement #" << Id();
+        rOStream << "CDR" << TConvectionDiffusionReactionData::GetName();
     }
 
     ///@}
