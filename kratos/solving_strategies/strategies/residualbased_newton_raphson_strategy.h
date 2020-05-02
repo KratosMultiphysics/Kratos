@@ -111,9 +111,6 @@ class ResidualBasedNewtonRaphsonStrategy
     /// Scheme factory
     typedef BaseFactory<TSchemeType> SchemeFactoryType;
 
-    /// Builder and solver factory
-    typedef BaseFactory< TBuilderAndSolverType, TLinearSolver > BuilderAndSolverFactoryType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -152,7 +149,14 @@ class ResidualBasedNewtonRaphsonStrategy
         mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
 
         // Setting up the default builder and solver
-        mpBuilderAndSolver = BuilderAndSolverFactoryType().Create(mpLinearSolver, ThisParameters["builder_and_solver_settings"]);
+        const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+        if (KratosComponents<ClassType>::Has( r_name )) {
+            mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(mpLinearSolver, ThisParameters["builder_and_solver_settings"]);
+        } else {
+            KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                            KratosComponents<TBuilderAndSolverType>() << std::endl;
+        }
 
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
