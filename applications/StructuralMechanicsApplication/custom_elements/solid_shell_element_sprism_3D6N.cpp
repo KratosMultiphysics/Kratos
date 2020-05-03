@@ -234,7 +234,7 @@ void SolidShellElementSprism3D6N::GetDofList(
 void SolidShellElementSprism3D6N::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -270,7 +270,7 @@ void SolidShellElementSprism3D6N::GetValuesVector(
 void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -306,7 +306,7 @@ void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
 void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);

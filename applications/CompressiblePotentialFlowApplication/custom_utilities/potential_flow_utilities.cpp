@@ -118,6 +118,84 @@ array_1d<double, Dim> ComputeVelocity(const Element& rElement)
 }
 
 template <int Dim, int NumNodes>
+double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section A.2 and Section 2.5
+
+    // maximum local squared mach number (user defined, 3.0 used as default)
+    const double max_local_mach_squared = rCurrentProcessInfo[MACH_SQUARED_LIMIT];
+
+    // read free stream values
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    // make squares of values
+    const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
+    const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
+    
+    // calculate velocity
+    const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
+    const double denominator = (2.0 + (heat_capacity_ratio - 1) * max_local_mach_squared );
+    const double factor = free_stream_velocity_squared * max_local_mach_squared / free_stream_mach_squared;
+    
+    return factor * numerator / denominator;
+}
+
+// This function returns the square of the magnitude of the velocity,
+// clamping it if it is over the maximum allowed
+template <int Dim, int NumNodes>
+double ComputeClampedVelocitySquared(
+    const array_1d<double, Dim>& rVelocity, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // compute max velocity allowed by limit Mach number
+    const double max_velocity_squared = ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+    double local_velocity_squared = inner_prod(rVelocity, rVelocity);
+
+    // check if local velocity should be changed
+    if (local_velocity_squared > max_velocity_squared)
+    {
+        KRATOS_WARNING("Clamped local velocity") << 
+        "SQUARE OF LOCAL VELOCITY ABOVE ALLOWED SQUARE OF VELOCITY"
+        << " local_velocity_squared  = " << local_velocity_squared
+        << " max_velocity_squared  = " << max_velocity_squared << std::endl;
+
+        local_velocity_squared = max_velocity_squared;
+    }
+
+    return local_velocity_squared;
+}
+
+template <int Dim, int NumNodes>
+double ComputeVelocityMagnitude(
+    const double localMachNumberSquared, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section A.2 and Section 2.5
+
+    // read free stream values
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    // make squares of values
+    const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
+    const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
+    
+    // calculate velocity
+    const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
+    const double denominator = (2.0 + (heat_capacity_ratio - 1) * localMachNumberSquared );
+    const double factor = free_stream_velocity_squared * localMachNumberSquared / free_stream_mach_squared;
+    
+    return factor * numerator / denominator;
+}
+
+template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 {
     ElementalData<NumNodes, Dim> data;
@@ -276,7 +354,51 @@ double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCur
         << "Error on element -> " << rElement.Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
-    return a_inf * sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
+    return a_inf * std::sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
+}
+
+template <int Dim, int NumNodes>
+double ComputeLocalSpeedofSoundSquared(
+    const array_1d<double, Dim>& rVelocity,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+
+    // read free stream values
+    const double free_stream_speed_sound = rCurrentProcessInfo[SOUND_VELOCITY];
+
+    // make squares of value
+    const double free_stream_speed_sound_squared = std::pow(free_stream_speed_sound,2);
+
+    // computes square of velocity including clamping according to MACH_SQUARED_LIMIT
+    const double local_velocity_squared = ComputeClampedVelocitySquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
+
+    // computes square bracket term with clamped velocity squared
+    const double speed_of_sound_factor = ComputeSquaredSpeedofSoundFactor<Dim, NumNodes>(local_velocity_squared, rCurrentProcessInfo);
+
+    return free_stream_speed_sound_squared * speed_of_sound_factor;
+}
+
+template <int Dim, int NumNodes>
+double ComputeSquaredSpeedofSoundFactor(
+    const double localVelocitySquared, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+
+    // read free stream values
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    // make squares of values
+    const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
+    const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
+
+    return 1.0 + 0.5*(heat_capacity_ratio - 1.0)*
+            free_stream_mach_squared*(1.0 - (localVelocitySquared/free_stream_velocity_squared));
 }
 
 template <int Dim, int NumNodes>
@@ -305,7 +427,7 @@ double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const Proce
         << "Error on element -> " << rElement.Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
-    return a_inf * sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
+    return a_inf * std::sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
 }
 
 template <int Dim, int NumNodes>
@@ -315,10 +437,56 @@ double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurre
     // Aerodynamics, The MIT Press, London
 
     array_1d<double, Dim> velocity = ComputeVelocity<Dim, NumNodes>(rElement);
-    const double velocity_module = sqrt(inner_prod(velocity, velocity));
+    const double velocity_module = std::sqrt(inner_prod(velocity, velocity));
     const double local_speed_of_sound = ComputeLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
 
     return velocity_module / local_speed_of_sound;
+}
+
+template <int Dim, int NumNodes>
+double ComputeLocalMachNumberSquared(
+    const array_1d<double, Dim>& rVelocity, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Implemented according to Equation 8.8 of 
+    // Drela, M. (2014) Flight VehicleAerodynamics, The MIT Press, London
+
+    const double local_speed_of_sound_squared = ComputeLocalSpeedofSoundSquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
+
+    // computes square of velocity including clamping according to MACH_SQUARED_LIMIT
+    const double local_velocity_squared = ComputeClampedVelocitySquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
+
+    return local_velocity_squared / local_speed_of_sound_squared;
+}
+
+template <int Dim, int NumNodes>
+double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(
+    const array_1d<double, Dim>& rVelocity,
+    const double localMachNumberSquared,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section A.2.3
+
+    // read free stream values
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    // make squares of values
+    const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
+    const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
+
+    // computes square of velocity including clamping according to MACH_SQUARED_LIMIT
+    const double local_velocity_squared = ComputeClampedVelocitySquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
+
+    // square bracket term
+    const double speed_of_sound_factor = ComputeSquaredSpeedofSoundFactor<Dim, NumNodes>(local_velocity_squared, rCurrentProcessInfo);
+
+    const double second_term_factor = 0.5 * (heat_capacity_ratio - 1.0) / free_stream_velocity_squared * free_stream_mach_squared;
+
+    return localMachNumberSquared * ((1.0 / local_velocity_squared) + second_term_factor / speed_of_sound_factor);
 }
 
 template <int Dim, int NumNodes>
@@ -332,7 +500,7 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
     for (unsigned int i = 0; i < Dim; i++){
         velocity[i] += free_stream_velocity[i];
     }
-    const double velocity_module = sqrt(inner_prod(velocity, velocity));
+    const double velocity_module = std::sqrt(inner_prod(velocity, velocity));
     const double local_speed_of_sound = ComputePerturbationLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
 
     return velocity_module / local_speed_of_sound;
@@ -432,13 +600,20 @@ template array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& r
 template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
+template double ComputeMaximumVelocitySquared<2, 3>(const ProcessInfo& rCurrentProcessInfo);
+template double ComputeClampedVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeVelocityMagnitude<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalSpeedofSoundSquared<2, 3>(const array_1d<double, 2>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+template double ComputeSquaredSpeedofSoundFactor<2, 3>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalMachNumberSquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
@@ -457,13 +632,20 @@ template array_1d<double, 3> ComputeVelocityNormalElement<3, 4>(const Element& r
 template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
+template double ComputeMaximumVelocitySquared<3, 4>(const ProcessInfo& rCurrentProcessInfo);
+template double ComputeClampedVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeVelocityMagnitude<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalSpeedofSoundSquared<3, 4>(const array_1d<double, 3>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+template double ComputeSquaredSpeedofSoundFactor<3, 4>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalMachNumberSquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
