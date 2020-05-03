@@ -1236,20 +1236,17 @@ public:
         KRATOS_CATCH("")
     }
 
-    /** Inserts a condition in the current mesh.
-     */
+    /// Creates new condition with a node ids list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, std::vector<IndexType> ConditionNodeIds,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /** Inserts a condition in the current mesh.
-     */
+    /// Creates new condition with a nodes list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /** Inserts a condition in the current mesh.
-     */
+    /// Creates new condtion with pointer to geometry.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, typename GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
