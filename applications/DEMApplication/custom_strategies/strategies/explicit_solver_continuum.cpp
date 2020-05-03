@@ -510,7 +510,7 @@ namespace Kratos {
         KRATOS_INFO("DEM") <<std::endl;
 
         if (iteration < maxiteration){
-            KRATOS_INFO("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value \e[1m" << current_coordination_number << "\e[0m using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
+            KRATOS_INFO("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << current_coordination_number << " using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
             KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
             //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
             r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = amplification;
