@@ -86,17 +86,6 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
-{
-    Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
-
-    for(unsigned int i = 0; i <NodeIdList.size(); i++) {
-        pConditionNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
-    }
-
-    return rModelPart.CreateNewCondition(ConditionName, Id, pConditionNodeList, pProperties);
-}
-
 // Nodes
 
 ModelPart::SizeType ModelPartNumberOfNodes1(ModelPart& rModelPart)
@@ -1010,7 +999,9 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CreateNewElement", [](ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id,
             ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
             {return rModelPart.CreateNewElement(ElementName, Id, pGeometry, pProperties);})
-        .def("CreateNewCondition", ModelPartCreateNewCondition)
+        .def("CreateNewCondition", [](ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id,
+            std::vector<ModelPart::IndexType> ConditionNodeIds, ModelPart::PropertiesType::Pointer pProperties)
+            {return rModelPart.CreateNewCondition(ConditionName, Id, ConditionNodeIds, pProperties); })
         .def("CreateNewCondition", [](ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, 
                                       ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
                                       {return rModelPart.CreateNewCondition(ConditionName, Id, pGeometry, pProperties);})
