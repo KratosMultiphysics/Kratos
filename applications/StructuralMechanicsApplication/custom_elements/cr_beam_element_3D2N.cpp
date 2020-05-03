@@ -93,7 +93,7 @@ void CrBeamElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -127,7 +127,7 @@ void CrBeamElement3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProces
     KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -153,7 +153,7 @@ void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step)
+void CrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
     if (rValues.size() != msElementSize) {
@@ -1543,7 +1543,7 @@ CrBeamElement3D2N::GetIntegrationMethod() const
 
 void CrBeamElement3D2N::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
