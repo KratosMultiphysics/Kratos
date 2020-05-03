@@ -124,10 +124,7 @@ class BaseFactory
 public:
     ///@name Type Definitions
     ///@{
-
-    /// The definition of the custom class
-    typedef BaseFactory<TClass, TAuxiliarClass> FactoryType;
-
+        
     /// The definition of the class
     typedef TClass ClassType;
 
