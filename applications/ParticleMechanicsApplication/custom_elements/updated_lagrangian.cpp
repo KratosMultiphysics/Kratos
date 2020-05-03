@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		BSD License
-//					Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
@@ -104,6 +104,11 @@ UpdatedLagrangian&  UpdatedLagrangian::operator=(UpdatedLagrangian const& rOther
 Element::Pointer UpdatedLagrangian::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
     return Element::Pointer( new UpdatedLagrangian( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+}
+
+Element::Pointer UpdatedLagrangian::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive< UpdatedLagrangian >(NewId, pGeom, pProperties);
 }
 
 //************************************CLONE*******************************************

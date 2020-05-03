@@ -106,6 +106,11 @@ Element::Pointer UpdatedLagrangianQuadrilateral::Create( IndexType NewId, NodesA
     return Element::Pointer( new UpdatedLagrangianQuadrilateral( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
+Element::Pointer UpdatedLagrangianQuadrilateral::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive< UpdatedLagrangianQuadrilateral >(NewId, pGeom, pProperties);
+}
+
 //************************************CLONE*******************************************
 //************************************************************************************
 

@@ -72,6 +72,11 @@ Element::Pointer UpdatedLagrangianAxisymmetry::Create( IndexType NewId, NodesArr
     return Element::Pointer( new UpdatedLagrangianAxisymmetry( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
+Element::Pointer UpdatedLagrangianAxisymmetry::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive< UpdatedLagrangianAxisymmetry >(NewId, pGeom, pProperties);
+}
+
 //************************************CLONE*******************************************
 //************************************************************************************
 

@@ -94,6 +94,12 @@ Element::Pointer UpdatedLagrangianUP::Create( IndexType NewId, NodesArrayType co
 {
     return Element::Pointer( new UpdatedLagrangianUP( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
+
+Element::Pointer UpdatedLagrangianUP::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive< UpdatedLagrangianUP >(NewId, pGeom, pProperties);
+}
+
 //************************************CLONE*******************************************
 //************************************************************************************
 
