@@ -86,17 +86,6 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
-{
-    Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
-
-    for(unsigned int i = 0; i < NodeIdList.size(); i++) {
-        pElementNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
-    }
-
-    return rModelPart.CreateNewElement(ElementName, Id, pElementNodeList, pProperties);
-}
-
 Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
@@ -1015,10 +1004,12 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
         .def("CreateNewNode", ModelPartCreateNewNode)
-        .def("CreateNewElement", ModelPartCreateNewElement)
-        .def("CreateNewElement", [](ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, 
-                                    ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
-                                    {return rModelPart.CreateNewElement(ElementName, Id, pGeometry, pProperties);})
+        .def("CreateNewElement", [](ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id,
+            std::vector<ModelPart::IndexType> ElementNodeIds, ModelPart::PropertiesType::Pointer pProperties)
+            {return rModelPart.CreateNewElement(ElementName, Id, ElementNodeIds, pProperties); })
+        .def("CreateNewElement", [](ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id,
+            ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
+            {return rModelPart.CreateNewElement(ElementName, Id, pGeometry, pProperties);})
         .def("CreateNewCondition", ModelPartCreateNewCondition)
         .def("CreateNewCondition", [](ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, 
                                       ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
