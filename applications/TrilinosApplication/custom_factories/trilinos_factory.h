@@ -43,7 +43,7 @@ typedef BuilderAndSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType, Trilin
 typedef Scheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType> TrilinosSchemeType;
 typedef ConvergenceCriteria<TrilinosSparseSpaceType,TrilinosLocalSpaceType> TrilinosConvergenceCriteriaType;
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<TrilinosSolvingStrategyType>;
+KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosSolvingStrategyType>;
 
 #ifdef KRATOS_REGISTER_TRILINOS_STRATEGY
 #undef KRATOS_REGISTER_TRILINOS_STRATEGY
@@ -51,7 +51,7 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Trilin
 #define KRATOS_REGISTER_TRILINOS_STRATEGY(name, reference) \
     KratosComponents<TrilinosSolvingStrategyType>::Add(name, reference);
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<TrilinosBuilderAndSolverType>;
+KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosBuilderAndSolverType>;
 
 #ifdef KRATOS_REGISTER_TRILINOS_BUILDER_AND_SOLVER
 #undef KRATOS_REGISTER_TRILINOS_BUILDER_AND_SOLVER
@@ -59,7 +59,7 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Trilin
 #define KRATOS_REGISTER_TRILINOS_BUILDER_AND_SOLVER(name, reference) \
     KratosComponents<TrilinosBuilderAndSolverType>::Add(name, reference);
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<TrilinosSchemeType>;
+KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosSchemeType>;
 
 #ifdef KRATOS_REGISTER_TRILINOS_SCHEME
 #undef KRATOS_REGISTER_TRILINOS_SCHEME
@@ -67,7 +67,7 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Trilin
 #define KRATOS_REGISTER_TRILINOS_SCHEME(name, reference) \
     KratosComponents<TrilinosSchemeType>::Add(name, reference);
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<TrilinosConvergenceCriteriaType>;
+KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosConvergenceCriteriaType>;
 
 #ifdef KRATOS_REGISTER_TRILINOS_CONVERGENCE_CRITERIA
 #undef KRATOS_REGISTER_TRILINOS_CONVERGENCE_CRITERIA
