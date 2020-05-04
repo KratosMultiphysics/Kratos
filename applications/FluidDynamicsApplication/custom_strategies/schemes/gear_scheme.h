@@ -28,7 +28,6 @@
 #include "includes/dof.h"
 #include "processes/process.h"
 #include "containers/pointer_vector_set.h"
-#include "utilities/openmp_utils.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -80,8 +79,6 @@ public:
 
     typedef Dof<TDataType> TDofType;
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
-
 
     ///@}
     ///@name Life Cycle
@@ -141,49 +138,27 @@ public:
     {
         KRATOS_TRY
 
-        int ErrorCode = BaseType::Check(rModelPart);
-        if (ErrorCode != 0) return ErrorCode;
-
-//            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+        // Base scheme check
+        int error_code = BaseType::Check(rModelPart);
+        if (error_code != 0) {
+            return error_code;
+        }
 
         // Check buffer size
-        if (rModelPart.GetBufferSize() < 3)
-            KRATOS_THROW_ERROR(std::logic_error, "GearScheme error: Insufficient buffer size for BDF2, should be at least 3, got ",rModelPart.GetBufferSize());
-
-        // Check that all required variables were registered
-        if(DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"TIME_STEP Key is 0. Check if all applications were correctly registered.","");
-        if(BDF_COEFFICIENTS.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"BDF_COEFFICIENTS Key is 0. Check if all applications were correctly registered.","");
-        if(OSS_SWITCH.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if all applications were correctly registered.","");
-
-        if(DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT Key is 0. Check if all applications were correctly registered.","");
-        if(VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if all applications were correctly registered.","");
-        if(MESH_VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if all applications were correctly registered.","");
-        if(ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.","");
-
-//            // Check that the ModelPart's ProcessInfo contains the required variables
-//            if(rCurrentProcessInfo.Has(DELTA_TIME) != true)
-//                KRATOS_THROW_ERROR(std::invalid_argument,"No value of DELTA_TIME defined in ProcessInfo for a model part passed to GearScheme","");
-//            if(rCurrentProcessInfo.Has(BDF_COEFFICIENTS) != true)
-//                KRATOS_THROW_ERROR(std::invalid_argument,"No value of BDF_COEFFICIENTS defined in ProcessInfo for a model part passed to GearScheme","");
-//            if(rCurrentProcessInfo.Has(OSS_SWITCH) != true)
-//                KRATOS_THROW_ERROR(std::invalid_argument,"No value of OSS_SWITCH defined in ProcessInfo for a model part passed to GearScheme","");
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 3)
+            << "Insufficient buffer size for BDF2, should be at least 3, got " << rModelPart.GetBufferSize() << std::endl;
 
         return 0;
+
         KRATOS_CATCH("");
     }
 
     /// Set the time iteration coefficients
-    void InitializeSolutionStep(ModelPart& rModelPart,
-                                        TSystemMatrixType& A,
-                                        TSystemVectorType& Dx,
-                                        TSystemVectorType& b) override
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
     {
         this->SetTimeCoefficients(rModelPart.GetProcessInfo());
 
@@ -191,40 +166,30 @@ public:
         BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
 
         // Recalculate mesh velocity (to account for variable time step)
+        const double tol = 1.0e-12;
         const double Dt = rModelPart.GetProcessInfo()[DELTA_TIME];
         const double OldDt = rModelPart.GetProcessInfo().GetPreviousSolutionStepInfo(1)[DELTA_TIME];
-        if(Dt != OldDt)
-        {
+        if(std::abs(Dt - OldDt) > tol) {
+            const int n_nodes = rModelPart.NumberOfNodes();
             const Vector& BDFcoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
 
-            // OpenMP partition
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::PartitionVector NodePartition;
-            OpenMPUtils::DivideInPartitions(rModelPart.NumberOfNodes(),NumThreads,NodePartition);
-
-            #pragma omp parallel
-            {
-                int k = OpenMPUtils::ThisThread();
-                ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
-                ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k+1];
-
-                for(ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-                {
-                    array_1d<double,3>& rMeshVel = itNode->FastGetSolutionStepValue(MESH_VELOCITY);
-                    const array_1d<double,3>& rDisp0 = itNode->FastGetSolutionStepValue(DISPLACEMENT);
-                    const array_1d<double,3>& rDisp1 = itNode->FastGetSolutionStepValue(DISPLACEMENT,1);
-                    const array_1d<double,3>& rDisp2 = itNode->FastGetSolutionStepValue(DISPLACEMENT,2);
-
-                    rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
-                }
+#pragma omp parallel for
+            for(int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto it_node = rModelPart.NodesBegin() + i_node;
+                auto& rMeshVel = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
+                const auto& rDisp0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                const auto& rDisp1 = it_node->FastGetSolutionStepValue(DISPLACEMENT,1);
+                const auto& rDisp2 = it_node->FastGetSolutionStepValue(DISPLACEMENT,2);
+                rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
             }
         }
     }
 
-    void InitializeNonLinIteration(ModelPart& rModelPart,
-                                           TSystemMatrixType& A,
-                                           TSystemVectorType& Dx,
-                                           TSystemVectorType& b) override
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -233,10 +198,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    void FinalizeNonLinIteration(ModelPart &rModelPart,
-                                         TSystemMatrixType &A,
-                                         TSystemVectorType &Dx,
-                                         TSystemVectorType &b) override
+    void FinalizeNonLinIteration(
+        ModelPart &rModelPart,
+        TSystemMatrixType &A,
+        TSystemVectorType &Dx,
+        TSystemVectorType &b) override
     {
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -250,46 +216,38 @@ public:
     }
 
     /// Start the iteration by providing a first approximation to the solution.
-    void Predict(ModelPart& rModelPart,
-                         DofsArrayType& rDofSet,
-                         TSystemMatrixType& A,
-                         TSystemVectorType& Dx,
-                         TSystemVectorType& b) override
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfNodes(), NumThreads, NodePartition);
-
+        const int n_nodes = rModelPart.NumberOfNodes();
         const Vector& BDFcoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
+        //TODO: I GUESS THIS WHAS ACCIDENTALLY MERGED WHILE DEBUGGING
         return;
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
+#pragma omp parallel for
+        for(int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            auto& rVel0 = it_node->FastGetSolutionStepValue(VELOCITY);
+            const auto& rVel1 = it_node->FastGetSolutionStepValue(VELOCITY,1);
+            const auto& rVel2 = it_node->FastGetSolutionStepValue(VELOCITY,2);
+            auto& rAcceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
 
-            ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
-            ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k+1];
+            // Predict velocities
+            if(!it_node->IsFixed(VELOCITY_X))
+                rVel0[0] = 2.00 * rVel1[0] - rVel2[0];
+            if(!it_node->IsFixed(VELOCITY_Y))
+                rVel0[1] = 2.00 * rVel1[1] - rVel2[1];
+            if(!it_node->IsFixed(VELOCITY_Z))
+                rVel0[2] = 2.00 * rVel1[2] - rVel2[2];
 
-            for(ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                array_1d<double,3>& rVel0 = itNode->FastGetSolutionStepValue(VELOCITY);
-                const array_1d<double,3>& rVel1 = itNode->FastGetSolutionStepValue(VELOCITY,1);
-                const array_1d<double,3>& rVel2 = itNode->FastGetSolutionStepValue(VELOCITY,2);
-                array_1d<double,3>& rAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
-
-                // Predict velocities
-                if(!itNode->IsFixed(VELOCITY_X))
-                    rVel0[0] = 2.00 * rVel1[0] - rVel2[0];
-                if(!itNode->IsFixed(VELOCITY_Y))
-                    rVel0[1] = 2.00 * rVel1[1] - rVel2[1];
-                if(!itNode->IsFixed(VELOCITY_Z))
-                    rVel0[2] = 2.00 * rVel1[2] - rVel2[2];
-
-                // Predict acceleration
-                rAcceleration = BDFcoefs[0] * rVel0 + BDFcoefs[1] * rVel1 + BDFcoefs[2] * rVel2;
-            }
+            // Predict acceleration
+            rAcceleration = BDFcoefs[0] * rVel0 + BDFcoefs[1] * rVel1 + BDFcoefs[2] * rVel2;
         }
 
         KRATOS_CATCH("")
@@ -303,11 +261,12 @@ public:
      * @param Dx Newton-Raphson iteration solution
      * @param b Newton-Raphson right hand side (unused)
      */
-    void Update(ModelPart& rModelPart,
-                        DofsArrayType& rDofSet,
-                        TSystemMatrixType& A,
-                        TSystemVectorType& Dx,
-                        TSystemVectorType& b) override
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -500,7 +459,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
     /// Calculate the coefficients for time iteration.
     /**
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME and BDF_COEFFICIENTS variables.
@@ -531,26 +489,19 @@ protected:
      * @param rDofSet Container for the Degrees of freedom in the system
      * @param Dx Solution of the linear system
      */
-    virtual void UpdateDofs(DofsArrayType& rDofSet,
-                            TSystemVectorType& Dx)
+    virtual void UpdateDofs(
+        DofsArrayType& rDofSet,
+        TSystemVectorType& Dx)
     {
         KRATOS_TRY
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
+        const int n_dof = rDofSet.size();
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
-
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
-            {
-                if (itDof->IsFree())
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
+#pragma omp parallel for
+        for (int i_dof = 0; i_dof < n_dof; ++i_dof) {
+            auto it_dof = rDofSet.begin() + i_dof;
+            if (it_dof->IsFree()) {
+                it_dof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, it_dof->EquationId());
             }
         }
 
@@ -562,44 +513,36 @@ protected:
      * @param rModelPart fluid ModelPart
      * @param rBDFcoefs Time stepping coefficients for this iteration.
      */
-    void UpdateAcceleration(ModelPart& rModelPart,
-                            const Vector& rBDFcoefs)
+    void UpdateAcceleration(
+        ModelPart& rModelPart,
+        const Vector& rBDFcoefs)
     {
         KRATOS_TRY
-
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfNodes(), NumThreads, NodePartition);
 
         const double Coef0 = rBDFcoefs[0];
         const double Coef1 = rBDFcoefs[1];
         const double Coef2 = rBDFcoefs[2];
+        const int n_nodes = rModelPart.NumberOfNodes();
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
+#pragma omp parallel for
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const auto& rVel0 = it_node->FastGetSolutionStepValue(VELOCITY);
+            const auto& rVel1 = it_node->FastGetSolutionStepValue(VELOCITY,1);
+            const auto& rVel2 = it_node->FastGetSolutionStepValue(VELOCITY,2);
+            auto& rAcceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
 
-            ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
-            ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k+1];
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                const array_1d<double,3>& rVel0 = itNode->FastGetSolutionStepValue(VELOCITY);
-                const array_1d<double,3>& rVel1 = itNode->FastGetSolutionStepValue(VELOCITY,1);
-                const array_1d<double,3>& rVel2 = itNode->FastGetSolutionStepValue(VELOCITY,2);
-                array_1d<double,3>& rAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
-
-                rAcceleration = Coef0 * rVel0 + Coef1 * rVel1 + Coef2 * rVel2;
-            }
+            rAcceleration = Coef0 * rVel0 + Coef1 * rVel1 + Coef2 * rVel2;
         }
 
         KRATOS_CATCH("")
     }
 
-    void CombineLHSContributions(LocalSystemMatrixType& rLHS,
-                                 LocalSystemMatrixType& rMass,
-                                 LocalSystemMatrixType& rDamp,
-                                 const ProcessInfo& rCurrentProcessInfo)
+    void CombineLHSContributions(
+        LocalSystemMatrixType& rLHS,
+        LocalSystemMatrixType& rMass,
+        LocalSystemMatrixType& rDamp,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         const double Coef0 = rCurrentProcessInfo.GetValue(BDF_COEFFICIENTS)[0];
         if (rMass.size1() != 0) noalias(rLHS) += Coef0 * rMass;
