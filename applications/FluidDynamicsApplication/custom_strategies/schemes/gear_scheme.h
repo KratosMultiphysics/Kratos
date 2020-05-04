@@ -232,8 +232,6 @@ public:
 
         const int n_nodes = rModelPart.NumberOfNodes();
         const Vector& BDFcoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
-        //TODO: I GUESS THIS WHAS ACCIDENTALLY MERGED WHILE DEBUGGING
-        return;
 
 #pragma omp parallel for
         for(int i_node = 0; i_node < n_nodes; ++i_node) {
