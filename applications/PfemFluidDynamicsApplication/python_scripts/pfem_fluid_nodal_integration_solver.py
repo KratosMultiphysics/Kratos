@@ -170,6 +170,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PROPERTY_ID)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
 
         print("::[Pfem Fluid Solver]:: Variables ADDED")
 
