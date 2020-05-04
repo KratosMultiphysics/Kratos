@@ -459,8 +459,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 
     /**
      * @brief This computes the total rotation matrix
-     * rotates from local to global coordinates
-     * http://mathworld.wolfram.com/EulerAngles.html
+     * rotates from local to global coordinates.
+     * The so-called "x convention" is used.
+     * Order of the rotations:
+     *    1. The first rotation PHI around the Z-axis
+     *    2. The second rotation THETA around the X'-axis
+     *    3. The third rotation HI around the former Z'-axis
+     * more info: http://mathworld.wolfram.com/EulerAngles.html
      */
     static void CalculateRotationOperator(
         const double EulerAngle1, // phi
