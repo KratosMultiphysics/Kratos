@@ -84,6 +84,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
 
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
+
     /// Node type definition
     typedef Node<3> NodeType;
 
