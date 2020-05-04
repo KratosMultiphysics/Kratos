@@ -999,7 +999,22 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
         {
             if(rNodeOneElementCandidates(i)->GetId() == rNodeTwoElementCandidates(j)->GetId())
             {
+                // assign upwind element
                 mpUpwindElement = rNodeOneElementCandidates(i);
+                
+                // get current element and upwind element center points
+                const GeometryType& r_upwind_element_geometry = rNodeOneElementCandidates(i)->GetGeometry();
+                const Point upwind_element_center = r_upwind_element_geometry.Center();
+                const Point current_element_center = rGeom.Center();
+                
+                // make vector pointing from current element to upwind element
+                vector<double> vector_to_upwind_element (3);
+                vector_to_upwind_element[0] = upwind_element_center[0] - current_element_center[0];
+                vector_to_upwind_element[1] = upwind_element_center[1] - current_element_center[1];
+                vector_to_upwind_element[2] = upwind_element_center[2] - current_element_center[2];
+                
+                this->SetValue(VECTOR_TO_UPWIND_ELEMENT, vector_to_upwind_element);
+                
                 break;
             }
         }
