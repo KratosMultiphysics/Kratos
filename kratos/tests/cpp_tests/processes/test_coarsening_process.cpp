@@ -25,7 +25,6 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "includes/gid_io.h"
 
 
 namespace Kratos {

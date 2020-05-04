@@ -19,8 +19,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
-#include "includes/kratos_application.h"
+#include "containers/variable.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {

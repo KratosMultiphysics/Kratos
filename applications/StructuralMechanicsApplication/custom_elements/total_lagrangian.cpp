@@ -508,21 +508,6 @@ bool TotalLagrangian::IsAxissymmetric() const
 {
     return (GetStrainSize() == 4);
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int  TotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-
-    return ier;
-
-    KRATOS_CATCH( "" );
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 

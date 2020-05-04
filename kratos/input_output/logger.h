@@ -245,41 +245,41 @@ namespace Kratos
 #define KRATOS_LOG_OCCURRENCES_LINE(line) kratos_log_loop_counter##line
 #define KRATOS_LOG_OCCURRENCES KRATOS_LOG_OCCURRENCES_LINE(__LINE__)
 
-#define KRATOS_INFO(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
-#define KRATOS_INFO_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
-#define KRATOS_INFO_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
-#define KRATOS_INFO_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
+#define KRATOS_INFO(label) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::INFO
+#define KRATOS_INFO_IF(label, conditional) if(conditional) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::INFO
+#define KRATOS_INFO_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::INFO
+#define KRATOS_INFO_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::INFO
 
-#define KRATOS_INFO_ALL_RANKS(label) KRATOS_INFO(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_INFO_IF_ALL_RANKS(label, conditional) KRATOS_INFO_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_INFO_ONCE_ALL_RANKS(label) KRATOS_INFO_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_INFO_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_INFO_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_INFO_ALL_RANKS(label) KRATOS_INFO(label) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_INFO_IF_ALL_RANKS(label, conditional) KRATOS_INFO_IF(label, conditional) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_INFO_ONCE_ALL_RANKS(label) KRATOS_INFO_ONCE(label) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_INFO_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_INFO_FIRST_N(label, logger_count) << Kratos::Logger::DistributedFilter::FromAllRanks()
 
-#define KRATOS_WARNING(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
-#define KRATOS_WARNING_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
-#define KRATOS_WARNING_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
-#define KRATOS_WARNING_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
+#define KRATOS_WARNING(label) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING
+#define KRATOS_WARNING_IF(label, conditional) if(conditional) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING
+#define KRATOS_WARNING_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING
+#define KRATOS_WARNING_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING
 
-#define KRATOS_WARNING_ALL_RANKS(label) KRATOS_WARNING(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_WARNING_IF_ALL_RANKS(label, conditional) KRATOS_WARNING_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_WARNING_ONCE_ALL_RANKS(label) KRATOS_WARNING_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_WARNING_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_WARNING_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_WARNING_ALL_RANKS(label) KRATOS_WARNING(label) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_WARNING_IF_ALL_RANKS(label, conditional) KRATOS_WARNING_IF(label, conditional) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_WARNING_ONCE_ALL_RANKS(label) KRATOS_WARNING_ONCE(label) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_WARNING_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_WARNING_FIRST_N(label, logger_count) << Kratos::Logger::DistributedFilter::FromAllRanks()
 
-#define KRATOS_DETAIL(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
-#define KRATOS_DETAIL_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
-#define KRATOS_DETAIL_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
-#define KRATOS_DETAIL_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
+#define KRATOS_DETAIL(label) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::DETAIL
+#define KRATOS_DETAIL_IF(label, conditional) if(conditional) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::DETAIL
+#define KRATOS_DETAIL_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::DETAIL
+#define KRATOS_DETAIL_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::DETAIL
 
-#define KRATOS_DETAIL_ALL_RANKS(label) KRATOS_DETAIL(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_DETAIL_IF_ALL_RANKS(label, conditional) KRATOS_DETAIL_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_DETAIL_ONCE_ALL_RANKS(label) KRATOS_DETAIL_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_DETAIL_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_DETAIL_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_DETAIL_ALL_RANKS(label) KRATOS_DETAIL(label) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_DETAIL_IF_ALL_RANKS(label, conditional) KRATOS_DETAIL_IF(label, conditional) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_DETAIL_ONCE_ALL_RANKS(label) KRATOS_DETAIL_ONCE(label) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_DETAIL_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_DETAIL_FIRST_N(label, logger_count) << Kratos::Logger::DistributedFilter::FromAllRanks()
 
 #ifdef KRATOS_DEBUG
-#define KRATOS_TRACE(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
-#define KRATOS_TRACE_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
-#define KRATOS_TRACE_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
-#define KRATOS_TRACE_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
+#define KRATOS_TRACE(label) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::TRACE
+#define KRATOS_TRACE_IF(label, conditional) if(conditional) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::TRACE
+#define KRATOS_TRACE_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::TRACE
+#define KRATOS_TRACE_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Kratos::Logger(label) << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::TRACE
 #else
 #define KRATOS_TRACE(label) if(false) KRATOS_WARNING(label)
 #define KRATOS_TRACE_IF(label, conditional) if(false) KRATOS_WARNING(label)
@@ -287,17 +287,17 @@ namespace Kratos
 #define KRATOS_TRACE_FIRST_N(label, logger_count) if(false) KRATOS_WARNING(label)
 #endif
 
-#define KRATOS_TRACE_ALL_RANKS(label) KRATOS_TRACE(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_TRACE_IF_ALL_RANKS(label, conditional) KRATOS_TRACE_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_TRACE_ONCE_ALL_RANKS(label) KRATOS_TRACE_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_TRACE_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_TRACE_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_TRACE_ALL_RANKS(label) KRATOS_TRACE(label) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_TRACE_IF_ALL_RANKS(label, conditional) KRATOS_TRACE_IF(label, conditional) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_TRACE_ONCE_ALL_RANKS(label) KRATOS_TRACE_ONCE(label) << Kratos::Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_TRACE_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_TRACE_FIRST_N(label, logger_count) << Kratos::Logger::DistributedFilter::FromAllRanks()
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
-#define KRATOS_CHECK_POINT(label) Logger(label) << Logger::Category::CHECKING
+#define KRATOS_CHECK_POINT(label) Kratos::Logger(label) << Kratos::Logger::Category::CHECKING
 #else
 #define KRATOS_CHECK_POINT(label) \
   if (false)                      \
-    Logger(label) << Logger::Category::CHECKING
+    Kratos::Logger(label) << Kratos::Logger::Category::CHECKING
 #endif
     ///@}
 
