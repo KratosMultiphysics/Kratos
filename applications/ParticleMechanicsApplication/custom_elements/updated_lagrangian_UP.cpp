@@ -431,7 +431,11 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight)
+void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, 
+    GeneralVariables& rVariables, 
+    Vector& rVolumeForce, 
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Contribution of the internal and external forces
     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
@@ -1027,9 +1031,9 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const Pr
     Vector N;
     this->MPMShapeFunctionPointValues(N, mMP.xg);
 
-    const bool is_consistent_mass_matrix = (rCurrentProcessInfo.Has(USE_CONSISTENT_MASS_MATRIX))
-        ? rCurrentProcessInfo.GetValue(USE_CONSISTENT_MASS_MATRIX)
-        : false;
+    const bool is_lumped_mass_matrix = (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
+        ? rCurrentProcessInfo.GetValue(COMPUTE_LUMPED_MASS_MATRIX)
+        : true;
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
@@ -1039,7 +1043,7 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const Pr
         rMassMatrix.resize(matrix_size, matrix_size, false);
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
 
-    if (is_consistent_mass_matrix) {
+    if (!is_lumped_mass_matrix) {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             for (IndexType j = 0; j < number_of_nodes; ++j) {
                 for (IndexType k = 0; k < dimension; ++k)
@@ -1245,6 +1249,12 @@ void UpdatedLagrangianUP::SetValuesOnIntegrationPoints(
 int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
+
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+    ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+    : false;
+    KRATOS_ERROR_IF(is_explicit)
+    << "Explicit time integration not implemented for Updated Lagrangian UP MPM Element";
 
     int correct = 0;
     correct = UpdatedLagrangian::Check(rCurrentProcessInfo);

@@ -198,7 +198,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "variable_name"   : "EXTERNAL_FORCES_VECTOR"
         }""")
 
-        exp_error = 'The input for "variable" "EXTERNAL_FORCES_VECTOR" is of variable type "Vector" which is not allowed, only the following variable types are allowed:\nBool, Integer, Unsigned Integer, Double, Component, Array'
+        exp_error = 'The input for "variable" "EXTERNAL_FORCES_VECTOR" is of variable type "Vector" which is not allowed, only the following variable types are allowed:\nBool, Integer, Unsigned Integer, Double, Array'
 
         with self.assertRaisesRegex(Exception, exp_error):
             CouplingInterfaceData(settings, self.model)
@@ -276,7 +276,19 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "variable_name"   : "FORCE_X"
         }""")
 
-        exp_error = '"FORCE" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
+        exp_error = '"FORCE_X" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        with self.assertRaisesRegex(Exception, exp_error):
+            coupling_data.Initialize()
+
+    def test_wrong_input_missing_solutionstepvar_double(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "TEMPERATURE"
+        }""")
+
+        exp_error = '"TEMPERATURE" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
 
         coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, exp_error):
