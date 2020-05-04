@@ -601,10 +601,15 @@ protected:
     void FullProjection(ModelPart& rModelPart)
     {
         const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
         // Initialize containers
-        for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
-        {
-            noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3); // "x"
+        const int n_nodes = rModelPart.NumberOfNodes();
+        const int n_elems = rModelPart.NumberOfElements();
+        const array_1d<double,3> zero_vect = ZeroVector(3);
+#pragma omp parallel for firstprivate(zero_vect)
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto ind = rModelPart.NodesBegin() + i_node;
+            noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = zero_vect; // "x"
             ind->FastGetSolutionStepValue(DIVPROJ) = 0.0; // "x"
             ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // "Ml"
         }
@@ -616,7 +621,7 @@ protected:
 
         // iteration variables
         unsigned int iter = 0;
-        array_1d<double,3> dMomProj = ZeroVector(3);
+        array_1d<double,3> dMomProj = zero_vect;
         double dMassProj = 0.0;
 
         double RelMomErr = 1000.0 * RelTol;
@@ -627,9 +632,11 @@ protected:
         while( ( (AbsMomErr > AbsTol && RelMomErr > RelTol) || (AbsMassErr > AbsTol && RelMassErr > RelTol) ) && iter < MaxIter)
         {
             // Reinitialize RHS
-            for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
+#pragma omp parallel for firstprivate(zero_vect)
+            for (int i_node = 0; i_node < n_nodes; ++i_node)
             {
-                noalias(ind->GetValue(ADVPROJ)) = ZeroVector(3); // "b"
+                auto ind = rModelPart.NodesBegin() + i_node;
+                noalias(ind->GetValue(ADVPROJ)) = zero_vect; // "b"
                 ind->GetValue(DIVPROJ) = 0.0; // "b"
                 ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // Reset because Calculate will overwrite it
             }
@@ -642,10 +649,10 @@ protected:
 
             // Compute new values
             array_1d<double, 3 > output;
-
-            for (typename ModelPart::ElementsContainerType::iterator elem = rModelPart.ElementsBegin(); elem != rModelPart.ElementsEnd(); elem++)
-            {
-                elem->Calculate(SUBSCALE_VELOCITY, output, rCurrentProcessInfo);
+#pragma omp parallel for private(output)
+            for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+                auto it_elem = rModelPart.ElementsBegin() + i_elem;
+                it_elem->Calculate(SUBSCALE_VELOCITY, output, rCurrentProcessInfo);
             }
 
             rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
@@ -655,8 +662,9 @@ protected:
             rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
 
             // Update iteration variables
-            for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
-            {
+#pragma omp parallel for
+            for (int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto ind = rModelPart.NodesBegin() + i_node;
                 const double Area = ind->FastGetSolutionStepValue(NODAL_AREA); // Ml dx = b - Mc x
                 dMomProj = ind->GetValue(ADVPROJ) / Area;
                 dMassProj = ind->GetValue(DIVPROJ) / Area;
@@ -664,7 +672,7 @@ protected:
                 RelMomErr += sqrt( dMomProj[0]*dMomProj[0] + dMomProj[1]*dMomProj[1] + dMomProj[2]*dMomProj[2]);
                 RelMassErr += fabs(dMassProj);
 
-                array_1d<double,3>& rMomRHS = ind->FastGetSolutionStepValue(ADVPROJ);
+                auto& rMomRHS = ind->FastGetSolutionStepValue(ADVPROJ);
                 double& rMassRHS = ind->FastGetSolutionStepValue(DIVPROJ);
                 rMomRHS += dMomProj;
                 rMassRHS += dMassProj;
@@ -686,25 +694,28 @@ protected:
             iter++;
         }
 
-        KRATOS_INFO_IF("GearScheme", rModelPart.GetCommunicator().MyPID() == 0)
-            << "Performed OSS Projection in " << iter << " iterations" << std::endl;
+        KRATOS_INFO("GearScheme") << "Performed OSS Projection in " << iter << " iterations" << std::endl;
     }
 
     void LumpedProjection(ModelPart& rModelPart)
     {
+        const int n_nodes = rModelPart.NumberOfNodes();
+        const int n_elems = rModelPart.NumberOfElements();
         const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        for (typename ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-        {
-            noalias(itNode->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
+        const array_1d<double,3> zero_vect = ZeroVector(3);
+#pragma omp parallel for firstprivate(zero_vect)
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto itNode = rModelPart.NodesBegin() + i_node;
+            noalias(itNode->FastGetSolutionStepValue(ADVPROJ)) = zero_vect;
             itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0;
             itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
         }
 
         array_1d<double, 3 > Out;
-
-        for (typename ModelPart::ElementsContainerType::iterator itElem = rModelPart.ElementsBegin(); itElem != rModelPart.ElementsEnd(); itElem++)
-        {
+#pragma omp parallel for private(Out)
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+            auto itElem = rModelPart.ElementsBegin() + i_elem;
             itElem->Calculate(ADVPROJ, Out, rCurrentProcessInfo);
         }
 
@@ -717,10 +728,11 @@ protected:
             this->PeriodicConditionProjectionCorrection(rModelPart);
         }
 
-        for (typename ModelPart::NodesContainerType::iterator iNode = rModelPart.NodesBegin(); iNode != rModelPart.NodesEnd(); iNode++)
-        {
-            if (iNode->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
-            {
+        const double zero_tol = 1.0e-12;
+#pragma omp parallel for firstprivate(zero_tol)
+        for (int i_node = 0; i_node < n_nodes; ++i_node){
+            auto iNode = rModelPart.NodesBegin() + i_node;
+            if (iNode->FastGetSolutionStepValue(NODAL_AREA) < zero_tol) {
                 iNode->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
             }
             const double Area = iNode->FastGetSolutionStepValue(NODAL_AREA);
@@ -728,8 +740,7 @@ protected:
             iNode->FastGetSolutionStepValue(DIVPROJ) /= Area;
         }
 
-        KRATOS_INFO_IF("GearScheme", rModelPart.GetCommunicator().MyPID() == 0)
-            << "Computing OSS projections" << std::endl;
+        KRATOS_INFO("GearScheme") << "Computing OSS projections" << std::endl;
     }
 
     /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
