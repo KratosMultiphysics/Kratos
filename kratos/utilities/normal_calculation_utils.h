@@ -162,16 +162,16 @@ public:
         VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
 
         for(auto & cond: rModelPart.Conditions()) {
-            for(auto & node: cond.GetGeometry() {
+            for(auto & node: cond.GetGeometry()) {
                 node.Set(VISITED, true);
             }
         }
 
-        rModelPart.GetCommunicator().SynchronizeAndNodalFlags();
+        rModelPart.GetCommunicator().SynchronizeAndNodalFlags(VISITED);
 
         for(auto & node: rModelPart.Nodes()) {
             if(node.Is(VISITED)) {
-                node.FastGetSolutionStepValue(NORMAL)) = zero;
+                node.FastGetSolutionStepValue(NORMAL) = zero;
             }
         }
 
