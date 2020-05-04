@@ -19,13 +19,16 @@ class FSI_2D_Test(TF.TestFactory):
     file_name = "fluid_element_tests/Test_2D_FSI/Test_2D_FSI"
     file_parameters = "fluid_element_tests/Test_2D_FSI/ProjectParameters.json"
 
+class Thermal_Coupling_2D_Test(TF.TestFactory):
+    file_name = "pfem_utilities_tests/2D_thermal_coupling/Test_2D_Thermal_Coupling_Refining"
+    file_parameters = "pfem_utilities_tests/2D_thermal_coupling/ProjectParameters.json"
 
 def SetTestSuite(suites):
     night_suite = suites['nightly']
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            Water_Sloshing_3D_Test,
+            Thermal_Coupling_2D_Test, Water_Sloshing_3D_Test
         ])
     )
 
