@@ -473,7 +473,7 @@ public:
                 rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
  #endif // ifdef KRATOS_USE_AMATRIX
-       } else {
+       } else { // Bounded-matrix case
             Matrix A(rInputMatrix);
             Matrix invA(rInvertedMatrix);
             
