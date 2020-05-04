@@ -102,18 +102,6 @@ public:
     {
         KRATOS_TRY
 
-        //resetting the normals
-        array_1d<double,3> zero = Vector(3);
-        noalias(zero) = ZeroVector(3);
-
-        for(ConditionsArrayType::iterator it =  rConditions.begin();
-                it !=rConditions.end(); it++)
-        {
-            Element::GeometryType& rNodes = it->GetGeometry();
-            for(unsigned int in = 0; in<rNodes.size(); in++)
-                noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
-        }
-
         //calculating the normals and storing on the conditions
         array_1d<double,3> An;
         if(dimension == 2)
