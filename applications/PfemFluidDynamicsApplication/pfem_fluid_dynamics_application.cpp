@@ -91,10 +91,6 @@ KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication() : Krato
 
 void KratosPfemFluidDynamicsApplication::Register()
 {
-  // calling base class register to register Kratos components
-  KratosApplication::Register();
-  //KratosFluidDynamicsApplication::Register();
-
   std::cout << "            ___  __           ___ _      _    _          " << std::endl;
   std::cout << "     KRATOS| _ \\/ _|___ _ __ | __| |_  _(_)__| |         " << std::endl;
   std::cout << "           |  _/  _/ -_) '  \\| _|| | || | / _` |         " << std::endl;

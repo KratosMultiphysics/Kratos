@@ -127,18 +127,12 @@ public:
     /// Pointer definition of ShockDetectionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ShockDetectionProcess);
 
-    /// Variable component type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > VariableComponentType;
-
     /// Node pointer type
     typedef typename Node<3>::Pointer NodePointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /// Default constructor.
-    ShockDetectionProcess() = default;
 
     /// Constructor with default shock sensor variable for double shock variable
     ShockDetectionProcess(
@@ -151,25 +145,7 @@ public:
     , mrModelPart(rModelPart)
     , mUpdateNodalAreaAtEachStep(UpdateNodalAreaAtEachStep)
     , mUpdateNodalNeighboursAtEachStep(UpdateNodalNeighboursAtEachStep)
-    , mShockVariableIsDouble(true)
     , mpShockDoubleVariable(&rShockDoubleVariable)
-    , mpShockGradientVariable(&rShockGradientVariable)
-    , mpShockSensorVariable(&SHOCK_SENSOR)
-    {}
-
-    /// Constructor with default shock sensor variable for component shock variable
-    ShockDetectionProcess(
-        ModelPart& rModelPart,
-        const VariableComponentType& rShockComponentVariable,
-        const Variable<array_1d<double,3>>& rShockGradientVariable,
-        const bool UpdateNodalAreaAtEachStep = false,
-        const bool UpdateNodalNeighboursAtEachStep = false)
-    : Process()
-    , mrModelPart(rModelPart)
-    , mUpdateNodalAreaAtEachStep(UpdateNodalAreaAtEachStep)
-    , mUpdateNodalNeighboursAtEachStep(UpdateNodalNeighboursAtEachStep)
-    , mShockVariableIsDouble(false)
-    , mpShockComponentVariable(&rShockComponentVariable)
     , mpShockGradientVariable(&rShockGradientVariable)
     , mpShockSensorVariable(&SHOCK_SENSOR)
     {}
@@ -186,26 +162,7 @@ public:
     , mrModelPart(rModelPart)
     , mUpdateNodalAreaAtEachStep(UpdateNodalAreaAtEachStep)
     , mUpdateNodalNeighboursAtEachStep(UpdateNodalNeighboursAtEachStep)
-    , mShockVariableIsDouble(true)
     , mpShockDoubleVariable(&rShockDoubleVariable)
-    , mpShockGradientVariable(&rShockGradientVariable)
-    , mpShockSensorVariable(&rShockSensorVariable)
-    {}
-
-    /// Constructor with custom shock sensor variable for component shock variable
-    ShockDetectionProcess(
-        ModelPart& rModelPart,
-        const VariableComponentType& rShockComponentVariable,
-        const Variable<array_1d<double,3>>& rShockGradientVariable,
-        const Variable<double>& rShockSensorVariable,
-        const bool UpdateNodalAreaAtEachStep = false,
-        const bool UpdateNodalNeighboursAtEachStep = false)
-    : Process()
-    , mrModelPart(rModelPart)
-    , mUpdateNodalAreaAtEachStep(UpdateNodalAreaAtEachStep)
-    , mUpdateNodalNeighboursAtEachStep(UpdateNodalNeighboursAtEachStep)
-    , mShockVariableIsDouble(false)
-    , mpShockComponentVariable(&rShockComponentVariable)
     , mpShockGradientVariable(&rShockGradientVariable)
     , mpShockSensorVariable(&rShockSensorVariable)
     {}
@@ -251,16 +208,6 @@ public:
      */
     void EdgeBasedShockDetection(
         const Variable<double>& rShockVariable,
-        const Variable<array_1d<double, 3>>& rShockGradientVariable);
-
-    /**
-     * @brief Perform edge based shock detection
-     * This method performs the edge based shock detection
-     * @param rShockVariable Component variable to perform the shock detection
-     * @param rShockGradientVariable Vector variable to calculate the shock variable gradients
-     */
-    void EdgeBasedShockDetection(
-        const VariableComponentType& rShockVariable,
         const Variable<array_1d<double, 3>>& rShockGradientVariable);
 
     /**
@@ -397,14 +344,8 @@ private:
     /// Flag to indicate if the nodal neighbours have been already computed
     bool mNodalNeighboursAlreadyComputed = false;
 
-    /// Flag to indicate if the shock variable type is double or component one
-    const bool mShockVariableIsDouble;
-
     /// Pointer to the shock detection double variable
     const Variable<double>* mpShockDoubleVariable = nullptr;
-
-    /// Pointer to the shock detection component variable
-    const VariableComponentType* mpShockComponentVariable = nullptr;
 
     /// Name of the shock detection gradient variable
     const Variable<array_1d<double,3>>* mpShockGradientVariable = nullptr;

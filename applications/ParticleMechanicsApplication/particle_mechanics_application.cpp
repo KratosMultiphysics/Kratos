@@ -97,8 +97,6 @@ namespace Kratos
 
     void KratosParticleMechanicsApplication::Register()
     {
-        // Calling base class register to register Kratos components
-        KratosApplication::Register();
         KRATOS_INFO("") << "    KRATOS  ____ __   ____ _____ _  ___ _   ____\n"
                         << "           |  _ |  \\ |  _ |_   _| |/   | | | ___|\n"
                         << "           |   _| \\ \\|    | | | | |   (  |_| _|_\n"
@@ -158,6 +156,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
+        KRATOS_REGISTER_VARIABLE(IS_COMPRESSIBLE)
 
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
@@ -253,6 +252,14 @@ namespace Kratos
 
         // Solver related variables
         KRATOS_REGISTER_VARIABLE(IGNORE_GEOMETRIC_STIFFNESS);
+
+        // Explicit time integration variables
+        KRATOS_REGISTER_VARIABLE(CALCULATE_MUSL_VELOCITY_FIELD)
+        KRATOS_REGISTER_VARIABLE(IS_EXPLICIT)
+        KRATOS_REGISTER_VARIABLE(IS_EXPLICIT_CENTRAL_DIFFERENCE)
+        KRATOS_REGISTER_VARIABLE(EXPLICIT_STRESS_UPDATE_OPTION)  
+        KRATOS_REGISTER_VARIABLE(CALCULATE_EXPLICIT_MP_STRESS)
+        KRATOS_REGISTER_VARIABLE(EXPLICIT_MAP_GRID_TO_MP)
     }
 
 }  // namespace Kratos.

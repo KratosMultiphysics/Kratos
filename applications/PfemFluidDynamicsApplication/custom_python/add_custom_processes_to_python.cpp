@@ -52,6 +52,7 @@
 #include "custom_processes/assign_vector_variable_to_pfem_conditions_process.hpp"
 #include "custom_processes/assign_vector_field_to_pfem_entities_process.hpp"
 #include "custom_processes/assign_scalar_field_to_pfem_entities_process.hpp"
+#include "custom_processes/update_conditions_on_free_surface_process.hpp"
 
 // Coupling with ConvectionDiffusionApplication processes
 #include "custom_processes/update_thermal_model_part_process.hpp"
@@ -199,6 +200,12 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(py::init< ModelPart &>())
         .def("Execute", &SetMeshVelocityForThermalCouplingProcess::Execute);
         ;
+
+	py::class_<UpdateConditionsOnFreeSurfaceProcess, UpdateConditionsOnFreeSurfaceProcess::Pointer, ProcessBaseType>(m, "UpdateConditionsOnFreeSurfaceProcess")
+	    .def(py::init<ModelPart &, Parameters>())
+	    .def("Execute", &UpdateConditionsOnFreeSurfaceProcess::Execute);
+	;
+    ;
 }
 
 } // namespace Python.
