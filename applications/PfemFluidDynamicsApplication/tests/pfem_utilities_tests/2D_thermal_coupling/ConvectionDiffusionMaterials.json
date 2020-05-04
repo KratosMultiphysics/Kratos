@@ -1,7 +1,7 @@
 {
     "properties" : [{
         "model_part_name" : "ThermalModelPart.Parts_Parts_Auto1",
-        "properties_id"   : 2,
+        "properties_id"   : 1,
         "Material"        : {
             "Variables" : {
                 "SPECIFIC_HEAT"     : 10.0,
