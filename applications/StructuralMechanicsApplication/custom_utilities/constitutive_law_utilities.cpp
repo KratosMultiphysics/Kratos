@@ -945,17 +945,17 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGr
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatrix(
     ConstitutiveLaw::Parameters& rValues,
-    Matrix& rAs,
-    Matrix& rAsInv
+    BoundedMatrixVoigtType& rAs,
+    BoundedMatrixVoigtType& rAsInv
 )
 {
     auto &r_mat_props = rValues.GetMaterialProperties();
     if (rAs.size1() != VoigtSize || rAs.size2() != VoigtSize) {
-        rAs.resize(VoigtSize, VoigtSize);
+        rAs.resize(VoigtSize, VoigtSize, false);
     }
     noalias(rAs) = ZeroMatrix(VoigtSize, VoigtSize);
     if (rAsInv.size1() != VoigtSize || rAsInv.size2() != VoigtSize) {
-        rAsInv.resize(VoigtSize, VoigtSize);
+        rAsInv.resize(VoigtSize, VoigtSize, false);
     }
     noalias(rAsInv) = ZeroMatrix(VoigtSize, VoigtSize);
     const Vector &r_iso_aniso_yield_ratios = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
@@ -982,14 +982,14 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatri
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>:: CalculateAnisotropicStrainMapperMatrix(
-    const Matrix& rAnisotropicElasticMatrix,
-    const Matrix& rIsotropicElasticMatrix,
-    const Matrix &rAs,
-    Matrix& rAe
+    const BoundedMatrixVoigtType& rAnisotropicElasticMatrix,
+    const BoundedMatrixVoigtType& rIsotropicElasticMatrix,
+    const BoundedMatrixVoigtType &rAs,
+    BoundedMatrixVoigtType& rAe
 )
 {
     if (rAe.size1() != VoigtSize || rAe.size2() != VoigtSize)
-        rAe.resize(VoigtSize, VoigtSize);
+        rAe.resize(VoigtSize, VoigtSize, false);
     noalias(rAe) = ZeroMatrix(VoigtSize, VoigtSize);
 
     Matrix inv_isotropic_elastic_matrix(VoigtSize, VoigtSize);
@@ -1005,11 +1005,11 @@ void ConstitutiveLawUtilities<TVoigtSize>:: CalculateAnisotropicStrainMapperMatr
 template<>
 void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(
     const double EulerAngle1,
-    Matrix& rRotationOperator
+    BoundedMatrixType& rRotationOperator
 )
 {
     if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
-        rRotationOperator.resize(Dimension, Dimension);
+        rRotationOperator.resize(Dimension, Dimension, false);
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
 
     const double cos_angle = std::cos(EulerAngle1 * Globals::Pi / 180.0);
@@ -1028,11 +1028,11 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(
 template<>
 void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler2(
     const double EulerAngle2,
-    Matrix& rRotationOperator
+    BoundedMatrixType& rRotationOperator
 )
 {
     if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
-        rRotationOperator.resize(Dimension, Dimension);
+        rRotationOperator.resize(Dimension, Dimension, false);
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
 
     const double cos_angle = std::cos(EulerAngle2 * Globals::Pi / 180.0);
@@ -1051,7 +1051,7 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler2(
 template<>
 void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler3(
     const double EulerAngle3,
-    Matrix& rRotationOperator
+    BoundedMatrixType& rRotationOperator
 )
 {
     ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
@@ -1065,11 +1065,11 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperator(
     const double EulerAngle1, // phi
     const double EulerAngle2, // theta
     const double EulerAngle3, // hi
-    Matrix& rRotationOperator // global to local coordinates
+    BoundedMatrixType& rRotationOperator // global to local coordinates
 )
 {
     if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
-        rRotationOperator.resize(Dimension, Dimension);
+        rRotationOperator.resize(Dimension, Dimension, false);
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
 
     const double pi_over_180 = Globals::Pi / 180.0;
@@ -1096,12 +1096,12 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperator(
 
 template<>
 void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
-    const Matrix& rEulerOperator,
-    Matrix& rVoigtOperator
+    const BoundedMatrixType& rEulerOperator,
+    BoundedMatrixVoigtType& rVoigtOperator
     )
 {
     if (rVoigtOperator.size1() != VoigtSize || rVoigtOperator.size2() != VoigtSize)
-        rVoigtOperator.resize(VoigtSize, VoigtSize);
+        rVoigtOperator.resize(VoigtSize, VoigtSize, false);
     rVoigtOperator.clear();
 
     const double l1 = rEulerOperator(0, 0);
@@ -1162,7 +1162,7 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
 
 template<>
 void ConstitutiveLawUtilities<6>::CalculateElasticMatrix(
-    Matrix& rElasticityTensor,
+    BoundedMatrixVoigtType& rElasticityTensor,
     const Properties& rMaterialProperties
     )
 {

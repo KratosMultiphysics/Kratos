@@ -76,13 +76,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
 
-    /// The definition of the bounded vector type
-    typedef array_1d<double, VoigtSize> BoundedVectorType;
-
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
 
-    /// The definition of the bounded matrix type with voigt size
+    /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
 
     /// Counted pointer of GenericAnisotropic3DLaw
@@ -324,7 +321,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericAnisotropic3DLaw
     }
 
     void CalculateOrthotropicElasticMatrix(
-        Matrix &rElasticityTensor,
+        BoundedMatrixVoigtType &rElasticityTensor,
         const Properties &rMaterialProperties);
 
     int Check(const Properties &rMaterialProperties,

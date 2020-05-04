@@ -414,8 +414,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateAnisotropicStressMapperMatrix(
         ConstitutiveLaw::Parameters &rValues,
-        Matrix &rAs,
-        Matrix& rAsInv
+        BoundedMatrixVoigtType &rAs,
+        BoundedMatrixVoigtType& rAsInv
         );
 
     /**
@@ -427,10 +427,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @note Eq.(2.35) S. Oller book: Comportamiento mecánico de los materiales compuestos
      */
     static void CalculateAnisotropicStrainMapperMatrix(
-        const Matrix& rAnisotropicElasticMatrix,
-        const Matrix& rIsotropicElasticMatrix,
-        const Matrix &rAs,
-        Matrix& rAe
+        const BoundedMatrixVoigtType& rAnisotropicElasticMatrix,
+        const BoundedMatrixVoigtType& rIsotropicElasticMatrix,
+        const BoundedMatrixVoigtType &rAs,
+        BoundedMatrixVoigtType& rAe
         );
 
     /**
@@ -439,7 +439,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler1(
         const double EulerAngle1,
-        Matrix &rRotationOperator
+        BoundedMatrixType &rRotationOperator
     );
 
     /**
@@ -448,7 +448,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler2(
         const double EulerAngle2,
-        Matrix &rRotationOperator
+        BoundedMatrixType &rRotationOperator
     );
 
     /**
@@ -457,7 +457,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler3(
         const double EulerAngle3,
-        Matrix &rRotationOperator
+        BoundedMatrixType &rRotationOperator
     );
 
     /**
@@ -474,7 +474,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const double EulerAngle1, // phi
         const double EulerAngle2, // theta
         const double EulerAngle3, // hi
-        Matrix &rRotationOperator
+        BoundedMatrixType &rRotationOperator
     );
 
     /**
@@ -484,8 +484,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * of finite element analysis"
      */
     static void CalculateRotationOperatorVoigt(
-        const Matrix &rOldOperator,
-        Matrix &rNewOperator
+        const BoundedMatrixType &rOldOperator,
+        BoundedMatrixVoigtType &rNewOperator
     );
 
     /**
@@ -493,7 +493,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * elastic constitutive matrix
      */
     static void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
+        BoundedMatrixVoigtType &rElasticityTensor,
         const Properties &rMaterialProperties
         );
 

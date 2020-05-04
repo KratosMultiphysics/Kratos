@@ -86,9 +86,15 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
-    //const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+    if (!flag_strain) {
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        this->CalculateCauchyGreenStrain(rValues, r_strain_vector);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
 
     // We create the rValues for the isotropic CL
     const auto it_cl_begin                    = r_material_properties.GetSubProperties().begin();
@@ -254,6 +260,13 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     const auto& r_props_iso_cl                = *(it_cl_begin);
     ConstitutiveLaw::Parameters values_iso_cl = rValues;
     values_iso_cl.SetMaterialProperties(r_props_iso_cl);
+
+    Flags& r_flags = rParameterValues.GetOptions();
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        this->CalculateCauchyGreenStrain(rValues, r_strain_vector);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
 
     // Here we compute the rotation tensors due to the angles of the local and global axes
     BoundedMatrixType rotation_matrix;
@@ -574,11 +587,11 @@ void GenericAnisotropic3DLaw::CalculateCauchyGreenStrain(
     )
 {
     // Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
+    const BoundedMatrixType& F = rValues.GetDeformationGradientF();
     KRATOS_DEBUG_ERROR_IF(F.size1()!= Dimension || F.size2() != Dimension)
         << "expected size of F " << Dimension << "x" << Dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
 
-    Matrix E_tensor = prod(trans(F), F);
+    BoundedMatrixType E_tensor = prod(trans(F), F);
     for(unsigned int i = 0; i < Dimension; ++i)
         E_tensor(i, i) -= 1.0;
     E_tensor *= 0.5;
