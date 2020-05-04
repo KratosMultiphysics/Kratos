@@ -161,7 +161,7 @@ public:
 
         VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
 
-        for(auto & cond: rModelPart.Conditions() {
+        for(auto & cond: rModelPart.Conditions()) {
             for(auto & node: cond.GetGeometry() {
                 node.Set(VISITED, true);
             }
