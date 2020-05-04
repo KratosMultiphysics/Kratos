@@ -173,7 +173,7 @@ public:
 
         for(auto & node: rModelPart.Nodes()) {
             if(node->Is(VISITED)) {
-                noalias((rNodes[in]).FastGetSolutionStepValue(NORMAL)) = zero;
+                node.FastGetSolutionStepValue(NORMAL)) = zero;
             }
         }
 
