@@ -26,10 +26,10 @@ namespace Kratos
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    // if ( ~(this->Is(INLET)) ) // not an inlet element
-    // {
+    if ( ~(this->Is(INLET)) ) // not an inlet element
+    {
         FindUpwindElement(rCurrentProcessInfo);
-    // }
+    }
 }
 
 template <int TDim, int TNumNodes>
