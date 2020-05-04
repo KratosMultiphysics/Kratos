@@ -488,14 +488,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         BoundedMatrixVoigtType &rNewOperator
     );
 
-    /**
-     * @brief This computes the isotropic 
-     * elastic constitutive matrix
-     */
-    static void CalculateElasticMatrix(
-        BoundedMatrixVoigtType &rElasticityTensor,
-        const Properties &rMaterialProperties
-        );
 
 private:
 
