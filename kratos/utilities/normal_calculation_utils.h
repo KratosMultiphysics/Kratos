@@ -25,6 +25,7 @@
 
 /* Project includes */
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 #include "includes/deprecated_variables.h"
 
 
@@ -160,18 +161,16 @@ public:
 
         VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
 
-        for(ConditionsArrayType::iterator it =  rConditions.begin();
-                it !=rConditions.end(); it++)
-        {
-            Element::GeometryType& rNodes = it->GetGeometry();
-            for(unsigned int in = 0; in<rNodes.size(); in++)
-                in->Set(VISITED, true);
+        for(auto & cond: rModelPart.Conditions() {
+            for(auto & node: cond.GetGeometry() {
+                node.Set(VISITED, true);
+            }
         }
 
         rModelPart.GetCommunicator().SynchronizeAndNodalFlags();
 
         for(auto & node: rModelPart.Nodes()) {
-            if(node->Is(VISITED)) {
+            if(node.Is(VISITED)) {
                 node.FastGetSolutionStepValue(NORMAL)) = zero;
             }
         }
