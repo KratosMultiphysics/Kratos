@@ -99,8 +99,8 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     if (flag_stress) {
 
         // Here we compute the rotation tensors due to the angles of the local and global axes
-        Matrix rotation_matrix(Dimension, Dimension), voigt_rotation_matrix(VoigtSize, VoigtSize),
-        inv_voigt_rotation_matrix(VoigtSize, VoigtSize);
+        BoundedMatrixType rotation_matrix;
+        BoundedMatrixVoigtType voigt_rotation_matrix, inv_voigt_rotation_matrix;
 
         if (r_material_properties.Has(EULER_ANGLE_PHI)   &&
             r_material_properties.Has(EULER_ANGLE_THETA) &&
@@ -123,9 +123,9 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         }
         
         // We compute the mappers As and Ae
-        Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
-        Matrix stress_mapper_inv(VoigtSize, VoigtSize); // The inverse of As
-        Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
+        BoundedMatrixVoigtType stress_mapper, strain_mapper;
+        BoundedMatrixVoigtType stress_mapper_inv; // The inverse of As
+        BoundedMatrixVoigtType isotropic_elastic_matrix, anisotropic_elastic_matrix;
 
         ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
         ConstitutiveLawUtilities<VoigtSize>::CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
@@ -167,7 +167,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
 /***********************************************************************************/
 
 void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
-    Matrix& rElasticityTensor,
+    BoundedMatrixVoigtType& rElasticityTensor,
     const Properties& rMaterialProperties)
 {
     KRATOS_TRY
@@ -256,7 +256,8 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     values_iso_cl.SetMaterialProperties(r_props_iso_cl);
 
     // Here we compute the rotation tensors due to the angles of the local and global axes
-    Matrix rotation_matrix(Dimension, Dimension), voigt_rotation_matrix(VoigtSize, VoigtSize);
+    BoundedMatrixType rotation_matrix;
+    BoundedMatrixVoigtType voigt_rotation_matrix;
 
     if (r_material_properties.Has(EULER_ANGLE_PHI)   &&
         r_material_properties.Has(EULER_ANGLE_THETA) &&
@@ -276,9 +277,9 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     }
     
     // We compute the mappers As and Ae
-    Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
-    Matrix stress_mapper_inv(VoigtSize, VoigtSize); // The inverse of As
-    Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
+    BoundedMatrixVoigtType stress_mapper, strain_mapper;
+    BoundedMatrixVoigtType stress_mapper_inv; // The inverse of As
+    BoundedMatrixVoigtType isotropic_elastic_matrix, anisotropic_elastic_matrix;
 
     ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
     ConstitutiveLawUtilities<VoigtSize>::CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
@@ -464,8 +465,8 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             values_iso_cl.SetMaterialProperties(r_props_iso_cl);
 
             // Here we compute the rotation tensors due to the angles of the local and global axes
-            Matrix rotation_matrix(Dimension, Dimension), voigt_rotation_matrix(VoigtSize, VoigtSize),
-            inv_voigt_rotation_matrix(VoigtSize, VoigtSize);
+            BoundedMatrixType rotation_matrix;
+            BoundedMatrixVoigtType voigt_rotation_matrix, inv_voigt_rotation_matrix;
 
             if (r_material_properties.Has(EULER_ANGLE_PHI)   &&
                 r_material_properties.Has(EULER_ANGLE_THETA) &&
@@ -488,9 +489,9 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             }
 
             // We compute the mappers As and Ae
-            Matrix stress_mapper(VoigtSize, VoigtSize), strain_mapper(VoigtSize, VoigtSize);
-            Matrix stress_mapper_inv(VoigtSize, VoigtSize); // The inverse of As
-            Matrix isotropic_elastic_matrix(VoigtSize, VoigtSize), anisotropic_elastic_matrix(VoigtSize, VoigtSize);
+            BoundedMatrixVoigtType stress_mapper, strain_mapper;
+            BoundedMatrixVoigtType stress_mapper_inv; // The inverse of As
+            BoundedMatrixVoigtType isotropic_elastic_matrix, anisotropic_elastic_matrix;
 
             ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rParameterValues, stress_mapper, stress_mapper_inv);
             ConstitutiveLawUtilities<VoigtSize>::CalculateElasticMatrix(isotropic_elastic_matrix, r_props_iso_cl); // takes the props of the iso cl
@@ -498,7 +499,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
                                                                                         isotropic_elastic_matrix, stress_mapper, 
                                                                                         strain_mapper);
-            Matrix invAe(VoigtSize, VoigtSize);
+            BoundedMatrixVoigtType invAe;
             double aux_det;
             MathUtils<double>::InvertMatrix(strain_mapper, invAe, aux_det);
 
