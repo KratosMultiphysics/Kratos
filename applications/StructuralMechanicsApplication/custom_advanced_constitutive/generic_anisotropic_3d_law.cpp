@@ -78,10 +78,6 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw
 
 void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    // this strain in the real anisotropic space
-    const Vector real_strain_vector         = rValues.GetStrainVector();
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
@@ -96,6 +92,10 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
+    // this strain in the real anisotropic space
+    const Vector real_strain_vector         = rValues.GetStrainVector();
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    
     // We create the rValues for the isotropic CL
     const auto it_cl_begin                    = r_material_properties.GetSubProperties().begin();
     const auto& r_props_iso_cl                = *(it_cl_begin);
@@ -251,6 +251,13 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw:
 
 void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
+    Flags& r_flags = rValues.GetOptions();
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        this->CalculateCauchyGreenStrain(rValues, r_strain_vector);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+
     // this strain in the real anisotropic space
     const Vector real_strain_vector         = rValues.GetStrainVector();
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -260,13 +267,6 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     const auto& r_props_iso_cl                = *(it_cl_begin);
     ConstitutiveLaw::Parameters values_iso_cl = rValues;
     values_iso_cl.SetMaterialProperties(r_props_iso_cl);
-
-    Flags& r_flags = rParameterValues.GetOptions();
-    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& r_strain_vector = rValues.GetStrainVector();
-        this->CalculateCauchyGreenStrain(rValues, r_strain_vector);
-        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    }
 
     // Here we compute the rotation tensors due to the angles of the local and global axes
     BoundedMatrixType rotation_matrix;
@@ -285,8 +285,8 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
                 (rotation_matrix),
                 voigt_rotation_matrix);
     } else {
-        noalias(rotation_matrix)           = IdentityMatrix(Dimension, Dimension);
-        noalias(voigt_rotation_matrix)     = IdentityMatrix(VoigtSize, VoigtSize);
+        noalias(rotation_matrix)       = IdentityMatrix(Dimension, Dimension);
+        noalias(voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
     }
     
     // We compute the mappers As and Ae
@@ -400,9 +400,8 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
         if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             this->CalculateCauchyGreenStrain(rParameterValues, rValue);
         } else {
-            rValue = rParameterValues.GetStrainVector();
+            noalias(rValue) = rParameterValues.GetStrainVector();
         }
-        KRATOS_WATCH(rValue)
         return rValue;
     } else if (rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
@@ -417,7 +416,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
 
         // We compute the stress
         this->CalculateMaterialResponsePK2(rParameterValues);
-        rValue = rParameterValues.GetStressVector();
+        noalias(rValue) = rParameterValues.GetStressVector();
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
@@ -437,12 +436,11 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
-        rValue = rParameterValues.GetStressVector();
+        noalias(rValue) = rParameterValues.GetStressVector();
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-        KRATOS_WATCH(rValue)
         return rValue;
 
     } else if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
@@ -517,10 +515,10 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             MathUtils<double>::InvertMatrix(strain_mapper, invAe, aux_det);
 
             // We mapp to the local anisotropic space
-            rValue = prod(invAe, r_plastic_strain);
+            noalias(rValue) = prod(invAe, r_plastic_strain);
 
             // We rotate to the global system
-            rValue = prod(inv_voigt_rotation_matrix, r_plastic_strain);
+            noalias(rValue) = prod(inv_voigt_rotation_matrix, r_plastic_strain);
             return rValue;
         }
     }
