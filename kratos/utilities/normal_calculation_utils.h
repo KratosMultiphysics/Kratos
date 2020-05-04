@@ -157,7 +157,6 @@ public:
     {   
         // Resetting the normals
         const array_1d<double,3> zero = ZeroVector(3);
-        noalias(zero) = ZeroVector(3);
 
         VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
 
