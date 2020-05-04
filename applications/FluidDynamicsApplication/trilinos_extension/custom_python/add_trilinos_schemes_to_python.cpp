@@ -45,9 +45,9 @@ void AddTrilinosSchemesToPython(pybind11::module& m)
 
     using TrilinosGearScheme = GearScheme<TrilinosSparseSpace, UblasLocalSpace>;
     py::class_< TrilinosGearScheme, typename TrilinosGearScheme::Pointer, TrilinosBaseScheme >( m,"TrilinosGearScheme")
-    .def(py::init<Process::Pointer >() )
-    .def(py::init<>()) // constructor without a turbulence model
-    .def(py::init<const Variable<int>&>()) // constructor for periodic conditions
+    .def(py::init<unsigned int>()) // constructor without a turbulence model
+    .def(py::init<unsigned int, Process::Pointer>() ) // constructor with a turbulence model
+    .def(py::init<unsigned int, const Variable<int>&>()) // constructor for periodic conditions
     ;
 
     using TrilinosVelocityBossakSchemeTurbulent = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TrilinosSparseSpace, UblasLocalSpace>;

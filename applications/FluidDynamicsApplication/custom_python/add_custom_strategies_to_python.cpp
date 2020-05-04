@@ -106,8 +106,8 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         GearScheme<SparseSpaceType, LocalSpaceType>,
         typename GearScheme<SparseSpaceType, LocalSpaceType>::Pointer,
         BaseSchemeType>(m, "GearScheme")
-    .def(py::init<>())                 // default constructor
-    .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
+    .def(py::init<int>())                 // default constructor
+    .def(py::init<int, Process::Pointer>()) // constructor passing a turbulence model
     ;
 
     // Convergence criteria

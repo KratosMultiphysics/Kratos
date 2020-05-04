@@ -28,6 +28,7 @@
 #include "includes/dof.h"
 #include "processes/process.h"
 #include "containers/pointer_vector_set.h"
+#include "utilities/coordinate_transformation_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -85,10 +86,10 @@ public:
     ///@{
 
     /// Default constructor.
-    GearScheme()
-        :
-        Scheme<TSparseSpace, TDenseSpace>(),
-        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    GearScheme(const unsigned int DomainSize)
+    : Scheme<TSparseSpace, TDenseSpace>()
+    , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    , mRotationTool(DomainSize, DomainSize + 1, SLIP)
     {}
 
     /// Constructor to use the formulation combined with a turbulence model.
@@ -98,21 +99,25 @@ public:
      * non-linear iteration.
      * @param pTurbulenceModel pointer to the turbulence model
      */
-    GearScheme(Process::Pointer pTurbulenceModel)
-        :
-        Scheme<TSparseSpace, TDenseSpace>(),
-        mpTurbulenceModel(pTurbulenceModel),
-        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    GearScheme(
+        const unsigned int DomainSize,
+        Process::Pointer pTurbulenceModel)
+        : Scheme<TSparseSpace, TDenseSpace>()
+        , mpTurbulenceModel(pTurbulenceModel)
+        , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+        , mRotationTool(DomainSize, DomainSize + 1, SLIP)
     {}
 
     /// Constructor for periodic boundary conditions.
     /**
      * @param rPeriodicVar the variable used to store periodic pair indices.
      */
-    GearScheme(const Kratos::Variable<int>& rPeriodicVar)
-        :
-        Scheme<TSparseSpace, TDenseSpace>(),
-        mrPeriodicIdVar(rPeriodicVar)
+    GearScheme(
+        const unsigned int DomainSize,
+        const Kratos::Variable<int>& rPeriodicVar)
+        : Scheme<TSparseSpace, TDenseSpace>()
+        , mrPeriodicIdVar(rPeriodicVar)
+        , mRotationTool(DomainSize, DomainSize + 1, SLIP)
     {}
 
 
@@ -270,10 +275,13 @@ public:
     {
         KRATOS_TRY
 
+        mRotationTool.RotateVelocities(rModelPart);
+
         mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
-        const Vector& BDFCoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
+        mRotationTool.RecoverVelocities(rModelPart);
 
+        const Vector& BDFCoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
         this->UpdateAcceleration(rModelPart,BDFCoefs);
 
         KRATOS_CATCH("")
@@ -306,6 +314,10 @@ public:
         this->CombineLHSContributions(LHS_Contribution,Mass,Damp,rCurrentProcessInfo);
         this->AddDynamicRHSContribution<Kratos::Element>(rCurrentElement,RHS_Contribution,Mass,rCurrentProcessInfo);
 
+        // Apply slip condition
+        mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+        mRotationTool.ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+
         KRATOS_CATCH("")
     }
 
@@ -333,6 +345,10 @@ public:
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
         this->AddDynamicRHSContribution<Kratos::Element>(rCurrentElement,RHS_Contribution,Mass,rCurrentProcessInfo);
+
+        // Apply slip condition
+        mRotationTool.Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
+        mRotationTool.ApplySlipCondition(RHS_Contribution, rCurrentElement.GetGeometry());
 
         KRATOS_CATCH("")
     }
@@ -364,6 +380,10 @@ public:
         this->CombineLHSContributions(LHS_Contribution,Mass,Damp,rCurrentProcessInfo);
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
 
+        // Apply slip condition
+        mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+        mRotationTool.ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+
         KRATOS_CATCH("")
     }
 
@@ -391,6 +411,10 @@ public:
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
+
+        // Apply slip condition
+        mRotationTool.Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
+        mRotationTool.ApplySlipCondition(RHS_Contribution, rCurrentCondition.GetGeometry());
 
         KRATOS_CATCH("")
     }
@@ -822,6 +846,8 @@ private:
     Process::Pointer mpTurbulenceModel = nullptr;
 
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
+    CoordinateTransformationUtils<LocalSystemMatrixType, LocalSystemVectorType, double> mRotationTool;
 
     const Kratos::Variable<int>& mrPeriodicIdVar;
 
