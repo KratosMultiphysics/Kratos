@@ -250,8 +250,8 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const int num_nodes  = num_dim + 1;
 
     const double tau = 0.5;
-    const double penalty_curvature = 1.0e5; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
-    const double penalty_phi0 = 1.0e5;
+    const double penalty_curvature = 1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
+    const double penalty_phi0 = 0.0e0;
     //const double dissipative_coefficient = 1.0e-8;
 
     GeometryData::ShapeFunctionsGradientsType DN_DX;  

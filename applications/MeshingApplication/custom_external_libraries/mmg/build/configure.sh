@@ -7,13 +7,13 @@ cmake .. \
 -DCMAKE_CXX_FLAGS="-O3 -msse3 -fPIC -fopenmp"               \
 -DCMAKE_C_FLAGS="-O3 -msse3 -fPIC -fopenmp"                 \
 -DLIBMMG_SHARED=ON                                       \
--DLIBMMG_STATIC=OFF                                       \
+-DLIBMMG_STATIC=ON                                       \
 -DLIBMMGS_SHARED=ON                                      \
--DLIBMMGS_STATIC=OFF                                      \
+-DLIBMMGS_STATIC=ON                                      \
 -DLIBMMG2D_SHARED=ON                                     \
--DLIBMMG2D_STATIC=OFF                                     \
+-DLIBMMG2D_STATIC=ON                                     \
 -DLIBMMG3D_SHARED=ON                                     \
--DLIBMMG3D_STATIC=OFF                                     \
+-DLIBMMG3D_STATIC=ON                                     \
 # If you ha modern processor use this instructions instead (look the whole list here https://software.intel.com/sites/landingpage/IntrinsicsGuide/)
 # With relatively new (Intel i7 2013 works with -maxvx)
 # -DCMAKE_CXX_FLAGS="-O3 -mavx2 -fPIC -fopenmp"               \
@@ -21,5 +21,5 @@ cmake .. \
 
 #decomment this to have it verbose
 # make VERBOSE=1 -j4
-make -j4
+make -j2
 # sudo make install

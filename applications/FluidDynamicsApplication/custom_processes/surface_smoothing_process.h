@@ -37,6 +37,7 @@
 #include "utilities/variable_utils.h" //Now necessary!
 #include "processes/compute_nodal_gradient_process.h"
 #include "custom_utilities/element_size_calculator.h"
+#include "includes/deprecated_variables.h" //For IS_STRUCTURED
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"

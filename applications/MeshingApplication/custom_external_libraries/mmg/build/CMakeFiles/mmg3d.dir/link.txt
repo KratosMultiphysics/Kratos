@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wno-char-subscripts -O3 -msse3 -fPIC -fopenmp -O3 -DNDEBUG  -rdynamic CMakeFiles/mmg3d.dir/src/mmg3d/mmg3d.c.o  -o bin/mmg3d_O3 lib/libmmg3d.a -lm 

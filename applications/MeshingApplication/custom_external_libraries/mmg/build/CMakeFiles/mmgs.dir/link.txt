@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wno-char-subscripts -O3 -msse3 -fPIC -fopenmp -O3 -DNDEBUG  -rdynamic CMakeFiles/mmgs.dir/src/mmgs/mmgs.c.o  -o bin/mmgs_O3 lib/libmmgs.a -lm 

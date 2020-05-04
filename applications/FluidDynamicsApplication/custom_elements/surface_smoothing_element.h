@@ -24,6 +24,7 @@
 // Project includes
 #include "includes/element.h"
 #include "custom_utilities/element_size_calculator.h"
+#include "includes/deprecated_variables.h" //For IS_STRUCTURED
 
 // Include Base headers
 #include "includes/checks.h"

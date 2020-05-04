@@ -230,12 +230,12 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Function to visualize the divergence field
+    /// Function to visualize the divergence field and the contact angle
 
     /**
-     * @brief Get the Value On Integration Points object (used to visualize the divergence field)
+     * @brief Get the Value On Integration Points object (used to visualize the divergence field and the contact angle)
      *
-     * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE)
+     * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE and CONTACT_ANGLE)
      * @param rValues Vector for the values at the Gauss integration points
      * @param rCurrentProcessInfo ProcessInfo object
      */
@@ -243,6 +243,19 @@ public:
                                         std::vector<double> &rValues,
                                         const ProcessInfo &rCurrentProcessInfo ) override;
 
+    /**
+     * @brief Calculate the Value On Integration Points object (used to visualize the contact angle)
+     * CalculateOnIntegrationPoints seems to be deprecated!
+     *
+     * @param rVariable Variable to be retrieved (implementation supports CONTACT_ANGLE)
+     * @param rOutput Vector for the values at the Gauss integration points
+     * @param rCurrentProcessInfo ProcessInfo object
+     */
+
+    void CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Friends
@@ -754,6 +767,7 @@ private:
      * Added the effect of contact line for an open interface.
      * @param rData Element data container
      * @param coefficient surface tension coefficient
+     * @param coefficientS solid surface contact net coefficient
      * @param zeta dissipative coefficient at the contact line
      * @param rCurvature curvature calculated at the interface gauss points
      * @param rIntWeights Weights associated with interface gauss points
@@ -769,6 +783,7 @@ private:
     void SurfaceTension(
         const TElementData& rData,
         const double coefficient,
+        const double coefficientS,
         const double zeta,
         const Kratos::Vector& rCurvature,
         const Kratos::Vector& rIntWeights,

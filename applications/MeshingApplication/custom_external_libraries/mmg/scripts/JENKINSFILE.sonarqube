@@ -1,0 +1,77 @@
+node('mmg-sonnar-new') {
+   def list = ['ON','OFF']
+    stage('GitClone'){
+        checkout([$class: 'GitSCM', branches: [[name: '*/develop']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/MmgTools/mmg.git']]])
+        step([$class: 'LastChangesPublisher', since:'PREVIOUS_REVISION',specificRevision: '', format: 'LINE', matchWordsThreshold: '0.25', matching: 'NONE', matchingMaxComparisons: '1000', showFiles: true, synchronisedScroll: true])
+
+    }
+
+    for ( i=0; i<list.size(); i++ ) {
+    stage('buildPattern'+list[i]){
+        sh '''#!/bin/bash -l
+        mkdir -p buildPattern'''+list[i]+'''
+        cd buildPattern'''+list[i]+'''
+        rm -rf *
+        export CFLAGS="-O0 -g -fPIC --coverage -Wall -Wunused-parameter -Wundef -Wno-long-long -Wsign-compare -Wmissing-prototypes -Wstrict-prototypes -Wcomment -pedantic -fdiagnostics-show-option"
+        export LDFLAGS="--coverage"
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DPATTERN='''+list[i]+''' -DBUILD_TESTING=ON -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" -DCMAKE_INSTALL_PREFIX=$PWD/../install -DBUILD_TESTING=ON -DLONG_TESTS=OFF -DRUN_AGAIN=ON -DLIBMMG2D_STATIC=ON -DLIBMMG3D_STATIC=ON -DLIBMMG_STATIC=ON -DLIBMMG2D_STATIC=ON -DLIBMMGS_STATIC=ON -DTEST_LIBMMG=ON -DTEST_LIBMMG2D=ON -DTEST_LIBMMG3D=ON -DTEST_LIBMMGS=ON -DSCOTCH_DIR=/home/ci/scotch_6.0.6 -DSCOTCH_LIBRARIES=/builds/scotch_6.0.6/lib/libscotch.a -DUSE_SCOTCH=ON -DELAS_DIR=/home/ci/LinearElasticity -DUSE_ELAS=ON
+        make clean
+        scan-build -plist --intercept-first --analyze-headers -o analyzer_reports make 2>&1 |tee mmg-build.log
+        make install |tee -a mmg-build.log
+        '''
+    }
+    try {
+        stage('Test'+list[i]){
+            sh '''#!/bin/bash -l
+            cd buildPattern'''+list[i]+'''
+            ctest --no-compress-output -T Test -V || /usr/bin/true
+            lcov --directory . --capture --output-file mmg-pattern'''+list[i]+'''.lcov
+            '''
+        }
+    } catch (Exception err) {
+        echo "Tests failed..."
+    }
+    }
+
+    stage('Analysis'){
+        sh '''#!/bin/bash -l
+        lcov -a buildPatternON/mmg-patternON.lcov -a buildPatternOFF/mmg-patternOFF.lcov -o mmg.lcov
+        python /builds/sonar/lcov-to-cobertura-xml-1.6/lcov_cobertura/lcov_cobertura.py mmg.lcov --output mmg-coverage.xml
+        export CPPCHECK_INCLUDES="-IbuildPatternON/include -IbuildPatternOFF/include -IbuildPatternON/src/common -IbuildPatternOFF/src/common"
+        export SOURCES_TO_ANALYZE="./src"
+        cppcheck  -v -f --language=c --platform=unix64 --check-config --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem ${CPPCHECK_INCLUDES} ${SOURCES_TO_ANALYZE} 2> mmg-cppcheck.xml
+        /usr/local/bin/rats -w 3 --xml ${SOURCES_TO_ANALYZE} > mmg-rats.xml
+        export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+        export SONAR_SCANNER_OPTS="-Xms512m -Xmx1024m"
+        export version_mmg=develop
+        cat > sonar-project.properties << EOF
+sonar.host.url=https://sonarqube.inria.fr/sonarqube
+sonar.links.homepage=http://www.mmgtools.org/
+#sonar.links.ci=
+sonar.links.scm=https://github.com/MmgTools/mmg.git
+sonar.links.issue=https://github.com/MmgTools/mmg/issues
+sonar.projectKey=cardamom:mmg:github:develop
+sonar.projectDescription=open source software for bidimensional and tridimensional remeshing
+sonar.projectVersion=$version_mmg
+sonar.language=c
+sonar.sources=./src
+sonar.sourceEncoding=UTF-8
+sonar.c.suffixes.sources=.c
+sonar.c.suffixes.headers=.h
+sonar.c.errorRecoveryEnabled=True
+sonar.c.includeDirectories=src/common, src/mmg, src/mmg3d, src/mmg2d, src/mmgs, build/src/mmg2d, build/src/mmg3d, build/src/mmgs, build/src/common, build/include, bu\
+ild/src
+sonar.c.compiler.charset=UTF-8
+sonar.c.compiler.parser=GCC
+sonar.c.compiler.regex=^(.*):(\\\\d+):\\\\d+: warning: (.*)\\\\[(.*)\\\\]$
+sonar.c.compiler.reportPath=mmg-build.log
+sonar.c.coverage.reportPath=mmg-coverage.xml
+sonar.c.cppcheck.reportPath=mmg-cppcheck.xml
+sonar.c.rats.reportPath=mmg-rats.xml
+sonar.c.clangsa.reportPath=*/analyzer_reports/*/*.plist
+#sonar.c.vera.reportPath=mmg-vera.xml
+EOF
+        /builds/sonar/sonar-scanner-3.2.0.1227-linux/bin/sonar-scanner -Dsonar.login=`cat /builds/mmg-token`
+        '''
+    }
+}

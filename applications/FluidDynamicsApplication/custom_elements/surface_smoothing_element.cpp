@@ -226,21 +226,32 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     const int num_dim  = 3;
     const int num_nodes  = num_dim + 1;
+    const unsigned int num_faces = num_nodes;
 
-    GeometryType::Pointer p_geom = this->pGetGeometry();
-    const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
-    const double epsilon = 1.0e-1*he*he;
+    const double dt = 0.000001; //rCurrentProcessInfo.GetValue(DELTA_TIME);
+
+    //GeometryType::Pointer p_geom = this->pGetGeometry();
+    //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
+    const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry());
+    const double epsilon = 1.0e3*dt*he*he;
     //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 
     array_1d<double,num_nodes> N; //dimension = number of nodes . Position of the gauss point 
-    array_1d<double,num_nodes> tempVdof; //dimension = number of DOFs . . since we are using a residualbased approach
-    array_1d<double,num_nodes> tempVold; //dimension = number of DOFs . . since we are using a residualbased approach
-    //array_1d<double,num_nodes> tempRHS = ZeroVector(num_nodes);  
+
+    array_1d<double,num_nodes> PHIdof; //dimension = number of DOFs . . since we are using a residualbased approach
+    array_1d<double,num_nodes> PHIold; //dimension = number of DOFs . . since we are using a residualbased approach
+    array_1d<VectorType,num_nodes> GradPHIold; 
+
     BoundedMatrix<double,num_nodes,num_nodes> tempM;
     tempM = ZeroMatrix(num_nodes,num_nodes);
+    BoundedMatrix<double,num_nodes,num_nodes> tempMlumped;
+    tempMlumped = ZeroMatrix(num_nodes,num_nodes);
     BoundedMatrix<double,num_nodes,num_nodes> tempA;
     tempA = ZeroMatrix(num_nodes,num_nodes);
+
+    array_1d<double,num_nodes> tempLaplacianRHS = ZeroVector(num_nodes); 
+    array_1d<double,num_nodes> tempBCRHS = ZeroVector(num_nodes); 
 
     // num_dof = num_nodes
     if(rLeftHandSideMatrix.size1() != num_nodes)
@@ -260,24 +271,152 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     // Subtracting the dirichlet term
     // RHS -= LHS*DUMMY_UNKNOWNs
 
+    /* bool has_solid_contact = false;
+    VectorType solid_normal = ZeroVector(num_dim);
     for(unsigned int i = 0; i<num_nodes; i++){
-        tempVold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-        tempVdof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_AUX);
+        if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0)
+        {
+            has_solid_contact = true;
+            solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
+            const double norm = Kratos::norm_2(solid_normal);
+            solid_normal = (1.0/norm)*solid_normal;
+            //KRATOS_INFO("Smoothing, found contact") << solid_normal << std::endl;
+            break;
+        }
+    } 
+
+    VectorType n_dot_grad = ZeroVector(num_nodes);
+    if (has_solid_contact){
+        for(unsigned int i = 0; i<num_nodes; i++){
+            for (unsigned int k = 0; k<num_dim; k++){
+                n_dot_grad(i) += solid_normal(k)*DN_DX(i,k);
+            }
+        }
+    } */
+    
+    for(unsigned int i = 0; i<num_nodes; i++){
+        PHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+        PHIdof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_AUX);
+        GradPHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
+    }
+
+    for(unsigned int i = 0; i<num_nodes; i++){
+        tempMlumped(i,i) = area*N[i];
 
         for(unsigned int j = 0; j<num_nodes; j++){
             tempM(i,j) = area*N[i]*N[j];
 
             for (unsigned int k = 0; k<num_dim; k++){
                 tempA(i,j) += area*epsilon*DN_DX(i,k)*DN_DX(j,k);
+
+                tempLaplacianRHS[i] += area*epsilon*DN_DX(i,k)*N[j]*(GradPHIold[j])[k];
             }
 
-            //tempRHS(i) += epsilon*DN_DX(j,0)*GetGeometry()[j].FastGetSolutionStepValue(DISTANCE_GRADIENT_X)*area*N[i];
-            //tempRHS(i) += epsilon*DN_DX(j,1)*GetGeometry()[j].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y)*area*N[i];
-            //tempRHS(i) += epsilon*DN_DX(j,2)*GetGeometry()[j].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z)*area*N[i];
+            //tempA(i,j) -= 0.5*area*epsilon*n_dot_grad(i)*n_dot_grad(j);
+
         }
     }
-    noalias(rLeftHandSideMatrix) = (tempM + tempA);
-    noalias(rRightHandSideVector) = prod(tempM,tempVold) /* + prod(tempA,tempVold) */ /* + tempRHS */ - prod(rLeftHandSideMatrix,tempVdof); //Phi_smooth + epsilon*laplacian(Phi_smooth) = Phi_old
+
+    //KRATOS_INFO("SurfaceSmoothingElement") << "Start BC" << std::endl;
+    ///////////////////////////////////////////////////////////////////////////////
+    GeometryType::GeometriesArrayType faces = GetGeometry().GenerateFaces();
+
+    bool not_found_surface = true;
+    unsigned int i_face = 0;
+
+    while (i_face < num_faces && not_found_surface) {
+        GeometryType& r_face = faces[i_face];
+        unsigned int contact_node = 0;
+        const unsigned int num_face_nodes = num_nodes - 1;
+        for (unsigned int i=0; i < num_face_nodes; ++i){
+            if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
+                contact_node++;
+            }
+        }
+
+        if (contact_node == num_face_nodes){
+            not_found_surface = false;
+
+            //MatrixType FaceShapeFunctions;
+            //GeometryType::ShapeFunctionsGradientsType FaceShapeFunctionsGradients;
+            //Kratos::Vector FaceWeights;
+
+            //VectorType solid_normal = ZeroVector(num_dim);
+            //VectorType distance_grad = ZeroVector(num_dim);
+
+            auto IntegrationMethod = GeometryData::GI_GAUSS_1;
+            const unsigned int num_int_pts = (faces[i_face]).IntegrationPointsNumber(IntegrationMethod);
+
+            //FaceShapeFunctions.resize(n_int_pts, n_nodes, false);
+            //FaceShapeFunctionsGradients.resize(n_int_pts, false);
+            //FaceWeights.resize(n_int_pts, false);
+
+            std::vector < GeometryType::CoordinatesArrayType > face_gauss_pts_gl_coords, face_gauss_pts_loc_coords;
+            face_gauss_pts_gl_coords.clear();
+            face_gauss_pts_loc_coords.clear();
+            face_gauss_pts_gl_coords.reserve(num_int_pts);
+            face_gauss_pts_loc_coords.reserve(num_int_pts);
+
+            //std::vector< IntegrationPoint<3> > face_gauss_pts;
+            auto face_gauss_pts = (faces[i_face]).IntegrationPoints(IntegrationMethod);
+
+            VectorType face_jacobians;
+            (faces[i_face]).DeterminantOfJacobian(face_jacobians, IntegrationMethod);
+
+            // Get the original geometry shape function and gradients values over the intersection
+            for (unsigned int i_gauss = 0; i_gauss < num_int_pts; ++i_gauss) {
+                // Store the Gauss points weights
+               const double face_weight = face_jacobians(i_gauss) * face_gauss_pts[i_gauss].Weight();
+
+                // Compute the global coordinates of the face Gauss pt.
+                GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
+                global_coords = (faces[i_face]).GlobalCoordinates(global_coords, face_gauss_pts[i_gauss].Coordinates());
+
+                // Compute the parent geometry local coordinates of the Gauss pt.
+                GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
+                loc_coords = GetGeometry().PointLocalCoordinates(loc_coords, global_coords);
+
+                // Compute shape function values
+                // Obtain the parent subgeometry shape function values
+                double det_jac;
+                Kratos::Vector face_shape_func;
+                face_shape_func = GetGeometry().ShapeFunctionsValues(face_shape_func, loc_coords);
+
+                double temp_value = 0.0;
+
+                for (unsigned int i = 0; i < num_nodes; i++){
+
+                    VectorType solid_normal = ZeroVector(num_dim);
+                    if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0)
+                    {
+                        solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
+                        const double norm = Kratos::norm_2(solid_normal);
+                        solid_normal = (1.0/norm)*solid_normal;
+                    }
+
+                    temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, GradPHIold[i]);
+                }
+
+                for (unsigned int i = 0; i < num_nodes; i++){
+                    tempBCRHS[i] += epsilon * temp_value * face_weight * face_shape_func(i);
+                }
+            }
+        }
+        
+        i_face++;
+    }
+    ///////////////////////////////////////////////////////////////////////////////
+    //KRATOS_INFO("SurfaceSmoothingElement") << "End BC" << std::endl;
+
+    //const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+
+    //if (step == 1){
+        noalias(rLeftHandSideMatrix) = tempM + tempA; // + tempMlumped;
+        noalias(rRightHandSideVector) = /* -tempLaplacianRHS + */ tempBCRHS + prod(tempM,PHIold) - prod(rLeftHandSideMatrix,PHIdof);
+    //} else {
+    //    noalias(rLeftHandSideMatrix) = tempM; //+ tempA; // + tempMlumped;
+    //    noalias(rRightHandSideVector) = tempLaplacianRHS - tempBCRHS + prod(tempM,PHIold) - prod(rLeftHandSideMatrix,PHIdof);
+    //}  
 
     KRATOS_CATCH("");
 }

@@ -1,0 +1,26 @@
+Determining if the function SCOTCH_graphInit exists failed with the following output:
+Change Dir: /home/mhashemi/programming/Git/Kratos-working/applications/MeshingApplication/custom_external_libraries/mmg/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c19a0/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c19a0.dir/build.make CMakeFiles/cmTC_c19a0.dir/build
+make[1]: Entering directory '/home/mhashemi/programming/Git/Kratos-working/applications/MeshingApplication/custom_external_libraries/mmg/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c19a0.dir/CheckFunctionExists.c.o
+/usr/bin/cc  -I/usr/include/scotch  -Wno-char-subscripts -O3 -msse3 -fPIC -fopenmp -DCHECK_FUNCTION_EXISTS=SCOTCH_graphInit   -o CMakeFiles/cmTC_c19a0.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.13/Modules/CheckFunctionExists.c
+make[1]: *** No rule to make target '/home/mhashemi/programming/Git/Kratos-working/libs/libscotch.so', needed by 'cmTC_c19a0'.  Stop.
+make[1]: Leaving directory '/home/mhashemi/programming/Git/Kratos-working/applications/MeshingApplication/custom_external_libraries/mmg/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_c19a0/fast] Error 2
+
+
+Determining if the function SCOTCH_graphInit exists failed with the following output:
+Change Dir: /home/mhashemi/programming/Git/Kratos-working/applications/MeshingApplication/custom_external_libraries/mmg/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_86ac5/fast"
+/usr/bin/make -f CMakeFiles/cmTC_86ac5.dir/build.make CMakeFiles/cmTC_86ac5.dir/build
+make[1]: Entering directory '/home/mhashemi/programming/Git/Kratos-working/applications/MeshingApplication/custom_external_libraries/mmg/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_86ac5.dir/CheckFunctionExists.c.o
+/usr/bin/cc  -I/usr/include/scotch  -Wno-char-subscripts -O3 -msse3 -fPIC -fopenmp -DCHECK_FUNCTION_EXISTS=SCOTCH_graphInit   -o CMakeFiles/cmTC_86ac5.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.13/Modules/CheckFunctionExists.c
+make[1]: *** No rule to make target '/home/mhashemi/programming/Git/Kratos-working/libs/libscotch.so', needed by 'cmTC_86ac5'.  Stop.
+make[1]: Leaving directory '/home/mhashemi/programming/Git/Kratos-working/applications/MeshingApplication/custom_external_libraries/mmg/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_86ac5/fast] Error 2
+
+

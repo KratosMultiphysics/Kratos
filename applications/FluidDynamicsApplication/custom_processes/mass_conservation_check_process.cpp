@@ -19,6 +19,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/find_nodal_h_process.h"
 #include "custom_utilities/fluid_element_utilities.h"
+#include "includes/deprecated_variables.h" //For IS_STRUCTURED
 
 // Application includes
 #include "mass_conservation_check_process.h"
@@ -619,7 +620,9 @@ void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
     #pragma omp parallel for
     for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
         ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
-        i_node->FastGetSolutionStepValue( DISTANCE ) += deltaDist;
+        //if (i_node->GetValue(IS_STRUCTURE) == 0.0){
+            i_node->FastGetSolutionStepValue( DISTANCE ) += deltaDist;
+        //}
     }
 }
 

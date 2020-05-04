@@ -16,6 +16,8 @@
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
+#define PI 3.14159265358979
+
 namespace Kratos
 {
 
@@ -81,15 +83,18 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
+    this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
+
     if (TElementData::ElementManagesTimeIntegration){
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
-        const double beta_in = 0.0e0;
-        const double beta_out = 0.0e0;
-        const double beta_contact = 0.0e0;
-        const double zeta = 0.0e0;
-        const double surface_tension_coefficient = 0.01; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
+        const double beta_in = 1.0e0;
+        const double beta_out = 1.0e0;
+        const double beta_contact = 1.0e0;
+        const double zeta = 1.0e0;
+        const double surface_tension_coefficient = 0.1; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
+        const double contact_line_coefficient = 0.5*surface_tension_coefficient;
 
         ContactSurfaceDissipation(
             data,
@@ -250,6 +255,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 SurfaceTension(
                     data,
                     surface_tension_coefficient,
+                    contact_line_coefficient,
                     zeta,
                     gauss_pts_curvature,
                     int_gauss_pts_weights,
@@ -3526,7 +3532,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
                 for (unsigned int dim = 0; dim < NumDim; dim++){
                     rhs[ j*(NumDim+1) + dim ] -= coefficient*contact_vector[dim]*rCLWeights(clgp)*rCLShapeFunctions(clgp,j);
-                    rhs[ j*(NumDim+1) + dim ] -= 0.0*coefficient*wall_tangent[dim]*rCLWeights(clgp)*rCLShapeFunctions(clgp,j);
+                    rhs[ j*(NumDim+1) + dim ] -= 1.0*coefficient*wall_tangent[dim]*rCLWeights(clgp)*rCLShapeFunctions(clgp,j);
                     //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
                     //KRATOS_INFO("Cut Element, has contact line, RHS") << rhs[ j*(NumDim+1) + dim ] << std::endl;               
                 }
@@ -3553,6 +3559,7 @@ template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     const TElementData& rData,
     const double coefficient,
+    const double coefficientS,
     const double zeta,
     const Kratos::Vector& rCurvature,
     const Kratos::Vector& rIntWeights,
@@ -3633,15 +3640,16 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
                 for (unsigned int dimi = 0; dimi < NumDim; dimi++){
                     rhs[ i*(NumDim+1) + dimi ] -= coefficient*contact_vector[dimi]*rCLWeights(clgp)*rCLShapeFunctions(clgp,i);
-                    rhs[ i*(NumDim+1) + dimi ] -= 1.0*coefficient*wall_tangent[dimi]*rCLWeights(clgp)*rCLShapeFunctions(clgp,i); //Contac-line tangential force
+                    rhs[ i*(NumDim+1) + dimi ] += coefficientS*wall_tangent[dimi]*rCLWeights(clgp)*rCLShapeFunctions(clgp,i); //Contac-line tangential force
                     //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
                     //KRATOS_INFO("Cut Element, has contact line, RHS") << rhs[ j*(NumDim+1) + dim ] << std::endl;
 
                     for (unsigned int j = 0; j < NumNodes; j++){
-                        for (unsigned int dimj = 0; dimj < NumDim; dimj++){
-                            lhs_dissipation( i*(NumDim+1) + dimi, j*(NumDim+1) + dimj) += 
+                        //for (unsigned int dimj = 0; dimj < NumDim; dimj++){ //Be carefull not to confuse
+                            // Dimension_j is useless since the force acts in the dimension_i direction
+                            lhs_dissipation( i*(NumDim+1) + dimi, j*(NumDim+1) + dimi) += 
                                 zeta * rCLWeights(clgp) * rCLShapeFunctions(clgp,j) * rCLShapeFunctions(clgp,i);
-                        }
+                        //}
                     }
                 }
             }
@@ -3649,6 +3657,10 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
         noalias(rLHS) += lhs_dissipation;
         noalias(rRHS) -= prod(lhs_dissipation,tempU);
+
+        const double angle = acos (inner_prod(wall_tangent,contact_vector)) * 180.0 / PI;
+        //KRATOS_INFO("HasContact") << angle << std::endl;
+        this->SetValue(CONTACT_ANGLE, angle);
     }
 
     for (unsigned int i=0; i < NumNodes; ++i){
@@ -3657,7 +3669,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
         if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
             if (HasContactLine){
-                (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+                //(*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
                 (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector;
             }
         }
@@ -3822,6 +3834,8 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
                                                                         std::vector<double> &rValues,
                                                                         const ProcessInfo &rCurrentProcessInfo )
 {
+    //KRATOS_INFO("GetValueOnIntegrationPoints") << "CALLED!" << std::endl;
+
     if (rVariable == DIVERGENCE){
 
         const auto& rGeom = this->GetGeometry();
@@ -3849,6 +3863,33 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
                 }
             }
             rValues[i_gauss] = DVi_DXi;
+        }
+    }
+    else if (/* this->Has( rVariable) && */ rVariable == CONTACT_ANGLE) {
+        GeometryType::Pointer p_geom = this->pGetGeometry();
+        //const auto& r_geometry = GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& integration_points = 
+            p_geom->IntegrationPoints(GeometryData::GI_GAUSS_1); //p_geom->GetDefaultIntegrationMethod());
+
+        //const auto& rGeom = this->GetGeometry();
+        //const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        //const unsigned int num_gauss = IntegrationPoints.size();
+
+        const std::size_t number_of_integration_points = integration_points.size();
+
+        if ( rValues.size() != number_of_integration_points ) {
+            rValues.resize( number_of_integration_points );
+        }
+
+        //KRATOS_INFO("CalculateOnIntegrationPoints") << "CALLED!" << std::endl;
+        
+        const double value = this->GetValue( CONTACT_ANGLE);
+        for (std::size_t point_number = 0; point_number < number_of_integration_points; ++point_number) {
+            rValues[point_number] = value;
+
+            //if (value != 0.0){
+            //    KRATOS_INFO("CalculateOnIntegrationPoints") << value << std::endl;
+            //}
         }
     }
 }
@@ -5384,10 +5425,16 @@ void TwoFluidNavierStokes<TElementData>::ContactSurfaceDissipation(
             not_found_contact = false;
 
             MatrixType lhs_dissipation = ZeroMatrix(n_nodes*(n_dim+1),n_nodes*(n_dim+1));
-            Kratos::array_1d<double,n_nodes*(n_dim+1)> tempU; // Only velocity
+            Kratos::array_1d<double,n_nodes*(n_dim+1)> tempU; // Only the last known velocity
+            Kratos::array_1d<double,n_nodes*(n_dim+1)> tempU0; // Only the last step velocity
             for (unsigned int i = 0; i < n_nodes; i++){
                 for (unsigned int dimi = 0; dimi < n_dim; dimi++){
-                    tempU[i*(n_dim+1) + dimi] = rData.Velocity(i,dimi);
+                    const VectorType Vel = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY);
+                    const VectorType Vel0 = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY, 1);
+                    tempU[i*(n_dim+1) + dimi] = //rData.Velocity(i,dimi);
+                        Vel[dimi];
+                    
+                    tempU0[i*(n_dim+1) + dimi] = Vel0[dimi];
                 }
             }
 
@@ -5464,12 +5511,15 @@ void TwoFluidNavierStokes<TElementData>::ContactSurfaceDissipation(
                 //KRATOS_INFO("ContactSurfaceDissipation, gp") << i_gauss << ", Shape Functions: " << face_shape_func << std::endl;
 
                 for (unsigned int i = 0; i < n_nodes; i++){
+                    //KRATOS_INFO("Face Shape Function") << face_shape_func(i) 
+                    //    << ", IS_STRUCTURE: " << (*p_geom)[i].GetValue(IS_STRUCTURE) << std::endl;
                     for (unsigned int j = 0; j < n_nodes; j++){
                         for (unsigned int dimi = 0; dimi < n_dim; dimi++){
-                            for (unsigned int dimj = 0; dimj < n_dim; dimj++){ 
-                                lhs_dissipation( i*(n_dim+1) + dimi, j*(n_dim+1) + dimj) += 
+                            //for (unsigned int dimj = 0; dimj < n_dim; dimj++){ //Be carefull not to confuse
+                            // Dimension_j is useless since the force acts in the dimension_i direction
+                                lhs_dissipation( i*(n_dim+1) + dimi, j*(n_dim+1) + dimi) += 
                                     beta * face_weight * face_shape_func(j) * face_shape_func(i);
-                            }
+                            //}
                         }
                     }
                 }
@@ -5477,9 +5527,50 @@ void TwoFluidNavierStokes<TElementData>::ContactSurfaceDissipation(
 
             noalias(rLHS) += lhs_dissipation;
             noalias(rRHS) -= prod(lhs_dissipation,tempU);
+
+            const VectorType temp_force = -prod(lhs_dissipation,tempU0);
+            for (unsigned int iii = 0; iii < n_nodes; iii++){
+                VectorType temp_forcei = ZeroVector(3);
+                for (unsigned int dimi = 0; dimi < n_dim; dimi++){
+                    temp_forcei[dimi] = temp_force[iii*(n_dim+1) + dimi];
+                }
+                (*p_geom)[iii].FastGetSolutionStepValue(TANGENT_VECTOR) = temp_forcei;
+            }
         }
         
         i_face++;
+    }
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    //const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = p_geom->IntegrationPoints(p_geom->GetDefaultIntegrationMethod());
+
+    //const auto& rGeom = this->GetGeometry();
+    //const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    //const unsigned int num_gauss = IntegrationPoints.size();
+
+    const std::size_t number_of_integration_points = integration_points.size();
+
+    if ( rOutput.size() != number_of_integration_points ) {
+        rOutput.resize( number_of_integration_points );
+    }
+
+    KRATOS_INFO("CalculateOnIntegrationPoints") << "CALLED!" << std::endl;
+
+    if (/* this->Has( rVariable) && */ rVariable == CONTACT_ANGLE) {
+        const double value = this->GetValue( rVariable);
+        for (std::size_t point_number = 0; point_number < number_of_integration_points; ++point_number) {
+            KRATOS_INFO("CalculateOnIntegrationPoints") << "INSIDE IF!" << std::endl;
+            rOutput[point_number] = 180.0; value;
+        }
     }
 }
 

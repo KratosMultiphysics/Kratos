@@ -122,7 +122,7 @@ void VariationalNonEikonalDistance::Execute()
         const double temp_Z = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT_Z);
         it_node->SetValue(DISTANCE_GRADIENT_Z, temp_Z);
 
-        if (abs(distance) <= distance_min){
+        if (abs(distance) < distance_min){
             #pragma omp critical
             distance_min = abs(distance);
             #pragma omp critical
@@ -139,17 +139,17 @@ void VariationalNonEikonalDistance::Execute()
         } */
     }
 
-    for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
+    /* for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
        Geometry< Node<3> >& geom = it_cond->GetGeometry();
 
        for(unsigned int i=0; i<geom.size(); i++){
            geom[i].Fix(DISTANCE_AUX2);
        }
-    }
+    } */
 
-    /* auto it_node = mrModelPart.NodesBegin() + node_nearest; //node_farthest;
+    auto it_node = mrModelPart.NodesBegin() + node_nearest; //node_farthest;
     it_node->Fix(DISTANCE_AUX2);
-    KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << it_node->FastGetSolutionStepValue(DISTANCE) << std::endl; */
+    KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << it_node->FastGetSolutionStepValue(DISTANCE) << std::endl;
 
     /* const double epsilon = 1.0e-15;
     #pragma omp parallel for
