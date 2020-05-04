@@ -107,7 +107,7 @@ public:
     typedef GeometryType::IntegrationPointsArrayType                         IntegrationPointsType;
 
     // Type definition of the components of an array_1d
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > Array1DComponentsType;
+    typedef Variable<double> Array1DComponentsType;
 
     typedef typename std::vector<array_1d<PointType,TDim>>                  ConditionArrayListType;
 
