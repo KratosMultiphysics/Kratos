@@ -474,6 +474,9 @@ public:
             }
  #endif // ifdef KRATOS_USE_AMATRIX
        } else { // Bounded-matrix case
+            const SizeType size1 = rInputMatrix.size1();
+            const SizeType size2 = rInputMatrix.size2();
+            
             Matrix A(rInputMatrix);
             Matrix invA(rInvertedMatrix);
             
@@ -484,9 +487,9 @@ public:
             invA = lu_factorization.inverse();
  #else
             typedef permutation_matrix<SizeType> pmatrix;
-            pmatrix pm(A.size1());
+            pmatrix pm(size1);
             const int singular = lu_factorize(A,pm);
-            invA.assign( IdentityMatrix(A.size1()));
+            invA.assign( IdentityMatrix(size1));
             KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << rInputMatrix << std::endl;
             lu_substitute(A, pm, invA);
 
@@ -499,8 +502,6 @@ public:
             }
  #endif // ifdef KRATOS_USE_AMATRIX
             
-            const SizeType size1 = rInputMatrix.size1();
-            const SizeType size2 = rInputMatrix.size2();
             for (IndexType i = 0; i < size1;++i) {
                 for (IndexType j = 0; j < size2;++j) {
                     rInvertedMatrix(i,j) = invA(i,j);
