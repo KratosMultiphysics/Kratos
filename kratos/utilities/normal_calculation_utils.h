@@ -114,7 +114,6 @@ public:
                 noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
         }
 
-
         //calculating the normals and storing on the conditions
         array_1d<double,3> An;
         if(dimension == 2)
@@ -167,7 +166,29 @@ public:
       */
     void CalculateOnSimplex(ModelPart& rModelPart,
                             int Dimension)
-    {
+    {   
+        // Resetting the normals
+        array_1d<double,3> zero = Vector(3);
+        noalias(zero) = ZeroVector(3);
+
+        VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
+
+        for(ConditionsArrayType::iterator it =  rConditions.begin();
+                it !=rConditions.end(); it++)
+        {
+            Element::GeometryType& rNodes = it->GetGeometry();
+            for(unsigned int in = 0; in<rNodes.size(); in++)
+                in->Set(VISITED, true);
+        }
+
+        rModelPart.GetCommunicator().SynchronizeAndNodalFlags();
+
+        for(auto & node: rModelPart.Nodes()) {
+            if(node->Is(VISITED)) {
+                noalias((rNodes[in]).FastGetSolutionStepValue(NORMAL)) = zero;
+            }
+        }
+
         this->CalculateOnSimplex(rModelPart.Conditions(),Dimension);
         rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
     }
