@@ -159,19 +159,29 @@ public:
         // Resetting the normals
         const array_1d<double,3> zero = ZeroVector(3);
 
-        VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
+        if (rModelPart.GetCommunicator().GetDataCommunicator().IsDistributed()) {
+            // If Parallel make sure normals are reset in all partitions
+            VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
 
-        for(auto & cond: rModelPart.Conditions()) {
-            for(auto & node: cond.GetGeometry()) {
-                node.Set(VISITED, true);
+            for(auto & cond: rModelPart.Conditions()) {
+                for(auto & node: cond.GetGeometry()) {
+                    node.Set(VISITED, true);
+                }
             }
-        }
 
-        rModelPart.GetCommunicator().SynchronizeAndNodalFlags(VISITED);
+            rModelPart.GetCommunicator().SynchronizeAndNodalFlags(VISITED);
 
-        for(auto & node: rModelPart.Nodes()) {
-            if(node.Is(VISITED)) {
-                node.FastGetSolutionStepValue(NORMAL) = zero;
+            for(auto & node: rModelPart.Nodes()) {
+                if(node.Is(VISITED)) {
+                    node.FastGetSolutionStepValue(NORMAL) = zero;
+                }
+            }
+        } else {
+            // In serial iteratre normally over the condition nodes
+            for(auto & cond: rModelPart.Conditions()) {
+                for(auto & node: cond.GetGeometry()) {
+                    node.FastGetSolutionStepValue(NORMAL) = zero;
+                }
             }
         }
 
