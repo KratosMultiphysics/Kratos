@@ -403,10 +403,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 
     /**
      * @brief This computes the mapper operator between the stresses in the isotropic
-     * "ficticious" space and the real anisotropic space
+     * "ficticious" space and the real anisotropic space. S_iso = As*Sa_niso
      * @param rValues The values of the constitutive la
-     * @param rAs The mapper operator
-     * @param rAs The mapper operator inverse
+     * @param rAs The stress mapper operator
+     * @param rAs The stress mapper operator inverse
      * @note Eq.(2.39) S. Oller book: Comportamiento mecánico de los materiales compuestos
      */
     static void CalculateAnisotropicStressMapperMatrix(
