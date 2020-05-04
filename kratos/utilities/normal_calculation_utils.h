@@ -156,7 +156,7 @@ public:
                             int Dimension)
     {   
         // Resetting the normals
-        array_1d<double,3> zero = Vector(3);
+        const array_1d<double,3> zero = ZeroVector(3);
         noalias(zero) = ZeroVector(3);
 
         VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
@@ -637,4 +637,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_NORMAL_CALCULATION_UTILS  defined */
-
