@@ -38,6 +38,7 @@ class MPMSolver(PythonSolver):
             "domain_size"     : -1,
             "echo_level"      : 0,
             "time_stepping"   : { },
+            "time_integration_method"   : "implicit",
             "analysis_type"   : "non_linear",
             "grid_model_import_settings" : {
                 "input_type"     : "mdpa",
@@ -58,7 +59,9 @@ class MPMSolver(PythonSolver):
             "residual_absolute_tolerance"        : 1.0E-9,
             "max_iteration"                      : 20,
             "pressure_dofs"                      : false,
+            "compressible"                       : true,
             "axis_symmetric_flag"                : false,
+            "consistent_mass_matrix"             : false,
             "block_builder"                      : true,
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
@@ -150,12 +153,15 @@ class MPMSolver(PythonSolver):
     def InitializeSolutionStep(self):
         self._SearchElement()
         self._GetSolutionStrategy().Initialize()
+
+        #clean nodal values and map from MPs to nodes
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
         self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
+        # Calc residual, update momenta
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
@@ -376,15 +382,23 @@ class MPMSolver(PythonSolver):
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
     def _CreateSolutionStrategy(self):
+        # this is for implicit only. explicit is implemented in derived mpm_explicit_solver
+        grid_model_part = self.GetGridModelPart();
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         analysis_type = self.settings["analysis_type"].GetString()
+        is_consistent_mass_matrix = self.settings["consistent_mass_matrix"].GetBool()
+        if is_consistent_mass_matrix:
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
+        else:
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
         if analysis_type == "non_linear":
                 solution_strategy = self._CreateNewtonRaphsonStrategy()
         elif analysis_type == 'linear':
                 self.material_point_model_part.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
                 solution_strategy = self._CreateLinearStrategy();
         else:
-            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-            err_msg += "Available options are: \"linear\", \"non_linear\""
+            err_msg =  "The requested implicit analysis type \"" + analysis_type + "\" is not available!\n"
+            err_msg += "Available implicit options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
         return solution_strategy
 
