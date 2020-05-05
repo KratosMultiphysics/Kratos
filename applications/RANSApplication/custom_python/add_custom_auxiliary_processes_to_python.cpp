@@ -36,7 +36,6 @@
 #include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_update_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_update_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_k_omega_update_process.h"
-#include "custom_processes/auxiliary_processes/rans_k_omega_wall_function_process.h"
 #include "custom_processes/auxiliary_processes/rans_omega_turbulent_mixing_inlet_process.h"
 
 // RANS sensitivity processes
@@ -167,8 +166,7 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     py::class_<RansNutYPlusWallFunctionUpdateProcessType, RansNutYPlusWallFunctionUpdateProcessType::Pointer, Process>(
         m, "RansNutYPlusWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const double, const int>())
-        .def(py::init<Model&, const std::string&, const double, const double, const double, const double, const int>());
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
     using RansNutKEpsilonHighReCalculationProcessType = RansNutKEpsilonHighReCalculationProcess;
     py::class_<RansNutKEpsilonHighReCalculationProcessType, RansNutKEpsilonHighReCalculationProcessType::Pointer, Process>(
@@ -185,12 +183,6 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         m, "RansWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const int>());
-
-    using RansKOmegaWallFunctionProcessType = RansKOmegaWallFunctionProcess;
-    py::class_<RansKOmegaWallFunctionProcessType, RansKOmegaWallFunctionProcessType::Pointer, Process>(
-        m, "RansKOmegaWallFunctionProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&>());
 
     using RansOmegaTurbulentMixingLengthInletProcessType =
         RansOmegaTurbulentMixingLengthInletProcess;

@@ -37,14 +37,7 @@ RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(Mod
     Parameters default_parameters = Parameters(R"(
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "linear_region_settings":{
-                "c1"              : 0.1,
-                "beta_zero"       : 0.0708
-            },
-            "log_region_settings":{
-                "von_karman"      : 0.41
-            },
-            "region_type" : "assumes_both_regions",
+            "von_karman"      : 0.41
             "echo_level"  : 0,
             "min_value"   : 1e-18
         })");
@@ -54,33 +47,7 @@ RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(Mod
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
     mVonKarman = rParameters["von_karman"].GetDouble();
-    mBetaZero = rParameters["c1"].GetDouble();
-    mC1 = rParameters["beta_zero"].GetDouble();
     mMinValue = rParameters["min_value"].GetDouble();
-
-    const std::string& r_region_type = rParameters["region_type"].GetString();
-
-    if (r_region_type == "assumes_both_regions")
-    {
-        mRegionType = RegionTypes::ASSUMES_BOTH_REGIONS;
-        KRATOS_INFO(this->Info()) << "Wall function assumes either linear or "
-                                     "log region is present in "
-                                  << mModelPartName << ".\n";
-    }
-    else if (r_region_type == "assumes_log_region_only")
-    {
-        mRegionType = RegionTypes::ASSUMES_LOG_REGION_ONLY;
-        KRATOS_INFO(this->Info())
-            << "Wall function assumes only log region is present in "
-            << mModelPartName << ".\n";
-    }
-    else
-    {
-        KRATOS_ERROR << "Unknown region type. Only supported region types are "
-                        "\"assumes_both_regions\" and "
-                        "\"assumes_log_region_only\". [ region_type = "
-                     << r_region_type << " ].\n";
-    }
 
     KRATOS_CATCH("");
 }
@@ -97,34 +64,6 @@ RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(
       mMinValue(MinValue),
       mEchoLevel(EchoLevel)
 {
-    mRegionType = RegionTypes::ASSUMES_LOG_REGION_ONLY;
-    KRATOS_INFO(this->Info())
-        << "Wall function assumes only log region is present in "
-        << mModelPartName << ".\n";
-    mBetaZero = 0.0;
-    mC1 = 0.0;
-}
-
-RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(
-    Model& rModel,
-    const std::string& rModelPartName,
-    const double VonKarman,
-    const double BetaZero,
-    const double C1,
-    const double MinValue,
-    const int EchoLevel)
-    : mrModel(rModel),
-      mModelPartName(rModelPartName),
-      mVonKarman(VonKarman),
-      mBetaZero(BetaZero),
-      mC1(C1),
-      mMinValue(MinValue),
-      mEchoLevel(EchoLevel)
-{
-    mRegionType = RegionTypes::ASSUMES_BOTH_REGIONS;
-    KRATOS_INFO(this->Info())
-        << "Wall function assumes either linear or log region is present in "
-        << mModelPartName << ".\n";
 }
 
 int RansNutYPlusWallFunctionUpdateProcess::Check()
@@ -206,35 +145,16 @@ void RansNutYPlusWallFunctionUpdateProcess::Execute()
         ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
         ConditionType::GeometryType& r_geometry = r_cond.GetGeometry();
 
-        double y_plus = r_cond.GetValue(RANS_Y_PLUS);
-        if (mRegionType == RegionTypes::ASSUMES_LOG_REGION_ONLY)
-        {
-            y_plus = std::max(y_plus, y_plus_limit);
-        }
+        const double y_plus = std::max(r_cond.GetValue(RANS_Y_PLUS), y_plus_limit);
 
-        if (y_plus >= y_plus_limit)
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
-            for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            {
-                NodeType& r_node = r_geometry[i_node];
-                const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
-                r_node.SetLock();
-                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) +=
-                    mVonKarman * y_plus * nu;
-                r_node.UnSetLock();
-            }
-        }
-        else
-        {
-            for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            {
-                NodeType& r_node = r_geometry[i_node];
-                const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
-                r_node.SetLock();
-                r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) +=
-                    mC1 * mBetaZero * nu * std::pow(y_plus, 4) / 6.0;
-                r_node.UnSetLock();
-            }
+            NodeType& r_node = r_geometry[i_node];
+            const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
+            r_node.SetLock();
+            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) +=
+                mVonKarman * y_plus * nu;
+            r_node.UnSetLock();
         }
     }
     r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_VISCOSITY);
