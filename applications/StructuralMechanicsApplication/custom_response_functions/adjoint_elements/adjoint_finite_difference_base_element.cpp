@@ -16,7 +16,7 @@
 // Project includes
 #include "adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
-#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
+#include "custom_response_functions/response_utilities/finite_difference_utility.h"
 #include "includes/checks.h"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
@@ -31,10 +31,10 @@ namespace Kratos
 
 template <class TPrimalElement>
 void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    GeometryType& geom = this->GetGeometry();
+    const GeometryType& geom = this->GetGeometry();
 
     const SizeType number_of_nodes = geom.PointsNumber();
     const SizeType dimension = geom.WorkingSpaceDimension();
@@ -47,7 +47,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(Equa
     for(IndexType i = 0; i < geom.size(); ++i)
     {
         const IndexType index = i * num_dofs_per_node;
-        NodeType& iNode = geom[i];
+        const NodeType& iNode = geom[i];
 
         rResult[index]     = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
         rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
@@ -65,7 +65,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(Equa
 
 template <class TPrimalElement>
 void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -97,7 +97,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVector
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -251,7 +251,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -320,7 +320,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
 
     // Get pseudo-load from utility
-    ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, process_info);
+    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, process_info);
 
     if (rOutput.size1() == 0 || rOutput.size2() == 0)
     {
@@ -350,7 +350,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     if( rDesignVariable == SHAPE_SENSITIVITY )
     {
-        const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
+        const std::vector<FiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
         Vector derived_RHS;
 
         if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
@@ -365,7 +365,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
             for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
             {
                 // Get pseudo-load contribution from utility
-                ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, coord_directions[coord_dir_i],
+                FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, coord_directions[coord_dir_i],
                                                                             node_i, delta, derived_RHS, process_info);
 
                 KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
@@ -406,7 +406,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
     initial_state_variables.resize(num_dofs, false);
 
     // Build vector of variables containing the DOF-variables of the primal problem
-    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
+    std::vector<Variable<double>> primal_solution_variable_list;
     primal_solution_variable_list.reserve(num_dofs_per_node);
     primal_solution_variable_list.push_back(DISPLACEMENT_X);
     primal_solution_variable_list.push_back(DISPLACEMENT_Y);

@@ -430,13 +430,13 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
         model_part.CreateNewNode(3, 1.00,1.00,0.00)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
-        model_part.CreateNewCondition("Condition3D", 1, [1,2,3], model_part.GetProperties()[1])
+        model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 1)
         self.assertEqual(model_part.NumberOfConditions(0), 1)
 
         with self.assertRaises(RuntimeError):
-            model_part.CreateNewCondition("Condition3D", 1, [1,2,3], model_part.GetProperties()[1])
+            model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 1)
         self.assertEqual(model_part.GetCondition(1).Id, 1)
@@ -444,13 +444,13 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.Conditions[1].Id, 1)
         self.assertEqual(len(model_part.Conditions), 1)
 
-        model_part.CreateNewCondition("Condition2D", 2000, [2,3], model_part.GetProperties()[1])
+        model_part.CreateNewCondition("LineCondition2D2N", 2000, [2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 2)
         self.assertEqual(model_part.GetCondition(1).Id, 1)
         self.assertEqual(model_part.GetCondition(2000).Id, 2000)
 
-        model_part.CreateNewCondition("Condition3D", 2, [1,2,3], model_part.GetProperties()[1])
+        model_part.CreateNewCondition("SurfaceCondition3D3N", 2, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 3)
         self.assertEqual(model_part.GetCondition(1).Id, 1)
@@ -467,7 +467,7 @@ class TestModelPart(KratosUnittest.TestCase):
         inlets_model_part.CreateNewNode(4, 0.00,0.00,0.00)
         inlets_model_part.CreateNewNode(5, 1.00,0.00,0.00)
         inlets_model_part.CreateNewNode(6, 1.00,1.00,0.00)
-        inlets_model_part.CreateNewCondition("Condition3D", 3, [4,5,6], model_part.GetProperties()[1])
+        inlets_model_part.CreateNewCondition("SurfaceCondition3D3N", 3, [4,5,6], model_part.GetProperties()[1])
 
         self.assertEqual(inlets_model_part.NumberOfConditions(), 1)
         self.assertEqual(inlets_model_part.GetCondition(3).Id, 3)
@@ -480,7 +480,7 @@ class TestModelPart(KratosUnittest.TestCase):
         inlet2_model_part.CreateNewNode(7, 0.00,0.00,0.00)
         inlet2_model_part.CreateNewNode(8, 1.00,0.00,0.00)
         inlet2_model_part.CreateNewNode(9, 1.00,1.00,0.00)
-        inlet2_model_part.CreateNewCondition("Condition3D", 4, [7,8,9], model_part.GetProperties()[1])
+        inlet2_model_part.CreateNewCondition("SurfaceCondition3D3N", 4, [7,8,9], model_part.GetProperties()[1])
 
         self.assertEqual(inlet2_model_part.NumberOfConditions(), 1)
         self.assertEqual(inlet2_model_part.GetCondition(4).Id, 4)
@@ -489,10 +489,10 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfConditions(), 4)
         self.assertEqual(model_part.GetCondition(4).Id, 4)
 
-        inlets_model_part.CreateNewCondition("Condition3D", 5, [7,8,9], model_part.GetProperties()[1])
-        inlets_model_part.CreateNewCondition("Condition3D", 6, [7,8,9], model_part.GetProperties()[1])
-        inlet2_model_part.CreateNewCondition("Condition3D", 7, [7,8,9], model_part.GetProperties()[1])
-        inlet2_model_part.CreateNewCondition("Condition3D", 8, [7,8,9], model_part.GetProperties()[1])
+        inlets_model_part.CreateNewCondition("SurfaceCondition3D3N", 5, [7,8,9], model_part.GetProperties()[1])
+        inlets_model_part.CreateNewCondition("SurfaceCondition3D3N", 6, [7,8,9], model_part.GetProperties()[1])
+        inlet2_model_part.CreateNewCondition("SurfaceCondition3D3N", 7, [7,8,9], model_part.GetProperties()[1])
+        inlet2_model_part.CreateNewCondition("SurfaceCondition3D3N", 8, [7,8,9], model_part.GetProperties()[1])
 
         self.assertEqual(inlet2_model_part.NumberOfConditions(), 3)
         self.assertEqual(inlets_model_part.NumberOfConditions(), 6)
@@ -600,11 +600,11 @@ class TestModelPart(KratosUnittest.TestCase):
         n3 = model_part2.CreateNewNode(3,2.0,3.1,0.2)
         n4 = model_part2.CreateNewNode(4,2.0,3.1,10.2)
 
-        model_part1.CreateNewCondition("Condition2D", 1, [1,2], sub1.GetProperties()[1])
-        model_part1.CreateNewCondition("Condition2D", 2, [1,2], sub1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 1, [1,2], sub1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 2, [1,2], sub1.GetProperties()[1])
 
-        c1 = model_part2.CreateNewCondition("Condition3D", 1, [1,3,4], model_part2.GetProperties()[1])
-        c3 = model_part2.CreateNewCondition("Condition3D", 3, [1,3,4], model_part2.GetProperties()[1])
+        c1 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 1, [1,3,4], model_part2.GetProperties()[1])
+        c3 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 3, [1,3,4], model_part2.GetProperties()[1])
 
         #this should add condition 3 to both sub1 and model_part1, but not to sub2
         sub1.AddCondition( model_part2.Conditions[3], 0 )
@@ -617,8 +617,8 @@ class TestModelPart(KratosUnittest.TestCase):
             sub2.AddCondition( c1, 0 )
 
         ##now we add two conditions at once
-        c4 = model_part2.CreateNewCondition("Condition3D", 4, [1,3,4], model_part2.GetProperties()[1])
-        c5 = model_part2.CreateNewCondition("Condition3D", 5, [1,3,4], model_part2.GetProperties()[1])
+        c4 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 4, [1,3,4], model_part2.GetProperties()[1])
+        c5 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 5, [1,3,4], model_part2.GetProperties()[1])
 
         ### here we test adding a list of conditions at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4

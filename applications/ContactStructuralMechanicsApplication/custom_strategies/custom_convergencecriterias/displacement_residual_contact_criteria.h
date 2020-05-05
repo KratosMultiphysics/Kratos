@@ -423,16 +423,9 @@ private:
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(1, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(2, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(3));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementResidualContactCriteria<TSparseSpace, TDenseSpace>::NOT_INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(3, false));
 }
 
 #endif /* KRATOS_DISPLACEMENT_RESIDUAL_CONTACT_CRITERIA_H */
-

@@ -324,9 +324,9 @@ namespace Kratos
     }
 
     /***********************************************************************************/
-    /// SetValueOnIntegrationPoints
+    /// SetValuesOnIntegrationPoints
     /***********************************************************************************/
-    void BaseDiscreteElement::SetValueOnIntegrationPoints(
+    void BaseDiscreteElement::SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -339,7 +339,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::SetValueOnIntegrationPoints(
+    void BaseDiscreteElement::SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -367,7 +367,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::SetValueOnIntegrationPoints(
+    void BaseDiscreteElement::SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -380,7 +380,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::SetValueOnIntegrationPoints(
+    void BaseDiscreteElement::SetValuesOnIntegrationPoints(
         const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo)

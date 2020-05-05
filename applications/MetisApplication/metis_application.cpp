@@ -20,9 +20,6 @@ KratosMetisApplication::KratosMetisApplication()
 
 void KratosMetisApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     KRATOS_INFO("") << "    KRATOS  __  __      _   _\n"
                     << "           |  \\/  | ___| |_(_)___\n"
                     << "           | |\\/| |/ _ \\ __| / __|\n"

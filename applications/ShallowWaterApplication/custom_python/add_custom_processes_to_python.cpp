@@ -40,13 +40,11 @@ namespace Python
     {
         namespace py = pybind11;
 
-        typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>> VariableComponentType;
-
         py::class_<ElementalRefiningCriteriaProcess, ElementalRefiningCriteriaProcess::Pointer, Process>
         (m, "ElementalRefiningCriteriaProcess")
         .def(py::init<ModelPart&>())
         .def(py::init<ModelPart&, Parameters>())
-        .def(py::init<ModelPart&, Variable<double>, double, bool>())
+        .def(py::init<ModelPart&, const Variable<double>&, double, bool>())
         ;
 
         typedef ApplyPerturbationFunctionProcess<Variable<double>> ApplyPerturbationScalarFunctionProcess;
@@ -56,23 +54,10 @@ namespace Python
         .def(py::init<ModelPart&, ModelPart::NodesContainerType&, Variable<double>&, Parameters&>())
         ;
 
-        typedef ApplyPerturbationFunctionProcess<VariableComponentType> ApplyPerturbationComponentFunctionProcess;
-        py::class_<ApplyPerturbationComponentFunctionProcess, ApplyPerturbationComponentFunctionProcess::Pointer, Process>
-        (m, "ApplyPerturbationFunctionToComponent")
-        .def(py::init<ModelPart&, Node<3>::Pointer, VariableComponentType&, Parameters&>())
-        .def(py::init<ModelPart&, ModelPart::NodesContainerType&, VariableComponentType&, Parameters&>())
-        ;
-
         typedef ApplySinusoidalFunctionProcess<Variable<double>> ApplySinusoidalScalarFunctionProcess;
         py::class_<ApplySinusoidalScalarFunctionProcess, ApplySinusoidalScalarFunctionProcess::Pointer, Process>
         (m, "ApplySinusoidalFunctionToScalar")
         .def(py::init<ModelPart&, Variable<double>&, Parameters&>())
-        ;
-
-        typedef ApplySinusoidalFunctionProcess<VariableComponentType> ApplySinusoidalComponentFunctionProcess;
-        py::class_<ApplySinusoidalComponentFunctionProcess, ApplySinusoidalComponentFunctionProcess::Pointer, Process>
-        (m, "ApplySinusoidalFunctionToComponent")
-        .def(py::init<ModelPart&, VariableComponentType&, Parameters&>())
         ;
 
         typedef ApplySinusoidalFunctionProcess<Variable<array_1d<double,3>>> ApplySinusoidalVectorFunctionProcess;

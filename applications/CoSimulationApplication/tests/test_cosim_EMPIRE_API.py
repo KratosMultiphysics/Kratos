@@ -327,13 +327,13 @@ def FillModelPart(model_part):
         node.SetSolutionStepValue(KM.ROTATION, GetROTATIONValue(node_id))
 
 def GetSignalFileName(signal_name):
-    return os.path.join(communication_folder, "EMPIRE_signal_" + signal_name + ".dat") # this is hardcoded in C++
+    return communication_folder + "/EMPIRE_signal_" + signal_name + ".dat" # this is hardcoded in C++
 
 def GetDataFieldFileName(data_field_name):
-    return os.path.join(communication_folder, "EMPIRE_datafield_" + data_field_name + ".dat") # this is hardcoded in C++
+    return communication_folder + "/EMPIRE_datafield_" + data_field_name + ".dat" # this is hardcoded in C++
 
 def GetMeshFileName(mesh_name):
-    return os.path.join(communication_folder, "EMPIRE_mesh_" + mesh_name + ".vtk") # this is hardcoded in C++
+    return communication_folder + "/EMPIRE_mesh_" + mesh_name + ".vtk" # this is hardcoded in C++
 
 
 if __name__ == '__main__':

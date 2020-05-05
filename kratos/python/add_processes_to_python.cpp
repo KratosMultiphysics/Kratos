@@ -132,6 +132,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
     .def("Check",&Process::Check)
+    .def("GetDefaultParameters",&Process::GetDefaultParameters)
     .def("__str__", PrintObject<Process>)
     ;
 
@@ -160,8 +161,9 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<FindNodalNeighboursProcess, FindNodalNeighboursProcess::Pointer, Process>(m,"FindNodalNeighboursProcess")
-            .def(py::init<ModelPart&, unsigned int, unsigned int>())
+            .def(py::init<ModelPart& >())
     .def("ClearNeighbours",&FindNodalNeighboursProcess::ClearNeighbours)
+    .def(py::init<ModelPart&, unsigned int, unsigned int>())
     ;
 
     py::class_<FindConditionsNeighboursProcess, FindConditionsNeighboursProcess::Pointer, Process>(m,"FindConditionsNeighboursProcess")
@@ -239,11 +241,8 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("SwapNegativeElements",&TetrahedralMeshOrientationCheck::SwapNegativeElements)
     ;
     orientation_check_interface.attr("ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS") = &TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS;
-    orientation_check_interface.attr("NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS") = &TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS;
     orientation_check_interface.attr("COMPUTE_NODAL_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_NODAL_NORMALS;
-    orientation_check_interface.attr("NOT_COMPUTE_NODAL_NORMALS") = &TetrahedralMeshOrientationCheck::NOT_COMPUTE_NODAL_NORMALS;
     orientation_check_interface.attr("COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_CONDITION_NORMALS;
-    orientation_check_interface.attr("NOT_COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::NOT_COMPUTE_CONDITION_NORMALS;
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -255,7 +254,6 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
-            .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
     ;
     py::class_<VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess3D")
             .def(py::init<ModelPart&, LinearSolverType::Pointer>())
@@ -263,7 +261,6 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
-            .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
     ;
 
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
@@ -310,9 +307,6 @@ void  AddProcessesToPython(pybind11::module& m)
     /* Historical */
     py::class_<ComputeNodalGradientProcess< ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalGradientProcess")
     .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>&, const bool >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>&, const bool >())
@@ -326,9 +320,6 @@ void  AddProcessesToPython(pybind11::module& m)
     /* Non-Historical */
     py::class_<ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
     .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >&>())
-    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>&, const bool >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>&, const bool >())
