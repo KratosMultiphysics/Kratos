@@ -261,7 +261,7 @@ namespace MPMParticleGeneratorUtility
                         pelem->Set(ACTIVE);
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                             pelem->pGetGeometry(), xg[0],
-                            mp_mass[0]); /////////////////////////////////////////////// so much what the fuck
+                            mp_volume[0]); /////////////////////////////////////////////// so much what the fuck
 
                         // Create new material point element
                         new_element_id = last_element_id + PointNumber;
