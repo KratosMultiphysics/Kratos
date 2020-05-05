@@ -856,9 +856,9 @@ private:
 
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
-    CoordinateTransformationUtils<LocalSystemMatrixType, LocalSystemVectorType, double> mRotationTool;
-
     const Kratos::Variable<int>& mrPeriodicIdVar;
+
+    CoordinateTransformationUtils<LocalSystemMatrixType, LocalSystemVectorType, double> mRotationTool;
 
 //        ///@}
 //        ///@name Serialization
