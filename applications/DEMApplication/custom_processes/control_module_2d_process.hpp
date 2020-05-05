@@ -63,7 +63,6 @@ public:
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
                 "stiffness_alpha": 1.0,
-                "contact_forces": true,
                 "start_time" : 0.0,
                 "stress_averaging_time": 1e-7
             }  )" );
@@ -83,7 +82,6 @@ public:
         mReactionStressOld = 0.0;
         mStiffness = rParameters["young_modulus"].GetDouble()/mCompressionLength; // mStiffness is actually a stiffness over an area
         mStiffnessAlpha = rParameters["stiffness_alpha"].GetDouble();
-        mContactForces = rParameters["contact_forces"].GetBool();
         mStressAveragingTime = rParameters["stress_averaging_time"].GetDouble();
         mVectorOfLastStresses.resize(0);
 
@@ -309,7 +307,6 @@ protected:
     unsigned int mStep;
     double mCMTimeStep;
     double mStiffnessAlpha;
-    bool mContactForces;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -444,32 +441,16 @@ private:
         // Calculate ReactionStress
         double FaceReaction = 0.0;
         if (mImposedDirection == 0) { // X direction
-            if(mContactForces == true){
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_X);
-                }
-            } else {
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction -= it->FastGetSolutionStepValue(ELASTIC_FORCES_X);
-                }
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_X);
             }
         } else if (mImposedDirection == 1) { // Y direction
-            if(mContactForces == true){
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
-                }
-            } else {
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction -= it->FastGetSolutionStepValue(ELASTIC_FORCES_Y);
-                }
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
             }
         } else if (mImposedDirection == 2) { // Z direction
             ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
@@ -485,36 +466,19 @@ private:
                 FaceReaction += stress_tensor(2,2) * Globals::Pi*radius*radius;
             }
         } else { // Radial direction
-            if(mContactForces == true){
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    // Unit normal vector pointing outwards
-                    array_1d<double,2> n;
-                    n[0] = it->X();
-                    n[1] = it->Y();
-                    double inv_norm = 1.0/norm_2(n);
-                    n[0] *= inv_norm;
-                    n[1] *= inv_norm;
-                    // Scalar product between reaction and normal
-                    double n_dot_r = n[0] * it->FastGetSolutionStepValue(CONTACT_FORCES_X) + n[1] * it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
-                    FaceReaction -= n_dot_r;
-                }
-            } else {
-                #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    // Unit normal vector pointing outwards
-                    array_1d<double,2> n;
-                    n[0] = it->X();
-                    n[1] = it->Y();
-                    double inv_norm = 1.0/norm_2(n);
-                    n[0] *= inv_norm;
-                    n[1] *= inv_norm;
-                    // Scalar product between reaction and normal
-                    double n_dot_r = n[0] * it->FastGetSolutionStepValue(ELASTIC_FORCES_X) + n[1] * it->FastGetSolutionStepValue(ELASTIC_FORCES_Y);
-                    FaceReaction -= n_dot_r;
-                }
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                // Unit normal vector pointing outwards
+                array_1d<double,2> n;
+                n[0] = it->X();
+                n[1] = it->Y();
+                double inv_norm = 1.0/norm_2(n);
+                n[0] *= inv_norm;
+                n[1] *= inv_norm;
+                // Scalar product between reaction and normal
+                double n_dot_r = n[0] * it->FastGetSolutionStepValue(CONTACT_FORCES_X) + n[1] * it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
+                FaceReaction -= n_dot_r;
             }
             // FaceReaction = 0.0;
             // for(int i = 0; i<NNodes; i++) {
