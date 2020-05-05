@@ -944,12 +944,11 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGr
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatrix(
-    ConstitutiveLaw::Parameters& rValues,
+    const Properties& rProperties,
     BoundedMatrixVoigtType& rAs,
     BoundedMatrixVoigtType& rAsInv
 )
 {
-    auto &r_mat_props = rValues.GetMaterialProperties();
     if (rAs.size1() != VoigtSize || rAs.size2() != VoigtSize) {
         rAs.resize(VoigtSize, VoigtSize, false);
     }
@@ -958,7 +957,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatri
         rAsInv.resize(VoigtSize, VoigtSize, false);
     }
     noalias(rAsInv) = ZeroMatrix(VoigtSize, VoigtSize);
-    const Vector &r_iso_aniso_yield_ratios = r_mat_props[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
+    const Vector &r_iso_aniso_yield_ratios = rProperties[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
     KRATOS_ERROR_IF_NOT(r_iso_aniso_yield_ratios.size() == VoigtSize) << "The length of the ISOTROPIC_ANISOTROPIC_YIELD_RATIO is not correct" << std::endl;
 
     if (VoigtSize == 6) {

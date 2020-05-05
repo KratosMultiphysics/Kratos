@@ -131,7 +131,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         BoundedMatrixVoigtType anisotropic_elastic_matrix;
         Matrix isotropic_elastic_matrix;
 
-        ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
         mpIsotropicCL->CalculateValue(values_iso_cl, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
         this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
         ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
@@ -290,7 +290,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     BoundedMatrixVoigtType anisotropic_elastic_matrix;
     Matrix isotropic_elastic_matrix;
 
-    ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rValues, stress_mapper, stress_mapper_inv);
+    ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
     mpIsotropicCL->CalculateValue(values_iso_cl, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
     this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
     ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
@@ -498,7 +498,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             BoundedMatrixVoigtType anisotropic_elastic_matrix;
             Matrix isotropic_elastic_matrix;
 
-            ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(rParameterValues, stress_mapper, stress_mapper_inv);
+            ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
             mpIsotropicCL->CalculateValue(values_iso_cl, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix);
             this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
             ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,

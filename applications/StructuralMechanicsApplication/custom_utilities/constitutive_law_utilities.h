@@ -413,7 +413,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @note Eq.(2.39) S. Oller book: Comportamiento mecánico de los materiales compuestos
      */
     static void CalculateAnisotropicStressMapperMatrix(
-        ConstitutiveLaw::Parameters &rValues,
+        const Properties& rProperties,
         BoundedMatrixVoigtType &rAs,
         BoundedMatrixVoigtType& rAsInv
         );
