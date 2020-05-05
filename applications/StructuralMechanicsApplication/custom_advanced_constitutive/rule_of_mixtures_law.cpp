@@ -8,6 +8,7 @@
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Fernando Rastellini
+//                   Alejandro Cornejo Velazquez
 //
 // System includes
 #include <iostream>

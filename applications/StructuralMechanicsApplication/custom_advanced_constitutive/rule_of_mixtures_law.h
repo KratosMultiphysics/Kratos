@@ -8,6 +8,7 @@
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Fernando Rastellini
+//                   Alejandro Cornejo Velazquez
 //
 
 #if !defined (KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED)
@@ -146,7 +147,7 @@ public:
     {
         return true;
     }
-    
+
     /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)
      * @param rThisVariable the variable to be checked for
