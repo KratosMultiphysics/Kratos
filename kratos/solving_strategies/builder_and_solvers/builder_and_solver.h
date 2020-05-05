@@ -448,8 +448,10 @@ public:
         const bool MoveMesh
         )
     {
-        KRATOS_WARNING("BuilderAndSolver") << "No special implementation available for BuildAndSolveLinearizedOnPreviousIteration. Using normal BuildAndSolve" << std::endl;
-        this->BuildAndSolve(pScheme,rModelPart,rA,rDx,rb);
+        KRATOS_ERROR << "No special implementation available for "
+            << "BuildAndSolveLinearizedOnPreviousIteration "
+            << " please use UseOldStiffnessInFirstIterationFlag=false in the settings of the strategy "
+            << std::endl;
     }
 
     /**
