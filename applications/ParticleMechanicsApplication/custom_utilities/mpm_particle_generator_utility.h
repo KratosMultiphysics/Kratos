@@ -256,8 +256,7 @@ namespace MPMParticleGeneratorUtility
 
                         // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                         bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, 10, 1e-3);
-
-                        //KRATOS_INFO_IF(is_found == false) << "search failed." << std::endl;
+                        if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
 
                         pelem->Set(ACTIVE);
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
