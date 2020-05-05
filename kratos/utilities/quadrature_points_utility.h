@@ -81,7 +81,8 @@ namespace Kratos
                 pGeometry->WorkingSpaceDimension(),
                 pGeometry->LocalSpaceDimension(),
                 data_container,
-                pGeometry->Points());
+                pGeometry->Points()
+                pGeometry.get());
 
             KRATOS_CATCH("");
         }
