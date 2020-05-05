@@ -27,7 +27,7 @@
 #include "trilinos_space.h"
 
 // FluidDynamicsApplication dependencies
-#include "custom_strategies/schemes/gear_scheme.h"
+#include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 
