@@ -133,6 +133,7 @@ class KOmegaFormulation(Formulation):
             "c_mu"                                          : 0.09,
             "c1"                                            : 0.1,
             "beta_zero"                                     : 0.0708,
+            "beta"                                          : 0.072,
             "gamma"                                         : 0.52,
             "sigma_k"                                       : 0.6,
             "sigma_omega"                                   : 0.5,
@@ -149,6 +150,7 @@ class KOmegaFormulation(Formulation):
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_K_C1, settings["c1"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_BETA_ZERO, settings["beta_zero"].GetDouble())
+        process_info.SetValue(KratosRANS.TURBULENCE_RANS_BETA, settings["beta"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_GAMMA, settings["gamma"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENT_KINETIC_ENERGY_SIGMA, settings["sigma_k"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA, settings["sigma_omega"].GetDouble())
