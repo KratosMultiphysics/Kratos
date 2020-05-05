@@ -13,8 +13,6 @@
 #if !defined(KRATOS_GEAR_SCHEME_H_INCLUDED )
 #define  KRATOS_GEAR_SCHEME_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
@@ -62,14 +60,14 @@ namespace Kratos
 /**
  */
 template<class TSparseSpace,class TDenseSpace>
-class GearScheme : public Scheme<TSparseSpace, TDenseSpace>
+class BDF2TurbulentScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of GearScheme
-    KRATOS_CLASS_POINTER_DEFINITION(GearScheme);
+    /// Pointer definition of BDF2TurbulentScheme
+    KRATOS_CLASS_POINTER_DEFINITION(BDF2TurbulentScheme);
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
@@ -86,7 +84,7 @@ public:
     ///@{
 
     /// Default constructor.
-    GearScheme(const unsigned int DomainSize)
+    BDF2TurbulentScheme(const unsigned int DomainSize)
     : Scheme<TSparseSpace, TDenseSpace>()
     , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     , mRotationTool(DomainSize, DomainSize + 1, SLIP)
@@ -99,7 +97,7 @@ public:
      * non-linear iteration.
      * @param pTurbulenceModel pointer to the turbulence model
      */
-    GearScheme(
+    BDF2TurbulentScheme(
         const unsigned int DomainSize,
         Process::Pointer pTurbulenceModel)
         : Scheme<TSparseSpace, TDenseSpace>()
@@ -112,7 +110,7 @@ public:
     /**
      * @param rPeriodicVar the variable used to store periodic pair indices.
      */
-    GearScheme(
+    BDF2TurbulentScheme(
         const unsigned int DomainSize,
         const Kratos::Variable<int>& rPeriodicVar)
         : Scheme<TSparseSpace, TDenseSpace>()
@@ -122,7 +120,7 @@ public:
 
 
     /// Destructor.
-    ~GearScheme() override
+    ~BDF2TurbulentScheme() override
     {}
 
     ///@}
@@ -441,7 +439,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "GearScheme";
+        buffer << "BDF2TurbulentScheme";
         return buffer.str();
     }
 
@@ -694,7 +692,7 @@ protected:
             iter++;
         }
 
-        KRATOS_INFO("GearScheme") << "Performed OSS Projection in " << iter << " iterations" << std::endl;
+        KRATOS_INFO("BDF2TurbulentScheme") << "Performed OSS Projection in " << iter << " iterations" << std::endl;
     }
 
     void LumpedProjection(ModelPart& rModelPart)
@@ -740,7 +738,7 @@ protected:
             iNode->FastGetSolutionStepValue(DIVPROJ) /= Area;
         }
 
-        KRATOS_INFO("GearScheme") << "Computing OSS projections" << std::endl;
+        KRATOS_INFO("BDF2TurbulentScheme") << "Computing OSS projections" << std::endl;
     }
 
     /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
@@ -903,16 +901,16 @@ private:
     ///@{
 
     /// Assignment operator.
-    GearScheme & operator=(GearScheme const& rOther)
+    BDF2TurbulentScheme & operator=(BDF2TurbulentScheme const& rOther)
     {}
 
     /// Copy constructor.
-    GearScheme(GearScheme const& rOther)
+    BDF2TurbulentScheme(BDF2TurbulentScheme const& rOther)
     {}
 
     ///@}
 
-}; // Class GearScheme
+}; // Class BDF2TurbulentScheme
 
 ///@}
 
@@ -924,17 +922,16 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
 template<class TSparseSpace,class TDenseSpace>
-inline std::istream& operator >>(std::istream& rIStream,GearScheme<TSparseSpace,TDenseSpace>& rThis)
+inline std::istream& operator >>(std::istream& rIStream,BDF2TurbulentScheme<TSparseSpace,TDenseSpace>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template<class TSparseSpace,class TDenseSpace>
-inline std::ostream& operator <<(std::ostream& rOStream,const GearScheme<TSparseSpace,TDenseSpace>& rThis)
+inline std::ostream& operator <<(std::ostream& rOStream,const BDF2TurbulentScheme<TSparseSpace,TDenseSpace>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -942,6 +939,7 @@ inline std::ostream& operator <<(std::ostream& rOStream,const GearScheme<TSparse
 
     return rOStream;
 }
+
 ///@}
 
 ///@} addtogroup block

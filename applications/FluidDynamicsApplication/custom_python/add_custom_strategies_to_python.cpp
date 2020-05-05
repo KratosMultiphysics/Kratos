@@ -103,9 +103,9 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     ;
 
     py::class_<
-        GearScheme<SparseSpaceType, LocalSpaceType>,
-        typename GearScheme<SparseSpaceType, LocalSpaceType>::Pointer,
-        BaseSchemeType>(m, "GearScheme")
+        BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>,
+        typename BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "BDF2TurbulentScheme")
     .def(py::init<int>())                 // default constructor
     .def(py::init<int, Process::Pointer>()) // constructor passing a turbulence model
     ;
