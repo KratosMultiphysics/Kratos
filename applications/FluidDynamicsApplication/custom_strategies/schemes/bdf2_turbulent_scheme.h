@@ -10,8 +10,8 @@
 //  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_GEAR_SCHEME_H_INCLUDED )
-#define  KRATOS_GEAR_SCHEME_H_INCLUDED
+#if !defined(KRATOS_BDF2_TURBULENT_SCHEME_H_INCLUDED )
+#define  KRATOS_BDF2_TURBULENT_SCHEME_H_INCLUDED
 
 // System includes
 #include <string>
@@ -459,7 +459,6 @@ public:
 
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -594,7 +593,6 @@ protected:
             noalias(rRHS) -= prod(rMass,Acc);
         }
     }
-
 
     void FullProjection(ModelPart& rModelPart)
     {
@@ -815,6 +813,7 @@ protected:
 
     void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
     {
+        //TODO: This needs to be done in another manner as soon as we start using non-historical NODAL_AREA
         if (rNode.GetValue(NODAL_AREA) != 0.0) // Only periodic nodes will have a non-historical NODAL_AREA set.
         {
             rNode.FastGetSolutionStepValue(NODAL_AREA) = rNode.GetValue(NODAL_AREA);
@@ -839,7 +838,6 @@ protected:
 
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -946,4 +944,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,const BDF2TurbulentSchem
 
 } // namespace Kratos.
 
-#endif // KRATOS_GEAR_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_BDF2_TURBULENT_SCHEME_H_INCLUDED  defined
