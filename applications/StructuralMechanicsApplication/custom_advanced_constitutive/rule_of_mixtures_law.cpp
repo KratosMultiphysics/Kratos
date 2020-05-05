@@ -8,6 +8,7 @@
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Fernando Rastellini
+//                   Alejandro Cornejo Velazquez
 //
 // System includes
 #include <iostream>
@@ -774,8 +775,6 @@ Matrix& RuleOfMixturesLaw::CalculateValue(
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-    } else if (rThisVariable == DEFORMATION_GRADIENT) { // TODO: Make in the future modifications for take into account different layers combinations
-        noalias(rValue) = rParameterValues.GetDeformationGradientF();
     } else {
         const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
 
@@ -1062,30 +1061,14 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
         KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
     }
 
-    // All the strains must be the same
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        Vector& r_strain_vector = rValues.GetStrainVector();
-
-        Matrix F_deformation_gradient;
-        this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
-        const Matrix C_matrix = prod(trans(F_deformation_gradient),F_deformation_gradient);
-        // Doing resize in case is needed
-        if (r_strain_vector.size() != voigt_size)
-            r_strain_vector.resize(voigt_size, false);
-
-        // Identity matrix
-        Matrix identity_matrix(dimension, dimension);
-        for (IndexType i = 0; i < dimension; ++i) {
-            for (IndexType j = 0; j < dimension; ++j) {
-                if (i == j) identity_matrix(i, j) = 1.0;
-                else identity_matrix(i, j) = 0.0;
-            }
-        }
-
-        // Calculate E matrix
-        const Matrix E_matrix = 0.5 * (C_matrix - identity_matrix);
-        // Green-Lagrangian Strain Calculation
-        noalias(r_strain_vector) = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
@@ -1147,34 +1130,14 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
         KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
     }
 
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        Vector& r_strain_vector = rValues.GetStrainVector();
-
-        Matrix F_deformation_gradient;
-        this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
-        const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
-        // Doing resize in case is needed
-        if (r_strain_vector.size() != voigt_size)
-            r_strain_vector.resize(voigt_size);
-
-        // Identity matrix
-        Matrix identity_matrix(dimension, dimension);
-        for (IndexType i = 0; i < dimension; ++i) {
-            for (IndexType j = 0; j < dimension; ++j) {
-                if (i == j) identity_matrix(i, j) = 1.0;
-                else identity_matrix(i, j) = 0.0;
-            }
-        }
-
-        // Calculating the inverse of the left Cauchy tensor
-        Matrix inverse_B_tensor ( dimension, dimension );
-        double aux_det_b = 0;
-        MathUtils<double>::InvertMatrix( B_matrix, inverse_B_tensor, aux_det_b);
-
-        // Calculate E matrix
-        const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
-        // Almansi Strain Calculation
-        r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponseKirchhoff(rValues);
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
