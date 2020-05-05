@@ -132,73 +132,56 @@ void RansWallFunctionUpdateProcess::Execute()
 
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
-    VariableUtils().SetNonHistoricalVariableToZero(RANS_Y_PLUS, r_nodes);
-    VariableUtils().SetNonHistoricalVariableToZero(FRICTION_VELOCITY, r_nodes);
-
     ModelPart::ConditionsContainerType& r_conditions = r_model_part.Conditions();
     const int number_of_conditions = r_conditions.size();
 
-#pragma omp parallel
+#pragma omp parallel for
+    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
     {
-        array_1d<double, 3> r_friction_velocity;
-#pragma omp for
-        for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
+        ModelPart::ConditionType& r_condition = *(r_conditions.begin() + i_cond);
+
+        Vector gauss_weights;
+        Matrix shape_functions;
+        RansCalculationUtilities::CalculateConditionGeometryData(
+            r_condition.GetGeometry(), r_condition.GetIntegrationMethod(),
+            gauss_weights, shape_functions);
+        const IndexType num_gauss_points = gauss_weights.size();
+
+        const array_1d<double, 3>& r_normal = r_condition.GetValue(NORMAL);
+        const double wall_height =
+            RansCalculationUtilities::CalculateWallHeight(r_condition, r_normal);
+
+        double condition_y_plus{0.0};
+        array_1d<double, 3> condition_u_tau = ZeroVector(3);
+
+        for (size_t g = 0; g < num_gauss_points; ++g)
         {
-            ModelPart::ConditionType& r_condition = *(r_conditions.begin() + i_cond);
-
-            const array_1d<double, 3>& r_wall_cell_center_velocity =
-                RansCalculationUtilities::CalculateWallVelocity(r_condition);
-            const double wall_cell_center_velocity_magnitude =
-                norm_2(r_wall_cell_center_velocity);
-            const array_1d<double, 3>& r_normal = r_condition.GetValue(NORMAL);
-
-            const double wall_height =
-                RansCalculationUtilities::CalculateWallHeight(r_condition, r_normal);
-
-            const double nu = RansCalculationUtilities::EvaluateInParentCenter(
-                KINEMATIC_VISCOSITY, r_condition);
+            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const array_1d<double, 3>& r_wall_velocity =
+                RansCalculationUtilities::EvaluateInPoint(
+                    r_condition.GetGeometry(), VELOCITY, gauss_shape_functions);
+            const double wall_velocity_magnitude = norm_2(r_wall_velocity);
+            const double nu = RansCalculationUtilities::EvaluateInPoint(
+                r_condition.GetGeometry(), KINEMATIC_VISCOSITY, gauss_shape_functions);
 
             double y_plus{0.0}, u_tau{0.0};
             RansCalculationUtilities::CalculateYPlusAndUtau(
-                y_plus, u_tau, wall_cell_center_velocity_magnitude, wall_height,
-                nu, mVonKarman, mBeta);
+                y_plus, u_tau, wall_velocity_magnitude, wall_height, nu, mVonKarman, mBeta);
 
-            if (wall_cell_center_velocity_magnitude > 0.0)
+            condition_y_plus += y_plus;
+
+            if (wall_velocity_magnitude > 0.0)
             {
-                noalias(r_friction_velocity) =
-                    r_wall_cell_center_velocity * (u_tau / wall_cell_center_velocity_magnitude);
-            }
-            else
-            {
-                noalias(r_friction_velocity) = ZeroVector(3);
-            }
-
-            r_condition.SetValue(RANS_Y_PLUS, y_plus);
-            r_condition.SetValue(FRICTION_VELOCITY, r_friction_velocity);
-
-            ModelPart::ConditionType::GeometryType& r_geometry =
-                r_condition.GetGeometry();
-            const int number_of_nodes = r_geometry.PointsNumber();
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
-                ModelPart::NodeType& r_node = r_geometry[i_node];
-                const array_1d<double, 3>& r_u_tau = r_node.GetValue(FRICTION_VELOCITY);
-                const double current_y_plus = r_node.GetValue(RANS_Y_PLUS);
-                const double inv_number_of_neighbour_conditions =
-                    1.0 / static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
-
-                r_node.SetLock();
-                r_node.SetValue(RANS_Y_PLUS, current_y_plus + y_plus * inv_number_of_neighbour_conditions);
-                r_node.SetValue(FRICTION_VELOCITY,
-                                r_u_tau + r_friction_velocity * inv_number_of_neighbour_conditions);
-                r_node.UnSetLock();
+                noalias(condition_u_tau) += r_wall_velocity * u_tau / wall_velocity_magnitude;
             }
         }
-    }
 
-    r_model_part.GetCommunicator().AssembleNonHistoricalData(RANS_Y_PLUS);
-    r_model_part.GetCommunicator().AssembleNonHistoricalData(FRICTION_VELOCITY);
+        const double inv_number_of_gauss_points =
+            static_cast<double>(1.0 / num_gauss_points);
+
+        r_condition.SetValue(RANS_Y_PLUS, condition_y_plus * inv_number_of_gauss_points);
+        r_condition.SetValue(FRICTION_VELOCITY, condition_u_tau * inv_number_of_gauss_points);
+    }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << "Calculated wall function based y_plus for " << mModelPartName << ".\n";
