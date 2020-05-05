@@ -6,50 +6,79 @@ proc ExtractSurfaceTriangles_ext { basename dir problemtypedir } {
     ## Start OBJ file
     set filename [file join $dir ${basename}.obj]
     set FileVar [open $filename w]
-
     puts $FileVar ""
 
     # set all_mesh [GiD_EntitiesLayers get Layer0 all_mesh]
-    # W "all_mesh"
-    # W $all_mesh
     # If <over> is all_mesh then is obtained a list with 2 sublists: node id's and element id's
-    # List of triangles defined by: its vertex and vertex normals
-    #                               faces: ordered vertex ids
-
-
+ 
     #set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     set triangles [GiD_Mesh list -element_type {triangle} element]
     set tetrahedra [GiD_Mesh list -element_type {tetrahedra} element]
+    
+    W "list of triangles"
     W $triangles
+
+    W "list of tetrahedra"
     W $tetrahedra
     
-    puts $FileVar "Begin Elements"
-    # for {set j 0} {$j < [llength $triangles]} {incr j} {
-    #     puts $FileVar "  [lindex $triangles $j]   [[lindex $triangles $j]]"
-    # }
-
+    puts $FileVar "Face Elements iD - not required in obj file"
     foreach element_id $triangles { ;
       puts $FileVar " f $element_id"
     }
-    puts $FileVar "End Elements"
+    puts $FileVar "End Face Elements"
     puts $FileVar ""
 
     
-
+    W "1"
     set triangle_nodes [list]
+    set triangle_normals [list]
     # set element_ids [GiD_EntitiesGroups get $groupid elements] ;               # get ids of all elements in cgroupid
     # #array set is_external_element [DEM::write::Compute_External_Elements 3 $groupid $element_ids]
 
     foreach element_id $triangles { ;
         set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;   # get the nodes of the element
         lappend triangle_nodes {*}$element_nodes ;                              # add those nodes to the nodes_to_delete list
+        set ElementNormals [GiD_Mesh get element $element_id normal];
+        lappend triangle_normals {*}$ElementNormals ;  
+
+    }
+    W $triangle_normals
+
+    # aux sumar a cada node de cada triangle la normal del triangle
+    # aux nombre de normals de cada node
+
+    W "2"
+    puts $FileVar "Triangle faces defined by its associated vertex"
+    # corresponds to format #f v1 v2 v3 .... OBJ file
+    foreach element_id $triangles { ;
+        set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;   # get the nodes of the element
+        lappend triangle_nodes {*}$element_nodes ;                              # add those nodes to the nodes_to_delete list
+        puts -nonewline $FileVar " "
+        puts $FileVar "f $element_nodes" ;
+        W "3"
     }
 
 
-    W "triangle_nodes"
-    W $triangle_nodes
-    #     triangle_nodes
-    # 2 6 7 6 9 7 2 6 1 6 4 1 6 9 4 9 8 4 9 7 8 7 3 8 7 2 3 2 1 3 1 4 3 4 8 3
+    W "4"
+    ## Nodes only if belong to any triangle
+    # corresponds to format #f v1 v2 v3 .... OBJ file
+    set Nodes [GiD_Info Mesh Nodes]
+    puts $FileVar " "
+    puts $FileVar "Ordered vertex list only if associated with any face triangle"
+    for {set i 0} {$i < [llength $Nodes]} {incr i 4} {
+        if {[lindex $Nodes $i] in $triangle_nodes} {
+        puts -nonewline $FileVar "  [lindex $Nodes $i]  "
+        puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+1 }]]]
+        puts -nonewline $FileVar " "
+        puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+2 }]]]
+        puts -nonewline $FileVar " "
+        puts $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+3 }]]]
+        }
+    }
+    puts $FileVar "End Nodes"
+    puts $FileVar ""
+    puts $FileVar ""
+
 
 
 
@@ -57,43 +86,37 @@ proc ExtractSurfaceTriangles_ext { basename dir problemtypedir } {
     # #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     # return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]"
 
-
-    # TODO: Call GenerateOBJFile with the information extracted from the surface mesh
-    # GenerateOBJFile
-
-
     # required format is
-    # v 987.823009 -583.341002 122.360997
+    # v 987.823009 -583.341002 122.360997    
     # vn 0.329248 0.150250 0.932213
     # v 979.430974 -499.442995 88.674001
     # vn 0.689488 0.597651 0.409169
 
-    # f 18//18 10//10 9//9 
+    # f 18//18 10//10 9//9     f v1//vn1 v2//vn2 v3//vn3 ...
     # f 18//18 9//9 17//17 
     # f 19//19 11//11 10//10 
 
+    # could possibly also work with just f v1 v2 v3 ordered list
+    #Each face can contain three or more vertices.
+
+    #f v1 v2 v3 ....
 
 
 
 
 
-    ## Nodes
-    set Nodes [GiD_Info Mesh Nodes]
-    puts $FileVar "Begin Nodes"
-    for {set i 0} {$i < [llength $Nodes]} {incr i 4} {
-        puts -nonewline $FileVar "  [lindex $Nodes $i]  "
-        puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+1 }]]]
-        puts -nonewline $FileVar " "
-        puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+2 }]]]
-        puts -nonewline $FileVar " "
-        puts $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+3 }]]]
-    }
-    puts $FileVar "End Nodes"
-    puts $FileVar ""
-    puts $FileVar ""
 
 
- 
+
+
+
+
+
+
+
+
+
+
 
 
 
