@@ -793,12 +793,6 @@ protected:
     virtual Matrix& MPMJacobianDelta(Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix& rDeltaPosition);
 
     /**
-     * Calculate Shape Function Values in a given point
-     */
-
-    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
-
-    /**
      * Calculate Shape Function grandient local Values in a given point in 3 dimension
      */
     virtual Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult, const array_1d<double,3>& rPoint);

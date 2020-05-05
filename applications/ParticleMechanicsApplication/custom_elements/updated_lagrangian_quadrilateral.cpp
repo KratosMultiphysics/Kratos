@@ -190,8 +190,7 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
 
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
-
-    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     // Reading shape functions local gradients
     rVariables.DN_De = this->MPMShapeFunctionsLocalGradients( rVariables.DN_De, mMP.xg);
@@ -517,7 +516,6 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(
 
         if (is_explicit)
         {
-            this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
             Matrix Jacobian;
             Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
             Matrix InvJ;
@@ -603,7 +601,7 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
 
 
     // Compute explicit element kinematics, strain is incremented here.
-    this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
     Matrix Jacobian;
     Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
     Matrix InvJ;
@@ -917,8 +915,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     mFinalizedStep = false;
 
     // Calculating shape functions
-    Vector N;
-    this->MPMShapeFunctionPointValues(N, mMP.xg);
+    Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     array_1d<double,3> aux_MP_velocity = ZeroVector(3);
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
@@ -1066,7 +1063,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
     array_1d<double,3> MP_velocity = ZeroVector(3);
     const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -1125,7 +1122,7 @@ void UpdatedLagrangianQuadrilateral::InitializeMaterial()
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
 
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, mMP.xg);
+        Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
         mConstitutiveLawVector->InitializeMaterial( GetProperties(), GetGeometry(),
                 Variables.N );
@@ -1150,8 +1147,9 @@ void UpdatedLagrangianQuadrilateral::ResetConstitutiveLaw()
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
+        Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
         mConstitutiveLawVector->ResetMaterial(
-            GetProperties(), GetGeometry(), this->MPMShapeFunctionPointValues(Variables.N, mMP.xg) );
+            GetProperties(), GetGeometry(), Variables.N);
     }
 
     KRATOS_CATCH( "" )
@@ -1429,8 +1427,7 @@ void UpdatedLagrangianQuadrilateral::CalculateMassMatrix( MatrixType& rMassMatri
     KRATOS_TRY
 
     // Call the values of the shape function for the single element
-    Vector N;
-    this->MPMShapeFunctionPointValues(N, mMP.xg);
+    Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     const bool is_lumped_mass_matrix = (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
         ? rCurrentProcessInfo.GetValue(COMPUTE_LUMPED_MASS_MATRIX)
@@ -1583,76 +1580,6 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, const
 
 //************************************************************************************
 //************************************************************************************
-
-/**
-   * Shape function values in given point. This method calculate the shape function
-   * vector in given point.
-   *
-   * @param rPoint point which shape function values have to
-* be calculated in it.
-*
-* @return Vector of double which is shape function vector \f$ N \f$ in given point.
-*
- */
-Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
-{
-    KRATOS_TRY
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    array_1d<double,3> rPointLocal = ZeroVector(3);
-    rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
-
-    if (dimension == 2)
-    {
-        rResult.resize( 4, false );
-
-        // Shape Functions (if the first node of the connettivity is the node at the bottom left)
-        rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-
-        //Shape Function (if the first node of the connettivity is the node at the top left)
-        //rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult[1] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        //rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        //rResult[3] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-
-        //Shape Function (if the first node of the connettivity is the node at the top right)
-        //rResult[0] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult[1] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult[2] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        //rResult[3] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-
-        //Shape Function (if the first node of the connettivity is the node at the bottom right)
-        //rResult[0] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        //rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult[2] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-
-    }
-    else if (dimension == 3)
-    {
-        rResult.resize(8, false);
-
-        // Shape Functions (if the first node of the connettivity is the node at (-1,-1,-1))
-        // NOTE: Implemented based on Carlos Felippa's Lecture on AFEM Chapter 11
-        rResult[0] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
-        rResult[1] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
-        rResult[2] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
-        rResult[3] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
-        rResult[4] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
-        rResult[5] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
-        rResult[6] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
-        rResult[7] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
-    }
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
-
-
 
 // Function which return dN/de
 Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix& rResult, const array_1d<double,3>& rPoint)
@@ -1870,15 +1797,13 @@ void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints(const Variable
     }
     else if (rVariable == EXPLICIT_MAP_GRID_TO_MP) 
     {
-        Vector N;
-        this->MPMShapeFunctionPointValues(N, mMP.xg);
+        Vector N = row(GetGeometry().ShapeFunctionsValues(),0);
         MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo, *this, N);
         rValues[0] = true;
     }
     else if (rVariable == CALCULATE_MUSL_VELOCITY_FIELD)
     {
-        Vector N;
-        this->MPMShapeFunctionPointValues(N, mMP.xg);
+        Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
         MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, N);
         rValues[0] = true;
     }
