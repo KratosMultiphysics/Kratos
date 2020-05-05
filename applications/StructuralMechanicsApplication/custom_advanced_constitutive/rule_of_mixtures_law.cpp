@@ -654,11 +654,9 @@ Vector& RuleOfMixturesLaw::CalculateValue(
         Flags& r_flags = rParameterValues.GetOptions();
 
         // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
 
@@ -674,7 +672,6 @@ Vector& RuleOfMixturesLaw::CalculateValue(
         noalias(rValue) = rParameterValues.GetStrainVector();
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     } else if (rThisVariable == STRESSES ||
@@ -686,11 +683,9 @@ Vector& RuleOfMixturesLaw::CalculateValue(
         Flags& r_flags = rParameterValues.GetOptions();
 
         // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
@@ -708,7 +703,6 @@ Vector& RuleOfMixturesLaw::CalculateValue(
         noalias(rValue) = rParameterValues.GetStressVector();
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     } else {
@@ -752,11 +746,9 @@ Matrix& RuleOfMixturesLaw::CalculateValue(
         Flags& r_flags = rParameterValues.GetOptions();
 
         // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
 
@@ -772,7 +764,6 @@ Matrix& RuleOfMixturesLaw::CalculateValue(
         noalias(rValue) = rParameterValues.GetConstitutiveMatrix();
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     } else {
@@ -1042,14 +1033,12 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
     KRATOS_TRY;
 
     // Some auxiliar values
-    const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
 
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
-    const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
     const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
     const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
@@ -1073,7 +1062,6 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Set new flags
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
@@ -1097,7 +1085,6 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
             noalias(rValues.GetConstitutiveMatrix()) = auxiliar_constitutive_matrix;
         rValues.SetMaterialProperties(r_material_properties);
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
@@ -1111,14 +1098,12 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
 void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
     // Some auxiliar values
-    const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
 
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
-    const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
     const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
     const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
@@ -1142,7 +1127,6 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Set new flags
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
@@ -1166,7 +1150,6 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
             noalias(rValues.GetConstitutiveMatrix()) = auxiliar_constitutive_matrix;
         rValues.SetMaterialProperties(r_material_properties);
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
