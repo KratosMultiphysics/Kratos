@@ -333,6 +333,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
         }
         rValues[0] = v;
     }
+    else if (rVariable == VECTOR_TO_UPWIND_ELEMENT)
+    {
+        rValues[0] = this->GetValue(VECTOR_TO_UPWIND_ELEMENT);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -992,13 +996,23 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
     const GlobalPointersVector<Element>& rNodeOneElementCandidates = rGeom[upwind_element_one_node_id].GetValue(NEIGHBOUR_ELEMENTS);
     const GlobalPointersVector<Element>& rNodeTwoElementCandidates = rGeom[upwind_element_two_node_id].GetValue(NEIGHBOUR_ELEMENTS);
 
+    bool loop_stop = false;
+
     // find element which shares both nodes
-    for (SizeType i = 0; i < rNodeOneElementCandidates.size(); i++)
+    for (SizeType i = 0; i < rNodeOneElementCandidates.size(); i++ && !loop_stop)
     {
-        for (SizeType j = 0; j < rNodeTwoElementCandidates.size(); j++)
+        // KRATOS_WATCH(i);
+        
+        for (SizeType j = 0; j < rNodeTwoElementCandidates.size(); j++ && !loop_stop)
         {
-            if(rNodeOneElementCandidates(i)->GetId() == rNodeTwoElementCandidates(j)->GetId())
+            // KRATOS_WATCH(j);
+            
+            if(rNodeOneElementCandidates(i)->Id() == rNodeTwoElementCandidates(j)->Id() && rNodeOneElementCandidates(i)->Id() != this->Id())
             {
+                // std::cout << "\nInside if statement\n";
+                // KRATOS_WATCH(i);
+                // KRATOS_WATCH(j);
+
                 // assign upwind element
                 mpUpwindElement = rNodeOneElementCandidates(i);
                 
@@ -1008,18 +1022,18 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
                 const Point current_element_center = rGeom.Center();
                 
                 // make vector pointing from current element to upwind element
-                vector<double> vector_to_upwind_element (3);
+                vector<double> vector_to_upwind_element (3, 0.0);
                 vector_to_upwind_element[0] = upwind_element_center[0] - current_element_center[0];
                 vector_to_upwind_element[1] = upwind_element_center[1] - current_element_center[1];
                 vector_to_upwind_element[2] = upwind_element_center[2] - current_element_center[2];
-                
+                                
                 this->SetValue(VECTOR_TO_UPWIND_ELEMENT, vector_to_upwind_element);
                 
+                loop_stop = true;
                 break;
             }
         }
     }
-
 }
 
 template <int TDim, int TNumNodes>
