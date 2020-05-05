@@ -97,12 +97,8 @@ protected:
     double mTurbulentKinematicViscosity;
     double mKinematicViscosity;
     double mVelocityDivergence;
-    double mOmega;
-    double mSigmaD;
     double mSigmaOmega;
     double mBeta;
-    double mBetaZero;
-    double mBetaStar;
     double mGamma;
 };
 

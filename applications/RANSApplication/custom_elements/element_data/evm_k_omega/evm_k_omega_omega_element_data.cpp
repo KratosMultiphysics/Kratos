@@ -24,7 +24,6 @@
 // Application includes
 #include "custom_elements/element_data/evm_k_epsilon/evm_k_epsilon_element_data_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "evm_k_omega_element_data_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -85,8 +84,7 @@ GeometryData::IntegrationMethod OmegaElementData<TDim>::GetIntegrationMethod()
 template <unsigned int TDim>
 void OmegaElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
 {
-    mBetaZero = rCurrentProcessInfo[TURBULENCE_RANS_BETA_ZERO];
-    mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    mBeta = rCurrentProcessInfo[TURBULENCE_RANS_BETA];
     mGamma = rCurrentProcessInfo[TURBULENCE_RANS_GAMMA];
     mSigmaOmega = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA];
 }
@@ -97,11 +95,9 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
                                                      const int Step)
 {
     KRATOS_TRY
+
     mTurbulentKineticEnergy = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions, Step);
-    mOmega = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
-        rShapeFunctions, Step);
     mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions, Step);
     mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
@@ -113,20 +109,6 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
     RansCalculationUtilities::CalculateGradient<TDim>(
         this->mVelocityGradient, this->GetGeometry(), VELOCITY,
         rShapeFunctionDerivatives, Step);
-
-    RansCalculationUtilities::CalculateGradient(
-        mTurbulentKineticEnergyGradient, this->GetGeometry(),
-        TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives, Step);
-
-    mBeta = EvmKOmegaElementDataUtilities::CalculateBeta<TDim>(
-        mVelocityGradient, mVelocityDivergence, mOmega, mBetaZero, mBetaStar);
-
-    RansCalculationUtilities::CalculateGradient(
-        mTurbulentSpecificEnergyDissipationRateGradient, this->GetGeometry(),
-        TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rShapeFunctionDerivatives, Step);
-
-    mSigmaD = EvmKOmegaElementDataUtilities::CalculateSigmaD(
-        mTurbulentKineticEnergyGradient, mTurbulentSpecificEnergyDissipationRateGradient);
 
     KRATOS_CATCH("");
 }
@@ -167,10 +149,6 @@ double OmegaElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions
         mVelocityGradient, mTurbulentKinematicViscosity);
 
     production *= (mGamma / mTurbulentKinematicViscosity);
-
-    production += inner_prod(mTurbulentKineticEnergyGradient,
-                             mTurbulentSpecificEnergyDissipationRateGradient) *
-                  mSigmaD / mOmega;
 
     return production;
 }
