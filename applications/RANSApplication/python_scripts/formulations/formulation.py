@@ -151,8 +151,6 @@ class Formulation:
         info = "\n" + self.GetName()
         if (self.GetModelPart() is not None):
             info += "\n   Model part    : " + str(self.GetModelPart().Name)
-            info += "\n   Element name  : " + str(self.GetModelPart().GetElement(1)).split(":")[0]
-            info += "\n   Condition name: " + str(self.GetModelPart().GetCondition(1)).split(":")[0]
 
         if (str(self.GetMaxCouplingIterations()) != "N/A"):
             info += "\n   Max iterations: " + str(self.GetMaxCouplingIterations())
