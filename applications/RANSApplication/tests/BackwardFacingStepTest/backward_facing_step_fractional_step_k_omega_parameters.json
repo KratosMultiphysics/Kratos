@@ -260,7 +260,7 @@
                     ],
                     "model_part_name": "FluidModelPart.Parts_fluid",
                     "output_file_settings": {
-                        "file_name": "backward_facing_step_fractional_step_k_omega_test_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_probe1_ref.dat"
+                        "file_name": "backward_facing_step_fractional_step_k_omega_test_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_probe1.dat"
                     },
                     "output_variables": [
                         "VELOCITY_X",
@@ -285,7 +285,7 @@
                     ],
                     "model_part_name": "FluidModelPart.Parts_fluid",
                     "output_file_settings": {
-                        "file_name": "backward_facing_step_fractional_step_k_omega_test_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_probe2_ref.dat"
+                        "file_name": "backward_facing_step_fractional_step_k_omega_test_<STABILIZATION_METHOD>_<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_probe2.dat"
                     },
                     "output_variables": [
                         "VELOCITY_X",

@@ -17,8 +17,10 @@ from custom_process_tests import CustomProcessTest
 from adjoint_k_epsilon_sensitivity_2d import AdjointKEpsilonSensitivity2D
 import run_cpp_unit_tests
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
+from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
 from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
+from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
 from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKEpsilonHighReTest
 from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
 
@@ -73,12 +75,22 @@ def AssembleTestSuites():
     nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTke')))
     nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocity')))
 
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcTke')))
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcVelocity')))
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTke')))
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocity')))
+
     # fractional step tests
     nightSuite.addTest((FractionalStepVelocityPressureFormulationTest('testFractionalStepVelocityPressure')))
     nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcTke')))
     nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcVelocity')))
     nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcTke')))
     nightSuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcVelocity')))
+
+    nightSuite.addTest((FractionalStepKOmegaTest('testFractionalStepKOmegaAfcTke')))
+    nightSuite.addTest((FractionalStepKOmegaTest('testFractionalStepKOmegaAfcVelocity')))
+    nightSuite.addTest((FractionalStepKOmegaTest('testFractionalStepKOmegaRfcTke')))
+    nightSuite.addTest((FractionalStepKOmegaTest('testFractionalStepKOmegaRfcVelocity')))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
