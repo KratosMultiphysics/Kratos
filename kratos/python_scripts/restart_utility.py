@@ -47,15 +47,15 @@ class RestartUtility(object):
 
         if settings["io_foldername"].GetString() == '':
             self.io_foldername = self.raw_file_name + "__restart_files"
-            warn_msg  = 'No entry found for "io_foldername"\n'
-            warn_msg += 'Using the default "' + self.io_foldername + '"'
-            KratosMultiphysics.Logger.PrintInfo("RestartUtility", warn_msg)
+            info_msg  = 'No entry found for "io_foldername"\n'
+            info_msg += 'Using the default "' + self.io_foldername + '"'
+            KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
 
         else:
             self.io_foldername = settings["io_foldername"].GetString()
-            warn_msg  = 'Found entry found for "io_foldername"\n'
-            warn_msg += 'Using the user-defined value "' + self.io_foldername + '"'
-            KratosMultiphysics.Logger.PrintInfo("RestartUtility", warn_msg)
+            info_msg  = 'Found entry found for "io_foldername"\n'
+            info_msg += 'Using the user-defined value "' + self.io_foldername + '"'
+            KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
 
         serializer_trace = settings["serializer_trace"].GetString()
         if not serializer_trace in __serializer_flags.keys():

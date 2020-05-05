@@ -40,9 +40,9 @@ class SaveRestartProcess(KratosMultiphysics.Process):
 
         if params["io_foldername"].GetString() == '':
             default_io_folder = params["model_part_name"].GetString() + "__restart_files"
-            warn_msg  = 'No entry found for "io_foldername"\n'
-            warn_msg += 'Using the default "' + default_io_folder + '"'
-            KratosMultiphysics.Logger.PrintInfo("SaveRestartProcess", warn_msg)
+            info_msg  = 'No entry found for "io_foldername"\n'
+            info_msg += 'Using the default "' + default_io_folder + '"'
+            KratosMultiphysics.Logger.PrintInfo("SaveRestartProcess", info_msg)
 
         params.AddValue("input_filename", params["model_part_name"])
         params.RemoveValue("model_part_name")
