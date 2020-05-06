@@ -69,18 +69,18 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<LinearSolverType::Pointer, const Variable<int> &>());
 
     py::class_<
-        FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
-        typename FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
-        BaseSolvingStrategyType>(m, "FSStrategy")
+        FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
+        typename FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
+        BaseSolvingStrategyType>(m, "FractionalStepStrategy")
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool>())
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool>())
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, const Kratos::Variable<int> &>())
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool, const Kratos::Variable<int> &>())
-    .def("CalculateReactions", [](FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>& self) {
-        KRATOS_WARNING("FSStrategy") << "\'CalculateReactions()\' exposure is deprecated. Use the constructor with the \'CalculateReactionsFlag\' instead." << std::endl;
+    .def("CalculateReactions", [](FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>& self) {
+        KRATOS_WARNING("FractionalStepStrategy") << "\'CalculateReactions()\' exposure is deprecated. Use the constructor with the \'CalculateReactionsFlag\' instead." << std::endl;
         self.CalculateReactions();})
-    .def("AddIterationStep", &FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::AddIterationStep)
-    .def("ClearExtraIterationSteps", &FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::ClearExtraIterationSteps);
+    .def("AddIterationStep", &FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::AddIterationStep)
+    .def("ClearExtraIterationSteps", &FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::ClearExtraIterationSteps);
 
     py::class_<
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>,

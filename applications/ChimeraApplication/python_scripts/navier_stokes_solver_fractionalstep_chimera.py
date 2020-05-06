@@ -111,10 +111,10 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
 
         # Create the fractional step strategy
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            KratosMultiphysics.Logger.PrintInfo("FSStrategyForChimera Periodic conditions are not implemented in this case .")
+            KratosMultiphysics.Logger.PrintInfo("FractionalStepStrategyForChimera Periodic conditions are not implemented in this case .")
             raise NotImplementedError
         else:
-            solution_strategy = KratosChimera.FSStrategyForChimera(
+            solution_strategy = KratosChimera.FractionalStepStrategyForChimera(
                 computing_model_part,
                 fractional_step_settings,
                 self.settings["predictor_corrector"].GetBool(),

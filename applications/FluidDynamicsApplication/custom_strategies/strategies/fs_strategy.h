@@ -71,14 +71,14 @@ namespace Kratos {
  * @tparam TLinearSolver Linear solver template type
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class FSStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class FractionalStepStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of FSStrategy
-    KRATOS_CLASS_POINTER_DEFINITION(FSStrategy);
+    /// Counted pointer of FractionalStepStrategy
+    KRATOS_CLASS_POINTER_DEFINITION(FractionalStepStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -94,18 +94,18 @@ public:
     ///@name Life Cycle
     ///@{
 
-    FSStrategy(ModelPart& rModelPart,
+    FractionalStepStrategy(ModelPart& rModelPart,
                SolverSettingsType& rSolverConfig,
                bool PredictorCorrector):
         BaseType(rModelPart,false),
         mCalculateReactionsFlag(false),
         mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {
-        KRATOS_WARNING("FSStrategy") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
+        KRATOS_WARNING("FractionalStepStrategy") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
         InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
-    FSStrategy(ModelPart& rModelPart,
+    FractionalStepStrategy(ModelPart& rModelPart,
                SolverSettingsType& rSolverConfig,
                bool PredictorCorrector,
                const Kratos::Variable<int>& PeriodicVar):
@@ -113,11 +113,11 @@ public:
         mCalculateReactionsFlag(false),
         mrPeriodicIdVar(PeriodicVar)
     {
-        KRATOS_WARNING("FSStrategy") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
+        KRATOS_WARNING("FractionalStepStrategy") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
         InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
-    FSStrategy(
+    FractionalStepStrategy(
         ModelPart& rModelPart,
         SolverSettingsType& rSolverConfig,
         bool PredictorCorrector,
@@ -129,7 +129,7 @@ public:
         InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
-    FSStrategy(
+    FractionalStepStrategy(
         ModelPart& rModelPart,
         SolverSettingsType& rSolverConfig,
         bool PredictorCorrector,
@@ -143,7 +143,7 @@ public:
     }
 
     /// Destructor.
-    ~FSStrategy() override{}
+    ~FractionalStepStrategy() override{}
 
     ///@}
     ///@name Operators
@@ -226,15 +226,15 @@ public:
             const unsigned int echo_level = BaseType::GetEchoLevel();
             // Iterative solution for pressure
             for (unsigned int it = 0; it < mMaxPressureIter; ++it) {
-                KRATOS_INFO_IF("FSStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
+                KRATOS_INFO_IF("FractionalStepStrategy", echo_level > 1) << "Pressure iteration " << it << std::endl;
                 const auto convergence_output = this->SolveStep();
                 converged = this->CheckPressureConvergence(std::get<1>(convergence_output));
                 if (converged) {
-                    KRATOS_INFO_IF("FSStrategy", echo_level > 0) << "Predictor-corrector converged in " << it + 1 << " iterations." << std::endl;
+                    KRATOS_INFO_IF("FractionalStepStrategy", echo_level > 0) << "Predictor-corrector converged in " << it + 1 << " iterations." << std::endl;
                     break;
                 }
             }
-            KRATOS_WARNING_IF("FSStrategy", !converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
+            KRATOS_WARNING_IF("FractionalStepStrategy", !converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
         } else {
             // Solve for fractional step velocity, then update pressure once
             const auto convergence_output = this->SolveStep();
@@ -371,7 +371,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "FSStrategy" ;
+        buffer << "FractionalStepStrategy" ;
         return buffer.str();
     }
 
@@ -496,7 +496,7 @@ protected:
         bool Converged = false;
         for(unsigned int it = 0; it < mMaxVelocityIter; ++it)
         {
-            KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 1) << "Momentum iteration " << it << std::endl;
+            KRATOS_INFO_IF("FractionalStepStrategy", BaseType::GetEchoLevel() > 1) << "Momentum iteration " << it << std::endl;
 
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
@@ -516,12 +516,12 @@ protected:
 
             if (Converged)
             {
-                KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Fractional velocity converged in " << it + 1 << " iterations." << std::endl;
+                KRATOS_INFO_IF("FractionalStepStrategy", BaseType::GetEchoLevel() > 0) << "Fractional velocity converged in " << it + 1 << " iterations." << std::endl;
                 break;
             }
         }
 
-        KRATOS_INFO_IF("FSStrategy", !Converged && BaseType::GetEchoLevel() > 0) << "Fractional velocity iterations did not converge." << std::endl;
+        KRATOS_INFO_IF("FractionalStepStrategy", !Converged && BaseType::GetEchoLevel() > 0) << "Fractional velocity iterations did not converge." << std::endl;
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
@@ -537,7 +537,7 @@ protected:
             it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -old_press;
         }
 
-        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Calculating Pressure." << std::endl;
+        KRATOS_INFO_IF("FractionalStepStrategy", BaseType::GetEchoLevel() > 0) << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
 
 #pragma omp parallel for
@@ -547,7 +547,7 @@ protected:
         }
 
         // 3. Compute end-of-step velocity
-        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Updating Velocity." << std::endl;
+        KRATOS_INFO_IF("FractionalStepStrategy", BaseType::GetEchoLevel() > 0) << "Updating Velocity." << std::endl;
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
@@ -587,8 +587,8 @@ protected:
         const double zero_tol = 1.0e-12;
         const double Ratio = (NormV < zero_tol) ? NormDv : NormDv / NormV;
 
-        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "CONVERGENCE CHECK:" << std::endl;
-        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0)
+        KRATOS_INFO_IF("FractionalStepStrategy", BaseType::GetEchoLevel() > 0) << "CONVERGENCE CHECK:" << std::endl;
+        KRATOS_INFO_IF("FractionalStepStrategy", BaseType::GetEchoLevel() > 0)
             <<  std::scientific << std::setprecision(8) << "FRAC VEL.: ratio = " << Ratio <<"; exp.ratio = " << mVelocityTolerance << " abs = " << NormDv << std::endl;
 
         if (Ratio < mVelocityTolerance)
@@ -615,7 +615,7 @@ protected:
         const double zero_tol = 1.0e-12;
         const double Ratio = (NormP < zero_tol) ? NormDp : NormDp / NormP;
 
-        KRATOS_INFO_IF("FSStrategy", BaseType::GetEchoLevel() > 0) << "Pressure relative error: " << Ratio << std::endl;
+        KRATOS_INFO_IF("FractionalStepStrategy", BaseType::GetEchoLevel() > 0) << "Pressure relative error: " << Ratio << std::endl;
 
         if (Ratio < mPressureTolerance)
         {
@@ -1011,10 +1011,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    FSStrategy& operator=(FSStrategy const& rOther){}
+    FractionalStepStrategy& operator=(FractionalStepStrategy const& rOther){}
 
     /// Copy constructor.
-    FSStrategy(FSStrategy const& rOther){}
+    FractionalStepStrategy(FractionalStepStrategy const& rOther){}
 
 
     ///@}
