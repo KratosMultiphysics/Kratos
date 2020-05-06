@@ -235,18 +235,18 @@ public:
 
     /// Constructor with Geometry Id
     explicit Triangle2D3(
-        IndexType GeometryId,
-        const PointsArrayType& ThisPoints
-    ) : BaseType(GeometryId, ThisPoints, &msGeometryData)
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+        ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 3 ) << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Name
     explicit Triangle2D3(
-        const std::string& GeometryName,
-        const PointsArrayType& ThisPoints
-    ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+        ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF(this->PointsNumber() != 3) << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
     }
@@ -342,42 +342,42 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param ThisPoints the nodes of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        PointsArrayType const& ThisPoints
-    ) const override
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Triangle2D3( ThisPoints ) );
+        return typename BaseType::Pointer( new Triangle2D3( rThisPoints ) );
     }
 
     /**
      * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
-     * @param ThisPoints the nodes of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewGeometryId,
-        PointsArrayType const& ThisPoints
-    ) const override
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Triangle2D3( NewGeometryId, ThisPoints ) );
+        return typename BaseType::Pointer( new Triangle2D3( NewGeometryId, rThisPoints ) );
     }
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
-     * @param ThisPoints the nodes of the new geometry
+     * @param rNewGeometryName the name of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        const std::string& NewGeometryName,
-        PointsArrayType const& ThisPoints
-    ) const override
+        const std::string& rNewGeometryName,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Triangle2D3( NewGeometryName, ThisPoints ) );
+        return typename BaseType::Pointer( new Triangle2D3( rNewGeometryName, rThisPoints ) );
     }
 
     /**
@@ -387,7 +387,7 @@ public:
      */
     typename BaseType::Pointer Create(
         typename BaseType::Pointer pGeometry
-    ) const override
+        ) const override
     {
         auto p_geometry = typename BaseType::Pointer( new Triangle2D3( pGeometry->Points() ) );
         p_geometry->SetData(pGeometry->GetData());
@@ -401,9 +401,9 @@ public:
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewGeometryId,
+        const IndexType NewGeometryId,
         typename BaseType::Pointer pGeometry
-    ) const override
+        ) const override
     {
         auto p_geometry = typename BaseType::Pointer( new Triangle2D3( NewGeometryId, pGeometry->Points() ) );
         p_geometry->SetData(pGeometry->GetData());
@@ -412,16 +412,16 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
+     * @param rNewGeometryName the name of the new geometry
      * @param pGeometry Pointer to an existing geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        const std::string& NewGeometryName,
+        const std::string& rNewGeometryName,
         typename BaseType::Pointer pGeometry
-    ) const override
+        ) const override
     {
-        auto p_geometry = typename BaseType::Pointer( new Triangle2D3( NewGeometryName, pGeometry->Points() ) );
+        auto p_geometry = typename BaseType::Pointer( new Triangle2D3( rNewGeometryName, pGeometry->Points() ) );
         p_geometry->SetData(pGeometry->GetData());
         return p_geometry;
     }
