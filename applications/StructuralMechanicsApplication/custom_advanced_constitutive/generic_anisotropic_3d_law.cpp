@@ -97,8 +97,8 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     
     // We create the rValues for the isotropic CL
-    const auto it_cl_begin                    = r_material_properties.GetSubProperties().begin();
-    const auto& r_props_iso_cl                = *(it_cl_begin);
+    const auto it_cl_begin     = r_material_properties.GetSubProperties().begin();
+    const auto& r_props_iso_cl = *(it_cl_begin);
     rValues.SetMaterialProperties(r_props_iso_cl);
 
     if (flag_stress) {
@@ -261,10 +261,9 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We create the rValues for the isotropic CL
-    const auto it_cl_begin                    = r_material_properties.GetSubProperties().begin();
-    const auto& r_props_iso_cl                = *(it_cl_begin);
-    ConstitutiveLaw::Parameters values_iso_cl = rValues;
-    values_iso_cl.SetMaterialProperties(r_props_iso_cl);
+    const auto it_cl_begin     = r_material_properties.GetSubProperties().begin();
+    const auto& r_props_iso_cl = *(it_cl_begin);
+    rValues.SetMaterialProperties(r_props_iso_cl);
 
     // Here we compute the rotation tensors due to the angles of the local and global axes
     BoundedMatrixType rotation_matrix;
@@ -291,12 +290,12 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     Matrix isotropic_elastic_matrix;
 
     ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
-    mpIsotropicCL->CalculateValue(values_iso_cl, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
+    mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
     this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
     ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
                                                                                 isotropic_elastic_matrix, stress_mapper, 
                                                                                 strain_mapper);
-    Vector &r_iso_strain_vector = values_iso_cl.GetStrainVector();
+    Vector &r_iso_strain_vector = rValues.GetStrainVector();
     // Now we rotate the strain Eglob-> Eloc
     r_iso_strain_vector = prod((voigt_rotation_matrix), r_iso_strain_vector);
 
@@ -304,7 +303,9 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     r_iso_strain_vector = prod(strain_mapper, r_iso_strain_vector); // mapped
 
     // Integrate the isotropic constitutive law
-    mpIsotropicCL->FinalizeMaterialResponsePK2(values_iso_cl); 
+    mpIsotropicCL->FinalizeMaterialResponsePK2(rValues);
+
+    rValues.SetMaterialProperties(r_material_properties);
 }
 
 /***********************************************************************************/
