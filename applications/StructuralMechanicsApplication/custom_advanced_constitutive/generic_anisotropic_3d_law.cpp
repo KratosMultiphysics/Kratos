@@ -158,11 +158,11 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         if (flag_const_tensor) {
             // Finally we map the tangent tensor: C_aniso = inv(As)*C_iso*Ae
             Matrix &r_anisotropic_tangent_matrix  = rValues.GetConstitutiveMatrix();
-            const Matrix& r_isotropic_tangent     = values_iso_cl.GetConstitutiveMatrix();
-            noalias(r_anisotropic_tangent_matrix) = prod(stress_mapper_inv, Matrix(prod(r_isotropic_tangent, strain_mapper)));
+            const Matrix isotropic_tangent        = values_iso_cl.GetConstitutiveMatrix();
+            noalias(r_anisotropic_tangent_matrix) = prod(stress_mapper_inv, Matrix(prod(isotropic_tangent, strain_mapper)));
 
             // Now we rotate to the global coordinates
-            noalias(r_anisotropic_tangent_matrix) = prod((trans(voigt_rotation_matrix)), Matrix(prod(r_isotropic_tangent, (voigt_rotation_matrix))));
+            r_anisotropic_tangent_matrix = prod((trans(voigt_rotation_matrix)), Matrix(prod(r_anisotropic_tangent_matrix, (voigt_rotation_matrix))));
         }  
     }
 } // End CalculateMaterialResponseCauchy
