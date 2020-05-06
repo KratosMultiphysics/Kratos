@@ -575,7 +575,7 @@ public:
     }
 
     double CalculatePrimalDampingMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rDampingMatrix,
-                                        const ProcessInfo& rCurrentProcessInfo) const
+                                        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -675,6 +675,8 @@ public:
                 }
             }
         }
+
+        r_current_data.UpdateElementDataValueContainer(*this);
 
         return scalar_multiplier / static_cast<double>(num_gauss_points);
 

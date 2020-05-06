@@ -557,7 +557,7 @@ public:
     }
 
     void CalculatePrimalDampingMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rDampingMatrix,
-                                      const ProcessInfo& rCurrentProcessInfo) const
+                                      const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -693,6 +693,8 @@ public:
                 }
             }
         }
+
+        element_data.UpdateElementDataValueContainer(*this);
 
         KRATOS_CATCH("");
     }

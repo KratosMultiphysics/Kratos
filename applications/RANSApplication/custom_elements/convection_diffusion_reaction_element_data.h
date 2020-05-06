@@ -76,6 +76,10 @@ public:
     virtual double CalculateSourceTerm(const Vector& rShapeFunctions,
                                        const Matrix& rShapeFunctionDerivatives) const = 0;
 
+    virtual void UpdateElementDataValueContainer(Element& rElement) const
+    {
+    }
+
     const GeometryType& GetGeometry() const
     {
         return mrGeometry;
