@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division
 import os
 
 # Import Kratos core and apps
-import KratosMultiphysics
+import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
@@ -20,15 +20,15 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         with KratosUnittest.WorkFolderScope(_get_test_working_dir(), __file__):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters( parameter_file.read())
+                parameters = KM.Parameters( parameter_file.read())
 
             # To avoid many prints
             if (parameters["problem_data"]["echo_level"].GetInt() == 0):
-                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+                KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
             self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
-            model = KratosMultiphysics.Model()
+            model = KM.Model()
             self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["response_settings"], model)
 
             # call response function
@@ -41,7 +41,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             self.response_function.CalculateValue()
             self.value = self.response_function.GetValue()
             self.response_function.CalculateGradient()
-            self.gradient = self.response_function.GetShapeGradient()
+            self.gradient = self.response_function.GetNodalGradient(KM.SHAPE_SENSITIVITY)
             self.response_function.FinalizeSolutionStep()
 
     def tearDown(self):
@@ -122,7 +122,7 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
 
     def test_execution(self):
-        self.current_model = KratosMultiphysics.Model()
+        self.current_model = KM.Model()
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 2943.7499999999995)
 
@@ -136,7 +136,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "strain_energy_response"
 
     def test_execution(self):
-        self.current_model = KratosMultiphysics.Model()
+        self.current_model = KM.Model()
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 0.6062751119154768)
 

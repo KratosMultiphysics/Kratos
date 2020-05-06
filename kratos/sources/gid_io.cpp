@@ -19,8 +19,31 @@
 
 namespace Kratos
 {
-    int GidIOBase::msLiveInstances = 0;
-    template class GidIO<GidGaussPointsContainer, GidMeshContainer>;
+    GidIOBase& GidIOBase::GetInstance() {
+        if (mpInstance == nullptr) {
+            Create();
+        }
+
+        return *mpInstance;
+    }
+
+    void GidIOBase::Create() {
+        static GidIOBase gid_io_base;
+        mpInstance = &gid_io_base;
+    }
+
+    int GidIOBase::GetData() {
+        return this -> data;
+    }
+
+    void GidIOBase::SetData(int data) {
+        this -> data = data;
+    }
+
+    GidIOBase* GidIOBase::mpInstance = nullptr;
+
+    // GidIO default instantiation
+    template class GidIO<GidGaussPointsContainer,GidMeshContainer>;
 }  // namespace Kratos.
 
 
