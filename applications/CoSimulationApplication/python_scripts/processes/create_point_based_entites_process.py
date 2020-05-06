@@ -53,8 +53,7 @@ class CreatePointBasedEntitiesProcess(KM.Process):
 
         model_parts = [Model[root_model_part_name+"."+model_part_name] for model_part_name in settings["sub_model_part_names"].GetStringArray()]
 
-        # TODO create recursive if name contains "."
-        new_model_part = root_model_part.CreateSubModelPart(settings["new_sub_model_part_name"].GetString())
+        new_model_part = RecursiveCreateModelParts(root_model_part, settings["new_sub_model_part_name"].GetString())
 
         [node.Id for mp in model_parts for node in mp.GetCommunicator().LocalMesh().Nodes]
 
@@ -94,4 +93,5 @@ def RecursiveCreateModelParts(model_part, model_part_name):
     model_part_name, *sub_model_part_names = model_part_name.split(".")
     model_part = model_part.CreateSubModelPart(model_part_name)
     if len(sub_model_part_names) > 0:
-        RecursiveCreateModelParts(model_part, ".".join(sub_model_part_names))
+        model_part = RecursiveCreateModelParts(model_part, ".".join(sub_model_part_names))
+    return model_part

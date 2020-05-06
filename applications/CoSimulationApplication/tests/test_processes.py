@@ -77,7 +77,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
         settings = KM.Parameters("""{
             "Parameters" : {
                 "root_model_part_name"       : "root_mp",
-                "new_sub_model_part_name"    : "smp_with_conditions",
+                "new_sub_model_part_name"    : "manual_smp.create_conds",
                 "sub_model_part_names"       : ["smp_nodes_1", "smp_nodes_2"],
                 "entity_name"                : "PointCondition2D1N",
                 "entity_type"                : "condition",
@@ -86,7 +86,9 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
         }""")
 
         self.process = self.__CreateProcess(settings)
-        self.assertTrue(self.root_model_part.HasSubModelPart("smp_with_conditions"))
+        self.assertTrue(self.root_model_part.HasSubModelPart("manual_smp"))
+        man_smp = self.root_model_part.GetSubModelPart("manual_smp")
+        self.assertTrue(man_smp.HasSubModelPart("create_conds")) # ensure the recursive creation works
         self.assertEqual(self.root_model_part.NumberOfNodes(), self.root_model_part.NumberOfConditions())
 
         self.__CheckCreatedEntitiesIdAreCorrectlyNumbered(self.root_model_part.Conditions)
