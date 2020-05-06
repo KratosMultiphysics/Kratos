@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
@@ -17,6 +18,7 @@ class CreatePointLoadModelPart(CoSimulationCouplingOperation):
     """This operation creates a submodelpart containing PointLoad Conidtions for transferring loads
     """
     def __init__(self, settings, solver_wrappers):
+        IssueDeprecationWarning('CreatePointLoadModelPart', 'please use CreatePointBasedEntitiesProcess" instead')
         super(CreatePointLoadModelPart, self).__init__(settings)
         self.model = solver_wrappers[self.settings["solver"].GetString()].model
 
