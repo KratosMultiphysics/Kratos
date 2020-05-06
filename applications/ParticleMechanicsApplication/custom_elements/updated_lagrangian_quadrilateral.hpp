@@ -783,11 +783,6 @@ protected:
     virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
     /**
-     * Calculate Jacobian in a given point and given a delta position
-     */
-    virtual Matrix& MPMJacobianDelta(Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix& rDeltaPosition);
-
-    /**
      * Calculation of the Volume Change of the Element
      */
     virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
