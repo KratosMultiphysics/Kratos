@@ -280,6 +280,7 @@ public:
         // Allocate and initialize values for REACTION calculation
         LocalSystemVectorType RHS_Contribution;
         LocalSystemMatrixType LHS_Contribution;
+        const auto &r_const_process_info = r_process_info;
         VariableUtils().SetHistoricalVariableToZero(REACTION, r_model_part.Nodes());
 
 #pragma omp parallel for private(RHS_Contribution, LHS_Contribution)
@@ -289,7 +290,7 @@ public:
             it_elem->CalculateLocalSystem(
                 LHS_Contribution,
                 RHS_Contribution,
-                r_process_info);
+                r_const_process_info);
 
             // Accumulate minus the RHS as the reaction
             unsigned int index = 0;
