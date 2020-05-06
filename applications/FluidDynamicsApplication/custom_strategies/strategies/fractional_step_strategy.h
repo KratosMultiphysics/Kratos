@@ -4,14 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
 
-#ifndef KRATOS_FS_STRATEGY_H
-#define KRATOS_FS_STRATEGY_H
+#ifndef KRATOS_FRACTIONAL_STEP_STRATEGY
+#define KRATOS_FRACTIONAL_STEP_STRATEGY
 
 // System includes
 
@@ -967,7 +967,7 @@ private:
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error,"FS_Strategy error: No Velocity strategy defined in FractionalStepSettings","");
+            KRATOS_ERROR << "FractionalStepStrategy error: No Velocity strategy defined in FractionalStepSettings" << std::endl;
         }
 
         bool HavePressStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure,mpPressureStrategy);
@@ -979,7 +979,7 @@ private:
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error,"FS_Strategy error: No Pressure strategy defined in FractionalStepSettings","");
+            KRATOS_ERROR << "FractionalStepStrategy error: No Pressure strategy defined in FractionalStepSettings" << std::endl;
         }
 
         Process::Pointer pTurbulenceProcess;
@@ -1032,4 +1032,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_FS_STRATEGY_H
+#endif // KRATOS_FRACTIONAL_STEP_STRATEGY
