@@ -169,6 +169,9 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    SymbolicEulerianConvectionDiffusionExplicit() : Element()
+    {
+    }
 
     ///@}
 
