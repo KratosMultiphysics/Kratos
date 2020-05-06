@@ -1061,6 +1061,9 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
 
+    // The global strain vector, constant
+    const Vector strain_vector = rValues.GetStrainVector();
+
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Set new flags
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
@@ -1071,27 +1074,30 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
         Vector auxiliar_stress_vector = ZeroVector(voigt_size);
         Matrix auxiliar_constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
 
-        // The rotation matrices
-        BoundedMatrix<double, dimension, dimension>    rotation_matrix;
-        BoundedMatrix<double, voigt_size, voigt_size>  voigt_rotation_matrix, inv_voigt_rotation_matrix;
+        // The rotation matrix
+        BoundedMatrix<double, voigt_size, voigt_size>  voigt_rotation_matrix;
 
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-
+            this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i);
 
             Properties& r_prop = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
+
+            // We rotate to local axes the strain
+            noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
 
             rValues.SetMaterialProperties(r_prop);
             p_law->CalculateMaterialResponsePK2(rValues);
 
             noalias(auxiliar_stress_vector)       += factor * rValues.GetStressVector();
             noalias(auxiliar_constitutive_matrix) += factor * rValues.GetConstitutiveMatrix();
+            rValues.SetMaterialProperties(r_material_properties);
         }
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
         if (flag_const_tensor)
             noalias(rValues.GetConstitutiveMatrix()) = auxiliar_constitutive_matrix;
-        rValues.SetMaterialProperties(r_material_properties);
+        //rValues.SetMaterialProperties(r_material_properties);
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
@@ -1393,19 +1399,44 @@ int RuleOfMixturesLaw::Check(
         aux_out += p_law->Check(r_prop, rElementGeometry, rCurrentProcessInfo);
     }
 
+    if (rMaterialProperties.Has(LAYER_EULER_ANGLES)) {
+        KRATOS_ERROR_IF(rMaterialProperties[LAYER_EULER_ANGLES].size() != 3 * mConstitutiveLaws.size()) << "Euler angles badly defined" << std::endl;
+    }
+
     return aux_out;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::CalculateRotationMatrices(
+void RuleOfMixturesLaw::CalculateRotationMatrix(
         const Properties& rMaterialProperties,
         BoundedMatrix<double, voigt_size, voigt_size>& rRotationMatrix,
         const IndexType Layer 
     )
 {
-    
+    const SizeType voigt_size = this->GetStrainSize();
+    const SizeType dimension  = this->WorkingSpaceDimension();
+
+    if (rMaterialProperties.Has(LAYER_EULER_ANGLES)) {
+        const Vector layers_euler_angles = rMaterialProperties[LAYER_EULER_ANGLES];
+        const double euler_angle_phi     = layers_euler_angles(3*Layer);
+        const double euler_angle_theta   = layers_euler_angles(3*Layer + 1);
+        const double euler_angle_hi      = layers_euler_angles(3*Layer + 2);
+
+        BoundedMatrix<double, dimension, dimension>  rotation_matrix;
+
+        if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
+            ConstitutiveLawUtilities<voigt_size>::CalculateRotationOperator(euler_angle_phi, 
+                                                                        euler_angle_theta,
+                                                                        euler_angle_hi, 
+                                                                        rotation_matrix);
+            ConstitutiveLawUtilities<voigt_size>::CalculateRotationOperatorVoigt(rotation_matrix,
+                                                                                rRotationMatrix);
+        } else {
+            rRotationMatrix = IdentityMatrix(voigt_size, voigt_size);
+        }
+    }
 }
 
 /***********************************************************************************/

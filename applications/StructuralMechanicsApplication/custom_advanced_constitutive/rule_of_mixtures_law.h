@@ -73,6 +73,10 @@ public:
     /// The definition of the index type
     typedef std::size_t       IndexType;
 
+
+    /// Definition of the machine precision tolerance
+    static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
+
     /// Pointer definition of RuleOfMixturesLaw
     KRATOS_CLASS_POINTER_DEFINITION( RuleOfMixturesLaw );
 
@@ -658,7 +662,7 @@ public:
      * @brief This function computes the rotation matrix T-> E_loc = T*E_glob in order to rotate the strain
      * or S_glob = trans(T)S_loc for the stresses
      */
-    void CalculateRotationMatrices(
+    void CalculateRotationMatrix(
         const Properties& rMaterialProperties,
         BoundedMatrix<double, voigt_size, voigt_size>& rRotationMatrix,
         const IndexType Layer
