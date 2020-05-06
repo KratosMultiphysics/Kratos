@@ -84,10 +84,6 @@ public:
     virtual void InputModelPart()
     {}
 
-    /// Prepare the analysis model_part for the simulation.
-    virtual void PrepareModelPart()
-    {}
-
     ///@}
     ///@name Operators
     ///@{
