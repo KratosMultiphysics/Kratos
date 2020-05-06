@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import shutil, sys, os, time, json
-sys.path.append("/work/piquee/Softwares/Kratos/applications/CoSimulationApplication/co_sim_io/python")
 import CoSimIO
 import PyPara, PyPrep, PySolv, PyDeform
 
@@ -73,18 +72,18 @@ def FinalizeSolutionStep():
 def ImportData(conn_name, identifier):
     if tau_settings["echo_level"] > 0:
         print "TAU SOLVER ImportData"
-    data = CoSimIO.ImportData(conn_name, identifier)
+    displacements = CoSimIO.ImportData(conn_name, identifier)
 
     # identifier is the data-name in json
     if identifier == "Interface_disp":
         # Deform mesh
         if tau_mpi_rank() == 0:
-            TauFunctions.ExecuteBeforeMeshDeformation(data, working_path, step, para_path_mod)
+            TauFunctions.ExecuteBeforeMeshDeformation(displacements, working_path, step, para_path_mod)
         Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
     if tau_settings["echo_level"] > 0:
-	print 'displacementKratos = ', data
+        print 'maximum_displacement_kratos = ', max(displacements)
         print "TAU SOLVER After ImportData"
 
 def ExportData(conn_name, identifier):
@@ -92,14 +91,14 @@ def ExportData(conn_name, identifier):
         print "TAU SOLVER ExportData"
     # identifier is the data-name in json
     if identifier == "Interface_force":
-        data = TauFunctions.ComputeFluidForces(working_path, step)
-	data *= 1000000
+        forces = TauFunctions.ComputeFluidForces(working_path, step)
+        #forces *= 1000000
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
-    CoSimIO.ExportData(conn_name, identifier, data)
+    CoSimIO.ExportData(conn_name, identifier, forces)
     if tau_settings["echo_level"] > 0:
-        print 'data = ', data
+        print 'maximum_force_tau = ', max(forces)
         print "TAU SOLVER After ExportData"
 
 def ExportMesh(conn_name, identifier):
