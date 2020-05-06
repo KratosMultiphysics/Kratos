@@ -666,7 +666,7 @@ public:
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
-        IndexType NewGeometryId,
+        const IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
     ) const
     {
@@ -675,16 +675,16 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
-     * @param ThisPoints the nodes of the new geometry
+     * @param rNewGeometryName the name of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
-        const std::string& NewGeometryName,
-        PointsArrayType const& ThisPoints
-    ) const
+        const std::string& rNewGeometryName,
+        PointsArrayType const& rThisPoints
+        ) const
     {
-        return Pointer(new Geometry( NewGeometryName, ThisPoints, mpGeometryData));
+        return Pointer(new Geometry( rNewGeometryName, rThisPoints, mpGeometryData));
     }
     
     /**
@@ -708,7 +708,7 @@ public:
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
-        IndexType NewGeometryId,
+        const IndexType NewGeometryId,
         Pointer pGeometry
     ) const
     {
@@ -719,16 +719,16 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
-     * @param  pGeometry Pointer to an existing geometry
+     * @param rNewGeometryName the name of the new geometry
+     * @param pGeometry Pointer to an existing geometry
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
-        const std::string& NewGeometryName,
+        const std::string& rNewGeometryName,
         Pointer pGeometry
-    ) const
+        ) const
     {
-        auto p_geometry = Pointer(new Geometry( NewGeometryName, pGeometry->Points(), mpGeometryData));
+        auto p_geometry = Pointer(new Geometry( rNewGeometryName, pGeometry->Points(), mpGeometryData));
         p_geometry->SetData(pGeometry->GetData());
         return p_geometry;
     }
