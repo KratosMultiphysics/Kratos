@@ -6,11 +6,6 @@
 //
 //   License:        BSD License
 //   Kratos default license: kratos/license.txt
-//
-//   Project Name:        $StructuralMechanicsApplication $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         September 2016   $
-//   Revision:            $Revision:                0.0   $
 
 #if !defined(KRATOS_MATRIX_BUILDER_SCHEME )
 #define  KRATOS_MATRIX_BUILDER_SCHEME
@@ -91,25 +86,25 @@ public:
     ///@{
 
     void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo
+        const ProcessInfo& CurrentProcessInfo
     ) override
     {
         KRATOS_TRY
 
         const int build_level = CurrentProcessInfo[BUILD_LEVEL];
-        pCurrentElement->EquationIdVector(EquationId,CurrentProcessInfo);
-        
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+
         if ((0 < build_level) && (build_level < 100)) //stiffness matrix
         {
-            pCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+            rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
         }
         else if ((100 < build_level) && (build_level < 200)) //damping matrix
         {
-            pCurrentElement->CalculateDampingMatrix(LHS_Contribution,CurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(LHS_Contribution,CurrentProcessInfo);
             std::size_t LocalSize = LHS_Contribution.size1();
             if (RHS_Contribution.size() != LocalSize)
                 RHS_Contribution.resize(LocalSize,false);
@@ -117,7 +112,7 @@ public:
         }
         else if ((200 < build_level) && (build_level < 300)) //mass matrix
         {
-            pCurrentElement->CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
+            rCurrentElement.CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
             std::size_t LocalSize = LHS_Contribution.size1();
             if (RHS_Contribution.size() != LocalSize)
                 RHS_Contribution.resize(LocalSize,false);
@@ -142,18 +137,18 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Calculate_LHS_Contribution(
-        Element::Pointer pCurrentElement,
+    void CalculateLHSContribution(
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         LocalSystemVectorType RHS_Contribution;
         RHS_Contribution.resize(LHS_Contribution.size1(), false);
         CalculateSystemContributions(
-                pCurrentElement,
+                rCurrentElement,
                 LHS_Contribution,
                 RHS_Contribution,
                 EquationId,
@@ -162,40 +157,40 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Condition::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         const int build_level = CurrentProcessInfo[BUILD_LEVEL];
-        pCurrentCondition->EquationIdVector(EquationId,CurrentProcessInfo);
-        
+        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
+
         if ((0 < build_level) && (build_level < 100)) //stiffness matrix
         {
-            pCurrentCondition->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+            rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
         }
         else if ((100 < build_level) && (build_level < 200)) //damping matrix
         {
-            pCurrentCondition->CalculateDampingMatrix(LHS_Contribution,CurrentProcessInfo);
+            rCurrentCondition.CalculateDampingMatrix(LHS_Contribution,CurrentProcessInfo);
             std::size_t LocalSize = LHS_Contribution.size1();
             if (RHS_Contribution.size() != LocalSize)
                 RHS_Contribution.resize(LocalSize,false);
@@ -203,7 +198,7 @@ public:
         }
         else if ((200 < build_level) && (build_level < 300)) //mass matrix
         {
-            pCurrentCondition->CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
+            rCurrentCondition.CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
             std::size_t LocalSize = LHS_Contribution.size1();
             if (RHS_Contribution.size() != LocalSize)
                 RHS_Contribution.resize(LocalSize,false);
@@ -216,7 +211,7 @@ public:
                 LHS_Contribution.resize(local_size, local_size, false);
             noalias(LHS_Contribution) = ZeroMatrix(local_size, local_size);
 
-            pCurrentCondition->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+            rCurrentCondition.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
         }
         else
         {
@@ -226,18 +221,18 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Condition_Calculate_LHS_Contribution(
-            Condition::Pointer pCurrentCondition,
+    void CalculateLHSContribution(
+            Condition& rCurrentCondition,
             LocalSystemMatrixType& LHS_Contribution,
             Condition::EquationIdVectorType& EquationId,
-            ProcessInfo& CurrentProcessInfo) override
+            const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         LocalSystemVectorType RHS_Contribution;
         RHS_Contribution.resize(LHS_Contribution.size1(), false);
-        Condition_CalculateSystemContributions(
-                pCurrentCondition,
+        CalculateSystemContributions(
+                rCurrentCondition,
                 LHS_Contribution,
                 RHS_Contribution,
                 EquationId,
@@ -246,17 +241,17 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
