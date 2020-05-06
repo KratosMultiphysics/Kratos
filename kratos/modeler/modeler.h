@@ -73,7 +73,7 @@ public:
     ///@{
 
     /// Import or generate geometry models from external input.
-    virtual void InputGeometryModel()
+    virtual void SetupGeometryModel()
     {}
 
     /// Prepare or update the geometry model_part.
@@ -81,7 +81,7 @@ public:
     {}
 
     /// Convert the geometry model or import analysis suitable models.
-    virtual void InputModelPart()
+    virtual void SetupModelPart()
     {}
 
     ///@}
