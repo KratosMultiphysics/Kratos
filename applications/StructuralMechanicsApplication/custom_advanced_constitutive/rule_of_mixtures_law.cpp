@@ -927,7 +927,7 @@ void RuleOfMixturesLaw::InitializeMaterial(
 
         KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
         mConstitutiveLaws[i] = r_prop[CONSTITUTIVE_LAW]->Clone();
-        mConstitutiveLaws[i]->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+        mConstitutiveLaws[i]->InitializeMaterial(r_prop, rElementGeometry, rShapeFunctionsValues);
     }
 
     KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No CL defined" << std::endl;
