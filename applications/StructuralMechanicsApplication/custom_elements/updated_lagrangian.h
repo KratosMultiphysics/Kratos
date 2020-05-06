@@ -211,35 +211,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
-    // They will be removed from the derived elements; i.e. the implementation
-    // should be in CalculateOnIntegrationPoints!
-    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
-
-    /**
-     * @brief Get on rVariable a double Value from the Element Constitutive Law
-     * @param rVariable The variable we want to get
-     * @param rValues The results in the integration points
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Get on rVariable a Matrix Value from the Element Constitutive Law
-     * @param rVariable The variable we want to get
-     * @param rValues The results in the integration points
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     ///@}
     ///@name Access
     ///@{

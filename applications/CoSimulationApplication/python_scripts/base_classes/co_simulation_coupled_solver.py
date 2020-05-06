@@ -52,7 +52,9 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             err_msg += 'or None, got object of type "{}"'.format(type(models))
             raise Exception(err_msg)
 
-        super(CoSimulationCoupledSolver, self).__init__(settings, None, solver_name)
+        self.process_info = KM.ProcessInfo()
+
+        self.solver_wrappers = self.__CreateSolverWrappers()
 
         self.solver_wrappers = self.__CreateSolverWrappers(models)
 

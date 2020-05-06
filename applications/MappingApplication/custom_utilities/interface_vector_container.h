@@ -53,9 +53,6 @@ public:
 
     typedef Kratos::unique_ptr<TSystemVectorType> TSystemVectorUniquePointerType;
 
-    typedef Variable<double> DoubleVariableType;
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentVariableType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -71,16 +68,10 @@ public:
     ///@name Operations
     ///@{
 
-    void UpdateSystemVectorFromModelPart(const DoubleVariableType& rVariable,
+    void UpdateSystemVectorFromModelPart(const Variable<double>& rVariable,
                                          const Kratos::Flags& rMappingOptions);
 
-    void UpdateSystemVectorFromModelPart(const ComponentVariableType& rVariable,
-                                         const Kratos::Flags& rMappingOptions);
-
-    void UpdateModelPartFromSystemVector(const DoubleVariableType& rVariable,
-                                         const Kratos::Flags& rMappingOptions);
-
-    void UpdateModelPartFromSystemVector(const ComponentVariableType& rVariable,
+    void UpdateModelPartFromSystemVector(const Variable<double>& rVariable,
                                          const Kratos::Flags& rMappingOptions);
 
     ///@}
