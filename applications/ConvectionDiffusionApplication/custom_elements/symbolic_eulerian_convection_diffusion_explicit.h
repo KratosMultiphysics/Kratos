@@ -122,11 +122,16 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
-
+    std::string Info() const override
+    {
+        return "SymbolicEulerianConvectionDiffusionExplicitElement #";
+    }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info() << Id();
+    }
 
     ///@}
 
@@ -137,7 +142,7 @@ protected:
 
     struct ElementVariables
     {
-        double diffusivity;
+        Vector diffusivity;
         Vector forcing;
         Vector unknown;
     };
@@ -169,6 +174,7 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    // Protected default constructor necessary for serialization
     SymbolicEulerianConvectionDiffusionExplicit() : Element()
     {
     }
