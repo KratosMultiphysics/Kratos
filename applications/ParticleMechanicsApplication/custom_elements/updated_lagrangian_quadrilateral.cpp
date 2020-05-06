@@ -193,7 +193,7 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
     rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     // Reading shape functions local gradients
-    rVariables.DN_De = this->MPMShapeFunctionsLocalGradients( rVariables.DN_De, mMP.xg);
+    rVariables.DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
 
     // CurrentDisp is the variable unknown. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
@@ -521,8 +521,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(
             Matrix InvJ;
             double detJ;
             MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-            Matrix DN_De;
-            this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
+            Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
             rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
 
             MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
@@ -607,8 +606,7 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
     Matrix InvJ;
     double detJ;
     MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-    Matrix DN_De;
-    this->MPMShapeFunctionsLocalGradients(DN_De, mMP.xg); // parametric gradients
+    Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
     rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
     MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
         mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
@@ -1474,9 +1472,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, const arra
     KRATOS_TRY
 
     // Derivatives of shape functions
-    Matrix shape_functions_gradients;
-    shape_functions_gradients = this->MPMShapeFunctionsLocalGradients(
-                                   shape_functions_gradients, rPoint);
+    Matrix shape_functions_gradients = GetGeometry().ShapeFunctionLocalGradient(0);
 
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_nodes = r_geometry.PointsNumber();
@@ -1534,10 +1530,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, const
 {
     KRATOS_TRY
 
-    Matrix shape_functions_gradients;
-
-    shape_functions_gradients = this->MPMShapeFunctionsLocalGradients(
-                                    shape_functions_gradients, rPoint );
+    Matrix shape_functions_gradients = GetGeometry().ShapeFunctionLocalGradient(0);
 
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
@@ -1576,103 +1569,6 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, const
     return rResult;
 
     KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-// Function which return dN/de
-Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix& rResult, const array_1d<double,3>& rPoint)
-{
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    array_1d<double,3> rPointLocal = ZeroVector(3);
-
-    // Evaluate local coordinates of the MP position inside the background grid
-    rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
-    if (dimension == 2)
-    {
-        rResult = ZeroMatrix(4,2);
-
-        // Gradient Shape Function (if the first node of the connettivity is the node at the bottom left)
-        rResult( 0, 0 ) = -0.25 * (1 - rPointLocal[1]);
-        rResult( 0, 1 ) = -0.25 * (1 - rPointLocal[0]);
-        rResult( 1, 0 ) = 0.25 * (1 - rPointLocal[1]);
-        rResult( 1, 1 ) = -0.25 * (1 + rPointLocal[0]);
-        rResult( 2, 0 ) = 0.25 * (1 + rPointLocal[1]);
-        rResult( 2, 1 ) = 0.25 * (1 + rPointLocal[0]);
-        rResult( 3, 0 ) = -0.25 * (1 + rPointLocal[1]);
-        rResult( 3, 1 ) = 0.25 * (1 - rPointLocal[0]);
-
-        // Gradient Shape Function (if the first node of the connettivity is the node at the top left)
-        //rResult( 0, 0 ) = -0.25 * (1 + rPointLocal[1]);
-        //rResult( 0, 1 ) = 0.25 * (1 - rPointLocal[0]);
-        //rResult( 1, 0 ) = -0.25 * (1 - rPointLocal[1]);
-        //rResult( 1, 1 ) = -0.25 * (1 - rPointLocal[0]);
-        //rResult( 2, 0 ) = 0.25 * (1 - rPointLocal[1]);
-        //rResult( 2, 1 ) = -0.25 * (1 + rPointLocal[0]);
-        //rResult( 3, 0 ) = +0.25 * (1 + rPointLocal[1]);
-        //rResult( 3, 1 ) = +0.25 * (1 + rPointLocal[0]);
-
-        // Gradient Shape Function (if the first node of the connettivity is the node at the top right)
-        //rResult( 0, 0 ) = 0.25 * (1 + rPointLocal[1]);
-        //rResult( 0, 1 ) = 0.25 * (1 + rPointLocal[0]);
-        //rResult( 1, 0 ) = -0.25 * (1 + rPointLocal[1]);
-        //rResult( 1, 1 ) = 0.25 * (1 - rPointLocal[0]);
-        //rResult( 2, 0 ) = -0.25 * (1 - rPointLocal[1]);
-        //rResult( 2, 1 ) = -0.25 * (1 - rPointLocal[0]);
-        //rResult( 3, 0 ) = +0.25 * (1 - rPointLocal[1]);
-        //rResult( 3, 1 ) = -0.25 * (1 + rPointLocal[0]);
-
-        // Gradient Shape Function (if the first node of the connettivity is the node at the bottom right)
-        //rResult( 0, 0 ) = 0.25 * (1 - rPointLocal[1]);
-        //rResult( 0, 1 ) = - 0.25 * (1 + rPointLocal[0]);
-        //rResult( 1, 0 ) = 0.25 * (1 + rPointLocal[1]);
-        //rResult( 1, 1 ) = 0.25 * (1 + rPointLocal[0]);
-        //rResult( 2, 0 ) = - 0.25 * (1 + rPointLocal[1]);
-        //rResult( 2, 1 ) = 0.25 * (1 - rPointLocal[0]);
-        //rResult( 3, 0 ) = -0.25 * (1 - rPointLocal[1]);
-        //rResult( 3, 1 ) = -0.25 * (1 - rPointLocal[0]);
-    }
-    else if(dimension == 3)
-    {
-        rResult = ZeroMatrix(8,3);
-
-        // Gradient Shape Function (if the first node of the connectivity is at (-1,-1,-1))
-        // NOTE: Implemented based on Carlos Felippa's Lecture on AFEM Chapter 11
-        rResult(0,0) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[2]);
-        rResult(0,1) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[0]) * (1.0 + -1.0 * rPointLocal[2]);
-        rResult(0,2) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[0]);
-
-        rResult(1,0) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[2]);
-        rResult(1,1) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[0]) * (1.0 + -1.0 * rPointLocal[2]);
-        rResult(1,2) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[0]);
-
-        rResult(2,0) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[2]);
-        rResult(2,1) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[0]) * (1.0 + -1.0 * rPointLocal[2]);
-        rResult(2,2) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[0]);
-
-        rResult(3,0) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[2]);
-        rResult(3,1) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[0]) * (1.0 + -1.0 * rPointLocal[2]);
-        rResult(3,2) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[0]);
-
-        rResult(4,0) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[2]);
-        rResult(4,1) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[0]) * (1.0 +  1.0 * rPointLocal[2]);
-        rResult(4,2) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[0]);
-
-        rResult(5,0) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[2]);
-        rResult(5,1) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[0]) * (1.0 +  1.0 * rPointLocal[2]);
-        rResult(5,2) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[0]);
-
-        rResult(6,0) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[2]);
-        rResult(6,1) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[0]) * (1.0 +  1.0 * rPointLocal[2]);
-        rResult(6,2) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[0]);
-
-        rResult(7,0) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[2]);
-        rResult(7,1) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[0]) * (1.0 +  1.0 * rPointLocal[2]);
-        rResult(7,2) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[0]);
-    }
-
-    return rResult;
 }
 
 //************************************************************************************

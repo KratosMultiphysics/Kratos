@@ -793,11 +793,6 @@ protected:
     virtual Matrix& MPMJacobianDelta(Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix& rDeltaPosition);
 
     /**
-     * Calculate Shape Function grandient local Values in a given point in 3 dimension
-     */
-    virtual Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult, const array_1d<double,3>& rPoint);
-
-    /**
      * Calculation of the Volume Change of the Element
      */
     virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
