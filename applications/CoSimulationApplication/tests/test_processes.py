@@ -14,7 +14,6 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
     def setUp(self):
         self.model = KM.Model()
         self.root_model_part = self.model.CreateModelPart("root_mp")
-        self.root_model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
         self.root_model_part.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
         self.dimension = 3
 
@@ -140,6 +139,25 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
 
         self.__CheckCreatedEntitiesIdAreCorrectlyNumbered(self.root_model_part.GetSubModelPart("smp_with_conditions").Conditions, self.root_model_part.GetCommunicator().GlobalNumberOfNodes())
 
+    def test_with_restart(self):
+        # in a restart no new entities should be created!
+        settings = KM.Parameters("""{
+            "Parameters" : {
+                "root_model_part_name"       : "root_mp",
+                "new_sub_model_part_name"    : "smp_with_conditions",
+                "sub_model_part_names"       : ["smp_nodes_1"],
+                "entity_name"                : "PointCondition2D1N",
+                "entity_type"                : "condition",
+                "properties_id"              : 0
+            }
+        }""")
+
+        self.root_model_part.ProcessInfo[KM.IS_RESTARTED] = True
+
+        self.process = self.__CreateProcess(settings)
+        self.assertFalse(self.root_model_part.HasSubModelPart("smp_with_conditions"))
+        self.assertEqual(0, self.root_model_part.NumberOfConditions())
+
 
     def __CreateProcess(self, settings):
         return create_point_based_entites_process.Factory(settings, self.model)
@@ -150,6 +168,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
 
         for exp_id, entity in zip(range(scan_sum_num_entities-num_local_entites, scan_sum_num_entities), entities):
             self.assertEqual(exp_id+1+id_offset, entity.Id)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
