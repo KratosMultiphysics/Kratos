@@ -899,50 +899,23 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-        : false;
 
     mFinalizedStep = false;
 
     // Calculating shape functions
     Vector N;
     this->MPMShapeFunctionPointValues(N, mMP.xg);
-    
 
-    array_1d<double,3> aux_MP_velocity = ZeroVector(3);
-    array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
-
-    if (!is_explicit)
-    {
-        for (unsigned int j = 0; j < number_of_nodes; j++)
-        {
-            // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-            array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
-            if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
-                nodal_acceleration = r_geometry[j].FastGetSolutionStepValue(ACCELERATION, 1);
-
-            array_1d<double, 3 > nodal_velocity = ZeroVector(3);
-            if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
-                nodal_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY, 1);
-
-            for (unsigned int k = 0; k < dimension; k++)
-            {
-                aux_MP_velocity[k] += N[j] * nodal_velocity[k];
-                aux_MP_acceleration[k] += N[j] * nodal_acceleration[k];
-            }
-        }
-    }
 
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         for (unsigned int j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = N[i] * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
-            nodal_inertia[j] = N[i] * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
+            nodal_momentum[j] = N[i] * mMP.velocity[j] * mMP.mass;
+            nodal_inertia[j] = N[i] * mMP.acceleration[j] * mMP.mass;
 
         }
 
