@@ -177,9 +177,21 @@ public:
     ///@name Access
     ///@{
 
+    KeyType HashKey() const
+    {
+        KeyType key = mKey;// >> 8;
+        key &= 0xFFFFFFFF00;
+        return key;
+    }
+
     KeyType Key() const
     {
         return mKey;
+    }
+
+    KeyType SourceKey() const
+    {
+        return mpSourceVariable->mKey;
     }
 
     /// NOTE: This function is for internal use and not
@@ -204,6 +216,27 @@ public:
     bool IsNotComponent() const
     {
         return !mIsComponent;
+    }
+
+    /// Returns the component index. 
+    /** Please note that this method don't check if it is a component or not.
+     * It uses the key to reterive the compenent index from its first 7 bits.
+     * Component index can be from 0 to 127 at most, because 7 bits are used to store it. 
+     * So in case of normal variables it returns 0 (like being the first componet)
+     **/
+    KeyType GetComponentIndex() const {
+        constexpr KeyType first_7_bits=127;
+        return (mKey & first_7_bits);
+    }
+
+    const VariableData& GetSourceVariable() const
+    {   
+        KRATOS_DEBUG_ERROR_IF(mpSourceVariable == nullptr) << "No source variable is defined for the component" << std::endl;
+        return *mpSourceVariable;
+    }
+
+    virtual const void* pZero() const {
+        KRATOS_ERROR << "Calling base class method." << std::endl;
     }
 
 
@@ -267,6 +300,7 @@ protected:
         mName = rOtherVariable.mName;
         mKey = rOtherVariable.mKey;
         mSize = rOtherVariable.mSize;
+        mpSourceVariable = rOtherVariable.mpSourceVariable;
         mIsComponent = rOtherVariable.mIsComponent;
 
         return *this;
@@ -276,8 +310,11 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-    /// Constructor.
-    VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false, char ComponentIndex = 0);
+    /// Constructor for variables.
+    VariableData(const std::string& NewName, std::size_t NewSize);
+
+    /// Constructor for variables components.
+    VariableData(const std::string& NewName, std::size_t NewSize, const VariableData* pSourceVariable, char ComponentIndex);
 
 
     /** default constructor is to be used only with serialization due to the fact that
@@ -298,8 +335,10 @@ private:
 
     std::size_t mSize;
 
-    bool mIsComponent;
+    const VariableData* mpSourceVariable;
 
+    bool mIsComponent;
+    
     ///@}
     ///@name Private Operations
     ///@{
