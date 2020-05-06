@@ -104,11 +104,12 @@ namespace Kratos
     KRATOS_CATCH("");
   }
 
-template <unsigned int TDim>
-void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::UpdateCauchyStress(unsigned int g,
-                                                                              ProcessInfo &rCurrentProcessInfo) {
+  template <unsigned int TDim>
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::UpdateCauchyStress(unsigned int g,
+                                                                                                 ProcessInfo &rCurrentProcessInfo)
+  {
     // double theta = this->GetThetaContinuity();
-    double theta=1.0;
+    double theta = 1.0;
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
     ShapeFunctionDerivativesArrayType DN_DX;
@@ -120,17 +121,18 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Upda
     bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
     const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 
-    if (computeElement == true) {
-        double Density = 0;
-        double DeviatoricCoeff = 0;
-        double VolumetricCoeff = 0;
-        CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density,
-                                               DeviatoricCoeff, VolumetricCoeff);
+    if (computeElement == true)
+    {
+      double Density = 0;
+      double DeviatoricCoeff = 0;
+      double VolumetricCoeff = 0;
+      CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density,
+                                       DeviatoricCoeff, VolumetricCoeff);
     }
 
     this->mCurrentTotalCauchyStress[g] = this->mUpdatedTotalCauchyStress[g];
     this->mCurrentDeviatoricCauchyStress[g] = this->mUpdatedDeviatoricCauchyStress[g];
-}
+  }
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
@@ -312,7 +314,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Upda
       {
         // this->AddExternalForces(rRightHandSideVector, Density, N, GaussWeight);
 
-        double reducedElementalWeight=GaussWeight*1.0;
+        double reducedElementalWeight = GaussWeight * 1.0;
         this->AddInternalForces(rRightHandSideVector, rDN_DX, rElementalVariables, reducedElementalWeight);
 
         ComputeCompleteTangentTerm(rElementalVariables, StiffnessMatrix, rDN_DX, DeviatoricCoeff, VolumetricCoeff, theta, reducedElementalWeight);
@@ -392,7 +394,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Upda
         // Second Row
         rDampingMatrix(FirstRow + 1, FirstCol) += Weight * ((nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj * secondLame) * theta;
         rDampingMatrix(FirstRow + 1, FirstCol + 1) += Weight * ((FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + lagDNXi * lagDNXj * secondLame) * theta;
-// double value=Weight * ((FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + lagDNXi * lagDNXj * secondLame) * theta;
+        // double value=Weight * ((FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + lagDNXi * lagDNXj * secondLame) * theta;
         // Update Counter
         FirstRow += 2;
       }
@@ -458,68 +460,68 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Upda
     }
   }
 
-//   template <>
-//   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2>::AddInternalForces(Vector &rRHSVector,
-//                                                                                              const ShapeFunctionDerivativesType &rDN_DX,
-//                                                                                              ElementalVariables &rElementalVariables,
-//                                                                                              const double Weight)
-//   {
-//     const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  //   template <>
+  //   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2>::AddInternalForces(Vector &rRHSVector,
+  //                                                                                              const ShapeFunctionDerivativesType &rDN_DX,
+  //                                                                                              ElementalVariables &rElementalVariables,
+  //                                                                                              const double Weight)
+  //   {
+  //     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-//     SizeType FirstRow = 0;
+  //     SizeType FirstRow = 0;
 
-//     for (SizeType i = 0; i < NumNodes; ++i)
-//     {
-//       double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
-//       double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
-//       // lagDNXi=rDN_DX(i,0);
-//       // lagDNYi=rDN_DX(i,1);
+  //     for (SizeType i = 0; i < NumNodes; ++i)
+  //     {
+  //       double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
+  //       double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
+  //       // lagDNXi=rDN_DX(i,0);
+  //       // lagDNYi=rDN_DX(i,1);
 
-//       rRHSVector[FirstRow] += -Weight * (lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[0] +
-//                                          lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[2]);
+  //       rRHSVector[FirstRow] += -Weight * (lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[0] +
+  //                                          lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[2]);
 
-//       rRHSVector[FirstRow + 1] += -Weight * (lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[1] +
-//                                              lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[2]);
+  //       rRHSVector[FirstRow + 1] += -Weight * (lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[1] +
+  //                                              lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[2]);
 
-//       FirstRow += 2;
-//     }
-//   }
+  //       FirstRow += 2;
+  //     }
+  //   }
 
-//   template <>
-//   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<3>::AddInternalForces(Vector &rRHSVector,
-//                                                                                              const ShapeFunctionDerivativesType &rDN_DX,
-//                                                                                              ElementalVariables &rElementalVariables,
-//                                                                                              const double Weight)
-//   {
+  //   template <>
+  //   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<3>::AddInternalForces(Vector &rRHSVector,
+  //                                                                                              const ShapeFunctionDerivativesType &rDN_DX,
+  //                                                                                              ElementalVariables &rElementalVariables,
+  //                                                                                              const double Weight)
+  //   {
 
-//     const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  //     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-//     SizeType FirstRow = 0;
+  //     SizeType FirstRow = 0;
 
-//     for (SizeType i = 0; i < NumNodes; ++i)
-//     {
-//       double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 0);
-//       double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 1);
-//       double lagDNZi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 2) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 2) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 2);
-//       // lagDNXi=rDN_DX(i,0);
-//       // lagDNYi=rDN_DX(i,1);
-//       // lagDNZi=rDN_DX(i,2);
+  //     for (SizeType i = 0; i < NumNodes; ++i)
+  //     {
+  //       double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 0);
+  //       double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 1);
+  //       double lagDNZi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 2) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 2) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 2);
+  //       // lagDNXi=rDN_DX(i,0);
+  //       // lagDNYi=rDN_DX(i,1);
+  //       // lagDNZi=rDN_DX(i,2);
 
-//       rRHSVector[FirstRow] += -Weight * (lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[0] +
-//                                          lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[3] +
-//                                          lagDNZi * rElementalVariables.UpdatedTotalCauchyStress[4]);
+  //       rRHSVector[FirstRow] += -Weight * (lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[0] +
+  //                                          lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[3] +
+  //                                          lagDNZi * rElementalVariables.UpdatedTotalCauchyStress[4]);
 
-//       rRHSVector[FirstRow + 1] += -Weight * (lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[1] +
-//                                              lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[3] +
-//                                              lagDNZi * rElementalVariables.UpdatedTotalCauchyStress[5]);
+  //       rRHSVector[FirstRow + 1] += -Weight * (lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[1] +
+  //                                              lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[3] +
+  //                                              lagDNZi * rElementalVariables.UpdatedTotalCauchyStress[5]);
 
-//       rRHSVector[FirstRow + 2] += -Weight * (lagDNZi * rElementalVariables.UpdatedTotalCauchyStress[2] +
-//                                              lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[4] +
-//                                              lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[5]);
+  //       rRHSVector[FirstRow + 2] += -Weight * (lagDNZi * rElementalVariables.UpdatedTotalCauchyStress[2] +
+  //                                              lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[4] +
+  //                                              lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[5]);
 
-//       FirstRow += 3;
-//     }
-//   }
+  //       FirstRow += 3;
+  //     }
+  //   }
 
   // template <>
   // bool TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2>::CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
