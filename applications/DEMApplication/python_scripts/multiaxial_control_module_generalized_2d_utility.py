@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.DEMApplication as Dem
 
 
-class MultiaxialControlModule2DUtility(object):
+class MultiaxialControlModuleGeneralized2DUtility(object):
     def __init__(self, dem_model_part, dem_fem_boundary_model_part):
 
         self.dem_model_part = dem_model_part
@@ -34,7 +34,8 @@ class MultiaxialControlModule2DUtility(object):
                 "update_stiffness": true,
                 "stiffness_alpha": 0.2,
                 "start_time" : 0.0,
-                "stress_averaging_time": 1.0e-5
+                "stress_averaging_time": 1.0e-5,
+                "axisymmetry": false
             },
             "list_of_actuators" : [{
                 "Parameters"    : {
@@ -46,8 +47,7 @@ class MultiaxialControlModule2DUtility(object):
                     "young_modulus" : 7.0e9
                 },
                 "list_of_dem_boundaries": [{
-                    "model_part_name" : "SpheresPart.Parts_dems",
-                    "outer_normal": [0.0,0.0,1.0]
+                    "model_part_name" : "SpheresPart.Parts_dems"
                 }],
                 "list_of_fem_boundaries": []
             },{
@@ -87,15 +87,15 @@ class MultiaxialControlModule2DUtility(object):
             }]
         }  """ )
         '''
-        self.tcm_utility = Dem.TriaxialControlModule2DUtilities(self.dem_model_part, 
-                                                                self.dem_fem_boundary_model_part, 
-                                                                self.parameters)
+        self.cm_utility = Dem.MultiaxialControlModuleGeneralized2DUtilities(self.dem_model_part, 
+                                                                            self.dem_fem_boundary_model_part, 
+                                                                            self.parameters)
 
     def ExecuteInitialize(self):
-        self.tcm_utility.ExecuteInitialize()
+        self.cm_utility.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-        self.tcm_utility.ExecuteInitializeSolutionStep()
+        self.cm_utility.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
-        self.tcm_utility.ExecuteFinalizeSolutionStep()
+        self.cm_utility.ExecuteFinalizeSolutionStep()
