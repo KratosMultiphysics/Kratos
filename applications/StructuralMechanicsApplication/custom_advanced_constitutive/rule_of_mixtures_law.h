@@ -664,7 +664,7 @@ public:
      */
     void CalculateRotationMatrix(
         const Properties& rMaterialProperties,
-        BoundedMatrix<double, voigt_size, voigt_size>& rRotationMatrix,
+        BoundedMatrix<double, 6, 6>& rRotationMatrix,
         const IndexType Layer
     );
 

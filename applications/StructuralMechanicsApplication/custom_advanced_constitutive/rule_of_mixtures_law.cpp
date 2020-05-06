@@ -1090,6 +1090,10 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
             rValues.SetMaterialProperties(r_prop);
             p_law->CalculateMaterialResponsePK2(rValues);
 
+            // we return the stress and constitutive tensor to the global coordinates
+            rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            
+
             noalias(auxiliar_stress_vector)       += factor * rValues.GetStressVector();
             noalias(auxiliar_constitutive_matrix) += factor * rValues.GetConstitutiveMatrix();
             rValues.SetMaterialProperties(r_material_properties);
@@ -1411,12 +1415,15 @@ int RuleOfMixturesLaw::Check(
 
 void RuleOfMixturesLaw::CalculateRotationMatrix(
         const Properties& rMaterialProperties,
-        BoundedMatrix<double, voigt_size, voigt_size>& rRotationMatrix,
+        BoundedMatrix<double, 6, 6>& rRotationMatrix,
         const IndexType Layer 
     )
 {
     const SizeType voigt_size = this->GetStrainSize();
     const SizeType dimension  = this->WorkingSpaceDimension();
+
+    if (rRotationMatrix.size1() != voigt_size)
+        rRotationMatrix.resize(voigt_size, voigt_size, false);
 
     if (rMaterialProperties.Has(LAYER_EULER_ANGLES)) {
         const Vector layers_euler_angles = rMaterialProperties[LAYER_EULER_ANGLES];
@@ -1434,7 +1441,7 @@ void RuleOfMixturesLaw::CalculateRotationMatrix(
             ConstitutiveLawUtilities<voigt_size>::CalculateRotationOperatorVoigt(rotation_matrix,
                                                                                 rRotationMatrix);
         } else {
-            rRotationMatrix = IdentityMatrix(voigt_size, voigt_size);
+            noalias(rRotationMatrix) = IdentityMatrix(voigt_size, voigt_size);
         }
     }
 }
