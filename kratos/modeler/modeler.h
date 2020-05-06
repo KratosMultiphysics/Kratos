@@ -80,12 +80,8 @@ public:
     virtual void PrepareGeometryModel()
     {}
 
-    /// Convert the geometry model to analysis suitable models.
-    virtual void GenerateModelPart()
-    {}
-
-    /// Import the model_part from external input.
-    virtual void ImportModelPart()
+    /// Convert the geometry model or import analysis suitable models.
+    virtual void InputModelPart()
     {}
 
     /// Prepare the analysis model_part for the simulation.
