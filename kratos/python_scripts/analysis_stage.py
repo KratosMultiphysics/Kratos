@@ -74,31 +74,7 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-
-        ## Initialize Modelers
-        self._list_of_modelers = self._CreateModelers(self._GetOrderOfModelers())
-
-        # Import geometry models from external input.
-        for modeler in self._GetListOfModelers():
-            modeler.ImportGeometryModel(self.model)
-
-        # Prepare or update the geometry model_part.
-        for modeler in self._GetListOfModelers():
-            modeler.PrepareGeometryModel(self.model)
-
-        # Convert the geometry model to analysis suitable models.
-        for modeler in self._GetListOfModelers():
-            modeler.GenerateModelPart(self.model)
-
-        # Import the model_part from external input.
-        for modeler in self._GetListOfModelers():
-            modeler.ImportModelPart(self.model)
-        self._GetSolver().ImportModelPart()
-
-        # Prepare the analysis model_part for the simulation.
-        for modeler in self._GetListOfModelers():
-            modeler.PrepareModelPart(self.model)
-        self._GetSolver().PrepareModelPart()
+        self._SetupGeometryModelAndModelParts()
 
         self._GetSolver().AddDofs()
 
@@ -243,6 +219,27 @@ class AnalysisStage(object):
         """Create the solver
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")
+
+    ### Modelers
+    def _SetupGeometryModelAndModelParts(self):
+        ## Initialize Modelers
+        self._list_of_modelers = self._CreateModelers(self._GetOrderOfModelers())
+
+        # Import or generate geometry models from external input.
+        for modeler in self._GetListOfModelers():
+            modeler.SetupGeometryModel(self.model)
+
+        # Prepare or update the geometry model_part.
+        for modeler in self._GetListOfModelers():
+            modeler.PrepareGeometryModel(self.model)
+
+        # Convert the geometry model or import analysis suitable models.
+        for modeler in self._GetListOfModelers():
+            modeler.SetupModelPart(self.model)
+
+        self._GetSolver().ImportModelPart()
+
+        self._GetSolver().PrepareModelPart()
 
     ### Modelers
     def _GetListOfModelers(self):
