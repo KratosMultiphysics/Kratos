@@ -34,14 +34,6 @@ namespace Python
 
 namespace py = pybind11;
 
-void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
-{
-    GM.GenerateModelPart(origin_model_part, destination_model_part,
-                         KratosComponents<Element>::Get(rElementName),
-                         KratosComponents<Condition>::Get(rConditionName));
-
-}
-
 void GenerateMesh(Modeler& GM, ModelPart& model_part, const std::string& rElementName, const std::string& rConditionName)
 {
     GM.GenerateMesh(model_part,
@@ -69,7 +61,19 @@ void  AddModelerToPython(pybind11::module& m)
 {
     py::class_<Modeler, Modeler::Pointer>(m,"Modeler")
     .def(py::init<>())
-    .def("GenerateModelPart",&GenerateModelPart)
+    .def(py::init<Modeler&, Parameters>())
+    // Modeler Stages Initialize
+    .def("ImportGeometryModel", &Modeler::ImportGeometryModel)
+    .def("PrepareGeometryModel", &Modeler::PrepareGeometryModel)
+    .def("GenerateModelPart", [] (Modeler& rModeler)
+        {rModeler.GenerateModelPart();})
+    .def("ImportModelPart", &Modeler::ImportModelPart)
+    .def("PrepareModelPart", &Modeler::PrepareModelPart)
+    // Additional Old Functions
+    .def("GenerateModelPart",
+        [] (Modeler& rModeler, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
+        {rModeler.GenerateModelPart(origin_model_part, destination_model_part,
+            KratosComponents<Element>::Get(rElementName), KratosComponents<Condition>::Get(rConditionName));})
     .def("GenerateMesh",&GenerateMesh)
     .def("GenerateNodes",&Modeler::GenerateNodes)
     .def("__str__", PrintObject<Modeler>)
@@ -77,7 +81,10 @@ void  AddModelerToPython(pybind11::module& m)
 
     py::class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,Modeler>(m,"ConnectivityPreserveModeler")
     .def(py::init< >())
-    .def("GenerateModelPart",&GenerateModelPart)
+    .def("GenerateModelPart",
+        [] (Modeler& rModeler, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
+        {rModeler.GenerateModelPart(origin_model_part, destination_model_part,
+            KratosComponents<Element>::Get(rElementName), KratosComponents<Condition>::Get(rConditionName));})
     .def("GenerateModelPart",&GeneratePartialModelPart)
     ;
 
