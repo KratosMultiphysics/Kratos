@@ -780,26 +780,6 @@ protected:
      */
     virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
-    /**
-     * Calculate Jacobian in a given point
-     */
-    virtual Matrix& MPMJacobian(Matrix& rResult, const array_1d<double,3>& rPoint);
-
-    /**
-     * Calculate Jacobian in a given point and given a delta position
-     */
-    virtual Matrix& MPMJacobianDelta(Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix& rDeltaPosition);
-
-    /**
-     * Calculate Shape Function Values in a given point
-     */
-
-    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
-
-    /**
-     * Calculate Shape Function grandient local Values in a given point in 3 dimension
-     */
-    virtual Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult);
 
     /**
      * Calculation of the Volume Change of the Element

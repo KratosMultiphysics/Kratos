@@ -145,10 +145,10 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
-    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     // Reading shape functions local gradients
-    rVariables.DN_De = this->MPMShapeFunctionsLocalGradients( rVariables.DN_De);
+    rVariables.DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
 
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
@@ -166,7 +166,7 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
 
     // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian( Jacobian, mMP.xg);
+    GetGeometry().Jacobian(Jacobian, 0);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
@@ -175,7 +175,7 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
     Matrix jacobian;
-    jacobian = this->MPMJacobianDelta( jacobian, mMP.xg, rVariables.CurrentDisp);
+    GetGeometry().Jacobian(jacobian, 0, GetGeometry().GetDefaultIntegrationMethod(), -1.0 * rVariables.CurrentDisp);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
@@ -318,14 +318,13 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLo
             : false;
         if (is_explicit)
         {
-            this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+            rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
             Matrix Jacobian;
-            Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+            GetGeometry().Jacobian(Jacobian, 0);
             Matrix InvJ;
             double detJ;
             MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-            Matrix DN_De;
-            this->MPMShapeFunctionsLocalGradients(DN_De); // parametric gradients
+            Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
             rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
             const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
             MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
@@ -405,14 +404,13 @@ void UpdatedLagrangianAxisymmetry::CalculateExplicitStresses(const ProcessInfo& 
 
 
     // Compute explicit element kinematics, strain is incremented here.
-    this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+    GetGeometry().Jacobian(Jacobian, 0);
     Matrix InvJ;
     double detJ;
     MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-    Matrix DN_De;
-    this->MPMShapeFunctionsLocalGradients(DN_De); // parametric gradients
+    Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
     rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
     const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
     MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
@@ -549,176 +547,6 @@ void UpdatedLagrangianAxisymmetry::GetDofList( DofsVectorType& rElementalDofList
         rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_X ) );
         rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Y ) );
     }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-// Function that return Jacobian matrix
-Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, const array_1d<double,3>& rPoint)
-{
-
-    KRATOS_TRY
-
-    // Derivatives of shape functions
-    Matrix shape_functions_gradients;
-    shape_functions_gradients =this->MPMShapeFunctionsLocalGradients(
-                                    shape_functions_gradients);
-
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_nodes = r_geometry.PointsNumber();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-
-    if (dimension ==2)
-    {
-        rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2,2);
-
-        for ( unsigned int i = 0; i < number_nodes; i++ )
-        {
-            rResult( 0, 0 ) += ( r_geometry.GetPoint( i ).X() *  shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( r_geometry.GetPoint( i ).X() *  shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( r_geometry.GetPoint( i ).Y() *  shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( r_geometry.GetPoint( i ).Y() *  shape_functions_gradients( i, 1 ) );
-        }
-
-    }
-    else
-    {
-        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
-    }
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
-
-/**
-     * Jacobian in given point and given a delta position. This method calculate jacobian
-     * matrix in given point and a given delta position.
-     *
-     * @param rPoint point which jacobians has to
-* be calculated in it.
-*
-* @return Matrix of double which is jacobian matrix \f$ J \f$ in given point and a given delta position.
-*
-* @see DeterminantOfJacobian
-* @see InverseOfJacobian
-    */
-Matrix& UpdatedLagrangianAxisymmetry::MPMJacobianDelta( Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix & rDeltaPosition )
-{
-    KRATOS_TRY
-
-    // Derivatives of shape functions
-    Matrix shape_functions_gradients;
-    shape_functions_gradients = this->MPMShapeFunctionsLocalGradients(
-                                    shape_functions_gradients );
-
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-
-    if (dimension ==2)
-    {
-        rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2,2);
-
-        for ( unsigned int i = 0; i < r_geometry.size(); i++ )
-        {
-            rResult( 0, 0 ) += ( r_geometry.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( r_geometry.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( r_geometry.GetPoint( i ).Y() + rDeltaPosition(i,1)) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( r_geometry.GetPoint( i ).Y() + rDeltaPosition(i,1)) * ( shape_functions_gradients( i, 1 ) );
-        }
-    }
-    else
-    {
-        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
-    }
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-/**
-     * Shape function values in given point. This method calculate the shape function
-     * vector in given point.
-     *
-     * @param rPoint point which shape function values have to
-* be calculated in it.
-*
-* @return Vector of double which is shape function vector \f$ N \f$ in given point.
-*
-    */
-Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
-{
-    KRATOS_TRY
-
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-
-    array_1d<double,3> rPointLocal = ZeroVector(3);
-    rPointLocal = r_geometry.PointLocalCoordinates(rPointLocal, rPoint);
-
-    // For Triangular 2D
-    if (dimension == 2 && r_geometry.PointsNumber() == 3)
-    {
-        rResult.resize(3, false);
-        rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
-        rResult[1] = rPointLocal[0] ;
-        rResult[2] = rPointLocal[1];
-    }
-    // For Quadrilateral 2D
-    else if (dimension == 2 && r_geometry.PointsNumber() == 4)
-    {
-        rResult.resize(4, false);
-        rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-    }
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
-
-// Function which return dN/de
-Matrix& UpdatedLagrangianAxisymmetry::MPMShapeFunctionsLocalGradients( Matrix& rResult )
-{
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    array_1d<double,3> rPointLocal = ZeroVector(3);
-
-    rPointLocal = r_geometry.PointLocalCoordinates(rPointLocal, mMP.xg);
-
-    if (dimension == 2 && r_geometry.PointsNumber() == 3)
-    {
-        rResult = ZeroMatrix( 3, 2 );
-        rResult( 0, 0 ) = -1.0;
-        rResult( 0, 1 ) = -1.0;
-        rResult( 1, 0 ) =  1.0;
-        rResult( 1, 1 ) =  0.0;
-        rResult( 2, 0 ) =  0.0;
-        rResult( 2, 1 ) =  1.0;
-    }
-    else if (dimension == 2 && r_geometry.PointsNumber() == 4)
-    {
-        rResult = ZeroMatrix( 4, 2 );
-        rResult( 0, 0 ) = -0.25 * (1 - rPointLocal[1]);
-        rResult( 0, 1 ) = -0.25 * (1 - rPointLocal[0]);
-        rResult( 1, 0 ) = 0.25 * (1 - rPointLocal[1]);
-        rResult( 1, 1 ) = -0.25 * (1 + rPointLocal[0]);
-        rResult( 2, 0 ) = 0.25 * (1 + rPointLocal[1]);
-        rResult( 2, 1 ) = 0.25 * (1 + rPointLocal[0]);
-        rResult( 3, 0 ) = -0.25 * (1 + rPointLocal[1]);
-        rResult( 3, 1 ) = 0.25 * (1 - rPointLocal[0]);
-    }
-
-    return rResult;
 }
 
 //************************************************************************************

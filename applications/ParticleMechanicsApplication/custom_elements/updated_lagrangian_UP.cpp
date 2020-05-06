@@ -177,7 +177,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     double MP_pressure = 0.0;
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -275,7 +275,7 @@ void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, Proc
 
     // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian( Jacobian, mMP.xg);
+    GetGeometry().Jacobian(Jacobian, 0);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
@@ -284,7 +284,7 @@ void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, Proc
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
     Matrix jacobian;
-    jacobian = this->MPMJacobianDelta( jacobian, mMP.xg, rVariables.CurrentDisp);
+    GetGeometry().Jacobian(jacobian, 0, GetGeometry().GetDefaultIntegrationMethod(), -1.0 * rVariables.CurrentDisp);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
@@ -381,7 +381,7 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     GeneralVariables Variables;
 
     // Calculating shape function
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, mMP.xg);
+    Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     mFinalizedStep = false;
 
@@ -1034,8 +1034,7 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const Pr
     KRATOS_TRY
 
     // Call the values of the shape function for the single element
-    Vector N;
-    this->MPMShapeFunctionPointValues(N, mMP.xg);
+    Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     const bool is_lumped_mass_matrix = (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
         ? rCurrentProcessInfo.GetValue(COMPUTE_LUMPED_MASS_MATRIX)

@@ -232,27 +232,6 @@ protected:
                                             Vector& rN);
 
     /**
-     * Calculate Jacobian in a given point
-     */
-    Matrix& MPMJacobian(Matrix& rResult, const array_1d<double,3>& rPoint) override;
-
-    /**
-     * Calculate Jacobian in a given point and given a delta position
-     */
-    Matrix& MPMJacobianDelta(Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix& rDeltaPosition) override;
-
-    /**
-     * Calculate Shape Function Values in a given point
-     */
-
-    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
-
-    /**
-     * Calculate Shape Function grandient local Values in a given point in 3 dimension
-     */
-    Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult) override;
-
-    /**
      * Calculation of the Deformation Gradient F
      */
     virtual void CalculateDeformationGradient(const Matrix& rDN_DX,
