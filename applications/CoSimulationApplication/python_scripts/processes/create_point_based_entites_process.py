@@ -32,6 +32,10 @@ class CreatePointBasedEntitiesProcess(KM.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         root_model_part = Model[settings["root_model_part_name"].GetString()]
+        if root_model_part.ProcessInfo[KM.IS_RESTARTED]:
+            # Do nothing in case of restart
+            return
+
         root_model_part_name = settings["root_model_part_name"].GetString()
         entity_name = settings["entity_name"].GetString()
         entity_type = settings["entity_type"].GetString()
@@ -66,10 +70,10 @@ class CreatePointBasedEntitiesProcess(KM.Process):
         mp_comm = root_model_part.GetCommunicator()
 
         if entity_type == "element":
-            num_global_entities = mp_comm.GlobalNumberOfElements()
+            max_id_entities = max([elem.Id for elem in root_model_part.Elements]+[0]) # "+[0]" in case there are no local entities
             creation_fct_ptr = new_model_part.CreateNewElement
         elif entity_type == "condition":
-            num_global_entities = mp_comm.GlobalNumberOfConditions()
+            max_id_entities = max([cond.Id for cond in root_model_part.Conditions]+[0]) # "+[0]" in case there are no local entities
             creation_fct_ptr = new_model_part.CreateNewCondition
         else:
             raise Exception('"entity_type" "{}" is not valid, only "element" or "condition" are possible!'.format(entity_type))
@@ -77,7 +81,8 @@ class CreatePointBasedEntitiesProcess(KM.Process):
         # using ScanSum to compute the local Id-start. Otherwise the Ids would start with the same value on every rank
         data_comm = mp_comm.GetDataCommunicator()
         scan_sum_nodes = data_comm.ScanSum(len(node_ids))
-        local_id_start = scan_sum_nodes + 1 + num_global_entities - len(node_ids)
+        max_id_entities_global = data_comm.MaxAll(max_id_entities)
+        local_id_start = scan_sum_nodes + 1 + max_id_entities_global - len(node_ids)
 
         for i, node_id in enumerate(node_ids):
             creation_fct_ptr(entity_name, i+local_id_start, [node_id], props)
