@@ -248,18 +248,18 @@ public:
 
     /// Constructor with Geometry Id
     explicit Quadrilateral3D4(
-        IndexType GeometryId,
-        const PointsArrayType& ThisPoints
-    ) : BaseType(GeometryId, ThisPoints, &msGeometryData)
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Id
     explicit Quadrilateral3D4(
-        const std::string& GeometryName,
-        const PointsArrayType& ThisPoints
-    ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
@@ -355,14 +355,14 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param ThisPoints the nodes of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        PointsArrayType const& ThisPoints
+        PointsArrayType const& rThisPoints
     ) const override
     {
-        return typename BaseType::Pointer( new Quadrilateral3D4( ThisPoints ) );
+        return typename BaseType::Pointer( new Quadrilateral3D4( rThisPoints ) );
     }
 
     /**
@@ -372,25 +372,25 @@ public:
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewGeometryId,
-        PointsArrayType const& ThisPoints
-    ) const override
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Quadrilateral3D4( NewGeometryId, ThisPoints ) );
+        return typename BaseType::Pointer( new Quadrilateral3D4( NewGeometryId, rThisPoints ) );
     }
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
-     * @param ThisPoints the nodes of the new geometry
+     * @param rNewGeometryName the name of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        const std::string& NewGeometryName,
-        PointsArrayType const& ThisPoints
-    ) const override
+        const std::string& rNewGeometryName,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Quadrilateral3D4( NewGeometryName, ThisPoints ) );
+        return typename BaseType::Pointer( new Quadrilateral3D4( rNewGeometryName, rThisPoints ) );
     }
 
     /**
@@ -400,7 +400,7 @@ public:
      */
     typename BaseType::Pointer Create(
         typename BaseType::Pointer pGeometry
-    ) const override
+        ) const override
     {
         auto p_geometry = typename BaseType::Pointer( new Quadrilateral3D4( pGeometry->Points() ) );
         p_geometry->SetData(pGeometry->GetData());
@@ -414,9 +414,9 @@ public:
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewGeometryId,
+        const IndexType NewGeometryId,
         typename BaseType::Pointer pGeometry
-    ) const override
+        ) const override
     {
         auto p_geometry = typename BaseType::Pointer( new Quadrilateral3D4( NewGeometryId, pGeometry->Points() ) );
         p_geometry->SetData(pGeometry->GetData());
@@ -425,16 +425,16 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
+     * @param rNewGeometryName the name of the new geometry
      * @param pGeometry Pointer to an existing geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        const std::string& NewGeometryName,
+        const std::string& rNewGeometryName,
         typename BaseType::Pointer pGeometry
-    ) const override
+        ) const override
     {
-        auto p_geometry = typename BaseType::Pointer( new Quadrilateral3D4( NewGeometryName, pGeometry->Points() ) );
+        auto p_geometry = typename BaseType::Pointer( new Quadrilateral3D4( rNewGeometryName, pGeometry->Points() ) );
         p_geometry->SetData(pGeometry->GetData());
         return p_geometry;
     }
