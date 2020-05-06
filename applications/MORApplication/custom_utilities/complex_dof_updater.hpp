@@ -15,19 +15,6 @@ namespace ComplexDofUpdater
 {
 
     void AssignComplexDofValue(
-        VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> var,
-        VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> var_real,
-        VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> var_imag,
-        Node<3>& node,
-        const std::complex<double>& Z)
-    {
-        const int sign = std::real(Z) >= 0 ? 1 : -1;
-        node.FastGetSolutionStepValue(var) = sign * std::abs(Z);
-        node.FastGetSolutionStepValue(var_real) = std::real(Z);
-        node.FastGetSolutionStepValue(var_imag) = std::imag(Z);
-    }
-
-    void AssignComplexDofValue(
         Variable<double>& var,
         Variable<double>& var_real,
         Variable<double>& var_imag,
