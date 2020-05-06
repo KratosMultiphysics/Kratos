@@ -72,8 +72,8 @@ public:
     ///@name Modeler Stages at Initialize
     ///@{
 
-    /// Import geometry models from external input.
-    virtual void ImportGeometryModel()
+    /// Import or generate geometry models from external input.
+    virtual void InputGeometryModel()
     {}
 
     /// Prepare or update the geometry model_part.
