@@ -654,6 +654,16 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief This function computes the rotation matrix T-> E_loc = T*E_glob in order to rotate the strain
+     * or S_glob = trans(T)S_loc for the stresses
+     */
+    void CalculateRotationMatrices(
+        const Properties& rMaterialProperties,
+        BoundedMatrix<double, voigt_size, voigt_size>& rRotationMatrix,
+        const IndexType Layer
+    );
+
 protected:
 
     ///@name Protected static Member Variables

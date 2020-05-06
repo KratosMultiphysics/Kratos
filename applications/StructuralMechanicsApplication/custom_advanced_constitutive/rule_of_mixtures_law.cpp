@@ -1033,7 +1033,8 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
     KRATOS_TRY;
 
     // Some auxiliar values
-    const SizeType voigt_size = GetStrainSize();
+    const SizeType voigt_size = this->GetStrainSize();
+    const SizeType dimension  = this->WorkingSpaceDimension();
 
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
@@ -1069,7 +1070,14 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         Vector auxiliar_stress_vector = ZeroVector(voigt_size);
         Matrix auxiliar_constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
+
+        // The rotation matrices
+        BoundedMatrix<double, dimension, dimension>    rotation_matrix;
+        BoundedMatrix<double, voigt_size, voigt_size>  voigt_rotation_matrix, inv_voigt_rotation_matrix;
+
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+
+
             Properties& r_prop = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
@@ -1387,5 +1395,20 @@ int RuleOfMixturesLaw::Check(
 
     return aux_out;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RuleOfMixturesLaw::CalculateRotationMatrices(
+        const Properties& rMaterialProperties,
+        BoundedMatrix<double, voigt_size, voigt_size>& rRotationMatrix,
+        const IndexType Layer 
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 } // Namespace Kratos
