@@ -82,6 +82,19 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmKOmegaOmegaKBasedWallCondition3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansEvmKOmegaOmegaUBasedWallCondition2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansEvmKOmegaOmegaUBasedWallCondition3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // k-omega-sst turbulence model elements
+      mRansEvmKOmegaSSTKAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTKAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTOmegaAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTOmegaAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTKResidualBasedFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTKResidualBasedFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTOmegaResidualBasedFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTOmegaResidualBasedFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTKCrossWindStabilized2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTKCrossWindStabilized3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTOmegaCrossWindStabilized2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTOmegaCrossWindStabilized3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       // old elements
       mRansEvmKEpsilonLowReK2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonLowReK3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -152,6 +165,14 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA)
     KRATOS_REGISTER_VARIABLE(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
     KRATOS_REGISTER_VARIABLE(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2)
+
+    KRATOS_REGISTER_VARIABLE(TURBULENCE_RANS_A1)
+    KRATOS_REGISTER_VARIABLE(TURBULENCE_RANS_BETA_1)
+    KRATOS_REGISTER_VARIABLE(TURBULENCE_RANS_BETA_2)
+    KRATOS_REGISTER_VARIABLE(TURBULENT_KINETIC_ENERGY_SIGMA_1)
+    KRATOS_REGISTER_VARIABLE(TURBULENT_KINETIC_ENERGY_SIGMA_2)
+    KRATOS_REGISTER_VARIABLE(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1)
+    KRATOS_REGISTER_VARIABLE(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2)
 
     KRATOS_REGISTER_VARIABLE(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT)
@@ -286,6 +307,24 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaUBasedWallCondition2D2N", mRansEvmKOmegaOmegaUBasedWallCondition2D2N);
     KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaUBasedWallCondition3D3N", mRansEvmKOmegaOmegaUBasedWallCondition3D3N);
+
+    // registering k-omega-sst algebraic flux correction based elements
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKAFC2D3N", mRansEvmKOmegaSSTKAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKAFC3D4N", mRansEvmKOmegaSSTKAFC3D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaAFC2D3N", mRansEvmKOmegaSSTOmegaAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaAFC3D4N", mRansEvmKOmegaSSTOmegaAFC3D);
+
+    // registering k-omega-sst residual fc based elements
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKResidualBasedFC2D3N", mRansEvmKOmegaSSTKResidualBasedFC2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKResidualBasedFC3D4N", mRansEvmKOmegaSSTKResidualBasedFC3D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaResidualBasedFC2D3N", mRansEvmKOmegaSSTOmegaResidualBasedFC2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaResidualBasedFC3D4N", mRansEvmKOmegaSSTOmegaResidualBasedFC3D);
+
+    // registering k-omega-sst cross wind stabilized elements
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKCrossWindStabilized2D3N", mRansEvmKOmegaSSTKCrossWindStabilized2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKCrossWindStabilized3D4N", mRansEvmKOmegaSSTKCrossWindStabilized3D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaCrossWindStabilized2D3N", mRansEvmKOmegaSSTOmegaCrossWindStabilized2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaCrossWindStabilized3D4N", mRansEvmKOmegaSSTOmegaCrossWindStabilized3D);
 
     // Registering adjoint elements
     KRATOS_REGISTER_ELEMENT("RansEvmEpsilonAdjoint2D3N", mRansEvmEpsilonAdjoint2D3N);
