@@ -19,7 +19,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 // FluidDynamicsApp Includes
-#include "custom_strategies/strategies/fs_strategy.h"
+#include "custom_strategies/strategies/fractional_step_strategy.h"
 // Application includes
 #include "chimera_application_variables.h"
 #include "custom_utilities/fractional_step_settings_for_chimera.h"

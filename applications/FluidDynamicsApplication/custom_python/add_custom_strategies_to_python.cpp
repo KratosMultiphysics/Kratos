@@ -30,7 +30,7 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/strategies/fs_strategy.h"
+#include "custom_strategies/strategies/fractional_step_strategy.h"
 
 //schemes
 #include "custom_strategies/schemes/gear_scheme.h"

@@ -27,7 +27,7 @@
 #include "trilinos_space.h"
 
 // FluidDynamics trilinos extensions
-#include "custom_strategies/strategies/fs_strategy.h"
+#include "custom_strategies/strategies/fractional_step_strategy.h"
 #include "custom_utilities/solver_settings.h"
 
 namespace Kratos {
