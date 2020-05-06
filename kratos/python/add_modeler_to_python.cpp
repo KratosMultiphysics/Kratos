@@ -63,12 +63,9 @@ void  AddModelerToPython(pybind11::module& m)
     .def(py::init<>())
     .def(py::init<Model&, Parameters>())
     // Modeler Stages Initialize
-    .def("ImportGeometryModel", &Modeler::ImportGeometryModel)
+    .def("SetupGeometryModel", &Modeler::SetupGeometryModel)
     .def("PrepareGeometryModel", &Modeler::PrepareGeometryModel)
-    .def("GenerateModelPart", [] (Modeler& rModeler)
-        {rModeler.GenerateModelPart();})
-    .def("ImportModelPart", &Modeler::ImportModelPart)
-    .def("PrepareModelPart", &Modeler::PrepareModelPart)
+    .def("SetupModelPart", &Modeler::SetupModelPart)
     // Additional Old Functions
     .def("GenerateModelPart",
         [] (Modeler& rModeler, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
