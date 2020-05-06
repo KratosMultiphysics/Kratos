@@ -1091,12 +1091,15 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
             p_law->CalculateMaterialResponsePK2(rValues);
 
             // we return the stress and constitutive tensor to the global coordinates
-            rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            
+            rValues.GetStressVector()       = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            rValues.GetConstitutiveMatrix() = prod((trans(voigt_rotation_matrix)), Matrix(prod(rValues.GetConstitutiveMatrix(), voigt_rotation_matrix)));
 
             noalias(auxiliar_stress_vector)       += factor * rValues.GetStressVector();
             noalias(auxiliar_constitutive_matrix) += factor * rValues.GetConstitutiveMatrix();
+
+            // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
+            noalias(rValues.GetStrainVector()) = strain_vector;
         }
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
         if (flag_const_tensor)
