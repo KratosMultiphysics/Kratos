@@ -263,9 +263,9 @@ public:
 
     /// Constructor with Geometry Id
     explicit Hexahedra3D20(
-        IndexType GeometryId,
-        const PointsArrayType& ThisPoints
-    ) : BaseType(GeometryId, ThisPoints, &msGeometryData)
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 20 ) << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
     }
@@ -273,8 +273,8 @@ public:
     /// Constructor with Geometry Name
     explicit Hexahedra3D20(
         const std::string& GeometryName,
-        const PointsArrayType& ThisPoints
-    ) : BaseType( GeometryName, ThisPoints, &msGeometryData)
+        const PointsArrayType& rThisPoints
+    ) : BaseType( GeometryName, rThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF(this->PointsNumber() != 20) << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
     }
@@ -370,42 +370,42 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param ThisPoints the nodes of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        PointsArrayType const& ThisPoints
-    ) const override
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Hexahedra3D20( ThisPoints ) );
+        return typename BaseType::Pointer( new Hexahedra3D20( rThisPoints ) );
     }
 
     /**
      * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
-     * @param ThisPoints the nodes of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewGeometryId,
-        PointsArrayType const& ThisPoints
-    ) const override
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Hexahedra3D20( NewGeometryId, ThisPoints ) );
+        return typename BaseType::Pointer( new Hexahedra3D20( NewGeometryId, rThisPoints ) );
     }
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
-     * @param ThisPoints the nodes of the new geometry
+     * @param rNewGeometryName the name of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        const std::string& NewGeometryName,
-        PointsArrayType const& ThisPoints
-    ) const override
+        const std::string& rNewGeometryName,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer(new Hexahedra3D20( NewGeometryName, ThisPoints));
+        return typename BaseType::Pointer(new Hexahedra3D20( rNewGeometryName, rThisPoints));
     }
 
     /**
@@ -429,7 +429,7 @@ public:
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewGeometryId,
+        const IndexType NewGeometryId,
         typename BaseType::Pointer pGeometry
     ) const override
     {
@@ -440,16 +440,16 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
+     * @param rNewGeometryName the name of the new geometry
      * @param pGeometry Pointer to an existing geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        const std::string& NewGeometryName,
+        const std::string& rNewGeometryName,
         typename BaseType::Pointer pGeometry
-    ) const override
+        ) const override
     {
-        auto p_geometry = typename BaseType::Pointer( new Hexahedra3D20( NewGeometryName, pGeometry->Points() ) );
+        auto p_geometry = typename BaseType::Pointer( new Hexahedra3D20( rNewGeometryName, pGeometry->Points() ) );
         p_geometry->SetData(pGeometry->GetData());
         return p_geometry;
     }

@@ -286,18 +286,18 @@ public:
 
     /// Constructor with Geometry Id
     explicit Hexahedra3D27(
-        IndexType GeometryId,
-        const PointsArrayType& ThisPoints
-    ) : BaseType( GeometryId, ThisPoints, &msGeometryData)
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( GeometryId, rThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 27 ) << "Invalid points number. Expected 27, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Name
     explicit Hexahedra3D27(
-        const std::string& GeometryName,
-        const PointsArrayType& ThisPoints
-    ) : BaseType( GeometryName, ThisPoints, &msGeometryData)
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( rGeometryName, rThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF(this->PointsNumber() != 27) << "Invalid points number. Expected 27, given " << this->PointsNumber() << std::endl;
     }
@@ -393,40 +393,40 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param ThisPoints the nodes of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    typename BaseType::Pointer Create( PointsArrayType const& rThisPoints ) const override
     {
-        return typename BaseType::Pointer( new Hexahedra3D27( ThisPoints ) );
+        return typename BaseType::Pointer( new Hexahedra3D27( rThisPoints ) );
     }
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param ThisPoints the nodes of the new geometry
+     * @param NewId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
         IndexType NewId,  
-        PointsArrayType const& ThisPoints
+        PointsArrayType const& rThisPoints
         ) const override
     {
-        return typename BaseType::Pointer( new Hexahedra3D27( NewId, ThisPoints ) );
+        return typename BaseType::Pointer( new Hexahedra3D27( NewId, rThisPoints ) );
     }
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
-     * @param ThisPoints the nodes of the new geometry
+     * @param rNewGeometryName the name of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        const std::string& NewGeometryName,
-        PointsArrayType const& ThisPoints
+        const std::string& rNewGeometryName,
+        PointsArrayType const& rThisPoints
     ) const override
     {
-        return typename BaseType::Pointer(new Hexahedra3D27( NewGeometryName, ThisPoints));
+        return typename BaseType::Pointer(new Hexahedra3D27( rNewGeometryName, rThisPoints));
     }
     
     /**
@@ -450,7 +450,7 @@ public:
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewGeometryId,
+        const IndexType NewGeometryId,
         typename BaseType::Pointer pGeometry
     ) const override
     {
@@ -461,16 +461,16 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param NewGeometryName the name of the new geometry
+     * @param rNewGeometryName the name of the new geometry
      * @param pGeometry Pointer to an existing geometry
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        const std::string& NewGeometryName,
+        const std::string& rNewGeometryName,
         typename BaseType::Pointer pGeometry
     ) const override
     {
-        auto p_geometry = typename BaseType::Pointer( new Hexahedra3D27( NewGeometryName, pGeometry->Points() ) );
+        auto p_geometry = typename BaseType::Pointer( new Hexahedra3D27( rNewGeometryName, pGeometry->Points() ) );
         p_geometry->SetData(pGeometry->GetData());
         return p_geometry;
     }
