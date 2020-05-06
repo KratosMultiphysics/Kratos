@@ -53,7 +53,9 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mFluxCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mFluxCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mAdjointThermalFace2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-      mAdjointThermalFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
+      mAdjointThermalFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mSymbolicEulerianConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mSymbolicEulerianConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) {}
 
 void KratosConvectionDiffusionApplication::Register() {
     KRATOS_INFO("") <<
@@ -95,6 +97,8 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D4N", mLaplacian3D4N);
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D8N", mLaplacian3D8N);
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D27N", mLaplacian3D27N);
+    KRATOS_REGISTER_ELEMENT("SymbolicEulerianConvectionDiffusionExplicit2D3N", mSymbolicEulerianConvectionDiffusionExplicit2D3N);
+    KRATOS_REGISTER_ELEMENT("SymbolicEulerianConvectionDiffusionExplicit3D4N", mSymbolicEulerianConvectionDiffusionExplicit3D4N);
 
     KRATOS_REGISTER_ELEMENT("AdjointDiffusionElement2D3N", mAdjointDiffusionElement2D3N);
     KRATOS_REGISTER_ELEMENT("AdjointDiffusionElement3D4N", mAdjointDiffusionElement3D4N);

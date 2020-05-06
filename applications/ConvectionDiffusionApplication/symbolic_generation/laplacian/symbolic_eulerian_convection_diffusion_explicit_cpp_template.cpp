@@ -177,17 +177,4 @@ Element::IntegrationMethod SymbolicEulerianConvectionDiffusionExplicit::GetInteg
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private serialization
 
-void SymbolicEulerianConvectionDiffusionExplicit::save(Serializer& rSerializer) const
-{
-    using BaseType = Element;
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
-}
-
-
-void SymbolicEulerianConvectionDiffusionExplicit::load(Serializer& rSerializer)
-{
-    using BaseType = Element;
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
-}
-
 }
