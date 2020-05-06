@@ -221,11 +221,44 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief This function calculates the lumped mass matrix
+     * @param rMassMatrix The current mass matrix
+     * @param rCurrentProcessInfo The current Process information
+     */
+    void CalculateLumpedMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental damping matrix
+     * @param rDampingMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * Gets the vector of displacements and rotations
      * @param rValues: the vector of the displacements and rotations
      * @param Step: solution step index
      */
     void GetValuesVector(Vector& rValues, int Step = 0) override;
+
+    /**
+     * Getting method to obtain the velocities
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+
+    /**
+     * Getting method to obtain the accelerations
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input

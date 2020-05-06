@@ -25,6 +25,8 @@
 #include "custom_constitutive/uniaxial_menegotto_pinto.h"
 #include "custom_constitutive/uniaxial_kent_park.h"
 
+#include "custom_utilities/structural_mechanics_element_utilities.h"
+
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -250,6 +252,7 @@ void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurren
     mDeformationIM1 = mDeformationI;
     Vector disp = ZeroVector(msGlobalSize);
     GetValuesVector(disp);
+
     noalias(mDeformationI) = prod(Matrix(trans(mTransformationMatrix)), disp);
     Vector def_incr = mDeformationI -  mDeformationIM1;
 
@@ -274,8 +277,8 @@ void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurren
         CalculateElementLocalStiffnessMatrix();
 
         if (converged) {
-            KRATOS_INFO("FiberBeamColumnElement3D2N")
-            << "Element equilibrium achieved in " << j << " iterations." << std::endl;
+            // KRATOS_INFO("FiberBeamColumnElement3D2N")
+            // << "Element equilibrium achieved in " << j << " iterations." << std::endl;
             break;
         } else {
             noalias(mDeformationResiduals) = ZeroVector(msLocalSize);
@@ -380,6 +383,101 @@ void FiberBeamColumnElement3D2N::CalculateRightHandSide(
     KRATOS_TRY
     rRightHandSideVector = ZeroVector(msGlobalSize);
     noalias(rRightHandSideVector) -= prod(mTransformationMatrix, mInternalForces);
+    KRATOS_CATCH("")
+}
+
+void FiberBeamColumnElement3D2N::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
+    KRATOS_CATCH("")
+}
+
+void FiberBeamColumnElement3D2N::CalculateLumpedMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+    if (rMassMatrix.size1() != msGlobalSize) {
+        rMassMatrix.resize(msGlobalSize, msGlobalSize, false);
+    }
+    rMassMatrix = ZeroMatrix(msGlobalSize, msGlobalSize);
+    const double L = CalculateReferenceLength();
+    const double rho = GetProperties()[DENSITY_PER_UNIT_LENGTH];
+    const double total_mass = L * rho;
+    const double temp = 0.50 * total_mass;
+    for (unsigned int i = 0; i < msNumberOfNodes; ++i) {
+        for (unsigned int j = 0; j < msDimension; ++j) {
+            unsigned int index = i * (msDimension * 2) + j;
+            rMassMatrix(index, index) = temp;
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+void FiberBeamColumnElement3D2N::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        msGlobalSize);
+    KRATOS_CATCH("")
+}
+
+void FiberBeamColumnElement3D2N::GetFirstDerivativesVector(
+    Vector& rValues, int Step)
+{
+    KRATOS_TRY
+    if (rValues.size() != msGlobalSize) {
+        rValues.resize(msGlobalSize, false);
+    }
+
+    for (int i = 0; i < msNumberOfNodes; ++i) {
+        int index = i * msDimension * 2;
+        const auto& vel =
+            GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+        const auto& ang_vel =
+            GetGeometry()[i].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
+
+        rValues[index] = vel[0];
+        rValues[index + 1] = vel[1];
+        rValues[index + 2] = vel[2];
+
+        rValues[index + 3] = ang_vel[0];
+        rValues[index + 4] = ang_vel[1];
+        rValues[index + 5] = ang_vel[2];
+    }
+    KRATOS_CATCH("")
+}
+
+void FiberBeamColumnElement3D2N::GetSecondDerivativesVector(
+    Vector& rValues, int Step)
+{
+    KRATOS_TRY
+    if (rValues.size() != msGlobalSize) {
+        rValues.resize(msGlobalSize, false);
+    }
+
+    for (int i = 0; i < msNumberOfNodes; ++i) {
+        int index = i * msDimension * 2;
+        const auto& acc =
+            GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        const auto& ang_acc = GetGeometry()[i].FastGetSolutionStepValue(
+                                  ANGULAR_ACCELERATION, Step);
+
+        rValues[index] = acc[0];
+        rValues[index + 1] = acc[1];
+        rValues[index + 2] = acc[2];
+
+        rValues[index + 3] = ang_acc[0];
+        rValues[index + 4] = ang_acc[1];
+        rValues[index + 5] = ang_acc[2];
+    }
     KRATOS_CATCH("")
 }
 
@@ -492,7 +590,8 @@ double FiberBeamColumnElement3D2N::CalculateReferenceLength() const
         GetGeometry()[0].GetInitialPosition().Coordinates();
 
     return std::sqrt((delta_pos[0] * delta_pos[0]) +
-                     (delta_pos[1] * delta_pos[1]));
+                     (delta_pos[1] * delta_pos[1]) +
+                     (delta_pos[2] * delta_pos[2]));
 
     KRATOS_CATCH("")
 }
