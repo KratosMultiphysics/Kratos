@@ -369,7 +369,7 @@ void UpdatedLagrangianQuadrilateral::CalculateKinematics(GeneralVariables& rVari
 
     // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian( Jacobian, mMP.xg);
+    GetGeometry().Jacobian(Jacobian, 0);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
@@ -517,7 +517,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(
         if (is_explicit)
         {
             Matrix Jacobian;
-            Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+            GetGeometry().Jacobian(Jacobian, 0);
             Matrix InvJ;
             double detJ;
             MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
@@ -602,7 +602,7 @@ void UpdatedLagrangianQuadrilateral::CalculateExplicitStresses(const ProcessInfo
     // Compute explicit element kinematics, strain is incremented here.
     rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+    GetGeometry().Jacobian(Jacobian,0);
     Matrix InvJ;
     double detJ;
     MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
@@ -1463,57 +1463,6 @@ void UpdatedLagrangianQuadrilateral::CalculateMassMatrix( MatrixType& rMassMatri
     KRATOS_CATCH( "" )
 }
 
-//************************************************************************************
-//************************************************************************************
-
-// Function that return Jacobian matrix
-Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, const array_1d<double,3>& rPoint)
-{
-    KRATOS_TRY
-
-    // Derivatives of shape functions
-    Matrix shape_functions_gradients = GetGeometry().ShapeFunctionLocalGradient(0);
-
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_nodes = r_geometry.PointsNumber();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-
-    if (dimension ==2)
-    {
-        rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2,2);
-
-        for ( unsigned int i = 0; i < number_nodes; i++ )
-        {
-            rResult( 0, 0 ) += ( r_geometry.GetPoint( i ).X() *  shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( r_geometry.GetPoint( i ).X() *  shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( r_geometry.GetPoint( i ).Y() *  shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( r_geometry.GetPoint( i ).Y() *  shape_functions_gradients( i, 1 ) );
-        }
-    }
-    else if(dimension ==3)
-    {
-        rResult.resize( 3, 3, false );
-        rResult = ZeroMatrix(3,3);
-
-        for ( unsigned int i = 0; i < number_nodes; i++ )
-        {
-            rResult( 0, 0 ) += ( r_geometry.GetPoint( i ).X() *  shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( r_geometry.GetPoint( i ).X() *  shape_functions_gradients( i, 1 ) );
-            rResult( 0, 2 ) += ( r_geometry.GetPoint( i ).X() *  shape_functions_gradients( i, 2 ) );
-            rResult( 1, 0 ) += ( r_geometry.GetPoint( i ).Y() *  shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( r_geometry.GetPoint( i ).Y() *  shape_functions_gradients( i, 1 ) );
-            rResult( 1, 2 ) += ( r_geometry.GetPoint( i ).Y() *  shape_functions_gradients( i, 2 ) );
-            rResult( 2, 0 ) += ( r_geometry.GetPoint( i ).Z() *  shape_functions_gradients( i, 0 ) );
-            rResult( 2, 1 ) += ( r_geometry.GetPoint( i ).Z() *  shape_functions_gradients( i, 1 ) );
-            rResult( 2, 2 ) += ( r_geometry.GetPoint( i ).Z() *  shape_functions_gradients( i, 2 ) );
-        }
-    }
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
 /**
    * Jacobian in given point and given a delta position. This method calculate jacobian
    * matrix in given point and a given delta position.
