@@ -63,6 +63,10 @@ public:
         Model& rModel,
         Parameters ModelerParameters = Parameters())
         : mParameters(ModelerParameters)
+        , mEchoLevel(
+            ModelerParameters.Has("echo_level")
+            ? ModelerParameters["echo_level"].GetInt()
+            : 0)
     {}
 
     /// Destructor.
@@ -131,6 +135,8 @@ protected:
     ///@{
 
     Parameters mParameters;
+
+    SizeType mEchoLevel;
 
     ///@}
 
