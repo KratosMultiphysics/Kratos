@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -73,6 +74,11 @@ public:
     /// The definition of the index type
     typedef std::size_t       IndexType;
 
+    /// The define the working dimension size, already defined in the integrator
+    static constexpr SizeType Dimension = 3;
+
+    /// The define the Voigt size, already defined in the  integrator
+    static constexpr SizeType VoigtSize = 6;
 
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
@@ -664,7 +670,7 @@ public:
      */
     void CalculateRotationMatrix(
         const Properties& rMaterialProperties,
-        BoundedMatrix<double, 6, 6>& rRotationMatrix,
+        BoundedMatrix<double, VoigtSize, VoigtSize>& rRotationMatrix,
         const IndexType Layer
     );
 
