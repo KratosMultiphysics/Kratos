@@ -244,6 +244,39 @@ public:
     ModelPart::NodeIterator NodesEnd;
     OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodesBegin, NodesEnd);
 
+    double numNodesForExternalForce=0;
+    double nodalExternalForce=0;
+    bool belytsckoCase=false;
+    bool cooksMembraneCase=true;
+    double hybridCoeff=0;
+
+    if (cooksMembraneCase==true){
+      for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+      {
+        double posX=itNode->X0();
+        if (posX>47.999 && posX<48.001){
+          numNodesForExternalForce+=1.0;
+        }
+      }
+      if(numNodesForExternalForce>0){
+        nodalExternalForce=1.0/numNodesForExternalForce;
+      }
+    }
+
+    if (belytsckoCase==true){
+      for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+      {
+        double posX=itNode->X0();
+        if (posX>24.999 && posX<25.001){
+          numNodesForExternalForce+=1.0;
+        }
+      }
+      if(numNodesForExternalForce>0){
+        nodalExternalForce=40.0/numNodesForExternalForce;
+      }
+    }
+
+
     for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
     {
 
@@ -312,16 +345,28 @@ public:
             solidRHS_Contribution[0] += nodalVolume * density * VolumeAcceleration[0];
             solidRHS_Contribution[1] += nodalVolume * density * VolumeAcceleration[1];
 
-            ///////////////LOAD CONDITIONS FOR BELITSCHKO CASE
-            // if(itNode->X0()>24.999){
-            //   // solidRHS_Contribution[1]+=40.0/2.0;  // mesh 4      (1 element per edge)
-            //   // solidRHS_Contribution[1]+=40.0/3.0;  // mesh 2      (2 element per edge)
-            //   // solidRHS_Contribution[1]+=40.0/5.0;  // mesh 1      (4 element per edge)
-            //   // solidRHS_Contribution[1]+=40.0/9.0;  // mesh 0.5    (8 element per edge)
-            //   // solidRHS_Contribution[1]+=40.0/17.0; // mesh 0.25   (16 element per edge)
-            //   // solidRHS_Contribution[1]+=40.0/33.0; // mesh 0.125  (32 element per edge)
-            //   // solidRHS_Contribution[1]+=40.0/65.0; // mesh 0.0625 (64 element per edge)
-            // }
+            ///////////////LOAD CONDITIONS FOR BELYTSCHKO CASE
+            //  if(itNode->X0()>24.999){
+             // solidRHS_Contribution[1]+=40.0/2.0;  // mesh 4      (1 element per edge)
+              //solidRHS_Contribution[1]+=40.0/3.0;  // mesh 2      (2 element per edge)
+            //solidRHS_Contribution[1]+=40.0/5.0;  // mesh 1      (4 element per edge)
+            //solidRHS_Contribution[1]+=40.0/9.0;  // mesh 0.5    (8 element per edge)
+              //  solidRHS_Contribution[1]+=40.0/17.0; // mesh 0.25   (16 element per edge)
+            // solidRHS_Contribution[1]+=40.0/33.0; // mesh 0.125  (32 element per edge)
+            //solidRHS_Contribution[1]+=40.0/65.0; // mesh 0.0625 (64 element per edge)
+             //}
+
+               if (belytsckoCase==true){
+                 if (itNode->X0()>24.999 && itNode->X0()<25.001){
+                  solidRHS_Contribution[1]+=nodalExternalForce;
+                 }
+               }
+                if (cooksMembraneCase==true){
+                  if (itNode->X0()>47.999 && itNode->X0()<48.001){
+                  solidRHS_Contribution[1]+=nodalExternalForce;
+                 }
+               }
+            
 
             //-------- INTERNAL FORCES TERM -------//
             array_1d<double, 3> Sigma(3, 0.0);
@@ -336,19 +381,19 @@ public:
               dNdXi = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[firstCol];
               dNdYi = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[firstCol + 1];
 
-              solidRHS_Contribution[firstCol] += -nodalVolume * (dNdXi * Sigma[0] + dNdYi * Sigma[2]);
-              solidRHS_Contribution[firstCol + 1] += -nodalVolume * (dNdYi * Sigma[1] + dNdXi * Sigma[2]);
+              solidRHS_Contribution[firstCol] += -nodalVolume * (dNdXi * Sigma[0] + dNdYi * Sigma[2])*hybridCoeff;
+              solidRHS_Contribution[firstCol + 1] += -nodalVolume * (dNdYi * Sigma[1] + dNdXi * Sigma[2])*hybridCoeff;
 
               for (unsigned int j = 0; j < neighSize; j++)
               {
                 dNdXj = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[firstRow];
                 dNdYj = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS)[firstRow + 1];
 
-                solidLHS_Contribution(firstRow, firstCol) += nodalVolume * ((FourThirds * deviatoricCoeff + volumetricCoeff) * dNdXj * dNdXi + dNdYj * dNdYi * deviatoricCoeff) * theta;
-                solidLHS_Contribution(firstRow, firstCol + 1) += nodalVolume * ((nTwoThirds * deviatoricCoeff + volumetricCoeff) * dNdXj * dNdYi + dNdYj * dNdXi * deviatoricCoeff) * theta;
+                solidLHS_Contribution(firstRow, firstCol) += nodalVolume * ((FourThirds * deviatoricCoeff + volumetricCoeff) * dNdXj * dNdXi + dNdYj * dNdYi * deviatoricCoeff) * theta*hybridCoeff;
+                solidLHS_Contribution(firstRow, firstCol + 1) += nodalVolume * ((nTwoThirds * deviatoricCoeff + volumetricCoeff) * dNdXj * dNdYi + dNdYj * dNdXi * deviatoricCoeff) * theta*hybridCoeff;
 
-                solidLHS_Contribution(firstRow + 1, firstCol) += nodalVolume * ((nTwoThirds * deviatoricCoeff + volumetricCoeff) * dNdYj * dNdXi + dNdXj * dNdYi * deviatoricCoeff) * theta;
-                solidLHS_Contribution(firstRow + 1, firstCol + 1) += nodalVolume * ((FourThirds * deviatoricCoeff + volumetricCoeff) * dNdYj * dNdYi + dNdXj * dNdXi * deviatoricCoeff) * theta;
+                solidLHS_Contribution(firstRow + 1, firstCol) += nodalVolume * ((nTwoThirds * deviatoricCoeff + volumetricCoeff) * dNdYj * dNdXi + dNdXj * dNdYi * deviatoricCoeff) * theta*hybridCoeff;
+                solidLHS_Contribution(firstRow + 1, firstCol + 1) += nodalVolume * ((FourThirds * deviatoricCoeff + volumetricCoeff) * dNdYj * dNdYi + dNdXj * dNdXi * deviatoricCoeff) * theta*hybridCoeff;
 
                 firstRow += 2;
               }
@@ -920,6 +965,8 @@ public:
 
     BuildSolidNodally(pScheme, rModelPart, A, b);
 
+    BuildElementally(pScheme, rModelPart, A, b);
+
     BuildFluidNodally(pScheme, rModelPart, A, b);
 
     // std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl;
@@ -950,6 +997,145 @@ public:
 
     KRATOS_CATCH("")
   }
+
+
+
+    void BuildElementally(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        )
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+        //getting the elements from the model
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+
+        //getting the array of the conditions
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
+
+        //contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different
+        //terms
+        Element::EquationIdVectorType EquationId;
+        const double start_build = OpenMPUtils::GetCurrentTime();
+
+        // assemble all elements
+        #pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, EquationId )
+        {
+            #pragma omp  for schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; k++)
+            {
+                ModelPart::ElementsContainerType::iterator it = el_begin + k;
+
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    element_is_active = (it)->Is(ACTIVE);
+
+                if (element_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                    AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
+#else
+                    AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId);
+#endif
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*it);
+
+                }
+
+            }
+
+            #pragma omp  for schedule(guided, 512)
+            for (int k = 0; k < nconditions; k++)
+            {
+                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    condition_is_active = (it)->Is(ACTIVE);
+
+                if (condition_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                    AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
+#else
+                    AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId);
+#endif
+
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*it);
+                }
+            }
+        }
+        const double stop_build = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+
+
+    void AssembleElementally(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb,
+        const LocalSystemMatrixType& rLHSContribution,
+        const LocalSystemVectorType& rRHSContribution,
+        const Element::EquationIdVectorType& rEquationId
+#ifdef USE_LOCKS_IN_ASSEMBLY
+        ,std::vector< omp_lock_t >& rLockArray
+#endif
+        )
+    {
+        unsigned int local_size = rLHSContribution.size1();
+
+        for (unsigned int i_local = 0; i_local < local_size; i_local++)
+        {
+            unsigned int i_global = rEquationId[i_local];
+
+            if (i_global < BaseType::mEquationSystemSize)
+            {
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                omp_set_lock(&rLockArray[i_global]);
+                b[i_global] += rRHSContribution(i_local);
+#else
+                double& r_a = rb[i_global];
+                const double& v_a = rRHSContribution(i_local);
+                #pragma omp atomic
+                r_a += v_a;
+#endif
+                AssembleRowContributionFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
+
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                omp_unset_lock(&rLockArray[i_global]);
+#endif
+            }
+            //note that computation of reactions is not performed here!
+        }
+    }
 
   /**
        * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
@@ -1205,6 +1391,91 @@ public:
 
     KRATOS_CATCH("")
   }
+
+    inline void AssembleRowContributionFreeDofs(
+        TSystemMatrixType& rA,
+        const Matrix& rALocal,
+        const IndexType i,
+        const IndexType i_local,
+        const Element::EquationIdVectorType& EquationId
+        )
+    {
+        double* values_vector = rA.value_data().begin();
+        std::size_t* index1_vector = rA.index1_data().begin();
+        std::size_t* index2_vector = rA.index2_data().begin();
+
+        const std::size_t left_limit = index1_vector[i];
+
+        // Find the first entry
+        // We iterate over the equation ids until we find the first equation id to be considered
+        // We count in which component we find an ID
+        std::size_t last_pos = 0;
+        std::size_t last_found = 0;
+        std::size_t counter = 0;
+        for(std::size_t j=0; j < EquationId.size(); ++j) {
+            ++counter;
+            const std::size_t j_global = EquationId[j];
+            if (j_global < BaseType::mEquationSystemSize) {
+                last_pos = ForwardFind(j_global,left_limit,index2_vector);
+                last_found = j_global;
+                break;
+            }
+        }
+
+        // If the counter is equal to the size of the EquationID vector that means that only one dof will be considered, if the number is greater means that all the dofs are fixed. If the number is below means that at we have several dofs free to be considered
+        if (counter <= EquationId.size()) {
+#ifndef USE_LOCKS_IN_ASSEMBLY
+            double& r_a = values_vector[last_pos];
+            const double& v_a = rALocal(i_local,counter - 1);
+            #pragma omp atomic
+            r_a +=  v_a;
+#else
+            values_vector[last_pos] += rALocal(i_local,counter - 1);
+#endif
+            // Now find all of the other entries
+            std::size_t pos = 0;
+            for(std::size_t j = counter; j < EquationId.size(); ++j) {
+                std::size_t id_to_find = EquationId[j];
+                if (id_to_find < BaseType::mEquationSystemSize) {
+                    if(id_to_find > last_found)
+                        pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+                    else if(id_to_find < last_found)
+                        pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+                    else
+                        pos = last_pos;
+
+#ifndef USE_LOCKS_IN_ASSEMBLY
+                    double& r = values_vector[pos];
+                    const double& v = rALocal(i_local,j);
+                    #pragma omp atomic
+                    r +=  v;
+#else
+                    values_vector[pos] += Alocal(i_local,j);
+#endif
+                    last_found = id_to_find;
+                    last_pos = pos;
+                }
+            }
+        }
+    }
+
+    inline std::size_t ForwardFind(const std::size_t id_to_find,
+                                   const std::size_t start,
+                                   const std::size_t* index_vector)
+    {
+        std::size_t pos = start;
+        while(id_to_find != index_vector[pos]) pos++;
+        return pos;
+    }
+
+    inline std::size_t BackwardFind(const std::size_t id_to_find,
+                                    const std::size_t start,
+                                    const std::size_t* index_vector)
+    {
+        std::size_t pos = start;
+        while(id_to_find != index_vector[pos]) pos--;
+        return pos;
+    }
 
   //**************************************************************************
   //**************************************************************************
