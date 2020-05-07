@@ -1536,4 +1536,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template class ParallelRuleOfMixturesLaw<2>;
+template class ParallelRuleOfMixturesLaw<3>;
+
 } // Namespace Kratos

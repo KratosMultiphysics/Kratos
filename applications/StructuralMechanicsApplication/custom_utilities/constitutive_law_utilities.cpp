@@ -1001,8 +1001,8 @@ void ConstitutiveLawUtilities<TVoigtSize>:: CalculateAnisotropicStrainMapperMatr
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
     const double EulerAngle1,
     BoundedMatrixType& rRotationOperator
 )
@@ -1024,8 +1024,8 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler2(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
     const double EulerAngle2,
     BoundedMatrixType& rRotationOperator
 )
@@ -1047,20 +1047,20 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler2(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler3(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
     const double EulerAngle3,
     BoundedMatrixType& rRotationOperator
 )
 {
-    ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperator(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
     const double EulerAngle1, // phi
     const double EulerAngle2, // theta
     const double EulerAngle3, // hi
@@ -1154,6 +1154,31 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
     rVoigtOperator(5, 3) = l3 * m1 + l1 * m3;
     rVoigtOperator(5, 4) = m3 * n1 + m1 * n3;
     rVoigtOperator(5, 5) = n3 * l1 + n1 * l3;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
+    const BoundedMatrixType& rEulerOperator,
+    BoundedMatrixVoigtType& rVoigtOperator
+    )
+{
+    const double c = rEulerOperator(0, 0);
+    const double s = rEulerOperator(0, 1);
+
+    rVoigtOperator(0, 0) = std::pow(c, 2);
+    rVoigtOperator(0, 1) = std::pow(s, 2);
+    rVoigtOperator(0, 2) = c * s;
+
+    rVoigtOperator(1, 0) = std::pow(s, 2);
+    rVoigtOperator(1, 1) = std::pow(c, 2);
+    rVoigtOperator(1, 2) = -c * s;
+
+    rVoigtOperator(2, 0) = -2.0 * c * s;
+    rVoigtOperator(2, 1) = 2.0 * c * s;
+    rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
 }
 
 /***********************************************************************************/
