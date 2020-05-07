@@ -24,7 +24,9 @@ Para = PyPara.Parafile(para_path_mod)
 Prep = PyPrep.Preprocessing(para_path_mod)
 Solver = PySolv.Solver(para_path_mod)
 Deform = PyDeform.Deformation(para_path_mod)
-step = 0
+startstep = 200
+step = startstep
+
 
 def AdvanceInTime(current_time):
     # Preprocessing needs to be done before getting the time and time step
@@ -55,7 +57,7 @@ def SolveSolutionStep():
     Solver.output()
     tau_plt_init_tecplot_params(para_path_mod)
     tau_solver_write_output_conditional()
-    TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod)
+    TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, startstep)
 
 def FinalizeSolutionStep():
     if tau_settings["echo_level"] > 0:

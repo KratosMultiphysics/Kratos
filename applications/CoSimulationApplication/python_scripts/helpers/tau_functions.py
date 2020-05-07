@@ -66,29 +66,32 @@ def FindOutputFile(working_path, step):
     return FindFileName(outputs_path, ouput_file_pattern, step + 1)
 
 
-def FindMeshFile(working_path, step):
+def FindMeshFile(working_path, step, startstep):
     mesh_path = working_path + "Mesh/"
     CheckIfPathExists(mesh_path)
-    if step == 0:
+    if step == startstep:
         pattern = 'airfoil_Structured_scaliert.grid'
         return FindInitialMeshFileName(mesh_path, pattern)
     else:
         pattern = 'airfoil_Structured_scaliert.grid.def.'
-        return FindFileName(mesh_path, pattern, step)
+        return FindFileName(mesh_path, pattern, step-startstep)
 
 
-def ConvertOutputToDat(working_path, tau_path, step, para_path_mod):
+def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, startstep):
     PrintBlockHeader("Start Writting Solution Data at time %s" % (str(time)))
     subprocess.call('rm ' + working_path + '/Tautoplt.cntl', shell=True)
-    tautoplt_file_name = WriteTautoplt(working_path, step, para_path_mod)
+    tautoplt_file_name = WriteTautoplt(working_path, step, para_path_mod, startstep)
     command = tau_path + 'tau2plt ' + tautoplt_file_name
     subprocess.call(command, shell=True)
     PrintBlockHeader("Stop Writting Solution Data at time %s" % (str(time)))
+
 
 def FindInterfaceFile(working_path, step):
     output_file_name = FindOutputFile(working_path, step)
     interface_file_name = output_file_name[0:output_file_name.find(
         '.pval')] + '.surface.' + output_file_name[output_file_name.find('.pval')+1:len(output_file_name)]
+    if interface_file_name + '.dat' not in output_file_name:
+        interface_file_name = interface_file_name[0:interface_file_name.find('+')]+ interface_file_name[interface_file_name.find('+')+1:len(interface_file_name)]
     CheckIfPathExists(interface_file_name)
     return interface_file_name + '.dat'
 
@@ -116,8 +119,8 @@ def FindFileName(path, name, step):
     raise Exception('File: "{}" not found'.format(path + name + step))
 
 
-def WriteTautoplt(working_path, step, para_path_mod):
-    mesh_file_name = FindMeshFile(working_path, step)
+def WriteTautoplt(working_path, step, para_path_mod, startstep):
+    mesh_file_name = FindMeshFile(working_path, step, startstep)
     parameter_file_name = working_path + para_path_mod
     output_file_name = FindOutputFile(working_path, step)
     tautoplt_file_name = working_path + 'Tautoplt.cntl'
