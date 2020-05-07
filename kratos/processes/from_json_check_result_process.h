@@ -453,11 +453,11 @@ public:
     int Check()
     {
         // Doing check in the table size
-        for (auto& r_pair : *this) {
-            auto& r_table_vector_vector_vector = r_pair.second;
-            for (auto& r_table_vector_vector : r_table_vector_vector_vector) {
-                for (auto& r_table_vector : r_table_vector_vector) {
-                    for (auto& p_table : r_table_vector) {
+        for (const auto& r_pair : *this) {
+            const auto& r_table_vector_vector_vector = r_pair.second;
+            for (const auto& r_table_vector_vector : r_table_vector_vector_vector) {
+                for (const auto& r_table_vector : r_table_vector_vector) {
+                    for (const auto& p_table : r_table_vector) {
                         KRATOS_ERROR_IF(p_table == nullptr) << "Table not created" << std::endl;
                         KRATOS_ERROR_IF_NOT(p_table->Data().size() == mCommonColumn.size()) << "Inconsistent size of the tables. Time vector size: " << mCommonColumn.size() << " vs table size " << p_table->Data().size() << std::endl;
                     }
