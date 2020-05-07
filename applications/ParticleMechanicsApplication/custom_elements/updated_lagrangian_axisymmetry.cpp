@@ -278,6 +278,7 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationGradient(const Matrix& rD
 }
 */
 //************************************************************************************
+/*
 void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
     GeneralVariables& rVariables,
     Vector& rVolumeForce,
@@ -342,7 +343,7 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLo
 
     }
 }
-
+*/
 
 //************************************************************************************
 //************************************************************************************

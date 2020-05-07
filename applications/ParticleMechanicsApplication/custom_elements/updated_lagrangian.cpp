@@ -530,7 +530,18 @@ void UpdatedLagrangian::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
             MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
             Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
             rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
-            MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
+
+            const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+                ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+                : false;
+
+            if (is_axisymmetric) {
+                const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+                MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
+                    rVariables.DN_DX, rVariables.N, mMP.cauchy_stress_vector, mMP.volume,
+                    mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
+            }
+            else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
                 rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
                 mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
         }

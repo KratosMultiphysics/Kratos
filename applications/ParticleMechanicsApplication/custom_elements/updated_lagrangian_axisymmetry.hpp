@@ -241,9 +241,9 @@ protected:
     //                                  const double & rReferenceRadius);
 
     /// Calculate and add RHS
-    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-        GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    //void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    //    GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight,
+    //    const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access
