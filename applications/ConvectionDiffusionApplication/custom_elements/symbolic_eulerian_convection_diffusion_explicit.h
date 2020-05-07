@@ -121,8 +121,6 @@ public:
 
     int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
-    IntegrationMethod GetIntegrationMethod() const override;
-
     ///@}
     ///@name Input and output
     ///@{
@@ -148,9 +146,18 @@ protected:
 
     struct ElementVariables
     {
-        Vector diffusivity;
-        Vector forcing;
-        Vector unknown;
+        array_1d<double,TNumNodes> diffusivity;
+        array_1d<double,TNumNodes> forcing;
+        array_1d<double,TNumNodes> unknown;
+
+        // auxiliary containers for the symbolically-generated matrices
+        BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
+        array_1d<double,TNumNodes*(TDim+1)> rhs;
+
+        // auxiliary containers for the symbolically-generated variables for Gauss integration
+        array_1d<double,TNumNodes> N;
+        BoundedMatrix<double,TNumNodes,TDim> DN;
+        double weight;
     };
 
     ///@}
@@ -166,6 +173,11 @@ protected:
         ElementVariables& rVariables,
         const ProcessInfo& rCurrentProcessInfo);
 
+    void ComputeGaussPointContribution(
+        ElementVariables& rVariables,
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -175,6 +187,7 @@ protected:
     ///@name Protected Inquiry
     ///@{
 
+    IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Protected LifeCycle

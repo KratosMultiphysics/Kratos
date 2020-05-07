@@ -93,12 +93,8 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocal
 
     // Define local variables
     Element::GeometryType::JacobiansType J0;
-    Matrix DN(local_size,dimension);
     Matrix InvJ0(dimension,dimension);
-    Vector temp(local_size);
     double DetJ0;
-    Matrix lhs(local_size, local_size);
-    Vector rhs(local_size);
 
     // Compute Jacobian
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
@@ -108,34 +104,16 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocal
 
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(J0[g],InvJ0,DetJ0);
+
         // Calculate the cartesian derivatives on integration point "g"
-        noalias(DN) = prod(DN_De[g],InvJ0);
+        rVariables.DN = prod(DN_De[g],InvJ0);
         // Caluclate N on the gauss point "g"
-        auto N = row(N_gausspoint,g);
+        rVariables.N = row(N_gausspoint,g);
         // Compute weight
-        const double IntToReferenceWeight = integration_points[g].Weight() * DetJ0;
+        rVariables.weight = integration_points[g].Weight() * DetJ0;
 
-        // Retrieve element variables
-        const double k = inner_prod(N,rVariables.diffusivity);
-        const Vector f = rVariables.forcing;
-        const Vector phi = rVariables.unknown;
-
-        if (dimension == 2){
-
-            //substitute_lhs_2D
-
-            //substitute_rhs_2D
-        }
-        else if (dimension == 3){
-
-            //substitute_lhs_3D
-
-            //substitute_rhs_3D
-        }
-
-        noalias(rLeftHandSideMatrix) += lhs * IntToReferenceWeight;
-        noalias(rRightHandSideVector) += rhs * IntToReferenceWeight;
-
+        // Update rhs and lhs
+        this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
     }
 }
 
@@ -239,13 +217,6 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     const auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
 
-    if (rVariables.diffusivity.size() != local_size)
-        rVariables.diffusivity.resize(local_size, false);
-    if (rVariables.unknown.size() != local_size)
-        rVariables.unknown.resize(local_size, false);
-    if (rVariables.forcing.size() != local_size)
-        rVariables.forcing.resize(local_size, false);
-
     for(unsigned int node_element = 0; node_element<local_size; node_element++)
 {
     rVariables.diffusivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
@@ -259,11 +230,68 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <>
+void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContribution(
+    ElementVariables& rVariables,
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector)
+{
+    // Retrieve element variables
+    const auto N = rVariables.N;
+    const auto DN = rVariables.DN;
+    const auto k = inner_prod(N,rVariables.diffusivity);
+    const auto f = rVariables.forcing;
+    const auto phi = rVariables.unknown;
+    auto lhs = rVariables.lhs;
+    auto rhs = rVariables.rhs;
+
+    //substitute_lhs_2D
+
+    //substitute_rhs_2D
+
+    noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
+    noalias(rRightHandSideVector) += rhs * rVariables.weight;
+}
+
+/***********************************************************************************/
+
+template <>
+void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContribution(
+    ElementVariables& rVariables,
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector)
+{
+    // Retrieve element variables
+    const auto N = rVariables.N;
+    const auto DN = rVariables.DN;
+    const auto k = inner_prod(N,rVariables.diffusivity);
+    const auto f = rVariables.forcing;
+    const auto phi = rVariables.unknown;
+    auto lhs = rVariables.lhs;
+    auto rhs = rVariables.rhs;
+
+    //substitute_lhs_3D
+
+    //substitute_rhs_3D
+
+    noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
+    noalias(rRightHandSideVector) += rhs * rVariables.weight;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template< unsigned int TDim, unsigned int TNumNodes >
 Element::IntegrationMethod SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_1;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class SymbolicEulerianConvectionDiffusionExplicit<2>;
+template class SymbolicEulerianConvectionDiffusionExplicit<3>;
 
 /***********************************************************************************/
 /***********************************************************************************/

@@ -248,8 +248,8 @@ private:
     const AdjointThermalFace mAdjointThermalFace2D2N;
     const AdjointThermalFace mAdjointThermalFace3D3N;
 
-    const SymbolicEulerianConvectionDiffusionExplicit<2,3> mSymbolicEulerianConvectionDiffusionExplicit2D3N;
-    const SymbolicEulerianConvectionDiffusionExplicit<3,4> mSymbolicEulerianConvectionDiffusionExplicit3D4N;
+    const SymbolicEulerianConvectionDiffusionExplicit<2> mSymbolicEulerianConvectionDiffusionExplicit2D3N;
+    const SymbolicEulerianConvectionDiffusionExplicit<3> mSymbolicEulerianConvectionDiffusionExplicit3D4N;
 
     ///@}
     ///@name Private Operators
