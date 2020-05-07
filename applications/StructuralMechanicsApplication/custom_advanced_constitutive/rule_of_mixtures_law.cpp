@@ -1118,8 +1118,11 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
 
 void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
+    KRATOS_TRY;
+
     // Some auxiliar values
-    const SizeType voigt_size = GetStrainSize();
+    const SizeType voigt_size = this->GetStrainSize();
+    const SizeType dimension  = this->WorkingSpaceDimension();
 
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
@@ -1128,7 +1131,7 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
     const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
     const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-    const Properties& r_material_properties  = rValues.GetMaterialProperties();
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // The deformation gradient
     if (rValues.IsSetDeterminantF()) {
@@ -1137,14 +1140,17 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
     }
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponseKirchhoff(rValues);
+        p_law->CalculateMaterialResponsePK2(rValues);
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
+
+    // The global strain vector, constant
+    const Vector strain_vector = rValues.GetStrainVector();
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Set new flags
@@ -1153,27 +1159,46 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
 
         // Auxiliar stress vector
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-        Vector auxiliar_stress_vector = ZeroVector(voigt_size);
-        Matrix auxiliar_constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
+        Vector auxiliar_stress_vector = ZeroVector(VoigtSize);
+        Matrix auxiliar_constitutive_matrix = ZeroMatrix(VoigtSize, VoigtSize);
+
+        // The rotation matrix
+        BoundedMatrix<double, VoigtSize, VoigtSize>  voigt_rotation_matrix;
+
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+            this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i);
+
             Properties& r_prop = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
 
+            // We rotate to local axes the strain
+            noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
             rValues.SetMaterialProperties(r_prop);
-            p_law->CalculateMaterialResponsePK2(rValues);
+            p_law->CalculateMaterialResponseKirchhoff(rValues)
+
+            // we return the stress and constitutive tensor to the global coordinates
+            rValues.GetStressVector()       = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            rValues.GetConstitutiveMatrix() = prod((trans(voigt_rotation_matrix)), Matrix(prod(rValues.GetConstitutiveMatrix(), voigt_rotation_matrix)));
 
             noalias(auxiliar_stress_vector)       += factor * rValues.GetStressVector();
             noalias(auxiliar_constitutive_matrix) += factor * rValues.GetConstitutiveMatrix();
+
+            // we reset the properties and Strain
+            rValues.SetMaterialProperties(r_material_properties);
+            noalias(rValues.GetStrainVector()) = strain_vector;
         }
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
         if (flag_const_tensor)
             noalias(rValues.GetConstitutiveMatrix()) = auxiliar_constitutive_matrix;
-        rValues.SetMaterialProperties(r_material_properties);
+
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
