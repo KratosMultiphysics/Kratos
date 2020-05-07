@@ -11,8 +11,8 @@
 //                   Alejandro Cornejo Velazquez
 //
 
-#if !defined (KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED)
-#define  KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED
+#if !defined (KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED)
+#define  KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED
 
 // System includes
 
@@ -43,7 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class RuleOfMixturesLaw
+ * @class ParallelRuleOfMixturesLaw
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines a parallel rule of mixture (classic law of mixture)
  * @details The constitutive law show have defined a subproperties in order to work properly
@@ -53,8 +53,10 @@ namespace Kratos
  *  - The constitutive tensor is the addition of the constitutive tensor of each layer
  * @author Vicente Mataix Ferrandiz
  * @author Fernando Rastellini
+ * @author Alejandro Cornejo Velazquez
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RuleOfMixturesLaw
+template<unsigned int TDim>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ParallelRuleOfMixturesLaw
     : public ConstitutiveLaw
 {
 public:
@@ -75,16 +77,16 @@ public:
     typedef std::size_t       IndexType;
 
     /// The define the working dimension size, already defined in the integrator
-    static constexpr SizeType Dimension = 3;
+    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
 
     /// The define the Voigt size, already defined in the  integrator
-    static constexpr SizeType VoigtSize = 6;
+    static constexpr SizeType Dimension = TDim;
 
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-    /// Pointer definition of RuleOfMixturesLaw
-    KRATOS_CLASS_POINTER_DEFINITION( RuleOfMixturesLaw );
+    /// Pointer definition of ParallelRuleOfMixturesLaw
+    KRATOS_CLASS_POINTER_DEFINITION( ParallelRuleOfMixturesLaw );
 
     ///@name Lyfe Cycle
     ///@{
@@ -92,23 +94,23 @@ public:
     /**
      * @brief Default constructor.
      */
-    RuleOfMixturesLaw();
+    ParallelRuleOfMixturesLaw();
 
     /**
      * @brief Constructor with values
      * @param rCombinationFactors The list of subproperties combination factors
      */
-    RuleOfMixturesLaw(const std::vector<double>& rCombinationFactors);
+    ParallelRuleOfMixturesLaw(const std::vector<double>& rCombinationFactors);
 
     /**
      * @brief Copy constructor.
      */
-    RuleOfMixturesLaw (const RuleOfMixturesLaw& rOther);
+    ParallelRuleOfMixturesLaw (const ParallelRuleOfMixturesLaw& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~RuleOfMixturesLaw() override;
+    ~ParallelRuleOfMixturesLaw() override;
 
     ///@}
     ///@name Operators
@@ -739,6 +741,6 @@ private:
     }
 
 
-}; // Class RuleOfMixturesLaw
+}; // Class ParallelRuleOfMixturesLaw
 }  // namespace Kratos.
 #endif // KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED  defined

@@ -26,7 +26,8 @@ namespace Kratos
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
-RuleOfMixturesLaw::RuleOfMixturesLaw()
+template<unsigned int TDim>
+ParallelRuleOfMixturesLaw<TDim>::ParallelRuleOfMixturesLaw()
     : ConstitutiveLaw()
 {
 }
@@ -34,7 +35,8 @@ RuleOfMixturesLaw::RuleOfMixturesLaw()
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
-RuleOfMixturesLaw::RuleOfMixturesLaw(const std::vector<double>& rCombinationFactors) : ConstitutiveLaw()
+template<unsigned int TDim>
+ParallelRuleOfMixturesLaw<TDim>::ParallelRuleOfMixturesLaw(const std::vector<double>& rCombinationFactors) : ConstitutiveLaw()
 {
     // We compute the proportion of the factors (must be over 1)
     double aux_factor = 0.0;
@@ -42,7 +44,7 @@ RuleOfMixturesLaw::RuleOfMixturesLaw(const std::vector<double>& rCombinationFact
         aux_factor += rCombinationFactors[i];
     }
 
-    KRATOS_ERROR_IF(aux_factor < std::numeric_limits<double>::epsilon()) << "Wrong factors in RuleOfMixturesLaw" << std::endl;
+    KRATOS_ERROR_IF(aux_factor < std::numeric_limits<double>::epsilon()) << "Wrong factors in ParallelRuleOfMixturesLaw" << std::endl;
 
     // Resize
     mCombinationFactors.resize(rCombinationFactors.size());
@@ -56,7 +58,8 @@ RuleOfMixturesLaw::RuleOfMixturesLaw(const std::vector<double>& rCombinationFact
 /******************************COPY CONSTRUCTOR*************************************/
 /***********************************************************************************/
 
-RuleOfMixturesLaw::RuleOfMixturesLaw(const RuleOfMixturesLaw& rOther)
+template<unsigned int TDim>
+ParallelRuleOfMixturesLaw<TDim>::ParallelRuleOfMixturesLaw(const ParallelRuleOfMixturesLaw<TDim>& rOther)
     : ConstitutiveLaw(rOther),
       mConstitutiveLaws(rOther.mConstitutiveLaws),
       mCombinationFactors(rOther.mCombinationFactors)
@@ -66,18 +69,20 @@ RuleOfMixturesLaw::RuleOfMixturesLaw(const RuleOfMixturesLaw& rOther)
 /********************************CLONE**********************************************/
 /***********************************************************************************/
 
-ConstitutiveLaw::Pointer RuleOfMixturesLaw::Clone() const
+template<unsigned int TDim>
+ConstitutiveLaw::Pointer ParallelRuleOfMixturesLaw<TDim>::Clone() const
 {
-    return Kratos::make_shared<RuleOfMixturesLaw>(*this);
+    return Kratos::make_shared<ParallelRuleOfMixturesLaw>(*this);
 }
 
 /*******************************CONSTRUCTOR*****************************************/
 /***********************************************************************************/
 
-ConstitutiveLaw::Pointer RuleOfMixturesLaw::Create(Kratos::Parameters NewParameters) const
+template<unsigned int TDim>
+ConstitutiveLaw::Pointer ParallelRuleOfMixturesLaw<TDim>::Create(Kratos::Parameters NewParameters) const
 {
     // We do some checks
-    KRATOS_ERROR_IF_NOT(NewParameters.Has("combination_factors")) << "RuleOfMixturesLaw: Please define combination_factors" << std::endl;
+    KRATOS_ERROR_IF_NOT(NewParameters.Has("combination_factors")) << "ParallelRuleOfMixturesLaw: Please define combination_factors" << std::endl;
 
     const SizeType number_of_factors = NewParameters["combination_factors"].size();
 
@@ -91,20 +96,22 @@ ConstitutiveLaw::Pointer RuleOfMixturesLaw::Create(Kratos::Parameters NewParamet
     KRATOS_ERROR_IF(number_of_factors == 0) << "Please define the combination factors" << std::endl;
 
     // We create the law
-    return Kratos::make_shared<RuleOfMixturesLaw>(combination_factors);
+    return Kratos::make_shared<ParallelRuleOfMixturesLaw>(combination_factors);
 }
 
 //*******************************DESTRUCTOR*******************************************
 /***********************************************************************************/
 
-RuleOfMixturesLaw::~RuleOfMixturesLaw()
+template<unsigned int TDim>
+ParallelRuleOfMixturesLaw<TDim>::~ParallelRuleOfMixturesLaw()
 {
 };
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::size_t RuleOfMixturesLaw::WorkingSpaceDimension()
+template<unsigned int TDim>
+std::size_t ParallelRuleOfMixturesLaw<TDim>::WorkingSpaceDimension()
 {
     IndexType counter = 0;
     SizeType dimension = 3;
@@ -126,7 +133,8 @@ std::size_t RuleOfMixturesLaw::WorkingSpaceDimension()
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::size_t RuleOfMixturesLaw::GetStrainSize()
+template<unsigned int TDim>
+std::size_t ParallelRuleOfMixturesLaw<TDim>::GetStrainSize()
 {
     IndexType counter = 0;
     SizeType strain_size = 6;
@@ -148,7 +156,8 @@ std::size_t RuleOfMixturesLaw::GetStrainSize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
+template<unsigned int TDim>
+bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<bool>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -166,7 +175,8 @@ bool RuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RuleOfMixturesLaw::Has(const Variable<int>& rThisVariable)
+template<unsigned int TDim>
+bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<int>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -184,7 +194,8 @@ bool RuleOfMixturesLaw::Has(const Variable<int>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
+template<unsigned int TDim>
+bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<double>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -202,7 +213,8 @@ bool RuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
+template<unsigned int TDim>
+bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<Vector>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -220,7 +232,8 @@ bool RuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
+template<unsigned int TDim>
+bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<Matrix>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -238,7 +251,8 @@ bool RuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RuleOfMixturesLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
+template<unsigned int TDim>
+bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -256,7 +270,8 @@ bool RuleOfMixturesLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RuleOfMixturesLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
+template<unsigned int TDim>
+bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
@@ -274,7 +289,8 @@ bool RuleOfMixturesLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool& RuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+bool& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue
     )
@@ -293,7 +309,8 @@ bool& RuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int& RuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+int& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<int>& rThisVariable,
     int& rValue
     )
@@ -314,7 +331,8 @@ int& RuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double& RuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -336,7 +354,8 @@ double& RuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& RuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+Vector& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -358,7 +377,8 @@ Vector& RuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& RuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+Matrix& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
@@ -380,7 +400,8 @@ Matrix& RuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 3 >& RuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+array_1d<double, 3 >& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<array_1d<double, 3 >>& rThisVariable,
     array_1d<double, 3 >& rValue
     )
@@ -402,7 +423,8 @@ array_1d<double, 3 >& RuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 6 >& RuleOfMixturesLaw::GetValue(
+template<unsigned int TDim>
+array_1d<double, 6 >& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     const Variable<array_1d<double, 6 >>& rThisVariable,
     array_1d<double, 6 >& rValue
     )
@@ -424,7 +446,8 @@ array_1d<double, 6 >& RuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<bool>& rThisVariable,
     const bool& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -440,7 +463,8 @@ void RuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<int>& rThisVariable,
     const int& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -456,7 +480,8 @@ void RuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -474,7 +499,8 @@ void RuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -492,7 +518,8 @@ void RuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<Matrix>& rThisVariable,
     const Matrix& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -510,7 +537,8 @@ void RuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<array_1d<double, 3 >>& rThisVariable,
     const array_1d<double, 3 >& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -528,7 +556,8 @@ void RuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::SetValue(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const Variable<array_1d<double, 6 >>& rThisVariable,
     const array_1d<double, 6 >& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -546,7 +575,8 @@ void RuleOfMixturesLaw::SetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool& RuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+bool& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     Parameters& rParameterValues,
     const Variable<bool>& rThisVariable,
     bool& rValue
@@ -577,7 +607,8 @@ bool& RuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int& RuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+int& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     Parameters& rParameterValues,
     const Variable<int>& rThisVariable,
     int& rValue
@@ -608,7 +639,8 @@ int& RuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double& RuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
@@ -639,7 +671,8 @@ double& RuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& RuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue
@@ -732,7 +765,8 @@ Vector& RuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& RuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+Matrix& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -792,7 +826,8 @@ Matrix& RuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 3 >& RuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+array_1d<double, 3 >& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     Parameters& rParameterValues,
     const Variable<array_1d<double, 3 >>& rThisVariable,
     array_1d<double, 3 >& rValue
@@ -823,7 +858,8 @@ array_1d<double, 3 >& RuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 6 >& RuleOfMixturesLaw::CalculateValue(
+template<unsigned int TDim>
+array_1d<double, 6 >& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     Parameters& rParameterValues,
     const Variable<array_1d<double, 6 >>& rThisVariable,
     array_1d<double, 6 >& rValue
@@ -854,7 +890,8 @@ array_1d<double, 6 >& RuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RuleOfMixturesLaw::ValidateInput(const Properties& rMaterialProperties)
+template<unsigned int TDim>
+bool ParallelRuleOfMixturesLaw<TDim>::ValidateInput(const Properties& rMaterialProperties)
 {
     // We check it layer by layer
     bool valid_input = true;
@@ -873,27 +910,30 @@ bool RuleOfMixturesLaw::ValidateInput(const Properties& rMaterialProperties)
 /***********************************************************************************/
 /***********************************************************************************/
 
-ConstitutiveLaw::StrainMeasure RuleOfMixturesLaw::GetStrainMeasure()
+template<unsigned int TDim>
+ConstitutiveLaw::StrainMeasure ParallelRuleOfMixturesLaw<TDim>::GetStrainMeasure()
 {
     // We return the first one
-    KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
+    KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "ParallelRuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     return mConstitutiveLaws[0]->GetStrainMeasure();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-ConstitutiveLaw::StressMeasure RuleOfMixturesLaw::GetStressMeasure()
+template<unsigned int TDim>
+ConstitutiveLaw::StressMeasure ParallelRuleOfMixturesLaw<TDim>::GetStressMeasure()
 {
     // We return the first one
-    KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
+    KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "ParallelRuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     return mConstitutiveLaws[0]->GetStressMeasure();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool RuleOfMixturesLaw::IsIncremental()
+template<unsigned int TDim>
+bool ParallelRuleOfMixturesLaw<TDim>::IsIncremental()
 {
     // We check it layer by layer
     bool is_incremental = false;
@@ -911,7 +951,8 @@ bool RuleOfMixturesLaw::IsIncremental()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::InitializeMaterial(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -930,13 +971,14 @@ void RuleOfMixturesLaw::InitializeMaterial(
         mConstitutiveLaws[i]->InitializeMaterial(r_prop, rElementGeometry, rShapeFunctionsValues);
     }
 
-    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No CL defined" << std::endl;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ParallelRuleOfMixturesLaw: No CL defined" << std::endl;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::InitializeSolutionStep(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::InitializeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -955,7 +997,8 @@ void RuleOfMixturesLaw::InitializeSolutionStep(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::FinalizeSolutionStep(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -974,7 +1017,8 @@ void RuleOfMixturesLaw::FinalizeSolutionStep(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::InitializeNonLinearIteration(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::InitializeNonLinearIteration(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -993,7 +1037,8 @@ void RuleOfMixturesLaw::InitializeNonLinearIteration(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::FinalizeNonLinearIteration(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::FinalizeNonLinearIteration(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -1012,7 +1057,8 @@ void RuleOfMixturesLaw::FinalizeNonLinearIteration(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 
@@ -1028,7 +1074,8 @@ void RuleOfMixturesLaw::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameter
 /***********************************************************************************/
 /***********************************************************************************/
 
-void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
 
@@ -1116,7 +1163,8 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
 
@@ -1204,7 +1252,8 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseKirchhoff(rValues);
 
@@ -1222,7 +1271,8 @@ void RuleOfMixturesLaw::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parame
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::InitializeMaterialResponsePK1(Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1242,7 +1292,8 @@ void RuleOfMixturesLaw::InitializeMaterialResponsePK1(Parameters& rValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::InitializeMaterialResponsePK2(Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1262,7 +1313,8 @@ void RuleOfMixturesLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::InitializeMaterialResponseKirchhoff(Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1282,7 +1334,8 @@ void RuleOfMixturesLaw::InitializeMaterialResponseKirchhoff(Parameters& rValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1302,7 +1355,8 @@ void RuleOfMixturesLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1319,10 +1373,11 @@ void RuleOfMixturesLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
     rValues.SetMaterialProperties(r_material_properties);
 }
 
+template<unsigned int TDim>
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1342,7 +1397,8 @@ void RuleOfMixturesLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1362,7 +1418,8 @@ void RuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1382,7 +1439,8 @@ void RuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::ResetMaterial(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::ResetMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -1400,7 +1458,8 @@ void RuleOfMixturesLaw::ResetMaterial(
 /**************************CONSTITUTIVE LAW GENERAL FEATURES ***********************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::GetLawFeatures(Features& rFeatures)
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::GetLawFeatures(Features& rFeatures)
 {
     //Set the strain size
     rFeatures.mStrainSize = GetStrainSize();
@@ -1412,7 +1471,8 @@ void RuleOfMixturesLaw::GetLawFeatures(Features& rFeatures)
 /***********************************************************************************/
 /***********************************************************************************/
 
-int RuleOfMixturesLaw::Check(
+template<unsigned int TDim>
+int ParallelRuleOfMixturesLaw<TDim>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -1421,7 +1481,7 @@ int RuleOfMixturesLaw::Check(
     // The auxiliar output
     int aux_out = 0;
 
-    KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
+    KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "ParallelRuleOfMixturesLaw: No constitutive laws defined" << std::endl;
 
     // We perform the check in each layer
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
@@ -1441,7 +1501,8 @@ int RuleOfMixturesLaw::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RuleOfMixturesLaw::CalculateRotationMatrix(
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
         const Properties& rMaterialProperties,
         BoundedMatrix<double, VoigtSize, VoigtSize>& rRotationMatrix,
         const IndexType Layer 
