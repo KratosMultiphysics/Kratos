@@ -67,8 +67,7 @@ Additionaly Visual Studio or MinGW is required to compile in Windows.
 
     - Visual Studio
 
-        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*.
-        Since the adoption of **C++11** we support versions 2015 update 3 onwards. We recommend you to use the latest version of visual studio which can be obtained here for free:
+        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is Visual Studio 2017, but we recommend to use Visual Studio 2019 or higher. 
 
         * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=15)
 
@@ -79,11 +78,11 @@ Additionaly Visual Studio or MinGW is required to compile in Windows.
 
         Once installing, please <span style="color:red"> do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''</span>
 
-        Please notice that if you want to use *python* 3.4 or higher, you will need *CMake* 3.0.2 or higher.
-
+        Minimum required version: CMake 3.14
+        
     - Python
 
-        You will need any version of python in your computer in order to compile *Kratos*. We strongly recommend *Python* 3, at least 3.3.4 or higher. you can download python from its official webpage:
+        You will need at least *Python* 3.5 (recommended 3.7/3.8) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
         * [Download Python](http://www.python.org/downloads/)
 
@@ -95,7 +94,7 @@ Additionaly Visual Studio or MinGW is required to compile in Windows.
 
         * [Download Boost](http://www.boost.org/users/download/)
 
-        Extract boost, and note the path as it will be needed in the configure stage to set the `-DBOOST_ROOT` variable.
+        Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
 
 
 ### Specific Application Dependencies
