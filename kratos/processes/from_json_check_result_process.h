@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "includes/table.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/model_utilities.h"
 
 namespace Kratos
 {
@@ -41,26 +42,6 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-
-/**
- * @brief Auxiliar method to obtain the corresponding modelpart from a given settings and Model
- * @param rModel The model where the where the simulation is performed
- * @param ThisParameters The parameters of configuration
- */
-ModelPart& GetModelPartFromModelAndSettings(
-    Model& rModel,
-    Parameters ThisParameters
-    )
-{
-    const std::string& r_model_part_name = ThisParameters["model_part_name"].GetString();
-    const std::string sub_model_part_name = ThisParameters.Has("sub_model_part_name") ? ThisParameters["sub_model_part_name"].GetString() : "";
-
-    if (sub_model_part_name == "") {
-        return rModel.GetModelPart(r_model_part_name);
-    } else {
-        return rModel.GetModelPart(r_model_part_name).GetSubModelPart(sub_model_part_name);
-    }
-}
 
 ///@}
 ///@name Kratos Classes
