@@ -207,6 +207,9 @@ class PythonSolver(object):
         elif(input_type == "use_input_model_part"):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Using already imported model part - no reading necessary.")
 
+        else:
+            raise Exception("Other model part input options are not yet implemented.")
+
         KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
 
