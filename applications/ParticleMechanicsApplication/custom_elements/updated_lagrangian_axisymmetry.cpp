@@ -347,7 +347,7 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLo
 
 //************************************************************************************
 //************************************************************************************
-
+/*
 void UpdatedLagrangianAxisymmetry::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight)
@@ -386,73 +386,75 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddKuug(MatrixType& rLeftHandSide
 
     KRATOS_CATCH( "" )
 }
+*/
 
-void UpdatedLagrangianAxisymmetry::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo, GeneralVariables& rVariables)
-{
-    KRATOS_TRY
-
-    // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    // Define the stress measure
-    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions = Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-    // use element provided strain incremented from velocity gradient
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-
-
-    // Compute explicit element kinematics, strain is incremented here.
-    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
-    Matrix Jacobian;
-    GetGeometry().Jacobian(Jacobian, 0);
-    Matrix InvJ;
-    double detJ;
-    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-    Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-    rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
-    const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
-    MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
-        rVariables.N, mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
-    rVariables.StressVector = mMP.cauchy_stress_vector;
-    rVariables.StrainVector = mMP.almansi_strain_vector;
-
-    // Update gradient deformation
-    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment    
-    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment    
-    rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
-    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
-    rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
-    mDeformationGradientF0 = rVariables.FT; // update member internal total grad def
-    mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
-
-    // Update MP volume
-    if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE))
-    {
-        mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
-        mMP.volume = mMP.mass / mMP.density;
-    }
-
-    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-
-    // Set general variables to constitutivelaw parameters
-    this->SetGeneralVariables(rVariables, Values);
-
-    // Calculate Material Response
-    /* NOTE:
-    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
-    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
-    mConstitutiveLawVector->CalculateMaterialResponse(Values, rVariables.StressMeasure);
-
-    KRATOS_CATCH("")
-}
+//void UpdatedLagrangianAxisymmetry::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo, GeneralVariables& rVariables)
+//{
+//    KRATOS_TRY
+//
+//    // Create constitutive law parameters:
+//    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+//
+//    // Define the stress measure
+//    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+//
+//    // Set constitutive law flags:
+//    Flags& ConstitutiveLawOptions = Values.GetOptions();
+//    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+//
+//    // use element provided strain incremented from velocity gradient
+//    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+//    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+//
+//
+//    // Compute explicit element kinematics, strain is incremented here.
+//    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
+//    Matrix Jacobian;
+//    GetGeometry().Jacobian(Jacobian, 0);
+//    Matrix InvJ;
+//    double detJ;
+//    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+//    Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+//    rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
+//    const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+//    MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+//        rVariables.N, mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
+//    rVariables.StressVector = mMP.cauchy_stress_vector;
+//    rVariables.StrainVector = mMP.almansi_strain_vector;
+//
+//    // Update gradient deformation
+//    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment    
+//    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment    
+//    rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
+//    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
+//    rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
+//    mDeformationGradientF0 = rVariables.FT; // update member internal total grad def
+//    mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
+//
+//    // Update MP volume
+//    if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE))
+//    {
+//        mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
+//        mMP.volume = mMP.mass / mMP.density;
+//    }
+//
+//    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+//
+//    // Set general variables to constitutivelaw parameters
+//    this->SetGeneralVariables(rVariables, Values);
+//
+//    // Calculate Material Response
+//    /* NOTE:
+//    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
+//    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+//    mConstitutiveLawVector->CalculateMaterialResponse(Values, rVariables.StressMeasure);
+//
+//    KRATOS_CATCH("")
+//}
 
 //*************************COMPUTE ALMANSI STRAIN*************************************
 //************************************************************************************
+/*
 void UpdatedLagrangianAxisymmetry::CalculateAlmansiStrain(const Matrix& rF,
     Vector& rStrainVector )
 {
@@ -483,9 +485,10 @@ void UpdatedLagrangianAxisymmetry::CalculateAlmansiStrain(const Matrix& rF,
 
     KRATOS_CATCH( "" )
 }
-
+*/
 //*************************COMPUTE GREEN-LAGRANGE STRAIN*************************************
 //************************************************************************************
+/*
 // Green-Lagrange Strain: E = 0.5 * (U^2 - I) = 0.5 * (C - I)
 void UpdatedLagrangianAxisymmetry::CalculateGreenLagrangeStrain(const Matrix& rF,
     Vector& rStrainVector )
@@ -513,11 +516,11 @@ void UpdatedLagrangianAxisymmetry::CalculateGreenLagrangeStrain(const Matrix& rF
 
     KRATOS_CATCH( "" )
 }
-
+*/
 
 //************************************************************************************
 //************************************************************************************
-
+/*
 void UpdatedLagrangianAxisymmetry::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
 {
     GeometryType& r_geometry = GetGeometry();
@@ -536,7 +539,7 @@ void UpdatedLagrangianAxisymmetry::EquationIdVector( EquationIdVectorType& rResu
     }
 
 }
-
+*/
 //************************************************************************************
 //************************************************************************************
 

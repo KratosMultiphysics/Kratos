@@ -130,7 +130,7 @@ public:
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    //void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -180,13 +180,13 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     GeneralVariables& rVariables,
-                                     const double& rIntegrationWeight) override;
+    //void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    //                                 GeneralVariables& rVariables,
+    //                                 const double& rIntegrationWeight) override;
 
     /// Calculation of the Explicit Stresses from velocity gradient.
-    void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
-        GeneralVariables& rVariables) override;
+    //void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+    //    GeneralVariables& rVariables) override;
 
     /**
      * Clear Nodal Forces
@@ -214,13 +214,13 @@ protected:
     /**
      * Calculation of the Green Lagrange Strain Vector
      */
-    void CalculateGreenLagrangeStrain(const Matrix& rF,
-            Vector& rStrainVector) override;
-
-    /**
-     * Calculation of the Almansi Strain Vector
-     */
-    void CalculateAlmansiStrain(const Matrix& rF, Vector& rStrainVector) override;
+    //void CalculateGreenLagrangeStrain(const Matrix& rF,
+    //        Vector& rStrainVector) override;
+    //
+    ///**
+    // * Calculation of the Almansi Strain Vector
+    // */
+    //void CalculateAlmansiStrain(const Matrix& rF, Vector& rStrainVector) override;
 
 
     /**

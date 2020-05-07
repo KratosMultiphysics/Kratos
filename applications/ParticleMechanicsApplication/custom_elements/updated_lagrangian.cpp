@@ -602,6 +602,10 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
 {
     KRATOS_TRY
 
+    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+        : false;
+
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
@@ -616,7 +620,6 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 
-
     // Compute explicit element kinematics, strain is incremented here.
     rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
     Matrix Jacobian;
@@ -626,8 +629,18 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
     Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
     rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
-    MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
-        mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
+
+    if (is_axisymmetric)
+    {
+        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+        MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+            rVariables.N, mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
+    }
+    else
+    {
+        MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
+    }
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;
 
@@ -686,7 +699,10 @@ void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, 
                 !rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
             {
                 // Operation performed: add K_geometry to the rLefsHandSideMatrix
-                this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
+                const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+                    ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+                    : false;
+                this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight, is_axisymmetric);
                 calculated = true;
             }
 
@@ -703,7 +719,10 @@ void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, 
         // Operation performed: add K_geometry to the rLefsHandSideMatrix
         if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
         {
-            this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+            const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+                ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+                : false;
+            this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight, is_axisymmetric);
         }
     }
 }
@@ -726,14 +745,46 @@ void UpdatedLagrangian::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
 
 void UpdatedLagrangian::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
+        const double& rIntegrationWeight, const bool IsAxisymmetric)
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
-    Matrix reduced_Kg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( stress_tensor, trans( rVariables.DN_DX ) ) ) );
-    MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
+    if (IsAxisymmetric)
+    {
+        // Axisymmetric geometric matrix
+        double alpha_1 = 0;
+        double alpha_2 = 0;
+        double alpha_3 = 0;
+
+        const unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int index_i = 0;
+        const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index_j = 0;
+            for (unsigned int j = 0; j < number_of_nodes; j++)
+            {
+                alpha_1 = rVariables.DN_DX(j, 0) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[0] + rVariables.DN_DX(i, 1) * rVariables.StressVector[3]);
+                alpha_2 = rVariables.DN_DX(j, 1) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[3] + rVariables.DN_DX(i, 1) * rVariables.StressVector[1]);
+                alpha_3 = rVariables.N[i] * rVariables.N[j] * rVariables.StressVector[2] * (1.0 / radius * radius);
+
+                rLeftHandSideMatrix(index_i, index_j) += (alpha_1 + alpha_2 + alpha_3) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_i + 1, index_j + 1) += (alpha_1 + alpha_2) * rIntegrationWeight;
+
+                index_j += 2;
+            }
+            index_i += 2;
+        }
+    }
+    else
+    {
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(rVariables.StressVector);
+        Matrix reduced_Kg = prod(rVariables.DN_DX, rIntegrationWeight * Matrix(prod(stress_tensor, trans(rVariables.DN_DX))));
+        MathUtils<double>::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, reduced_Kg, dimension);
+    }
+
 
     KRATOS_CATCH( "" )
 }

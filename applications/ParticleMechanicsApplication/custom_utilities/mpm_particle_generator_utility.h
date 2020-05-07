@@ -189,6 +189,7 @@ namespace MPMParticleGeneratorUtility
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
 
                     // TODO temporary for axisym - delete when merged into updated lagrangian
+                    /*
                     if (IsAxisSymmetry)
                     {
                         if (domain_size == 2)
@@ -203,7 +204,7 @@ namespace MPMParticleGeneratorUtility
                             }
                             
                         }
-                    }
+                    }*/
 
                     // Get new element
                     const Element& new_element = KratosComponents<Element>::Get(element_type_name);

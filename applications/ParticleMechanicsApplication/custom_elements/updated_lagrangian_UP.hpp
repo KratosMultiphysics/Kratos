@@ -284,7 +284,7 @@ protected:
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                              GeneralVariables& rVariables,
-                             const double& rIntegrationWeight) override;
+                             const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kup matrix
