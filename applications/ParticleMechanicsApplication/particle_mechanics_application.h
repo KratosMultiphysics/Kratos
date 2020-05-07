@@ -227,6 +227,7 @@ private:
     ///@{
 
     // Elements
+    const UpdatedLagrangian mUpdatedLagrangian;
     const UpdatedLagrangian mUpdatedLagrangian2D3N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
     const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;

@@ -187,7 +187,7 @@ namespace MPMParticleGeneratorUtility
                                 if (IsAxisSymmetry)
                                     element_type_name = "UpdatedLagrangianAxisymmetry2D3N";
                                 else
-                                    element_type_name = "UpdatedLagrangian2D3N";
+                                    element_type_name = "UpdatedLagrangian";
                             }
                         }
                         else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4) {
@@ -206,7 +206,7 @@ namespace MPMParticleGeneratorUtility
                             if (IsMixedFormulation)
                                 KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Tetrahedral Element is not yet implemented." << std::endl;
                             else
-                                element_type_name = "UpdatedLagrangian3D4N";
+                                element_type_name = "UpdatedLagrangian";
                         }
                         else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8) {
                             if (IsMixedFormulation)
