@@ -35,7 +35,7 @@ def ComputeFluidForces(working_path, step):
 
     return fluid_forces
 
-def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod):
+def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, startstep):
     global dispTauOld
     print "deformationstart"
     interface_file_name = FindInterfaceFile(working_path, step)
@@ -44,7 +44,7 @@ def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod):
 
     nodes,nodesID,elem_connectivities,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
 
-    if(step==0):
+    if(step==startstep):
         dispTauOld=np.zeros(3*NodesNr)
         dispTau_transpose = np.transpose(dispTau)
         print 'dispTau =', dispTau_transpose
@@ -88,13 +88,18 @@ def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, startstep):
 
 def FindInterfaceFile(working_path, step):
     output_file_name = FindOutputFile(working_path, step)
+    print 'output_file_name =', output_file_name
     interface_file_name = output_file_name[0:output_file_name.find(
         '.pval')] + '.surface.' + output_file_name[output_file_name.find('.pval')+1:len(output_file_name)]
+    print 'interface_file_name =', interface_file_name
     CheckIfPathExists(interface_file_name)
-    if interface_file_name + '.dat' not in output_file_name:
-        interface_file_name = interface_file_name[0:interface_file_name.find('+')]+ interface_file_name[interface_file_name.find('+')+1:len(interface_file_name)]
-    CheckIfPathExists(interface_file_name + '.dat')
-    return interface_file_name + '.dat'
+    if '.dat' not in interface_file_name:
+        if interface_file_name + '.dat' not in output_file_name:
+             interface_file_name = interface_file_name[0:interface_file_name.find('+')]+ interface_file_name[interface_file_name.find('+')+1:len(interface_file_name)]
+        print 'interface_file_name =', interface_file_name
+        CheckIfPathExists(interface_file_name + '.dat')
+        interface_file_name = interface_file_name + '.dat'    
+    return interface_file_name 
 
 
 def CheckIfPathExists(path):
