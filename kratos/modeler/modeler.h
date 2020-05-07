@@ -63,6 +63,10 @@ public:
         Model& rModel,
         Parameters ModelerParameters = Parameters())
         : mParameters(ModelerParameters)
+        , mEchoLevel(
+            ModelerParameters.Has("echo_level")
+            ? ModelerParameters["echo_level"].GetInt()
+            : 0)
     {}
 
     /// Destructor.
@@ -72,24 +76,16 @@ public:
     ///@name Modeler Stages at Initialize
     ///@{
 
-    /// Import geometry models from external input.
-    virtual void ImportGeometryModel()
+    /// Import or generate geometry models from external input.
+    virtual void SetupGeometryModel()
     {}
 
     /// Prepare or update the geometry model_part.
     virtual void PrepareGeometryModel()
     {}
 
-    /// Convert the geometry model to analysis suitable models.
-    virtual void GenerateModelPart()
-    {}
-
-    /// Import the model_part from external input.
-    virtual void ImportModelPart()
-    {}
-
-    /// Prepare the analysis model_part for the simulation.
-    virtual void PrepareModelPart()
+    /// Convert the geometry model or import analysis suitable models.
+    virtual void SetupModelPart()
     {}
 
     ///@}
@@ -139,6 +135,8 @@ protected:
     ///@{
 
     Parameters mParameters;
+
+    SizeType mEchoLevel;
 
     ///@}
 
