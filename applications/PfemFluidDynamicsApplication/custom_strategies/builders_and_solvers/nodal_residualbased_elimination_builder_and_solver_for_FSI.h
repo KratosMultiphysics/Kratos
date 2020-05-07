@@ -248,7 +248,7 @@ public:
     double nodalExternalForce=0;
     bool belytsckoCase=false;
     bool cooksMembraneCase=true;
-    double hybridCoeff=0;
+    double hybridCoeff=0.5;
 
     if (cooksMembraneCase==true){
       for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
