@@ -200,7 +200,7 @@ public:
         return false;
     }
 
-    /** Eigenvalue and eigenvector solve method for derived eigensolvers
+    /** Eigenvalue and eigenvector solve method for derived linearsolvers
      * @param K The stiffness matrix
      * @param M The mass matrix
      * @param Eigenvalues The vector containing the eigen values

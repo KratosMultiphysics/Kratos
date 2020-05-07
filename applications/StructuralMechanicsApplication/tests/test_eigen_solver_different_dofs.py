@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as KSM
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import kratos_utilities as kratos_utils
-eigensolvers_application_available = kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication")
+linearsolvers_application_available = kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication")
 import os
 
 '''
@@ -18,7 +18,7 @@ Beams with DISPLACEMENT and ROTATION dofs and Trusses with only DISPLACEMENT dof
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-@KratosUnittest.skipUnless(eigensolvers_application_available,"Missing required application: LinearSolversApplication")
+@KratosUnittest.skipUnless(linearsolvers_application_available,"Missing required application: LinearSolversApplication")
 class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
     # muting the output
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)

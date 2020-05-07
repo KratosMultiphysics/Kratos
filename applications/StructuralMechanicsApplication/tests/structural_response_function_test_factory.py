@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-has_eigensolvers_application = kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication")
+has_linearsolvers_application = kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 def _get_test_working_dir():
     this_file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -144,7 +144,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[4][1], 0.17745756668175833)
         self.assertAlmostEqual(self.gradient[4][2], -1.5466170818541692e-05)
 
-@KratosUnittest.skipUnless(has_eigensolvers_application,"Missing required application: LinearSolversApplication")
+@KratosUnittest.skipUnless(has_linearsolvers_application,"Missing required application: LinearSolversApplication")
 class TestEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "eigenfrequency_response"
 
