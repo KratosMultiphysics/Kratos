@@ -80,6 +80,8 @@
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/symbolic_stokes_data.h"
+
 
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
