@@ -205,7 +205,7 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
     rElasticityTensor(0, 1) = Ex * (vyx + vyz * vzx) * ctant;
     rElasticityTensor(1, 0) = Ey * (vxy + vzy * vxz) * ctant;
 
-    rElasticityTensor(0, 2) = Ex * (vxz + vyx * vzy) * ctant;
+    rElasticityTensor(0, 2) = Ex * (vzx + vyx * vzy) * ctant;
     rElasticityTensor(2, 0) = Ez * (vxz + vxy * vyz) * ctant;
     rElasticityTensor(1, 1) = Ey * (1.0 - vxz * vzx) * ctant;
 
