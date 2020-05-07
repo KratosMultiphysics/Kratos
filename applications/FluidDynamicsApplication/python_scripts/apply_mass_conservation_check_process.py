@@ -55,21 +55,19 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         self._perform_local_corr  = self.settings["perform_local_corrections"].GetBool()
         self._perform_global_corr = self.settings["perform_global_corrections"].GetBool()
 
-        self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
         self.mass_conservation_utility = KratosFluid.MassConservationUtility(self._fluid_model_part, self.settings["mass_correction_setttings"])
 
         KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Construction finished.")
 
 
     def ExecuteInitialize(self):
-
         self.forward_convection_process = self._set_levelset_convection_process()
 
         # calling C++ initalization
         first_lines_string = self.mass_conservation_utility.Initialize()
 
         # writing first line in file
-        if ( self._write_to_log and self._is_printing_rank ):
+        if self._write_to_log:
             with open(self._my_log_file, "w") as logFile:
                 logFile.write( first_lines_string )
 
@@ -83,13 +81,13 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         log_line_string = self.mass_conservation_utility.ComputeBalancedVolume()
 
         ### writing first line in file
-        if (self._fluid_model_part.ProcessInfo[KratosMultiphysics.STEP] % self._correct_frequency == 0):
-            if ( self._write_to_log and self._is_printing_rank ):
+        if self._fluid_model_part.ProcessInfo[KratosMultiphysics.STEP] % self._correct_frequency == 0:
+            if self._write_to_log:
                 with open(self._my_log_file, "a+") as logFile:
                     logFile.write( log_line_string )
 
             # (1) #
-            if ( self._perform_local_corr ):
+            if self._perform_local_corr:
                 ### perform the local conservation procedure
                 # REMARK: The pseudo time step dt has no meaning as a physical time step and is NOT accounted as such.
                 # Instead, it as purely used for an artificial convection that helps to conserve the mass.
@@ -115,19 +113,19 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
                 self.mass_conservation_utility.ApplyLocalCorrection( KratosFluid.AUX_DISTANCE )
 
             # (2) #
-            if ( self._perform_local_corr and self._perform_global_corr ):
+            if self._perform_local_corr and self._perform_global_corr:
                 ### check how much work has already been done by the local correction process
                 self.mass_conservation_utility.ReCheckTheMassConservation()
 
             # (3) #
-            if ( self._perform_global_corr ):
+            if self._perform_global_corr:
                 ### perform the global correction
                 # without any consideration of the velocity field, volume is added by a global slight shift of the distance field
                 self.mass_conservation_utility.ApplyGlobalCorrection()
 
 
     def _set_levelset_convection_process(self):
-        if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
+        if self._fluid_model_part.IsDistributed()
             self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
             self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["convector_settings"]["linear_solver_settings"])
 
