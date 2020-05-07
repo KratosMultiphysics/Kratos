@@ -88,18 +88,10 @@ def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, startstep):
 
 def FindInterfaceFile(working_path, step):
     output_file_name = FindOutputFile(working_path, step)
-    print 'output_file_name =', output_file_name
-    interface_file_name = output_file_name[0:output_file_name.find(
-        '.pval')] + '.surface.' + output_file_name[output_file_name.find('.pval')+1:len(output_file_name)]
-    print 'interface_file_name =', interface_file_name
+    interface_file_name = output_file_name.replace('pval', 'surface.pval') + '.dat'
+    interface_file_name = interface_file_name.replace('+', '')
     CheckIfPathExists(interface_file_name)
-    if '.dat' not in interface_file_name:
-        if interface_file_name + '.dat' not in output_file_name:
-             interface_file_name = interface_file_name[0:interface_file_name.find('+')]+ interface_file_name[interface_file_name.find('+')+1:len(interface_file_name)]
-        print 'interface_file_name =', interface_file_name
-        CheckIfPathExists(interface_file_name + '.dat')
-        interface_file_name = interface_file_name + '.dat'    
-    return interface_file_name 
+    return interface_file_name
 
 
 def CheckIfPathExists(path):
@@ -122,7 +114,7 @@ def FindFileName(path, name, step):
     for file in files_list:
         if file.startswith('%s' % path + '%s' % name + '%s' % step):
             return file
-    raise Exception('File: "{}" not found'.format(path + name + step))
+    raise Exception('File: "{}" not found'.format(path + name + str(step)))
 
 
 def WriteTautoplt(working_path, step, para_path_mod, startstep):
