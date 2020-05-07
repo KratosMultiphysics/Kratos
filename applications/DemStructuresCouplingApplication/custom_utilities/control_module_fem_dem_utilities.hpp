@@ -150,7 +150,7 @@ void ExecuteInitialize()
 
     const int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
+    typedef Variable<double> ComponentType;
     ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
 
     #pragma omp parallel for
@@ -173,7 +173,7 @@ void ExecuteInitializeSolutionStep()
     if(CurrentTime >= mStartTime && mTargetStressTableId > 0)
     {
         // Calculate ReactionStress
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
+        typedef Variable<double> ComponentType;
         ComponentType ReactionVarComponent = KratosComponents< ComponentType >::Get(mReactionVariableName);
         const int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
@@ -266,7 +266,7 @@ void ExecuteInitializeSolutionStep()
 
     const int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
+    typedef Variable<double> ComponentType;
     ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
     const double DeltaTime = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
 

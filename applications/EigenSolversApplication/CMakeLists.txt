@@ -51,6 +51,20 @@ if( USE_EIGEN_MKL MATCHES ON )
     add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
 endif()
 
+if( USE_EIGEN_FEAST MATCHES ON )
+    if( WIN32 )
+        message( FATAL_ERROR "FEAST4 is not yet supported under Windows")
+    endif()
+    if( USE_EIGEN_MKL MATCHES OFF OR NOT DEFINED USE_EIGEN_MKL )
+        message( FATAL_ERROR "FEAST4 can only be used with MKL" )
+    endif()
+    include(CMakeAddFortranSubdirectory)
+    cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST NO_EXTERNAL_INSTALL )
+    set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0 )
+    include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include )
+    add_definitions(-DUSE_EIGEN_FEAST)
+endif()
+
 ## generate variables with the sources
 set( KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp
@@ -84,6 +98,9 @@ if( USE_EIGEN_MKL MATCHES ON )
         message( FATAL_ERROR "Clang does not yet support MKL" )
     else( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
         target_link_libraries( KratosEigenSolversCore PUBLIC mkl_rt )
+        if( USE_EIGEN_FEAST MATCHES ON )
+            target_link_libraries(KratosEigenSolversCore PUBLIC feast4 gfortran m)
+        endif()
     endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 endif()
 

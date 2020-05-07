@@ -76,6 +76,8 @@ class AnalysisStage(object):
         """
         self._SetupGeometryModelAndModelParts()
 
+        self._GetSolver().ImportModelPart()
+        self._GetSolver().PrepareModelPart()
         self._GetSolver().AddDofs()
 
         self.ModifyInitialProperties()
@@ -236,10 +238,6 @@ class AnalysisStage(object):
         # Convert the geometry model or import analysis suitable models.
         for modeler in self._GetListOfModelers():
             modeler.SetupModelPart(self.model)
-
-        self._GetSolver().ImportModelPart()
-
-        self._GetSolver().PrepareModelPart()
 
     ### Modelers
     def _GetListOfModelers(self):

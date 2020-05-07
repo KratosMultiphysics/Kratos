@@ -42,7 +42,9 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
                   "Running DEM Benchmark 30... Cylinder cluster with imposed angular velocity in two axis (Velocity Verlet + Zhao scheme)\n",
                   "Running DEM Benchmark 31... Cylinder cluster with imposed angular velocity in two axis (Symplectic Euler + Runge-Kutta scheme)\n",
                   "Running DEM Benchmark 32... Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n",
-                  "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n"]
+                  "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n",
+                  "","","","","","",
+                  "Running DEM Benchmark 40... Generic test for code functionalities verification\n"]
 
 def Run():
 
@@ -57,14 +59,19 @@ def Run():
 
     #list_of_failed_tests = []
 
-    #Discontinuum Tests. From 1 to 17
+    #### iscontinuum Tests. From 1 to 17
     D_DEM_Benchmarks_list = list(range(1,18))
-    #Continuum Tests
+
+    #### Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))
-    #Discontinuum Clusters Tests. From 30 to 33
+
+    #### Discontinuum Clusters Tests. From 30 to 33
     Dcl_DEM_Benchmarks_list = list(range(30,34))
 
-    Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list + Dcl_DEM_Benchmarks_list
+    #### Generic test for code functionalities verification
+    Gen_DEM_Benchmarks_list = list(range(40,41))
+
+    Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list + Dcl_DEM_Benchmarks_list + Gen_DEM_Benchmarks_list
 
     failure = False
 
@@ -100,6 +107,8 @@ def Run():
                         g.write("\n===== BASIC CONTINUUM TESTS  ============================\n\n")
                     if benchmark == 30:
                         g.write("\n===== DISCONTINUUM CLUSTERS TESTS  ======================\n\n")
+                    if benchmark == 40:
+                        g.write("\n===== GENERIC TEST  =====================================\n\n")
                     g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
         print('\n')
 
@@ -125,6 +134,7 @@ def Run():
         g.write("Benchmark 15. Impact of a low stiffness sphere against a rigid vertex divided in small triangular elements\n")
         g.write("Benchmark 16. Spheres contacting multiple entities (facets, edges and vertices)\n")
         g.write("Benchmark 17. Sphere sliding on a plane (discretized with triangles and quadrilaterals) with friction\n")
+
         g.write("\nCONTINUUM TESTS:\n")
         g.write("Benchmark 20. Normal compression of two identical spheres\n")
         g.write("Benchmark 21. Normal compression of two identical indented spheres\n")
@@ -132,11 +142,16 @@ def Run():
         g.write("Benchmark 23. Tensile test of two identical indented spheres\n")
         g.write("Benchmark 24. Shear test of two identical spheres by applying rotation\n")
         g.write("Benchmark 25. Shear test of two identical spheres by applying rotation and radius expansion\n")
+
         g.write("\nDISCONTINUUM CLUSTERS TESTS:\n")
         g.write("Benchmark 30. Cylinder cluster with imposed angular velocity in two axis (Velocity Verlet + Zhao scheme)\n")
         g.write("Benchmark 31. Cylinder cluster with imposed angular velocity in two axis (Symplectic Euler + Runge-Kutta scheme)\n")
         g.write("Benchmark 32. Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n")
         g.write("Benchmark 33. Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n")
+
+        g.write("\nGENERIC TEST:\n")
+        g.write("Benchmark 40. Generic test for code functionalities verification\n")
+        g.close()
 
     with open("errors.err") as g:
         file_contents = g.read()

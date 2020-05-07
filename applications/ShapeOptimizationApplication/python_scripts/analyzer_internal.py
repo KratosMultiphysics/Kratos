@@ -67,7 +67,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             # response gradients
             if communicator.isRequestingGradientOf(identifier):
                 response.CalculateGradient()
-                communicator.reportGradient(identifier, response.GetShapeGradient())
+                communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
 
             response.FinalizeSolutionStep()
 

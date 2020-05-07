@@ -399,66 +399,127 @@ namespace Kratos {
     } //CreateContactElements
 
     void ContinuumExplicitSolverStrategy::SetCoordinationNumber(ModelPart& r_model_part) {
+
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
-        const double in_coordination_number = r_process_info[COORDINATION_NUMBER];
+        const double desired_coordination_number = r_process_info[COORDINATION_NUMBER];
         double standard_dev = 0;
-        double out_coordination_number = ComputeCoordinationNumber(standard_dev);
+        double current_coordination_number = ComputeCoordinationNumber(standard_dev);
         int iteration = 0;
-        int maxiteration = 100;
+        int maxiteration = 300;
         double& added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+        const bool local_coordination_option = r_process_info[LOCAL_COORDINATION_NUMBER_OPTION];
+        const bool global_coordination_option = r_process_info[GLOBAL_COORDINATION_NUMBER_OPTION];
         added_search_distance = 0.0;
         double amplification = 1.0;
 
-        if(r_model_part.GetCommunicator().MyPID() == 0) {
-            KRATOS_WARNING("DEM") << "Setting up Coordination Number by increasing or decreasing the search radius... " << std::endl;
+        KRATOS_INFO("DEM") << "Setting up Coordination Number (input = "<<desired_coordination_number<<") by increasing or decreasing the search radius. ";
+        KRATOS_INFO_IF("", local_coordination_option) << "Local extension activated. ";
+        KRATOS_INFO_IF("", global_coordination_option) << "Global extension activated. ";
+        KRATOS_INFO("") << std::endl;
+
+        KRATOS_ERROR_IF(desired_coordination_number <= 0.0) << "The specified Coordination Number is less or equal to zero, N.C. = " << desired_coordination_number << std::endl;
+
+        //STAGE 1, Local Coordination Number
+        double tolerance = 0.5;
+        double max_factor_between_iterations = 1.02;
+        double relative_error = 1000;
+        if(local_coordination_option) {
+            KRATOS_INFO("DEM")<<"Now iterating for local coordination number..."<<std::endl;
+            while (std::abs(relative_error) > tolerance) {
+                if (iteration >= maxiteration) break;
+                iteration++;
+                if (current_coordination_number == 0.0) {
+                    KRATOS_WARNING("DEM") << "Coordination Number method not supported in this case" << "\n" << std::endl;
+                    KRATOS_ERROR << "The specified tangency method is not supported for this problem, please use absolute value instead" << std::endl;
+                    break;
+                }
+
+                std::vector<double> total_error;
+                mNumberOfThreads = OpenMPUtils::GetNumThreads();
+                total_error.resize(mNumberOfThreads);
+
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(mListOfSphericContinuumParticles.size()); ++i) {
+                    const std::size_t neighbour_elements_size = mListOfSphericContinuumParticles[i]->mNeighbourElements.size();
+                    const double old_amplification = mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor;
+                    double adapted_to_skin_or_not_skin_desired_cn = desired_coordination_number;
+                    if(mListOfSphericContinuumParticles[i]->IsSkin()) {
+                        adapted_to_skin_or_not_skin_desired_cn = 0.5*desired_coordination_number;
+                    }
+
+                    if(neighbour_elements_size) {
+                        if (neighbour_elements_size != std::round(adapted_to_skin_or_not_skin_desired_cn)) {
+                            mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor *= std::sqrt(adapted_to_skin_or_not_skin_desired_cn / (double)(neighbour_elements_size));
+                        }
+                    }
+                    else {
+                        mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor *= max_factor_between_iterations;
+                    }
+                    if(mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor > max_factor_between_iterations * old_amplification) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = max_factor_between_iterations* old_amplification;
+                    if(mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor < old_amplification / max_factor_between_iterations) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = old_amplification / max_factor_between_iterations;
+
+                    const int error_of_this_particle = std::abs(std::round(adapted_to_skin_or_not_skin_desired_cn) - (neighbour_elements_size));
+                    total_error[OpenMPUtils::ThisThread()]  += (double)(error_of_this_particle);
+                }
+                double total_absolute_error = 0.0;
+                for (size_t i=0; i<total_error.size();i++) total_absolute_error += total_error[i];
+                relative_error = total_absolute_error/mListOfSphericContinuumParticles.size();
+
+                SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 1.0);
+                SearchNeighbours();
+            }//while
+            current_coordination_number = ComputeCoordinationNumber(standard_dev);
+            KRATOS_INFO("DEM")<<"Coordination number reached after local operations = "<<current_coordination_number<<std::endl;
+        }
+        if(global_coordination_option) {
+            KRATOS_INFO("DEM")<<"Now iterating for global coordination number..."<<std::endl;
+            //STAGE 2, Global Coordination Number
+            tolerance = 1e-4;
+            max_factor_between_iterations = 1.1;
+            double old_old_amplification = 1.0;
+            double old_amplification = 1.0;
+
+            while (std::abs(current_coordination_number / desired_coordination_number - 1.0) > tolerance) {
+                if (iteration >= maxiteration) break;
+                iteration++;
+                if (current_coordination_number == 0.0) {
+                    KRATOS_WARNING("DEM") << "Coordination Number method not supported in this case" << "\n" << std::endl;
+                    KRATOS_ERROR << "The specified tangency method is not supported for this problem, please use absolute value instead" << std::endl;
+                    break;
+                }
+                old_old_amplification = old_amplification;
+                old_amplification = amplification;
+                amplification *= std::pow(desired_coordination_number / current_coordination_number, 1.0/3.0);
+
+                if(amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
+                if(amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
+                if(std::abs(amplification - old_amplification) >= std::abs(old_amplification - old_old_amplification) - std::numeric_limits<double>::epsilon()) {
+                    amplification = 0.5 * (amplification + old_amplification);
+                }
+                if ( amplification < 1.0 && !local_coordination_option) {
+                    iteration = maxiteration;
+                    break;
+                }
+                SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, amplification);
+                SearchNeighbours();
+                current_coordination_number = ComputeCoordinationNumber(standard_dev);
+            }//while
         }
 
-        if (in_coordination_number <= 0.0) {
-            KRATOS_THROW_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ", in_coordination_number)
-        }
-        while (fabs(out_coordination_number / in_coordination_number - 1.0) > 1e-3) {
-            if (iteration >= maxiteration) break;
-            iteration++;
-            if (out_coordination_number == 0.0) {
-                KRATOS_WARNING("DEM") << "Coordination Number method not supported in this case" << "\n" << std::endl;
-                KRATOS_THROW_ERROR(std::runtime_error, "The specified tangency method is not supported for this problem, please use absolute value instead", " ")
-                break;
-            }
-
-            double old_amplification = amplification;
-            amplification *= std::sqrt(in_coordination_number / out_coordination_number);
-
-            const double max_factor_between_iterations = 1.1;
-            if(amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
-            if(amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
-            if ( amplification < 1.0 ) {
-                iteration = maxiteration;
-                break;
-            }
-
-            SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, amplification);
-            SearchNeighbours(); //r_process_info[SEARCH_RADIUS_INCREMENT] will be used inside this function, and it's the variable we are updating in this while
-            out_coordination_number = ComputeCoordinationNumber(standard_dev);
-        }//while
-
-        if(r_model_part.GetCommunicator().MyPID() == 0) { KRATOS_INFO("DEM") <<std::endl;}
+        KRATOS_INFO("DEM") <<std::endl;
 
         if (iteration < maxiteration){
-            if(r_model_part.GetCommunicator().MyPID() == 0) {
-                KRATOS_WARNING("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << out_coordination_number << " using an amplification of radius of " << amplification << ". " << "\n" << std::endl;
-                KRATOS_WARNING("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
-                KRATOS_WARNING("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << out_coordination_number-standard_dev << "–" << out_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
-            }
+            KRATOS_INFO("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << current_coordination_number << " using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
+            KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
+            //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
             r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = amplification;
         }
 
         else {
-            if(r_model_part.GetCommunicator().MyPID() == 0) {
-                KRATOS_WARNING("DEM") << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << out_coordination_number << ". " << "\n" << std::endl;
-                KRATOS_THROW_ERROR(std::runtime_error, "Please use a Absolute tolerance instead ", " ")
-                    //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
-            }
+            KRATOS_WARNING("DEM") << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << current_coordination_number << ". Desired number was " <<desired_coordination_number << "\n" << std::endl;
+            KRATOS_ERROR << "Please use a Absolute tolerance instead " << std::endl;
+            //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
         }
 
     } //SetCoordinationNumber
@@ -503,6 +564,16 @@ namespace Kratos {
 
         return coord_number;
 
+        KRATOS_CATCH("")
+    }
+
+    void ContinuumExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
+        KRATOS_TRY
+        const int number_of_elements = r_model_part.GetCommunicator().LocalMesh().NumberOfElements();
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_elements; i++) {
+            mListOfSphericContinuumParticles[i]->SetSearchRadius(amplification * mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor * (added_search_distance + mListOfSphericContinuumParticles[i]->GetRadius()));
+        }
         KRATOS_CATCH("")
     }
 

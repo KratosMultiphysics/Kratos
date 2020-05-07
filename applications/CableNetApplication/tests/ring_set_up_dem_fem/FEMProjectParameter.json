@@ -107,7 +107,7 @@
 				"input_file_name"  : "ring_set_up_dem_fem/ring_set_up_dem_fem_test_results.json",
 				"model_part_name"  : "Structure.checkMP",
 				"time_frequency"   : 5e-04,
-				"tolerance"        : 1e-2
+				"tolerance"        : 3e-1
 			}
 		}],
 		"list_other_processes"             :  [],
