@@ -6,6 +6,7 @@ import PyPara, PyPrep, PySolv, PyDeform
 with open('tau_settings.json') as json_file:
     tau_settings = json.load(json_file)
 
+start_step = tau_settings["start_step"]
 tau_path = tau_settings["tau_path"]
 sys.path.append(tau_settings["kratos_path"])
 sys.path.append(tau_path + "py_turb1eq/")
@@ -24,8 +25,7 @@ Para = PyPara.Parafile(para_path_mod)
 Prep = PyPrep.Preprocessing(para_path_mod)
 Solver = PySolv.Solver(para_path_mod)
 Deform = PyDeform.Deformation(para_path_mod)
-startstep = 200
-step = startstep
+step = start_step
 
 
 def AdvanceInTime(current_time):
@@ -57,7 +57,7 @@ def SolveSolutionStep():
     Solver.output()
     tau_plt_init_tecplot_params(para_path_mod)
     tau_solver_write_output_conditional()
-    TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, startstep)
+    TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step)
 
 def FinalizeSolutionStep():
     if tau_settings["echo_level"] > 0:
@@ -80,7 +80,7 @@ def ImportData(conn_name, identifier):
     if identifier == "Interface_disp":
         # Deform mesh
         if tau_mpi_rank() == 0:
-            TauFunctions.ExecuteBeforeMeshDeformation(displacements, working_path, step, para_path_mod,startstep)
+            TauFunctions.ExecuteBeforeMeshDeformation(displacements, working_path, step, para_path_mod,start_step)
         Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
