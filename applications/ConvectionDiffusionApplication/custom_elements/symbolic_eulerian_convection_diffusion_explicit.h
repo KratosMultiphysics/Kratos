@@ -13,16 +13,21 @@
 #ifndef KRATOS_SYMBOLIC_CONVECTION_DIFFUSION_EXPLICIT_H
 #define KRATOS_SYMBOLIC_CONVECTION_DIFFUSION_EXPLICIT_H
 
+// System includes
+
+
+// External includes
+
+
+// Project includes
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "geometries/geometry.h"
+#include "includes/checks.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-
-#include "includes/checks.h"
-#include "includes/define.h"
 #include "includes/convection_diffusion_settings.h"
+#include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -47,6 +52,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 class SymbolicEulerianConvectionDiffusionExplicit : public Element
 {
 public:
@@ -253,15 +259,17 @@ private:
 
 
 /// input stream function
+template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 inline std::istream& operator >>(std::istream& rIStream,
-                                 SymbolicEulerianConvectionDiffusionExplicit& rThis)
+                                 SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
+template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const SymbolicEulerianConvectionDiffusionExplicit& rThis)
+                                 const SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

@@ -18,14 +18,16 @@ namespace Kratos
 /***********************************************************************************/
 /***********************************************************************************/
 
-SymbolicEulerianConvectionDiffusionExplicit::SymbolicEulerianConvectionDiffusionExplicit(
+template< unsigned int TDim, unsigned int TNumNodes >
+SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicEulerianConvectionDiffusionExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {}
 
 /***********************************************************************************/
 
-SymbolicEulerianConvectionDiffusionExplicit::SymbolicEulerianConvectionDiffusionExplicit(
+template< unsigned int TDim, unsigned int TNumNodes >
+SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicEulerianConvectionDiffusionExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
@@ -33,12 +35,14 @@ SymbolicEulerianConvectionDiffusionExplicit::SymbolicEulerianConvectionDiffusion
 
 /***********************************************************************************/
 
-SymbolicEulerianConvectionDiffusionExplicit::~SymbolicEulerianConvectionDiffusionExplicit() {}
+template< unsigned int TDim, unsigned int TNumNodes >
+SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::~SymbolicEulerianConvectionDiffusionExplicit() {}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer SymbolicEulerianConvectionDiffusionExplicit::Create(
+template< unsigned int TDim, unsigned int TNumNodes >
+Element::Pointer SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
@@ -48,7 +52,8 @@ Element::Pointer SymbolicEulerianConvectionDiffusionExplicit::Create(
 
 /***********************************************************************************/
 
-Element::Pointer SymbolicEulerianConvectionDiffusionExplicit::Create(
+template< unsigned int TDim, unsigned int TNumNodes >
+Element::Pointer SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
@@ -59,7 +64,8 @@ Element::Pointer SymbolicEulerianConvectionDiffusionExplicit::Create(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SymbolicEulerianConvectionDiffusionExplicit::CalculateLocalSystem(
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
@@ -136,7 +142,8 @@ void SymbolicEulerianConvectionDiffusionExplicit::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SymbolicEulerianConvectionDiffusionExplicit::CalculateRightHandSide(
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -147,7 +154,8 @@ void SymbolicEulerianConvectionDiffusionExplicit::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SymbolicEulerianConvectionDiffusionExplicit::CalculateLeftHandSide(
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -158,7 +166,8 @@ void SymbolicEulerianConvectionDiffusionExplicit::CalculateLeftHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SymbolicEulerianConvectionDiffusionExplicit::EquationIdVector(
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -176,7 +185,8 @@ void SymbolicEulerianConvectionDiffusionExplicit::EquationIdVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SymbolicEulerianConvectionDiffusionExplicit::GetDofList(
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
     DofsVectorType& ElementalDofList,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -198,7 +208,8 @@ void SymbolicEulerianConvectionDiffusionExplicit::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int SymbolicEulerianConvectionDiffusionExplicit::Check(const ProcessInfo &rCurrentProcessInfo)
+template< unsigned int TDim, unsigned int TNumNodes >
+int SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
     int out = Element::Check(rCurrentProcessInfo);
@@ -214,7 +225,8 @@ int SymbolicEulerianConvectionDiffusionExplicit::Check(const ProcessInfo &rCurre
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SymbolicEulerianConvectionDiffusionExplicit::InitializeEulerianElement(
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianElement(
     ElementVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -247,7 +259,8 @@ void SymbolicEulerianConvectionDiffusionExplicit::InitializeEulerianElement(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::IntegrationMethod SymbolicEulerianConvectionDiffusionExplicit::GetIntegrationMethod() const
+template< unsigned int TDim, unsigned int TNumNodes >
+Element::IntegrationMethod SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_1;
 }
