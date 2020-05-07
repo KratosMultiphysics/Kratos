@@ -314,7 +314,7 @@ namespace Kratos
       {
         // this->AddExternalForces(rRightHandSideVector, Density, N, GaussWeight);
 
-        double reducedElementalWeight = GaussWeight * 1.0;
+        double reducedElementalWeight = GaussWeight * 0.5;
         this->AddInternalForces(rRightHandSideVector, rDN_DX, rElementalVariables, reducedElementalWeight);
 
         ComputeCompleteTangentTerm(rElementalVariables, StiffnessMatrix, rDN_DX, DeviatoricCoeff, VolumetricCoeff, theta, reducedElementalWeight);
