@@ -32,8 +32,9 @@ namespace Kratos
 
         HromModelPartUtility(
         ModelPart& rModelPart,
+        ModelPart& rModelPart2,
         Vector VectorOfElements,
-        Vector VectorOfConditions): mpModelPart(rModelPart)
+        Vector VectorOfConditions): mpModelPart(rModelPart), mpModelPart2(rModelPart2)
         {
             Elements = VectorOfElements;
             Conditions = VectorOfConditions;
@@ -43,20 +44,35 @@ namespace Kratos
         ~HromModelPartUtility()= default; //destructor
 
         void DoSomethig(){
-            for(int i=0; i<Elements.size();i++){
-                KRATOS_WATCH(Elements(i))
-                KRATOS_WATCH("\n\n\n")
-            }
-            for(int i=0; i<Conditions.size();i++){
-                KRATOS_WATCH(Conditions(i))
-                KRATOS_WATCH("\n\n\n")
-            }
+            // for(int i=0; i<Elements.size();i++){
+            //     KRATOS_WATCH(Elements(i))
+            //     KRATOS_WATCH("\n\n\n")
+            // }
+            // for(int i=0; i<Conditions.size();i++){
+            //     KRATOS_WATCH(Conditions(i))
+            //     KRATOS_WATCH("\n\n\n")
+            // }
+            //ModelPart::NodesContainerType::iterator i_boundary_node
+            // std::vector<ModelPart::IndexType> aux;
+            // // //PointerVector aux;
+            // for(auto& cond : mpModelPart.Conditions())
+            // {
+            //     auto& geom = cond.GetGeometry();
+            //     for(unsigned int i=0; i<geom.size(); ++i)
+            //     {
+            //         aux.push_back(geom(i)->GetId());
+            //     }
+            // }
+            //mpModelPart2.AddNodes(iterator.begin(), iterator.end())
+            mpModelPart2.AddNodes(mpModelPart.NodesBegin(), mpModelPart.NodesEnd());
+
         }
 
 
         protected:
             //int some_stuff;  //variables
             ModelPart& mpModelPart;
+            ModelPart& mpModelPart2;
             Vector Elements;
             Vector Conditions;
         };

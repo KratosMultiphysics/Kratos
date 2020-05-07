@@ -45,7 +45,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     class_<HromModelPartUtility, typename HromModelPartUtility::Pointer>(m, "HromModelPartUtility")
-    .def(init<ModelPart&, Vector, Vector>()) //
+    .def(init<ModelPart&,ModelPart&, Vector, Vector>()) //
     .def("DoSomethig",&HromModelPartUtility::DoSomethig) //
     ;
 
