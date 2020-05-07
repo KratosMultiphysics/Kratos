@@ -49,9 +49,10 @@ class CreatePointBasedEntitiesProcess(KM.Process):
             import_module("KratosMultiphysics." + kratos_application) # this registers the entities
 
         if settings["sub_model_part_names"].size() == 0:
-            raise Exception('"sub_model_part_names" cannot be empty!')
-
-        model_parts = [Model[root_model_part_name+"."+model_part_name] for model_part_name in settings["sub_model_part_names"].GetStringArray()]
+            # if no sub-model-parts are specified then taking the root-model-part
+            model_parts = [root_model_part]
+        else:
+            model_parts = [Model[root_model_part_name+"."+model_part_name] for model_part_name in settings["sub_model_part_names"].GetStringArray()]
 
         new_model_part = RecursiveCreateModelParts(root_model_part, settings["new_sub_model_part_name"].GetString())
 
