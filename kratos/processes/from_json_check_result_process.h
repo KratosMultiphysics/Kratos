@@ -375,20 +375,6 @@ public:
             const SizeType size = rValuesSizes[i];
             this->insert(std::pair<IndexType, VariableDatabase>(index, table_generator(NumberOfEntites, size, NumberOfGP)));
         }
-
-//     #ifdef KRATOS_DEBUG
-//         for (auto& r_pair : *this) {
-//             auto& r_table_vector_vector_vector = r_pair.second;
-//             for (IndexType k = 0; k < r_table_vector_vector_vector.size(); ++k) {
-//                 for (IndexType j = 0; j < NumberOfGP; ++j) {
-//                     for (IndexType i = 0; i < r_table_vector_vector_vector[k][j].size(); ++i) {
-//                         auto& p_table = r_table_vector_vector_vector[k][j][i];
-//                         KRATOS_ERROR_IF(p_table == nullptr) << "Table not created" << std::endl;
-//                     }
-//                 }
-//             }
-//         }
-//     #endif
     }
 
     /**
@@ -422,27 +408,6 @@ public:
             KRATOS_ERROR << "Not allocated Variable: " << rVariable.Name() << std::endl;
         }
     }
-
-//     /**
-//      * @brief This method retrieves the interpolated value from the database
-//      * @param rVariable The variable to be retrieved
-//      * @param EntityIndex The index of the entity (not the entity Id, the index in the database)
-//      * @param Time The time value to be retrieved
-//      * @param ComponentIndex The component index of the vector/array
-//      * @param GPIndex The Gauss point index
-//      * @tparam TVariableType The variable type considered
-//      */
-//     template<class TVariableType>
-//     const double GetValue(
-//         const TVariableType& rVariable,
-//         const IndexType EntityIndex,
-//         const double Time,
-//         const SizeType ComponentIndex = 0,
-//         const SizeType GPIndex = 0
-//         ) const
-//     {
-//         return GetVariableData(rVariable).GetValue(EntityIndex, Time, ComponentIndex, GPIndex);
-//     }
 
     /**
      * @brief This method set the values into the tables
