@@ -812,6 +812,15 @@ protected:
     /**
      * @brief
      */
+    SizeType SizeDatabase(
+        const Parameters& rResults,
+        const NodesArrayType& rNodesArray,
+        const ElementsArrayType& rElementsArray
+        );
+
+    /**
+     * @brief
+     */
     void FillDatabase(
         const Parameters& rResults,
         const NodesArrayType& rNodesArray,

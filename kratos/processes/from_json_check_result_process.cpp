@@ -196,9 +196,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
 
     // Initialize the nodes and elements
     const auto& r_nodes_array = GetNodes(p_flag);
-    const auto it_node_begin = r_nodes_array.begin();
     const auto& r_elements_array = GetElements(p_flag);
-    const auto it_elem_begin = r_elements_array.begin();
 
     // Read JSON string in results file, create Parameters
     const std::string& r_input_filename = mThisParameters["input_file_name"].GetString();
@@ -208,75 +206,13 @@ void FromJSONCheckResultProcess::InitializeDatabases()
     buffer << infile.rdbuf();
     Parameters results(buffer.str());
 
-    // Nodal
-    const SizeType number_of_nodes_variables = mThisParameters["check_variables"].size();
-    std::vector<IndexType> nodal_variables_ids(number_of_nodes_variables);
-    std::vector<IndexType> nodal_values_sizes(number_of_nodes_variables, 1);
-    SizeType aux_size = 0;
-    for (IndexType i = 0; i < mpNodalVariableDoubleList.size(); ++i) {
-        nodal_variables_ids[aux_size + i] = mpNodalVariableDoubleList[i]->Key();
-    }
-    aux_size += mpNodalVariableDoubleList.size();
-    for (IndexType i = 0; i < mpNodalVariableArrayList.size(); ++i) {
-        nodal_variables_ids[aux_size + i] = mpNodalVariableArrayList[i]->Key();
-        nodal_values_sizes[aux_size + i] = 3;
-    }
-    aux_size += mpNodalVariableArrayList.size();
-    for (IndexType i = 0; i < mpNodalVariableVectorList.size(); ++i) {
-        nodal_variables_ids[aux_size + i] = mpNodalVariableVectorList[i]->Key();
-        const Vector& r_vector = results["NODE_" + GetNodeIdentifier(*it_node_begin)][mpNodalVariableVectorList[i]->Name()][0].GetVector();
-        nodal_values_sizes[aux_size + i] = r_vector.size();
-    }
-    aux_size += mpNodalVariableVectorList.size();
-
-    // Set the flags if possible to initialize
-    if ((r_nodes_array.size() > 0 && aux_size > 0) || aux_size == 0) {
-        this->Set(NODES_DATABASE_INITIALIZED, true);
-    }
-
-    // GP
-    auto size_parameters =[](const Parameters& rParameters){return std::distance(rParameters.begin(), rParameters.end());};
-    const SizeType number_of_gp_variables = mThisParameters["gauss_points_check_variables"].size();
-    std::vector<IndexType> gp_variables_ids(number_of_gp_variables);
-    std::vector<IndexType> gp_values_sizes(number_of_gp_variables, 1);
-    aux_size = 0;
-    SizeType number_of_gp = 0;
-    for (IndexType i = 0; i < mpGPVariableDoubleList.size(); ++i) {
-        gp_variables_ids[aux_size + i] = mpGPVariableDoubleList[i]->Key();
-        const auto& r_data = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableDoubleList[i]->Name()];
-        number_of_gp = size_parameters(r_data);
-    }
-    aux_size += mpGPVariableDoubleList.size();
-    for (IndexType i = 0; i < mpGPVariableArrayList.size(); ++i) {
-        gp_variables_ids[aux_size + i] = mpGPVariableArrayList[i]->Key();
-        const std::string& r_variable_name = mpGPVariableArrayList[i]->Name();
-        const auto& r_data = KratosComponents<Variable<double>>::Has(r_variable_name + "_X") ? results["ELEMENT_" + std::to_string(it_elem_begin->Id())][r_variable_name + "_X"] : results["ELEMENT_" + std::to_string(it_elem_begin->Id())][r_variable_name];
-        number_of_gp = size_parameters(r_data);
-        gp_values_sizes[aux_size + i] = 3;
-    }
-    aux_size += mpGPVariableArrayList.size();
-    for (IndexType i = 0; i < mpGPVariableVectorList.size(); ++i) {
-        gp_variables_ids[aux_size + i] = mpGPVariableVectorList[i]->Key();
-        const auto& r_data = results["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableVectorList[i]->Name()];
-        number_of_gp = size_parameters(r_data);
-        const Vector& r_vector = r_data["0"][0].GetVector();
-        gp_values_sizes[aux_size + i] = r_vector.size();
-    }
-    aux_size += mpGPVariableVectorList.size();
-
-    // Set the flags if possible to initialize
-    if ((r_elements_array.size() > 0 && aux_size > 0) || aux_size == 0) {
-        this->Set(ELEMENTS_DATABASE_INITIALIZED, true);
-    }
+    // Fill database
+    const SizeType number_of_gp = SizeDatabase(results, r_nodes_array, r_elements_array);
 
     // Skip if not possible to initialize
     if (this->IsNot(NODES_DATABASE_INITIALIZED) && this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) {
         return void();
     }
-
-    // Initialize the databases
-    mDatabaseNodes.Initialize(nodal_variables_ids, nodal_values_sizes, r_nodes_array.size());
-    mDatabaseGP.Initialize(gp_variables_ids, gp_values_sizes, r_elements_array.size(), number_of_gp);
 
     // Get the time vector
     const Vector& r_time = results["TIME"].GetVector();
@@ -450,6 +386,92 @@ void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
             }
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+FromJSONCheckResultProcess::SizeType FromJSONCheckResultProcess::SizeDatabase(
+    const Parameters& rResults,
+    const NodesArrayType& rNodesArray,
+    const ElementsArrayType& rElementsArray
+    )
+{
+    // Iterators
+    const auto it_node_begin = rNodesArray.begin();
+    const auto it_elem_begin = rElementsArray.begin();
+
+    // Nodal
+    const SizeType number_of_nodes_variables = mThisParameters["check_variables"].size();
+    std::vector<IndexType> nodal_variables_ids(number_of_nodes_variables);
+    std::vector<IndexType> nodal_values_sizes(number_of_nodes_variables, 1);
+    SizeType aux_size = 0;
+    for (IndexType i = 0; i < mpNodalVariableDoubleList.size(); ++i) {
+        nodal_variables_ids[aux_size + i] = mpNodalVariableDoubleList[i]->Key();
+    }
+    aux_size += mpNodalVariableDoubleList.size();
+    for (IndexType i = 0; i < mpNodalVariableArrayList.size(); ++i) {
+        nodal_variables_ids[aux_size + i] = mpNodalVariableArrayList[i]->Key();
+        nodal_values_sizes[aux_size + i] = 3;
+    }
+    aux_size += mpNodalVariableArrayList.size();
+    for (IndexType i = 0; i < mpNodalVariableVectorList.size(); ++i) {
+        nodal_variables_ids[aux_size + i] = mpNodalVariableVectorList[i]->Key();
+        const Vector& r_vector = rResults["NODE_" + GetNodeIdentifier(*it_node_begin)][mpNodalVariableVectorList[i]->Name()][0].GetVector();
+        nodal_values_sizes[aux_size + i] = r_vector.size();
+    }
+    aux_size += mpNodalVariableVectorList.size();
+
+    // Set the flags if possible to initialize
+    if ((rNodesArray.size() > 0 && aux_size > 0) || aux_size == 0) {
+        this->Set(NODES_DATABASE_INITIALIZED, true);
+    }
+
+    // GP
+    auto size_parameters =[](const Parameters& rParameters){return std::distance(rParameters.begin(), rParameters.end());};
+    const SizeType number_of_gp_variables = mThisParameters["gauss_points_check_variables"].size();
+    std::vector<IndexType> gp_variables_ids(number_of_gp_variables);
+    std::vector<IndexType> gp_values_sizes(number_of_gp_variables, 1);
+    aux_size = 0;
+    SizeType number_of_gp = 0;
+    for (IndexType i = 0; i < mpGPVariableDoubleList.size(); ++i) {
+        gp_variables_ids[aux_size + i] = mpGPVariableDoubleList[i]->Key();
+        const auto& r_data = rResults["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableDoubleList[i]->Name()];
+        number_of_gp = size_parameters(r_data);
+    }
+    aux_size += mpGPVariableDoubleList.size();
+    for (IndexType i = 0; i < mpGPVariableArrayList.size(); ++i) {
+        gp_variables_ids[aux_size + i] = mpGPVariableArrayList[i]->Key();
+        const std::string& r_variable_name = mpGPVariableArrayList[i]->Name();
+        const auto& r_data = KratosComponents<Variable<double>>::Has(r_variable_name + "_X") ? rResults["ELEMENT_" + std::to_string(it_elem_begin->Id())][r_variable_name + "_X"] : rResults["ELEMENT_" + std::to_string(it_elem_begin->Id())][r_variable_name];
+        number_of_gp = size_parameters(r_data);
+        gp_values_sizes[aux_size + i] = 3;
+    }
+    aux_size += mpGPVariableArrayList.size();
+    for (IndexType i = 0; i < mpGPVariableVectorList.size(); ++i) {
+        gp_variables_ids[aux_size + i] = mpGPVariableVectorList[i]->Key();
+        const auto& r_data = rResults["ELEMENT_" + std::to_string(it_elem_begin->Id())][mpGPVariableVectorList[i]->Name()];
+        number_of_gp = size_parameters(r_data);
+        const Vector& r_vector = r_data["0"][0].GetVector();
+        gp_values_sizes[aux_size + i] = r_vector.size();
+    }
+    aux_size += mpGPVariableVectorList.size();
+
+    // Set the flags if possible to initialize
+    if ((rElementsArray.size() > 0 && aux_size > 0) || aux_size == 0) {
+        this->Set(ELEMENTS_DATABASE_INITIALIZED, true);
+    }
+
+    // Skip if not possible to initialize
+    if (this->IsNot(NODES_DATABASE_INITIALIZED) && this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) {
+        return 0;
+    }
+
+    // Initialize the databases
+    mDatabaseNodes.Initialize(nodal_variables_ids, nodal_values_sizes, rNodesArray.size());
+    mDatabaseGP.Initialize(gp_variables_ids, gp_values_sizes, rElementsArray.size(), number_of_gp);
+
+    return number_of_gp;
 }
 
 /***********************************************************************************/
