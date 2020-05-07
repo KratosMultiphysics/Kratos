@@ -749,10 +749,13 @@ protected:
         const auto& r_nodes_array = GetNodes();
         const auto it_node_begin = r_nodes_array.begin();
 
+        // Auxiliar check counter (MVSC does not accept references)
+        IndexType check_counter = rCheckCounter;
+
         for (auto& p_var_double : mpNodalVariableDoubleList) {
             const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
 
-            #pragma omp parallel for reduction(+:rCheckCounter)
+            #pragma omp parallel for reduction(+:check_counter)
             for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                 auto it_node = it_node_begin + i;
 
@@ -760,14 +763,14 @@ protected:
                 const double reference = r_var_database.GetValue(i, time);
                 if (!CheckValues(result, reference)) {
                     FailMessage(it_node->Id(), "Node", result, reference, p_var_double->Name());
-                    rCheckCounter += 1;
+                    check_counter += 1;
                 }
             }
         }
         for (auto& p_var_array : mpNodalVariableArrayList) {
             const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
 
-            #pragma omp parallel for reduction(+:rCheckCounter)
+            #pragma omp parallel for reduction(+:check_counter)
             for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                 auto it_node = it_node_begin + i;
 
@@ -777,7 +780,7 @@ protected:
                     const double reference = r_entity_database.GetValue(time, i_comp);
                     if (!CheckValues(r_result[i_comp], reference)) {
                         FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_array->Name());
-                        rCheckCounter += 1;
+                        check_counter += 1;
                     }
                 }
             }
@@ -785,7 +788,7 @@ protected:
         for (auto& p_var_vector : mpNodalVariableVectorList) {
             const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
 
-            #pragma omp parallel for reduction(+:rCheckCounter)
+            #pragma omp parallel for reduction(+:check_counter)
             for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                 auto it_node = it_node_begin + i;
 
@@ -795,11 +798,14 @@ protected:
                     const double reference = r_entity_database.GetValue(time, i_comp);
                     if (!CheckValues(r_result[i_comp], reference)) {
                         FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_vector->Name());
-                        rCheckCounter += 1;
+                        check_counter += 1;
                     }
                 }
             }
         }
+
+        // Save the reference
+        rCheckCounter = check_counter;
     }
 
     /**
@@ -905,7 +911,7 @@ private:
     double mFrequency;              /// The check frequency
     double mRelativeTolerance;      /// The relative tolerance
     double mAbsoluteTolerance;      /// The absolute tolerance
-    SizeType mRelevantDigits;    /// This is the number of relevant digits
+    SizeType mRelevantDigits;       /// This is the number of relevant digits
 
     /* Counters */
     double mTimeCounter = 0.0;      /// A time counter

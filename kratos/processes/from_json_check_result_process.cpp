@@ -327,10 +327,13 @@ void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
     std::vector<array_1d<double,3>> result_array;
     std::vector<Vector> result_vector;
 
+    // Auxiliar check counter (MVSC does not accept references)
+    IndexType check_counter = rCheckCounter;
+
     for (auto& p_var_double : mpGPVariableDoubleList) {
         const auto& r_var_database = r_gp_database.GetVariableData(*p_var_double);
 
-        #pragma omp parallel for reduction(+:rCheckCounter) firstprivate(result_double)
+        #pragma omp parallel for reduction(+:check_counter) firstprivate(result_double)
         for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
             auto it_elem = it_elem_begin + i;
 
@@ -341,7 +344,7 @@ void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
                 const double reference = r_entity_database.GetValue(time, 0, i_gp);
                 if (!CheckValues(result, reference)) {
                     FailMessage(it_elem->Id(), "Element", result, reference, p_var_double->Name(), -1, i_gp);
-                    rCheckCounter += 1;
+                    check_counter += 1;
                 }
             }
         }
@@ -349,7 +352,7 @@ void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
     for (auto& p_var_array : mpGPVariableArrayList) {
         const auto& r_var_database = r_gp_database.GetVariableData(*p_var_array);
 
-        #pragma omp parallel for reduction(+:rCheckCounter) firstprivate(result_array)
+        #pragma omp parallel for reduction(+:check_counter) firstprivate(result_array)
         for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
             auto it_elem = it_elem_begin + i;
 
@@ -360,7 +363,7 @@ void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
                     const double reference = r_entity_database.GetValue(time, i_comp, i_gp);
                     if (!CheckValues(result_array[i_gp][i_comp], reference)) {
                         FailMessage(it_elem->Id(), "Element", result_array[i_gp][i_comp], reference, p_var_array->Name(), i_comp, i_gp);
-                        rCheckCounter += 1;
+                        check_counter += 1;
                     }
                 }
             }
@@ -369,7 +372,7 @@ void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
     for (auto& p_var_vector : mpGPVariableVectorList) {
         const auto& r_var_database = r_gp_database.GetVariableData(*p_var_vector);
 
-        #pragma omp parallel for reduction(+:rCheckCounter) firstprivate(result_vector)
+        #pragma omp parallel for reduction(+:check_counter) firstprivate(result_vector)
         for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
             auto it_elem = it_elem_begin + i;
 
@@ -380,12 +383,15 @@ void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
                     const double reference = r_entity_database.GetValue(time, i_comp, i_gp);
                     if (!CheckValues(result_vector[i_gp][i_comp], reference)) {
                         FailMessage(it_elem->Id(), "Element", result_vector[i_gp][i_comp], reference, p_var_vector->Name(), i_comp, i_gp);
-                        rCheckCounter += 1;
+                        check_counter += 1;
                     }
                 }
             }
         }
     }
+
+    // Save the reference
+    rCheckCounter = check_counter;
 }
 
 /***********************************************************************************/
