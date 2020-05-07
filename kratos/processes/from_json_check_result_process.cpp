@@ -518,7 +518,7 @@ void FromJSONCheckResultProcess::FillDatabase(
     for (auto& p_var_array : mpNodalVariableArrayList) {
         auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_array);
         const std::string& r_variable_name = p_var_array->Name();
-        const bool is_saved_as_components = KratosComponents<Variable<double>>::Has(r_variable_name + "_X");
+        const bool is_saved_as_components = KratosComponents<Variable<double>>::Has(r_variable_name + "_X") && rResults["NODE_" + GetNodeIdentifier(*it_node_begin)].Has(r_variable_name + "_X");
         if (is_saved_as_components) {
             std::vector<std::string> components_name = {{"_X", "_Y", "_Z"}};
             for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
@@ -592,7 +592,7 @@ void FromJSONCheckResultProcess::FillDatabase(
     for (auto& p_var_array : mpGPVariableArrayList) {
         auto& r_var_database = mDatabaseGP.GetVariableData(*p_var_array);
         const std::string& r_variable_name = p_var_array->Name();
-        const bool is_saved_as_components = KratosComponents<Variable<double>>::Has(r_variable_name + "_X");
+        const bool is_saved_as_components = KratosComponents<Variable<double>>::Has(r_variable_name + "_X") && rResults["ELEMENT_" + std::to_string(it_elem_begin->Id())].Has(r_variable_name + "_X");
         if (is_saved_as_components) {
             std::vector<std::string> components_name = {{"_X", "_Y", "_Z"}};
             for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
