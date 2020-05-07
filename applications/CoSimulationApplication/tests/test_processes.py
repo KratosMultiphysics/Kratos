@@ -121,11 +121,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
                 "properties_id"              : 0
             }
         }""")
-
-        data_comm = KM.DataCommunicator.GetDefault()
-        my_pid = data_comm.Rank()
-        num_procs = data_comm.Size()
-
+        
         props = self.root_model_part.GetProperties(0, 0)
 
         num_local_nodes = self.root_model_part.NumberOfNodes()
