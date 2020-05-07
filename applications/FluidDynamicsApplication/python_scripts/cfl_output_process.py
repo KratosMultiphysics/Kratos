@@ -52,7 +52,7 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         # getting the ModelPart from the Model
         self.model_part_name = params["model_part_name"].GetString()
         if self.model_part_name == "":
-            raise Exception('No "model_part_name" was specified!')
+            raise Exception('No "model_part_name" was specified! aaa')
         else:
             self.model_part = model[self.model_part_name]
 
