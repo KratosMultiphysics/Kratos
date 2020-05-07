@@ -810,6 +810,16 @@ protected:
     void CheckGPValues(IndexType& rCheckCounter);
 
     /**
+     * @brief
+     */
+    void FillDatabase(
+        const Parameters& rResults,
+        const NodesArrayType& rNodesArray,
+        const ElementsArrayType& rElementsArray,
+        const SizeType NumberOfGP
+        );
+
+    /**
      * @brief Returns the identifier/key for saving nodal results in the json this can be either the node Id or its coordinates
      * @details The coordinates can be used to check the nodal results in MPI
      * @param rNode The Kratos node to get the identifier for
