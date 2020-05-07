@@ -111,20 +111,20 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const override;
 
     IntegrationMethod GetIntegrationMethod() override
     {
         return mpPrimalCondition->GetIntegrationMethod();
     }
 
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override;
+    void GetValuesVector(Vector& rValues, int Step = 0 ) const override;
 
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->Initialize();
+        mpPrimalCondition->Initialize(rCurrentProcessInfo);
     }
 
     void ResetConstitutiveLaw() override
@@ -305,21 +305,7 @@ public:
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector< array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Calculates the pseudo-load contribution of the condition w.r.t.  a scalar design variable.
@@ -336,6 +322,11 @@ public:
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
     Condition::Pointer pGetPrimalCondition()
+    {
+        return mpPrimalCondition;
+    }
+
+    const Condition::Pointer pGetPrimalCondition() const
     {
         return mpPrimalCondition;
     }

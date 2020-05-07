@@ -284,8 +284,6 @@ protected:
     std::string mConditionName;        /// The name of the condition to be created
     PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart
 
-    Flags mOptions;                    /// Local flags
-
     ///@}
     ///@name Protected Operators
     ///@{
