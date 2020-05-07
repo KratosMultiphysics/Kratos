@@ -125,7 +125,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
 
     def _set_levelset_convection_process(self):
-        if self._fluid_model_part.IsDistributed()
+        if self._fluid_model_part.IsDistributed():
             self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
             self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["convector_settings"]["linear_solver_settings"])
 
