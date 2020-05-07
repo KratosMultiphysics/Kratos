@@ -96,6 +96,7 @@ UpdatedLagrangianAxisymmetry::~UpdatedLagrangianAxisymmetry()
 }
 
 //************************************************************************************
+/*
 void UpdatedLagrangianAxisymmetry::Initialize()
 {
     KRATOS_TRY
@@ -108,11 +109,11 @@ void UpdatedLagrangianAxisymmetry::Initialize()
     mDeformationGradientF0 = IdentityMatrix(3);
 
     KRATOS_CATCH( "" )
-}
+}*/
 
 //************************************************************************************
 //************************************************************************************
-
+/*
 void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -153,6 +154,7 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
 }
+*/
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************

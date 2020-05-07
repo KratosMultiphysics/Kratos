@@ -204,12 +204,12 @@ protected:
      /**
      * Initialize Element General Variables
      */
-    void Initialize() override;
+    //void Initialize() override;
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    //void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculation of the Green Lagrange Strain Vector

@@ -159,33 +159,35 @@ void UpdatedLagrangian::Initialize()
 
 void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigtsize  = 3;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+        : false;
+    const SizeType def_grad_dim = (is_axisymmetric)
+        ? 3
+        : dimension;
 
-    if( dimension == 3 )
-    {
-        voigtsize  = 6;
-    }
     rVariables.detF  = 1;
 
     rVariables.detF0 = 1;
 
     rVariables.detFT = 1;
 
-    rVariables.B.resize( voigtsize, number_of_nodes * dimension, false );
+    rVariables.B.resize(strain_size, number_of_nodes * dimension, false );
 
-    rVariables.F.resize( dimension, dimension, false );
+    rVariables.F.resize(def_grad_dim, def_grad_dim, false );
 
-    rVariables.F0.resize( dimension, dimension, false );
+    rVariables.F0.resize(def_grad_dim, def_grad_dim, false );
 
-    rVariables.FT.resize( dimension, dimension, false );
+    rVariables.FT.resize(def_grad_dim, def_grad_dim, false );
 
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize, false );
+    rVariables.ConstitutiveMatrix.resize(strain_size, strain_size, false );
 
-    rVariables.StrainVector.resize( voigtsize, false );
+    rVariables.StrainVector.resize(strain_size, false );
 
-    rVariables.StressVector.resize( voigtsize, false );
+    rVariables.StressVector.resize(strain_size, false );
 
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
@@ -1130,6 +1132,9 @@ void UpdatedLagrangian::InitializeMaterial()
 
         mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
         mMP.cauchy_stress_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
+
+        // Resize the deformation gradient if we are axisymmetric
+        if (mConstitutiveLawVector->GetStrainSize() == 4) mDeformationGradientF0 = IdentityMatrix(3);
     }
     else
         KRATOS_ERROR <<  "A constitutive law needs to be specified for the element with ID: " << this->Id() << std::endl;
