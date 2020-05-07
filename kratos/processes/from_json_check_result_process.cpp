@@ -816,7 +816,7 @@ const ResultDatabase& FromJSONCheckResultProcess::GetGPDatabase()
 /***********************************************************************************/
 
 template <>
-const double FromJSONCheckResultProcess::GetValue<true>(
+double FromJSONCheckResultProcess::GetValue<true>(
     NodesArrayType::const_iterator& itNode,
     const Variable<double>* pVariable
     )
@@ -828,7 +828,7 @@ const double FromJSONCheckResultProcess::GetValue<true>(
 /***********************************************************************************/
 
 template <>
-const double FromJSONCheckResultProcess::GetValue<false>(
+double FromJSONCheckResultProcess::GetValue<false>(
     NodesArrayType::const_iterator& itNode,
     const Variable<double>* pVariable
     )

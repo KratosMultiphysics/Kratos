@@ -938,7 +938,7 @@ private:
      * @tparam THistorical If the value is historical or not
      */
     template<bool THistorical>
-    const double GetValue(
+    double GetValue(
         NodesArrayType::const_iterator& itNode,
         const Variable<double>* pVariable
         );
