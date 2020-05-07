@@ -935,8 +935,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputePotentia
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindElement(const ProcessInfo& rCurrentProcessInfo)
 {
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+    
     // current element geometry
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = r_this.GetGeometry();
 
     // make clockwise element edge vectors
     array_1d<double, 3> first_edge(3, 0.0);
@@ -999,20 +1001,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
     bool loop_stop = false;
 
     // find element which shares both nodes
-    for (SizeType i = 0; i < rNodeOneElementCandidates.size(); i++ && !loop_stop)
-    {
-        // KRATOS_WATCH(i);
-        
-        for (SizeType j = 0; j < rNodeTwoElementCandidates.size(); j++ && !loop_stop)
-        {
-            // KRATOS_WATCH(j);
-            
-            if(rNodeOneElementCandidates(i)->Id() == rNodeTwoElementCandidates(j)->Id() && rNodeOneElementCandidates(i)->Id() != this->Id())
+    for (SizeType i = 0; i < rNodeOneElementCandidates.size() && !loop_stop; i++)
+    {        
+        for (SizeType j = 0; j < rNodeTwoElementCandidates.size() && !loop_stop; j++)
+        {        
+            if(rNodeOneElementCandidates(i)->Id() == rNodeTwoElementCandidates(j)->Id() && rNodeOneElementCandidates(i)->Id() != r_this.Id())
             {
-                // std::cout << "\nInside if statement\n";
-                // KRATOS_WATCH(i);
-                // KRATOS_WATCH(j);
-
                 // assign upwind element
                 mpUpwindElement = rNodeOneElementCandidates(i);
                 
