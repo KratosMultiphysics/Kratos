@@ -581,6 +581,9 @@ namespace MPMParticleGeneratorUtility
                         // Get new condition
                         const Condition& new_condition = KratosComponents<Condition>::Get(condition_type_name);
 
+                        // Check Normal direction
+                        if (flip_normal_direction) mpc_normal *= -1.0;
+
                         // 1. Loop over the conditions to create inner particle condition
                         unsigned int new_condition_id = 0;
                         for ( unsigned int point_number = 0; point_number < integration_point_per_conditions; point_number++ )
@@ -599,7 +602,7 @@ namespace MPMParticleGeneratorUtility
                             }
 
                             // Check Normal direction
-                            if (flip_normal_direction) mpc_normal *= -1.0;
+                            //if (flip_normal_direction) mpc_normal *= -1.0;
 
                             // Setting particle condition's initial condition
                             // TODO: If any variable is added or remove here, please add and remove also at the second loop below
@@ -647,8 +650,7 @@ namespace MPMParticleGeneratorUtility
                             const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
                             if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
 
-                            // Check Normal direction
-                            if (flip_normal_direction) mpc_normal *= -1.0;
+                            
 
                             // Create new material point condition
                             new_condition_id = last_condition_id + j;
