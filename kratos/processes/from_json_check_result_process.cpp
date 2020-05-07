@@ -119,7 +119,6 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
 
     const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
     const double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
-//     const double step = mrModelPart.GetProcessInfo().GetValue(STEP);
 
     mTimeCounter += dt;
 
