@@ -90,9 +90,10 @@ def FindInterfaceFile(working_path, step):
     output_file_name = FindOutputFile(working_path, step)
     interface_file_name = output_file_name[0:output_file_name.find(
         '.pval')] + '.surface.' + output_file_name[output_file_name.find('.pval')+1:len(output_file_name)]
+    CheckIfPathExists(interface_file_name)
     if interface_file_name + '.dat' not in output_file_name:
         interface_file_name = interface_file_name[0:interface_file_name.find('+')]+ interface_file_name[interface_file_name.find('+')+1:len(interface_file_name)]
-    CheckIfPathExists(interface_file_name)
+    CheckIfPathExists(interface_file_name + '.dat')
     return interface_file_name + '.dat'
 
 
