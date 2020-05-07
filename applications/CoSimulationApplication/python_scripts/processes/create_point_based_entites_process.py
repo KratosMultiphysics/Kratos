@@ -55,8 +55,6 @@ class CreatePointBasedEntitiesProcess(KM.Process):
 
         new_model_part = RecursiveCreateModelParts(root_model_part, settings["new_sub_model_part_name"].GetString())
 
-        [node.Id for mp in model_parts for node in mp.GetCommunicator().LocalMesh().Nodes]
-
         node_ids = [node.Id
             for mp in model_parts
                 for node in mp.GetCommunicator().LocalMesh().Nodes
