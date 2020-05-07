@@ -44,7 +44,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
 ## Kratos Dependencies
 
 ### Kratos Core Dependencies
-  This are the basic dependecies needed to compile the Kratos Core and most of the Kratos applications.
+  These are the basic dependecies needed to compile the Kratos Core and most of the Kratos applications.
   * Python3-dev
   * C++11 compiler
   * CMake
@@ -72,7 +72,7 @@ Additionaly Visual Studio or MinGW is required to compile in Windows.
 
         * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=15)
 
-        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continue, in case C++ packages were missing you will be prompt to download them.
+        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them.
 
     - CMake
         * [Download CMake](http://cmake.org/download/)
