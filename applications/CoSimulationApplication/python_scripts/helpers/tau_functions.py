@@ -35,7 +35,7 @@ def ComputeFluidForces(working_path, step):
 
     return fluid_forces
 
-def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, startstep):
+def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, start_step):
     global dispTauOld
     print "deformationstart"
     interface_file_name = FindInterfaceFile(working_path, step)
@@ -44,7 +44,7 @@ def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, sta
 
     nodes,nodesID,elem_connectivities,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
 
-    if(step==startstep):
+    if(step==start_step):
         dispTauOld=np.zeros(3*NodesNr)
         dispTau_transpose = np.transpose(dispTau)
         print 'dispTau =', dispTau_transpose
@@ -66,21 +66,21 @@ def FindOutputFile(working_path, step):
     return FindFileName(outputs_path, ouput_file_pattern, step + 1)
 
 
-def FindMeshFile(working_path, step, startstep):
+def FindMeshFile(working_path, step, start_step):
     mesh_path = working_path + "Mesh/"
     CheckIfPathExists(mesh_path)
-    if step == startstep:
+    if step == start_step:
         pattern = 'airfoil_Structured_scaliert.grid'
         return FindInitialMeshFileName(mesh_path, pattern)
     else:
         pattern = 'airfoil_Structured_scaliert.grid.def.'
-        return FindFileName(mesh_path, pattern, step-startstep)
+        return FindFileName(mesh_path, pattern, step-start_step)
 
 
-def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, startstep):
+def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step):
     PrintBlockHeader("Start Writting Solution Data at time %s" % (str(time)))
     subprocess.call('rm ' + working_path + '/Tautoplt.cntl', shell=True)
-    tautoplt_file_name = WriteTautoplt(working_path, step, para_path_mod, startstep)
+    tautoplt_file_name = WriteTautoplt(working_path, step, para_path_mod, start_step)
     command = tau_path + 'tau2plt ' + tautoplt_file_name
     subprocess.call(command, shell=True)
     PrintBlockHeader("Stop Writting Solution Data at time %s" % (str(time)))
@@ -88,8 +88,8 @@ def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, startstep):
 
 def FindInterfaceFile(working_path, step):
     output_file_name = FindOutputFile(working_path, step)
-    interface_file_name = output_file_name.replace('pval', 'surface.pval') + '.dat'
-    interface_file_name = interface_file_name.replace('+', '')
+    interface_file_name = output_file_name.replace('pval', 'surface.pval')
+    interface_file_name = interface_file_name.replace('+', '') + '.dat'
     CheckIfPathExists(interface_file_name)
     return interface_file_name
 
@@ -117,8 +117,8 @@ def FindFileName(path, name, step):
     raise Exception('File: "{}" not found'.format(path + name + str(step)))
 
 
-def WriteTautoplt(working_path, step, para_path_mod, startstep):
-    mesh_file_name = FindMeshFile(working_path, step, startstep)
+def WriteTautoplt(working_path, step, para_path_mod, start_step):
+    mesh_file_name = FindMeshFile(working_path, step, start_step)
     parameter_file_name = working_path + para_path_mod
     output_file_name = FindOutputFile(working_path, step)
     tautoplt_file_name = working_path + 'Tautoplt.cntl'
