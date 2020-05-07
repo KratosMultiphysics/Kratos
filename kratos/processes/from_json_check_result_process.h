@@ -34,12 +34,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -93,6 +87,12 @@ public:
 
     /// Base type definition
     typedef std::vector<GPDatabaseType> BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -220,6 +220,12 @@ public:
     /// Base type definition
     typedef std::vector<EntityDatabase> BaseType;
 
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -335,6 +341,12 @@ public:
 
     /// Pointer definition of ResultDatabase
     KRATOS_CLASS_POINTER_DEFINITION(ResultDatabase);
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -614,6 +626,12 @@ public:
     /// The node type definiton
     typedef Node<3> NodeType;
 
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -856,7 +874,7 @@ private:
     double mFrequency;              /// The check frequency
     double mRelativeTolerance;      /// The relative tolerance
     double mAbsoluteTolerance;      /// The absolute tolerance
-    std::size_t mRelevantDigits;    /// This is the number of relevant digits
+    SizeType mRelevantDigits;    /// This is the number of relevant digits
 
     /* Counters */
     double mTimeCounter = 0.0;      /// A time counter
