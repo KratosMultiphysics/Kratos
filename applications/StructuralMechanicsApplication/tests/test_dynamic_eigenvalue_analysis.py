@@ -6,9 +6,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 try:
     import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
-    eigen_solvers_is_available = True
+    linear_solvers_is_available = True
 except ImportError:
-    eigen_solvers_is_available = False
+    linear_solvers_is_available = False
 
 #Test of eigenvalue analysis and modal decomposition with beam elements according to:
 #C. Petersen, Dynamic der Baukonstruktionen, Viehweg Verlag, 2000, p. 252
@@ -153,7 +153,7 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         self.assertAlmostEqual(modal_stiffness[0,1], 0.0, 4)
 
 
-@KratosUnittest.skipUnless(eigen_solvers_is_available,"LinearSolversApplication not available")
+@KratosUnittest.skipUnless(linear_solvers_is_available,"LinearSolversApplication not available")
 class TestDynamicEigenvalueAnalysis(BaseTestDynamicEigenvalueAnalysis):
 
     def test_dynamic_eigenvalue_analysis_block_builder(self):

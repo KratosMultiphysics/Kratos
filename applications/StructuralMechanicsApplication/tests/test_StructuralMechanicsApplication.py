@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os, subprocess
 
-has_eigen_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
+has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 # Import the tests or test_classes to create the suits
 
@@ -419,7 +419,7 @@ def AssembleTestSuites():
     # 2.5D solid element test
     nightSuite.addTest(TSolid2p5DElementTest('test_execution'))
 
-    if has_eigen_solvers_application:
+    if has_linear_solvers_application:
         import KratosMultiphysics.LinearSolversApplication as EiSA
         if EiSA.HasFEAST():
             # Eigenvalues tests

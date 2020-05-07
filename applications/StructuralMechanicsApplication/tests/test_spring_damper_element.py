@@ -9,8 +9,8 @@ from KratosMultiphysics import eigen_solver_factory
 from math import sqrt, sin, cos, pi, exp, atan
 
 from KratosMultiphysics import kratos_utilities as kratos_utils
-eigen_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication")
-if eigen_solvers_application_available:
+linear_solvers_application_available = kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication")
+if linear_solvers_application_available:
     import KratosMultiphysics.LinearSolversApplication as EiSA
     feast_available = EiSA.HasFEAST()
 else:
