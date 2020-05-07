@@ -772,8 +772,9 @@ protected:
      * Calculation of the Deformation Matrix  BL
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Matrix& rDN_DX);
+                                            const Matrix& rDN_DX,
+                                            const Vector& N,
+                                            const bool IsAxisymmetric = false);
 
     /**
      * Calculation of the Integration Weight
@@ -785,6 +786,11 @@ protected:
      * Calculation of the Volume Change of the Element
      */
     virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+
+
+    /// Calculation of the Deformation Gradient F
+    void CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDeltaPosition,
+        const bool IsAxisymmetric = false);
 
     ///@name Protected LifeCycle
     ///@{

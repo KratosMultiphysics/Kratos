@@ -391,7 +391,7 @@ protected:
      */
     void CalculateDeformationMatrix(Matrix& rB,
                                     Matrix& rF,
-                                    Matrix& rDN_DX) override;
+                                    Matrix& rDN_DX);
 
     /**
      * Calculation of the Volume Change of the Element

@@ -199,7 +199,7 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo) override;
+    //void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo) override;
 
      /**
      * Initialize Element General Variables
@@ -226,19 +226,19 @@ protected:
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Matrix& rDN_DX,
-                                            Vector& rN);
+    //virtual void CalculateDeformationMatrix(Matrix& rB,
+    //                                        Matrix& rF,
+    //                                        Matrix& rDN_DX,
+    //                                        Vector& rN);
 
     /**
      * Calculation of the Deformation Gradient F
      */
-    virtual void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition,
-                                      const double & rCurrentRadius,
-                                      const double & rReferenceRadius);
+    //virtual void CalculateDeformationGradient(const Matrix& rDN_DX,
+    //                                  Matrix& rF,
+    //                                  Matrix& rDeltaPosition,
+    //                                  const double & rCurrentRadius,
+    //                                  const double & rReferenceRadius);
 
     /// Calculate and add RHS
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,

@@ -158,7 +158,7 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
-
+/*
 void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -208,9 +208,9 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
 
     KRATOS_CATCH( "" )
 }
-
+*/
 //************************************************************************************
-
+/*
 void UpdatedLagrangianAxisymmetry::CalculateDeformationMatrix(Matrix& rB,
         Matrix& rF,
         Matrix& rDN_DX,
@@ -238,11 +238,11 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationMatrix(Matrix& rB,
 
     KRATOS_CATCH( "" )
 }
-
+*/
 
 //*************************COMPUTE DEFORMATION GRADIENT*******************************
 //************************************************************************************
-
+/*
 void UpdatedLagrangianAxisymmetry::CalculateDeformationGradient(const Matrix& rDN_DX,
         Matrix&  rF,
         Matrix&  rDeltaPosition,
@@ -276,7 +276,7 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationGradient(const Matrix& rD
 
     KRATOS_CATCH( "" )
 }
-
+*/
 //************************************************************************************
 void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
     GeneralVariables& rVariables,

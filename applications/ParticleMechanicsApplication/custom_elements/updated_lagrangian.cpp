@@ -26,6 +26,7 @@
 #include "includes/checks.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "custom_utilities/mpm_explicit_utilities.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos
 {
@@ -389,40 +390,31 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     // Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
 
-    /* NOTE::
-    Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
-    The increment of total deformation gradient can be evaluated in 2 ways, which are:
-    1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
-    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+        : false;
 
-    (NOTICE: Here, we are using method no. 2)*/
-
-    // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
-    // noalias( rVariables.F ) = prod( jacobian, InvJ);
-
-    // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix I = IdentityMatrix(dimension);
-    Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    gradient_displacement = prod(trans(rVariables.CurrentDisp),rVariables.DN_DX);
+    this->CalculateDeformationGradient(rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, is_axisymmetric);
 
-    noalias( rVariables.F ) = (I + gradient_displacement);
+    if (is_axisymmetric) {
+        rVariables.CurrentRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+        rVariables.ReferenceRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry(), Initial);
+    }
 
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
 
     // Compute the deformation matrix B
-    this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
+    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, rVariables.N, is_axisymmetric);
 
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
 
 void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rF,
-        Matrix& rDN_DX)
+        const Matrix& rDN_DX, const Vector& rN, const bool IsAxisymmetric)
 {
     KRATOS_TRY
 
@@ -431,7 +423,22 @@ void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
 
     rB.clear(); // Set all components to zero
 
-    if( dimension == 2 )
+    if (IsAxisymmetric)
+    {
+        const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rN, GetGeometry());
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            const unsigned int index = dimension * i;
+
+            rB(0, index + 0) = rDN_DX(i, 0);
+            rB(1, index + 1) = rDN_DX(i, 1);
+            rB(2, index + 0) = rN[i] / radius;
+            rB(3, index + 0) = rDN_DX(i, 1);
+            rB(3, index + 1) = rDN_DX(i, 0);
+        }
+    }
+    else if( dimension == 2 )
     {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -732,6 +739,60 @@ double& UpdatedLagrangian::CalculateVolumeChange( double& rVolumeChange, General
     return rVolumeChange;
 
     KRATOS_CATCH( "" )
+}
+
+void UpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDisplacement, 
+    const bool IsAxisymmetric)
+{
+    KRATOS_TRY
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    if (IsAxisymmetric)
+    {
+        // Compute radius
+        Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
+        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(N, GetGeometry());
+        const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(N, GetGeometry(), Initial);
+
+        rF = IdentityMatrix(3);
+
+        if (dimension == 2)
+        {
+            for (IndexType i = 0; i < GetGeometry().PointsNumber(); ++i)
+            {
+                rF(0, 0) += rDisplacement(i, 0) * rDN_DX(i, 0);
+                rF(0, 1) += rDisplacement(i, 0) * rDN_DX(i, 1);
+                rF(1, 0) += rDisplacement(i, 1) * rDN_DX(i, 0);
+                rF(1, 1) += rDisplacement(i, 1) * rDN_DX(i, 1);
+            }
+
+            rF(2, 2) = current_radius / initial_radius;
+        }
+        else KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
+    }
+    else
+    {
+        /* NOTE::
+    Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
+    The increment of total deformation gradient can be evaluated in 2 ways, which are:
+    1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
+    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+
+    (NOTICE: Here, we are using method no. 2)*/
+
+    // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
+    // noalias( rVariables.F ) = prod( jacobian, InvJ);
+
+    // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
+
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        Matrix I = IdentityMatrix(dimension);
+        Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
+        gradient_displacement = prod(trans(rDisplacement), rDN_DX);
+        noalias(rF) = (I + gradient_displacement);
+    }
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
