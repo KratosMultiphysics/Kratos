@@ -120,166 +120,13 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
-    //************* GETTING METHODS
-
-    /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     */
-    //void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Sets on rValues the nodal displacements
-     */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
-
-    /**
-     * Sets on rValues the nodal velocities
-     */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
-
-    /**
-     * Sets on rValues the nodal accelerations
-     */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-    ///@}
-    ///@name Input and output
-    ///@{
-    ///@}
-    ///@name Friends
-    ///@{
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
-     */
-    //void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-    //                                 GeneralVariables& rVariables,
-    //                                 const double& rIntegrationWeight) override;
-
-    /// Calculation of the Explicit Stresses from velocity gradient.
-    //void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
-    //    GeneralVariables& rVariables) override;
-
-    /**
-     * Clear Nodal Forces
-     */
-    void ClearNodalForces ();
-    /**
-     * Clear Nodal Displacement Velocity and Acceleration
-     */
-
-    /**
-     * Calculate Element Kinematics
-     */
-    //void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo) override;
-
-     /**
-     * Initialize Element General Variables
-     */
-    //void Initialize() override;
-
-    /**
-     * Initialize Element General Variables
-     */
-    //void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Calculation of the Green Lagrange Strain Vector
-     */
-    //void CalculateGreenLagrangeStrain(const Matrix& rF,
-    //        Vector& rStrainVector) override;
-    //
-    ///**
-    // * Calculation of the Almansi Strain Vector
-    // */
-    //void CalculateAlmansiStrain(const Matrix& rF, Vector& rStrainVector) override;
-
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    //virtual void CalculateDeformationMatrix(Matrix& rB,
-    //                                        Matrix& rF,
-    //                                        Matrix& rDN_DX,
-    //                                        Vector& rN);
-
-    /**
-     * Calculation of the Deformation Gradient F
-     */
-    //virtual void CalculateDeformationGradient(const Matrix& rDN_DX,
-    //                                  Matrix& rF,
-    //                                  Matrix& rDeltaPosition,
-    //                                  const double & rCurrentRadius,
-    //                                  const double & rReferenceRadius);
-
-    /// Calculate and add RHS
-    //void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-    //    GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight,
-    //    const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
+   
 
 private:
 
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    using UpdatedLagrangian::CalculateDeformationMatrix;
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
+    
 
     ///@}
     ///@name Serialization
@@ -292,12 +139,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    ///@}
 
 }; // Class UpdatedLagrangian
 
