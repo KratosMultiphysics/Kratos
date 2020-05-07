@@ -23,7 +23,6 @@
 #include "includes/model_part.h"
 #include "includes/table.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/model_utilities.h"
 
 namespace Kratos
 {

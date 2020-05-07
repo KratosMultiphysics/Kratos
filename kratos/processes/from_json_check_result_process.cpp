@@ -36,7 +36,7 @@ KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, ELEMENTS_DATABASE_INITIALI
 FromJSONCheckResultProcess::FromJSONCheckResultProcess(
     Model& rModel,
     Parameters ThisParameters
-    ) : mrModelPart(ModelUtilities::GetModelPartFromModelAndSettings(rModel, ThisParameters)),
+    ) : mrModelPart([](Model& rModel,const Parameters& rParameters)->ModelPart&{const std::string& r_model_part_name = rParameters["model_part_name"].GetString(); const std::string sub_model_part_name = rParameters.Has("sub_model_part_name") ? rParameters["sub_model_part_name"].GetString() : ""; if (sub_model_part_name == "") { return rModel.GetModelPart(r_model_part_name); } else { return rModel.GetModelPart(r_model_part_name).GetSubModelPart(sub_model_part_name);}}(rModel, ThisParameters)),
         mThisParameters(ThisParameters)
 {
     mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
