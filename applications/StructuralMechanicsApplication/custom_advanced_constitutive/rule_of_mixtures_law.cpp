@@ -1176,7 +1176,7 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
             noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
 
             rValues.SetMaterialProperties(r_prop);
-            p_law->CalculateMaterialResponseKirchhoff(rValues)
+            p_law->CalculateMaterialResponseKirchhoff(rValues);
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()       = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
