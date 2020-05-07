@@ -16,7 +16,7 @@ import os
 
 # Check other applications dependency
 hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
-eigensolver_is_available = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
+eigensolver_is_available = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 externalsolvers_is_available = kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 meshing_is_available = kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
 try:
@@ -71,7 +71,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         if not externalsolvers_is_available:
             self.skipTest("Missing required application: ExternalSolversApplication")
         if not eigensolver_is_available:
-            self.skipTest("Missing required application: EigenSolversApplication")
+            self.skipTest("Missing required application: LinearSolversApplication")
         file_name = "naca0012_small_compressible"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_compressible_test"
@@ -89,7 +89,7 @@ class PotentialFlowTests(UnitTest.TestCase):
 
     def test_Naca0012SmallTransonic(self):
         if not eigensolver_is_available:
-            self.skipTest("Missing required application: EigenSolversApplication")
+            self.skipTest("Missing required application: LinearSolversApplication")
         file_name = "naca0012_small_transonic"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_transonic_test"
@@ -105,7 +105,7 @@ class PotentialFlowTests(UnitTest.TestCase):
 
     def test_Naca0012SmallPerturbationCompressible(self):
         if not eigensolver_is_available:
-            self.skipTest("Missing required application: EigenSolversApplication")
+            self.skipTest("Missing required application: LinearSolversApplication")
         file_name = "naca0012_small_perturbation_compressible"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_perturbation_compressible_test"

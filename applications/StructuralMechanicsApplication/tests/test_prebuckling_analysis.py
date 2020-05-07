@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 try:
-    import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
+    import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
     eigen_solvers_is_available = True
 except ImportError:
     eigen_solvers_is_available = False
@@ -107,7 +107,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         }
         """)
 
-        eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
+        eigen_solver = LinearSolversApplication.EigensystemSolver(eigensolver_settings)
         eigen_solver_ = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(eigen_solver)
         convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-4,1e-9)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -260,7 +260,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         self.assertLess( abs(1-load_multiplier1[0]/reference), 1.0e-2)
 
 class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
-    @KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
+    @KratosUnittest.skipUnless(eigen_solvers_is_available,"LinearSolversApplication not available")
     def test_dynamic_eigenvalue_analysis(self):
         reference_value = 92.80
         #Construct model with symmetry conditions (quarter of the full plate 1x1)

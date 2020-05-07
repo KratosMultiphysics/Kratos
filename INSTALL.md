@@ -56,14 +56,14 @@ Its now also possible to compile applications outside kratos source dir:
 
 Linux:
 ```shell
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicApplication
 add_app /home/username/development/ExternalApplication  # Example of external Application
 ```
 
 Windows:
 ```shell
-CALL :add_app %KRATOS_APP_DIR%/EigenSolversApplication
+CALL :add_app %KRATOS_APP_DIR%/LinearSolversApplication
 CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
 CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
 ```
@@ -112,7 +112,7 @@ export PYTHON_EXECUTABLE="/usr/bin/python3"
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -149,7 +149,7 @@ set PYTHON_EXECUTABLE=C:\Python37\python.exe
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
-CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 
@@ -199,7 +199,7 @@ export PYTHON_EXECUTABLE="/Library/Frameworks/Python.framework/Versions/3.7/bin/
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -351,7 +351,7 @@ libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
 
 Specific compilation information about applications can be found in their own directories:
 
-- [EigenSolvers Application](applications/EigenSolversApplication/README.md#build-instructions)
+- [LinearSolvers Application](applications/LinearSolversApplication/README.md#build-instructions)
 - [HDF5 Application](applications/HDF5Application/README.md#build-instructions)
 - [MultilevelMontecarlo Application](applications/MultilevelMonteCarloApplication/README.md#external-libraries)
 - [Poromechanics Application](applications/PoromechanicsApplication/README.md#how-to-use-mpi-in-poromechanics-application)

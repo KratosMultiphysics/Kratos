@@ -10,7 +10,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os
 
 # Check if external Apps are available
-has_eigen_app =  kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
+has_eigen_app =  kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 has_csm_app = kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 has_mesh_moving_app = kratos_utilities.CheckIfApplicationsAvailable("MeshMovingApplication")
 has_mapping_app = kratos_utilities.CheckIfApplicationsAvailable("MappingApplication")
@@ -50,12 +50,12 @@ class opt_process_solid_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_solid_test"
     execution_file = "run_test"
 
-@kratos_unittest.skipUnless(has_csm_app and has_eigen_app,"Missing (one or all) required applications: StructuralMechanicsApplication, EigenSolversApplication")
+@kratos_unittest.skipUnless(has_csm_app and has_eigen_app,"Missing (one or all) required applications: StructuralMechanicsApplication, LinearSolversApplication")
 class opt_process_eigenfrequency_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_eigenfrequency_test"
     execution_file = "run_test"
 
-@kratos_unittest.skipUnless(has_csm_app and has_eigen_app,"Missing (one or all) required applications: StructuralMechanicsApplication, EigenSolversApplication")
+@kratos_unittest.skipUnless(has_csm_app and has_eigen_app,"Missing (one or all) required applications: StructuralMechanicsApplication, LinearSolversApplication")
 class opt_process_weighted_eigenfrequency_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_weighted_eigenfrequency_test"
     execution_file = "run_test"

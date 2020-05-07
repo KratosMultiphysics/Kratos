@@ -24,13 +24,13 @@
 namespace Kratos {
 namespace Python {
 
-PYBIND11_MODULE(KratosEigenSolversApplication, m)
+PYBIND11_MODULE(KratosLinearSolversApplication, m)
 {
     namespace py = pybind11;
 
-    py::class_<KratosEigenSolversApplication,
-           KratosEigenSolversApplication::Pointer,
-           KratosApplication>(m, "KratosEigenSolversApplication")
+    py::class_<KratosLinearSolversApplication,
+           KratosLinearSolversApplication::Pointer,
+           KratosApplication>(m, "KratosLinearSolversApplication")
         .def(py::init<>())
         ;
 

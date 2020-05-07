@@ -32,9 +32,9 @@
 namespace Kratos
 {
 
-void KratosEigenSolversApplication::Register()
+void KratosLinearSolversApplication::Register()
 {
-    KRATOS_INFO("") << "Initializing KratosEigenSolversApplication..." << std::endl;
+    KRATOS_INFO("") << "Initializing KratosLinearSolversApplication..." << std::endl;
 
     RegisterDenseLinearSolvers();
 

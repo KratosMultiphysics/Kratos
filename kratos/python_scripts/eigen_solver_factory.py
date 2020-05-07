@@ -13,34 +13,34 @@ def ConstructSolver(settings):
     solver_type = settings["solver_type"].GetString()
 
     if solver_type == "eigen_eigensystem":
-        if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-            import KratosMultiphysics.EigenSolversApplication as EiSA
+        if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
+            import KratosMultiphysics.LinearSolversApplication as EiSA
             eigen_solver = EiSA.EigensystemSolver(settings)
             return eigen_solver
         else:
-            raise Exception("EigenSolversApplication not available")
+            raise Exception("LinearSolversApplication not available")
     elif solver_type == "feast":
-        if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-            import KratosMultiphysics.EigenSolversApplication as EiSA
+        if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
+            import KratosMultiphysics.LinearSolversApplication as EiSA
             if EiSA.HasFEAST():
                 is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
                 eigen_solver = EiSA.FEASTSymmetricEigensystemSolver(settings) if is_symmetric else EiSA.FEASTGeneralEigensystemSolver(settings)
                 return eigen_solver
             else:
-                raise Exception("FEAST not available in EigenSolversApplication")
+                raise Exception("FEAST not available in LinearSolversApplication")
         else:
-            raise Exception("EigenSolversApplication not available")
+            raise Exception("LinearSolversApplication not available")
     elif solver_type == "feast_complex":
-        if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-            import KratosMultiphysics.EigenSolversApplication as EiSA
+        if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
+            import KratosMultiphysics.LinearSolversApplication as EiSA
             if EiSA.HasFEAST():
                 is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
                 eigen_solver = EiSA.ComplexFEASTSymmetricEigensystemSolver(settings) if is_symmetric else EiSA.ComplexFEASTGeneralEigensystemSolver(settings)
                 return eigen_solver
             else:
-                raise Exception("FEAST not available in EigenSolversApplication")
+                raise Exception("FEAST not available in LinearSolversApplication")
         else:
-            raise Exception("EigenSolversApplication not available")
+            raise Exception("LinearSolversApplication not available")
 
     linear_solver_configuration = settings["linear_solver_settings"]
     if linear_solver_configuration.Has("solver_type"): # user specified a linear solver

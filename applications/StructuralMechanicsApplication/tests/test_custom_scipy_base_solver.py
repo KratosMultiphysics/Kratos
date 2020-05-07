@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import kratos_utilities as kratos_utils
-eigensolvers_application_available = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
+eigensolvers_application_available = kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 try:
     import scipy
@@ -18,7 +18,7 @@ This test does an eigenvalue analysis on a simple cantilever beam
 It compares the results between the scipy solver and the standard eigen solver.
 '''
 
-@KratosUnittest.skipUnless(eigensolvers_application_available,"Missing required application: EigenSolversApplication")
+@KratosUnittest.skipUnless(eigensolvers_application_available,"Missing required application: LinearSolversApplication")
 @KratosUnittest.skipUnless(scipy_is_available,"Missing required module: Scipy")
 class TestCustomScipyBaseSolver(KratosUnittest.TestCase):
     # muting the output

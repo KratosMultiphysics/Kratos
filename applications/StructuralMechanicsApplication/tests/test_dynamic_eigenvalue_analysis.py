@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 try:
-    import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
+    import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
     eigen_solvers_is_available = True
 except ImportError:
     eigen_solvers_is_available = False
@@ -94,7 +94,7 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         }
         """)
 
-        eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
+        eigen_solver = LinearSolversApplication.EigensystemSolver(eigensolver_settings)
         if use_block_builder:
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
         else:
@@ -153,7 +153,7 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         self.assertAlmostEqual(modal_stiffness[0,1], 0.0, 4)
 
 
-@KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
+@KratosUnittest.skipUnless(eigen_solvers_is_available,"LinearSolversApplication not available")
 class TestDynamicEigenvalueAnalysis(BaseTestDynamicEigenvalueAnalysis):
 
     def test_dynamic_eigenvalue_analysis_block_builder(self):

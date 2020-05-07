@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import kratos_utilities as kratos_utils
-eigensolvers_application_available = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
+eigensolvers_application_available = kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 '''
 Test description:
@@ -42,7 +42,7 @@ class StructuralMechanicsAnalysisWithConstraints(StructuralMechanicsAnalysis):
             model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", i_var+1, constraint_node, var, aux_node, var, 1.0, 0.0)
 
 
-@KratosUnittest.skipUnless(eigensolvers_application_available,"Missing required application: EigenSolversApplication")
+@KratosUnittest.skipUnless(eigensolvers_application_available,"Missing required application: LinearSolversApplication")
 class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
     # muting the output
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)

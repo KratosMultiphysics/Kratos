@@ -23,7 +23,7 @@ def SelectAndVerifyLinearSolver(settings, skiptest):
 
         else:
             default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type": "EigenSolversApplication.sparse_lu"
+                "solver_type": "LinearSolversApplication.sparse_lu"
             }""")
         settings["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
 

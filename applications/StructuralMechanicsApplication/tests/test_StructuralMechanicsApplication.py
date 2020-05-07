@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os, subprocess
 
-has_eigen_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
+has_eigen_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 # Import the tests or test_classes to create the suits
 
@@ -420,7 +420,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSolid2p5DElementTest('test_execution'))
 
     if has_eigen_solvers_application:
-        import KratosMultiphysics.EigenSolversApplication as EiSA
+        import KratosMultiphysics.LinearSolversApplication as EiSA
         if EiSA.HasFEAST():
             # Eigenvalues tests
             smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
@@ -431,7 +431,7 @@ def AssembleTestSuites():
             # Rayleigh process test
             nightSuite.addTest(TRayleighProcessTest('test_execution'))
         else:
-            print("FEAST not available in EigenSolversApplication")
+            print("FEAST not available in LinearSolversApplication")
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
 

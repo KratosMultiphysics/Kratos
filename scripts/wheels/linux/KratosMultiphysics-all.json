@@ -10,7 +10,7 @@
         "KratosStructuralMechanicsApplication==${KRATOS_VERSION}",
         "KratosConvectionDiffusionApplication==${KRATOS_VERSION}",
         "KratosDamApplication==${KRATOS_VERSION}",
-        "KratosEigenSolversApplication==${KRATOS_VERSION}",
+        "KratosLinearSolversApplication==${KRATOS_VERSION}",
         "KratosExternalSolversApplication==${KRATOS_VERSION}",
         "KratosFSIApplication==${KRATOS_VERSION}",
         "KratosParticleMechanicsApplication==${KRATOS_VERSION}",
