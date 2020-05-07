@@ -47,7 +47,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mesh_model_part.Elements)
 
         # Generate MP Elements
-        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
 
     def _create_nodes_structured(self, model_part, dimension, geometry_element):

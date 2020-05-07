@@ -54,8 +54,11 @@ namespace MPMParticleGeneratorUtility
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        bool IsAxisSymmetry = false,
                                         bool IsMixedFormulation = false) {
+        const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
+            : false;
+
         // Initialize zero the variables needed
         std::vector<array_1d<double, 3>> xg = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_displacement = { ZeroVector(3) };
@@ -177,42 +180,28 @@ namespace MPMParticleGeneratorUtility
                         }
                     }
 
-                    // Check element type
-                    std::string element_type_name;
-                    if (domain_size == 2) {
-                        if (background_geo_type == GeometryData::Kratos_Triangle2D3) {
-                            if (IsMixedFormulation)
-                                element_type_name = "UpdatedLagrangianUP2D3N";
-                            else {
-                                if (IsAxisSymmetry)
-                                    element_type_name = "UpdatedLagrangianAxisymmetry2D3N";
-                                else
-                                    element_type_name = "UpdatedLagrangian";
-                            }
-                        }
-                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4) {
-                            if (IsMixedFormulation)
-                                KRATOS_ERROR << "Element for mixed U-P formulation in 2D for Quadrilateral Element is not yet implemented." << std::endl;
-                            else {
-                                if (IsAxisSymmetry)
-                                    element_type_name = "UpdatedLagrangianAxisymmetry2D4N";
-                                else
-                                    element_type_name = "UpdatedLagrangian2D4N";
-                            }
-                        }
+                    // Set element type
+                    std::string element_type_name = "UpdatedLagrangian";
+                    if (IsMixedFormulation) {
+                        if (background_geo_type == GeometryData::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
+                        else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                     }
-                    else if (domain_size == 3) {
-                        if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4) {
-                            if (IsMixedFormulation)
-                                KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Tetrahedral Element is not yet implemented." << std::endl;
-                            else
-                                element_type_name = "UpdatedLagrangian";
-                        }
-                        else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8) {
-                            if (IsMixedFormulation)
-                                KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Hexahedral Element is not yet implemented." << std::endl;
-                            else
-                                element_type_name = "UpdatedLagrangian3D8N";
+                    else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
+
+                    // TODO temporary for axisym - delete when merged into updated lagrangian
+                    if (IsAxisSymmetry)
+                    {
+                        if (domain_size == 2)
+                        {
+                            if (background_geo_type == GeometryData::Kratos_Triangle2D3)
+                            {
+                                element_type_name = "UpdatedLagrangianAxisymmetry2D3N";
+                            }
+                            else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
+                            {
+                                element_type_name = "UpdatedLagrangianAxisymmetry2D4N";
+                            }
+                            
                         }
                     }
 

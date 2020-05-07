@@ -44,14 +44,13 @@ namespace Python{
         ModelPart& rBackgroundGridModelPart,
         ModelPart& rInitialModelPart,
         ModelPart& rMPMModelPart,
-        bool IsAxisSymmetry,
         bool IsMixedFormulation)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
         if (dimension == 2) MPMParticleGeneratorUtility::GenerateMaterialPointElement<2>(
-            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsAxisSymmetry, IsMixedFormulation);
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation);
         else if (dimension == 3) MPMParticleGeneratorUtility::GenerateMaterialPointElement<3>(
-            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsAxisSymmetry, IsMixedFormulation);
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation);
     }
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)

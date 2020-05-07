@@ -35,7 +35,7 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
         self._create_elements(sub_mp,dimension, geometry_element)
 
         # Generate MP Elements
-        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
         # Check total number of element
         particle_counter = material_point_model_part.NumberOfElements()
