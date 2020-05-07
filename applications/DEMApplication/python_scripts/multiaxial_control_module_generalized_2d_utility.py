@@ -28,7 +28,7 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         self.parameters = KratosMultiphysics.Parameters( """
         {
             "Parameters"    : {
-                "control_module_time_step": 4.0e-7,
+                "control_module_delta_time": 4.0e-7,
                 "velocity_factor" : 1.0,
                 "stress_increment_tolerance": 1.0e-3,
                 "update_stiffness": true,

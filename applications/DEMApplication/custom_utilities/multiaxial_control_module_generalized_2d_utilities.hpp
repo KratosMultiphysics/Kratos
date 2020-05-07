@@ -73,7 +73,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     Parameters default_parameters( R"(
         {
             "Parameters"    : {
-                "control_module_time_step": 1.0e-5,
+                "control_module_delta_time": 1.0e-5,
                 "velocity_factor" : 1.0,
                 "stress_increment_tolerance": 1.0e-3,
                 "update_stiffness": true,
@@ -95,9 +95,10 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     mUpdateStiffness = rParameters["Parameters"]["update_stiffness"].GetBool();
     mStressAveragingTime = rParameters["Parameters"]["stress_averaging_time"].GetDouble();
     mStiffnessAlpha = rParameters["Parameters"]["stiffness_alpha"].GetDouble();
-    mCMTimeStep = rParameters["Parameters"]["control_module_time_step"].GetDouble();
+    mCMDeltaTime = rParameters["Parameters"]["control_module_delta_time"].GetDouble();
     mAxisymmetry = rParameters["Parameters"]["axisymmetry"].GetBool();
     mStep = 0;
+    mCMTime = 0.0;
 
     const unsigned int number_of_actuators = rParameters["list_of_actuators"].size();
     // TODO: For the moment we assume that for axisymmetry cases 2 actuators are used
@@ -106,6 +107,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         KRATOS_ERROR << "The number of actuators is neither 2 (axisymmetric) nor 3 (triaxial)" << std::endl;
     }
     mVelocity.resize(number_of_actuators, false);
+    mLimitVelocities.resize(number_of_actuators, false);
     mReactionStress.resize(number_of_actuators, false);
     mStiffness.resize(number_of_actuators,number_of_actuators,false);
     noalias(mStiffness) = ZeroMatrix(number_of_actuators,number_of_actuators);
@@ -139,31 +141,34 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         mFEMBoundariesSubModelParts[actuator_name] = list_of_fem_submodelparts;
         mOuterNormals[actuator_name] = list_of_outer_normals;
         mTargetStressTableIds[actuator_name] = rParameters["list_of_actuators"][i]["Parameters"]["target_stress_table_id"].GetInt();
-        mLimitVelocities[actuator_name] = rParameters["list_of_actuators"][i]["Parameters"]["limit_velocity"].GetDouble();
-        mCompressionLengths[actuator_name] = rParameters["list_of_actuators"][i]["Parameters"]["compression_length"].GetDouble();
-        if (mAxisymmetry == false) {
-            if (actuator_name == "X") {
-                mVelocity[0] = rParameters["list_of_actuators"][i]["Parameters"]["initial_velocity"].GetDouble();
-                mStiffness(0,0) = rParameters["list_of_actuators"][i]["Parameters"]["young_modulus"].GetDouble()/mCompressionLengths[actuator_name]; // mStiffness is actually a stiffness over an area
-            } else if (actuator_name == "Y") {
-                mVelocity[1] = rParameters["list_of_actuators"][i]["Parameters"]["initial_velocity"].GetDouble();
-                mStiffness(1,1) = rParameters["list_of_actuators"][i]["Parameters"]["young_modulus"].GetDouble()/mCompressionLengths[actuator_name]; // mStiffness is actually a stiffness over an area
-            } else if (actuator_name == "Z") {
-                mVelocity[2] = rParameters["list_of_actuators"][i]["Parameters"]["initial_velocity"].GetDouble();
-                mStiffness(2,2) = rParameters["list_of_actuators"][i]["Parameters"]["young_modulus"].GetDouble()/mCompressionLengths[actuator_name]; // mStiffness is actually a stiffness over an area
+        const double compression_length = rParameters["list_of_actuators"][i]["Parameters"]["compression_length"].GetDouble();
+        const double initial_velocity = rParameters["list_of_actuators"][i]["Parameters"]["initial_velocity"].GetDouble();
+        const double limit_velocity = rParameters["list_of_actuators"][i]["Parameters"]["limit_velocity"].GetDouble();
+        const double stiffness = rParameters["list_of_actuators"][i]["Parameters"]["young_modulus"].GetDouble()/compression_length; // mStiffness is actually a stiffness over an area
+        if (actuator_name == "X") {
+            mVelocity[0] = initial_velocity;
+            mLimitVelocities[0] = limit_velocity;
+            mStiffness(0,0) = stiffness;
+        } else if (actuator_name == "Y") {
+            mVelocity[1] = initial_velocity;
+            mLimitVelocities[1] = limit_velocity;
+            mStiffness(1,1) = stiffness;
+        } else if (actuator_name == "Z") {
+            if (mAxisymmetry == false) {
+                mVelocity[2] = initial_velocity;
+                mLimitVelocities[2] = limit_velocity;
+                mStiffness(2,2) = stiffness;
             } else {
-                KRATOS_ERROR << actuator_name << " is not a valid actuator name" << std::endl;
+                mVelocity[1] = initial_velocity;
+                mLimitVelocities[1] = limit_velocity;
+                mStiffness(1,1) = stiffness;
             }
+        } else if (actuator_name == "Radial") {
+            mVelocity[0] = initial_velocity;
+            mLimitVelocities[0] = limit_velocity;
+            mStiffness(0,0) = stiffness;
         } else {
-            if (actuator_name == "Radial") {
-                mVelocity[0] = rParameters["list_of_actuators"][i]["Parameters"]["initial_velocity"].GetDouble();
-                mStiffness(0,0) = rParameters["list_of_actuators"][i]["Parameters"]["young_modulus"].GetDouble()/mCompressionLengths[actuator_name]; // mStiffness is actually a stiffness over an area
-            } else if (actuator_name == "Z") {
-                mVelocity[1] = rParameters["list_of_actuators"][i]["Parameters"]["initial_velocity"].GetDouble();
-                mStiffness(1,1) = rParameters["list_of_actuators"][i]["Parameters"]["young_modulus"].GetDouble()/mCompressionLengths[actuator_name]; // mStiffness is actually a stiffness over an area
-            } else {
-                KRATOS_ERROR << actuator_name << " is not a valid actuator name" << std::endl;
-            }
+            KRATOS_ERROR << actuator_name << " is not a valid actuator name" << std::endl;
         }
         mReactionStress[i] = 0.0;
     }
@@ -231,8 +236,8 @@ void ExecuteInitialize()
                 const int NNodes = static_cast<int>(rSubModelPart.Nodes().size());
                 ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
                 #pragma omp parallel for
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+                for(int j = 0; j<NNodes; j++) {
+                    ModelPart::NodesContainerType::iterator it = it_begin + j;
                     array_1d<double,3>& r_displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
                     array_1d<double,3>& r_delta_displacement = it->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
                     array_1d<double,3>& r_velocity = it->FastGetSolutionStepValue(VELOCITY);
@@ -255,192 +260,140 @@ void ExecuteInitializeSolutionStep()
     KRATOS_TRY;
 
     const double current_time = mrDemModelPart.GetProcessInfo()[TIME];
+
+    // Update velocities
+    if (mCMTime < current_time) {
+        
+        mCMTime += mCMDeltaTime;
+        mStep += 1;
+
+        const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
+        Vector next_target_stress(number_of_actuators);
+        noalias(next_target_stress) = ZeroVector(number_of_actuators);
+        Vector target_stress_perturbation(number_of_actuators);
+        noalias(target_stress_perturbation) = ZeroVector(number_of_actuators); // TODO
+        noalias(next_target_stress) += target_stress_perturbation;
+        Matrix k_inverse(number_of_actuators,number_of_actuators);
+        double k_det = 0.0;
+        MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det);
+
+        // Iterate through all actuators
+        std::map<std::string, std::vector<ModelPart*>>::iterator map_it = mFEMBoundariesSubModelParts.begin();
+        for (; map_it!=mFEMBoundariesSubModelParts.end(); map_it++) {
+            const std::string actuator_name = map_it->first;
+            std::vector<ModelPart*> FEMSubModelPartList = map_it->second;
+            std::vector<ModelPart*> DEMSubModelPartList = mDEMBoundariesSubModelParts[actuator_name];
+            unsigned int target_stress_table_id = mTargetStressTableIds[actuator_name];
+            if (actuator_name == "X") {
+                TableType::Pointer pFEMTargetStressTable = *(FEMSubModelPartList[0]).pGetTable(target_stress_table_id);
+                next_target_stress[0] = pFEMTargetStressTable->GetValue(mCMTime);
+            } else if (actuator_name == "Y") {
+                TableType::Pointer pFEMTargetStressTable = *(FEMSubModelPartList[0]).pGetTable(target_stress_table_id);
+                next_target_stress[1] = pFEMTargetStressTable->GetValue(mCMTime);
+            } else if (actuator_name == "Z") {
+                TableType::Pointer pDEMTargetStressTable = *(DEMSubModelPartList[0]).pGetTable(target_stress_table_id);
+                if (mAxisymmetry == false) {
+                    next_target_stress[2] = pDEMTargetStressTable->GetValue(mCMTime);
+                } else {
+                    next_target_stress[1] = pTargetStressTable->GetValue(mCMTime);
+                }
+            } else if (actuator_name == "Radial") {
+                TableType::Pointer pFEMTargetStressTable = *(FEMSubModelPartList[0]).pGetTable(target_stress_table_id);
+                next_target_stress[0] = pFEMTargetStressTable->GetValue(mCMTime);
+            }
+        }
+
+        Vector delta_velocity(number_of_actuators);
+        Vector delta_stress_target(number_of_actuators);
+        noalias(delta_stress_target) = next_target_stress-mReactionStress;
+        const double delta_stress_target_norm = norm_2(delta_stress_target);
+        // TODO: is this right ?
+        if (delta_stress_target_norm < mStressIncrementTolerance) {
+            noalias(delta_velocity) = -mVelocity;
+        } else {
+            noalias(delta_velocity) = prod(k_inverse,delta_stress_target)/mCMDeltaTime - mVelocity;
+        }
+
+        noalias(mVelocity) += mVelocityFactor * delta_velocity;
+
+        // TODO: is this right ?
+        for (unsigned int i = 0; i < mVelocity.size(); i++) {
+            if (std::abs(mVelocity[i]) > std::abs(mLimitVelocities[i])) {
+                if (mVelocity[i] > 0.0) {
+                    mVelocity[i] = std::abs(mLimitVelocities[i]);
+                } else {
+                    mVelocity[i] = - std::abs(mLimitVelocities[i]);
+                }
+            }
+        }
+    }
+
+    // Move Actuators
     const double delta_time = mrDemModelPart.GetProcessInfo()[DELTA_TIME];
-    const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
-    Vector NextTargetStress(number_of_actuators);
-    noalias(NextTargetStress) = ZeroVector(number_of_actuators);
-    Vector TargetStressPerturbation(number_of_actuators);
-    noalias(TargetStressPerturbation) = ZeroVector(number_of_actuators);
-    // Vector LimitVelocity(number_of_actuators);
-    // Vector CompressionLength(number_of_actuators);
-    Matrix k_inverse(number_of_actuators,number_of_actuators);
-    double k_det;
-    MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det);
-
     // Iterate through all actuators
     std::map<std::string, std::vector<ModelPart*>>::iterator map_it = mFEMBoundariesSubModelParts.begin();
     for (; map_it!=mFEMBoundariesSubModelParts.end(); map_it++) {
         const std::string actuator_name = map_it->first;
-        std::vector<ModelPart*> FEMSubModelPartList = map_it->second;
-        std::vector<ModelPart*> DEMSubModelPartList = mDEMBoundariesSubModelParts[actuator_name];
-        unsigned int target_stress_table_id = mTargetStressTableIds[actuator_name];
-        std::vector<array_1d<double,3>> outer_normals = mOuterNormals[actuator_name];
-        double limit_velocity = mLimitVelocities[actuator_name];
-        double compression_length = mCompressionLengths[actuator_name];
-
-        if (mAxisymmetry == false) {
-            if (actuator_name == "X") {
-                TableType::Pointer pFEMTargetStressTable = *(FEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[0] = pFEMTargetStressTable->GetValue(current_time+delta_time);
-            } else if (actuator_name == "Y") {
-                TableType::Pointer pFEMTargetStressTable = *(FEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[1] = pFEMTargetStressTable->GetValue(current_time+delta_time);
-            } else if (actuator_name == "Z") {
-                TableType::Pointer pDEMTargetStressTable = *(DEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[2] = pDEMTargetStressTable->GetValue(current_time+delta_time);
+        std::vector<ModelPart*> SubModelPartList = map_it->second;
+        if (actuator_name == "Radial") {
+            // In axisymmetric cases we assume there is only 1 actuator in the FEM boundary
+            ModelPart& rSubModelPart = *(SubModelPartList[0]);
+            // Iterate through nodes of Fem boundary
+            const int NNodes = static_cast<int>(rSubModelPart.Nodes().size());
+            ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                const double external_radius = std::sqrt(it->X()*it->X() + it->Y()*it->Y());
+                const double cos_theta = it->X()/external_radius;
+                const double sin_theta = it->Y()/external_radius;
+                it->FastGetSolutionStepValue(VELOCITY_X) = mVelocity[0] * cos_theta;
+                it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X) = it->FastGetSolutionStepValue(VELOCITY_X) * delta_time;
+                it->FastGetSolutionStepValue(DISPLACEMENT_X) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X);
+                it->X() = it->X0() + it->FastGetSolutionStepValue(DISPLACEMENT_X);
+                it->FastGetSolutionStepValue(VELOCITY_Y) = mVelocity[0] * sin_theta;
+                it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y) = it->FastGetSolutionStepValue(VELOCITY_Y) * delta_time;
+                it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
+                it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
+            }
+        } else if (actuator_name == "Z") {
+            if (mAxisymmetry == false) {
+                mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += mVelocity[2]*delta_time/1.0;
+            } else {
+                mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += mVelocity[1]*delta_time/1.0;
             }
         } else {
-            if (actuator_name == "Radial") {
-                TableType::Pointer pFEMTargetStressTable = *(FEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[0] = pFEMTargetStressTable->GetValue(current_time+delta_time);
-            } else if (actuator_name == "Z") {
-                TableType::Pointer pDEMTargetStressTable = *(DEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[1] = pTargetStressTable->GetValue(current_time+delta_time);
-            }
-        }
-    }
-    
-
-    // Iterate through all actuators
-    std::map<std::string, std::vector<ModelPart*>>::iterator map_it = mFEMBoundariesSubModelParts.begin();
-    for (; map_it!=mFEMBoundariesSubModelParts.end(); map_it++) {
-        const std::string actuator_name = map_it->first;
-        std::vector<ModelPart*> FEMSubModelPartList = map_it->second;
-        std::vector<ModelPart*> DEMSubModelPartList = mDEMBoundariesSubModelParts[actuator_name];
-        unsigned int target_stress_table_id = mTargetStressTableIds[actuator_name];
-        std::vector<array_1d<double,3>> outer_normals = mOuterNormals[actuator_name];
-        double limit_velocity = mLimitVelocities[actuator_name];
-        double compression_length = mCompressionLengths[actuator_name];
-
-        if (mAxisymmetry == false) {
-            if (actuator_name == "X") {
-                TableType::Pointer pFEMTargetStressTable = *(FEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[0] = pFEMTargetStressTable->GetValue(current_time+delta_time);
-                // Iterate through all FEM Boundaries
-                for (unsigned int i = 0; i < FEMSubModelPartList.size(); i++) {
-                    ModelPart& rSubModelPart = *(FEMSubModelPartList[i]);
-
-
-                }
-            } else if (actuator_name == "Y") {
-                TableType::Pointer pFEMTargetStressTable = *(FEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[1] = pFEMTargetStressTable->GetValue(current_time+delta_time);
-                // Iterate through all FEM Boundaries
-                for (unsigned int i = 0; i < FEMSubModelPartList.size(); i++) {
-                    ModelPart& rSubModelPart = *(FEMSubModelPartList[i]);
-
-                }
-            } else if (actuator_name == "Z") {
-                TableType::Pointer pDEMTargetStressTable = *(DEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[2] = pDEMTargetStressTable->GetValue(current_time+delta_time);
-                // Iterate through all DEM Boundaries
-                for (unsigned int i = 0; i < DEMSubModelPartList.size(); i++) {
-                    ModelPart& rSubModelPart = *(DEMSubModelPartList[i]);
-
-                }
-            }
-        } else {
-            if (actuator_name == "Radial") {
-                TableType::Pointer pFEMTargetStressTable = *(FEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[0] = pFEMTargetStressTable->GetValue(current_time+delta_time);
-                // Iterate through all FEM Boundaries
-                for (unsigned int i = 0; i < FEMSubModelPartList.size(); i++) {
-                    ModelPart& rSubModelPart = *(FEMSubModelPartList[i]);
-
-                }
-            } else if (actuator_name == "Z") {
-                TableType::Pointer pDEMTargetStressTable = *(DEMSubModelPartList[0]).pGetTable(target_stress_table_id);
-                NextTargetStress[1] = pTargetStressTable->GetValue(current_time+delta_time);
-                // Iterate through all DEM Boundaries
-                for (unsigned int i = 0; i < DEMSubModelPartList.size(); i++) {
-                    ModelPart& rSubModelPart = *(DEMSubModelPartList[i]);
-
-
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < SubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(SubModelPartList[i]);
+                // Unit normal vector pointing outwards
+                array_1d<double,3> n;
+                n[0] = mOuterNormals[actuator_name][i][0];
+                n[1] = mOuterNormals[actuator_name][i][1];
+                n[2] = 0.0;
+                double inv_norm = 1.0/norm_2(n);
+                n[0] *= inv_norm;
+                n[1] *= inv_norm;
+                // Initial velocity * normal
+                double norm_vel = inner_prod(mVelocity,n)
+                // Iterate through nodes of Fem boundary
+                const int NNodes = static_cast<int>(rSubModelPart.Nodes().size());
+                ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
+                #pragma omp parallel for
+                for(int j = 0; j<NNodes; j++) {
+                    ModelPart::NodesContainerType::iterator it = it_begin + j;
+                    it->FastGetSolutionStepValue(VELOCITY_X) = norm_vel * n[0];
+                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X) = it->FastGetSolutionStepValue(VELOCITY_X) * delta_time;
+                    it->FastGetSolutionStepValue(DISPLACEMENT_X) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X);
+                    it->X() = it->X0() + it->FastGetSolutionStepValue(DISPLACEMENT_X);
+                    it->FastGetSolutionStepValue(VELOCITY_Y) = norm_vel * n[1];
+                    it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y) = it->FastGetSolutionStepValue(VELOCITY_Y) * delta_time;
+                    it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
+                    it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
                 }
             }
         }
     }
-
-
-
-    const ProcessInfo& CurrentProcessInfo = mrDemModelPart.GetProcessInfo();
-    int NElems = static_cast<int>(mrDemModelPart.Elements().size());
-    ModelPart::ElementsContainerType::iterator elem_begin = mrDemModelPart.ElementsBegin();
-    const int NNodes = static_cast<int>(mrDemModelPart.Nodes().size());
-    ModelPart::NodesContainerType::iterator it_begin = mrDemModelPart.NodesBegin();
-    TableType::Pointer pTargetStressTable = mrDemModelPart.pGetTable(mTargetStressTableId);
-
-    double reaction_stress = CalculateReactionStress();
-    reaction_stress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(reaction_stress);
-
-    // Check whether this is a loading step for the current axis
-    IsTimeToApplyCM();
-
-    if (mApplyCM == true) {
-
-        // Update K if required
-        if (mAlternateAxisLoading == false) {
-            if(mUpdateStiffness == true) {
-                mStiffness = EstimateStiffness(reaction_stress,delta_time);
-            }
-        }
-        mReactionStressOld = reaction_stress;
-
-        // Update velocity
-        const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+delta_time);
-        const double df_target = NextTargetStress - reaction_stress;
-        double delta_velocity = df_target/(mStiffness * delta_time) - mVelocity;
-
-        if(std::abs(df_target) < mStressIncrementTolerance) { delta_velocity = -mVelocity; }
-
-        mVelocity += mVelocityFactor * delta_velocity;
-
-        if(std::abs(mVelocity) > std::abs(mLimitVelocity)) {
-            if(mVelocity >= 0.0) { mVelocity = std::abs(mLimitVelocity); }
-            else { mVelocity = - std::abs(mLimitVelocity); }
-        }
-
-        // Update IMPOSED_Z_STRAIN_VALUE
-        // DEM modelpart
-        mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += mVelocity*delta_time/mCompressionLength;
-        // FEM modelpart
-        const double imposed_z_strain = mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE];
-        #pragma omp parallel for
-        for(int i = 0; i < NElems; i++)
-        {
-            ModelPart::ElementsContainerType::iterator itElem = elem_begin + i;
-            Element::GeometryType& rGeom = itElem->GetGeometry();
-            GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
-            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
-            unsigned int NumGPoints = IntegrationPoints.size();
-            std::vector<double> imposed_z_strain_vector(NumGPoints);
-            // Loop through GaussPoints
-            for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-            {
-                imposed_z_strain_vector[GPoint] = imposed_z_strain;
-            }
-            itElem->SetValuesOnIntegrationPoints( IMPOSED_Z_STRAIN_VALUE, imposed_z_strain_vector, CurrentProcessInfo );
-        }
-        // Save calculated velocity and reaction for print (only at FEM nodes)
-        #pragma omp parallel for
-        for(int i = 0; i<NNodes; i++) {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
-            it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-            it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress;
-            it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity;
-        }
-    } else {
-        // Save calculated velocity and reaction for print (only at FEM nodes)
-        #pragma omp parallel for
-        for(int i = 0; i<NNodes; i++) {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
-            it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-            it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress;
-            it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = 0.0;
-        }
-    }
-
-    mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = pTargetStressTable->GetValue(CurrentTime);
 
     KRATOS_CATCH("");
 }
@@ -448,16 +401,19 @@ void ExecuteInitializeSolutionStep()
 // After FEM and DEM solution
 void ExecuteFinalizeSolutionStep()
 {
+    // TODO: here
+    // Update ReactionStresses, Stiffness matrix and print results
+
     // Update K with latest ReactionStress after the axis has been loaded
-    if (mApplyCM == true) {
-        if (mAlternateAxisLoading == true) {
-            const double delta_time = mrDemModelPart.GetProcessInfo()[DELTA_TIME];
-            double ReactionStress = CalculateReactionStress();
-            if(mUpdateStiffness == true) {
-                mStiffness = EstimateStiffness(ReactionStress,delta_time);
-            }
-        }
-    }
+    // if (mApplyCM == true) {
+    //     if (mAlternateAxisLoading == true) {
+    //         const double delta_time = mrDemModelPart.GetProcessInfo()[DELTA_TIME];
+    //         double ReactionStress = CalculateReactionStress();
+    //         if(mUpdateStiffness == true) {
+    //             mStiffness = EstimateStiffness(ReactionStress,delta_time);
+    //         }
+    //     }
+    // }
 }
 
 //***************************************************************************************************************
@@ -509,17 +465,17 @@ protected:
     double mVelocityFactor;
     double mStressIncrementTolerance;
     bool mUpdateStiffness;
-    double mCMTimeStep;
+    double mCMDeltaTime;
     double mStiffnessAlpha;
     bool mAxisymmetry;
-    unsigned int mStep;
+    unsigned int mStep; // TODO ?
+    double mCMTime;
     std::map<std::string, std::vector<ModelPart*>> mFEMBoundariesSubModelParts; /// FEM SubModelParts associated to each boundary of every actuator
     std::map<std::string, std::vector<ModelPart*>> mDEMBoundariesSubModelParts; /// DEM SubModelParts associated to each boundary of every actuator
     std::map<std::string, std::vector<array_1d<double,3>>> mOuterNormals; /// OuterNormal associated to each FEM boundary of every actuator
     std::map<std::string, unsigned int> mTargetStressTableIds; /// TargetStressTableIds associated to every actuator
-    std::map<std::string, double> mLimitVelocities;
-    std::map<std::string, double> mCompressionLengths;
     std::vector<Vector> mVectorsOfLastStresses;
+    Vector mLimitVelocities;
     Vector mVelocity;
     Vector mReactionStress;
     Matrix mStiffness;
