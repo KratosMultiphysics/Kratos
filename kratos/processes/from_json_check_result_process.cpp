@@ -397,6 +397,8 @@ FromJSONCheckResultProcess::SizeType FromJSONCheckResultProcess::SizeDatabase(
     const ElementsArrayType& rElementsArray
     )
 {
+    KRATOS_TRY;
+
     // Iterators
     const auto it_node_begin = rNodesArray.begin();
     const auto it_elem_begin = rElementsArray.begin();
@@ -472,6 +474,8 @@ FromJSONCheckResultProcess::SizeType FromJSONCheckResultProcess::SizeDatabase(
     mDatabaseGP.Initialize(gp_variables_ids, gp_values_sizes, rElementsArray.size(), number_of_gp);
 
     return number_of_gp;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -484,6 +488,8 @@ void FromJSONCheckResultProcess::FillDatabase(
     const SizeType NumberOfGP
     )
 {
+    KRATOS_TRY;
+
     // Iterators
     const auto it_node_begin = rNodesArray.begin();
     const auto it_elem_begin = rElementsArray.begin();
@@ -642,6 +648,8 @@ void FromJSONCheckResultProcess::FillDatabase(
             }
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
