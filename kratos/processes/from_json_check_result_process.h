@@ -439,20 +439,12 @@ public:
     }
 
     /**
-     * @brief This method clears the database of the common column vector
-     */
-    void ClearCommonColumn()
-    {
-        mCommonColumn.clear();
-    }
-
-    /**
      * @brief This function is designed for clear all the databases
      */
     void Clear()
     {
         this->clear();
-        ClearCommonColumn();
+        mCommonColumn.clear();
     }
 
     /**
