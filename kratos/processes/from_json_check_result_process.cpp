@@ -117,95 +117,24 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY;
 
-    const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
     const double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
     mTimeCounter += dt;
 
     IndexType check_counter = 0;
 
-    const auto& r_gp_database = GetGPDatabase();
-
     if (mTimeCounter > mFrequency) {
         mTimeCounter = 0.0;
 
+        // Check node values
         if (this->Is(HISTORICAL_VALUE)) {
             CheckNodeValues<true>(check_counter);
         } else { // Non-historical values
             CheckNodeValues<false>(check_counter);
         }
 
-        // Getting process info
-        const auto& r_process_info = mrModelPart.GetProcessInfo();
-
-        // Iterate over elements
-        const auto& r_elements_array = GetElements();
-        const auto it_elem_begin = r_elements_array.begin();
-
-        // Result vectors
-        std::vector<double> result_double;
-        std::vector<array_1d<double,3>> result_array;
-        std::vector<Vector> result_vector;
-
-        for (auto& p_var_double : mpGPVariableDoubleList) {
-            const auto& r_var_database = r_gp_database.GetVariableData(*p_var_double);
-
-            #pragma omp parallel for reduction(+:check_counter) firstprivate(result_double)
-            for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-                auto it_elem = it_elem_begin + i;
-
-                const auto& r_entity_database = r_var_database.GetEntityData(i);
-                it_elem->CalculateOnIntegrationPoints(*p_var_double, result_double, r_process_info);
-                for (IndexType i_gp = 0; i_gp < result_double.size(); ++i_gp) {
-                    const double result = result_double[i_gp];
-                    const double reference = r_entity_database.GetValue(time, 0, i_gp);
-                    if (!CheckValues(result, reference)) {
-                        FailMessage(it_elem->Id(), "Element", result, reference, p_var_double->Name(), -1, i_gp);
-                        check_counter += 1;
-                    }
-                }
-            }
-        }
-        for (auto& p_var_array : mpGPVariableArrayList) {
-            const auto& r_var_database = r_gp_database.GetVariableData(*p_var_array);
-
-            #pragma omp parallel for reduction(+:check_counter) firstprivate(result_array)
-            for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-                auto it_elem = it_elem_begin + i;
-
-                const auto& r_entity_database = r_var_database.GetEntityData(i);
-                it_elem->CalculateOnIntegrationPoints(*p_var_array, result_array, r_process_info);
-                for (IndexType i_gp = 0; i_gp < result_array.size(); ++i_gp) {
-                    for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
-                        const double reference = r_entity_database.GetValue(time, i_comp, i_gp);
-                        if (!CheckValues(result_array[i_gp][i_comp], reference)) {
-                            FailMessage(it_elem->Id(), "Element", result_array[i_gp][i_comp], reference, p_var_array->Name(), i_comp, i_gp);
-                            check_counter += 1;
-                        }
-                    }
-                }
-            }
-        }
-        for (auto& p_var_vector : mpGPVariableVectorList) {
-            const auto& r_var_database = r_gp_database.GetVariableData(*p_var_vector);
-
-            #pragma omp parallel for reduction(+:check_counter) firstprivate(result_vector)
-            for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-                auto it_elem = it_elem_begin + i;
-
-                const auto& r_entity_database = r_var_database.GetEntityData(i);
-                it_elem->CalculateOnIntegrationPoints(*p_var_vector, result_vector, r_process_info);
-                for (IndexType i_gp = 0; i_gp < result_vector.size(); ++i_gp) {
-                    for (IndexType i_comp = 0; i_comp < result_vector[i_gp].size(); ++i_comp) {
-                        const double reference = r_entity_database.GetValue(time, i_comp, i_gp);
-                        if (!CheckValues(result_vector[i_gp][i_comp], reference)) {
-                            FailMessage(it_elem->Id(), "Element", result_vector[i_gp][i_comp], reference, p_var_vector->Name(), i_comp, i_gp);
-                            check_counter += 1;
-                        }
-                    }
-                }
-            }
-        }
+        // Check GP values
+        CheckGPValues(check_counter);
     }
 
     // Final check
@@ -585,6 +514,90 @@ void FromJSONCheckResultProcess::FailMessage(
             KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << " in GP " << GPIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
         } else {
             KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
+{
+    // Get time
+    const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
+
+    // GP database
+    const auto& r_gp_database = GetGPDatabase();
+
+    // Getting process info
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
+
+    // Iterate over elements
+    const auto& r_elements_array = GetElements();
+    const auto it_elem_begin = r_elements_array.begin();
+
+    // Result vectors
+    std::vector<double> result_double;
+    std::vector<array_1d<double,3>> result_array;
+    std::vector<Vector> result_vector;
+
+    for (auto& p_var_double : mpGPVariableDoubleList) {
+        const auto& r_var_database = r_gp_database.GetVariableData(*p_var_double);
+
+        #pragma omp parallel for reduction(+:rCheckCounter) firstprivate(result_double)
+        for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+            auto it_elem = it_elem_begin + i;
+
+            const auto& r_entity_database = r_var_database.GetEntityData(i);
+            it_elem->CalculateOnIntegrationPoints(*p_var_double, result_double, r_process_info);
+            for (IndexType i_gp = 0; i_gp < result_double.size(); ++i_gp) {
+                const double result = result_double[i_gp];
+                const double reference = r_entity_database.GetValue(time, 0, i_gp);
+                if (!CheckValues(result, reference)) {
+                    FailMessage(it_elem->Id(), "Element", result, reference, p_var_double->Name(), -1, i_gp);
+                    rCheckCounter += 1;
+                }
+            }
+        }
+    }
+    for (auto& p_var_array : mpGPVariableArrayList) {
+        const auto& r_var_database = r_gp_database.GetVariableData(*p_var_array);
+
+        #pragma omp parallel for reduction(+:rCheckCounter) firstprivate(result_array)
+        for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+            auto it_elem = it_elem_begin + i;
+
+            const auto& r_entity_database = r_var_database.GetEntityData(i);
+            it_elem->CalculateOnIntegrationPoints(*p_var_array, result_array, r_process_info);
+            for (IndexType i_gp = 0; i_gp < result_array.size(); ++i_gp) {
+                for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
+                    const double reference = r_entity_database.GetValue(time, i_comp, i_gp);
+                    if (!CheckValues(result_array[i_gp][i_comp], reference)) {
+                        FailMessage(it_elem->Id(), "Element", result_array[i_gp][i_comp], reference, p_var_array->Name(), i_comp, i_gp);
+                        rCheckCounter += 1;
+                    }
+                }
+            }
+        }
+    }
+    for (auto& p_var_vector : mpGPVariableVectorList) {
+        const auto& r_var_database = r_gp_database.GetVariableData(*p_var_vector);
+
+        #pragma omp parallel for reduction(+:rCheckCounter) firstprivate(result_vector)
+        for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+            auto it_elem = it_elem_begin + i;
+
+            const auto& r_entity_database = r_var_database.GetEntityData(i);
+            it_elem->CalculateOnIntegrationPoints(*p_var_vector, result_vector, r_process_info);
+            for (IndexType i_gp = 0; i_gp < result_vector.size(); ++i_gp) {
+                for (IndexType i_comp = 0; i_comp < result_vector[i_gp].size(); ++i_comp) {
+                    const double reference = r_entity_database.GetValue(time, i_comp, i_gp);
+                    if (!CheckValues(result_vector[i_gp][i_comp], reference)) {
+                        FailMessage(it_elem->Id(), "Element", result_vector[i_gp][i_comp], reference, p_var_vector->Name(), i_comp, i_gp);
+                        rCheckCounter += 1;
+                    }
+                }
+            }
         }
     }
 }

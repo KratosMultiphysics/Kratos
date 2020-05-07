@@ -735,7 +735,7 @@ protected:
     /**
      * @brief This method check the nodal values
      * @param rCheckCounter The check counter
-     * @tparam THistorical If the vcalue is historical or not
+     * @tparam THistorical If the value is historical or not
      */
     template<bool THistorical>
     void CheckNodeValues(IndexType& rCheckCounter)
@@ -802,6 +802,12 @@ protected:
             }
         }
     }
+
+    /**
+     * @brief This method check the GP values
+     * @param rCheckCounter The check counter
+     */
+    void CheckGPValues(IndexType& rCheckCounter);
 
     /**
      * @brief Returns the identifier/key for saving nodal results in the json this can be either the node Id or its coordinates
@@ -910,7 +916,7 @@ private:
      * @brief This gets the double value
      * @param itNode Node iterator
      * @param pVariable The double variable
-     * @tparam THistorical If the vcalue is historical or not
+     * @tparam THistorical If the value is historical or not
      */
     template<bool THistorical>
     const double GetValue(
@@ -922,7 +928,7 @@ private:
      * @brief This gets the array value
      * @param itNode Node iterator
      * @param pVariable The array variable
-     * @tparam THistorical If the vcalue is historical or not
+     * @tparam THistorical If the value is historical or not
      */
     template<bool THistorical>
     const array_1d<double, 3>& GetValue(
@@ -934,7 +940,7 @@ private:
      * @brief This gets the vector value
      * @param itNode Node iterator
      * @param pVariable The vector variable
-     * @tparam THistorical If the vcalue is historical or not
+     * @tparam THistorical If the value is historical or not
      */
     template<bool THistorical>
     const Vector& GetValue(
