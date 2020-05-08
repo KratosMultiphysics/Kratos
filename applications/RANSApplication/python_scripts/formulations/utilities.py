@@ -39,6 +39,19 @@ else:
     raise Exception("Distributed run requires TrilinosApplication")
 
 
+def GetDefaultConditionName(model_part):
+    process_info = model_part.ProcessInfo
+    if (process_info.Has(Kratos.DOMAIN_SIZE)):
+        domain_size = process_info[Kratos.DOMAIN_SIZE]
+        if (domain_size == 2):
+            return "LineCondition"
+        elif (domain_size == 3):
+            return "SurfaceCondition"
+        else:
+            raise Exception("Unsupported domain size. [ DOMAIN_SIZE = " + str(domain_size) + " ].")
+    else:
+        raise Exception("DOMAIN_SIZE is not found in process info of " + model_part.Name() + ".")
+
 def CreateResidualBasedBlockBuilderAndSolver(linear_solver, is_periodic,
                                              communicator):
     if (is_periodic):

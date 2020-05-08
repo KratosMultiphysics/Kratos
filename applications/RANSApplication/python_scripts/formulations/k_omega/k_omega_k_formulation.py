@@ -23,7 +23,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferIn
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetBoundaryFlags
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeYPlusVariablesInConditions
-
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetDefaultConditionName
 
 class KOmegaKFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -46,7 +46,8 @@ class KOmegaKFormulation(Formulation):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def PrepareModelPart(self):
-        self.k_model_part = CreateFormulationModelPart(self, self.element_name, "LineCondition")
+        condition_name = GetDefaultConditionName(self.GetBaseModelPart())
+        self.k_model_part = CreateFormulationModelPart(self, self.element_name, condition_name)
 
         Kratos.Logger.PrintInfo(self.GetName(),
                                 "Created formulation model part.")
