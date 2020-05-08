@@ -81,15 +81,12 @@ GeometryData::IntegrationMethod OmegaElementData<TDim>::GetIntegrationMethod()
 template <unsigned int TDim>
 void OmegaElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
 {
-    mA1 = rCurrentProcessInfo[TURBULENCE_RANS_A1];
     mBeta1 = rCurrentProcessInfo[TURBULENCE_RANS_BETA_1];
     mBeta2 = rCurrentProcessInfo[TURBULENCE_RANS_BETA_2];
     mSigmaOmega1 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1];
     mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     mKappa = rCurrentProcessInfo[WALL_VON_KARMAN];
-    mAveragedTurbulentKinematicViscosity = 0.0;
-    mGaussPointCount = 0.0;
 }
 
 template <unsigned int TDim>
@@ -110,6 +107,8 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
         1e-12);
     mKinematicViscosity = EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, rShapeFunctions);
     mWallDistance = EvaluateInPoint(r_geometry, DISTANCE, rShapeFunctions);
+    mTurbulentKinematicViscosity =
+        EvaluateInPoint(r_geometry, TURBULENT_VISCOSITY, rShapeFunctions);
 
     CalculateGradient(mTurbulentKineticEnergyGradient, r_geometry,
                       TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives, Step);
@@ -125,10 +124,6 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
     mF1 = EvmKOmegaSSTElementDataUtilities::CalculateF1(
         mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
         mKinematicViscosity, mWallDistance, mBetaStar, mCrossDiffusion, mSigmaOmega2);
-
-    const double f_2 = EvmKOmegaSSTElementDataUtilities::CalculateF2(
-        mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
-        mKinematicViscosity, mWallDistance, mBetaStar);
 
     mBlendedSigmaOmega = EvmKOmegaSSTElementDataUtilities::CalculateBlendedPhi(
         mSigmaOmega1, mSigmaOmega2, mF1);
@@ -147,18 +142,6 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
 
     CalculateGradient<TDim>(mVelocityGradient, r_geometry, VELOCITY,
                             rShapeFunctionDerivatives, Step);
-
-    const array_1d<double, 3>& r_vorticity =
-        EvmKOmegaSSTElementDataUtilities::CalculateVorticity<TDim>(mVelocityGradient);
-    const double vorticity_norm = norm_2(r_vorticity);
-
-    mTurbulentKinematicViscosity =
-        EvmKOmegaSSTElementDataUtilities::CalculateTurbulentKinematicViscosity(
-            mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
-            vorticity_norm, f_2, mA1);
-
-    mAveragedTurbulentKinematicViscosity += mTurbulentKinematicViscosity;
-    mGaussPointCount += 1.0;
 
     KRATOS_CATCH("");
 }
@@ -184,9 +167,10 @@ template <unsigned int TDim>
 double OmegaElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctions,
                                                      const Matrix& rShapeFunctionDerivatives) const
 {
-    return std::max(mBlendedBeta * mTurbulentKineticEnergy / mTurbulentKinematicViscosity +
-                        mBlendedGamma * 2.0 * mVelocityDivergence / 3.0,
-                    0.0);
+    double value = mBlendedBeta * mTurbulentSpecificEnergyDissipationRate;
+    value -= (1.0 - mF1) * mCrossDiffusion / mTurbulentSpecificEnergyDissipationRate;
+    value += mBlendedGamma * 2.0 * mVelocityDivergence / 3.0;
+    return std::max(value, 0.0);
 }
 
 template <unsigned int TDim>
@@ -200,16 +184,7 @@ double OmegaElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions
 
     production *= (mBlendedGamma / mTurbulentKinematicViscosity);
 
-    production += (1.0 - mF1) * mCrossDiffusion;
-
     return production;
-}
-
-template <unsigned int TDim>
-void OmegaElementData<TDim>::UpdateElementDataValueContainer(Element& rElement) const
-{
-    rElement.SetValue(TURBULENT_VISCOSITY,
-                      mAveragedTurbulentKinematicViscosity / mGaussPointCount);
 }
 
 // template instantiations

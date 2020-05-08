@@ -80,7 +80,6 @@ GeometryData::IntegrationMethod KElementData<TDim>::GetIntegrationMethod()
 template <unsigned int TDim>
 void KElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
 {
-    mA1 = rCurrentProcessInfo[TURBULENCE_RANS_A1];
     mSigmaK1 = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA_1];
     mSigmaK2 = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA_2];
     mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
@@ -105,6 +104,8 @@ void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
         1e-12);
     mKinematicViscosity = EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, rShapeFunctions);
     mWallDistance = EvaluateInPoint(r_geometry, DISTANCE, rShapeFunctions);
+    mTurbulentKinematicViscosity =
+        EvaluateInPoint(r_geometry, TURBULENT_VISCOSITY, rShapeFunctions);
 
     CalculateGradient(mTurbulentKineticEnergyGradient, r_geometry,
                       TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives, Step);
@@ -121,10 +122,6 @@ void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
         mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
         mKinematicViscosity, mWallDistance, mBetaStar, mCrossDiffusion, mSigmaOmega2);
 
-    const double f_2 = EvmKOmegaSSTElementDataUtilities::CalculateF2(
-        mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
-        mKinematicViscosity, mWallDistance, mBetaStar);
-
     mBlendedSimgaK =
         EvmKOmegaSSTElementDataUtilities::CalculateBlendedPhi(mSigmaK1, mSigmaK2, f_1);
 
@@ -132,15 +129,6 @@ void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
 
     CalculateGradient<TDim>(mVelocityGradient, r_geometry, VELOCITY,
                             rShapeFunctionDerivatives, Step);
-
-    const array_1d<double, 3>& r_vorticity =
-        EvmKOmegaSSTElementDataUtilities::CalculateVorticity<TDim>(mVelocityGradient);
-    const double vorticity_norm = norm_2(r_vorticity);
-
-    mTurbulentKinematicViscosity =
-        EvmKOmegaSSTElementDataUtilities::CalculateTurbulentKinematicViscosity(
-            mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
-            vorticity_norm, f_2, mA1);
 
     KRATOS_CATCH("");
 }

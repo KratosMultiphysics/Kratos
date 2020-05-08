@@ -88,14 +88,11 @@ public:
     double CalculateSourceTerm(const Vector& rShapeFunctions,
                                const Matrix& rShapeFunctionDerivatives) const override;
 
-    void UpdateElementDataValueContainer(Element& rElement) const override;
-
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
     array_1d<double, 3> mTurbulentKineticEnergyGradient;
     array_1d<double, 3> mTurbulentSpecificEnergyDissipationRateGradient;
 
-    double mA1;
     double mBeta1;
     double mBeta2;
     double mSigmaOmega1;
@@ -113,8 +110,6 @@ protected:
     double mVelocityDivergence;
     double mTurbulentKinematicViscosity;
     double mKappa;
-    double mAveragedTurbulentKinematicViscosity;
-    double mGaussPointCount;
 };
 
 ///@}

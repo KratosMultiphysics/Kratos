@@ -93,7 +93,6 @@ protected:
     array_1d<double, 3> mTurbulentKineticEnergyGradient;
     array_1d<double, 3> mTurbulentSpecificEnergyDissipationRateGradient;
 
-    double mA1;
     double mSigmaK1;
     double mSigmaK2;
     double mSigmaOmega2;
