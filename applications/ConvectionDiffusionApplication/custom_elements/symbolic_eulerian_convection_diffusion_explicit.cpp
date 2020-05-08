@@ -222,6 +222,11 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     rVariables.diffusivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
     rVariables.unknown[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable());
     rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
+    // convective_velocity = velocity - velocity_mesh
+    // velocity_mesh = 0 in eulerian framework
+    rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
+    rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
+    rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2];
 }
 
     KRATOS_CATCH( "" )
@@ -242,29 +247,40 @@ void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContributi
     const auto k = inner_prod(N,rVariables.diffusivity);
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
+    const auto v = rVariables.convective_velocity;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
-    const double clhs0 =             k*(DN(0,0)*DN(1,0) + DN(0,1)*DN(1,1));
-const double clhs1 =             k*(DN(0,0)*DN(2,0) + DN(0,1)*DN(2,1));
-const double clhs2 =             k*(DN(1,0)*DN(2,0) + DN(1,1)*DN(2,1));
-            lhs(0,0)=k*(pow(DN(0,0), 2) + pow(DN(0,1), 2));
-            lhs(0,1)=clhs0;
-            lhs(0,2)=clhs1;
-            lhs(1,0)=clhs0;
-            lhs(1,1)=k*(pow(DN(1,0), 2) + pow(DN(1,1), 2));
-            lhs(1,2)=clhs2;
-            lhs(2,0)=clhs1;
-            lhs(2,1)=clhs2;
-            lhs(2,2)=k*(pow(DN(2,0), 2) + pow(DN(2,1), 2));
+    const double clhs0 =             N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0);
+const double clhs1 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1);
+const double clhs2 =             DN(0,0)*clhs0 + DN(0,1)*clhs1;
+const double clhs3 =             DN(1,0)*clhs0 + DN(1,1)*clhs1;
+const double clhs4 =             DN(0,0)*k;
+const double clhs5 =             DN(0,1)*k;
+const double clhs6 =             DN(1,0)*clhs4 + DN(1,1)*clhs5;
+const double clhs7 =             DN(2,0)*clhs0 + DN(2,1)*clhs1;
+const double clhs8 =             DN(2,0)*clhs4 + DN(2,1)*clhs5;
+const double clhs9 =             DN(1,0)*DN(2,0)*k + DN(1,1)*DN(2,1)*k;
+            lhs(0,0)=pow(DN(0,0), 2)*k + pow(DN(0,1), 2)*k + N[0]*clhs2;
+            lhs(0,1)=N[0]*clhs3 + clhs6;
+            lhs(0,2)=N[0]*clhs7 + clhs8;
+            lhs(1,0)=N[1]*clhs2 + clhs6;
+            lhs(1,1)=pow(DN(1,0), 2)*k + pow(DN(1,1), 2)*k + N[1]*clhs3;
+            lhs(1,2)=N[1]*clhs7 + clhs9;
+            lhs(2,0)=N[2]*clhs2 + clhs8;
+            lhs(2,1)=N[2]*clhs3 + clhs9;
+            lhs(2,2)=pow(DN(2,0), 2)*k + pow(DN(2,1), 2)*k + N[2]*clhs7;
 
 
     const double crhs0 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2];
 const double crhs1 =             DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2];
-const double crhs2 =             DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2];
-            rhs[0]=k*(-DN(0,0)*crhs1 - DN(0,1)*crhs2 + N[0]*crhs0);
-            rhs[1]=k*(-DN(1,0)*crhs1 - DN(1,1)*crhs2 + N[1]*crhs0);
-            rhs[2]=k*(-DN(2,0)*crhs1 - DN(2,1)*crhs2 + N[2]*crhs0);
+const double crhs2 =             crhs1*k;
+const double crhs3 =             DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2];
+const double crhs4 =             crhs3*k;
+const double crhs5 =             crhs1*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0)) + crhs3*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1));
+            rhs[0]=-DN(0,0)*crhs2 - DN(0,1)*crhs4 + N[0]*crhs0 - N[0]*crhs5;
+            rhs[1]=-DN(1,0)*crhs2 - DN(1,1)*crhs4 + N[1]*crhs0 - N[1]*crhs5;
+            rhs[2]=-DN(2,0)*crhs2 - DN(2,1)*crhs4 + N[2]*crhs0 - N[2]*crhs5;
 
 
     noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
@@ -285,41 +301,59 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContributi
     const auto k = inner_prod(N,rVariables.diffusivity);
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
+    const auto v = rVariables.convective_velocity;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
-    const double clhs0 =             k*(DN(0,0)*DN(1,0) + DN(0,1)*DN(1,1) + DN(0,2)*DN(1,2));
-const double clhs1 =             k*(DN(0,0)*DN(2,0) + DN(0,1)*DN(2,1) + DN(0,2)*DN(2,2));
-const double clhs2 =             k*(DN(0,0)*DN(3,0) + DN(0,1)*DN(3,1) + DN(0,2)*DN(3,2));
-const double clhs3 =             k*(DN(1,0)*DN(2,0) + DN(1,1)*DN(2,1) + DN(1,2)*DN(2,2));
-const double clhs4 =             k*(DN(1,0)*DN(3,0) + DN(1,1)*DN(3,1) + DN(1,2)*DN(3,2));
-const double clhs5 =             k*(DN(2,0)*DN(3,0) + DN(2,1)*DN(3,1) + DN(2,2)*DN(3,2));
-            lhs(0,0)=k*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2));
-            lhs(0,1)=clhs0;
-            lhs(0,2)=clhs1;
-            lhs(0,3)=clhs2;
-            lhs(1,0)=clhs0;
-            lhs(1,1)=k*(pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2));
-            lhs(1,2)=clhs3;
-            lhs(1,3)=clhs4;
-            lhs(2,0)=clhs1;
-            lhs(2,1)=clhs3;
-            lhs(2,2)=k*(pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2));
-            lhs(2,3)=clhs5;
-            lhs(3,0)=clhs2;
-            lhs(3,1)=clhs4;
-            lhs(3,2)=clhs5;
-            lhs(3,3)=k*(pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
+    const double clhs0 =             N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0);
+const double clhs1 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1);
+const double clhs2 =             N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2);
+const double clhs3 =             DN(0,0)*clhs0 + DN(0,1)*clhs1 + DN(0,2)*clhs2;
+const double clhs4 =             DN(1,0)*clhs0 + DN(1,1)*clhs1 + DN(1,2)*clhs2;
+const double clhs5 =             DN(0,0)*k;
+const double clhs6 =             DN(0,1)*k;
+const double clhs7 =             DN(0,2)*k;
+const double clhs8 =             DN(1,0)*clhs5 + DN(1,1)*clhs6 + DN(1,2)*clhs7;
+const double clhs9 =             DN(2,0)*clhs0 + DN(2,1)*clhs1 + DN(2,2)*clhs2;
+const double clhs10 =             DN(2,0)*clhs5 + DN(2,1)*clhs6 + DN(2,2)*clhs7;
+const double clhs11 =             DN(3,0)*clhs0 + DN(3,1)*clhs1 + DN(3,2)*clhs2;
+const double clhs12 =             DN(3,0)*clhs5 + DN(3,1)*clhs6 + DN(3,2)*clhs7;
+const double clhs13 =             DN(1,0)*k;
+const double clhs14 =             DN(1,1)*k;
+const double clhs15 =             DN(1,2)*k;
+const double clhs16 =             DN(2,0)*clhs13 + DN(2,1)*clhs14 + DN(2,2)*clhs15;
+const double clhs17 =             DN(3,0)*clhs13 + DN(3,1)*clhs14 + DN(3,2)*clhs15;
+const double clhs18 =             DN(2,0)*DN(3,0)*k + DN(2,1)*DN(3,1)*k + DN(2,2)*DN(3,2)*k;
+            lhs(0,0)=pow(DN(0,0), 2)*k + pow(DN(0,1), 2)*k + pow(DN(0,2), 2)*k + N[0]*clhs3;
+            lhs(0,1)=N[0]*clhs4 + clhs8;
+            lhs(0,2)=N[0]*clhs9 + clhs10;
+            lhs(0,3)=N[0]*clhs11 + clhs12;
+            lhs(1,0)=N[1]*clhs3 + clhs8;
+            lhs(1,1)=pow(DN(1,0), 2)*k + pow(DN(1,1), 2)*k + pow(DN(1,2), 2)*k + N[1]*clhs4;
+            lhs(1,2)=N[1]*clhs9 + clhs16;
+            lhs(1,3)=N[1]*clhs11 + clhs17;
+            lhs(2,0)=N[2]*clhs3 + clhs10;
+            lhs(2,1)=N[2]*clhs4 + clhs16;
+            lhs(2,2)=pow(DN(2,0), 2)*k + pow(DN(2,1), 2)*k + pow(DN(2,2), 2)*k + N[2]*clhs9;
+            lhs(2,3)=N[2]*clhs11 + clhs18;
+            lhs(3,0)=N[3]*clhs3 + clhs12;
+            lhs(3,1)=N[3]*clhs4 + clhs17;
+            lhs(3,2)=N[3]*clhs9 + clhs18;
+            lhs(3,3)=pow(DN(3,0), 2)*k + pow(DN(3,1), 2)*k + pow(DN(3,2), 2)*k + N[3]*clhs11;
 
 
     const double crhs0 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2] + N[3]*f[3];
 const double crhs1 =             DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2] + DN(3,0)*phi[3];
-const double crhs2 =             DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2] + DN(3,1)*phi[3];
-const double crhs3 =             DN(0,2)*phi[0] + DN(1,2)*phi[1] + DN(2,2)*phi[2] + DN(3,2)*phi[3];
-            rhs[0]=k*(-DN(0,0)*crhs1 - DN(0,1)*crhs2 - DN(0,2)*crhs3 + N[0]*crhs0);
-            rhs[1]=k*(-DN(1,0)*crhs1 - DN(1,1)*crhs2 - DN(1,2)*crhs3 + N[1]*crhs0);
-            rhs[2]=k*(-DN(2,0)*crhs1 - DN(2,1)*crhs2 - DN(2,2)*crhs3 + N[2]*crhs0);
-            rhs[3]=k*(-DN(3,0)*crhs1 - DN(3,1)*crhs2 - DN(3,2)*crhs3 + N[3]*crhs0);
+const double crhs2 =             crhs1*k;
+const double crhs3 =             DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2] + DN(3,1)*phi[3];
+const double crhs4 =             crhs3*k;
+const double crhs5 =             DN(0,2)*phi[0] + DN(1,2)*phi[1] + DN(2,2)*phi[2] + DN(3,2)*phi[3];
+const double crhs6 =             crhs5*k;
+const double crhs7 =             crhs1*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) + crhs3*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) + crhs5*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2));
+            rhs[0]=-DN(0,0)*crhs2 - DN(0,1)*crhs4 - DN(0,2)*crhs6 + N[0]*crhs0 - N[0]*crhs7;
+            rhs[1]=-DN(1,0)*crhs2 - DN(1,1)*crhs4 - DN(1,2)*crhs6 + N[1]*crhs0 - N[1]*crhs7;
+            rhs[2]=-DN(2,0)*crhs2 - DN(2,1)*crhs4 - DN(2,2)*crhs6 + N[2]*crhs0 - N[2]*crhs7;
+            rhs[3]=-DN(3,0)*crhs2 - DN(3,1)*crhs4 - DN(3,2)*crhs6 + N[3]*crhs0 - N[3]*crhs7;
 
 
     noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;

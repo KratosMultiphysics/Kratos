@@ -6,14 +6,10 @@ from KratosMultiphysics.sympy_fe_utilities import *
 # DIMENSION TO COMPUTE:
 # This symbolic generator is valid for both 2D and 3D cases. Since the element has been programed with a dimension template in Kratos,
 # it is advised to set the dim_to_compute flag as "Both". In this case the generated .cpp file will contain both 2D and 3D implementations.
-# LINEARISATION SETTINGS:
-# FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
-# Picard (a.k.a. QuasiNR) considers the convective velocity as "a", thus it is considered as a constant in the derivation of the LHS and RHS.
 
 ## Symbolic generation settings
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR"
 ASGS_stabilization = False          # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
 
@@ -48,22 +44,24 @@ for dim in dim_vector:
     N,DN = DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
 
     ## Unknown fields definition
-    phi = DefineVector('phi',nnodes)            # scalar unknown
+    phi = DefineVector('phi',nnodes) # scalar unknown
 
     ## Test functions definition
-    w = DefineMatrix('w',nnodes,dim)            # vector unknown field test function (not needed)
-    q = DefineVector('q',nnodes)                # scalar unknown field test function
+    w = DefineMatrix('w',nnodes,dim) # vector unknown field test function (not needed)
+    q = DefineVector('q',nnodes)     # scalar unknown field test function
 
     ## Other data definitions
-    f = DefineVector('f',nnodes)                # forcing term
+    f = DefineVector('f',nnodes)     # forcing term
 
     ## Other simbols definition
-    k   = Symbol('k',positive= True)            # diffusion coefficient
+    k = Symbol('k',positive= True)   # diffusion coefficient
+    v = DefineMatrix('v',nnodes,dim) # convective velocity
 
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
     w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N
+    v_gauss = v.transpose()*N
 
     ## Gradient and divergence computation
     grad_w = DfjDxi(DN,w)
@@ -73,7 +71,10 @@ for dim in dim_vector:
 
     ## Compute galerkin functional
     # Diffusion functional
-    rv_galerkin = k*q_gauss.transpose()*f_gauss - k*grad_phi.transpose()*grad_q
+    rhs_forcing = q_gauss.transpose() * f_gauss
+    rhs_diffusion = - k * grad_phi.transpose() * grad_q
+    rhs_convective = - q_gauss.transpose() * (v_gauss.transpose() * grad_phi)
+    rhs_galerkin = rhs_forcing + rhs_diffusion + rhs_convective
 
     ##  Stabilization functional terms
 
@@ -83,9 +84,9 @@ for dim in dim_vector:
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
-        rv = rv_galerkin + rv_stab
+        res = rhs_galerkin + rhs_stab
     else:
-        rv = rv_galerkin
+        res = rhs_galerkin
 
     ## Define DOFs and test function vectors
     dofs = Matrix( zeros(nnodes*(1), 1) ) # 1 because scalar unknown
@@ -97,7 +98,7 @@ for dim in dim_vector:
         testfunc[i*(1)] = q[i,0]
 
     ## Compute LHS and RHS
-    rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
+    rhs = Compute_RHS(res.copy(), testfunc, do_simplifications)
     rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)

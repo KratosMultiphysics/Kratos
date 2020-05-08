@@ -222,6 +222,11 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     rVariables.diffusivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
     rVariables.unknown[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable());
     rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
+    // convective_velocity = velocity - velocity_mesh
+    // velocity_mesh = 0 in eulerian framework
+    rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
+    rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
+    rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2];
 }
 
     KRATOS_CATCH( "" )
@@ -242,6 +247,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContributi
     const auto k = inner_prod(N,rVariables.diffusivity);
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
+    const auto v = rVariables.convective_velocity;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
@@ -267,6 +273,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContributi
     const auto k = inner_prod(N,rVariables.diffusivity);
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
+    const auto v = rVariables.convective_velocity;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 

@@ -146,6 +146,7 @@ protected:
         array_1d<double,TNumNodes> diffusivity;
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
+        BoundedMatrix<double,TNumNodes,3> convective_velocity;
 
         // auxiliary containers for the symbolically-generated matrices
         BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
