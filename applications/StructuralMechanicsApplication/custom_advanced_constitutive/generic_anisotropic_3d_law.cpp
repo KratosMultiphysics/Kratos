@@ -105,7 +105,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
 
         // Here we compute the rotation tensors due to the angles of the local and global axes
         BoundedMatrixType rotation_matrix;
-        BoundedMatrixVoigtType voigt_rotation_matrix, inv_voigt_rotation_matrix;
+        BoundedMatrixVoigtType voigt_rotation_matrix;
 
         if (r_material_properties.Has(EULER_ANGLES)   &&
             MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
@@ -116,12 +116,9 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
                 ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                     (rotation_matrix),
                     voigt_rotation_matrix);
-            double aux_det = 0.0;
-            MathUtils<double>::InvertMatrix(voigt_rotation_matrix, inv_voigt_rotation_matrix, aux_det);
         } else {
-            noalias(rotation_matrix)           = IdentityMatrix(Dimension, Dimension);
-            noalias(voigt_rotation_matrix)     = IdentityMatrix(VoigtSize, VoigtSize);
-            noalias(inv_voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
+            noalias(rotation_matrix)       = IdentityMatrix(Dimension, Dimension);
+            noalias(voigt_rotation_matrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }
         
         // We compute the mappers As and Ae
