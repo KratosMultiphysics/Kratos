@@ -49,3 +49,5 @@ Furthermore it is possible to do a minimal installation of the TrilinosApplicati
 - *TRILINOS_EXCLUDE_ML_SOLVER*: Setting this flag to `ON` in the configure file will exclude the interface to the Trilinos ML solver package
 - *TRILINOS_EXCLUDE_AZTEC_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers from the Trilinos AztecOO package
 - *TRILINOS_EXCLUDE_AMESOS_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers using features of the Trilinos Amesos package
+
+### Known Issues
