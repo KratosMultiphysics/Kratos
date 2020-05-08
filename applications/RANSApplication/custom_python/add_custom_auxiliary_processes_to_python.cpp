@@ -37,6 +37,7 @@
 #include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_update_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_k_omega_update_process.h"
 #include "custom_processes/auxiliary_processes/rans_omega_turbulent_mixing_inlet_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_k_omega_sst_update_process.h"
 
 // RANS sensitivity processes
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
@@ -161,6 +162,12 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         m, "RansNutKOmegaUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const int>());
+
+    using RansNutKOmegaSSTUpdateProcessType = RansNutKOmegaSSTUpdateProcess;
+    py::class_<RansNutKOmegaSSTUpdateProcessType, RansNutKOmegaSSTUpdateProcessType::Pointer, Process>(
+        m, "RansNutKOmegaSSTUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const double, const int>());
 
     using RansNutYPlusWallFunctionUpdateProcessType = RansNutYPlusWallFunctionUpdateProcess;
     py::class_<RansNutYPlusWallFunctionUpdateProcessType, RansNutYPlusWallFunctionUpdateProcessType::Pointer, Process>(
