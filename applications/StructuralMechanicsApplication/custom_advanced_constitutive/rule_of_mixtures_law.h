@@ -372,32 +372,6 @@ public:
         ) override;
 
     /**
-     * @brief Calculates the value of a specified variable (bool)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    bool& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<bool>& rThisVariable,
-        bool& rValue
-        ) override;
-
-    /**
-     * @brief Calculates the value of a specified variable (int)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    int& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<int>& rThisVariable,
-        int& rValue
-        ) override;
-
-    /**
      * @brief Calculates the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned

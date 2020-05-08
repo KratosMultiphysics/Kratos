@@ -573,69 +573,6 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-bool& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
-    Parameters& rParameterValues,
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
-
-    // We combine the value of each layer (for bools could be problematic)
-    rValue = false;
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        Properties& r_prop = *(it_prop_begin + i_layer);
-
-        rParameterValues.SetMaterialProperties(r_prop);
-        bool aux_value;
-        p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
-        rValue += factor * aux_value;
-    }
-
-    // Reset properties
-    rParameterValues.SetMaterialProperties(r_material_properties);
-
-    return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-int& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
-    Parameters& rParameterValues,
-    const Variable<int>& rThisVariable,
-    int& rValue
-    )
-{
-    const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
-
-    // We combine the value of each layer (for integers could be problematic)
-    rValue = 0;
-    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        Properties& r_prop = *(it_prop_begin + i_layer);
-
-        rParameterValues.SetMaterialProperties(r_prop);
-        int aux_value;
-        p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
-        rValue += factor * aux_value;
-    }
-
-    // Reset properties
-    rParameterValues.SetMaterialProperties(r_material_properties);
-
-    return rValue;
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
