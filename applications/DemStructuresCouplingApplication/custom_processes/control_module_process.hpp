@@ -286,6 +286,7 @@ public:
         KRATOS_CATCH("");
     }
 
+
     /**
      * @brief This function will be executed at every time step AFTER performing the solve phase
      */

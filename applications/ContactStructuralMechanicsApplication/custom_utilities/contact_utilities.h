@@ -343,7 +343,7 @@ public:
         ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
         KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
         const auto it_cond_begin = r_conditions_array.begin();
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
             auto it_cond = it_cond_begin + i;
