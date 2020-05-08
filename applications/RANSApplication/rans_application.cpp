@@ -46,6 +46,8 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmKEpsilonVmsMonolithicWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansVMSMonolithicKBasedWallCondition2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansVMSMonolithicKBasedWallCondition3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansVMSMonolithicHybridWallCondition2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansVMSMonolithicHybridWallCondition3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // k-epsilon turbulence model elements
       mRansEvmKEpsilonKAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonKAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -233,6 +235,9 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWallCondition2D2N", mRansVMSMonolithicKBasedWallCondition2D2N);
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWallCondition3D3N", mRansVMSMonolithicKBasedWallCondition3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansVMSMonolithicHybridWallCondition2D2N", mRansVMSMonolithicHybridWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("RansVMSMonolithicHybridWallCondition3D3N", mRansVMSMonolithicHybridWallCondition3D3N);
 
     // registering low re k-epsilon elements
     KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonLowReK2D3N", mRansEvmKEpsilonLowReK2D);

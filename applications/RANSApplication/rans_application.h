@@ -37,6 +37,7 @@
 // monolithic conditions
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.h"
 #include "custom_conditions/monolithic/rans_vms_monolithic_k_based_wall_condition.h"
+#include "custom_conditions/monolithic/rans_vms_monolithic_hybrid_wall_condition.h"
 
 // stabilized generic convection diffusion reaction elements
 #include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
@@ -256,6 +257,9 @@ private:
 
     const RansVMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWallCondition2D2N;
     const RansVMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWallCondition3D3N;
+
+    const RansVMSMonolithicHybridWallCondition<2> mRansVMSMonolithicHybridWallCondition2D2N;
+    const RansVMSMonolithicHybridWallCondition<3> mRansVMSMonolithicHybridWallCondition3D3N;
 
     /// k-epsilon turbulence model elements
     /// Algebraic flux correction based elements
