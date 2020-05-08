@@ -806,10 +806,7 @@ void StrainRateSpecialization<TElementData,3>::Calculate(
 // Template class instantiation
 
 template class FluidElement< SymbolicNavierStokesData<2,3> >;
-template class FluidElement< SymbolicNavierStokesData<2,4> >;
 template class FluidElement< SymbolicNavierStokesData<3,4> >;
-template class FluidElement< SymbolicNavierStokesData<3,6> >;
-template class FluidElement< SymbolicNavierStokesData<3,8> >;
 
 template class FluidElement< SymbolicStokesData<2,3> >;
 template class FluidElement< SymbolicStokesData<2,4> >;
