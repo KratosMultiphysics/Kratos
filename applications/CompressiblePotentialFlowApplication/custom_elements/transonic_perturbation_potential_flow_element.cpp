@@ -936,28 +936,40 @@ template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindElement(const ProcessInfo& rCurrentProcessInfo)
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
-    
+
     // current element geometry
-    const GeometryType& rGeom = r_this.GetGeometry();
+    const GeometryType& r_geom = r_this.GetGeometry();
 
-    // make clockwise element edge vectors
-    array_1d<double, 3> first_edge(3, 0.0);
-    array_1d<double, 3> second_edge(3, 0.0);
-    array_1d<double, 3> third_edge(3, 0.0);
+    // current element edges
+    auto edges = r_geom.GenerateEdges();
 
-    first_edge[0] = rGeom[0].X() - rGeom[1].X();
-    first_edge[1] = rGeom[0].Y() - rGeom[1].Y();
+    array_1d<double,3> aux_coordinates;
+    const Point current_element_center = r_geom.Center();
+    r_geom.PointLocalCoordinates(aux_coordinates, current_element_center);
 
-    second_edge[0] = rGeom[1].X() - rGeom[2].X();
-    second_edge[1] = rGeom[1].Y() - rGeom[2].Y();
+    // outward pointing normals of each edge
+    auto first_edge_normal = edges[0].Normal(aux_coordinates);
+    auto second_edge_normal = edges[1].Normal(aux_coordinates);
+    auto third_edge_normal = edges[2].Normal(aux_coordinates);
 
-    third_edge[0] = rGeom[2].X() - rGeom[0].X();
-    third_edge[1] = rGeom[2].Y() - rGeom[0].Y();
+    // make normals point into element
+    first_edge_normal[0] = -1.0 * first_edge_normal[0];
+    first_edge_normal[1] = -1.0 * first_edge_normal[1];
+
+    second_edge_normal[0] = -1.0 * second_edge_normal[0];
+    second_edge_normal[1] = -1.0 * second_edge_normal[1];
+
+    third_edge_normal[0] = -1.0 * third_edge_normal[0];
+    third_edge_normal[1] = -1.0 * third_edge_normal[1];
+
+    // get free stream velocity and norm
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const double free_stream_velocity_norm = MathUtils<double>::Norm3(free_stream_velocity);
 
     // find component of element edge normal vector in direction of free stream velocity
-    const double first_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, first_edge);
-    const double second_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, second_edge);
-    const double third_edge_normal_fs_comp = ComputeEdgeNormalVelocityComponent(rCurrentProcessInfo, third_edge);
+    const double first_edge_normal_fs_comp = inner_prod(first_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
+    const double second_edge_normal_fs_comp = inner_prod(second_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
+    const double third_edge_normal_fs_comp = inner_prod(third_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
 
     vector<double> edge_normal_velocity_components (3);
     edge_normal_velocity_components[0] = first_edge_normal_fs_comp;
@@ -995,62 +1007,38 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
     }
 
     // find elements attached to each node
-    const GlobalPointersVector<Element>& rNodeOneElementCandidates = rGeom[upwind_element_one_node_id].GetValue(NEIGHBOUR_ELEMENTS);
-    const GlobalPointersVector<Element>& rNodeTwoElementCandidates = rGeom[upwind_element_two_node_id].GetValue(NEIGHBOUR_ELEMENTS);
+    const GlobalPointersVector<Element>& rNodeOneElementCandidates = r_geom[upwind_element_one_node_id].GetValue(NEIGHBOUR_ELEMENTS);
+    const GlobalPointersVector<Element>& rNodeTwoElementCandidates = r_geom[upwind_element_two_node_id].GetValue(NEIGHBOUR_ELEMENTS);
 
     bool loop_stop = false;
 
     // find element which shares both nodes
     for (SizeType i = 0; i < rNodeOneElementCandidates.size() && !loop_stop; i++)
-    {        
+    {
         for (SizeType j = 0; j < rNodeTwoElementCandidates.size() && !loop_stop; j++)
-        {        
+        {
             if(rNodeOneElementCandidates(i)->Id() == rNodeTwoElementCandidates(j)->Id() && rNodeOneElementCandidates(i)->Id() != r_this.Id())
             {
                 // assign upwind element
                 mpUpwindElement = rNodeOneElementCandidates(i);
-                
+
                 // get current element and upwind element center points
                 const GeometryType& r_upwind_element_geometry = rNodeOneElementCandidates(i)->GetGeometry();
                 const Point upwind_element_center = r_upwind_element_geometry.Center();
-                const Point current_element_center = rGeom.Center();
-                
+
                 // make vector pointing from current element to upwind element
                 vector<double> vector_to_upwind_element (3, 0.0);
                 vector_to_upwind_element[0] = upwind_element_center[0] - current_element_center[0];
                 vector_to_upwind_element[1] = upwind_element_center[1] - current_element_center[1];
                 vector_to_upwind_element[2] = upwind_element_center[2] - current_element_center[2];
-                                
+
                 this->SetValue(VECTOR_TO_UPWIND_ELEMENT, vector_to_upwind_element);
-                
+
                 loop_stop = true;
                 break;
             }
         }
     }
-}
-
-template <int TDim, int TNumNodes>
-double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputeEdgeNormalVelocityComponent(
-    const ProcessInfo& rCurrentProcessInfo,
-    const array_1d<double, 3>& rEdgeVector)
-{
-    // free stream values
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-
-    // make z vector
-    array_1d<double, 3> z_vector(3, 0.0);
-    z_vector[2] = 1.0;
-
-    // compute inward facing edge normal vector
-    array_1d<double, 3> edge_normal;
-    MathUtils<double>::CrossProduct(edge_normal, rEdgeVector, z_vector);
-
-    // compute euclidean norm of velocity
-    const double free_stream_velocity_norm = MathUtils<double>::Norm3(free_stream_velocity);
-
-    // compute component of edge normal vector in free stream direction
-    return inner_prod(edge_normal, free_stream_velocity) / free_stream_velocity_norm;;
 }
 
 template <int TDim, int TNumNodes>

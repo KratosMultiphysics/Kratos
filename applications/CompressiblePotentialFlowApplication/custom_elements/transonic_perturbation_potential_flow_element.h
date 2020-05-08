@@ -183,7 +183,7 @@ public:
 
     void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                      std::vector<array_1d<double, 3>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;                                  
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -284,14 +284,11 @@ private:
 
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
+    void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Private Operations
     ///@{
-
-    void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
-
-    double ComputeEdgeNormalVelocityComponent(const ProcessInfo& rCurrentProcessInfo,
-                                              const array_1d<double, 3>& rEdgeVector);
 
     ///@}
     ///@name Serialization
