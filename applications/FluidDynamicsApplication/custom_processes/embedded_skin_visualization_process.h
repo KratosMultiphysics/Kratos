@@ -104,6 +104,25 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Get the Default Settings object
+     * Static method to get the default settings inside the contructor
+     * @return Parameters The parameters object containing the default settings
+     */
+    static Parameters GetDefaultSettings();
+
+    /**
+     * @brief Create a And Prepare Visualization Model Part object
+     * This method creates the visualization model part and prepares it for the computation
+     * @param rModel The model container
+     * @param rParameters Kratos parameters encaptulating the settings. These settings are understood to have been already validated.
+     * @return ModelPart Visualization model part
+     */
+    static ModelPart& CreateAndPrepareVisualizationModelPart(
+        Model& rModel,
+        const Parameters& rParameters
+    );
+
     /// Constructor.
 
     /**
@@ -136,6 +155,15 @@ public:
         ModelPart& rVisualizationModelPart,
         Parameters& rParameters);
 
+    /**
+     * @brief Constructor with Kratos parameters and Model container
+     * @param rModel The Model container
+     * @param rParameters Kratos parameters encapsulating the settings
+     */
+    EmbeddedSkinVisualizationProcess(
+        Model& rModel,
+        Parameters& rParameters);
+
     /// Destructor.
     ~EmbeddedSkinVisualizationProcess() override {}
 
@@ -147,17 +175,20 @@ public:
     ///@name Operations
     ///@{
 
-    ///@}
-    ///@name Access
-    ///@{
-
     void ExecuteInitialize() override;
+
+    void ExecuteBeforeSolutionLoop() override;
 
     void ExecuteInitializeSolutionStep() override;
 
     void ExecuteBeforeOutputStep() override;
 
     void ExecuteAfterOutputStep() override;
+
+    ///@}
+    ///@name Access
+    ///@{
+
 
     ///@}
     ///@name Inquiry

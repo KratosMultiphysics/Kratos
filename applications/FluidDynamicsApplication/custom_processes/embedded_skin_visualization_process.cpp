@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
@@ -34,6 +35,57 @@ namespace Kratos
 {
 
 /* Public functions *******************************************************/
+Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
+{
+    Parameters default_settings(R"(
+    {
+        "model_part_name"                     : "",
+        "visualization_model_part_name"       : "",
+        "shape_functions"                     : "standard",
+        "reform_model_part_at_each_time_step" : false,
+        "visualization_variables"             : ["VELOCITY","PRESSURE"]
+    })");
+
+    return default_settings;
+}
+
+ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelPart(
+    Model& rModel,
+    const Parameters &rParameters)
+{
+    // Set visualization model part data
+    const std::size_t buffer_size = 1;
+    const std::string visualization_mp_name = rParameters["visualization_model_part_name"].GetString();
+    auto &r_origin_model_part = rModel.GetModelPart(rParameters["model_part_name"].GetString());
+    const unsigned int domain_size = r_origin_model_part.GetProcessInfo()[DOMAIN_SIZE];
+
+    // Check visualization model part data
+    KRATOS_ERROR_IF_NOT(domain_size == 2 || domain_size == 3) << "Origin model part DOMAIN_SIZE is " << domain_size << "." << std::endl;
+    KRATOS_ERROR_IF(visualization_mp_name == "") << "\'visualization_model_part_name\' is empty. Please provide the visualization model part name." << std::endl;
+
+    // Create the visualization model part
+    auto &r_visualization_model_part = rModel.CreateModelPart(visualization_mp_name, buffer_size);
+    r_visualization_model_part.GetProcessInfo()[DOMAIN_SIZE] = domain_size;
+
+    // Check and add variables to visualization model part
+    auto &r_origin_var_list = r_origin_model_part.GetNodalSolutionStepVariablesList();
+    const auto &r_variables = r_origin_var_list.Variables();
+    for (auto var_name_param : rParameters["visualization_variables"]) {
+        // Check if variable exists in origin model part
+        const std::string var_name = var_name_param.GetString();
+        auto var_it = std::find_if(
+            r_variables.begin(),
+            r_variables.end(),
+            [=] (const VariableData* arg) {return (arg->Name() == var_name) ? true : false;});
+        KRATOS_ERROR_IF(var_it == r_variables.end()) << "Requested variable " << var_name << " is not in the origin model part." << std::endl;
+
+        // Add the variable to the visualization model part
+        r_visualization_model_part.AddNodalSolutionStepVariable(r_origin_var_list(var_it.Key()));
+    }
+
+    return r_visualization_model_part;
+}
+
 EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     ModelPart& rModelPart,
     ModelPart& rVisualizationModelPart,
@@ -61,14 +113,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     mrModelPart(rModelPart),
     mrVisualizationModelPart(rVisualizationModelPart)
 {
-    Parameters default_parameters( R"(
-    {
-        "shape_functions"                     : "standard",
-        "reform_model_part_at_each_time_step" : false,
-        "visualization_variables"             : ["VELOCITY","PRESSURE","DISTANCE"]
-    })");
-
-    rParameters.ValidateAndAssignDefaults(default_parameters);
+    rParameters.ValidateAndAssignDefaults(GetDefaultSettings());
 
     // Validate if given shape functions value is admissible
     std::set<std::string> available_shape_functions = {"standard","ausas"};
@@ -97,6 +142,23 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
             KRATOS_ERROR << "Only double, component and vector variables are allowed in the visualization variables list." ;
         }
     }
+}
+
+EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
+    Model &rModel,
+    Parameters &rParameters)
+    : EmbeddedSkinVisualizationProcess(
+        [&] (Model& x, Parameters& y) -> ModelPart& {
+            y.ValidateAndAssignDefaults(GetDefaultSettings());
+            KRATOS_ERROR_IF(y["model_part_name"].GetString() == "") << "\'model_part_name\' is empty. Please provide the origin model part name." << std::endl;
+            return x.GetModelPart(y["model_part_name"].GetString());
+            } (rModel, rParameters),
+        [&] (Model& x, Parameters& y) -> ModelPart& {
+            y.ValidateAndAssignDefaults(GetDefaultSettings());
+            return CreateAndPrepareVisualizationModelPart(x, y);
+            } (rModel, rParameters),
+        rParameters)
+{
 }
 
 void EmbeddedSkinVisualizationProcess::ExecuteInitialize()
@@ -129,6 +191,14 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize()
     mSetVisualizationMesh = true;
 
     KRATOS_CATCH("");
+}
+
+void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop()
+{
+    // If mesh update is not required (constant level set function) create the visualization mesh once
+    if (!mReformModelPartAtEachTimeStep) {
+        this->CreateVisualizationMesh();
+    }
 }
 
 void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep()
@@ -322,6 +392,11 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
         const Vector nodal_distances = this->SetDistancesVector(it_elem);
 
         // Check if the element is split
+        const double zero_tol = 1.0e-10;
+        const double nodal_distances_norm = norm_2(nodal_distances);
+        if (nodal_distances_norm < zero_tol) {
+            KRATOS_WARNING_FIRST_N("EmbeddedSkinVisualizationProcess", 10) << "Element: " << it_elem->Id() << " Distance vector norm: " << nodal_distances_norm << ". Please check the level set function." << std::endl;
+        }
         const bool is_split = this->ElementIsSplit(p_geometry, nodal_distances);
 
         // If the element is split, create the new entities

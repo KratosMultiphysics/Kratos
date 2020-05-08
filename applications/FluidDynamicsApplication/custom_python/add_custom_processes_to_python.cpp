@@ -110,6 +110,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
         const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >,
         std::string,
         const bool >())
+    .def(py::init< Model&, Parameters& >())
     .def(py::init< ModelPart&, ModelPart&, Parameters& >())
     ;
 
