@@ -256,7 +256,7 @@ private:
 
     //Vector3 GetReferenceBaseVector() const;
 
-    array_1d<double, 3> GetActualBaseVector(Matrix r_DN_De) const;
+    array_1d<double, 3> GetActualBaseVector(const Matrix& r_DN_De);
 
     ///@}
     ///@name Operations

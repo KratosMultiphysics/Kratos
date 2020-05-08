@@ -49,7 +49,7 @@ namespace Kratos
     }
 
 
-    array_1d<double, 3> IgaEdgeCableElement::GetActualBaseVector(Matrix r_DN_De) const
+    array_1d<double, 3> IgaEdgeCableElement::GetActualBaseVector(const Matrix& r_DN_De) 
     {
         const GeometryType& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
