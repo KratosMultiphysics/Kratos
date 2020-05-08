@@ -77,7 +77,7 @@ namespace Kratos
             model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
             model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
             model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
-            model_part.CreateNewElement("Stokes3D4N", 1, {1, 2, 3, 4}, p_elem_prop);
+            model_part.CreateNewElement("SymbolicStokes3D4N", 1, {1, 2, 3, 4}, p_elem_prop);
 
             // Set the nodal DENSITY and DYNAMICS_VISCOSITY
             Element::Pointer p_element = model_part.pGetElement(1);
@@ -102,24 +102,25 @@ namespace Kratos
             Matrix LHS = ZeroMatrix(16, 16);
             p_element->Initialize();
             p_element->CalculateLocalSystem(LHS, RHS, process_info);
+            // Check the RHS values
+            KRATOS_CHECK_NEAR(RHS(0), 9.722222285, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(1), 9.722222285, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(2), 59.72222229, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(3), 0.01145833333, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(4), -18.05555549, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(5), -12.49999994, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(6), -29.1666666, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(7), -0.009375, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(8), -12.49999994, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(9), -18.05555549, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(10), -29.1666666, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(11), -0.009375, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(12), -41.66666686, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(13), -41.66666686, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(14), -63.88888908, 1e-07);
+            KRATOS_CHECK_NEAR(RHS(15), -0.009375, 1e-07);
 
             // Check the RHS values
-            KRATOS_CHECK_NEAR(RHS(0), 5.5555556, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(1), 5.5555556, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(2), 55.55555556, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(3), 0.00625, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(4), 11.11111111, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(5), 0.00000, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(6), -16.66666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(7), -0.007638888889, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(8), 0.00000, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(9), 11.11111111, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(10), -16.66666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(11), -0.007638888889, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(12), -266.6666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(13), -266.6666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(14), -272.2222222, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(15), -0.007638888889, 1e-07);
         }
     } // namespace Testing
 } // namespace Kratos.
