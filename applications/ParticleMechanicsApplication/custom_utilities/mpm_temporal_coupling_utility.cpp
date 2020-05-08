@@ -31,11 +31,6 @@ namespace Kratos
 
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
-        // TODO delete
-        std::vector<Vector> ele_cauchy = { ZeroVector(3) };
-        mrModelPartSubDomain1.ElementsBegin()->CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, ele_cauchy, mrModelPartSubDomain1.GetProcessInfo());
-        std::cout << "ele_cauchy = " << ele_cauchy[0] << std::endl;
-
         // Store inverted mass matrix and coupling matrix for sub-domain 1 for the whole timestep
         if (mJ == 1) {
             //std::cout << "K_1 =\n" << K_1 << std::endl;
@@ -114,9 +109,6 @@ namespace Kratos
             std::cout << "Total vel domain 2 = " << total_vel_2 << std::endl;
         }
 
-
-
-
         // Update sub domain 2 at the end of every small timestep
         if (mGamma[1] == 1.0) ApplyCorrectionExplicit(mrModelPartSubDomain2, link_accel_2, mSmallTimestep);
         else ApplyCorrectionImplicit(mrModelPartSubDomain2, link_accel_2, mSmallTimestep);
@@ -140,7 +132,7 @@ namespace Kratos
         const IndexType working_space_dim = mrModelPartSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
 
-        PrintNodeIdsAndCoords(r_sub_domain_1_active);
+        //PrintNodeIdsAndCoords(r_sub_domain_1_active);
 
         auto node_begin = r_sub_domain_1_active.NodesBegin();
         for (size_t i = 0; i < domain_nodes; ++i)
@@ -148,9 +140,9 @@ namespace Kratos
             auto node_it = node_begin + i;
             node_it->Set(ACTIVE, mSubDomain1FinalDomainActiveNodes[i]);
 
-            array_1d <double, 3> nodal_vel = node_it->FastGetSolutionStepValue(VELOCITY);
-            array_1d <double, 3> nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d <double, 3> nodal_accel = node_it->FastGetSolutionStepValue(ACCELERATION);
+            array_1d <double, 3>& nodal_vel = node_it->FastGetSolutionStepValue(VELOCITY);
+            array_1d <double, 3>& nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d <double, 3>& nodal_accel = node_it->FastGetSolutionStepValue(ACCELERATION);
             nodal_vel.clear();
             nodal_disp.clear();
             nodal_accel.clear();
@@ -163,7 +155,7 @@ namespace Kratos
             }
         }
 
-        PrintNodeIdsAndCoords(r_sub_domain_1_active);
+        //PrintNodeIdsAndCoords(r_sub_domain_1_active);
 
 
 
@@ -172,7 +164,9 @@ namespace Kratos
         if (mGamma[0] == 1.0) ApplyCorrectionExplicit(mrModelPartSubDomain1, link_accel_1, time_step_1);
         else ApplyCorrectionImplicit(mrModelPartSubDomain1, link_accel_1, time_step_1);
 
-        PrintNodeIdsAndCoords(r_sub_domain_1_active);
+        //std::cout << "\n\n LINK ACCEL = " << link_accel_1 << std::endl;
+
+        //PrintNodeIdsAndCoords(r_sub_domain_1_active);
 
         int test = 1;
     }
@@ -189,30 +183,6 @@ namespace Kratos
         std::cout << "Subdomain 1 initial interface velocity" << std::endl;
         SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1InitialInterfaceVelocity);
 
-        /*
-        auto node_begin = mrModelPartSubDomain1.NodesBegin();
-        for (size_t i = 0; i < mrModelPartSubDomain1.Nodes().size(); ++i)
-        {
-            auto node_it = node_begin + i;
-            if (node_it->Is(ACTIVE)) std::cout << "BEFORE active node at x = " << node_it->X() << std::endl;
-        }
-
-        auto ele_begin = mrModelPartSubDomain1.ElementsBegin();
-        ProcessInfo dummy;
-        for (size_t i = 0; i < mrModelPartSubDomain1.Elements().size(); ++i)
-        {
-            auto ele_it = ele_begin + i;
-            std::vector<array_1d<double, 3 > > xg;
-            ele_it->CalculateOnIntegrationPoints(MP_COORD, xg, dummy);
-            std::cout << "element at x = " << xg[0][0] << std::endl;
-        }
-
-
-        // TODO delete
-        std::vector<Vector> ele_cauchy = { ZeroVector(3) };
-        mrModelPartSubDomain1.ElementsBegin()->CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, ele_cauchy, mrModelPartSubDomain1.GetProcessInfo());
-        std::cout << "first ele_cauchy = " << ele_cauchy[0] << std::endl;
-        */
         KRATOS_CATCH("")
     }
 
@@ -254,17 +224,6 @@ namespace Kratos
                 mSubDomain1FinalDomainAcceleration[i * working_space_dim + k] = nodal_accel[k];
             }
         }
-
-
-        /*
-        std::cout << "\n\nprinting all subdomain 1 velocities" << std::endl;
-        auto it_begin = mrModelPartSubDomain1.NodesBegin();
-        for (size_t i = 0; i < mrModelPartSubDomain1.Nodes().size(); ++i)
-        {
-            auto it = it_begin + i;
-            std::cout << "node id " << it->GetId() << " = " << it->FastGetSolutionStepValue(VELOCITY) << std::endl;
-        }
-        */
 
         KRATOS_CATCH("")
     }
@@ -528,12 +487,17 @@ namespace Kratos
         const SizeType working_space_dimension = rModelPart.ElementsBegin()->WorkingSpaceDimension();
         const auto it_node_begin = rModelPart.NodesBegin();
 
+        //std::cout << rModelPart.Name() << " interface before correction" << std::endl;
+        //PrintNodeIdsAndCoords(rModelPart.GetSubModelPart("temporal_interface"));
+
         if (!correctInterface) {
             for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); j++) {
                 auto interface_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[j]);
                 interface_node->Set(ACTIVE, false);
             }
         }
+
+        
 
         // Add corrections entries
         for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) 
@@ -560,6 +524,9 @@ namespace Kratos
                 interface_node->Set(ACTIVE, true);
             }
         }
+
+        //std::cout << rModelPart.Name() << " interface after correction" << std::endl;
+        //PrintNodeIdsAndCoords(rModelPart.GetSubModelPart("temporal_interface"));
     }
 
 
