@@ -82,9 +82,6 @@ namespace Kratos {
         void FinalizeSolutionStepFEM();
         void MarkNewSkinParticles();
         void ResetSkinParticles(ModelPart& r_model_part);
-        void SetSkinParticlesInnerBoundary(ModelPart& r_model_part, const double inner_radius, const double detection_radius);
-        void SetSkinParticlesOuterBoundary(ModelPart& r_model_part, const double outer_radius, const double detection_radius);
-        void SetSkinParticlesOuterBoundaryBlind(ModelPart& r_model_part, const double outer_radius, const array_1d<double, 3>& center, const double detection_radius);
         void ComputeSkin(ModelPart& rSpheresModelPart, const double factor_radius = 1.0);
         void BreakAlmostBrokenSpheres();
 
