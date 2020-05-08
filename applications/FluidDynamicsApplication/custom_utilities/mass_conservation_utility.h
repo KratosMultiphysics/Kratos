@@ -236,6 +236,9 @@ private:
     // Reference to the model part
     ModelPart& mrModelPart;
 
+    // Level of verbosity
+    int mEchoLevel;
+
     // Inital volume with negative distance field ("water" volume)
     double mInitialNegativeVolume = -1.0;
     // Inital volume with positive distance field ("air" volume)

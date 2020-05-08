@@ -47,6 +47,7 @@ MassConservationUtility::MassConservationUtility(
     rParameters.ValidateAndAssignDefaults(default_parameters);
     mTimeVariableName = rParameters["time_variable"].GetString();
     mCorrectBackwards = rParameters["correct_backwards"].GetBool();
+    mEchoLevel = rParameters["echo_level"].GetInt();
 }
 
 
@@ -105,6 +106,8 @@ std::string MassConservationUtility::ComputeBalancedVolume(){
 
 
     mWaterVolumeError = mTheoreticalNegativeVolume - neg_vol;
+
+    KRATOS_INFO_IF("MassConservationUtility", mEchoLevel > 0) << "Volume error: " << mWaterVolumeError << std::endl;
 
     // assembly of the log message
     std::string output_line_timestep =  std::to_string(current_time) + "\t\t";
@@ -196,6 +199,7 @@ void MassConservationUtility::ReCheckTheMassConservation(){
 
     mWaterVolumeError = mTheoreticalNegativeVolume - neg_vol;
     mInterfaceArea = inter_area;
+    KRATOS_INFO_IF("MassConservationUtility", mEchoLevel > 0) << "Volume error after correction: " << mWaterVolumeError << std::endl;
 }
 
 
@@ -834,7 +838,8 @@ const Parameters MassConservationUtility::GetDefaultParameters()
     const Parameters default_parameters = Parameters(R"(
     {
         "time_variable"     : "TIME",
-        "correct_backwards" : true
+        "correct_backwards" : true,
+        "echo_level"        : 0
     })" );
     return default_parameters;
 }

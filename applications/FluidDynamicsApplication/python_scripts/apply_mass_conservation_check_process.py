@@ -22,14 +22,15 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
         {
-            "model_part_name"             : "",
-            "mass_correction_setttings"   : {},
-            "perform_local_corrections"   : true,
-            "perform_global_corrections"  : false,
-            "write_to_log_file"           : false,
-            "log_file_name"               : "mass_conservation.log",
-            "convector_settings"          : {},
-            "correction_frequency_in_time_steps" : 1
+            "model_part_name"                    : "",
+            "mass_correction_setttings"          : {},
+            "perform_local_corrections"          : true,
+            "perform_global_corrections"         : false,
+            "write_to_log_file"                  : false,
+            "log_file_name"                      : "mass_conservation.log",
+            "convector_settings"                 : {},
+            "correction_frequency_in_time_steps" : 1,
+            "check_volume_loss_at_the_end"       : false
         }""" )
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -51,6 +52,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         self._write_to_log = self.settings["write_to_log_file"].GetBool()
         self._my_log_file = self.settings["log_file_name"].GetString()
         self._correct_frequency = self.settings["correction_frequency_in_time_steps"].GetInt()
+        self._check_volume_loss_at_the_end = self.settings["check_volume_loss_at_the_end"].GetBool()
 
         self._perform_local_corr  = self.settings["perform_local_corrections"].GetBool()
         self._perform_global_corr = self.settings["perform_global_corrections"].GetBool()
@@ -122,6 +124,10 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
                 ### perform the global correction
                 # without any consideration of the velocity field, volume is added by a global slight shift of the distance field
                 self.mass_conservation_utility.ApplyGlobalCorrection()
+
+            # (4) #
+            if self._check_volume_loss_at_the_end:
+                self.mass_conservation_utility.ReCheckTheMassConservation()
 
 
     def _set_levelset_convection_process(self):
