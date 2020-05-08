@@ -26,10 +26,7 @@ namespace Kratos
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    if ( ~(this->Is(INLET)) ) // not an inlet element
-    {
-        FindUpwindElement(rCurrentProcessInfo);
-    }
+    FindUpwindElement(rCurrentProcessInfo);
 }
 
 template <int TDim, int TNumNodes>
@@ -939,12 +936,13 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
 
     // current element geometry
     const GeometryType& r_geom = r_this.GetGeometry();
+    const Point current_element_center = r_geom.Center();
 
     // current element edges
-    auto edges = r_geom.GenerateEdges();
+    const auto edges = r_geom.GenerateEdges();
 
+    // get local coordinates of element center
     array_1d<double,3> aux_coordinates;
-    const Point current_element_center = r_geom.Center();
     r_geom.PointLocalCoordinates(aux_coordinates, current_element_center);
 
     // outward pointing normals of each edge
