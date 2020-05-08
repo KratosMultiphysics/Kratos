@@ -40,8 +40,8 @@ Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
     Parameters default_settings(R"(
     {
         "model_part_name"                     : "",
-        "visualization_model_part_name"       : "",
-        "shape_functions"                     : "standard",
+        "visualization_model_part_name"       : "EmbeddedSkinVisualizationModelPart",
+        "shape_functions"                     : "",
         "reform_model_part_at_each_time_step" : false,
         "visualization_variables"             : ["VELOCITY","PRESSURE"]
     })");
@@ -55,32 +55,31 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
 {
     // Set visualization model part data
     const std::size_t buffer_size = 1;
-    const std::string visualization_mp_name = rParameters["visualization_model_part_name"].GetString();
+    std::string visualization_mp_name = rParameters["visualization_model_part_name"].GetString();
     auto &r_origin_model_part = rModel.GetModelPart(rParameters["model_part_name"].GetString());
     const unsigned int domain_size = r_origin_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
     // Check visualization model part data
     KRATOS_ERROR_IF_NOT(domain_size == 2 || domain_size == 3) << "Origin model part DOMAIN_SIZE is " << domain_size << "." << std::endl;
-    KRATOS_ERROR_IF(visualization_mp_name == "") << "\'visualization_model_part_name\' is empty. Please provide the visualization model part name." << std::endl;
+    if (visualization_mp_name == "") {
+        KRATOS_WARNING("EmbeddedSkinVisualizationProcess") << "\'visualization_model_part_name\' is empty. Using \'EmbeddedSkinVisualizationModelPart\'." << std::endl;
+        visualization_mp_name = "EmbeddedSkinVisualizationModelPart";
+    }
 
     // Create the visualization model part
     auto &r_visualization_model_part = rModel.CreateModelPart(visualization_mp_name, buffer_size);
     r_visualization_model_part.GetProcessInfo()[DOMAIN_SIZE] = domain_size;
 
     // Check and add variables to visualization model part
-    auto &r_origin_var_list = r_origin_model_part.GetNodalSolutionStepVariablesList();
-    const auto &r_variables = r_origin_var_list.Variables();
+    auto &r_origin_variables_list = r_origin_model_part.GetNodalSolutionStepVariablesList();
+    auto &r_visualization_variables_list = r_visualization_model_part.GetNodalSolutionStepVariablesList();
     for (auto var_name_param : rParameters["visualization_variables"]) {
         // Check if variable exists in origin model part
         const std::string var_name = var_name_param.GetString();
-        auto var_it = std::find_if(
-            r_variables.begin(),
-            r_variables.end(),
-            [=] (const VariableData* arg) {return (arg->Name() == var_name) ? true : false;});
-        KRATOS_ERROR_IF(var_it == r_variables.end()) << "Requested variable " << var_name << " is not in the origin model part." << std::endl;
-
+        const auto& r_var = KratosComponents<VariableData>::Get(var_name);
+        KRATOS_ERROR_IF_NOT(r_origin_variables_list.Has(r_var)) << "Requested variable " << var_name << " is not in the origin model part." << std::endl;
         // Add the variable to the visualization model part
-        r_visualization_model_part.AddNodalSolutionStepVariable(r_origin_var_list(var_it.Key()));
+        r_visualization_variables_list.Add(r_var);
     }
 
     return r_visualization_model_part;
@@ -116,12 +115,14 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     rParameters.ValidateAndAssignDefaults(GetDefaultSettings());
 
     // Validate if given shape functions value is admissible
-    std::set<std::string> available_shape_functions = {"standard","ausas"};
-    std::stringstream error_msg;
+    const std::string shape_functions = rParameters["shape_functions"].GetString();
+    KRATOS_ERROR_IF(shape_functions == "") << "\'shape_functions\' is not prescribed. Admissible values are: \'standard\' and \'ausas\'." << std::endl;
 
-    if (available_shape_functions.find(rParameters["shape_functions"].GetString()) == available_shape_functions.end()){
-        error_msg << "currently prescribed shape_functions : " << rParameters["shape_functions"].GetString() << std::endl;
-        error_msg << "\tAdmissible values are : standard, ausas" << std::endl;
+    std::stringstream error_msg;
+    std::set<std::string> available_shape_functions = {"standard","ausas"};
+    if (available_shape_functions.find(shape_functions) == available_shape_functions.end()){
+        error_msg << "Currently prescribed shape_functions : " << rParameters["shape_functions"].GetString() << std::endl;
+        error_msg << "Admissible values are : \'standard\' and \'ausas\'" << std::endl;
         KRATOS_ERROR << error_msg.str();
     }
 
@@ -136,8 +137,6 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
             mVisualizationScalarVariables.push_back(KratosComponents< Variable<double> >::Get(variable_name));
         } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
             mVisualizationVectorVariables.push_back(KratosComponents< Variable< array_1d<double, 3> > >::Get(variable_name));
-        } else if (KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >::Has(variable_name)) {
-            mVisualizationComponentVariables.push_back(KratosComponents< VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >::Get(variable_name));
         } else {
             KRATOS_ERROR << "Only double, component and vector variables are allowed in the visualization variables list." ;
         }
