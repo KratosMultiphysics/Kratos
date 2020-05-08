@@ -303,33 +303,6 @@ Parameters Parameters::Clone()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Parameters::ReadJSONFile(const std::string& rFileName)
-{
-    std::ifstream infile(rFileName);
-    KRATOS_ERROR_IF_NOT(infile.good()) << "File: " << rFileName << " cannot be found" << std::endl;
-    std::stringstream buffer;
-    buffer << infile.rdbuf();
-    Parameters json(buffer.str());
-    *this = json;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void Parameters::WriteJSONFile(const std::string& rFileName)
-{
-    const std::string& r_json_text = this->PrettyPrintJsonString();
-
-    std::filebuf buffer;
-    buffer.open(rFileName,std::ios::out);
-    std::ostream os(&buffer);
-    os << r_json_text;
-    buffer.close();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 const std::string Parameters::WriteJsonString() const
 {
     return mpValue->dump();

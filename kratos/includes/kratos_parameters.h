@@ -380,16 +380,6 @@ public:
     Parameters Clone();
 
     /**
-     * @brief This reads a JSON file from a given filename
-     */
-    void ReadJSONFile(const std::string& rFileName);
-
-    /**
-     * @brief This writes the current Parameters to a JSON file
-     */
-    void WriteJSONFile(const std::string& rFileName);
-
-    /**
      * @brief This method returns a string with the corresponding text to the equivalent *.json file
      * @return The corresponding text
      */
@@ -604,7 +594,7 @@ public:
      * @param Value The matrix value
      */
     void SetMatrix(const Matrix& rValue);
-    
+
     /**
      * @brief This method adds a new double Parameter
      * @param rEntry The key identifier of the parameter
