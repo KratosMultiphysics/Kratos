@@ -20,6 +20,7 @@
 #include "includes/checks.h"
 #include "custom_advanced_constitutive/rule_of_mixtures_law.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/tangent_operator_calculator_utility.h"
 
 namespace Kratos
 {
@@ -1079,16 +1080,12 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 {
     KRATOS_TRY;
 
-    // Some auxiliar values
-    const SizeType voigt_size = this->GetStrainSize();
-    const SizeType dimension  = this->WorkingSpaceDimension();
-
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-    const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1099,13 +1096,13 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
     }
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
         p_law->CalculateMaterialResponsePK2(rValues);
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
 
     // The global strain vector, constant
@@ -1113,23 +1110,24 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Set new flags
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Auxiliar stress vector
-        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-        Vector auxiliar_stress_vector = ZeroVector(VoigtSize);
+        const auto it_prop_begin            = r_material_properties.GetSubProperties().begin();
+        Vector auxiliar_stress_vector       = ZeroVector(VoigtSize);
         Matrix auxiliar_constitutive_matrix = ZeroMatrix(VoigtSize, VoigtSize);
 
         // The rotation matrix
-        BoundedMatrix<double, VoigtSize, VoigtSize>  voigt_rotation_matrix;
+        BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+
             this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i);
 
-            Properties& r_prop = *(it_prop_begin + i);
+            Properties& r_prop             = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-            const double factor = mCombinationFactors[i];
+            const double factor            = mCombinationFactors[i];
 
             // We rotate to local axes the strain
             noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
@@ -1138,23 +1136,22 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             p_law->CalculateMaterialResponsePK2(rValues);
 
             // we return the stress and constitutive tensor to the global coordinates
-            rValues.GetStressVector()       = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            rValues.GetConstitutiveMatrix() = prod((trans(voigt_rotation_matrix)), Matrix(prod(rValues.GetConstitutiveMatrix(), voigt_rotation_matrix)));
-
-            noalias(auxiliar_stress_vector)       += factor * rValues.GetStressVector();
-            noalias(auxiliar_constitutive_matrix) += factor * rValues.GetConstitutiveMatrix();
+            rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            noalias(auxiliar_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
-        if (flag_const_tensor)
-            noalias(rValues.GetConstitutiveMatrix()) = auxiliar_constitutive_matrix;
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
+        if (flag_const_tensor) {
+            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
+        }
     }
 
     KRATOS_CATCH("");
@@ -1168,16 +1165,12 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
 {
     KRATOS_TRY;
 
-    // Some auxiliar values
-    const SizeType voigt_size = this->GetStrainSize();
-    const SizeType dimension  = this->WorkingSpaceDimension();
-
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-    const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1188,13 +1181,13 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
     }
 
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
         p_law->CalculateMaterialResponsePK2(rValues);
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
 
     // The global strain vector, constant
@@ -1202,23 +1195,24 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Set new flags
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Auxiliar stress vector
-        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-        Vector auxiliar_stress_vector = ZeroVector(VoigtSize);
+        const auto it_prop_begin            = r_material_properties.GetSubProperties().begin();
+        Vector auxiliar_stress_vector       = ZeroVector(VoigtSize);
         Matrix auxiliar_constitutive_matrix = ZeroMatrix(VoigtSize, VoigtSize);
 
         // The rotation matrix
-        BoundedMatrix<double, VoigtSize, VoigtSize>  voigt_rotation_matrix;
+        BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+
             this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i);
 
-            Properties& r_prop = *(it_prop_begin + i);
+            Properties& r_prop             = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-            const double factor = mCombinationFactors[i];
+            const double factor            = mCombinationFactors[i];
 
             // We rotate to local axes the strain
             noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
@@ -1227,23 +1221,22 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
             p_law->CalculateMaterialResponseKirchhoff(rValues);
 
             // we return the stress and constitutive tensor to the global coordinates
-            rValues.GetStressVector()       = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            rValues.GetConstitutiveMatrix() = prod((trans(voigt_rotation_matrix)), Matrix(prod(rValues.GetConstitutiveMatrix(), voigt_rotation_matrix)));
-
-            noalias(auxiliar_stress_vector)       += factor * rValues.GetStressVector();
-            noalias(auxiliar_constitutive_matrix) += factor * rValues.GetConstitutiveMatrix();
+            rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            noalias(auxiliar_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
-        if (flag_const_tensor)
-            noalias(rValues.GetConstitutiveMatrix()) = auxiliar_constitutive_matrix;
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
+        if (flag_const_tensor) {
+            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff);
+        }
     }
 
     KRATOS_CATCH("");
@@ -1530,6 +1523,28 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
         } else {
             noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+void ParallelRuleOfMixturesLaw<TDim>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
+    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+
+    if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
+        KRATOS_ERROR << "Analytic solution not available" << std::endl;
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure, consider_perturbation_threshold, 1);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure, consider_perturbation_threshold, 2);
     }
 }
 

@@ -676,6 +676,16 @@ public:
         const IndexType Layer
     );
 
+
+    /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateTangentTensor(
+        ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure
+    );
+
 protected:
 
     ///@name Protected static Member Variables
