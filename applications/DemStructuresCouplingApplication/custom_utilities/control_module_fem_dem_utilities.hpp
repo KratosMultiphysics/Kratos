@@ -174,7 +174,7 @@ void ExecuteInitializeSolutionStep()
 
     double ReactionStress = CalculateReactionStress();
     ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
-
+}
 // After FEM and DEM solution
 void ExecuteFinalizeSolutionStep()
 {
@@ -474,6 +474,5 @@ ControlModuleFemDemUtilities & operator=(ControlModuleFemDemUtilities const& rOt
 
 }; // Class ControlModuleFemDemUtilities
 
-}  // namespace Python.
-
+} // namespace Kratos
 #endif // KRATOS_CONTROL_MODULE_FEM_DEM_UTILITIES
