@@ -521,7 +521,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
                 else:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
-        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement"):
+        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement","SymbolicEulerianConvectionDiffusionExplicit"):
             name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
