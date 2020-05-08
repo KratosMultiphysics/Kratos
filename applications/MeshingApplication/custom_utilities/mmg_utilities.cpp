@@ -2158,7 +2158,13 @@ void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
         elem_reference_json[name].SetString(element_name);
     }
 
-    elem_reference_json.WriteJSONFile(rOutputName + ".elem.ref.json");
+    const std::string& r_elem_json_text = elem_reference_json.PrettyPrintJsonString();
+
+    std::filebuf elem_buffer;
+    elem_buffer.open(rOutputName + ".elem.ref.json",std::ios::out);
+    std::ostream elem_os(&elem_buffer);
+    elem_os << r_elem_json_text;
+    elem_buffer.close();
 
     /* CONDITIONS */
     std::string condition_name;
@@ -2170,7 +2176,13 @@ void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
         cond_reference_json[name].SetString(condition_name);
     }
 
-    cond_reference_json.WriteJSONFile(rOutputName + ".cond.ref.json");
+    const std::string& r_cond_json_text = cond_reference_json.PrettyPrintJsonString();
+
+    std::filebuf cond_buffer;
+    cond_buffer.open(rOutputName + ".cond.ref.json",std::ios::out);
+    std::ostream cond_os(&cond_buffer);
+    cond_os << r_cond_json_text;
+    cond_buffer.close();
 
     KRATOS_CATCH("");
 }
@@ -4123,8 +4135,9 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
 
     /* Elements */
-    Parameters elem_ref_json;
-    elem_ref_json.ReadJSONFile(rFilename + ".elem.ref.json");
+    std::ifstream elem_infile(rFilename + ".elem.ref.json");
+    KRATOS_ERROR_IF_NOT(elem_infile.good()) << "References elements file: " << rFilename  + ".json" << " cannot be found" << std::endl;
+    Parameters elem_ref_json(elem_infile);
     for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
@@ -4132,8 +4145,9 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     }
 
     /* Conditions */
-    Parameters cond_ref_json;
-    cond_ref_json.ReadJSONFile(rFilename + ".cond.ref.json");
+    std::ifstream cond_infile(rFilename + ".cond.ref.json");
+    KRATOS_ERROR_IF_NOT(cond_infile.good()) << "References conditions file: " << rFilename  + ".json" << " cannot be found" << std::endl;
+    Parameters cond_ref_json(cond_infile);
     for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
