@@ -259,45 +259,6 @@ public:
     }
 
     /**
-    * @brief Calculate prestress tensor 
-    * @param rPrestressTensor: The prestress tensor to be calculated
-    * @param rMetric
-    */
-    void CalculatePresstressTensor(
-        Vector& rPrestressTensor,
-        KinematicVariables& rActualKinematic); 
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-    * Calculate a double Variable on the Element Constitutive Law
-    * @param rVariable: The variable we want to get
-    * @param rValues: The values obtained int the integration points
-    * @param rCurrentProcessInfo: the current process info instance
-    */
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-    * Calculate a Vector Variable on the Element Constitutive Law
-    * @param rVariable: The variable we want to get
-    * @param rValues: The values obtained int the integration points
-    * @param rCurrentProcessInfo: the current process info instance
-    */
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
     * @param rCurrentProcessInfo The current process info instance
@@ -356,14 +317,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Kirchhoff IgaMembraneElement #" << Id();
+        buffer << "IgaMembraneElement #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Kirchhoff IgaMembraneElement #" << Id();
+        rOStream << "IgaMembraneElement #" << Id();
     }
 
     /// Print object's data.
@@ -456,7 +417,6 @@ private:
         PrestresstransVariables& rPrestresstransVariables
         );
 
-
     inline void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& B,
@@ -468,6 +428,45 @@ private:
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
         const double IntegrationWeight);
+    
+    /**
+    * @brief Calculate prestress tensor 
+    * @param rPrestressTensor: The prestress tensor to be calculated
+    * @param rMetric
+    */
+    void CalculatePresstressTensor(
+        Vector& rPrestressTensor,
+        KinematicVariables& rActualKinematic); 
+
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable: The variable we want to get
+    * @param rValues: The values obtained int the integration points
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * Calculate a Vector Variable on the Element Constitutive Law
+    * @param rVariable: The variable we want to get
+    * @param rValues: The values obtained int the integration points
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     ///@}
     ///@name Geometrical Functions

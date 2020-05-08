@@ -340,7 +340,7 @@ namespace Kratos
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
 
-        const Matrix& r_DN_De = trans(GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex));
+        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
             rB.resize(3, mat_size);
@@ -354,9 +354,9 @@ namespace Kratos
 
             array_1d<double, 3> dE_curvilinear;
             // strain
-            dE_curvilinear[0] = r_DN_De(0, kr)*rActualKinematic.a1(dirr);
-            dE_curvilinear[1] = r_DN_De(1, kr)*rActualKinematic.a2(dirr);
-            dE_curvilinear[2] = 0.5*(r_DN_De(0, kr)*rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr)*r_DN_De(1, kr));
+            dE_curvilinear[0] = r_DN_De(kr, 0)*rActualKinematic.a1(dirr);
+            dE_curvilinear[1] = r_DN_De(kr, 1)*rActualKinematic.a2(dirr);
+            dE_curvilinear[2] = 0.5*(r_DN_De(kr, 0)*rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr)*r_DN_De(kr, 1));
 
             rB(0, r) = m_T_vector[IntegrationPointIndex](0, 0)*dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](0, 1)*dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](0, 2)*dE_curvilinear[2];
             rB(1, r) = m_T_vector[IntegrationPointIndex](1, 0)*dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](1, 1)*dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](1, 2)*dE_curvilinear[2];
@@ -371,7 +371,7 @@ namespace Kratos
     {
         const auto& r_geometry = GetGeometry();
 
-        const Matrix& r_DN_De   = trans(r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex));
+        const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
  
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -393,9 +393,9 @@ namespace Kratos
                 array_1d<double, 3> ddE_cu = ZeroVector(3);
                 if (dirr == dirs)
                 {
-                    ddE_cu[0] = r_DN_De(0, kr) * r_DN_De(0, ks);
-                    ddE_cu[1] = r_DN_De(1, kr) * r_DN_De(1, ks);
-                    ddE_cu[2] = 0.5 * (r_DN_De(0, kr) * r_DN_De(1, ks) + r_DN_De(1, kr) * r_DN_De(0, ks));
+                    ddE_cu[0] = r_DN_De(kr, 0) * r_DN_De(ks, 0);
+                    ddE_cu[1] = r_DN_De(kr, 1) * r_DN_De(ks, 1);
+                    ddE_cu[2] = 0.5 * (r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(kr, 1) * r_DN_De(ks, 1));
 
                     rSecondVariationsStrain.B11(r, s) = m_T_vector[IntegrationPointIndex](0, 0) * ddE_cu[0] + m_T_vector[IntegrationPointIndex](0, 1) * ddE_cu[1] + m_T_vector[IntegrationPointIndex](0, 2) * ddE_cu[2];
                     rSecondVariationsStrain.B22(r, s) = m_T_vector[IntegrationPointIndex](1, 0) * ddE_cu[0] + m_T_vector[IntegrationPointIndex](1, 1) * ddE_cu[1] + m_T_vector[IntegrationPointIndex](1, 2) * ddE_cu[2];
