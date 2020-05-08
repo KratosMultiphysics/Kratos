@@ -3,9 +3,9 @@ from KratosMultiphysics import _ImportApplication
 import KratosMultiphysics.mpi # importing the MPI-Core, since the TrilinosApp directly links to it
 try:
     from KratosTrilinosApplication import *
-except: # TODO how to catch all errors
+except BaseException as error:
     print("The import of the TrilinosApplication failed with the following error:")
-    # print(the_error)
+    print(error)
     print("Please visit the following website for known issues:")
     print("https://github.com/KratosMultiphysics/Kratos/tree/master/applications/TrilinosApplication#known-issues")
 application = KratosTrilinosApplication()
