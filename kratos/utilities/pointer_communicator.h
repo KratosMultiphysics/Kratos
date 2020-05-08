@@ -96,6 +96,22 @@ public:
         else
             return mNonLocalData[gp];
     }
+    
+    bool Has(GlobalPointer<TPointerDataType>& gp) 
+    {
+        if(gp.GetRank() == mCurrentRank)
+            return true;
+        else
+            return mNonLocalData.find(gp) != mNonLocalData.end();
+    }   
+
+    bool Has(GlobalPointer<TPointerDataType> const& gp) 
+    {
+        if(gp.GetRank() == mCurrentRank)
+            return true;
+        else
+            return mNonLocalData.find(gp) != mNonLocalData.end();
+    }
 
     void Update()
     {
