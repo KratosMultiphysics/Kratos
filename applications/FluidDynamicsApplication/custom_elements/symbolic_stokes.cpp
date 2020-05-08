@@ -266,6 +266,16 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointLHSContribution(
 
     auto &lhs = rData.lhs;
 
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
+
     const double clhs0 =             pow(DN(0,0), 2);
 const double clhs1 =             bdf0*rho;
 const double clhs2 =             pow(N[0], 2)*clhs1;
@@ -318,7 +328,7 @@ const double clhs48 =             C(1,1)*DN(2,1) + C(1,2)*DN(2,0);
 const double clhs49 =             DN(0,1)*DN(2,1);
 const double clhs50 =             clhs28 + clhs49*mu;
 const double clhs51 =             DN(0,1)*N[2];
-const double clhs52 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs52 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double clhs53 =             clhs1*clhs52;
 const double clhs54 =             clhs53 + 1;
 const double clhs55 =             DN(1,0)*N[0];
@@ -467,6 +477,15 @@ void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointLHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     const double clhs0 =             pow(DN(0,0), 2);
 const double clhs1 =             bdf0*rho;
@@ -537,7 +556,7 @@ const double clhs65 =             C(1,1)*DN(3,1) + C(1,2)*DN(3,0);
 const double clhs66 =             DN(0,1)*DN(3,1);
 const double clhs67 =             clhs39 + clhs66*mu;
 const double clhs68 =             DN(0,1)*N[3];
-const double clhs69 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs69 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double clhs70 =             clhs1*clhs69;
 const double clhs71 =             clhs70 + 1;
 const double clhs72 =             DN(1,0)*N[0];
@@ -786,6 +805,15 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     const double clhs0 =             pow(DN(0,0), 2);
 const double clhs1 =             bdf0*rho;
@@ -958,7 +986,7 @@ const double clhs167 =             C(2,2)*DN(3,2) + C(2,4)*DN(3,1) + C(2,5)*DN(3
 const double clhs168 =             DN(0,2)*DN(3,2);
 const double clhs169 =             clhs168*mu + clhs74;
 const double clhs170 =             DN(0,2)*N[3];
-const double clhs171 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs171 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double clhs172 =             clhs1*clhs171;
 const double clhs173 =             clhs172 + 1;
 const double clhs174 =             DN(1,0)*N[0];
@@ -1361,6 +1389,15 @@ void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointLHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     const double clhs0 =             pow(DN(0,0), 2);
 const double clhs1 =             bdf0*rho;
@@ -1619,7 +1656,7 @@ const double clhs253 =             C(2,2)*DN(5,2) + C(2,4)*DN(5,1) + C(2,5)*DN(5
 const double clhs254 =             DN(0,2)*DN(5,2);
 const double clhs255 =             clhs118 + clhs254*mu;
 const double clhs256 =             DN(0,2)*N[5];
-const double clhs257 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs257 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double clhs258 =             clhs1*clhs257;
 const double clhs259 =             clhs258 + 1;
 const double clhs260 =             DN(1,0)*N[0];
@@ -2518,6 +2555,15 @@ void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointLHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     const double clhs0 =             pow(DN(0,0), 2);
 const double clhs1 =             bdf0*rho;
@@ -2862,7 +2908,7 @@ const double clhs339 =             C(2,2)*DN(7,2) + C(2,4)*DN(7,1) + C(2,5)*DN(7
 const double clhs340 =             DN(0,2)*DN(7,2);
 const double clhs341 =             clhs162 + clhs340*mu;
 const double clhs342 =             DN(0,2)*N[7];
-const double clhs343 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs343 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double clhs344 =             clhs1*clhs343;
 const double clhs345 =             clhs344 + 1;
 const double clhs346 =             DN(1,0)*N[0];
@@ -4471,6 +4517,15 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0));
@@ -4479,7 +4534,7 @@ const double crhs3 =             crhs2*mu;
 const double crhs4 =             rho*(N[0]*(bdf0*v(0,0) + bdf1*vn(0,0) + bdf2*vnn(0,0)) + N[1]*(bdf0*v(1,0) + bdf1*vn(1,0) + bdf2*vnn(1,0)) + N[2]*(bdf0*v(2,0) + bdf1*vn(2,0) + bdf2*vnn(2,0)));
 const double crhs5 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1));
 const double crhs6 =             rho*(N[0]*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N[1]*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N[2]*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)));
-const double crhs7 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs7 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double crhs8 =             crhs7*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] - crhs1 + crhs4);
 const double crhs9 =             crhs7*(DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[2] - crhs5 + crhs6);
             rhs[0]=DN(0,0)*crhs0 - DN(0,0)*crhs3 - DN(0,0)*stress[0] - DN(0,1)*stress[2] + N[0]*crhs1 - N[0]*crhs4;
@@ -4530,7 +4585,15 @@ void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
-
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0) + N[3]*f(3,0));
 const double crhs2 =             DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1) + DN(3,0)*v(3,0) + DN(3,1)*v(3,1);
@@ -4538,7 +4601,7 @@ const double crhs3 =             crhs2*mu;
 const double crhs4 =             rho*(N[0]*(bdf0*v(0,0) + bdf1*vn(0,0) + bdf2*vnn(0,0)) + N[1]*(bdf0*v(1,0) + bdf1*vn(1,0) + bdf2*vnn(1,0)) + N[2]*(bdf0*v(2,0) + bdf1*vn(2,0) + bdf2*vnn(2,0)) + N[3]*(bdf0*v(3,0) + bdf1*vn(3,0) + bdf2*vnn(3,0)));
 const double crhs5 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1) + N[3]*f(3,1));
 const double crhs6 =             rho*(N[0]*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N[1]*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N[2]*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N[3]*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)));
-const double crhs7 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs7 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double crhs8 =             crhs7*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] - crhs1 + crhs4);
 const double crhs9 =             crhs7*(DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[2] + DN(3,1)*p[3] - crhs5 + crhs6);
             rhs[0]=DN(0,0)*crhs0 - DN(0,0)*crhs3 - DN(0,0)*stress[0] - DN(0,1)*stress[2] + N[0]*crhs1 - N[0]*crhs4;
@@ -4592,6 +4655,15 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0) + N[3]*f(3,0));
@@ -4602,7 +4674,7 @@ const double crhs5 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1) + 
 const double crhs6 =             rho*(N[0]*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N[1]*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N[2]*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N[3]*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)));
 const double crhs7 =             rho*(N[0]*f(0,2) + N[1]*f(1,2) + N[2]*f(2,2) + N[3]*f(3,2));
 const double crhs8 =             rho*(N[0]*(bdf0*v(0,2) + bdf1*vn(0,2) + bdf2*vnn(0,2)) + N[1]*(bdf0*v(1,2) + bdf1*vn(1,2) + bdf2*vnn(1,2)) + N[2]*(bdf0*v(2,2) + bdf1*vn(2,2) + bdf2*vnn(2,2)) + N[3]*(bdf0*v(3,2) + bdf1*vn(3,2) + bdf2*vnn(3,2)));
-const double crhs9 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs9 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double crhs10 =             crhs9*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] - crhs1 + crhs4);
 const double crhs11 =             crhs9*(DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[2] + DN(3,1)*p[3] - crhs5 + crhs6);
 const double crhs12 =             crhs9*(DN(0,2)*p[0] + DN(1,2)*p[1] + DN(2,2)*p[2] + DN(3,2)*p[3] - crhs7 + crhs8);
@@ -4661,6 +4733,15 @@ void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3] + N[4]*p[4] + N[5]*p[5];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0) + N[3]*f(3,0) + N[4]*f(4,0) + N[5]*f(5,0));
@@ -4671,7 +4752,7 @@ const double crhs5 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1) + 
 const double crhs6 =             rho*(N[0]*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N[1]*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N[2]*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N[3]*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)) + N[4]*(bdf0*v(4,1) + bdf1*vn(4,1) + bdf2*vnn(4,1)) + N[5]*(bdf0*v(5,1) + bdf1*vn(5,1) + bdf2*vnn(5,1)));
 const double crhs7 =             rho*(N[0]*f(0,2) + N[1]*f(1,2) + N[2]*f(2,2) + N[3]*f(3,2) + N[4]*f(4,2) + N[5]*f(5,2));
 const double crhs8 =             rho*(N[0]*(bdf0*v(0,2) + bdf1*vn(0,2) + bdf2*vnn(0,2)) + N[1]*(bdf0*v(1,2) + bdf1*vn(1,2) + bdf2*vnn(1,2)) + N[2]*(bdf0*v(2,2) + bdf1*vn(2,2) + bdf2*vnn(2,2)) + N[3]*(bdf0*v(3,2) + bdf1*vn(3,2) + bdf2*vnn(3,2)) + N[4]*(bdf0*v(4,2) + bdf1*vn(4,2) + bdf2*vnn(4,2)) + N[5]*(bdf0*v(5,2) + bdf1*vn(5,2) + bdf2*vnn(5,2)));
-const double crhs9 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs9 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double crhs10 =             crhs9*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] + DN(4,0)*p[4] + DN(5,0)*p[5] - crhs1 + crhs4);
 const double crhs11 =             crhs9*(DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[2] + DN(3,1)*p[3] + DN(4,1)*p[4] + DN(5,1)*p[5] - crhs5 + crhs6);
 const double crhs12 =             crhs9*(DN(0,2)*p[0] + DN(1,2)*p[1] + DN(2,2)*p[2] + DN(3,2)*p[3] + DN(4,2)*p[4] + DN(5,2)*p[5] - crhs7 + crhs8);
@@ -4738,6 +4819,15 @@ void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3] + N[4]*p[4] + N[5]*p[5] + N[6]*p[6] + N[7]*p[7];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0) + N[3]*f(3,0) + N[4]*f(4,0) + N[5]*f(5,0) + N[6]*f(6,0) + N[7]*f(7,0));
@@ -4748,7 +4838,7 @@ const double crhs5 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1) + 
 const double crhs6 =             rho*(N[0]*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N[1]*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N[2]*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N[3]*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)) + N[4]*(bdf0*v(4,1) + bdf1*vn(4,1) + bdf2*vnn(4,1)) + N[5]*(bdf0*v(5,1) + bdf1*vn(5,1) + bdf2*vnn(5,1)) + N[6]*(bdf0*v(6,1) + bdf1*vn(6,1) + bdf2*vnn(6,1)) + N[7]*(bdf0*v(7,1) + bdf1*vn(7,1) + bdf2*vnn(7,1)));
 const double crhs7 =             rho*(N[0]*f(0,2) + N[1]*f(1,2) + N[2]*f(2,2) + N[3]*f(3,2) + N[4]*f(4,2) + N[5]*f(5,2) + N[6]*f(6,2) + N[7]*f(7,2));
 const double crhs8 =             rho*(N[0]*(bdf0*v(0,2) + bdf1*vn(0,2) + bdf2*vnn(0,2)) + N[1]*(bdf0*v(1,2) + bdf1*vn(1,2) + bdf2*vnn(1,2)) + N[2]*(bdf0*v(2,2) + bdf1*vn(2,2) + bdf2*vnn(2,2)) + N[3]*(bdf0*v(3,2) + bdf1*vn(3,2) + bdf2*vnn(3,2)) + N[4]*(bdf0*v(4,2) + bdf1*vn(4,2) + bdf2*vnn(4,2)) + N[5]*(bdf0*v(5,2) + bdf1*vn(5,2) + bdf2*vnn(5,2)) + N[6]*(bdf0*v(6,2) + bdf1*vn(6,2) + bdf2*vnn(6,2)) + N[7]*(bdf0*v(7,2) + bdf1*vn(7,2) + bdf2*vnn(7,2)));
-const double crhs9 =             1.0/(mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs9 =             1.0/(dt_inv*dyn_tau*rho + mu*stab_c1/pow(h, 2));
 const double crhs10 =             crhs9*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] + DN(4,0)*p[4] + DN(5,0)*p[5] + DN(6,0)*p[6] + DN(7,0)*p[7] - crhs1 + crhs4);
 const double crhs11 =             crhs9*(DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[2] + DN(3,1)*p[3] + DN(4,1)*p[4] + DN(5,1)*p[5] + DN(6,1)*p[6] + DN(7,1)*p[7] - crhs5 + crhs6);
 const double crhs12 =             crhs9*(DN(0,2)*p[0] + DN(1,2)*p[1] + DN(2,2)*p[2] + DN(3,2)*p[3] + DN(4,2)*p[4] + DN(5,2)*p[5] + DN(6,2)*p[6] + DN(7,2)*p[7] - crhs7 + crhs8);
