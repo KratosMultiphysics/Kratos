@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:
+//  Main author:  Mohit Tyagi, Daniel Diez, Pablo Becker
 //  Co-authors:
 //
 
