@@ -267,10 +267,13 @@ class MonolithicVelocityPressureFormulation(Formulation):
 
         if (wall_function_region_type == "logarithmic_region_only"):
             self.condition_name = "RansVMSMonolithicKBasedWallCondition"
+        elif (wall_function_region_type == "linear_and_logarithmic_regions"):
+            self.condition_name = "RansVMSMonolithicHybridWallCondition"
         else:
             msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
             msg += "Supported wall function region types are:\n"
             msg += "\tlogarithmic_region_only\n"
+            msg += "\tlinear_and_logarithmic_regions\n"
             raise Exception(msg)
 
     def GetStrategy(self):
