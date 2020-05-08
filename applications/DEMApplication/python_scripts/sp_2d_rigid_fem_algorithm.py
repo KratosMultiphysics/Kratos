@@ -31,7 +31,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
         self.SettingGeometricalSPValues()
         self.CreateSPMeasuringRingSubmodelpart(self.spheres_model_part)
-        self.RebuildSkinElements()
+        self.SetSkinManually()
 
         sandstone_target_porosity, actual_porosity, sp_porosity_multiplier = self.ComputePorosityParameters(self.spheres_model_part)
         porosity_message = "\nPorosity in sandstones should be around %.2f and the obtained value is %.2f" % (sandstone_target_porosity, actual_porosity) + \
@@ -100,11 +100,10 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
             self.radius_to_delete_sp = 0.015
             self.outer_radius = 0.1524
 
-    def RebuildSkinElements(self):
-
-        self.PreUtilities.ResetSkinParticles(self.spheres_model_part)
+    def SetSkinManually(self):
 
         if not self.automatic_skin_computation and not self.use_gid_skin_mesh:
+            self.PreUtilities.ResetSkinParticles(self.spheres_model_part)
             self.PreUtilities.SetSkinParticlesInnerBoundary(self.spheres_model_part, self.inner_radius, self.inner_skin_factor * 0.5 * self.inner_mesh_diameter)
             if self.test_number < 5: # CTWs
                 self.PreUtilities.SetSkinParticlesOuterBoundary(self.spheres_model_part, self.outer_radius, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
