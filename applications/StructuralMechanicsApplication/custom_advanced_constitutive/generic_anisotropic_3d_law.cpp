@@ -89,7 +89,6 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
     if (!flag_strain) {
         Vector& r_strain_vector = rValues.GetStrainVector();
         this->CalculateCauchyGreenStrain(rValues, r_strain_vector);
-        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
     // this strain in the real anisotropic space
@@ -253,7 +252,6 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         Vector& r_strain_vector = rValues.GetStrainVector();
         this->CalculateCauchyGreenStrain(rValues, r_strain_vector);
-        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
     // this strain in the real anisotropic space
