@@ -59,6 +59,26 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
 
 if(${INCLUDE_MMG} MATCHES ON)
+    # Define includes and libraries with just one include
+    IF (MMG_ROOT)
+        SET(MMG_INCLUDE_DIR ${MMG_ROOT}/include/)
+        SET(MMG2D_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmg2d/)
+        SET(MMG3D_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmg3d/)
+        SET(MMGS_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmgs/)
+        IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.lib)
+            SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.lib)
+            SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.lib)
+            SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.lib)
+        ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.a)
+            SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.a)
+            SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.a)
+            SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.a)
+        ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    ENDIF (MMG_ROOT)
+
+    # Add definitions
     add_definitions( -DINCLUDE_MMG )
 
     INCLUDE_DIRECTORIES(${MMG_INCLUDE_DIR})
