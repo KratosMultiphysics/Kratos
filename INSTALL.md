@@ -50,7 +50,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
   * CMake
   * Boost (dependencies are header-only, no compilation of boost libraries required)
 
-Additionaly Visual Studio or MinGW is required to compile in Windows.
+Additionaly, Visual Studio is required to compile in Windows.
 
 - #### Linux installation
 
