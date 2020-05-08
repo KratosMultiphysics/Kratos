@@ -60,6 +60,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## Other simbols definition
     dt  = sfu.Symbol('dt', positive = True)
+    dt_inv  = sfu.Symbol('dt_inv', positive = True)
     rho = sfu.Symbol('rho', positive = True)
     nu  = sfu.Symbol('nu', positive = True)
     mu  = sfu.Symbol('mu', positive = True)
@@ -80,12 +81,12 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     f_gauss = f.transpose()*N
     v_gauss = v.transpose()*N
 
-    tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
+    tau1 = 1.0/((rho*dyn_tau)*dt_inv + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
     tau2 = mu # Stabilization parameter 2
 
 
     ## Values at Gauss point
-    accel_gauss = (bdf0*v +bdf1*vn + bdf2*vnn).transpose()*N
+    accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N
     p_gauss = p.transpose()*N
     w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N

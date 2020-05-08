@@ -266,6 +266,16 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointLHSContribution(
 
     auto &lhs = rData.lhs;
 
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
+
     //substitute_lhs_2D3
 
     // Add intermediate results to local system
@@ -299,6 +309,15 @@ void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointLHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     //substitute_lhs_2D4
 
@@ -334,6 +353,15 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     //substitute_lhs_3D4
 
@@ -369,6 +397,15 @@ void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointLHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     //substitute_lhs_3D6
 
@@ -404,6 +441,15 @@ void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointLHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     //substitute_lhs_3D8
 
@@ -445,6 +491,15 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     //substitute_rhs_2D3
 
@@ -485,7 +540,15 @@ void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
-
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
     //substitute_rhs_2D4
 
     noalias(rRHS) += rData.Weight * rhs;
@@ -525,6 +588,15 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     //substitute_rhs_3D4
 
@@ -565,6 +637,15 @@ void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     //substitute_rhs_3D6
 
@@ -605,6 +686,15 @@ void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointRHSContribution(
     constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
+    double dt_inv = 0.0;
+    if (dt > 1e-09)
+    {
+        dt_inv = 1.0/dt;
+    }
+    if (fabs(bdf0) < 1e-9)
+    {
+        dt_inv = 0.0;
+    }
 
     //substitute_rhs_3D8
 
