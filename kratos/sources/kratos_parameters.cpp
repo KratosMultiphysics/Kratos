@@ -215,6 +215,16 @@ Parameters::Parameters(const std::string& rJsonString)
     mpValue = mpRoot.get();
 }
 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters::Parameters(std::ifstream& rStringStream)
+{
+    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream ));
+    mpValue = mpRoot.get();
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

@@ -315,6 +315,12 @@ public:
      */
     Parameters(const std::string& rJsonString);
 
+    /**
+     * @brief File constructor. It takes a file stream as input, which parses into a nlohmann::json class
+     * @param rStringStream The stream to the JSON file
+     */
+    Parameters(std::ifstream& rStringStream);
+
     /// Copy constructor.
     Parameters(Parameters const& rOther);
 
