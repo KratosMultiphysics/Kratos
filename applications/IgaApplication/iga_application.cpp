@@ -46,6 +46,7 @@ void KratosIgaApplication::Register() {
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
     KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
+    KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(NURBS_CONTROL_POINT_WEIGHT)
