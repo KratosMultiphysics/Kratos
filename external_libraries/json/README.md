@@ -8,7 +8,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f3732b3327e34358a0e9d1fe9f661f08)](https://www.codacy.com/app/nlohmann/json?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nlohmann/json&amp;utm_campaign=Badge_Grade)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/nlohmann/json.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/nlohmann/json/context:cpp)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/json.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:json)
-[![Try online](https://img.shields.io/badge/try-online-blue.svg)](https://wandbox.org/permlink/TarF5pPn9NtHQjhf)
+[![Try online](https://img.shields.io/badge/try-online-blue.svg)](https://wandbox.org/permlink/3lCHrFUZANONKv7a)
 [![Documentation](https://img.shields.io/badge/docs-doxygen-blue.svg)](http://nlohmann.github.io/json)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/nlohmann/json/master/LICENSE.MIT)
 [![GitHub Releases](https://img.shields.io/github/release/nlohmann/json.svg)](https://github.com/nlohmann/json/releases)
@@ -70,6 +70,7 @@ You can sponsor this library at [GitHub Sponsors](https://github.com/sponsors/nl
 
 - [Michael Hartmann](https://github.com/reFX-Mike)
 - [Stefan Hagen](https://github.com/sthagen)
+- [Steve Sperandeo](https://github.com/homer6)
 
 Thanks everyone!
 
@@ -131,6 +132,34 @@ add_library(foo ...)
 ...
 target_link_libraries(foo PRIVATE nlohmann_json::nlohmann_json)
 ```
+
+##### Embedded (FetchContent)
+
+Since CMake v3.11,
+[FetchContent](https://cmake.org/cmake/help/v3.11/module/FetchContent.html) can
+be used to automatically download the repository as a dependency at configure type.
+
+Example:
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(json
+  GIT_REPOSITORY https://github.com/nlohmann/json
+  GIT_TAG v3.7.3)
+
+FetchContent_GetProperties(json)
+if(NOT json_POPULATED)
+  FetchContent_Populate(json)
+  add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
+target_link_libraries(foo PRIVATE nlohmann_json::nlohmann_json)
+```
+
+**Note**: The repository https://github.com/nlohmann/json download size is huge.
+It contains all the dataset used for the benchmarks. You might want to depend on
+a smaller repository. For instance, you might want to replace the URL above by
+https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
 
 #### Supporting Both
 
@@ -194,6 +223,8 @@ If you are using [MSYS2](http://www.msys2.org/), your can use the [mingw-w64-nlo
 
 If you are using [`build2`](https://build2.org), you can use the [`nlohmann-json`](https://cppget.org/nlohmann-json) package from the public repository http://cppget.org or directly from the [package's sources repository](https://github.com/build2-packaging/nlohmann-json). In your project's `manifest` file, just add `depends: nlohmann-json` (probably with some [version constraints](https://build2.org/build2-toolchain/doc/build2-toolchain-intro.xhtml#guide-add-remove-deps)). If you are not familiar with using dependencies in `build2`, [please read this introduction](https://build2.org/build2-toolchain/doc/build2-toolchain-intro.xhtml).
 Please file issues [here](https://github.com/build2-packaging/nlohmann-json) if you experience problems with the packages.
+
+If you are using [`wsjcpp`](http://wsjcpp.org), you can use the command `wsjcpp install "https://github.com/nlohmann/json:develop"` to get the latest version. Note you can change the branch ":develop" to an existing tag or another branch.
 
 ## Examples
 
@@ -1042,22 +1073,18 @@ Please note:
 
     The code compiles successfully with [Android NDK](https://developer.android.com/ndk/index.html?hl=ml), Revision 9 - 11 (and possibly later) and [CrystaX's Android NDK](https://www.crystax.net/en/android/ndk) version 10.
 
-- For GCC running on MinGW or Android SDK, the error `'to_string' is not a member of 'std'` (or similarly, for `strtod`) may occur. Note this is not an issue with the code,  but rather with the compiler itself. On Android, see above to build with a newer environment.  For MinGW, please refer to [this site](http://tehsausage.com/mingw-to-string) and [this discussion](https://github.com/nlohmann/json/issues/136) for information on how to fix this bug. For Android NDK using `APP_STL := gnustl_static`, please refer to [this discussion](https://github.com/nlohmann/json/issues/219).
+- For GCC running on MinGW or Android SDK, the error `'to_string' is not a member of 'std'` (or similarly, for `strtod` or `strtof`) may occur. Note this is not an issue with the code,  but rather with the compiler itself. On Android, see above to build with a newer environment.  For MinGW, please refer to [this site](http://tehsausage.com/mingw-to-string) and [this discussion](https://github.com/nlohmann/json/issues/136) for information on how to fix this bug. For Android NDK using `APP_STL := gnustl_static`, please refer to [this discussion](https://github.com/nlohmann/json/issues/219).
 
 - Unsupported versions of GCC and Clang are rejected by `#error` directives. This can be switched off by defining `JSON_SKIP_UNSUPPORTED_COMPILER_CHECK`. Note that you can expect no support in this case.
 
-The following compilers are currently used in continuous integration at [Travis](https://travis-ci.org/nlohmann/json), [AppVeyor](https://ci.appveyor.com/project/nlohmann/json), [CircleCI](https://circleci.com/gh/nlohmann/json), and [Doozer](https://doozer.io):
+The following compilers are currently used in continuous integration at [Travis](https://travis-ci.org/nlohmann/json), [AppVeyor](https://ci.appveyor.com/project/nlohmann/json), and [CircleCI](https://circleci.com/gh/nlohmann/json):
 
 | Compiler              | Operating System             | Version String |
 |-----------------------|------------------------------|----------------|
 | GCC 4.8.5             | Ubuntu 14.04.5 LTS           | g++-4.8 (Ubuntu 4.8.5-2ubuntu1~14.04.2) 4.8.5 |
-| GCC 4.8.5             | CentOS Release-7-6.1810.2.el7.centos.x86_64 | g++ (GCC) 4.8.5 20150623 (Red Hat 4.8.5-36) |
-| GCC 4.9.2 (armv7l)    | Raspbian GNU/Linux 8 (jessie) | g++ (Raspbian 4.9.2-10+deb8u2) 4.9.2 |
 | GCC 4.9.4             | Ubuntu 14.04.1 LTS           | g++-4.9 (Ubuntu 4.9.4-2ubuntu1~14.04.1) 4.9.4 |
-| GCC 5.3.1 (armv7l)    | Ubuntu 16.04 LTS             | g++ (Ubuntu/Linaro 5.3.1-14ubuntu2) 5.3.1 20160413 |
 | GCC 5.5.0             | Ubuntu 14.04.1 LTS           | g++-5 (Ubuntu 5.5.0-12ubuntu1~14.04) 5.5.0 20171010 |
 | GCC 6.3.0             | Debian 9 (stretch)           | g++ (Debian 6.3.0-18+deb9u1) 6.3.0 20170516 |
-| GCC 6.3.1             | Fedora release 24 (Twenty Four) | g++ (GCC) 6.3.1 20161221 (Red Hat 6.3.1-1) |
 | GCC 6.4.0             | Ubuntu 14.04.1 LTS           | g++-6 (Ubuntu 6.4.0-17ubuntu1~14.04) 6.4.0 20180424 |
 | GCC 7.3.0             | Ubuntu 14.04.1 LTS           | g++-7 (Ubuntu 7.3.0-21ubuntu1~14.04) 7.3.0 |
 | GCC 7.3.0             | Windows Server 2012 R2 (x64) | g++ (x86_64-posix-seh-rev0, Built by MinGW-W64 project) 7.3.0 |
@@ -1072,10 +1099,6 @@ The following compilers are currently used in continuous integration at [Travis]
 | Clang 5.0.2           | Ubuntu 14.04.1 LTS           | clang version 5.0.2-svn328729-1~exp1~20180509123505.100 (branches/release_50) |
 | Clang 6.0.1           | Ubuntu 14.04.1 LTS           | clang version 6.0.1-svn334776-1~exp1~20180726133705.85 (branches/release_60) |
 | Clang 7.0.1           | Ubuntu 14.04.1 LTS           | clang version 7.0.1-svn348686-1~exp1~20181213084532.54 (branches/release_70) |
-| Clang Xcode 8.3       | OSX 10.11.6                  | Apple LLVM version 8.1.0 (clang-802.0.38) |
-| Clang Xcode 9.0       | OSX 10.12.6                  | Apple LLVM version 9.0.0 (clang-900.0.37) |
-| Clang Xcode 9.1       | OSX 10.12.6                  | Apple LLVM version 9.0.0 (clang-900.0.38) |
-| Clang Xcode 9.2       | OSX 10.13.3                  | Apple LLVM version 9.1.0 (clang-902.0.39.1) |
 | Clang Xcode 9.3       | OSX 10.13.3                  | Apple LLVM version 9.1.0 (clang-902.0.39.2) |
 | Clang Xcode 10.0      | OSX 10.13.3                  | Apple LLVM version 10.0.0 (clang-1000.11.45.2) |
 | Clang Xcode 10.1      | OSX 10.13.3                  | Apple LLVM version 10.0.0 (clang-1000.11.45.5) |
@@ -1326,9 +1349,7 @@ The library itself consists of a single header file licensed under the MIT licen
 - [**Coverity Scan**](https://scan.coverity.com) for [static analysis](https://scan.coverity.com/projects/nlohmann-json)
 - [**cppcheck**](http://cppcheck.sourceforge.net) for static analysis
 - [**doctest**](https://github.com/onqtam/doctest) for the unit tests
-- [**Doozer**](https://doozer.io) for [continuous integration](https://doozer.io/nlohmann/json) on Linux (CentOS, Raspbian, Fedora)
 - [**Doxygen**](http://www.stack.nl/~dimitri/doxygen/) to generate [documentation](https://nlohmann.github.io/json/)
-- [**fastcov**](https://github.com/RPGillespie6/fastcov) to process coverage information
 - [**git-update-ghpages**](https://github.com/rstacruz/git-update-ghpages) to upload the documentation to gh-pages
 - [**GitHub Changelog Generator**](https://github.com/skywinder/github-changelog-generator) to generate the [ChangeLog](https://github.com/nlohmann/json/blob/develop/ChangeLog.md)
 - [**Google Benchmark**](https://github.com/google/benchmark) to implement the benchmarks
@@ -1340,7 +1361,7 @@ The library itself consists of a single header file licensed under the MIT licen
 - [**send_to_wandbox**](https://github.com/nlohmann/json/blob/develop/doc/scripts/send_to_wandbox.py) to send code examples to [Wandbox](http://melpon.org/wandbox)
 - [**Travis**](https://travis-ci.org) for [continuous integration](https://travis-ci.org/nlohmann/json) on Linux and macOS
 - [**Valgrind**](http://valgrind.org) to check for correct memory management
-- [**Wandbox**](http://melpon.org/wandbox) for [online examples](https://wandbox.org/permlink/TarF5pPn9NtHQjhf)
+- [**Wandbox**](http://melpon.org/wandbox) for [online examples](https://wandbox.org/permlink/3lCHrFUZANONKv7a)
 
 
 ## Projects using JSON for Modern C++
