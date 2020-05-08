@@ -63,7 +63,7 @@ class MPMCoupledTimeSolver(MPMSolver):
 
         # TODO read from parameters
         self.interface_criteria_normal = [1,0,0]
-        self.interface_criteria_origin = [6,0,0]
+        self.interface_criteria_origin = [5,0,0]
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMCoupledTimeSolver]:: ", "Construction finished.")
 
@@ -74,6 +74,7 @@ class MPMCoupledTimeSolver(MPMSolver):
             "analysis_type"   : "linear",
             "scheme_type"   : "newmark",
             "newmark_beta"  : 0.25,
+            "consistent_mass_matrix"  : true,
             "time_stepping"            : {
             "time_step"                          : 1,
             "timestep_ratio"                     : 1,
@@ -182,7 +183,7 @@ class MPMCoupledTimeSolver(MPMSolver):
             print('finalizing sd2')
             self._GetSolutionStrategy(2).FinalizeSolutionStep()
             self._GetSolutionStrategy(2).Clear()
-
+        self.coupling_utility.CorrectSubDomain1()
         return is_converged
 
 
@@ -328,6 +329,44 @@ class MPMCoupledTimeSolver(MPMSolver):
                     else:
                         print('element ',element.Id,' with x = ',mp_coord[0][i],' added to subdomain 2')
                         self.model_sub_domain_2.AddElement(element,0)
+
+        self.model_sub_domain_1.CreateSubModelPart("active_nodes")
+        self.model_sub_domain_2.CreateSubModelPart("active_nodes")
+        sub_domain_1_active_nodes = self.model_sub_domain_1.GetSubModelPart("active_nodes")
+        sub_domain_2_active_nodes = self.model_sub_domain_2.GetSubModelPart("active_nodes")
+        for node in self.grid_model_part.Nodes:
+            if self.interface_criteria_normal[0] == 1:
+                if node.X == self.interface_criteria_origin[0]:
+                    sub_domain_1_active_nodes.AddNodes([node.Id])
+                    sub_domain_2_active_nodes.AddNodes([node.Id])
+                elif node.X < self.interface_criteria_origin[0]:
+                    sub_domain_1_active_nodes.AddNodes([node.Id])
+                else:
+                    sub_domain_2_active_nodes.AddNodes([node.Id])
+            elif self.interface_criteria_normal[1] == 1:
+                if node.Y == self.interface_criteria_origin[1]:
+                    sub_domain_1_active_nodes.AddNodes([node.Id])
+                    sub_domain_2_active_nodes.AddNodes([node.Id])
+                elif node.Y < self.interface_criteria_origin[1]:
+                    sub_domain_1_active_nodes.AddNodes([node.Id])
+                else:
+                    sub_domain_2_active_nodes.AddNodes([node.Id])
+            elif self.interface_criteria_normal[2] == 1:
+                if node.Z == self.interface_criteria_origin[2]:
+                    sub_domain_1_active_nodes.AddNodes([node.Id])
+                    sub_domain_2_active_nodes.AddNodes([node.Id])
+                elif node.Z < self.interface_criteria_origin[2]:
+                    sub_domain_1_active_nodes.AddNodes([node.Id])
+                else:
+                    sub_domain_2_active_nodes.AddNodes([node.Id])
+            else:
+                raise Exception("Only simple interface definitions allowed so far.")
+        print("\n\nsub domain 1 active nodes")
+        for node in sub_domain_1_active_nodes.Nodes:
+            print("node x = ",node.X)
+        print("\n\nsub domain 2 active nodes")
+        for node in sub_domain_2_active_nodes.Nodes:
+            print("node x = ",node.X)
 
 
     def _SearchElement(self):

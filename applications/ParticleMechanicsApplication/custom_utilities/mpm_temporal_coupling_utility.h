@@ -61,6 +61,8 @@ public:
 
     void StoreFreeVelocitiesSubDomain1();
 
+    void CorrectSubDomain1();
+
 protected:
     void ComputeActiveInterfaceNodes();
 
@@ -92,6 +94,10 @@ protected:
 
     Vector mSubDomain1InitialInterfaceVelocity;
     Vector mSubDomain1FinalInterfaceVelocity;
+    Vector mSubDomain1FinalDomainVelocity;
+    Vector mSubDomain1FinalDomainDisplacement;
+    Vector mSubDomain1FinalDomainAcceleration;
+    Vector mSubDomain1FinalDomainActiveNodes;
     Vector mSubDomain1AccumulatedLinkVelocity;
 
     Matrix mInvM1;

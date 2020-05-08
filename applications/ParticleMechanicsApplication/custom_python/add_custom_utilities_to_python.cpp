@@ -49,6 +49,7 @@ namespace Python{
             .def("CalculateCorrectiveLagrangianMultipliers", &MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliers)
             .def("InitializeSubDomain1Coupling", &MPMTemporalCouplingUtility::InitializeSubDomain1Coupling)
             .def("StoreFreeVelocitiesSubDomain1", &MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1)
+            .def("CorrectSubDomain1", &MPMTemporalCouplingUtility::CorrectSubDomain1)
             ;
     }
 

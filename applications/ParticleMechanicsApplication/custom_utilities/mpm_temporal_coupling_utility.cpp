@@ -83,9 +83,16 @@ namespace Kratos
             prod(mCoupling1,mSubDomain1AccumulatedLinkVelocity);
         b -= subDomain2freeVelocities;
 
+        std::cout << "\n\n\n ========= FREE INTERFACE VELOCITIES ==============="
+            << "\nDomain A = " << SubDomain1InterpolatedVelocities
+            << "\nDomain B = " << subDomain2freeVelocities
+            << std::endl;
+
+
         // Calculate corrective Lagrangian multipliers
         Vector lamda;
         ComputeLamda(H, b, lamda);
+        //lamda = ZeroVector(lamda.size()); // disable coupling links
 
         // Calculate link velocities
         Matrix temp1 = prod(mInvM1, trans(mCoupling1));
@@ -95,15 +102,20 @@ namespace Kratos
         Matrix temp2 = prod(InvM2, trans(Coupling2));
         Vector link_accel_2 = prod(temp2, lamda);
 
-        // Update sub domain 1 at the end of the large timestep only
-        if (mJ == mTimeStepRatio)
+        const bool is_print_equilibrated_velocities = true;
+        if (is_print_equilibrated_velocities)
         {
-            // DO NOT UPDATE THE INTERFACE OF A- ONLY UPDATE B INTERFACE
-            const double time_step_1 = mSmallTimestep * mTimeStepRatio;
-            const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
-            if (mGamma[0] == 1.0) ApplyCorrectionExplicit(mrModelPartSubDomain1, link_accel_1, time_step_1, false);
-            else ApplyCorrectionImplicit(mrModelPartSubDomain1, link_accel_1, time_step_1, false);
+            Vector link_vel_2 = prod(Coupling2, mGamma[1] * mSmallTimestep * link_accel_2);
+            Vector total_vel_2 = subDomain2freeVelocities - link_vel_2;
+
+            Vector total_vel_1 = SubDomain1InterpolatedVelocities + prod(mCoupling1, mSubDomain1AccumulatedLinkVelocity);
+
+            std::cout << "Total vel domain 1 = " << total_vel_1 << std::endl;
+            std::cout << "Total vel domain 2 = " << total_vel_2 << std::endl;
         }
+
+
+
 
         // Update sub domain 2 at the end of every small timestep
         if (mGamma[1] == 1.0) ApplyCorrectionExplicit(mrModelPartSubDomain2, link_accel_2, mSmallTimestep);
@@ -121,6 +133,52 @@ namespace Kratos
     }
 
 
+    void MPMTemporalCouplingUtility::CorrectSubDomain1()
+    {
+        // Restore subdomain 1
+        ModelPart& r_sub_domain_1_active = mrModelPartSubDomain1.GetSubModelPart("active_nodes");
+        const IndexType working_space_dim = mrModelPartSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
+
+        PrintNodeIdsAndCoords(r_sub_domain_1_active);
+
+        auto node_begin = r_sub_domain_1_active.NodesBegin();
+        for (size_t i = 0; i < domain_nodes; ++i)
+        {
+            auto node_it = node_begin + i;
+            node_it->Set(ACTIVE, mSubDomain1FinalDomainActiveNodes[i]);
+
+            array_1d <double, 3> nodal_vel = node_it->FastGetSolutionStepValue(VELOCITY);
+            array_1d <double, 3> nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d <double, 3> nodal_accel = node_it->FastGetSolutionStepValue(ACCELERATION);
+            nodal_vel.clear();
+            nodal_disp.clear();
+            nodal_accel.clear();
+
+            for (size_t k = 0; k < working_space_dim; ++k)
+            {
+                nodal_vel[k] = mSubDomain1FinalDomainVelocity[i * working_space_dim + k];
+                nodal_disp[k] = mSubDomain1FinalDomainDisplacement[i * working_space_dim + k];
+                nodal_accel[k] = mSubDomain1FinalDomainAcceleration[i * working_space_dim + k];
+            }
+        }
+
+        PrintNodeIdsAndCoords(r_sub_domain_1_active);
+
+
+
+        const double time_step_1 = mSmallTimestep * mTimeStepRatio;
+        const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
+        if (mGamma[0] == 1.0) ApplyCorrectionExplicit(mrModelPartSubDomain1, link_accel_1, time_step_1);
+        else ApplyCorrectionImplicit(mrModelPartSubDomain1, link_accel_1, time_step_1);
+
+        PrintNodeIdsAndCoords(r_sub_domain_1_active);
+
+        int test = 1;
+    }
+
+
+
     void MPMTemporalCouplingUtility::InitializeSubDomain1Coupling()
     {
         KRATOS_TRY
@@ -131,11 +189,30 @@ namespace Kratos
         std::cout << "Subdomain 1 initial interface velocity" << std::endl;
         SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1InitialInterfaceVelocity);
 
+        /*
+        auto node_begin = mrModelPartSubDomain1.NodesBegin();
+        for (size_t i = 0; i < mrModelPartSubDomain1.Nodes().size(); ++i)
+        {
+            auto node_it = node_begin + i;
+            if (node_it->Is(ACTIVE)) std::cout << "BEFORE active node at x = " << node_it->X() << std::endl;
+        }
+
+        auto ele_begin = mrModelPartSubDomain1.ElementsBegin();
+        ProcessInfo dummy;
+        for (size_t i = 0; i < mrModelPartSubDomain1.Elements().size(); ++i)
+        {
+            auto ele_it = ele_begin + i;
+            std::vector<array_1d<double, 3 > > xg;
+            ele_it->CalculateOnIntegrationPoints(MP_COORD, xg, dummy);
+            std::cout << "element at x = " << xg[0][0] << std::endl;
+        }
+
+
         // TODO delete
         std::vector<Vector> ele_cauchy = { ZeroVector(3) };
         mrModelPartSubDomain1.ElementsBegin()->CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, ele_cauchy, mrModelPartSubDomain1.GetProcessInfo());
         std::cout << "first ele_cauchy = " << ele_cauchy[0] << std::endl;
-
+        */
         KRATOS_CATCH("")
     }
 
@@ -146,6 +223,38 @@ namespace Kratos
 
         std::cout << "Subdomain 1 final interface velocity" << std::endl;
         SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1FinalInterfaceVelocity);
+
+        ModelPart& r_sub_domain_1_active = mrModelPartSubDomain1.GetSubModelPart("active_nodes");
+        const IndexType working_space_dim = mrModelPartSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
+        const SizeType domain_nodes_test = mrModelPartSubDomain1.Nodes().size();
+
+        mSubDomain1FinalDomainVelocity.resize(domain_nodes * working_space_dim, false);
+        mSubDomain1FinalDomainDisplacement.resize(domain_nodes * working_space_dim, false);
+        mSubDomain1FinalDomainAcceleration.resize(domain_nodes * working_space_dim, false);
+        mSubDomain1FinalDomainActiveNodes.resize(domain_nodes, false);
+        mSubDomain1FinalDomainVelocity = ZeroVector(mSubDomain1FinalDomainVelocity.size());
+        mSubDomain1FinalDomainDisplacement = ZeroVector(mSubDomain1FinalDomainDisplacement.size());
+        mSubDomain1FinalDomainAcceleration = ZeroVector(mSubDomain1FinalDomainAcceleration.size());
+        mSubDomain1FinalDomainActiveNodes = ZeroVector(mSubDomain1FinalDomainActiveNodes.size());
+
+        auto node_begin = r_sub_domain_1_active.NodesBegin();
+        for (size_t i = 0; i < domain_nodes; ++i)
+        {
+            auto node_it = node_begin + i;
+            mSubDomain1FinalDomainActiveNodes[i] = node_it->Is(ACTIVE);
+            if (mSubDomain1FinalDomainActiveNodes[i]) std::cout << "active node at x = " << node_it->X() << std::endl;
+            const array_1d <double, 3> nodal_vel = node_it->FastGetSolutionStepValue(VELOCITY);
+            const array_1d <double, 3> nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d <double, 3> nodal_accel = node_it->FastGetSolutionStepValue(ACCELERATION);
+            for (size_t k = 0; k < working_space_dim; ++k)
+            {
+                mSubDomain1FinalDomainVelocity[i * working_space_dim + k] = nodal_vel[k];
+                mSubDomain1FinalDomainDisplacement[i * working_space_dim + k] = nodal_disp[k];
+                mSubDomain1FinalDomainAcceleration[i * working_space_dim + k] = nodal_accel[k];
+            }
+        }
+
 
         /*
         std::cout << "\n\nprinting all subdomain 1 velocities" << std::endl;
@@ -537,7 +646,7 @@ namespace Kratos
         {
             auto node = rModelPart.NodesBegin() + i;
             //std::cout << "node " << node->GetId() << ", coords = (" << node->X() << ", " << node->Y() << ", " << node->Z() << ")" << std::endl;
-            std::cout << "node " << node->GetId() << ", mom = (" << node->FastGetSolutionStepValue(NODAL_MOMENTUM) << std::endl;
+            std::cout << "node x = " << node->X() << ", vel = (" << node->FastGetSolutionStepValue(VELOCITY) << std::endl;
         }
     }
 
