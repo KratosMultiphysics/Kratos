@@ -24,6 +24,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mIgaEdgeCableElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mPenaltyCouplingCondition(0, Condition::GeometryType::Pointer(
@@ -39,6 +41,7 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
     KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
+    KRATOS_REGISTER_ELEMENT("IgaEdgeCableElement", mIgaEdgeCableElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
@@ -50,6 +53,7 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_VARIABLE(COORDINATES)
     KRATOS_REGISTER_VARIABLE(TANGENTS)
 
+    KRATOS_REGISTER_VARIABLE(CABLE_STRESS)
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
     KRATOS_REGISTER_VARIABLE(PRESTRESS_CAUCHY)
     KRATOS_REGISTER_VARIABLE(PRESTRESS)
