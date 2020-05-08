@@ -63,7 +63,7 @@
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
 #include "custom_elements/herschel_bulkley_fluid.h"
-#include "custom_elements/stokes.h"
+#include "custom_elements/symbolic_stokes.h"
 #include "custom_elements/stokes_3D.h"
 #include "custom_elements/stokes_3D_twofluid.h"
 #include "custom_elements/navier_stokes.h"
@@ -282,11 +282,11 @@ private:
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMS3D4N;
     const EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMSDiscontinuous2D3N;
     const EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMSDiscontinuous3D4N;
-    const Stokes < SymbolicStokesData<2,3> > mStokes2D3N;
-    const Stokes < SymbolicStokesData<2,4> > mStokes2D4N;
-    const Stokes < SymbolicStokesData<3,4> > mStokes3D4N;
-    const Stokes < SymbolicStokesData<3,6> > mStokes3D6N;
-    const Stokes < SymbolicStokesData<3,8> > mStokes3D8N;
+    const SymbolicStokes < SymbolicStokesData<2,3> > mSymbolicStokes2D3N;
+    const SymbolicStokes < SymbolicStokesData<2,4> > mSymbolicStokes2D4N;
+    const SymbolicStokes < SymbolicStokesData<3,4> > mSymbolicStokes3D4N;
+    const SymbolicStokes < SymbolicStokesData<3,6> > mSymbolicStokes3D6N;
+    const SymbolicStokes < SymbolicStokesData<3,8> > mSymbolicStokes3D8N;
 
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;

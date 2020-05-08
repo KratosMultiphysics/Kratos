@@ -11,8 +11,8 @@
 //  Co-authors:
 //
 
-#if !defined(KRATOS_STOKES)
-#define  KRATOS_STOKES
+#if !defined(KRATOS_SYMBOLIC_STOKES)
+#define  KRATOS_SYMBOLIC_STOKES
 
 // System includes
 
@@ -29,8 +29,7 @@
 namespace Kratos
 {
 
-/*The "Stokes" element is an element based on the Variational Multiscale Stabilization technique (VMS)
-Enrichment not enabled in the formulation.
+/*The "SymbolicStokes" element is an element based on the Variational Multiscale Stabilization technique (VMS).
 */
 
 ///@name Kratos Globals
@@ -53,12 +52,12 @@ Enrichment not enabled in the formulation.
 ///@{
 
 template< class TElementData >
-class Stokes : public FluidElement<TElementData>
+class SymbolicStokes : public FluidElement<TElementData>
 {
 public:
 
     /// Counted pointer of
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Stokes);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SymbolicStokes);
 
     ///@name Type Definitions
     ///@{
@@ -90,21 +89,21 @@ public:
     /**
     * @param NewId Index number of the new element (optional)
     */
-    Stokes(IndexType NewId = 0);
+    SymbolicStokes(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
     * @param NewId Index of the new element
     * @param ThisNodes An array containing the nodes of the new element
     */
-    Stokes(IndexType NewId, const NodesArrayType& ThisNodes);
+    SymbolicStokes(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
     * @param NewId Index of the new element
     * @param pGeometry Pointer to a geometry object
     */
-    Stokes(IndexType NewId, GeometryType::Pointer pGeometry);
+    SymbolicStokes(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -112,10 +111,10 @@ public:
     * @param pGeometry Pointer to a geometry object
     * @param pProperties Pointer to the element's properties
     */
-    Stokes(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    SymbolicStokes(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    virtual ~Stokes();
+    virtual ~SymbolicStokes();
 
     ///@}
     ///@name Operators
@@ -127,7 +126,7 @@ public:
 
     /// Create a new element of this type
     /**
-    * Returns a pointer to a new Stokes element, created using given input.
+    * Returns a pointer to a new SymbolicStokes element, created using given input.
     * @param NewId the ID of the new element
     * @param ThisNodes the nodes of the new element
     * @param pProperties the properties assigned to the new element
@@ -365,14 +364,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    Stokes& operator=(Stokes const& rOther);
+    SymbolicStokes& operator=(SymbolicStokes const& rOther);
 
     /// Copy constructor.
-    Stokes(Stokes const& rOther);
+    SymbolicStokes(SymbolicStokes const& rOther);
 
     ///@}
 
-}; // Class Stokes
+}; // Class SymbolicStokes
 ///@name Type Definitions
 ///@{
 
@@ -383,7 +382,7 @@ private:
 /// input stream function
 template< class TElementData >
 inline std::istream& operator >> (std::istream& rIStream,
-    Stokes<TElementData>& rThis)
+    SymbolicStokes<TElementData>& rThis)
 {
     return rIStream;
 }
@@ -391,7 +390,7 @@ inline std::istream& operator >> (std::istream& rIStream,
 /// output stream function
 template< class TElementData >
 inline std::ostream& operator <<(std::ostream& rOStream,
-    const Stokes<TElementData>& rThis)
+    const SymbolicStokes<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -403,4 +402,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_TWO_FLUID_NAVIER_STOKES
+#endif // KRATOS_SYMBOLIC_STOKES

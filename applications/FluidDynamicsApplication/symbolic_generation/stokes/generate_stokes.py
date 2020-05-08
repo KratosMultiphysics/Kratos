@@ -28,7 +28,7 @@ elif (dim_to_compute == "Both"):
     nnodes_vector = [3, 4, 4, 6, 8] # tria, quad, tet, prism, hex
 
 ## Read the template file
-templatefile = open("stokes_template.cpp")
+templatefile = open("symbolic_stokes_template.cpp")
 outstring = templatefile.read()
 
 for dim, nnodes in zip(dim_vector, nnodes_vector):
@@ -185,7 +185,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         outstring = outstring.replace("//substitute_rhs_3D8", rhs_out)
 
 #We write in the file
-out = open("stokes.cpp",'w')
+out = open("symbolic_stokes.cpp",'w')
 out.write(outstring)
 out.close()
 

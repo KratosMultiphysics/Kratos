@@ -11,8 +11,8 @@
 //  Co-authors:      Ruben Zorrilla
 //
 
-#include "stokes.h"
-#include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "symbolic_stokes.h"
+#include "custom_utilities/symbolic_stokes_data.h"
 
 namespace Kratos
 {
@@ -21,50 +21,50 @@ namespace Kratos
 // Life cycle
 
 template <class TElementData>
-Stokes<TElementData>::Stokes(IndexType NewId)
+SymbolicStokes<TElementData>::SymbolicStokes(IndexType NewId)
     : FluidElement<TElementData>(NewId) {}
 
 template <class TElementData>
-Stokes<TElementData>::Stokes(
+SymbolicStokes<TElementData>::SymbolicStokes(
     IndexType NewId, const NodesArrayType &ThisNodes)
     : FluidElement<TElementData>(NewId, ThisNodes) {}
 
 template <class TElementData>
-Stokes<TElementData>::Stokes(
+SymbolicStokes<TElementData>::SymbolicStokes(
     IndexType NewId, GeometryType::Pointer pGeometry)
     : FluidElement<TElementData>(NewId, pGeometry) {}
 
 template <class TElementData>
-Stokes<TElementData>::Stokes(
+SymbolicStokes<TElementData>::SymbolicStokes(
     IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties)
     : FluidElement<TElementData>(NewId, pGeometry, pProperties) {}
 
 template <class TElementData>
-Stokes<TElementData>::~Stokes() {}
+SymbolicStokes<TElementData>::~SymbolicStokes() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
 
 template <class TElementData>
-Element::Pointer Stokes<TElementData>::Create(
+Element::Pointer SymbolicStokes<TElementData>::Create(
     IndexType NewId,
     NodesArrayType const &ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<Stokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SymbolicStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template <class TElementData>
-Element::Pointer Stokes<TElementData>::Create(
+Element::Pointer SymbolicStokes<TElementData>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<Stokes>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SymbolicStokes>(NewId, pGeom, pProperties);
 }
 
 template <class TElementData>
-void Stokes<TElementData>::CalculateLocalSystem(
+void SymbolicStokes<TElementData>::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
@@ -96,12 +96,12 @@ void Stokes<TElementData>::CalculateLocalSystem(
         }
 
     } else{
-        KRATOS_ERROR << "Stokes is supposed to manage time integration." << std::endl;
+        KRATOS_ERROR << "SymbolicStokes is supposed to manage time integration." << std::endl;
     }
 }
 
 template <class TElementData>
-void Stokes<TElementData>::CalculateRightHandSide(
+void SymbolicStokes<TElementData>::CalculateRightHandSide(
     VectorType &rRightHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
 {
@@ -112,7 +112,7 @@ void Stokes<TElementData>::CalculateRightHandSide(
 // Public Inquiry
 
 template <class TElementData>
-int Stokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int SymbolicStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
@@ -131,15 +131,15 @@ int Stokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 // Public I/O
 
 template <class TElementData>
-std::string Stokes<TElementData>::Info() const
+std::string SymbolicStokes<TElementData>::Info() const
 {
     std::stringstream buffer;
-    buffer << "Stokes" << Dim << "D" << NumNodes << "N #" << this->Id();
+    buffer << "SymbolicStokes" << Dim << "D" << NumNodes << "N #" << this->Id();
     return buffer.str();
 }
 
 template <class TElementData>
-void Stokes<TElementData>::PrintInfo(
+void SymbolicStokes<TElementData>::PrintInfo(
     std::ostream &rOStream) const
 {
     rOStream << this->Info() << std::endl;
@@ -151,7 +151,7 @@ void Stokes<TElementData>::PrintInfo(
 }
 
 template <class TElementData>
-void Stokes<TElementData>::Calculate(
+void SymbolicStokes<TElementData>::Calculate(
     const Variable<Vector >& rVariable,
     Vector& rOutput,
     const ProcessInfo& rCurrentProcessInfo )
@@ -201,7 +201,7 @@ void Stokes<TElementData>::Calculate(
 // Protected operations
 
 template <class TElementData>
-void Stokes<TElementData>::AddTimeIntegratedSystem(
+void SymbolicStokes<TElementData>::AddTimeIntegratedSystem(
     TElementData &rData,
     MatrixType &rLHS,
     VectorType &rRHS)
@@ -211,7 +211,7 @@ void Stokes<TElementData>::AddTimeIntegratedSystem(
 }
 
 template <class TElementData>
-void Stokes<TElementData>::AddTimeIntegratedLHS(
+void SymbolicStokes<TElementData>::AddTimeIntegratedLHS(
     TElementData &rData,
     MatrixType &rLHS)
 {
@@ -219,7 +219,7 @@ void Stokes<TElementData>::AddTimeIntegratedLHS(
 }
 
 template <class TElementData>
-void Stokes<TElementData>::AddTimeIntegratedRHS(
+void SymbolicStokes<TElementData>::AddTimeIntegratedRHS(
     TElementData &rData,
     VectorType &rRHS)
 {
@@ -227,7 +227,7 @@ void Stokes<TElementData>::AddTimeIntegratedRHS(
 }
 
 template <class TElementData>
-void Stokes<TElementData>::UpdateIntegrationPointData(
+void SymbolicStokes<TElementData>::UpdateIntegrationPointData(
     TElementData& rData,
     unsigned int IntegrationPointIndex,
     double Weight,
@@ -239,8 +239,8 @@ void Stokes<TElementData>::UpdateIntegrationPointData(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<2,3> &rData,
+void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<2,3> &rData,
     MatrixType &rLHS)
 {
     const double rho = rData.Density;
@@ -273,8 +273,8 @@ void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointLHSContribution(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<2,4> &rData,
+void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<2,4> &rData,
     MatrixType &rLHS)
 {
     const double rho = rData.Density;
@@ -307,8 +307,8 @@ void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointLHSContribution(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<3,4> &rData,
+void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<3,4> &rData,
     MatrixType &rLHS)
 {
 
@@ -342,8 +342,8 @@ void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<3,6> &rData,
+void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<3,6> &rData,
     MatrixType &rLHS)
 {
 
@@ -377,8 +377,8 @@ void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointLHSContribution(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<3,8> &rData,
+void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<3,8> &rData,
     MatrixType &rLHS)
 {
 
@@ -412,8 +412,8 @@ void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointLHSContribution(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<2,3> &rData,
+void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<2,3> &rData,
     VectorType &rRHS)
 {
 
@@ -452,8 +452,8 @@ void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<2,4> &rData,
+void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<2,4> &rData,
     VectorType &rRHS)
 {
 
@@ -492,8 +492,8 @@ void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointRHSContribution(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<3,4> &rData,
+void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<3,4> &rData,
     VectorType &rRHS)
 {
 
@@ -532,8 +532,8 @@ void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<3,6> &rData,
+void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<3,6> &rData,
     VectorType &rRHS)
 {
 
@@ -572,8 +572,8 @@ void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointRHSContribution(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<3,8> &rData,
+void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<3,8> &rData,
     VectorType &rRHS)
 {
 
@@ -613,14 +613,14 @@ void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointRHSContribution(
 
 
 template <class TElementData>
-void Stokes<TElementData>::save(Serializer &rSerializer) const
+void SymbolicStokes<TElementData>::save(Serializer &rSerializer) const
 {
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
 }
 
 template <class TElementData>
-void Stokes<TElementData>::load(Serializer &rSerializer)
+void SymbolicStokes<TElementData>::load(Serializer &rSerializer)
 {
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
@@ -628,7 +628,7 @@ void Stokes<TElementData>::load(Serializer &rSerializer)
 
 
 template <class TElementData>
-void Stokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
+void SymbolicStokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
                                                                         std::vector<double> &rValues,
                                                                         const ProcessInfo &rCurrentProcessInfo )
 {
@@ -666,10 +666,10 @@ void Stokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double>
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class Stokes<SymbolicNavierStokesData<2,3>>;
-template class Stokes<SymbolicNavierStokesData<2,4>>;
-template class Stokes<SymbolicNavierStokesData<3,4>>;
-template class Stokes<SymbolicNavierStokesData<3,6>>;
-template class Stokes<SymbolicNavierStokesData<3,8>>;
+template class SymbolicStokes<SymbolicStokesData<2,3>>;
+template class SymbolicStokes<SymbolicStokesData<2,4>>;
+template class SymbolicStokes<SymbolicStokesData<3,4>>;
+template class SymbolicStokes<SymbolicStokesData<3,6>>;
+template class SymbolicStokes<SymbolicStokesData<3,8>>;
 
 } // namespace Kratos
