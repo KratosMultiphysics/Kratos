@@ -282,11 +282,11 @@ private:
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMS3D4N;
     const EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMSDiscontinuous2D3N;
     const EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMSDiscontinuous3D4N;
-    const Stokes < SymbolicNavierStokesData<2,3> > mStokes2D3N;
-    const Stokes < SymbolicNavierStokesData<2,4> > mStokes2D4N;
-    const Stokes < SymbolicNavierStokesData<3,4> > mStokes3D4N;
-    const Stokes < SymbolicNavierStokesData<3,6> > mStokes3D6N;
-    const Stokes < SymbolicNavierStokesData<3,8> > mStokes3D8N;
+    const Stokes < SymbolicStokesData<2,3> > mStokes2D3N;
+    const Stokes < SymbolicStokesData<2,4> > mStokes2D4N;
+    const Stokes < SymbolicStokesData<3,4> > mStokes3D4N;
+    const Stokes < SymbolicStokesData<3,6> > mStokes3D6N;
+    const Stokes < SymbolicStokesData<3,8> > mStokes3D8N;
 
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;

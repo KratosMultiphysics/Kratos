@@ -12,7 +12,7 @@
 //
 
 #include "stokes.h"
-#include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/symbolic_stokes_data.h"
 
 namespace Kratos
 {
@@ -239,8 +239,8 @@ void Stokes<TElementData>::UpdateIntegrationPointData(
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<2,3> &rData,
+void Stokes<SymbolicStokesData<2,3>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<2,3> &rData,
     MatrixType &rLHS)
 {
     const double rho = rData.Density;
@@ -441,8 +441,8 @@ const double clhs86 =             DN(2,1)*N[2];
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<2,4> &rData,
+void Stokes<SymbolicStokesData<2,4>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<2,4> &rData,
     MatrixType &rLHS)
 {
     const double rho = rData.Density;
@@ -759,8 +759,8 @@ const double clhs139 =             DN(3,1)*N[3];
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<3,4> &rData,
+void Stokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<3,4> &rData,
     MatrixType &rLHS)
 {
 
@@ -1334,8 +1334,8 @@ const double clhs283 =             DN(3,2)*N[3];
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<3,6> &rData,
+void Stokes<SymbolicStokesData<3,6>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<3,6> &rData,
     MatrixType &rLHS)
 {
 
@@ -2491,8 +2491,8 @@ const double clhs545 =             DN(5,2)*N[5];
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointLHSContribution(
-    SymbolicNavierStokesData<3,8> &rData,
+void Stokes<SymbolicStokesData<3,8>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<3,8> &rData,
     MatrixType &rLHS)
 {
 
@@ -4438,8 +4438,8 @@ const double clhs887 =             DN(7,2)*N[7];
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<2,3> &rData,
+void Stokes<SymbolicStokesData<2,3>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<2,3> &rData,
     VectorType &rRHS)
 {
 
@@ -4497,8 +4497,8 @@ const double crhs9 =             crhs7*(DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<2,4>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<2,4> &rData,
+void Stokes<SymbolicStokesData<2,4>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<2,4> &rData,
     VectorType &rRHS)
 {
 
@@ -4559,8 +4559,8 @@ const double crhs9 =             crhs7*(DN(0,1)*p[0] + DN(1,1)*p[1] + DN(2,1)*p[
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<3,4> &rData,
+void Stokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<3,4> &rData,
     VectorType &rRHS)
 {
 
@@ -4628,8 +4628,8 @@ const double crhs12 =             crhs9*(DN(0,2)*p[0] + DN(1,2)*p[1] + DN(2,2)*p
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,6>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<3,6> &rData,
+void Stokes<SymbolicStokesData<3,6>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<3,6> &rData,
     VectorType &rRHS)
 {
 
@@ -4705,8 +4705,8 @@ const double crhs12 =             crhs9*(DN(0,2)*p[0] + DN(1,2)*p[1] + DN(2,2)*p
 }
 
 template <>
-void Stokes<SymbolicNavierStokesData<3,8>>::ComputeGaussPointRHSContribution(
-    SymbolicNavierStokesData<3,8> &rData,
+void Stokes<SymbolicStokesData<3,8>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<3,8> &rData,
     VectorType &rRHS)
 {
 
@@ -4844,10 +4844,10 @@ void Stokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double>
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class Stokes<SymbolicNavierStokesData<2,3>>;
-template class Stokes<SymbolicNavierStokesData<2,4>>;
-template class Stokes<SymbolicNavierStokesData<3,4>>;
-template class Stokes<SymbolicNavierStokesData<3,6>>;
-template class Stokes<SymbolicNavierStokesData<3,8>>;
+template class Stokes<SymbolicStokesData<2,3>>;
+template class Stokes<SymbolicStokesData<2,4>>;
+template class Stokes<SymbolicStokesData<3,4>>;
+template class Stokes<SymbolicStokesData<3,6>>;
+template class Stokes<SymbolicStokesData<3,8>>;
 
 } // namespace Kratos
