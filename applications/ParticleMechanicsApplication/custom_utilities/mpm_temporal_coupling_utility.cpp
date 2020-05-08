@@ -44,16 +44,15 @@ namespace Kratos
             GetEffectiveMassMatrix(0, mrModelPartSubDomain1, eff_mass_mat_1, K_1);
             InvertEffectiveMassMatrix(eff_mass_mat_1, mInvM1);
             ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, mrModelPartSubDomain1);
-            SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1FinalInterfaceVelocity);
 
             // reset accumulated link velocities at the start of every big timestep
             mSubDomain1AccumulatedLinkVelocity.resize(eff_mass_mat_1.size1(), false);
             mSubDomain1AccumulatedLinkVelocity = ZeroVector(eff_mass_mat_1.size1());
         }
 
-        PrintNodeIdsAndCoords(mrModelPartSubDomain1);
-        PrintNodeIdsAndCoords(mrModelPartSubDomain2);
-        PrintNodeIdsAndCoords(mrModelPartGrid);
+        //PrintNodeIdsAndCoords(mrModelPartSubDomain1);
+        //PrintNodeIdsAndCoords(mrModelPartSubDomain2);
+        //PrintNodeIdsAndCoords(mrModelPartGrid);
 
         // Interpolate subdomain 1 velocities
         const Vector SubDomain1InterpolatedVelocities = (mJ == mTimeStepRatio)
@@ -125,15 +124,38 @@ namespace Kratos
     void MPMTemporalCouplingUtility::InitializeSubDomain1Coupling()
     {
         KRATOS_TRY
+        
         Check();
         ComputeActiveInterfaceNodes();
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
+        std::cout << "Subdomain 1 initial interface velocity" << std::endl;
         SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1InitialInterfaceVelocity);
 
         // TODO delete
         std::vector<Vector> ele_cauchy = { ZeroVector(3) };
         mrModelPartSubDomain1.ElementsBegin()->CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, ele_cauchy, mrModelPartSubDomain1.GetProcessInfo());
         std::cout << "first ele_cauchy = " << ele_cauchy[0] << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    void MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1()
+    {
+        KRATOS_TRY
+        KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
+
+        std::cout << "Subdomain 1 final interface velocity" << std::endl;
+        SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1FinalInterfaceVelocity);
+
+        /*
+        std::cout << "\n\nprinting all subdomain 1 velocities" << std::endl;
+        auto it_begin = mrModelPartSubDomain1.NodesBegin();
+        for (size_t i = 0; i < mrModelPartSubDomain1.Nodes().size(); ++i)
+        {
+            auto it = it_begin + i;
+            std::cout << "node id " << it->GetId() << " = " << it->FastGetSolutionStepValue(VELOCITY) << std::endl;
+        }
+        */
 
         KRATOS_CATCH("")
     }
@@ -192,15 +214,18 @@ namespace Kratos
             auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
             const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
             const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
+            const array_1d <double, 3> nodal_vel = current_node->FastGetSolutionStepValue(VELOCITY);
             for (IndexType k = 0; k < working_space_dim; ++k)
             {
-                rVelocityContainer[working_space_dim * i + k] = nodal_momentum[k]/ nodal_mass;
+                //rVelocityContainer[working_space_dim * i + k] += nodal_momentum[k]/ nodal_mass;
+                rVelocityContainer[working_space_dim * i + k] += nodal_vel[k];
             }
         }
 
         if (m_delete_print_interface_vel)
         {
             std::cout << rModelPart.Name() << "Interface vel = " << rVelocityContainer << std::endl;
+            //std::cout << "interface node IDs = " << mActiveInterfaceNodeIDs << std::endl;
             int asdfas = 1;
         }
         
@@ -530,5 +555,5 @@ namespace Kratos
         }
         std::cout << std::endl;
     }
- // end namespace MPMTemporalCouplingUtility
+    // end namespace MPMTemporalCouplingUtility
 } // end namespace Kratos

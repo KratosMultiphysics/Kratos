@@ -63,7 +63,7 @@ class MPMCoupledTimeSolver(MPMSolver):
 
         # TODO read from parameters
         self.interface_criteria_normal = [1,0,0]
-        self.interface_criteria_origin = [2,0,0]
+        self.interface_criteria_origin = [6,0,0]
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMCoupledTimeSolver]:: ", "Construction finished.")
 
@@ -154,43 +154,42 @@ class MPMCoupledTimeSolver(MPMSolver):
 
     def InitializeSolutionStep(self):
         self._SearchElement()
-        if self.is_model_sub_domain_1_predict:
-            print('Initialize sd1')
-            self._GetSolutionStrategy(1).Initialize()
-            self._GetSolutionStrategy(1).InitializeSolutionStep()
-            self.coupling_utility.InitializeSubDomain1Coupling()
-        self._GetSolutionStrategy(2).Initialize()
-        self._GetSolutionStrategy(2).InitializeSolutionStep()
-        print('Initialize sd2')
+        print('Initializing sd1')
+        self._GetSolutionStrategy(1).Initialize()
+        self._GetSolutionStrategy(1).InitializeSolutionStep()
+        self.coupling_utility.InitializeSubDomain1Coupling()
 
 
     def Predict(self):
-        if self.is_model_sub_domain_1_predict:
-            print('Predict sd1')
-            self._GetSolutionStrategy(1).Predict()
-        self._GetSolutionStrategy(2).Predict()
-        print('Predict sd2')
+        print('Predicting sd1')
+        self._GetSolutionStrategy(1).Predict()
 
 
     def SolveSolutionStep(self):
-        if self.is_model_sub_domain_1_predict:
-            is_converged = self._GetSolutionStrategy(1).SolveSolutionStep()
-            print('solve sd1')
-        is_converged = self._GetSolutionStrategy(2).SolveSolutionStep()
-        print('solve sd2')
+        print('solving sd1')
+        is_converged = self._GetSolutionStrategy(1).SolveSolutionStep()
+        self.coupling_utility.StoreFreeVelocitiesSubDomain1()
+        # store interface velocities in coupling class vector
+        for j in range(1,self.time_step_ratio+1):
+            print('Initializing sd2')
+            self._GetSolutionStrategy(2).Initialize()
+            self._GetSolutionStrategy(2).InitializeSolutionStep()
+            print('Predicting sd2')
+            self._GetSolutionStrategy(2).Predict()
+            print('solving sd2')
+            is_converged = self._GetSolutionStrategy(2).SolveSolutionStep()
+            self.compute_and_apply_coupling_corrections()
+            print('finalizing sd2')
+            self._GetSolutionStrategy(2).FinalizeSolutionStep()
+            self._GetSolutionStrategy(2).Clear()
 
-        self.compute_and_apply_coupling_corrections()
         return is_converged
 
 
     def FinalizeSolutionStep(self):
-        if self.is_model_sub_domain_1_correct:
-            self._GetSolutionStrategy(1).FinalizeSolutionStep()
-            self._GetSolutionStrategy(1).Clear()
-            print('finalize sd1')
-        self._GetSolutionStrategy(2).FinalizeSolutionStep()
-        self._GetSolutionStrategy(2).Clear()
-        print('finalize sd2')
+        self._GetSolutionStrategy(1).FinalizeSolutionStep()
+        self._GetSolutionStrategy(1).Clear()
+        print('finalize sd1')
 
 
     def Check(self):

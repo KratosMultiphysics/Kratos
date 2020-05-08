@@ -59,6 +59,8 @@ public:
 
     void InitializeSubDomain1Coupling();
 
+    void StoreFreeVelocitiesSubDomain1();
+
 protected:
     void ComputeActiveInterfaceNodes();
 
