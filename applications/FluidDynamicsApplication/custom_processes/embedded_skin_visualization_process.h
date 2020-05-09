@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -115,13 +115,33 @@ public:
      * @brief Create a And Prepare Visualization Model Part object
      * This method creates the visualization model part and prepares it for the computation
      * @param rModel The model container
-     * @param rParameters Kratos parameters encaptulating the settings. These settings are understood to have been already validated.
+     * @param rParameters Kratos parameters encaptulating the settings. These settings are assumed to be already validated.
      * @return ModelPart Visualization model part
      */
     static ModelPart& CreateAndPrepareVisualizationModelPart(
         Model& rModel,
         const Parameters& rParameters
     );
+
+    /**
+     * @brief Check and return the shape functions
+     * This method checks and return the user provided shape functions type
+     * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
+     * @return std::string The validated shape functions type 
+     */
+    static const std::string CheckAndReturnShapeFunctions(const Parameters& rParameters);
+
+    /**
+     * @brief Check and fill a visualization variable list
+     * This method checks the user provided variable list and saves it in the corresponding vector list
+     * @tparam TDataType The variable data type
+     * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be alreeeady validated.
+     * @param rVariableList The filled variable data list
+     */
+    template<class TDataType>
+    static const void FillVariablesList(
+        const Parameters& rParameters,
+        std::vector<Variable<TDataType>>& rVariablesList);
 
     /// Constructor.
 
@@ -131,7 +151,6 @@ public:
      * @param rVisualizationModelPart The visualization model part to be filled
      * @param rVisualizationScalarVariables Scalar variables to be interpolated in the visualization model part
      * @param rVisualizationVectorVariables Vector variables to be interpolated in the visualization model part
-     * @param rVisualizationComponentVariables Component variables to be interpolated in the visualization model part
      * @param rShapeFunctions Shape functions type. So far "standard" and "ausas" are implemented
      * @param ReformModelPartAtEachTimeStep Redo visualization model part at each time step flag
      */
@@ -140,7 +159,6 @@ public:
         ModelPart& rVisualizationModelPart,
         const std::vector<Variable< double> >& rVisualizationScalarVariables,
         const std::vector<Variable< array_1d<double, 3> > >& rVisualizationVectorVariables,
-        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >& rVisualizationComponentVariables,
         const std::string& rShapeFunctions = "standard",
         const bool ReformModelPartAtEachTimeStep = false);
 
@@ -226,22 +244,33 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
+    // Auxiliary variable to indicate if the visualization mesh needs to be created
+    bool mSetVisualizationMesh = true;
 
-    ModelPart&                                                                          mrModelPart;
-    ModelPart&                                                                          mrVisualizationModelPart;
+    // Unordered map to relate the newly created nodes and the origin mesh ones
+    CutNodesMapType mCutNodesMap;
 
-    CutNodesMapType                                                                     mCutNodesMap;
+    // Container with the splitting newly created elements
+    ModelPart::ElementsContainerType mNewElementsPointers;
 
-    ModelPart::ElementsContainerType                                                    mNewElementsPointers;
+    // Reference to the origin model part
+    ModelPart& mrModelPart;
 
-    std::vector<Variable< double> >                                                     mVisualizationScalarVariables;
-    std::vector<Variable< array_1d<double, 3> > >                                       mVisualizationVectorVariables;
-    std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >    mVisualizationComponentVariables;
+    // Reference to the visualization model part
+    ModelPart& mrVisualizationModelPart;
 
-    std::string                                                                         mShapeFunctions;
+    // Shape functions type. Current available options ausas and standard
+    const std::string mShapeFunctions;
 
-    bool                                                                                mReformModelPartAtEachTimeStep = false;
-    bool                                                                                mSetVisualizationMesh = true;
+    // If true, the visualization model part is created each time step (required in case the level set function is not constant)
+    const bool mReformModelPartAtEachTimeStep;
+
+    // Vector containing the scalar variables to be interpolated in the visualization mesh
+    const std::vector<Variable< double> > mVisualizationScalarVariables;
+
+    // Vector containing the vector variables to be interpolated in the visualization mesh
+    const std::vector<Variable< array_1d<double, 3> > > mVisualizationVectorVariables;
 
     ///@}
     ///@name Protected Operators

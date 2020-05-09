@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -85,36 +85,8 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     return r_visualization_model_part;
 }
 
-EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
-    ModelPart& rModelPart,
-    ModelPart& rVisualizationModelPart,
-    const std::vector<Variable< double> >& rVisualizationScalarVariables,
-    const std::vector<Variable< array_1d<double, 3> > >& rVisualizationVectorVariables,
-    const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >& rVisualizationComponentVariables,
-    const std::string& rShapeFunctions,
-    const bool ReformModelPartAtEachTimeStep) :
-    Process(),
-    mrModelPart(rModelPart),
-    mrVisualizationModelPart(rVisualizationModelPart),
-    mVisualizationScalarVariables(rVisualizationScalarVariables),
-    mVisualizationVectorVariables(rVisualizationVectorVariables),
-    mVisualizationComponentVariables(rVisualizationComponentVariables),
-    mShapeFunctions(rShapeFunctions),
-    mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep)
+const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions(const Parameters& rParameters)
 {
-}
-
-EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
-    ModelPart& rModelPart,
-    ModelPart& rVisualizationModelPart,
-    Parameters& rParameters) :
-    Process(),
-    mrModelPart(rModelPart),
-    mrVisualizationModelPart(rVisualizationModelPart)
-{
-    rParameters.ValidateAndAssignDefaults(GetDefaultSettings());
-
-    // Validate if given shape functions value is admissible
     const std::string shape_functions = rParameters["shape_functions"].GetString();
     KRATOS_ERROR_IF(shape_functions == "") << "\'shape_functions\' is not prescribed. Admissible values are: \'standard\' and \'ausas\'." << std::endl;
 
@@ -126,21 +98,77 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
         KRATOS_ERROR << error_msg.str();
     }
 
-    mShapeFunctions = rParameters["shape_functions"].GetString();
-    mReformModelPartAtEachTimeStep = rParameters["reform_model_part_at_each_time_step"].GetBool();
+    return shape_functions;
+}
 
-    const unsigned int n_variables = rParameters["visualization_variables"].size();
-    for (unsigned int i_var = 0; i_var < n_variables; ++i_var){
-        std::string variable_name = rParameters["visualization_variables"].GetArrayItem(i_var).GetString();
-
-        if(KratosComponents<Variable<double>>::Has(variable_name)){
-            mVisualizationScalarVariables.push_back(KratosComponents< Variable<double> >::Get(variable_name));
-        } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
-            mVisualizationVectorVariables.push_back(KratosComponents< Variable< array_1d<double, 3> > >::Get(variable_name));
-        } else {
-            KRATOS_ERROR << "Only double, component and vector variables are allowed in the visualization variables list." ;
+template<class TDataType>
+const void EmbeddedSkinVisualizationProcess::FillVariablesList(
+    const Parameters& rParameters,
+    std::vector<Variable<TDataType>>& rVariablesList)
+{
+    rVariablesList.clear();
+    for (auto i_var_params : rParameters["visualization_variables"]) {
+        const std::string i_var_name = i_var_params.GetString();
+        if(KratosComponents<Variable<TDataType>>::Has(i_var_name)){
+            rVariablesList.push_back(KratosComponents<Variable<TDataType>>::Get(i_var_name));
         }
     }
+}
+
+EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
+    ModelPart& rModelPart,
+    ModelPart& rVisualizationModelPart,
+    const std::vector<Variable< double> >& rVisualizationScalarVariables,
+    const std::vector<Variable< array_1d<double, 3> > >& rVisualizationVectorVariables,
+    const std::string& rShapeFunctions,
+    const bool ReformModelPartAtEachTimeStep) :
+    Process(),
+    mrModelPart(rModelPart),
+    mrVisualizationModelPart(rVisualizationModelPart),
+    mShapeFunctions(rShapeFunctions),
+    mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep),
+    mVisualizationScalarVariables(rVisualizationScalarVariables),
+    mVisualizationVectorVariables(rVisualizationVectorVariables)
+{
+}
+
+EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
+    ModelPart& rModelPart,
+    ModelPart& rVisualizationModelPart,
+    Parameters& rParameters)
+    : Process()
+    , mrModelPart(rModelPart)
+    , mrVisualizationModelPart(rVisualizationModelPart)
+    , mShapeFunctions(
+        [&] (Parameters& x) {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            return CheckAndReturnShapeFunctions(x);
+        } (rParameters)
+    )
+    , mReformModelPartAtEachTimeStep(
+        [&] (Parameters& x) {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            return x["reform_model_part_at_each_time_step"].GetBool();
+        } (rParameters)
+    )
+    , mVisualizationScalarVariables(
+        [&] (Parameters& x) -> std::vector<Variable<double>> {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            std::vector<Variable<double>> aux_list;
+            FillVariablesList<double>(x, aux_list);
+            return aux_list;
+        } (rParameters)
+    )
+    , mVisualizationVectorVariables(
+        [&] (Parameters& x) -> std::vector<Variable<array_1d<double,3>>> {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            std::vector<Variable<array_1d<double,3>>> aux_list;
+            FillVariablesList<array_1d<double,3>>(x, aux_list);
+            return aux_list;
+        } (rParameters)
+    )
+
+{
 }
 
 EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
@@ -151,11 +179,11 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
             y.ValidateAndAssignDefaults(GetDefaultSettings());
             KRATOS_ERROR_IF(y["model_part_name"].GetString() == "") << "\'model_part_name\' is empty. Please provide the origin model part name." << std::endl;
             return x.GetModelPart(y["model_part_name"].GetString());
-            } (rModel, rParameters),
+        } (rModel, rParameters),
         [&] (Model& x, Parameters& y) -> ModelPart& {
             y.ValidateAndAssignDefaults(GetDefaultSettings());
             return CreateAndPrepareVisualizationModelPart(x, y);
-            } (rModel, rParameters),
+        } (rModel, rParameters),
         rParameters)
 {
 }
@@ -179,11 +207,6 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize()
     // Check visualization vector variables
     for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationVectorVariables[i_var], r_orig_node);
-    }
-
-    // Check visualization component variables
-    for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationComponentVariables[i_var], r_orig_node);
     }
 
     // Initialize the visualization mesh creation flag
@@ -297,14 +320,6 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
                     const array_1d<double, 3> &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_vector_var);
                     p_node->FastGetSolutionStepValue(r_vector_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
                 }
-
-                // Interpolate the component variables
-                for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
-                    const VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > &r_comp_var = mVisualizationComponentVariables[i_var];
-                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_comp_var);
-                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_comp_var);
-                    p_node->FastGetSolutionStepValue(r_comp_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
-                }
             }
         }
     }
@@ -351,11 +366,6 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues()
         for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
             it_new_node->FastGetSolutionStepValue(mVisualizationVectorVariables[i_var]) =
                 it_old_node->FastGetSolutionStepValue(mVisualizationVectorVariables[i_var]);
-        }
-
-        for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
-            it_new_node->FastGetSolutionStepValue(mVisualizationComponentVariables[i_var]) =
-                it_old_node->FastGetSolutionStepValue(mVisualizationComponentVariables[i_var]);
         }
     }
 }
