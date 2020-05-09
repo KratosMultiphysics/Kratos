@@ -253,7 +253,7 @@ void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep()
     }
 }
 
-void EmbeddedSkinVisualizationProcess::Check()
+int EmbeddedSkinVisualizationProcess::Check()
 {
     // Check that model part is not empty
     KRATOS_ERROR_IF(mrModelPart.NumberOfNodes() == 0) << "There are no nodes in the origin model part." << std::endl;
@@ -271,6 +271,8 @@ void EmbeddedSkinVisualizationProcess::Check()
     for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationVectorVariables[i_var], r_orig_node);
     }
+
+    return 0;
 }
 
 /* Protected functions ****************************************************/

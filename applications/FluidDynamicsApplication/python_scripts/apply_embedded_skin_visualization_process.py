@@ -48,3 +48,6 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalize(self):
         self.EmbeddedSkinVisualizationProcess.ExecuteFinalize()
+
+    def Check(self):
+        self.EmbeddedSkinVisualizationProcess.Check()
