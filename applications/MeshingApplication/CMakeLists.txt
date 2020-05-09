@@ -61,7 +61,7 @@ add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS
 if(${INCLUDE_MMG} MATCHES ON)
     # Define includes and libraries with just one include
     IF (MMG_ROOT)
-        SET(MMG_INCLUDE_DIR ${MMG_ROOT}/include/)
+        SET(MMG_INCLUDE_DIR ${MMG_ROOT}/include/mmg/)
         SET(MMG2D_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmg2d/)
         SET(MMG3D_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmg3d/)
         SET(MMGS_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmgs/)
