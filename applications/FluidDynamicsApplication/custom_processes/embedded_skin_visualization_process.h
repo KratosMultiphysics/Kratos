@@ -193,8 +193,6 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteInitialize() override;
-
     void ExecuteBeforeSolutionLoop() override;
 
     void ExecuteInitializeSolutionStep() override;
@@ -246,9 +244,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
-    // Auxiliary variable to indicate if the visualization mesh needs to be created
-    bool mSetVisualizationMesh = true;
 
     // Unordered map to relate the newly created nodes and the origin mesh ones
     CutNodesMapType mCutNodesMap;

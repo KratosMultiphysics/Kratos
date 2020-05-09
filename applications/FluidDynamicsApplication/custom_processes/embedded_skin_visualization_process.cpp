@@ -188,16 +188,6 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
 {
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteInitialize()
-{
-    KRATOS_TRY;
-
-    // Initialize the visualization mesh creation flag
-    mSetVisualizationMesh = true;
-
-    KRATOS_CATCH("");
-}
-
 void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop()
 {
     // If mesh update is not required (constant level set function) create the visualization mesh once
@@ -215,7 +205,7 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep()
 void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep()
 {
     // If required, set the visualization mesh
-    if (mSetVisualizationMesh) {
+    if (mReformModelPartAtEachTimeStep) {
         this->CreateVisualizationMesh();
     }
 
@@ -247,9 +237,6 @@ void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep()
 
         // Remove the positive and negative sides properties
         RemoveVisualizationProperties();
-
-        // Initialize the create visualization mesh flag again
-        mSetVisualizationMesh = true;
     }
 }
 
@@ -337,9 +324,6 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
 
     // Creates the visualization model part geometrical entities (elements and conditions)
     this->CreateVisualizationGeometries();
-
-    // Set the visualization mesh flag to false
-    mSetVisualizationMesh = false;
 }
 
 void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
