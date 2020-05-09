@@ -43,7 +43,7 @@ public:
       */
     MPMTemporalCouplingUtility(ModelPart & rModelPartGrid, ModelPart & rModelPartSubDomain1, ModelPart & rModelPartSubDomain2,
         unsigned int TimeStepRatio, double SmallTimestep, double gamma1, double gamma2)
-        :mrModelPartGrid(rModelPartGrid), mrModelPartSubDomain1(rModelPartSubDomain1), mrModelPartSubDomain2(rModelPartSubDomain2),
+        :mrGrid(rModelPartGrid), mrSubDomain1(rModelPartSubDomain1), mrSubDomain2(rModelPartSubDomain2),
         mTimeStepRatio(TimeStepRatio), mSmallTimestep(SmallTimestep), mJ(1)
     {
         // TODO change gamma input arg to vector or array_1d and set mGamma back to const
@@ -108,20 +108,21 @@ protected:
     const double mSmallTimestep;
     array_1d<double, 2> mGamma;
 
-    ModelPart& mrModelPartGrid;
-    ModelPart& mrModelPartSubDomain1;
-    ModelPart& mrModelPartSubDomain2;
+    ModelPart& mrGrid;
+    ModelPart& mrSubDomain1;
+    ModelPart& mrSubDomain2;
 
     Vector mActiveInterfaceNodeIDs;
     bool mActiveInterfaceNodesComputed = false;
 
     const double mInterfaceVelocityTolerance = 1e-6;
     const bool mCheckInterfaceContinuity = true;
-    const bool mPrintEquilibratedInterfaceVelocity = false; // TODO delete, for debugging
-    const bool mPrintFreeInterfaceVelocity = false; // TODO delete, for debugging
-    const bool mPrintLagrangeMultipliers = false;
-
     const bool mDisableLagrangianMultipliers = false; // should normally be false
+
+    // Print bools
+    const bool mPrintEquilibratedInterfaceVelocity = true; // TODO delete, for debugging
+    const bool mPrintFreeInterfaceVelocity = true; // TODO delete, for debugging
+    const bool mPrintLagrangeMultipliers = true;
 
 
 }; // end namespace MPMTemporalCouplingUtility

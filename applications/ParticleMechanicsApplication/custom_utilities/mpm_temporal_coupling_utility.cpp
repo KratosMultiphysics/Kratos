@@ -29,14 +29,16 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        std::cout << "------------ j = " << mJ << " ------------" << std::endl;
+
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
         // Store inverted mass matrix and coupling matrix for sub-domain 1 for the whole timestep
         if (mJ == 1) {
             Matrix eff_mass_mat_1;
-            GetEffectiveMassMatrix(0, mrModelPartSubDomain1, eff_mass_mat_1, rK1);
+            GetEffectiveMassMatrix(0, mrSubDomain1, eff_mass_mat_1, rK1);
             InvertEffectiveMassMatrix(eff_mass_mat_1, mInvM1);
-            ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, mrModelPartSubDomain1);
+            ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, mrSubDomain1);
 
             // reset accumulated link velocities at the start of every big timestep
             mSubDomain1AccumulatedLinkVelocity.resize(eff_mass_mat_1.size1(), false);
@@ -51,17 +53,17 @@ namespace Kratos
 
         // Invert sub domain 2 mass matrix
         Matrix eff_mass_mat_2;
-        GetEffectiveMassMatrix(1, mrModelPartSubDomain2, eff_mass_mat_2, rK2);
+        GetEffectiveMassMatrix(1, mrSubDomain2, eff_mass_mat_2, rK2);
         Matrix InvM2;
         InvertEffectiveMassMatrix(eff_mass_mat_2, InvM2);
 
         // Establish sub domain 2 coupling matrix
         Matrix Coupling2;
-        ComputeCouplingMatrix(1, eff_mass_mat_2, Coupling2, mrModelPartSubDomain2);
+        ComputeCouplingMatrix(1, eff_mass_mat_2, Coupling2, mrSubDomain2);
 
         // Get sub domain 2 free velocities
         Vector subDomain2freeVelocities;
-        SetSubDomainInterfaceVelocity(mrModelPartSubDomain2, subDomain2freeVelocities);
+        SetSubDomainInterfaceVelocity(mrSubDomain2, subDomain2freeVelocities);
 
         // Assemble condensation operator H
         Matrix H;
@@ -108,8 +110,8 @@ namespace Kratos
         }
 
         // Update sub domain 2 at the end of every small timestep
-        if (mGamma[1] == 1.0) ApplyCorrectionExplicit(mrModelPartSubDomain2, link_accel_2, mSmallTimestep);
-        else ApplyCorrectionImplicit(mrModelPartSubDomain2, link_accel_2, mSmallTimestep);
+        if (mGamma[1] == 1.0) ApplyCorrectionExplicit(mrSubDomain2, link_accel_2, mSmallTimestep);
+        else ApplyCorrectionImplicit(mrSubDomain2, link_accel_2, mSmallTimestep);
 
         // Increment small timestep counter
         mJ += 1;
@@ -126,8 +128,8 @@ namespace Kratos
     void MPMTemporalCouplingUtility::CorrectSubDomain1()
     {
         // Restore subdomain 1
-        ModelPart& r_sub_domain_1_active = mrModelPartSubDomain1.GetSubModelPart("active_nodes");
-        const IndexType working_space_dim = mrModelPartSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
+        const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
 
         //PrintNodeIdsAndCoords(r_sub_domain_1_active);
@@ -159,8 +161,8 @@ namespace Kratos
 
         const double time_step_1 = mSmallTimestep * mTimeStepRatio;
         const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
-        if (mGamma[0] == 1.0) ApplyCorrectionExplicit(mrModelPartSubDomain1, link_accel_1, time_step_1);
-        else ApplyCorrectionImplicit(mrModelPartSubDomain1, link_accel_1, time_step_1);
+        if (mGamma[0] == 1.0) ApplyCorrectionExplicit(mrSubDomain1, link_accel_1, time_step_1);
+        else ApplyCorrectionImplicit(mrSubDomain1, link_accel_1, time_step_1);
 
         //std::cout << "\n\n LINK ACCEL = " << link_accel_1 << std::endl;
 
@@ -178,7 +180,7 @@ namespace Kratos
         Check();
         ComputeActiveInterfaceNodes();
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
-        SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1InitialInterfaceVelocity);
+        SetSubDomainInterfaceVelocity(mrSubDomain1, mSubDomain1InitialInterfaceVelocity);
 
         KRATOS_CATCH("")
     }
@@ -188,12 +190,12 @@ namespace Kratos
         KRATOS_TRY
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
-        SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1FinalInterfaceVelocity);
+        SetSubDomainInterfaceVelocity(mrSubDomain1, mSubDomain1FinalInterfaceVelocity);
 
-        ModelPart& r_sub_domain_1_active = mrModelPartSubDomain1.GetSubModelPart("active_nodes");
-        const IndexType working_space_dim = mrModelPartSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
+        const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
-        const SizeType domain_nodes_test = mrModelPartSubDomain1.Nodes().size();
+        const SizeType domain_nodes_test = mrSubDomain1.Nodes().size();
 
         mSubDomain1FinalDomainVelocity.resize(domain_nodes * working_space_dim, false);
         mSubDomain1FinalDomainDisplacement.resize(domain_nodes * working_space_dim, false);
@@ -209,7 +211,6 @@ namespace Kratos
         {
             auto node_it = node_begin + i;
             mSubDomain1FinalDomainActiveNodes[i] = node_it->Is(ACTIVE);
-            if (mSubDomain1FinalDomainActiveNodes[i]) std::cout << "active node at x = " << node_it->X() << std::endl;
             const array_1d <double, 3> nodal_vel = node_it->FastGetSolutionStepValue(VELOCITY);
             const array_1d <double, 3> nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
             const array_1d <double, 3> nodal_accel = node_it->FastGetSolutionStepValue(ACCELERATION);
@@ -229,11 +230,11 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        ModelPart& r_interface = mrModelPartGrid.GetSubModelPart("temporal_interface");
+        ModelPart& r_interface = mrGrid.GetSubModelPart("temporal_interface");
         Vector interface_nodes_are_active = ZeroVector(r_interface.Nodes().size());
 
         // Computes active interface coupling nodes from sub domain 1 at the start of the large timestep
-        const IndexType working_space_dim = mrModelPartSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const auto it_node_begin = r_interface.NodesBegin();
         SizeType active_interface_nodes_counter = 0;
 
@@ -565,17 +566,17 @@ namespace Kratos
 
     void MPMTemporalCouplingUtility::Check()
     {
-        KRATOS_ERROR_IF_NOT(mrModelPartGrid.HasSubModelPart("temporal_interface"))
-            << "Model part " << mrModelPartGrid.Name()
-            << " is missing a submodel part called temporal_interface\n" << mrModelPartGrid << std::endl;
+        KRATOS_ERROR_IF_NOT(mrGrid.HasSubModelPart("temporal_interface"))
+            << "Model part " << mrGrid.Name()
+            << " is missing a submodel part called temporal_interface\n" << mrGrid << std::endl;
 
-        KRATOS_ERROR_IF_NOT(mrModelPartSubDomain1.NumberOfElements() > 0)
-            << "Model part " << mrModelPartSubDomain1.Name()
-            << " has no elements in it!\n" << mrModelPartSubDomain1 << std::endl;
+        KRATOS_ERROR_IF_NOT(mrSubDomain1.NumberOfElements() > 0)
+            << "Model part " << mrSubDomain1.Name()
+            << " has no elements in it!\n" << mrSubDomain1 << std::endl;
 
-        KRATOS_ERROR_IF_NOT(mrModelPartSubDomain2.NumberOfElements() > 0)
-            << "Model part " << mrModelPartSubDomain2.Name()
-            << " has no elements in it!\n" << mrModelPartSubDomain2 << std::endl;
+        KRATOS_ERROR_IF_NOT(mrSubDomain2.NumberOfElements() > 0)
+            << "Model part " << mrSubDomain2.Name()
+            << " has no elements in it!\n" << mrSubDomain2 << std::endl;
 
         KRATOS_ERROR_IF(mTimeStepRatio == 0) << "Timestep ratio = 0. You must enter a positive integrer > 0." << std::endl;
 
@@ -584,7 +585,7 @@ namespace Kratos
                 KRATOS_ERROR << "Gamma must equal 1.0 or 0.5. Gamma[" << i << "] = " << mGamma[i] << std::endl;
 
 
-        //PrintNodeIdsAndCoords(mrModelPartGrid);
+        //PrintNodeIdsAndCoords(mrGrid);
     }
 
 
