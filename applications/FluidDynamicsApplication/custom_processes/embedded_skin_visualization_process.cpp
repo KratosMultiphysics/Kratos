@@ -192,23 +192,6 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize()
 {
     KRATOS_TRY;
 
-    // Check that model part is not empty
-    KRATOS_ERROR_IF(mrModelPart.Nodes().size() == 0) << "There are no nodes in the origin model part.";
-    KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "There are no elements in the origin model part.";
-
-    // Required variables check
-    const auto &r_orig_node = *mrModelPart.NodesBegin();
-
-    // Check visualization scalar variables
-    for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationScalarVariables[i_var], r_orig_node);
-    }
-
-    // Check visualization vector variables
-    for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationVectorVariables[i_var], r_orig_node);
-    }
-
     // Initialize the visualization mesh creation flag
     mSetVisualizationMesh = true;
 
@@ -267,6 +250,26 @@ void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep()
 
         // Initialize the create visualization mesh flag again
         mSetVisualizationMesh = true;
+    }
+}
+
+void EmbeddedSkinVisualizationProcess::Check()
+{
+    // Check that model part is not empty
+    KRATOS_ERROR_IF(mrModelPart.NumberOfNodes() == 0) << "There are no nodes in the origin model part." << std::endl;
+    KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "There are no elements in the origin model part." << std::endl;
+
+    // Required variables check
+    const auto &r_orig_node = *mrModelPart.NodesBegin();
+
+    // Check visualization scalar variables
+    for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationScalarVariables[i_var], r_orig_node);
+    }
+
+    // Check visualization vector variables
+    for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationVectorVariables[i_var], r_orig_node);
     }
 }
 

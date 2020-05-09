@@ -203,6 +203,8 @@ public:
 
     void ExecuteAfterOutputStep() override;
 
+    void Check() override;
+
     ///@}
     ///@name Access
     ///@{
