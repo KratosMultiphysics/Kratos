@@ -66,29 +66,29 @@ if(${INCLUDE_MMG} MATCHES ON)
         SET(MMG3D_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmg3d/)
         SET(MMGS_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmgs/)
         IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-            IF(EXISTS "${MMG_ROOT}/lib/libmmg.lib") # Static library
-                SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.lib)
-                SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.lib)
-                SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.lib)
-                SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.lib)
-            ELSE(EXISTS "${MMG_ROOT}/lib/libmmg.lib") # Dynamic library
+            IF(EXISTS "${MMG_ROOT}/lib/libmmg.dll") # Dynamic library
                 SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.dll)
                 SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.dll)
                 SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.dll)
                 SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.dll)
-            ENDIF(EXISTS "${MMG_ROOT}/lib/libmmg.lib")
+            ELSE(EXISTS "${MMG_ROOT}/lib/libmmg.dll") # Static library
+                SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.lib)
+                SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.lib)
+                SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.lib)
+                SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.lib)
+            ENDIF(EXISTS "${MMG_ROOT}/lib/libmmg.dll")
         ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-            IF(EXISTS "${MMG_ROOT}/lib/libmmg.a") # Static library
-                SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.a)
-                SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.a)
-                SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.a)
-                SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.a)
-            ELSE(EXISTS "${MMG_ROOT}/lib/libmmg.a") # Dynamic library
+            IF(EXISTS "${MMG_ROOT}/lib/libmmg.so") # Dynamic library
                 SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.so)
                 SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.so)
                 SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.so)
                 SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.so)
-            ENDIF(EXISTS "${MMG_ROOT}/lib/libmmg.a")
+            ELSE(EXISTS "${MMG_ROOT}/lib/libmmg.so") # Static library
+                SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.a)
+                SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.a)
+                SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.a)
+                SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.a)
+            ENDIF(EXISTS "${MMG_ROOT}/lib/libmmg.so")
         ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     ENDIF (MMG_ROOT)
 
