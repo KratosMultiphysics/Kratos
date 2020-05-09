@@ -24,8 +24,8 @@ namespace Kratos
 {
 
     void MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliers(
-        const SystemMatrixType& K_1, 
-        const SystemMatrixType& K_2 )
+        const SystemMatrixType& rK1, 
+        const SystemMatrixType& rK2 )
     {
         KRATOS_TRY
 
@@ -33,10 +33,8 @@ namespace Kratos
 
         // Store inverted mass matrix and coupling matrix for sub-domain 1 for the whole timestep
         if (mJ == 1) {
-            //std::cout << "K_1 =\n" << K_1 << std::endl;
-            //std::cout << "K_2 =\n" << K_2 << std::endl;
             Matrix eff_mass_mat_1;
-            GetEffectiveMassMatrix(0, mrModelPartSubDomain1, eff_mass_mat_1, K_1);
+            GetEffectiveMassMatrix(0, mrModelPartSubDomain1, eff_mass_mat_1, rK1);
             InvertEffectiveMassMatrix(eff_mass_mat_1, mInvM1);
             ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, mrModelPartSubDomain1);
 
@@ -44,10 +42,6 @@ namespace Kratos
             mSubDomain1AccumulatedLinkVelocity.resize(eff_mass_mat_1.size1(), false);
             mSubDomain1AccumulatedLinkVelocity = ZeroVector(eff_mass_mat_1.size1());
         }
-
-        //PrintNodeIdsAndCoords(mrModelPartSubDomain1);
-        //PrintNodeIdsAndCoords(mrModelPartSubDomain2);
-        //PrintNodeIdsAndCoords(mrModelPartGrid);
 
         // Interpolate subdomain 1 velocities
         const Vector SubDomain1InterpolatedVelocities = (mJ == mTimeStepRatio)
@@ -57,7 +51,7 @@ namespace Kratos
 
         // Invert sub domain 2 mass matrix
         Matrix eff_mass_mat_2;
-        GetEffectiveMassMatrix(1, mrModelPartSubDomain2, eff_mass_mat_2, K_2);
+        GetEffectiveMassMatrix(1, mrModelPartSubDomain2, eff_mass_mat_2, rK2);
         Matrix InvM2;
         InvertEffectiveMassMatrix(eff_mass_mat_2, InvM2);
 
@@ -78,16 +72,15 @@ namespace Kratos
             prod(mCoupling1,mSubDomain1AccumulatedLinkVelocity);
         b -= subDomain2freeVelocities;
 
-        std::cout << "\n\n\n ========= FREE INTERFACE VELOCITIES ==============="
-            << "\nDomain A = " << SubDomain1InterpolatedVelocities
-            << "\nDomain B = " << subDomain2freeVelocities
-            << std::endl;
-
+        if (mPrintFreeInterfaceVelocity) std::cout << "\n\n\n ========= FREE INTERFACE VELOCITIES ==============="
+                << "\nDomain A = " << SubDomain1InterpolatedVelocities
+                << "\nDomain B = " << subDomain2freeVelocities
+                << std::endl;
 
         // Calculate corrective Lagrangian multipliers
         Vector lamda;
         ComputeLamda(H, b, lamda);
-        //lamda = ZeroVector(lamda.size()); // disable coupling links
+        if (mDisableLagrangianMultipliers) lamda = ZeroVector(lamda.size()); // disable coupling links
 
         // Calculate link velocities
         Matrix temp1 = prod(mInvM1, trans(mCoupling1));
@@ -97,16 +90,21 @@ namespace Kratos
         Matrix temp2 = prod(InvM2, trans(Coupling2));
         Vector link_accel_2 = prod(temp2, lamda);
 
-        const bool is_print_equilibrated_velocities = true;
-        if (is_print_equilibrated_velocities)
+        if (mCheckInterfaceContinuity && !mDisableLagrangianMultipliers)
         {
             Vector link_vel_2 = prod(Coupling2, mGamma[1] * mSmallTimestep * link_accel_2);
             Vector total_vel_2 = subDomain2freeVelocities - link_vel_2;
-
             Vector total_vel_1 = SubDomain1InterpolatedVelocities + prod(mCoupling1, mSubDomain1AccumulatedLinkVelocity);
+            Vector interface_velocity_error = total_vel_1 - total_vel_2;
 
-            std::cout << "Total vel domain 1 = " << total_vel_1 << std::endl;
-            std::cout << "Total vel domain 2 = " << total_vel_2 << std::endl;
+            if (mPrintEquilibratedInterfaceVelocity)
+            {
+                std::cout << "Total vel domain 1 = " << total_vel_1 << std::endl;
+                std::cout << "Total vel domain 2 = " << total_vel_2 << std::endl;
+            }
+
+            KRATOS_ERROR_IF(norm_2(interface_velocity_error) > mInterfaceVelocityTolerance)
+                << "Interface velocities not equal!" << std::endl;
         }
 
         // Update sub domain 2 at the end of every small timestep
@@ -180,7 +178,6 @@ namespace Kratos
         Check();
         ComputeActiveInterfaceNodes();
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
-        std::cout << "Subdomain 1 initial interface velocity" << std::endl;
         SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1InitialInterfaceVelocity);
 
         KRATOS_CATCH("")
@@ -191,7 +188,6 @@ namespace Kratos
         KRATOS_TRY
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
-        std::cout << "Subdomain 1 final interface velocity" << std::endl;
         SetSubDomainInterfaceVelocity(mrModelPartSubDomain1, mSubDomain1FinalInterfaceVelocity);
 
         ModelPart& r_sub_domain_1_active = mrModelPartSubDomain1.GetSubModelPart("active_nodes");
@@ -289,14 +285,6 @@ namespace Kratos
                 rVelocityContainer[working_space_dim * i + k] += nodal_vel[k];
             }
         }
-
-        if (m_delete_print_interface_vel)
-        {
-            std::cout << rModelPart.Name() << "Interface vel = " << rVelocityContainer << std::endl;
-            //std::cout << "interface node IDs = " << mActiveInterfaceNodeIDs << std::endl;
-            int asdfas = 1;
-        }
-        
     }
 
 
@@ -449,7 +437,6 @@ namespace Kratos
     void MPMTemporalCouplingUtility::ComputeLamda(const Matrix& rH, const Vector& rb, Vector& rLamda)
     {
         if (rLamda.size() != rb.size()) rLamda.resize(rb.size(), false);
-        // lamda = inv(H)*b;
 
         if (norm_2(rb) < std::numeric_limits<double>::epsilon())
         {
@@ -465,13 +452,8 @@ namespace Kratos
                 double matrix_det;
                 Matrix inv_H;
                 Kratos::MathUtils<double>::GeneralizedInvertMatrix(rH, inv_H, matrix_det);
-                //std::cout << "rH = " << std::endl;
-                //PrintMatrix(rH);
-                //std::cout << "invH = " << std::endl;
-                //PrintMatrix(inv_H);
-                //std::cout << "rb = " << rb << std::endl;
                 rLamda = prod(inv_H, rb);
-                std::cout << "rLamda = " << rLamda << std::endl;
+                if (mPrintLagrangeMultipliers) std::cout << "Lagrangian multipliers = " << rLamda << std::endl;
             }
             else
             {

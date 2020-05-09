@@ -115,7 +115,13 @@ protected:
     Vector mActiveInterfaceNodeIDs;
     bool mActiveInterfaceNodesComputed = false;
 
-    const bool m_delete_print_interface_vel = true;
+    const double mInterfaceVelocityTolerance = 1e-6;
+    const bool mCheckInterfaceContinuity = true;
+    const bool mPrintEquilibratedInterfaceVelocity = false; // TODO delete, for debugging
+    const bool mPrintFreeInterfaceVelocity = false; // TODO delete, for debugging
+    const bool mPrintLagrangeMultipliers = false;
+
+    const bool mDisableLagrangianMultipliers = false; // should normally be false
 
 
 }; // end namespace MPMTemporalCouplingUtility
