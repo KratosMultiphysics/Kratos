@@ -59,9 +59,11 @@ namespace Kratos
 
     KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
         KratosApplication("ParticleMechanicsApplication"),
-        //// ELEMENTS:
+        /// Elements, using QuadraturePointGeometries:
         mUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+
+        /// Deprecated Elements
         mUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -108,6 +110,8 @@ namespace Kratos
         // Registering elements
         KRATOS_REGISTER_ELEMENT("UpdatedLagrangian", mUpdatedLagrangian)
         KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUP", mUpdatedLagrangianUP)
+
+        // Deprecated elements
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D3N", mUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D4N", mUpdatedLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
