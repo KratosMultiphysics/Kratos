@@ -41,9 +41,9 @@ public:
       * @brief Constructor.
       * @detail The MPM bossak method
       */
-    MPMTemporalCouplingUtility(ModelPart & rModelPartGrid, ModelPart & rModelPartSubDomain1, ModelPart & rModelPartSubDomain2,
+    MPMTemporalCouplingUtility(ModelPart & rModelPartSubDomain1, ModelPart & rModelPartSubDomain2,
         unsigned int TimeStepRatio, double SmallTimestep, double gamma1, double gamma2)
-        :mrGrid(rModelPartGrid), mrSubDomain1(rModelPartSubDomain1), mrSubDomain2(rModelPartSubDomain2),
+        :mrSubDomain1(rModelPartSubDomain1), mrSubDomain2(rModelPartSubDomain2),
         mTimeStepRatio(TimeStepRatio), mSmallTimestep(SmallTimestep), mJ(1)
     {
         // TODO change gamma input arg to vector or array_1d and set mGamma back to const
@@ -108,7 +108,6 @@ protected:
     const double mSmallTimestep;
     array_1d<double, 2> mGamma;
 
-    ModelPart& mrGrid;
     ModelPart& mrSubDomain1;
     ModelPart& mrSubDomain2;
 

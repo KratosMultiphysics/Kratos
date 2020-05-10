@@ -45,7 +45,7 @@ namespace Python{
         m.def("GenerateMaterialPointCondition", &MPMParticleGeneratorUtility::GenerateMaterialPointCondition);
 
         pybind11::class_< MPMTemporalCouplingUtility>(m, "MPMTemporalCouplingUtility")
-            .def(pybind11::init<ModelPart&, ModelPart&, ModelPart&, unsigned int, double, double, double>())
+            .def(pybind11::init<ModelPart&, ModelPart&, unsigned int, double, double, double>())
             .def("CalculateCorrectiveLagrangianMultipliers", &MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliers)
             .def("InitializeSubDomain1Coupling", &MPMTemporalCouplingUtility::InitializeSubDomain1Coupling)
             .def("StoreFreeVelocitiesSubDomain1", &MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1)

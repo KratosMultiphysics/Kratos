@@ -116,7 +116,6 @@ namespace Kratos
         // Increment small timestep counter
         mJ += 1;
         if (mJ > mTimeStepRatio) {
-            // reset counters
             mActiveInterfaceNodesComputed = false;
             mJ = 1;
         }
@@ -131,8 +130,6 @@ namespace Kratos
         ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
-
-        //PrintNodeIdsAndCoords(r_sub_domain_1_active);
 
         auto node_begin = r_sub_domain_1_active.NodesBegin();
         for (size_t i = 0; i < domain_nodes; ++i)
@@ -155,20 +152,11 @@ namespace Kratos
             }
         }
 
-        //PrintNodeIdsAndCoords(r_sub_domain_1_active);
-
-
-
+        // Correct subdomain 1
         const double time_step_1 = mSmallTimestep * mTimeStepRatio;
         const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
         if (mGamma[0] == 1.0) ApplyCorrectionExplicit(mrSubDomain1, link_accel_1, time_step_1);
         else ApplyCorrectionImplicit(mrSubDomain1, link_accel_1, time_step_1);
-
-        //std::cout << "\n\n LINK ACCEL = " << link_accel_1 << std::endl;
-
-        //PrintNodeIdsAndCoords(r_sub_domain_1_active);
-
-        int test = 1;
     }
 
 
@@ -230,7 +218,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        ModelPart& r_interface = mrGrid.GetSubModelPart("temporal_interface");
+        ModelPart& r_interface = mrSubDomain1.GetSubModelPart("temporal_interface");
         Vector interface_nodes_are_active = ZeroVector(r_interface.Nodes().size());
 
         // Computes active interface coupling nodes from sub domain 1 at the start of the large timestep
@@ -566,9 +554,17 @@ namespace Kratos
 
     void MPMTemporalCouplingUtility::Check()
     {
-        KRATOS_ERROR_IF_NOT(mrGrid.HasSubModelPart("temporal_interface"))
-            << "Model part " << mrGrid.Name()
-            << " is missing a submodel part called temporal_interface\n" << mrGrid << std::endl;
+        KRATOS_ERROR_IF_NOT(mrSubDomain1.HasSubModelPart("temporal_interface"))
+            << "Model part " << mrSubDomain1.Name()
+            << " is missing a submodel part called temporal_interface\n" << mrSubDomain1 << std::endl;
+
+        KRATOS_ERROR_IF_NOT(mrSubDomain1.HasSubModelPart("active_nodes"))
+            << "Model part " << mrSubDomain1.Name()
+            << " is missing a submodel part called active_nodes\n" << mrSubDomain1 << std::endl;
+
+        KRATOS_ERROR_IF_NOT(mrSubDomain2.HasSubModelPart("active_nodes"))
+            << "Model part " << mrSubDomain2.Name()
+            << " is missing a submodel part called active_nodes\n" << mrSubDomain2 << std::endl;
 
         KRATOS_ERROR_IF_NOT(mrSubDomain1.NumberOfElements() > 0)
             << "Model part " << mrSubDomain1.Name()
@@ -583,9 +579,6 @@ namespace Kratos
         for (size_t i = 0; i < mGamma.size(); ++i)
             if (mGamma[i] != 0.5 && mGamma[i] != 1.0)
                 KRATOS_ERROR << "Gamma must equal 1.0 or 0.5. Gamma[" << i << "] = " << mGamma[i] << std::endl;
-
-
-        //PrintNodeIdsAndCoords(mrGrid);
     }
 
 

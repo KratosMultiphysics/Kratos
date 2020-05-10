@@ -54,8 +54,7 @@ class MPMCoupledTimeSolver(MPMSolver):
             raise Exception("Check the time_integration_method_2 in project parameters file")
 
         # initialize mpm coupling utility class
-        self.coupling_utility = KratosParticle.MPMTemporalCouplingUtility(self.grid_model_part,
-                                                                          self.model_sub_domain_1,
+        self.coupling_utility = KratosParticle.MPMTemporalCouplingUtility(self.model_sub_domain_1,
                                                                           self.model_sub_domain_2,
                                                                           self.time_step_ratio,
                                                                           self.time_step_2,
