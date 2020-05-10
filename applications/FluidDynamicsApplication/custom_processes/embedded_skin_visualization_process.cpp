@@ -102,7 +102,7 @@ const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions
 }
 
 template<class TDataType>
-const void EmbeddedSkinVisualizationProcess::FillVariablesList(
+void EmbeddedSkinVisualizationProcess::FillVariablesList(
     const Parameters& rParameters,
     std::vector<Variable<TDataType>>& rVariablesList)
 {

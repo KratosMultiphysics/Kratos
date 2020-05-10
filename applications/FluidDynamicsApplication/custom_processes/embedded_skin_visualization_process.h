@@ -139,7 +139,7 @@ public:
      * @param rVariableList The filled variable data list
      */
     template<class TDataType>
-    static const void FillVariablesList(
+    static void FillVariablesList(
         const Parameters& rParameters,
         std::vector<Variable<TDataType>>& rVariablesList);
 
