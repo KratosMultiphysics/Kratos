@@ -35,10 +35,11 @@ namespace Kratos
 
         // Store inverted mass matrix and coupling matrix for sub-domain 1 for the whole timestep
         if (mJ == 1) {
+            ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
             Matrix eff_mass_mat_1;
-            GetEffectiveMassMatrix(0, mrSubDomain1, eff_mass_mat_1, rK1);
+            GetEffectiveMassMatrix(0, r_sub_domain_1_active, eff_mass_mat_1, rK1);
             InvertEffectiveMassMatrix(eff_mass_mat_1, mInvM1);
-            ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, mrSubDomain1);
+            ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, r_sub_domain_1_active);
 
             // reset accumulated link velocities at the start of every big timestep
             mSubDomain1AccumulatedLinkVelocity.resize(eff_mass_mat_1.size1(), false);
@@ -51,19 +52,20 @@ namespace Kratos
             : (1.0 - mJ / mTimeStepRatio) * mSubDomain1InitialInterfaceVelocity
                 + mJ / mTimeStepRatio * mSubDomain1FinalInterfaceVelocity;
 
-        // Invert sub domain 2 mass matrix
+        // Invert sub domain 2 effective mass matrix
+        ModelPart& r_sub_domain_2_active = mrSubDomain2.GetSubModelPart("active_nodes");
         Matrix eff_mass_mat_2;
-        GetEffectiveMassMatrix(1, mrSubDomain2, eff_mass_mat_2, rK2);
+        GetEffectiveMassMatrix(1, r_sub_domain_2_active, eff_mass_mat_2, rK2);
         Matrix InvM2;
         InvertEffectiveMassMatrix(eff_mass_mat_2, InvM2);
 
         // Establish sub domain 2 coupling matrix
         Matrix Coupling2;
-        ComputeCouplingMatrix(1, eff_mass_mat_2, Coupling2, mrSubDomain2);
+        ComputeCouplingMatrix(1, eff_mass_mat_2, Coupling2, r_sub_domain_2_active);
 
         // Get sub domain 2 free velocities
         Vector subDomain2freeVelocities;
-        SetSubDomainInterfaceVelocity(mrSubDomain2, subDomain2freeVelocities);
+        SetSubDomainInterfaceVelocity(r_sub_domain_2_active, subDomain2freeVelocities);
 
         // Assemble condensation operator H
         Matrix H;
@@ -73,11 +75,7 @@ namespace Kratos
         Vector b = SubDomain1InterpolatedVelocities + 
             prod(mCoupling1,mSubDomain1AccumulatedLinkVelocity);
         b -= subDomain2freeVelocities;
-
-        if (mPrintFreeInterfaceVelocity) std::cout << "\n\n\n ========= FREE INTERFACE VELOCITIES ==============="
-                << "\nDomain A = " << SubDomain1InterpolatedVelocities
-                << "\nDomain B = " << subDomain2freeVelocities
-                << std::endl;
+        if (mPrintFreeInterfaceVelocity) std::cout << "========= FREE INTERFACE VELOCITIES ===============" << "\nDomain A = " << SubDomain1InterpolatedVelocities << "\nDomain B = " << subDomain2freeVelocities << std::endl;
 
         // Calculate corrective Lagrangian multipliers
         Vector lamda;
@@ -110,8 +108,8 @@ namespace Kratos
         }
 
         // Update sub domain 2 at the end of every small timestep
-        if (mGamma[1] == 1.0) ApplyCorrectionExplicit(mrSubDomain2, link_accel_2, mSmallTimestep);
-        else ApplyCorrectionImplicit(mrSubDomain2, link_accel_2, mSmallTimestep);
+        if (mGamma[1] == 1.0) ApplyCorrectionExplicit(r_sub_domain_2_active, link_accel_2, mSmallTimestep);
+        else ApplyCorrectionImplicit(r_sub_domain_2_active, link_accel_2, mSmallTimestep);
 
         // Increment small timestep counter
         mJ += 1;
@@ -155,10 +153,9 @@ namespace Kratos
         // Correct subdomain 1
         const double time_step_1 = mSmallTimestep * mTimeStepRatio;
         const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
-        if (mGamma[0] == 1.0) ApplyCorrectionExplicit(mrSubDomain1, link_accel_1, time_step_1);
-        else ApplyCorrectionImplicit(mrSubDomain1, link_accel_1, time_step_1);
+        if (mGamma[0] == 1.0) ApplyCorrectionExplicit(r_sub_domain_1_active, link_accel_1, time_step_1);
+        else ApplyCorrectionImplicit(r_sub_domain_1_active, link_accel_1, time_step_1);
     }
-
 
 
     void MPMTemporalCouplingUtility::InitializeSubDomain1Coupling()
@@ -168,7 +165,9 @@ namespace Kratos
         Check();
         ComputeActiveInterfaceNodes();
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
-        SetSubDomainInterfaceVelocity(mrSubDomain1, mSubDomain1InitialInterfaceVelocity);
+
+        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
+        SetSubDomainInterfaceVelocity(r_sub_domain_1_active, mSubDomain1InitialInterfaceVelocity);
 
         KRATOS_CATCH("")
     }
@@ -256,8 +255,7 @@ namespace Kratos
         Vector& rVelocityContainer)
     {
         // Compute velocity of active interface nodes for sub domain 
-        //ModelPart& r_interface = rModelPart.GetSubModelPart("temporal_interface");
-        const IndexType working_space_dim = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        const IndexType working_space_dim = rModelPart.GetParentModelPart()->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         rVelocityContainer.resize(mActiveInterfaceNodeIDs.size() * working_space_dim, false);
         rVelocityContainer = ZeroVector(mActiveInterfaceNodeIDs.size() * working_space_dim);
 
@@ -271,7 +269,7 @@ namespace Kratos
             for (IndexType k = 0; k < working_space_dim; ++k)
             {
                 //rVelocityContainer[working_space_dim * i + k] += nodal_momentum[k]/ nodal_mass;
-                rVelocityContainer[working_space_dim * i + k] += nodal_vel[k];
+                rVelocityContainer[working_space_dim * i + k] += nodal_vel[k]; // TODO change to =
             }
         }
     }
@@ -285,7 +283,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const IndexType working_space_dim = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        const IndexType working_space_dim = rModelPart.GetParentModelPart()->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
         // resize matrix
         const double coupling_entry = (domainIndex == 0)
@@ -298,7 +296,6 @@ namespace Kratos
 
         const SizeType number_of_active_subdomain_nodes = size_2 / working_space_dim;
         const SizeType number_of_active_interface_nodes = mActiveInterfaceNodeIDs.size();
-
 
         // Add matrix entries
         const auto it_node_begin = rModelPart.NodesBegin();
@@ -336,9 +333,6 @@ namespace Kratos
             }
         }
 
-        //std::cout << "Domain " << domainIndex << " coupling matrix " << std::endl;
-        //PrintMatrix(rCouplingMatrix);
-
         KRATOS_CATCH("")
     }
 
@@ -346,12 +340,14 @@ namespace Kratos
     void MPMTemporalCouplingUtility::GetEffectiveMassMatrix(const IndexType domainIndex, ModelPart& rModelPart, 
         Matrix& rEffectiveMassMatrix, const SystemMatrixType& rK)
     {
+        const IndexType working_space_dim = rModelPart.GetParentModelPart()->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
         if (mGamma[domainIndex] == 1.0) // explicit
         {
             // We don't need to use the stiffness matrix. Just assemble the mass matrix from the nodes
             SizeType number_of_active_nodes = 0;
             GetNumberOfActiveModelPartNodes(rModelPart, number_of_active_nodes);
-            const IndexType working_space_dim = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+            
 
             rEffectiveMassMatrix.resize(working_space_dim * number_of_active_nodes, working_space_dim * number_of_active_nodes, false);
             rEffectiveMassMatrix = ZeroMatrix(working_space_dim * number_of_active_nodes);
@@ -372,6 +368,11 @@ namespace Kratos
         }
         else if (mGamma[domainIndex] == 0.5) // implicit
         {
+            // Check sizes are compatible
+            KRATOS_ERROR_IF(rK.size1() > working_space_dim * rModelPart.Nodes().size())
+                << "The system tangent matrix is larger than the number of active nodes in the subdomain"
+                << rModelPart.GetParentModelPart()->Name() << std::endl;
+
             // The system matrix already includes the mass matrix contribution
             const double time_step = (domainIndex == 0)
                 ? mTimeStepRatio * mSmallTimestep
@@ -455,7 +456,7 @@ namespace Kratos
     void MPMTemporalCouplingUtility::ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& rLinkAccel,
         const double timeStep, const bool correctInterface)
     {
-        const SizeType working_space_dimension = rModelPart.ElementsBegin()->WorkingSpaceDimension();
+        const SizeType working_space_dimension = rModelPart.GetParentModelPart()->ElementsBegin()->WorkingSpaceDimension();
         const auto it_node_begin = rModelPart.NodesBegin();
 
         //std::cout << rModelPart.Name() << " interface before correction" << std::endl;
@@ -467,8 +468,6 @@ namespace Kratos
                 interface_node->Set(ACTIVE, false);
             }
         }
-
-        
 
         // Add corrections entries
         for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) 
@@ -495,9 +494,6 @@ namespace Kratos
                 interface_node->Set(ACTIVE, true);
             }
         }
-
-        //std::cout << rModelPart.Name() << " interface after correction" << std::endl;
-        //PrintNodeIdsAndCoords(rModelPart.GetSubModelPart("temporal_interface"));
     }
 
 
