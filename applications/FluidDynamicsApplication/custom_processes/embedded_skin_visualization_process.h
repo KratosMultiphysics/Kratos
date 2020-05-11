@@ -77,6 +77,12 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /**
+     * @brief Enum class with the available shape functions type
+     * Auxiliary enum class to store the available shape functions types
+     * Available shape functions are the standard linear FE shape functions (Standard)
+     * and the Aausas FE space (see Ausas et. al. 2010 https://doi.org/10.1016/j.cma.2009.11.011)
+     */
     enum class ShapeFunctionsType
     {
         Ausas,
