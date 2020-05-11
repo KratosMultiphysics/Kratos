@@ -13,16 +13,26 @@ def Factory(settings, Model):
 
 
 class CreatePointBasedEntitiesProcess(KM.Process):
-    """This process sets a given value for a certain flag in all the nodes of a submodelpart
+    """This process creates point based entities on the nodes of SubModelPart(s). This process should be used only once per ModelPart to not create the same entities multiple times on the same nodes.
+    It works with restarts as well as in MPI. Also the numbering of the newly created entities is done consistently.
     """
 
     def __init__(self, Model, settings ):
         KM.Process.__init__(self)
 
+        """
+        model_part_name: The name of the MainModelPart for which the entities should be created
+        sub_model_part_names: <optional> Names of the SubModelParts on which the entities should be created. This is needed to not create multiple entities on the same nodes, if model-part are overlapping/contain the same nodes.
+        new_sub_model_part_name: The name of the SubModelPart that will be created as base of MainModelPart. The created entities will be in this ModelPart
+        entity_name: The name of the entities to create
+        entity_type: "condition" or "element"
+        properties_id: Id of the properties to be used for the newly created entities
+        kratos_application: <optional> Application in which the entities to create are implemented, needs to be imported before creating them
+        """
         default_settings = KM.Parameters("""{
             "model_part_name"          : "PLEASE_SPECIFY",
-            "new_sub_model_part_name"  : "PLEASE_SPECIFY",
             "sub_model_part_names"     : [],
+            "new_sub_model_part_name"  : "PLEASE_SPECIFY",
             "entity_name"              : "PointLoadCondition3D1N",
             "entity_type"              : "condition",
             "properties_id"            : 0,
@@ -50,7 +60,7 @@ class CreatePointBasedEntitiesProcess(KM.Process):
             import_module("KratosMultiphysics." + kratos_application) # this registers the entities
 
         if settings["sub_model_part_names"].size() == 0:
-            # if no sub-model-parts are specified then taking the root-model-part
+            # if no sub-model-parts are specified then taking the main-model-part
             model_parts = [model_part]
         else:
             model_parts = [Model[model_part_name+"."+sub_model_part_name] for sub_model_part_name in settings["sub_model_part_names"].GetStringArray()]
