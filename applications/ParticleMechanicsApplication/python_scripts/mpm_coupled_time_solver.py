@@ -108,33 +108,13 @@ class MPMCoupledTimeSolver(MPMSolver):
 
 
     def AdvanceInTime(self, current_time):
-        self.dt = self.time_step_1
-        new_time = current_time + self.dt
+        new_time = current_time + self.time_step_1
 
-        self.time_step_index_j += 1
-
-        # TODO delete this stuff
-
-        if self.time_step_index_j > self.time_step_ratio:
-            self.time_step_index_j = 1
-
-        if self.time_step_index_j == self.time_step_ratio:
-            self.is_model_sub_domain_1_correct = True
-        else:
-            self.is_model_sub_domain_1_correct = False
-
-        if self.time_step_index_j == 1:
-            self.is_model_sub_domain_1_predict = True
-        else:
-            self.is_model_sub_domain_1_predict = False
-
-        self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += self.time_step_ratio
         self.grid_model_part.CloneTimeStep(new_time)
 
-        self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.STEP] += self.time_step_ratio
         self.model_sub_domain_1.CloneTimeStep(new_time)
-        self.model_sub_domain_2.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.model_sub_domain_2.CloneTimeStep(new_time)
 
         return new_time
 
@@ -155,6 +135,7 @@ class MPMCoupledTimeSolver(MPMSolver):
     def InitializeSolutionStep(self):
         self._SearchElement()
         #print('Initializing sd1')
+        #print("Subdomain 1 time = ", self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.TIME])
         self._GetSolutionStrategy(1).Initialize()
         self._GetSolutionStrategy(1).InitializeSolutionStep()
         self.coupling_utility.InitializeSubDomain1Coupling()
@@ -174,6 +155,15 @@ class MPMCoupledTimeSolver(MPMSolver):
 
         # store interface velocities in coupling class vector
         for j in range(1,self.time_step_ratio+1):
+            #print('Advance SD2 time')
+            time = self.model_sub_domain_2.ProcessInfo[KratosMultiphysics.TIME]
+            time += self.time_step_2
+            self.model_sub_domain_2.CloneTimeStep(time)
+            self.model_sub_domain_2.ProcessInfo[KratosMultiphysics.STEP] += 1
+            #print("Subdomain 2 time = ", time)
+            print("Subdomain 2 timestep", j, "of",self.time_step_ratio,
+                  "(SD1 time = ",self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.TIME], ", SD2 time = ",time,")")
+
             #print('Initializing sd2')
             self._GetSolutionStrategy(2).Initialize()
             self._GetSolutionStrategy(2).InitializeSolutionStep()
