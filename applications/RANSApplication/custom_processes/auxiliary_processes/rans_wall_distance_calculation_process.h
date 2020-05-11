@@ -20,7 +20,15 @@
 
 // Project includes
 #include "containers/model.h"
+#include "factories/linear_solver_factory.h"
+#include "includes/define.h"
+#include "includes/variables.h"
 #include "processes/process.h"
+#include "utilities/variable_utils.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+
+// Application includes
+#include "custom_utilities/rans_check_utilities.h"
 
 namespace Kratos
 {
@@ -54,6 +62,8 @@ public:
     ///@{
 
     using NodeType = ModelPart::NodeType;
+    using BuilderSolverPointerType =
+        typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer;
 
     /// Pointer definition of RansWallDistanceCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansWallDistanceCalculationProcess);
@@ -63,7 +73,38 @@ public:
     ///@{
 
     /// Constructor
-    RansWallDistanceCalculationProcess(Model& rModel, Parameters rParameters);
+    RansWallDistanceCalculationProcess(Model& rModel, Parameters rParameters)
+        : mrModel(rModel), mrParameters(rParameters)
+    {
+        KRATOS_TRY
+
+        Parameters default_parameters = Parameters(R"(
+        {
+            "model_part_name"               : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "max_iterations"                : 10,
+            "echo_level"                    : 0,
+            "wall_flag_variable_name"       : "STRUCTURE",
+            "wall_flag_variable_value"      : true,
+            "re_calculate_at_each_time_step": false,
+            "linear_solver_settings" : {
+                "solver_type"     : "amgcl"
+            }
+        })");
+
+        mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+        this->CreateLinearSolver();
+
+        mMaxIterations = mrParameters["max_iterations"].GetInt();
+        mEchoLevel = mrParameters["echo_level"].GetInt();
+        mModelPartName = mrParameters["model_part_name"].GetString();
+        mWallFlagVariableName = mrParameters["wall_flag_variable_name"].GetString();
+        mWallFlagVariableValue = mrParameters["wall_flag_variable_value"].GetBool();
+        mRecalculateAtEachTimeStep =
+            mrParameters["re_calculate_at_each_time_step"].GetBool();
+
+        KRATOS_CATCH("");
+    }
 
     /// Destructor.
     ~RansWallDistanceCalculationProcess() override = default;
@@ -76,9 +117,43 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override;
+    int Check() override
+    {
+        KRATOS_TRY
 
-    void ExecuteInitialize() override;
+        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
+
+        const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+        RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, DISTANCE);
+
+        return 0.0;
+
+        KRATOS_CATCH("");
+    }
+
+    void SetBuilderAndSolver(BuilderSolverPointerType pBuilderAndSolver)
+    {
+        mpBuilderAndSolver = pBuilderAndSolver;
+    }
+
+    typename TLinearSolver::Pointer GetLinearSolver()
+    {
+        return mpLinearSolver;
+    }
+
+    void ExecuteInitialize() override
+    {
+        CalculateWallDistances();
+    }
+
+    void ExecuteInitializeSolutionStep() override
+    {
+        if (mRecalculateAtEachTimeStep)
+        {
+            CalculateWallDistances();
+        }
+    }
 
     ///@}
     ///@name Access
@@ -93,13 +168,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    std::string Info() const override
+    {
+        return std::string("RansWallDistanceCalculationProcess");
+    }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << this->Info();
+    }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
 
     ///@}
     ///@name Friends
@@ -150,11 +233,13 @@ private:
     std::string mModelPartName;
 
     typename TLinearSolver::Pointer mpLinearSolver;
+    BuilderSolverPointerType mpBuilderAndSolver;
 
     int mMaxIterations;
     int mEchoLevel;
     std::string mWallFlagVariableName;
     bool mWallFlagVariableValue;
+    bool mRecalculateAtEachTimeStep;
 
     ///@}
     ///@name Private Operators
@@ -164,7 +249,35 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateWallDistances();
+    void CreateLinearSolver()
+    {
+        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
+            mrParameters["linear_solver_settings"]);
+    }
+
+    void ExecuteVariationalDistanceCalculationProcess();
+
+    void CalculateWallDistances()
+    {
+        KRATOS_TRY
+
+        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+        const Flags& r_wall_flag = KratosComponents<Flags>::Get(mWallFlagVariableName);
+
+        VariableUtils variable_utilities;
+
+        variable_utilities.SetVariable(DISTANCE, 1.0, r_model_part.Nodes());
+        variable_utilities.SetVariable(DISTANCE, 0.0, r_model_part.Nodes(),
+                                       r_wall_flag, mWallFlagVariableValue);
+
+        ExecuteVariationalDistanceCalculationProcess();
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+            << "Wall distances calculated in " << mModelPartName << ".\n";
+
+        KRATOS_CATCH("");
+    }
 
     ///@}
     ///@name Private  Access

@@ -15,6 +15,7 @@
 
 #include "add_trilinos_strategies_to_python.h"
 #include "add_trilinos_solving_processes_to_python.h"
+#include "add_trilinos_auxiliary_processes_to_python.h"
 
 namespace Kratos {
 namespace Python {
@@ -23,6 +24,7 @@ PYBIND11_MODULE(KratosRANSTrilinosExtension,m)
 {
     AddTrilinosSolvingProcessesToPython(m);
     AddTrilinosStrategiesToPython(m);
+    AddTrilinosAuxiliaryProcessesToPython(m);
 }
 
 }
