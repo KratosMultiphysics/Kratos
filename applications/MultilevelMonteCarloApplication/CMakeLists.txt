@@ -2,7 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMultilevelMonteCarloApplication ****")
 
-include(FetchContent)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## define application core sources (pure C++ parts)
@@ -94,9 +93,9 @@ endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
 #####
 ############################################################################
 # Install XMC library
-if (NOT DEFINED XMC_INCLUDE_DIR)
+if (NOT DEFINED INCLUDE_XMC OR INCLUDE_XMC)
 	message ( STATUS "Automatic installation of XMC library" )
 	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME} )
-else (DEFINED XMC_INCLUDE_DIR)
+else (NOT XMC_INCLUDE_DIR)
 	message ( STATUS "Manual installation of XMC library" )
-endif(NOT DEFINED XMC_INCLUDE_DIR)
+endif(NOT DEFINED INCLUDE_XMC OR INCLUDE_XMC)
