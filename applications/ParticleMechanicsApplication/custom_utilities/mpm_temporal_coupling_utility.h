@@ -96,37 +96,61 @@ protected:
 
     void UtilityClearAndResizeVector(Vector& rVector, const SizeType desiredSize);
 
-    // Sub domain 1 kinematic storage -------------------
+    // Sub domain 1 kinematic storage =================================================
+
+    // SubDomain 1 interface velocity at the start of the large timestep dT
     Vector mSubDomain1InitialInterfaceVelocity;
-
+    // SubDomain 1 interface velocity at the end of the large timestep dT
     Vector mSubDomain1FinalInterfaceVelocity;
+    // SubDomain 1 velocity at the end of the large timestep dT
     Vector mSubDomain1FinalDomainVelocity;
+    // SubDomain 1 displacement at the end of the large timestep dT
     Vector mSubDomain1FinalDomainDisplacement;
+    // SubDomain 1 acceleration at the end of the large timestep dT
     Vector mSubDomain1FinalDomainAcceleration;
+    // SubDomain 1 active nodes bools
     Vector mSubDomain1FinalDomainActiveNodes;
-
+    // SubDomain 1 interface accumulated corrective link velocity
     Vector mSubDomain1AccumulatedLinkVelocity;
-
+    // SubDomain 1 nodal x-dof positions in the implicit system matrix
     Vector mSubDomain1DofPositions;
 
-    // Sub domain 1 coupling and mass matrix -------------------
+
+    /// Sub domain 1 coupling and mass matrix =================================================
+
+    // Subdomain 1 effective mass matrix stored for the large timestep dT
     Matrix mInvM1;
+    // Subdomain 1 coupling matrix stored for the large timestep dT
     Matrix mCoupling1;
 
-    // Time parameters -------------------
+
+    // Time parameters =================================================
+
+    // Intermediate timestep counter j
     IndexType mJ;
+    // Positive integer ratio between the small timestep dt and large timestep dT
     const IndexType mTimeStepRatio;
+    // The small timestep dt
     const double mSmallTimestep;
+    // Time integration parameters gamma. Gamma = 0.5 for average acceleration implicit. Gamma = 1.0 for USL forward euler explicit.
     array_1d<double, 2> mGamma;
 
-    // Sub domain modelpart references -------------------
+
+    // Sub domain modelpart references =================================================
+
+    // Sub domain 1 model part
     ModelPart& mrSubDomain1;
+    // Sub domain 2 model part
     ModelPart& mrSubDomain2;
 
-    // Interface node ID container -------------------
+
+    // Interface node ID container =================================================
+
+    // Node IDs of active interface nodes
     Vector mActiveInterfaceNodeIDs;
 
-    // Bools to ensure operations are performed in the correct order -------------------
+
+    // Bools to ensure operations are performed in the correct order =================================================
     bool mActiveInterfaceNodesComputed = false;
     bool mIsSubDomain1QuantitiesPrepared = false;
 

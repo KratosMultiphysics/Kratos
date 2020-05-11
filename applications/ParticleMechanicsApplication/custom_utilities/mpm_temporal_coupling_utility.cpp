@@ -31,7 +31,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        std::cout << "------------ j = " << mJ << " ------------" << std::endl;
+        //std::cout << "------------ j = " << mJ << " ------------" << std::endl;
 
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed && mIsSubDomain1QuantitiesPrepared) 
             << "ComputeActiveInterfaceNodes or PrepareSubDomain1CouplingQuantities not called yet" << std::endl;
@@ -76,22 +76,16 @@ namespace Kratos
         Matrix temp1 = prod(mInvM1, trans(mCoupling1));
         Vector link_velocity_1 = (mGamma[0] * mSmallTimestep * prod(temp1, lamda));
         mSubDomain1AccumulatedLinkVelocity += link_velocity_1;
-
         Matrix temp2 = prod(InvM2, trans(Coupling2));
         Vector link_accel_2 = prod(temp2, lamda);
 
-        if (mCheckInterfaceContinuity && !mDisableLagrangianMultipliers)
-        {
+        if (mCheckInterfaceContinuity && !mDisableLagrangianMultipliers) {
             Vector link_vel_2 = prod(Coupling2, mGamma[1] * mSmallTimestep * link_accel_2);
             Vector total_vel_2 = subDomain2freeVelocities - link_vel_2;
             Vector total_vel_1 = SubDomain1InterpolatedVelocities + prod(mCoupling1, mSubDomain1AccumulatedLinkVelocity);
             Vector interface_velocity_error = total_vel_1 - total_vel_2;
 
-            if (mPrintEquilibratedInterfaceVelocity)
-            {
-                std::cout << "Total vel domain 1 = " << total_vel_1 << std::endl;
-                std::cout << "Total vel domain 2 = " << total_vel_2 << std::endl;
-            }
+            if (mPrintEquilibratedInterfaceVelocity)  std::cout << "Total vel domain 1 = " << total_vel_1  << "\nTotal vel domain 2 = " << total_vel_2 << std::endl;
 
             KRATOS_ERROR_IF(norm_2(interface_velocity_error) > mInterfaceVelocityTolerance)
                 << "Interface velocities not equal!" << std::endl;
