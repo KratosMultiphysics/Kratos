@@ -112,9 +112,11 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     double neg_vol = 0.0;
     double inter_area = 0;
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
+    //KRATOS_INFO("Inlet:") << INLET << std::endl;
     double net_inflow_inlet = ComputeFlowOverBoundary(INLET);
+    //KRATOS_INFO("Outlet:") << OUTLET << std::endl;
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
-
+    
     // computing global quantities via MPI communication
     const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
     std::vector<double> local_data{pos_vol, neg_vol, inter_area, net_inflow_inlet, net_inflow_outlet};
@@ -193,7 +195,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
             if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 /* 1.0e-16  */){
                 pt_count_pos++;
-            } else if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) < 0.0 /* 1.0e-16  */){
+            } else {//if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) < 0.0 /* 1.0e-16  */){
                 pt_count_neg++;
             }
         }
@@ -218,7 +220,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
                 /* if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
                     it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
-                } */
+                } */ // Disabled
                 Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
@@ -294,7 +296,7 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 1.0e-16 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0){ //1.0e-16 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -354,7 +356,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 1.0e-16 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0){ //1.0e-16 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -418,7 +420,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 1.0e-16 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0){ //1.0e-16 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -464,12 +466,13 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
     return pos_vol;
 }
 
-
 double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag ){
 
     // Convention: "mass" is considered as "water", meaning the volumes with a negative distance is considered
     double inflow_over_boundary = 0.0;
-    const double epsilon = 1.0e-8;
+    const double epsilon = 1.0e-12; //1.0e-8; //Decreased
+
+    //KRATOS_INFO("NumberOfConditions:") << (mrModelPart.NumberOfConditions()) << std::endl;
 
     #pragma omp parallel for reduction(+: inflow_over_boundary)
     for (int i_cond = 0; i_cond < static_cast<int>(mrModelPart.NumberOfConditions()); ++i_cond){
@@ -479,6 +482,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
         if ( p_condition->Is( boundaryFlag ) ){
 
+            //KRATOS_INFO("ComputeFlowOverBoundary:") << "Flag is found" << std::endl;
+
             const auto& rGeom = p_condition->GetGeometry();
             const int dim = rGeom.PointsNumber();
             Vector distance( rGeom.PointsNumber(), 0.0 );
@@ -487,7 +492,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
             unsigned int pos_count = 0;
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
                 distance[i] = p_condition->GetGeometry()[i].FastGetSolutionStepValue( DISTANCE );
-                if ( rGeom[i].FastGetSolutionStepValue( DISTANCE ) > 1.0e-16 ){
+                if ( rGeom[i].FastGetSolutionStepValue( DISTANCE ) > 0.0){ // 1.0e-16 ){
                     pos_count++;
                 } else {
                     neg_count++;
@@ -683,8 +688,8 @@ Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle(
     array_1d<double,3> coord1_transformed = prod( rot_mat, rGeom[0].Coordinates() );
     array_1d<double,3> coord2_transformed = prod( rot_mat, rGeom[1].Coordinates() );
     array_1d<double,3> coord3_transformed = prod( rot_mat, rGeom[2].Coordinates() );
-    KRATOS_DEBUG_ERROR_IF_NOT( std::abs(coord1_transformed[2] - coord2_transformed[2])<1.0e-7 &&
-                            std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-7 );
+    KRATOS_DEBUG_ERROR_IF_NOT( std::abs(coord1_transformed[2] - coord2_transformed[2])<1.0e-12 &&
+                            std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-12 ); //Tolerance is decreased -7 to -12
 
     // creating auxiliary nodes based on the transformed position
     Node<3UL>::Pointer node1 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );

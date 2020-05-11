@@ -185,9 +185,9 @@ void MassConservationCorrection::ComputeVolumesAndInterface( double& positiveVol
             Vector Distance( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
-                if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
+                /* if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
                     it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
-                }
+                } */ // Disabled
                 Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
@@ -247,7 +247,9 @@ double MassConservationCorrection::ComputeFlowOverBoundary( const Kratos::Flags 
 
     // Convention: "mass" is considered as "water", meaning the volumes with a negative distance is considered
     double inflow_over_boundary = 0.0;
-    const double epsilon = 1.0e-8;
+    const double epsilon = 1.0e-12; //1.0e-8;  //this tolerance is decreased
+
+    KRATOS_INFO("ComputeFlowOverBoundary:") << "Flag is found" << std::endl;
 
     #pragma omp parallel for reduction(+: inflow_over_boundary)
     for (int i_cond = 0; i_cond < static_cast<int>(mrModelPart.NumberOfConditions()); ++i_cond){

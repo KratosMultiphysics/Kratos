@@ -182,7 +182,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         for node in self.main_model_part.Nodes:
             node.SetValue(KratosMultiphysics.IS_STRUCTURE, 0.0)
             
-        for node in (self.main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes: #(self.main_model_part.GetSubModelPart("Slip3D")).Nodes:
+        for node in (self.main_model_part.GetSubModelPart("Slip3D")).Nodes: #(self.main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
             node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
             NodeId = node.Id
             KratosMultiphysics.Logger.PrintInfo("Wall", NodeId)

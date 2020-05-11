@@ -228,7 +228,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     const int num_nodes  = num_dim + 1;
     const unsigned int num_faces = num_nodes;
 
-    const double dt = 0.000001; //rCurrentProcessInfo.GetValue(DELTA_TIME);
+    const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
 
     //GeometryType::Pointer p_geom = this->pGetGeometry();
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
