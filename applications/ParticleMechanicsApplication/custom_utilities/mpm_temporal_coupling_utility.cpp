@@ -409,6 +409,8 @@ namespace Kratos
 
         const bool is_slow_invert = true; // TODO get a better way to invert
 
+        // TODO find a way to invert when using consistent mass matrix
+
         if (is_slow_invert)
         {
             double matrix_det;
@@ -434,9 +436,6 @@ namespace Kratos
 
         rH -= H1;
         rH -= H2;
-
-        //std::cout << "H = " << std::endl;
-        //PrintMatrix(rH);
     }
 
 
