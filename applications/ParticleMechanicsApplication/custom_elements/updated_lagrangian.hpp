@@ -153,12 +153,6 @@ protected:
 
     struct GeneralVariables
     {
-    private:
-
-        // Variables including all integration points
-        const Matrix* pDN_De;
-        const Vector* pNcontainer;
-
     public:
 
         StressMeasureType StressMeasure;
@@ -178,40 +172,10 @@ protected:
         Matrix  FT;
         Matrix  F0;
         Matrix  DN_DX;
-        Matrix  DN_De;
         Matrix  ConstitutiveMatrix;
 
         // Variables including all integration points
         Matrix CurrentDisp;
-
-        /**
-         * sets the value of a specified pointer variable
-         */
-        void SetShapeFunctionsGradients(const Matrix &rDN_De)
-        {
-            pDN_De=&rDN_De;
-        };
-
-        void SetShapeFunctions(const Vector& rNcontainer)
-        {
-            pNcontainer=&rNcontainer;
-        };
-
-
-        /**
-         * returns the value of a specified pointer variable
-         */
-        const Matrix& GetShapeFunctionsGradients()
-        {
-            return *pDN_De;
-        };
-
-        const Vector& GetShapeFunctions()
-        {
-            return *pNcontainer;
-        };
-
-
     };
 
 

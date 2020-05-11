@@ -191,10 +191,6 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
     rVariables.StressVector.resize(strain_size, false );
 
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
-    rVariables.DN_De.resize( number_of_nodes, dimension, false );
-
-    // Reading shape functions local gradients
-    rVariables.DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
 
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
@@ -386,7 +382,8 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n+1]
-    rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
+    const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+    rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position dx
 
     const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
         ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
@@ -527,8 +524,8 @@ void UpdatedLagrangian::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
             Matrix InvJ;
             double detJ;
             MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-            Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-            rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
+            const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+            rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
 
             const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
                 ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
@@ -630,8 +627,8 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     double detJ;
     MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-    Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-    rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
+    Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+    rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
 
     if (is_axisymmetric)
     {
