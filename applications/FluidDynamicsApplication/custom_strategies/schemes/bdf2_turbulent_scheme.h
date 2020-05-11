@@ -79,15 +79,17 @@ public:
     typedef Dof<TDataType> TDofType;
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
+    typedef CoordinateTransformationUtils<LocalSystemMatrixType, LocalSystemVectorType, double> RotationToolType;
+    typedef typename RotationToolType::UniquePointer RotationToolPointerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    BDF2TurbulentScheme(const unsigned int DomainSize)
+    BDF2TurbulentScheme()
     : Scheme<TSparseSpace, TDenseSpace>()
     , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
-    , mRotationTool(DomainSize, DomainSize + 1, SLIP)
     {}
 
     /// Constructor to use the formulation combined with a turbulence model.
@@ -97,25 +99,19 @@ public:
      * non-linear iteration.
      * @param pTurbulenceModel pointer to the turbulence model
      */
-    BDF2TurbulentScheme(
-        const unsigned int DomainSize,
-        Process::Pointer pTurbulenceModel)
+    BDF2TurbulentScheme(Process::Pointer pTurbulenceModel)
         : Scheme<TSparseSpace, TDenseSpace>()
         , mpTurbulenceModel(pTurbulenceModel)
         , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
-        , mRotationTool(DomainSize, DomainSize + 1, SLIP)
     {}
 
     /// Constructor for periodic boundary conditions.
     /**
      * @param rPeriodicVar the variable used to store periodic pair indices.
      */
-    BDF2TurbulentScheme(
-        const unsigned int DomainSize,
-        const Kratos::Variable<int>& rPeriodicVar)
+    BDF2TurbulentScheme(const Kratos::Variable<int>& rPeriodicVar)
         : Scheme<TSparseSpace, TDenseSpace>()
         , mrPeriodicIdVar(rPeriodicVar)
-        , mRotationTool(DomainSize, DomainSize + 1, SLIP)
     {}
 
 
@@ -154,6 +150,18 @@ public:
         return 0;
 
         KRATOS_CATCH("");
+    }
+
+    void Initialize(ModelPart& rModelPart) override
+    {
+        // Set up the rotation tool pointer
+        const auto& r_proces_info = rModelPart.GetProcessInfo();
+        const unsigned int domain_size = r_proces_info[DOMAIN_SIZE];
+        auto p_aux = Kratos::make_unique<RotationToolType>(domain_size, domain_size + 1, SLIP);
+        mpRotationTool.swap(p_aux);
+
+        // Base initialize call
+        BaseType::Initialize(rModelPart);
     }
 
     /// Set the time iteration coefficients
@@ -271,11 +279,11 @@ public:
     {
         KRATOS_TRY
 
-        mRotationTool.RotateVelocities(rModelPart);
+        mpRotationTool->RotateVelocities(rModelPart);
 
         mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
-        mRotationTool.RecoverVelocities(rModelPart);
+        mpRotationTool->RecoverVelocities(rModelPart);
 
         const Vector& BDFCoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
         this->UpdateAcceleration(rModelPart,BDFCoefs);
@@ -311,8 +319,8 @@ public:
         this->AddDynamicRHSContribution<Kratos::Element>(rCurrentElement,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         // Apply slip condition
-        mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+        mpRotationTool->Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
 
         KRATOS_CATCH("")
     }
@@ -343,8 +351,8 @@ public:
         this->AddDynamicRHSContribution<Kratos::Element>(rCurrentElement,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         // Apply slip condition
-        mRotationTool.Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
-        mRotationTool.ApplySlipCondition(RHS_Contribution, rCurrentElement.GetGeometry());
+        mpRotationTool->Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
+        mpRotationTool->ApplySlipCondition(RHS_Contribution, rCurrentElement.GetGeometry());
 
         KRATOS_CATCH("")
     }
@@ -377,8 +385,8 @@ public:
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         // Apply slip condition
-        mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+        mpRotationTool->Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
 
         KRATOS_CATCH("")
     }
@@ -409,8 +417,8 @@ public:
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         // Apply slip condition
-        mRotationTool.Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
-        mRotationTool.ApplySlipCondition(RHS_Contribution, rCurrentCondition.GetGeometry());
+        mpRotationTool->Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
+        mpRotationTool->ApplySlipCondition(RHS_Contribution, rCurrentCondition.GetGeometry());
 
         KRATOS_CATCH("")
     }
@@ -850,11 +858,11 @@ private:
     /// Pointer to a turbulence model
     Process::Pointer mpTurbulenceModel = nullptr;
 
+    RotationToolPointerType mpRotationTool = nullptr;
+
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
     const Kratos::Variable<int>& mrPeriodicIdVar;
-
-    CoordinateTransformationUtils<LocalSystemMatrixType, LocalSystemVectorType, double> mRotationTool;
 
 //        ///@}
 //        ///@name Serialization
