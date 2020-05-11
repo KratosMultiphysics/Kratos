@@ -38,11 +38,11 @@
     },
     "qoiEstimatorInputDictionary": {
         "indexSetDimension": 0,
-        "order": 1
+        "order": 5
     },
     "combinedEstimatorInputDictionary": {
         "indexSetDimension": 0,
-        "order": 1
+        "order": 5
     },
     "randomGeneratorInputDictionary": {
         "parameters": [0.25,1e-4],
