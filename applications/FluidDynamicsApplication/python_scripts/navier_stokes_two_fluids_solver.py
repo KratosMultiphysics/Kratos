@@ -532,7 +532,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if (TimeStep % 10 == 0):
             mean_Cangle = 0.0
-            mena_Cvel = 0.0
+            mean_Cvel = 0.0
             num_C = 0
             with open("ContactAngle.log", "a") as CangleLogFile, open("ContactVelocity.log", "a") as CvelLogFile:
                 CangleLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
