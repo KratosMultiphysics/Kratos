@@ -23,20 +23,12 @@ class TestSymbolicEulerianConvectionDiffusionElement(ConvectionDiffusionAnalysis
             x = node.X
             y = node.Y
             diffusivity = 2.0 # check in materials.json
-            # forcing = -432.0 * (x**2 + y**2 - x - y)
-            forcing = ( 4*pi*x*(-sin(2*pi*x)*sin(2*pi*y)+cos(2*pi*x)) + 6*pi*y*cos(2*pi*x)*cos(2*pi*y) ) + \
-                diffusivity*( -4*(pi)**2*cos(2*pi*x)*sin(2*pi*y) - 4*(pi)**2*sin(2*pi*x) - 4*(pi)**2*cos(2*pi*x)*sin(2*pi*y) )
-            convective_velocity = [2.0*x,3.0*y,0.0]
+            convective_velocity = [200.0,300.0,0.0]
+
+            forcing = -diffusivity*(-4*pi*pi*cos(2*pi*x)*sin(2*pi*y)-4*pi*pi*cos(2*pi*x)*sin(2*pi*y)) + \
+                convective_velocity[0]*(-2*pi*sin(2*pi*x)*sin(2*pi*y)) + convective_velocity[1]*(2*pi*cos(2*pi*x)*cos(2*pi*y))
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,convective_velocity)
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing)
-        for node in self.model.GetModelPart("MainModelPart.Subpart_Boundary").Nodes:
-            x = node.X
-            y = node.Y
-            temperature = cos(2*pi*x)*sin(2*pi*y)#+sin(2*pi*x)
-            print(x,y,temperature)
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,temperature)
-
-
 
 if __name__ == "__main__":
     from sys import argv
@@ -49,3 +41,18 @@ if __name__ == "__main__":
     model = KratosMultiphysics.Model()
     simulation = TestSymbolicEulerianConvectionDiffusionElement(model, parameters)
     simulation.Run()
+
+    # check L2 error via midpoint rule
+    KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
+    error = 0
+    model_part_name = simulation.project_parameters["problem_data"]["model_part_name"].GetString()
+    for node in simulation.model.GetModelPart(model_part_name).Nodes:
+        x = node.X
+        y = node.Y
+        u_analytical = cos(2*pi*x)*sin(2*pi*y)
+        u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+
+        error = error + ((u_analytical - u_numerical)**2*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+
+    error = sqrt(error)
+    print("error:",error)

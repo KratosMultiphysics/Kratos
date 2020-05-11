@@ -4,7 +4,7 @@
         "properties_id"   : 0,
         "Material"        : {
             "Variables"        : {
-                "CONDUCTIVITY"  : 1.0
+                "CONDUCTIVITY"  : 2.0
             },
             "Tables"           : {}
         }

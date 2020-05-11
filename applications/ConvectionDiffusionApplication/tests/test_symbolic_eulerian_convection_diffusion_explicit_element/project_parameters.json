@@ -16,7 +16,7 @@
             "echo_level": 0,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "test_symbolic_eulerian_convection_diffusion_explicit_element/square_finer_2d"
+                "input_filename": "test_symbolic_eulerian_convection_diffusion_explicit_element/square_coarse_2d"
             },
             "material_import_settings"           : {
                 "materials_filename" : "test_symbolic_eulerian_convection_diffusion_explicit_element/materials.json"
@@ -25,6 +25,10 @@
                 "time_step": 1.1
             },
             "compute_reactions": false,
+            "max_iteration": 1,
+            "linear_solver_settings":{
+                "solver_type": "super_lu"
+            },
             "problem_domain_sub_model_part_list": ["Parts_Domain"],
             "processes_sub_model_part_list": ["Subpart_Boundary"],
             "auxiliary_variables_list" : [],
@@ -34,17 +38,17 @@
             }
     },
     "processes" : {
-	"constraints_process_list" : [{
-        "python_module" : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "Parameters"    : {
-            "model_part_name" : "MainModelPart.Subpart_Boundary",
-            "variable_name"   : "TEMPERATURE",
-            "constrained"     : true,
-            "value"           : 0.0,
-            "interval"        : [0.0,"End"]
-           }
-       }]
+        "constraints_process_list" : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Subpart_Boundary",
+                "variable_name"   : "TEMPERATURE",
+                "constrained"     : true,
+                "value"           : "cos(2*pi*x)*sin(2*pi*y)",
+                "interval"        : [0.0,"End"]
+                }
+            }]
     },
     "output_processes" : {
         "gid_output" : [{
