@@ -30,7 +30,6 @@ namespace Kratos
     void MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliers( const SystemMatrixType& rK2 )
     {
         KRATOS_TRY
-
         std::cout << "------------ j = " << mJ << " ------------" << std::endl;
 
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed && mIsSubDomain1QuantitiesPrepared) 
@@ -128,10 +127,11 @@ namespace Kratos
         UtilityClearAndResizeVector(mSubDomain1DofPositions, r_sub_domain_1_active.Nodes().size());
         auto it_node_begin = r_sub_domain_1_active.NodesBegin();
         IndexType active_node_counter = 0;
-        for (IndexType i = 0; i < r_sub_domain_1_active.Nodes().size(); ++i)
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_sub_domain_1_active.Nodes().size()); ++i)
         {
             auto current_node = it_node_begin + i;
-
             // implicit arrangement - get position of current active interface node in the system matrix
             mSubDomain1DofPositions[i] = current_node->GetDof(DISPLACEMENT_X).EquationId();
         }
@@ -145,10 +145,11 @@ namespace Kratos
         // Restore subdomain 1
         ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
         IndexType active_node_counter = 0;
         auto node_begin = r_sub_domain_1_active.NodesBegin();
-        for (size_t i = 0; i < domain_nodes; ++i)
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_sub_domain_1_active.Nodes().size()); ++i)
         {
             auto node_it = node_begin + i;
             node_it->Set(ACTIVE, mSubDomain1FinalDomainActiveNodes[i]);
@@ -174,6 +175,7 @@ namespace Kratos
         if (mGamma[0] == 1.0) ApplyCorrectionExplicit(r_sub_domain_1_active, link_accel_1, time_step_1);
         else ApplyCorrectionImplicit(r_sub_domain_1_active, link_accel_1, time_step_1, 0);
 
+        // Reset internal bool
         mIsSubDomain1QuantitiesPrepared = false;
     }
 
@@ -209,7 +211,8 @@ namespace Kratos
         UtilityClearAndResizeVector(mSubDomain1FinalDomainActiveNodes, domain_nodes);
 
         auto node_begin = r_sub_domain_1_active.NodesBegin();
-        for (size_t i = 0; i < domain_nodes; ++i)
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(domain_nodes); ++i)
         {
             auto node_it = node_begin + i;
             mSubDomain1FinalDomainActiveNodes[i] = node_it->Is(ACTIVE);
@@ -276,16 +279,17 @@ namespace Kratos
         UtilityClearAndResizeVector(rVelocityContainer, mActiveInterfaceNodeIDs.size() * working_space_dim);
 
         // Add to vector
-        for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(mActiveInterfaceNodeIDs.size()); ++i)
         {
             auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
-            const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
-            const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
+            //const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
+            //const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
             const array_1d <double, 3> nodal_vel = current_node->FastGetSolutionStepValue(VELOCITY);
             for (IndexType k = 0; k < working_space_dim; ++k)
             {
                 //rVelocityContainer[working_space_dim * i + k] += nodal_momentum[k]/ nodal_mass;
-                rVelocityContainer[working_space_dim * i + k] += nodal_vel[k]; // TODO change to =
+                rVelocityContainer[working_space_dim * i + k] = nodal_vel[k]; // TODO change to =
             }
         }
     }
@@ -305,6 +309,7 @@ namespace Kratos
         const double coupling_entry = (domainIndex == 0)
             ? 1.0
             : -1.0;
+
         const IndexType size_1 = mActiveInterfaceNodeIDs.size()* working_space_dim;
         const IndexType size_2 = rEffectiveMassMatrix.size2();
         if (rCouplingMatrix.size1() != size_1 || rCouplingMatrix.size2() != size_2) rCouplingMatrix.resize(size_1, size_2, false);
@@ -318,7 +323,8 @@ namespace Kratos
 
         if (mGamma[domainIndex] == 0.5) // implicit, use system matrix ordering
         {
-            for (IndexType i = 0; i < number_of_active_interface_nodes; ++i)
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(number_of_active_interface_nodes); ++i)
             {
                 auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
 
@@ -468,14 +474,16 @@ namespace Kratos
             // Write Lagrangian multiplier results to interface nodes
             const SizeType working_space_dim = mrSubDomain1.ElementsBegin()->WorkingSpaceDimension();
             KRATOS_ERROR_IF(rLamda.size() != mActiveInterfaceNodeIDs.size() * working_space_dim) << "Lamda size is wrong";
-            for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(mActiveInterfaceNodeIDs.size()); ++i)
             {
                 auto result_node = mrSubDomain1.pGetNode(mActiveInterfaceNodeIDs[i]);
                 array_1d<double, 3>& r_nodal_lagrange = result_node->FastGetSolutionStepValue(NODAL_MIXED_TIME_LAGRANGE);
                 r_nodal_lagrange.clear();
                 for (IndexType k = 0; k < working_space_dim; ++k)
                 {
-                    r_nodal_lagrange[k] += rLamda[i * working_space_dim + k];
+                    r_nodal_lagrange[k] = rLamda[i * working_space_dim + k];
                 }
             }
         }
@@ -491,7 +499,8 @@ namespace Kratos
 
         // Add corrections entries
         IndexType dof_position;
-        for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) 
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rModelPart.Nodes().size()); ++i)
         {
             auto current_node = it_node_begin + i;
             if (current_node->Is(ACTIVE)) 
