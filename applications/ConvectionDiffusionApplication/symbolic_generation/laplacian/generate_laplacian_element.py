@@ -73,7 +73,7 @@ for dim in dim_vector:
     # Diffusion functional
     rhs_forcing = q_gauss.transpose() * f_gauss
     rhs_diffusion = - k * grad_phi.transpose() * grad_q
-    rhs_convective = - q_gauss.transpose() * (v_gauss.transpose() * grad_phi)
+    rhs_convective = - q_gauss * (v_gauss.transpose() * grad_phi)
     rhs_galerkin = rhs_forcing + rhs_diffusion + rhs_convective
 
     ##  Stabilization functional terms
