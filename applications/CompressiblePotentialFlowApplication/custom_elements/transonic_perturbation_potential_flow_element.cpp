@@ -119,33 +119,47 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
-    const int number_of_nodes = 4;
+    // const int number_of_nodes = TNumNodes + 1;
 
+    // if (mpUpwindElement->)
+
+    std::cout << "equation id vector\n";
     if (wake == 0) // Normal element
     {
-        if (rResult.size() != number_of_nodes)
+        if (rResult.size() != 4)
         {
-             rResult.resize(number_of_nodes, false);
+             rResult.resize(4, false);
         }
 
         const int kutta = r_this.GetValue(KUTTA);
 
-        if (kutta == 0)
+        if (kutta == 0 && this->Is(INLET))
         {
+            std::cout << "GetEquationIdVectorInletElement\n";
+            GetEquationIdVectorInletElement(rResult);
+        }
+        else if (kutta == 0 && this->IsNot(INLET))
+        {
+            if (rResult.size() != 4)
+            {
+                rResult.resize(4, false);
+            }
+            std::cout << "GetEquationIdVectorNormalElement\n";
             GetEquationIdVectorNormalElement(rResult);
         }
         else
         {
+            std::cout << "GetEquationIdVectorKuttaElement\n";
             GetEquationIdVectorKuttaElement(rResult);
         }
     }
     else // Wake element
     {
-        if (rResult.size() != 2 * TNumNodes)
+        if (rResult.size() != 2 * 4)
         {
-            rResult.resize(2 * TNumNodes, false);
+            rResult.resize(2 * 4, false);
         }
-
+        std::cout << "GetEquationIdVectorWakeElement\n";
         GetEquationIdVectorWakeElement(rResult);
     }
 }
@@ -378,22 +392,32 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
 {
     const int additional_node_id = GetAdditionalNode();
 
+    KRATOS_WATCH(additional_node_id);
+    KRATOS_WATCH(this->Id());
+
     const auto& r_geometry = this->GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         rResult[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
     }
+    std::cout << "after for loop\n";
+    const auto& r_upwind_geometry = mpUpwindElement->GetGeometry();
+    KRATOS_WATCH(rResult.size());
+    KRATOS_WATCH(r_upwind_geometry[additional_node_id]);
+    rResult[3] = r_upwind_geometry[additional_node_id].GetDof(VELOCITY_POTENTIAL).EquationId();
 
-    // if(mpUpwindElement != nullptr)
-    // {
-        const auto& r_upwind_geometry = mpUpwindElement->GetGeometry();
-        rResult[TNumNodes] = r_upwind_geometry[additional_node_id].GetDof(VELOCITY_POTENTIAL).EquationId();
-    // }
+}
 
-    // for (unsigned int i = 0; i < TNumNodes; i++)
-    // {
-    //     rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
-    // }
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorInletElement(
+    EquationIdVectorType& rResult) const
+{
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
+    }
+
+    rResult[3] = 0.0;
 }
 
 template <int TDim, int TNumNodes>
@@ -413,6 +437,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
             rResult[i] = r_geometry[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
         }
     }
+
+    const int additional_node_id = GetAdditionalNode();
+    const auto& r_upwind_geometry = mpUpwindElement->GetGeometry();
+    rResult[3] = r_upwind_geometry[additional_node_id].GetDof(VELOCITY_POTENTIAL).EquationId();
 }
 
 template <int TDim, int TNumNodes>
@@ -421,6 +449,9 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
 {
     array_1d<double, TNumNodes> distances;
     GetWakeDistances(distances);
+
+    const int additional_node_id = GetAdditionalNode();
+    const auto& r_upwind_geometry = mpUpwindElement->GetGeometry();
 
     // Positive part
     for (unsigned int i = 0; i < TNumNodes; i++)
@@ -436,20 +467,27 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
         }
     }
 
+    // SIGN INCORRECT
+    rResult[3] = r_upwind_geometry[additional_node_id].GetDof(VELOCITY_POTENTIAL).EquationId();
+
     // Negative part - sign is opposite to the previous case
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         if (distances[i] < 0.0)
         {
-            rResult[TNumNodes + i] =
+            rResult[TNumNodes + i + 1] =
                 GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         }
         else
         {
-            rResult[TNumNodes + i] =
+            rResult[TNumNodes + i + 1] =
                 GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
         }
     }
+
+    // SIGN INCORRECT
+    rResult[7] = r_upwind_geometry[additional_node_id].GetDof(VELOCITY_POTENTIAL).EquationId();
+
 }
 
 template <int TDim, int TNumNodes>
@@ -1052,6 +1090,14 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
             }
         }
     }
+
+    // if an upwind vector was not found then element is an inlet element
+    if (r_this.GetValue(VECTOR_TO_UPWIND_ELEMENT_X) == 0.0 &&
+        r_this.GetValue(VECTOR_TO_UPWIND_ELEMENT_Y) == 0.0 &&
+        r_this.GetValue(VECTOR_TO_UPWIND_ELEMENT_Z) == 0.0)
+    {
+        this->SetFlags(INLET);
+    }
 }
 
 template<int TDim, int TNumNodes>
@@ -1077,6 +1123,8 @@ int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAdditionalNod
                 non_matching_nodes_counter++;
             }
 
+            // KRATOS_WATCH(non_matching_nodes_counter);
+
         }
 
         // get index of non matching node
@@ -1085,8 +1133,15 @@ int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAdditionalNod
             additional_node = i;
             loop_stop = true;
         }
-    }
 
+        non_matching_nodes_counter = 0;
+    }
+    // KRATOS_WATCH(r_geom[0].Id());
+    // KRATOS_WATCH(r_geom[1].Id());
+    // KRATOS_WATCH(r_geom[2].Id());
+    // KRATOS_WATCH(r_upwind_geom[0].Id());
+    // KRATOS_WATCH(r_upwind_geom[1].Id());
+    // KRATOS_WATCH(r_upwind_geom[2].Id());
     return additional_node;
 }
 

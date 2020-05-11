@@ -227,6 +227,8 @@ private:
 
     void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
 
+    void GetEquationIdVectorInletElement(EquationIdVectorType& rResult) const;
+
     void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;
 
     void GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const;
