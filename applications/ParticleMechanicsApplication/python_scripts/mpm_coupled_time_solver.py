@@ -111,9 +111,9 @@ class MPMCoupledTimeSolver(MPMSolver):
         self.dt = self.time_step_1
         new_time = current_time + self.dt
 
-        print("\n\n ===== AdvanceInTime, j=",self.time_step_index_j)
-
         self.time_step_index_j += 1
+
+        # TODO delete this stuff
 
         if self.time_step_index_j > self.time_step_ratio:
             self.time_step_index_j = 1
@@ -154,19 +154,19 @@ class MPMCoupledTimeSolver(MPMSolver):
 
     def InitializeSolutionStep(self):
         self._SearchElement()
-        print('Initializing sd1')
+        #print('Initializing sd1')
         self._GetSolutionStrategy(1).Initialize()
         self._GetSolutionStrategy(1).InitializeSolutionStep()
         self.coupling_utility.InitializeSubDomain1Coupling()
 
 
     def Predict(self):
-        print('Predicting sd1')
+        #print('Predicting sd1')
         self._GetSolutionStrategy(1).Predict()
 
 
     def SolveSolutionStep(self):
-        print('solving sd1')
+        #print('solving sd1')
         is_converged = self._GetSolutionStrategy(1).SolveSolutionStep()
 
         K1 = self._GetSolutionStrategy(1).GetSystemMatrix()
@@ -174,18 +174,18 @@ class MPMCoupledTimeSolver(MPMSolver):
 
         # store interface velocities in coupling class vector
         for j in range(1,self.time_step_ratio+1):
-            print('Initializing sd2')
+            #print('Initializing sd2')
             self._GetSolutionStrategy(2).Initialize()
             self._GetSolutionStrategy(2).InitializeSolutionStep()
-            print('Predicting sd2')
+            #print('Predicting sd2')
             self._GetSolutionStrategy(2).Predict()
-            print('solving sd2')
+            #print('solving sd2')
             is_converged = self._GetSolutionStrategy(2).SolveSolutionStep()
 
             K2 = self._GetSolutionStrategy(2).GetSystemMatrix()
             self.coupling_utility.CalculateCorrectiveLagrangianMultipliers(K2)
 
-            print('finalizing sd2')
+            #print('finalizing sd2')
             self._GetSolutionStrategy(2).FinalizeSolutionStep()
             self._GetSolutionStrategy(2).Clear()
         self.coupling_utility.CorrectSubDomain1()
@@ -195,7 +195,7 @@ class MPMCoupledTimeSolver(MPMSolver):
     def FinalizeSolutionStep(self):
         self._GetSolutionStrategy(1).FinalizeSolutionStep()
         self._GetSolutionStrategy(1).Clear()
-        print('finalize sd1')
+        #print('finalize sd1')
 
 
     def Check(self):

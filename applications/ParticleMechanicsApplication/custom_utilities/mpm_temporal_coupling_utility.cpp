@@ -70,7 +70,7 @@ namespace Kratos
         // Calculate corrective Lagrangian multipliers
         Vector lamda;
         ComputeLamda(H, b, lamda);
-        if (mDisableLagrangianMultipliers) lamda = ZeroVector(lamda.size()); // disable coupling links
+        if (mDisableLagrangianMultipliers) lamda.clear(); // disable coupling links
 
         // Calculate link velocities
         Matrix temp1 = prod(mInvM1, trans(mCoupling1));
@@ -121,13 +121,11 @@ namespace Kratos
         ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, r_sub_domain_1_active);
 
         // reset accumulated link velocities at the start of every big timestep
-        mSubDomain1AccumulatedLinkVelocity.resize(eff_mass_mat_1.size1(), false);
-        mSubDomain1AccumulatedLinkVelocity = ZeroVector(eff_mass_mat_1.size1());
+        UtilityClearAndResizeVector(mSubDomain1AccumulatedLinkVelocity, eff_mass_mat_1.size1());
 
         // Store vector of dof positions in the stiffness matrix
         const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        if (mSubDomain1DofPositions.size() != r_sub_domain_1_active.Nodes().size()) mSubDomain1DofPositions.resize(r_sub_domain_1_active.Nodes().size(), false);
-        mSubDomain1DofPositions.clear();
+        UtilityClearAndResizeVector(mSubDomain1DofPositions, r_sub_domain_1_active.Nodes().size());
         auto it_node_begin = r_sub_domain_1_active.NodesBegin();
         IndexType active_node_counter = 0;
         for (IndexType i = 0; i < r_sub_domain_1_active.Nodes().size(); ++i)
@@ -205,14 +203,10 @@ namespace Kratos
         ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
 
-        mSubDomain1FinalDomainVelocity.resize(domain_nodes * working_space_dim, false);
-        mSubDomain1FinalDomainDisplacement.resize(domain_nodes * working_space_dim, false);
-        mSubDomain1FinalDomainAcceleration.resize(domain_nodes * working_space_dim, false);
-        mSubDomain1FinalDomainActiveNodes.resize(domain_nodes, false);
-        mSubDomain1FinalDomainVelocity = ZeroVector(mSubDomain1FinalDomainVelocity.size());
-        mSubDomain1FinalDomainDisplacement = ZeroVector(mSubDomain1FinalDomainDisplacement.size());
-        mSubDomain1FinalDomainAcceleration = ZeroVector(mSubDomain1FinalDomainAcceleration.size());
-        mSubDomain1FinalDomainActiveNodes = ZeroVector(mSubDomain1FinalDomainActiveNodes.size());
+        UtilityClearAndResizeVector(mSubDomain1FinalDomainVelocity, domain_nodes * working_space_dim);
+        UtilityClearAndResizeVector(mSubDomain1FinalDomainDisplacement, domain_nodes * working_space_dim);
+        UtilityClearAndResizeVector(mSubDomain1FinalDomainAcceleration, domain_nodes * working_space_dim);
+        UtilityClearAndResizeVector(mSubDomain1FinalDomainActiveNodes, domain_nodes);
 
         auto node_begin = r_sub_domain_1_active.NodesBegin();
         for (size_t i = 0; i < domain_nodes; ++i)
@@ -255,7 +249,7 @@ namespace Kratos
         }
 
         // Assemble vector of active interface node IDs
-        mActiveInterfaceNodeIDs = ZeroVector(active_interface_nodes_counter);
+        UtilityClearAndResizeVector(mActiveInterfaceNodeIDs, active_interface_nodes_counter);
         IndexType active_counter = 0;
         for (IndexType i = 0; i < interface_nodes_are_active.size(); ++i)
         {
@@ -279,8 +273,7 @@ namespace Kratos
     {
         // Compute velocity of active interface nodes for sub domain 
         const IndexType working_space_dim = rModelPart.GetParentModelPart()->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        rVelocityContainer.resize(mActiveInterfaceNodeIDs.size() * working_space_dim, false);
-        rVelocityContainer = ZeroVector(mActiveInterfaceNodeIDs.size() * working_space_dim);
+        UtilityClearAndResizeVector(rVelocityContainer, mActiveInterfaceNodeIDs.size() * working_space_dim);
 
         // Add to vector
         for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
@@ -314,8 +307,8 @@ namespace Kratos
             : -1.0;
         const IndexType size_1 = mActiveInterfaceNodeIDs.size()* working_space_dim;
         const IndexType size_2 = rEffectiveMassMatrix.size2();
-        rCouplingMatrix.resize(size_1, size_2,false);
-        rCouplingMatrix = ZeroMatrix(size_1 , size_2);
+        if (rCouplingMatrix.size1() != size_1 || rCouplingMatrix.size2() != size_2) rCouplingMatrix.resize(size_1, size_2, false);
+        rCouplingMatrix.clear();
 
         const SizeType number_of_active_subdomain_nodes = size_2 / working_space_dim;
         const SizeType number_of_active_interface_nodes = mActiveInterfaceNodeIDs.size();
@@ -371,9 +364,9 @@ namespace Kratos
             SizeType number_of_active_nodes = 0;
             GetNumberOfActiveModelPartNodes(rModelPart, number_of_active_nodes);
             
-
-            rEffectiveMassMatrix.resize(working_space_dim * number_of_active_nodes, working_space_dim * number_of_active_nodes, false);
-            rEffectiveMassMatrix = ZeroMatrix(working_space_dim * number_of_active_nodes);
+            if (rEffectiveMassMatrix.size1() != working_space_dim * number_of_active_nodes || rEffectiveMassMatrix.size2() != working_space_dim * number_of_active_nodes)
+                rEffectiveMassMatrix.resize(working_space_dim * number_of_active_nodes, working_space_dim * number_of_active_nodes, false);
+            rEffectiveMassMatrix.clear();
 
             const auto it_node_begin = rModelPart.NodesBegin();
             IndexType active_node_counter = 0;
@@ -437,7 +430,7 @@ namespace Kratos
         Matrix H2 = prod(H2temp, trans(rCoupling2));
 
         if (rH.size1() != H1.size1() || rH.size2() != H1.size2()) rH.resize(H1.size1(), H1.size2(), false);
-        rH = ZeroMatrix(H1.size1(), H1.size2());
+        rH.clear();
 
         rH -= H1;
         rH -= H2;
@@ -454,7 +447,7 @@ namespace Kratos
         if (norm_2(rb) < std::numeric_limits<double>::epsilon())
         {
             std::cout << "Interface velocities were equal and did not need correction. Something is probably wrong." << std::endl;
-            rLamda = ZeroVector(rb.size());
+            rLamda.clear();
         }
         else
         {
@@ -612,5 +605,13 @@ namespace Kratos
         }
         std::cout << std::endl;
     }
+
+    void MPMTemporalCouplingUtility::UtilityClearAndResizeVector(Vector& rVector, const SizeType desiredSize)
+    {
+        if (rVector.size() != desiredSize) rVector.resize(desiredSize, false);
+        rVector.clear();
+    }
+
+
     // end namespace MPMTemporalCouplingUtility
 } // end namespace Kratos

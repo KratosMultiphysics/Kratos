@@ -94,6 +94,8 @@ protected:
 
     void PrintMatrix(const Matrix& rMatrix);
 
+    void UtilityClearAndResizeVector(Vector& rVector, const SizeType desiredSize);
+
     Vector mSubDomain1InitialInterfaceVelocity;
     Vector mSubDomain1FinalInterfaceVelocity;
     Vector mSubDomain1FinalDomainVelocity;
@@ -118,14 +120,17 @@ protected:
     bool mActiveInterfaceNodesComputed = false;
     bool mIsSubDomain1QuantitiesPrepared = false;
 
+
+
+    // Coupling parameters ===================================================
     const double mInterfaceVelocityTolerance = 1e-6;
-    const bool mCheckInterfaceContinuity = true;
+    const bool mCheckInterfaceContinuity = true; // should normally be true
     const bool mDisableLagrangianMultipliers = false; // should normally be false
 
-    // Print bools
-    const bool mPrintEquilibratedInterfaceVelocity = true; // TODO delete, for debugging
-    const bool mPrintFreeInterfaceVelocity = true; // TODO delete, for debugging
-    const bool mPrintLagrangeMultipliers = true;
+    // Print bools - set all to 'false' normally
+    const bool mPrintEquilibratedInterfaceVelocity = false; // TODO delete, for debugging
+    const bool mPrintFreeInterfaceVelocity = false; // TODO delete, for debugging
+    const bool mPrintLagrangeMultipliers = false;
 
 
 }; // end namespace MPMTemporalCouplingUtility
