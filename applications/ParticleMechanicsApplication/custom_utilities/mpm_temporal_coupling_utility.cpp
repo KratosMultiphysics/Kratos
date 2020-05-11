@@ -55,7 +55,7 @@ namespace Kratos
 
         // Get sub domain 2 free velocities
         Vector subDomain2freeVelocities;
-        SetSubDomainInterfaceVelocity(r_sub_domain_2_active, subDomain2freeVelocities);
+        SetSubDomainInterfaceVelocity(r_sub_domain_2_active, subDomain2freeVelocities, 1);
 
         // Assemble condensation operator H
         Matrix H;
@@ -117,17 +117,20 @@ namespace Kratos
         // reset accumulated link velocities at the start of every big timestep
         UtilityClearAndResizeVector(mSubDomain1AccumulatedLinkVelocity, eff_mass_mat_1.size1());
 
-        // Store vector of dof positions in the stiffness matrix
-        const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        UtilityClearAndResizeVector(mSubDomain1DofPositions, r_sub_domain_1_active.Nodes().size());
-        auto it_node_begin = r_sub_domain_1_active.NodesBegin();
-        IndexType active_node_counter = 0;
-        for (IndexType i = 0; i < r_sub_domain_1_active.Nodes().size(); ++i)
+        // Store vector of dof positions in the stiffness matrix (implicit system only)
+        if (mGamma[0] == 0.5)
         {
-            auto current_node = it_node_begin + i;
+            const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+            UtilityClearAndResizeVector(mSubDomain1DofPositions, r_sub_domain_1_active.Nodes().size());
+            auto it_node_begin = r_sub_domain_1_active.NodesBegin();
+            IndexType active_node_counter = 0;
+            for (IndexType i = 0; i < r_sub_domain_1_active.Nodes().size(); ++i)
+            {
+                auto current_node = it_node_begin + i;
 
-            // implicit arrangement - get position of current active interface node in the system matrix
-            mSubDomain1DofPositions[i] = current_node->GetDof(DISPLACEMENT_X).EquationId();
+                // implicit arrangement - get position of current active interface node in the system matrix
+                mSubDomain1DofPositions[i] = current_node->GetDof(DISPLACEMENT_X).EquationId();
+            }
         }
 
         mIsSubDomain1QuantitiesPrepared = true;
@@ -156,9 +159,9 @@ namespace Kratos
 
             for (size_t k = 0; k < working_space_dim; ++k)
             {
-                nodal_vel[k] = mSubDomain1FinalDomainVelocity[i * working_space_dim + k];
+                nodal_vel[k] = mSubDomain1FinalDomainVelocityOrMomenta[i * working_space_dim + k];
                 nodal_disp[k] = mSubDomain1FinalDomainDisplacement[i * working_space_dim + k];
-                nodal_accel[k] = mSubDomain1FinalDomainAcceleration[i * working_space_dim + k];
+                nodal_accel[k] = mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k];
             }
         }
 
@@ -181,7 +184,7 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
         ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
-        SetSubDomainInterfaceVelocity(r_sub_domain_1_active, mSubDomain1InitialInterfaceVelocity);
+        SetSubDomainInterfaceVelocity(r_sub_domain_1_active, mSubDomain1InitialInterfaceVelocity, 0);
 
         KRATOS_CATCH("")
     }
@@ -191,15 +194,15 @@ namespace Kratos
         KRATOS_TRY
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
-        SetSubDomainInterfaceVelocity(mrSubDomain1, mSubDomain1FinalInterfaceVelocity);
+        SetSubDomainInterfaceVelocity(mrSubDomain1, mSubDomain1FinalInterfaceVelocity, 0);
 
         const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
 
-        UtilityClearAndResizeVector(mSubDomain1FinalDomainVelocity, domain_nodes * working_space_dim);
+        UtilityClearAndResizeVector(mSubDomain1FinalDomainVelocityOrMomenta, domain_nodes * working_space_dim);
         UtilityClearAndResizeVector(mSubDomain1FinalDomainDisplacement, domain_nodes * working_space_dim);
-        UtilityClearAndResizeVector(mSubDomain1FinalDomainAcceleration, domain_nodes * working_space_dim);
+        UtilityClearAndResizeVector(mSubDomain1FinalDomainAccelerationOrInertia, domain_nodes * working_space_dim);
         UtilityClearAndResizeVector(mSubDomain1FinalDomainActiveNodes, domain_nodes);
 
         auto node_begin = r_sub_domain_1_active.NodesBegin();
@@ -207,14 +210,18 @@ namespace Kratos
         {
             auto node_it = node_begin + i;
             mSubDomain1FinalDomainActiveNodes[i] = node_it->Is(ACTIVE);
-            const array_1d <double, 3> nodal_vel = node_it->FastGetSolutionStepValue(VELOCITY);
+            const array_1d <double, 3> nodal_vel_or_mom = (mGamma[0] == 0.5)
+                ? node_it->FastGetSolutionStepValue(VELOCITY)
+                : node_it->FastGetSolutionStepValue(NODAL_MOMENTUM);
             const array_1d <double, 3> nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d <double, 3> nodal_accel = node_it->FastGetSolutionStepValue(ACCELERATION);
+            const array_1d <double, 3> nodal_accel_or_inertia = (mGamma[0] == 0.5)
+                ? node_it->FastGetSolutionStepValue(ACCELERATION)
+                : node_it->FastGetSolutionStepValue(NODAL_INERTIA);
             for (size_t k = 0; k < working_space_dim; ++k)
             {
-                mSubDomain1FinalDomainVelocity[i * working_space_dim + k] = nodal_vel[k];
+                mSubDomain1FinalDomainVelocityOrMomenta[i * working_space_dim + k] = nodal_vel_or_mom[k];
                 mSubDomain1FinalDomainDisplacement[i * working_space_dim + k] = nodal_disp[k];
-                mSubDomain1FinalDomainAcceleration[i * working_space_dim + k] = nodal_accel[k];
+                mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k] = nodal_accel_or_inertia[k];
             }
         }
 
@@ -263,23 +270,38 @@ namespace Kratos
 
     void MPMTemporalCouplingUtility::SetSubDomainInterfaceVelocity(
         ModelPart& rModelPart,
-        Vector& rVelocityContainer)
+        Vector& rVelocityContainer, const IndexType domainIndex)
     {
         // Compute velocity of active interface nodes for sub domain 
         const IndexType working_space_dim = rModelPart.GetParentModelPart()->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         UtilityClearAndResizeVector(rVelocityContainer, mActiveInterfaceNodeIDs.size() * working_space_dim);
 
         // Add to vector
-        for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
+        if (mGamma[domainIndex] == 0.5) // implicit
         {
-            auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
-            const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
-            const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
-            const array_1d <double, 3> nodal_vel = current_node->FastGetSolutionStepValue(VELOCITY);
-            for (IndexType k = 0; k < working_space_dim; ++k)
+            for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
             {
-                //rVelocityContainer[working_space_dim * i + k] += nodal_momentum[k]/ nodal_mass;
-                rVelocityContainer[working_space_dim * i + k] += nodal_vel[k]; // TODO change to =
+                auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
+                const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
+                const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                const array_1d <double, 3> nodal_vel = current_node->FastGetSolutionStepValue(VELOCITY);
+                for (IndexType k = 0; k < working_space_dim; ++k)
+                {
+                    rVelocityContainer[working_space_dim * i + k] = nodal_vel[k];
+                }
+            }
+        }
+        else // explicit
+        {
+            for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
+            {
+                auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
+                const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
+                const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                for (IndexType k = 0; k < working_space_dim; ++k)
+                {
+                    rVelocityContainer[working_space_dim * i + k] = nodal_momentum[k]/ nodal_mass;
+                }
             }
         }
     }
@@ -327,20 +349,21 @@ namespace Kratos
         }
         else // explicit, can't get dof position since no system matrix formed. find instead
         {
+            const Vector& sub_domain_explicit_ordering = (domainIndex == 0)
+                ? mSubDomain1ExplicitOrdering
+                : mSubDomain2ExplicitOrdering;
+
             for (IndexType i = 0; i < number_of_active_interface_nodes; ++i) {
-                IndexType active_counter = 0;
-                for (size_t j = 0; j < rModelPart.Nodes().size(); ++j) {
-                    auto current_node = it_node_begin + j;
-                    if (current_node->Is(ACTIVE)) {
-                        if (current_node->GetId() == mActiveInterfaceNodeIDs[i]) {
-                            for (IndexType k = 0; k < working_space_dim; ++k) {
-                                rCouplingMatrix(working_space_dim * i + k, working_space_dim * active_counter + k) = coupling_entry;
-                            }
+                for (size_t j = 0; j < sub_domain_explicit_ordering.size(); ++j) {
+                    if (mActiveInterfaceNodeIDs[i] == sub_domain_explicit_ordering[j]) {
+                        for (IndexType k = 0; k < working_space_dim; ++k) {
+                            rCouplingMatrix(working_space_dim * i + k, working_space_dim * j + k) = coupling_entry;
                         }
-                        active_counter += 1;
+                        break;
                     }
                 }
             }
+            PrintMatrix(rCouplingMatrix);
         }
 
         KRATOS_CATCH("")
@@ -354,25 +377,22 @@ namespace Kratos
 
         if (mGamma[domainIndex] == 1.0) // explicit
         {
+            Vector& sub_domain_explicit_ordering = (domainIndex == 0)
+                ? mSubDomain1ExplicitOrdering
+                : mSubDomain2ExplicitOrdering;
+
             // We don't need to use the stiffness matrix. Just assemble the mass matrix from the nodes
-            SizeType number_of_active_nodes = 0;
-            GetNumberOfActiveModelPartNodes(rModelPart, number_of_active_nodes);
+            GetNumberOfActiveModelPartNodes(rModelPart, sub_domain_explicit_ordering);
             
-            if (rEffectiveMassMatrix.size1() != working_space_dim * number_of_active_nodes || rEffectiveMassMatrix.size2() != working_space_dim * number_of_active_nodes)
-                rEffectiveMassMatrix.resize(working_space_dim * number_of_active_nodes, working_space_dim * number_of_active_nodes, false);
+            if (rEffectiveMassMatrix.size1() != working_space_dim * sub_domain_explicit_ordering.size() || rEffectiveMassMatrix.size2() != working_space_dim * sub_domain_explicit_ordering.size())
+                rEffectiveMassMatrix.resize(working_space_dim * sub_domain_explicit_ordering.size(), working_space_dim * sub_domain_explicit_ordering.size(), false);
             rEffectiveMassMatrix.clear();
 
-            const auto it_node_begin = rModelPart.NodesBegin();
-            IndexType active_node_counter = 0;
-            for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
-                auto current_node = it_node_begin + i;
-
-                if (current_node->Is(ACTIVE)) {
-                    const double r_nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
-                    for (IndexType k = 0; k < working_space_dim; ++k) {
-                        rEffectiveMassMatrix(working_space_dim * active_node_counter + k, working_space_dim * active_node_counter + k) = r_nodal_mass;
-                    }
-                    active_node_counter += 1;
+            for (IndexType i = 0; i < sub_domain_explicit_ordering.size(); ++i) {
+                auto current_node = rModelPart.pGetNode(sub_domain_explicit_ordering[i]);
+                const double r_nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
+                for (IndexType k = 0; k < working_space_dim; ++k) {
+                    rEffectiveMassMatrix(working_space_dim * i + k, working_space_dim * i + k) = r_nodal_mass;
                 }
             }
         }
@@ -546,13 +566,25 @@ namespace Kratos
     }
 
 
-    void MPMTemporalCouplingUtility::GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, SizeType activeNodes)
+    void MPMTemporalCouplingUtility::GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, Vector& subDomainExplicitOrdering)
     {
-        activeNodes = 0;
+        SizeType activeNodes = 0;
+        static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
         const auto it_node_begin = rModelPart.NodesBegin();
         for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
             auto current_node = it_node_begin + i;
-            if (current_node->Is(ACTIVE)) activeNodes += 1;
+            if (current_node->FastGetSolutionStepValue(NODAL_MASS) > numerical_limit) activeNodes += 1;
+        }
+
+        UtilityClearAndResizeVector(mSubDomain1ExplicitOrdering, activeNodes);
+        activeNodes = 0;
+        for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
+            auto current_node = it_node_begin + i;
+            if (current_node->FastGetSolutionStepValue(NODAL_MASS) > numerical_limit)
+            {
+                mSubDomain1ExplicitOrdering[activeNodes] = current_node->GetId();
+                activeNodes += 1;
+            }
         }
     }
 

@@ -47,8 +47,10 @@ namespace Python{
         pybind11::class_< MPMTemporalCouplingUtility>(m, "MPMTemporalCouplingUtility")
             .def(pybind11::init<ModelPart&, ModelPart&, unsigned int, double, double, double>())
             .def("CalculateCorrectiveLagrangianMultipliers", &MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliers)
+            .def("CalculateCorrectiveLagrangianMultipliersExplicit", &MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliersExplicit)
             .def("InitializeSubDomain1Coupling", &MPMTemporalCouplingUtility::InitializeSubDomain1Coupling)
             .def("StoreFreeVelocitiesSubDomain1", &MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1)
+            .def("StoreFreeVelocitiesSubDomain1Explicit", &MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1Explicit)
             .def("CorrectSubDomain1", &MPMTemporalCouplingUtility::CorrectSubDomain1)
             ;
     }

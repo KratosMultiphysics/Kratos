@@ -158,9 +158,11 @@ class MPMCoupledTimeSolver(MPMSolver):
     def SolveSolutionStep(self):
         #print('solving sd1')
         is_converged = self._GetSolutionStrategy(1).SolveSolutionStep()
-
-        K1 = self._GetSolutionStrategy(1).GetSystemMatrix()
-        self.coupling_utility.StoreFreeVelocitiesSubDomain1(K1)
+        if self.gamma_1 == 0.5:
+            K1 = self._GetSolutionStrategy(1).GetSystemMatrix()
+            self.coupling_utility.StoreFreeVelocitiesSubDomain1(K1)
+        else:
+            self.coupling_utility.StoreFreeVelocitiesSubDomain1Explicit()
 
         # store interface velocities in coupling class vector
         for j in range(1,self.time_step_ratio+1):
@@ -186,9 +188,11 @@ class MPMCoupledTimeSolver(MPMSolver):
             #print('solving sd2')
             is_converged = self._GetSolutionStrategy(2).SolveSolutionStep()
 
-            K2 = self._GetSolutionStrategy(2).GetSystemMatrix()
-            self.coupling_utility.CalculateCorrectiveLagrangianMultipliers(K2)
-
+            if self.gamma_2 == 0.5:
+                K2 = self._GetSolutionStrategy(2).GetSystemMatrix()
+                self.coupling_utility.CalculateCorrectiveLagrangianMultipliers(K2)
+            else:
+                self.coupling_utility.CalculateCorrectiveLagrangianMultipliersExplicit()
             #print('finalizing sd2')
             self._GetSolutionStrategy(2).FinalizeSolutionStep()
             self._GetSolutionStrategy(2).Clear()

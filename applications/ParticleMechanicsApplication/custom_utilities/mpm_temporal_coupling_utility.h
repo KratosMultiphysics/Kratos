@@ -57,9 +57,21 @@ public:
      */
     void CalculateCorrectiveLagrangianMultipliers(const SystemMatrixType& rK2);
 
+    void CalculateCorrectiveLagrangianMultipliersExplicit()
+    {
+        SystemMatrixType dummy;
+        CalculateCorrectiveLagrangianMultipliers(dummy);
+    }
+
     void InitializeSubDomain1Coupling();
 
     void StoreFreeVelocitiesSubDomain1(const SystemMatrixType& rK1);
+
+    void StoreFreeVelocitiesSubDomain1Explicit()
+    {
+        SystemMatrixType dummy;
+        StoreFreeVelocitiesSubDomain1(dummy);
+    }
 
     void CorrectSubDomain1();
 
@@ -68,7 +80,7 @@ protected:
 
     void PrepareSubDomain1CouplingQuantities(const SystemMatrixType& rK1);
 
-    void SetSubDomainInterfaceVelocity(ModelPart& rModelPart, Vector& rVelocityContainer);
+    void SetSubDomainInterfaceVelocity(ModelPart& rModelPart, Vector& rVelocityContainer, const IndexType domainIndex);
 
     void ComputeCouplingMatrix(const IndexType domainIndex, const Matrix& rEffectiveMassMatrix, Matrix& rCouplingMatrix, ModelPart& rModelPart);
 
@@ -86,7 +98,7 @@ protected:
     void ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& link_accel,
         const double timeStep, const bool correctInterface = true);
 
-    void GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, SizeType activeNodes);
+    void GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, Vector& subDomainExplicitOrdering);
 
     void Check();
 
@@ -103,18 +115,21 @@ protected:
     // SubDomain 1 interface velocity at the end of the large timestep dT
     Vector mSubDomain1FinalInterfaceVelocity;
     // SubDomain 1 velocity at the end of the large timestep dT
-    Vector mSubDomain1FinalDomainVelocity;
+    Vector mSubDomain1FinalDomainVelocityOrMomenta;
     // SubDomain 1 displacement at the end of the large timestep dT
     Vector mSubDomain1FinalDomainDisplacement;
     // SubDomain 1 acceleration at the end of the large timestep dT
-    Vector mSubDomain1FinalDomainAcceleration;
+    Vector mSubDomain1FinalDomainAccelerationOrInertia;
     // SubDomain 1 active nodes bools
     Vector mSubDomain1FinalDomainActiveNodes;
     // SubDomain 1 interface accumulated corrective link velocity
     Vector mSubDomain1AccumulatedLinkVelocity;
     // SubDomain 1 nodal x-dof positions in the implicit system matrix
     Vector mSubDomain1DofPositions;
-
+    // SubDomain 1 ordering of node IDs in explicit system matrix
+    Vector mSubDomain1ExplicitOrdering;
+    // SubDomain 1 ordering of node IDs in explicit system matrix
+    Vector mSubDomain2ExplicitOrdering;
 
     /// Sub domain 1 coupling and mass matrix =================================================
 
