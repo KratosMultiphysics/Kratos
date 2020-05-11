@@ -141,7 +141,7 @@ public:
      * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
      * @return ShapeFunctionsType The validated shape functions type 
      */
-    static const ShapeFunctionsType CheckAndReturnShapeFunctions(const Parameters rParameters);
+    static ShapeFunctionsType CheckAndReturnShapeFunctions(const Parameters rParameters);
 
     /**
      * @brief Check and fill a visualization variable list

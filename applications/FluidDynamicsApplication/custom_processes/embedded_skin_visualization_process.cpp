@@ -85,7 +85,7 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     return r_visualization_model_part;
 }
 
-const EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions(const Parameters rParameters)
+EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions(const Parameters rParameters)
 {
     const std::string shape_functions = rParameters["shape_functions"].GetString();
     KRATOS_ERROR_IF(shape_functions == "") << "\'shape_functions\' is not prescribed. Admissible values are: \'standard\' and \'ausas\'." << std::endl;
