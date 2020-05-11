@@ -51,7 +51,7 @@ Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
 
 ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelPart(
     Model& rModel,
-    const Parameters &rParameters)
+    const Parameters rParameters)
 {
     // Set visualization model part data
     const std::size_t buffer_size = 1;
@@ -85,7 +85,7 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     return r_visualization_model_part;
 }
 
-const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions(const Parameters& rParameters)
+const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions(const Parameters rParameters)
 {
     const std::string shape_functions = rParameters["shape_functions"].GetString();
     KRATOS_ERROR_IF(shape_functions == "") << "\'shape_functions\' is not prescribed. Admissible values are: \'standard\' and \'ausas\'." << std::endl;
@@ -103,7 +103,7 @@ const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions
 
 template<class TDataType>
 void EmbeddedSkinVisualizationProcess::FillVariablesList(
-    const Parameters& rParameters,
+    const Parameters rParameters,
     std::vector<Variable<TDataType>>& rVariablesList)
 {
     rVariablesList.clear();
@@ -125,7 +125,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     Process(),
     mrModelPart(rModelPart),
     mrVisualizationModelPart(rVisualizationModelPart),
-    mShapeFunctions(rShapeFunctions),
+    mShapeFunctionsType(rShapeFunctions),
     mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep),
     mVisualizationScalarVariables(rVisualizationScalarVariables),
     mVisualizationVectorVariables(rVisualizationVectorVariables)
@@ -135,11 +135,11 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
 EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     ModelPart& rModelPart,
     ModelPart& rVisualizationModelPart,
-    Parameters& rParameters)
+    Parameters rParameters)
     : Process()
     , mrModelPart(rModelPart)
     , mrVisualizationModelPart(rVisualizationModelPart)
-    , mShapeFunctions(
+    , mShapeFunctionsType(
         [&] (Parameters& x) {
             x.ValidateAndAssignDefaults(GetDefaultSettings());
             return CheckAndReturnShapeFunctions(x);
@@ -172,8 +172,8 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
 }
 
 EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
-    Model &rModel,
-    Parameters &rParameters)
+    Model& rModel,
+    Parameters rParameters)
     : EmbeddedSkinVisualizationProcess(
         [&] (Model& x, Parameters& y) -> ModelPart& {
             y.ValidateAndAssignDefaults(GetDefaultSettings());
@@ -654,12 +654,12 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
     const auto &r_geom = ItElem->GetGeometry();
     Vector nodal_distances(r_geom.PointsNumber());
 
-    if (mShapeFunctions == "standard"){
+    if (mShapeFunctionsType == "standard"){
         // Continuous nodal distance function case
         for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
         }
-    } else if (mShapeFunctions == "ausas") {
+    } else if (mShapeFunctionsType == "ausas") {
         // Discontinuous elemental distance function case
         nodal_distances = ItElem->GetValue(ELEMENTAL_DISTANCES);
     } else {
@@ -677,7 +677,7 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
     const GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
 
     // Return the modified shape functions utility
-    if (mShapeFunctions == "standard"){
+    if (mShapeFunctionsType == "standard"){
         switch (geometry_type){
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
                 return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);
@@ -686,7 +686,7 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
             default:
                 KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
         }
-    } else if (mShapeFunctions == "ausas"){
+    } else if (mShapeFunctionsType == "ausas"){
         switch (geometry_type){
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
                 return Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);

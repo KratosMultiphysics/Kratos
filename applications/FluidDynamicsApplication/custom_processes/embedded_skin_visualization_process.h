@@ -120,7 +120,7 @@ public:
      */
     static ModelPart& CreateAndPrepareVisualizationModelPart(
         Model& rModel,
-        const Parameters& rParameters
+        const Parameters rParameters
     );
 
     /**
@@ -129,7 +129,7 @@ public:
      * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
      * @return std::string The validated shape functions type 
      */
-    static const std::string CheckAndReturnShapeFunctions(const Parameters& rParameters);
+    static const std::string CheckAndReturnShapeFunctions(const Parameters rParameters);
 
     /**
      * @brief Check and fill a visualization variable list
@@ -140,7 +140,7 @@ public:
      */
     template<class TDataType>
     static void FillVariablesList(
-        const Parameters& rParameters,
+        const Parameters rParameters,
         std::vector<Variable<TDataType>>& rVariablesList);
 
     /// Constructor.
@@ -171,7 +171,7 @@ public:
     EmbeddedSkinVisualizationProcess(
         ModelPart& rModelPart,
         ModelPart& rVisualizationModelPart,
-        Parameters& rParameters);
+        Parameters rParameters);
 
     /**
      * @brief Constructor with Kratos parameters and Model container
@@ -180,7 +180,7 @@ public:
      */
     EmbeddedSkinVisualizationProcess(
         Model& rModel,
-        Parameters& rParameters);
+        Parameters rParameters);
 
     /// Destructor.
     ~EmbeddedSkinVisualizationProcess() override {}
@@ -258,7 +258,7 @@ private:
     ModelPart& mrVisualizationModelPart;
 
     // Shape functions type. Current available options ausas and standard
-    const std::string mShapeFunctions;
+    const std::string mShapeFunctionsType;
 
     // If true, the visualization model part is created each time step (required in case the level set function is not constant)
     const bool mReformModelPartAtEachTimeStep;
