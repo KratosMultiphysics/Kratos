@@ -20,32 +20,22 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "particle_mechanics_application_variables.h"
 
+// TODO write lagrange multiplies
+// TODO write free velocity
+// TODO write correction
+
 namespace Kratos
 {
 
-    void MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliers(
-        const SystemMatrixType& rK1, 
-        const SystemMatrixType& rK2 )
+    void MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliers( const SystemMatrixType& rK2 )
     {
         KRATOS_TRY
 
         std::cout << "------------ j = " << mJ << " ------------" << std::endl;
 
-        KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
-
-        // Store inverted mass matrix and coupling matrix for sub-domain 1 for the whole timestep
-        if (mJ == 1) {
-            ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
-            Matrix eff_mass_mat_1;
-            GetEffectiveMassMatrix(0, r_sub_domain_1_active, eff_mass_mat_1, rK1);
-            InvertEffectiveMassMatrix(eff_mass_mat_1, mInvM1);
-            ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, r_sub_domain_1_active);
-
-            // reset accumulated link velocities at the start of every big timestep
-            mSubDomain1AccumulatedLinkVelocity.resize(eff_mass_mat_1.size1(), false);
-            mSubDomain1AccumulatedLinkVelocity = ZeroVector(eff_mass_mat_1.size1());
-        }
-
+        KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed && mIsSubDomain1QuantitiesPrepared) 
+            << "ComputeActiveInterfaceNodes or PrepareSubDomain1CouplingQuantities not called yet" << std::endl;
+        
         // Interpolate subdomain 1 velocities
         const Vector SubDomain1InterpolatedVelocities = (mJ == mTimeStepRatio)
             ? mSubDomain1FinalInterfaceVelocity
@@ -122,13 +112,43 @@ namespace Kratos
     }
 
 
+    void MPMTemporalCouplingUtility::PrepareSubDomain1CouplingQuantities(const SystemMatrixType& rK1)
+    {
+        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
+        Matrix eff_mass_mat_1;
+        GetEffectiveMassMatrix(0, r_sub_domain_1_active, eff_mass_mat_1, rK1);
+        InvertEffectiveMassMatrix(eff_mass_mat_1, mInvM1);
+        ComputeCouplingMatrix(0, eff_mass_mat_1, mCoupling1, r_sub_domain_1_active);
+
+        // reset accumulated link velocities at the start of every big timestep
+        mSubDomain1AccumulatedLinkVelocity.resize(eff_mass_mat_1.size1(), false);
+        mSubDomain1AccumulatedLinkVelocity = ZeroVector(eff_mass_mat_1.size1());
+
+        // Store vector of dof positions in the stiffness matrix
+        const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        if (mSubDomain1DofPositions.size() != r_sub_domain_1_active.Nodes().size()) mSubDomain1DofPositions.resize(r_sub_domain_1_active.Nodes().size(), false);
+        mSubDomain1DofPositions.clear();
+        auto it_node_begin = r_sub_domain_1_active.NodesBegin();
+        IndexType active_node_counter = 0;
+        for (IndexType i = 0; i < r_sub_domain_1_active.Nodes().size(); ++i)
+        {
+            auto current_node = it_node_begin + i;
+
+            // implicit arrangement - get position of current active interface node in the system matrix
+            mSubDomain1DofPositions[i] = current_node->GetDof(DISPLACEMENT_X).EquationId();
+        }
+
+        mIsSubDomain1QuantitiesPrepared = true;
+    }
+
+
     void MPMTemporalCouplingUtility::CorrectSubDomain1()
     {
         // Restore subdomain 1
         ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
-
+        IndexType active_node_counter = 0;
         auto node_begin = r_sub_domain_1_active.NodesBegin();
         for (size_t i = 0; i < domain_nodes; ++i)
         {
@@ -154,7 +174,9 @@ namespace Kratos
         const double time_step_1 = mSmallTimestep * mTimeStepRatio;
         const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
         if (mGamma[0] == 1.0) ApplyCorrectionExplicit(r_sub_domain_1_active, link_accel_1, time_step_1);
-        else ApplyCorrectionImplicit(r_sub_domain_1_active, link_accel_1, time_step_1);
+        else ApplyCorrectionImplicit(r_sub_domain_1_active, link_accel_1, time_step_1, 0);
+
+        mIsSubDomain1QuantitiesPrepared = false;
     }
 
 
@@ -172,17 +194,16 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1()
+    void MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1(const SystemMatrixType& rK1)
     {
         KRATOS_TRY
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
         SetSubDomainInterfaceVelocity(mrSubDomain1, mSubDomain1FinalInterfaceVelocity);
 
-        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
-        const SizeType domain_nodes_test = mrSubDomain1.Nodes().size();
 
         mSubDomain1FinalDomainVelocity.resize(domain_nodes * working_space_dim, false);
         mSubDomain1FinalDomainDisplacement.resize(domain_nodes * working_space_dim, false);
@@ -208,6 +229,8 @@ namespace Kratos
                 mSubDomain1FinalDomainAcceleration[i * working_space_dim + k] = nodal_accel[k];
             }
         }
+
+        PrepareSubDomain1CouplingQuantities(rK1);
 
         KRATOS_CATCH("")
     }
@@ -454,29 +477,22 @@ namespace Kratos
 
 
     void MPMTemporalCouplingUtility::ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& rLinkAccel,
-        const double timeStep, const bool correctInterface)
+        const double timeStep, const IndexType domainIndex)
     {
         const SizeType working_space_dimension = rModelPart.GetParentModelPart()->ElementsBegin()->WorkingSpaceDimension();
         const auto it_node_begin = rModelPart.NodesBegin();
 
-        //std::cout << rModelPart.Name() << " interface before correction" << std::endl;
-        //PrintNodeIdsAndCoords(rModelPart.GetSubModelPart("temporal_interface"));
-
-        if (!correctInterface) {
-            for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); j++) {
-                auto interface_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[j]);
-                interface_node->Set(ACTIVE, false);
-            }
-        }
 
         // Add corrections entries
+        IndexType dof_position;
         for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) 
         {
             auto current_node = it_node_begin + i;
             if (current_node->Is(ACTIVE)) 
             {
                 // implicit arrangement - get position of current active interface node in the system matrix
-                const IndexType dof_position = current_node->GetDof(DISPLACEMENT_X).EquationId();
+                if (domainIndex > 0) dof_position = current_node->GetDof(DISPLACEMENT_X).EquationId();
+                else dof_position = mSubDomain1DofPositions[i]; // Retore the original dof ordering of system 1
 
                 array_1d<double, 3>& r_nodal_disp = current_node->FastGetSolutionStepValue(DISPLACEMENT);
                 array_1d<double, 3>& r_nodal_accel = current_node->FastGetSolutionStepValue(ACCELERATION);
@@ -485,13 +501,6 @@ namespace Kratos
                     r_nodal_disp[k] += 0.25 * timeStep * timeStep * rLinkAccel[dof_position + k];
                     r_nodal_accel[k] += rLinkAccel[dof_position + k];
                 }
-            }
-        }
-
-        if (!correctInterface) {
-            for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); j++) {
-                auto interface_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[j]);
-                interface_node->Set(ACTIVE, true);
             }
         }
     }

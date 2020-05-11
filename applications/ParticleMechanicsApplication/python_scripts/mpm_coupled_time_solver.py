@@ -168,7 +168,10 @@ class MPMCoupledTimeSolver(MPMSolver):
     def SolveSolutionStep(self):
         print('solving sd1')
         is_converged = self._GetSolutionStrategy(1).SolveSolutionStep()
-        self.coupling_utility.StoreFreeVelocitiesSubDomain1()
+
+        K1 = self._GetSolutionStrategy(1).GetSystemMatrix()
+        self.coupling_utility.StoreFreeVelocitiesSubDomain1(K1)
+
         # store interface velocities in coupling class vector
         for j in range(1,self.time_step_ratio+1):
             print('Initializing sd2')
@@ -178,7 +181,10 @@ class MPMCoupledTimeSolver(MPMSolver):
             self._GetSolutionStrategy(2).Predict()
             print('solving sd2')
             is_converged = self._GetSolutionStrategy(2).SolveSolutionStep()
-            self.compute_and_apply_coupling_corrections()
+
+            K2 = self._GetSolutionStrategy(2).GetSystemMatrix()
+            self.coupling_utility.CalculateCorrectiveLagrangianMultipliers(K2)
+
             print('finalizing sd2')
             self._GetSolutionStrategy(2).FinalizeSolutionStep()
             self._GetSolutionStrategy(2).Clear()
@@ -200,12 +206,6 @@ class MPMCoupledTimeSolver(MPMSolver):
     def Clear(self):
         self._GetSolutionStrategy(1).Clear()
         self._GetSolutionStrategy(2).Clear()
-
-
-    def compute_and_apply_coupling_corrections(self):
-        self.coupling_utility.CalculateCorrectiveLagrangianMultipliers(
-            self._GetSolutionStrategy(1).GetSystemMatrix(), 
-            self._GetSolutionStrategy(2).GetSystemMatrix())
 
 
     def _GetLinearSolver(self,index):

@@ -55,16 +55,18 @@ public:
      * @brief Construct material points or particles from given initial mesh
      * @details Generating particles using a designated shape functions
      */
-    void CalculateCorrectiveLagrangianMultipliers(const SystemMatrixType& K_1, const SystemMatrixType& K_2);
+    void CalculateCorrectiveLagrangianMultipliers(const SystemMatrixType& rK2);
 
     void InitializeSubDomain1Coupling();
 
-    void StoreFreeVelocitiesSubDomain1();
+    void StoreFreeVelocitiesSubDomain1(const SystemMatrixType& rK1);
 
     void CorrectSubDomain1();
 
 protected:
     void ComputeActiveInterfaceNodes();
+
+    void PrepareSubDomain1CouplingQuantities(const SystemMatrixType& rK1);
 
     void SetSubDomainInterfaceVelocity(ModelPart& rModelPart, Vector& rVelocityContainer);
 
@@ -79,7 +81,7 @@ protected:
     void ComputeLamda(const Matrix& rH, const Vector& rb, Vector& rLamda);
 
     void ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& link_accel, 
-        const double timeStep, const bool correctInterface = true);
+        const double timeStep, const IndexType domainIndex = 1);
 
     void ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& link_accel,
         const double timeStep, const bool correctInterface = true);
@@ -112,7 +114,9 @@ protected:
     ModelPart& mrSubDomain2;
 
     Vector mActiveInterfaceNodeIDs;
+    Vector mSubDomain1DofPositions;
     bool mActiveInterfaceNodesComputed = false;
+    bool mIsSubDomain1QuantitiesPrepared = false;
 
     const double mInterfaceVelocityTolerance = 1e-6;
     const bool mCheckInterfaceContinuity = true;
