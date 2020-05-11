@@ -14,6 +14,10 @@ from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
+
+from KratosMultiphysics.ShapeOptimizationApplication import model_part_controller_factory
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Additional imports
 from .analyzer_base import AnalyzerBaseClass
@@ -29,41 +33,94 @@ except ImportError:
 
 
 import time as timer
+import shutil
+import glob, os
 
 # ==============================================================================
 class KratosInternalAnalyzer( AnalyzerBaseClass ):
     # --------------------------------------------------------------------------
     def __init__( self, specified_responses, model_part_controller ):
         self.model_part_controller = model_part_controller
-        self.response_functions = self.__CreateResponseFunctions(specified_responses, model_part_controller.GetModel())
-
-    # --------------------------------------------------------------------------
+        self.specified_responses = specified_responses
+        self.model = model_part_controller.GetModel()
+        self.original_directory = os.getcwd()
+  
+    #---------------------------------------------------------------------------    
     def InitializeBeforeOptimizationLoop( self ):
-        for response in self.response_functions.values():
-            response.Initialize()
-
+        print("::InitOpti Ignored")
     # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
+        
         optimization_model_part = self.model_part_controller.GetOptimizationModelPart()
+        model_part_nodes = optimization_model_part.Nodes
 
+        # Copying Opti ModelPart Nodes to Primal ModelPart
+        x = []
+        y = []
+        z = []
+        for node in model_part_nodes:
+            x.append(node.X)
+            y.append(node.Y)
+            z.append(node.Z)
+       
         time_before_analysis = optimization_model_part.ProcessInfo.GetValue(KM.TIME)
         step_before_analysis = optimization_model_part.ProcessInfo.GetValue(KM.STEP)
         delta_time_before_analysis = optimization_model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
 
-        for identifier, response in self.response_functions.items():
+        if optimizationIteration == 1:
+
+            self.response_functions = {} 
+
+            for (response_id, response_settings) in self.specified_responses:
+                # Clean OLD Response Folder
+                kratos_utilities.DeleteDirectoryIfExisting('Response_'+response_id)
+
+                self.response_functions[response_id] = csm_response_factory.CreateResponseFunction(response_id, response_settings, self.model) 
+
+        else:    
+            for identifier, response in self.response_functions.items():
+                if identifier == "mass":
+                    response.model.DeleteModelPart(response.model_part.Name)        # Other than Opti ITR 1, delete ModelPart
+                    print("::ModelPart Deleted::", response.model_part.Name)
+                else:
+                    response.model.DeleteModelPart(response.primal_model_part.Name) # Other than Opti ITR 1, delete ModelPart
+                    print("::ModelPart Deleted::", response.primal_model_part.Name)
+
+            for (response_id, response_settings) in self.specified_responses:
+                self.response_functions[response_id] = csm_response_factory.CreateResponseFunction(response_id, response_settings, self.model)
+
+
+        
+        for identifier, response in self.response_functions.items():    
 
             # Reset step/time iterators such that they match the optimization iteration after calling CalculateValue (which internally calls CloneTimeStep)
             optimization_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis-1)
             optimization_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis-1)
             optimization_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
+            response.SetCoordinatesUpdate(x, y, z)  #Transfer the Opti ITR Node Coordinates
+
+            response.Initialize()
+
+            ## For structural anlaysis of modified shape, here you can create .txt file of modified nodes at ith iteration
+            
+            # if optimizationIteration == 20:
+            #     # Create Optimization Iteration Folder
+            #     os.makedirs('Response_'+identifier +'/Opti_ITR_'+str(optimizationIteration))
+            #     # Change Directory to ~/Response[i]/Opti_ITR_[i]/
+            #     os.chdir('Response_'+identifier + '/Opti_ITR_'+str(optimizationIteration))
+            #     file = open("Modified_XYZ.txt","w+")
+            #     for node in model_part_nodes:
+            #         file.write('\n\t' + str(node.Id) +'  '+ str(node.X) +' '+ str(node.Y) +' '+ str(node.Z))
+            #     file.close()
+            
             response.InitializeSolutionStep()
 
             # response values
             if communicator.isRequestingValueOf(identifier):
                 response.CalculateValue()
                 communicator.reportValue(identifier, response.GetValue())
-
+            
             # response gradients
             if communicator.isRequestingGradientOf(identifier):
                 response.CalculateGradient()
@@ -74,10 +131,10 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             # Clear results or modifications on model part
             optimization_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis)
             optimization_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis)
-            optimization_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_analysis)
+            optimization_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_analysis)  
 
-            self.model_part_controller.SetMeshToReferenceMesh()
-            self.model_part_controller.SetDeformationVariablesToZero()
+            # Change to Original folder
+            os.chdir(self.original_directory)               
 
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop( self ):
