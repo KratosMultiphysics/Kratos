@@ -77,6 +77,12 @@ public:
     ///@name Type Definitions
     ///@{
 
+    enum class ShapeFunctionsType
+    {
+        Ausas,
+        Standard
+    };
+
     struct Hash{
         std::size_t operator()(const std::pair<unsigned int,bool>& k) const{
             std::size_t h1 = std::hash<unsigned int>()(std::get<0>(k));
@@ -127,9 +133,9 @@ public:
      * @brief Check and return the shape functions
      * This method checks and return the user provided shape functions type
      * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
-     * @return std::string The validated shape functions type 
+     * @return ShapeFunctionsType The validated shape functions type 
      */
-    static const std::string CheckAndReturnShapeFunctions(const Parameters rParameters);
+    static const ShapeFunctionsType CheckAndReturnShapeFunctions(const Parameters rParameters);
 
     /**
      * @brief Check and fill a visualization variable list
@@ -159,7 +165,7 @@ public:
         ModelPart& rVisualizationModelPart,
         const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
         const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
-        const std::string& rShapeFunctions = "standard",
+        const ShapeFunctionsType& rShapeFunctions = ShapeFunctionsType::Standard,
         const bool ReformModelPartAtEachTimeStep = false);
 
     /**
@@ -258,7 +264,7 @@ private:
     ModelPart& mrVisualizationModelPart;
 
     // Shape functions type. Current available options ausas and standard
-    const std::string mShapeFunctionsType;
+    const ShapeFunctionsType mShapeFunctionsType;
 
     // If true, the visualization model part is created each time step (required in case the level set function is not constant)
     const bool mReformModelPartAtEachTimeStep;

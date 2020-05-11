@@ -85,20 +85,24 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     return r_visualization_model_part;
 }
 
-const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions(const Parameters rParameters)
+const EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions(const Parameters rParameters)
 {
     const std::string shape_functions = rParameters["shape_functions"].GetString();
     KRATOS_ERROR_IF(shape_functions == "") << "\'shape_functions\' is not prescribed. Admissible values are: \'standard\' and \'ausas\'." << std::endl;
 
-    std::stringstream error_msg;
-    std::set<std::string> available_shape_functions = {"standard","ausas"};
-    if (available_shape_functions.find(shape_functions) == available_shape_functions.end()){
-        error_msg << "Currently prescribed shape_functions : " << rParameters["shape_functions"].GetString() << std::endl;
+    ShapeFunctionsType aux_sh_func_type;
+    if (shape_functions == "ausas") {
+        aux_sh_func_type = ShapeFunctionsType::Ausas;
+    } else if (shape_functions == "standard") {
+        aux_sh_func_type = ShapeFunctionsType::Standard;
+    } else {
+        std::stringstream error_msg;
+        error_msg << "Currently prescribed \'shape_functions\': " << rParameters["shape_functions"].GetString() << std::endl;
         error_msg << "Admissible values are : \'standard\' and \'ausas\'" << std::endl;
         KRATOS_ERROR << error_msg.str();
     }
-
-    return shape_functions;
+    
+    return aux_sh_func_type;
 }
 
 template<class TDataType>
@@ -121,7 +125,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     ModelPart& rVisualizationModelPart,
     const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
     const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
-    const std::string& rShapeFunctions,
+    const ShapeFunctionsType& rShapeFunctions,
     const bool ReformModelPartAtEachTimeStep) :
     Process(),
     mrModelPart(rModelPart),
@@ -657,16 +661,20 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
     const auto &r_geom = ItElem->GetGeometry();
     Vector nodal_distances(r_geom.PointsNumber());
 
-    if (mShapeFunctionsType == "standard"){
+    switch (mShapeFunctionsType) {
         // Continuous nodal distance function case
-        for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-            nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
-        }
-    } else if (mShapeFunctionsType == "ausas") {
+        case ShapeFunctionsType::Standard:
+            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+            }
+            break;
         // Discontinuous elemental distance function case
-        nodal_distances = ItElem->GetValue(ELEMENTAL_DISTANCES);
-    } else {
-        KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
+        case ShapeFunctionsType::Ausas:
+            nodal_distances = ItElem->GetValue(ELEMENTAL_DISTANCES);
+            break;
+        // Default error case
+        default:
+            KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
     }
 
     return nodal_distances;
@@ -680,26 +688,27 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
     const GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
 
     // Return the modified shape functions utility
-    if (mShapeFunctionsType == "standard"){
-        switch (geometry_type){
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
-        }
-    } else if (mShapeFunctionsType == "ausas"){
-        switch (geometry_type){
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented Ausas modified shape functions geometry.";
-        }
-    } else {
-        KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
+    switch (mShapeFunctionsType) {
+        case ShapeFunctionsType::Standard:
+            switch (geometry_type) {
+                case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                    return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                    return Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                default:
+                    KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
+            }
+        case ShapeFunctionsType::Ausas:
+            switch (geometry_type) {
+                case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                    return Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                    return Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                default:
+                    KRATOS_ERROR << "Asking for a non-implemented Ausas modified shape functions geometry.";
+            }
+        default:
+            KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
     }
 }
 
