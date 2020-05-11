@@ -676,8 +676,11 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, 
-    const double& rIntegrationWeight, const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangian::CalculateAndAddLHS(
+    LocalSystemComponents& rLocalSystem,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Contributions of the stiffness matrix calculated on the reference configuration
     if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangian::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
@@ -885,41 +888,6 @@ void UpdatedLagrangian::CalculateRightHandSide( VectorType& rRightHandSideVector
 //************************************************************************************
 
 
-void UpdatedLagrangian::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
-{
-    // Create local system components
-    LocalSystemComponents LocalSystem;
-
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    MatrixType LeftHandSideMatrix = Matrix();
-
-    // Initialize sizes for the system components:
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-        rRightHandSideVectors.resize(rRHSVariables.size());
-
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
-    {
-        this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
-    }
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
-
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
-
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-
 void UpdatedLagrangian::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     // Create local system components
@@ -964,62 +932,8 @@ void UpdatedLagrangian::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, V
     CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 }
 
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangian::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
-        const std::vector< Variable< MatrixType > >& rLHSVariables,
-        std::vector< VectorType >& rRightHandSideVectors,
-        const std::vector< Variable< VectorType > >& rRHSVariables,
-        ProcessInfo& rCurrentProcessInfo )
-{
-    // Create local system components
-    LocalSystemComponents LocalSystem;
-
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    // Initialize sizes for the system components:
-    if( rLHSVariables.size() != rLeftHandSideMatrices.size() )
-        rLeftHandSideMatrices.resize(rLHSVariables.size());
-
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-        rRightHandSideVectors.resize(rRHSVariables.size());
-
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX);
-    for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
-    {
-        // Note: rRightHandSideVectors.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
-    }
-
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX,false);
-
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
-    {
-        // Note: rLeftHandSideMatrices.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
-    }
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX,true);
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrices(rLeftHandSideMatrices);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
-
-    LocalSystem.SetLeftHandSideVariables(rLHSVariables);
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
-
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
-}
-
 //*******************************************************************************************
 //*******************************************************************************************
-
-
 void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     /* NOTE:
