@@ -231,36 +231,6 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
 
     KRATOS_CATCH( "" )
 }
-//************************************************************************************
-//*****************check size of LHS and RHS matrices*********************************
-
-void UpdatedLagrangianUP::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        Flags& rCalculationFlags)
-{
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    // Resizing the LHS matrix if needed
-    unsigned int matrix_size = number_of_nodes * dimension + number_of_nodes; // number of DOF including pressure term
-
-    if ( rCalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-    {
-        if ( rLeftHandSideMatrix.size1() != matrix_size )
-            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
-
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size, matrix_size); //resetting LHS
-    }
-
-    // Resizing the RHS vector if needed
-    if ( rCalculationFlags.Is(UpdatedLagrangian::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
-    {
-        if ( rRightHandSideVector.size() != matrix_size )
-            rRightHandSideVector.resize( matrix_size, false );
-
-        rRightHandSideVector = ZeroVector( matrix_size ); //resetting RHS
-    }
-}
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
@@ -438,15 +408,13 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, 
+void UpdatedLagrangianUP::CalculateAndAddRHS(
+    VectorType& rRightHandSideVector,
     GeneralVariables& rVariables, 
     Vector& rVolumeForce, 
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // Contribution of the internal and external forces
-    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-
     rVariables.detF0   *= rVariables.detF;
     double determinant_F = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
@@ -671,12 +639,12 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, 
-    const double& rIntegrationWeight, const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianUP::CalculateAndAddLHS(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    // Contributions of the stiffness matrix calculated on the reference configuration
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-
     rVariables.detF0   *= rVariables.detF;
     double determinant_F = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian

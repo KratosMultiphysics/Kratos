@@ -239,6 +239,10 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    SizeType GetNumberOfDofs() override {
+        return 4;
+    }
+
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
@@ -255,7 +259,7 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                             GeneralVariables& rVariables,
                             const double& rIntegrationWeight,
                             const ProcessInfo& rCurrentProcessInfo) override;
@@ -264,7 +268,7 @@ protected:
      * Calculation and addition of the vectors of the RHS
      */
 
-    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
                             GeneralVariables& rVariables,
                             Vector& rVolumeForce,
                             const double& rIntegrationWeight,
@@ -347,13 +351,6 @@ protected:
             GeneralVariables & rVariables,
             const double& rIntegrationWeight
                                                   );
-
-    /**
-     * Initialize System Matrices
-     */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                  VectorType& rRightHandSideVector,
-                                  Flags& rCalculationFlags) override;
 
     /**
      * Calculate Element Kinematics

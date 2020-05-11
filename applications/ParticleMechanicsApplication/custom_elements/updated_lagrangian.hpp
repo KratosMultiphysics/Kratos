@@ -178,100 +178,6 @@ protected:
         Matrix CurrentDisp;
     };
 
-
-    /**
-     * This struct is used in the component wise calculation only
-     * is defined here and is used to declare a member variable in the component wise elements
-     * private pointers can only be accessed by means of set and get functions
-     * this allows to set and not copy the local system variables
-     */
-
-    struct LocalSystemComponents
-    {
-    private:
-
-        //for calculation local system with compacted LHS and RHS
-        MatrixType *mpLeftHandSideMatrix;
-        VectorType *mpRightHandSideVector;
-
-        //for calculation local system with LHS and RHS components
-        std::vector<MatrixType> *mpLeftHandSideMatrices;
-        std::vector<VectorType> *mpRightHandSideVectors;
-
-        //LHS variable components
-        const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
-
-        //RHS variable components
-        const std::vector< Variable< VectorType > > *mpRightHandSideVariables;
-
-
-    public:
-
-        //calculation flags
-        Flags  CalculationFlags;
-
-        /**
-         * sets the value of a specified pointer variable
-         */
-        void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix )
-        {
-            mpLeftHandSideMatrix = &rLeftHandSideMatrix;
-        };
-        void SetLeftHandSideMatrices( std::vector<MatrixType>& rLeftHandSideMatrices )
-        {
-            mpLeftHandSideMatrices = &rLeftHandSideMatrices;
-        };
-        void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables )
-        {
-            mpLeftHandSideVariables = &rLeftHandSideVariables;
-        };
-
-        void SetRightHandSideVector( VectorType& rRightHandSideVector )
-        {
-            mpRightHandSideVector = &rRightHandSideVector;
-        };
-        void SetRightHandSideVectors( std::vector<VectorType>& rRightHandSideVectors )
-        {
-            mpRightHandSideVectors = &rRightHandSideVectors;
-        };
-        void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables )
-        {
-            mpRightHandSideVariables = &rRightHandSideVariables;
-        };
-
-
-        /**
-         * returns the value of a specified pointer variable
-         */
-        MatrixType& GetLeftHandSideMatrix()
-        {
-            return *mpLeftHandSideMatrix;
-        };
-        std::vector<MatrixType>& GetLeftHandSideMatrices()
-        {
-            return *mpLeftHandSideMatrices;
-        };
-        const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables()
-        {
-            return *mpLeftHandSideVariables;
-        };
-
-        VectorType& GetRightHandSideVector()
-        {
-            return *mpRightHandSideVector;
-        };
-        std::vector<VectorType>& GetRightHandSideVectors()
-        {
-            return *mpRightHandSideVectors;
-        };
-        const std::vector< Variable< VectorType > >& GetRightHandSideVariables()
-        {
-            return *mpRightHandSideVariables;
-        };
-
-    };
-
-
 public:
 
 
@@ -550,13 +456,22 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    virtual SizeType GetNumberOfDofs() {
+        return 3;
+    }
+
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-    virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-                                          ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateElementalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag);
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -566,20 +481,22 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    const double& rIntegrationWeight,
-                                    const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateAndAddLHS(
+        MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight,
+        const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    Vector& rVolumeForce,
-                                    const double& rIntegrationWeight,
-                                    const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateAndAddRHS(
+        VectorType& rRightHandSideVector,
+        GeneralVariables& rVariables,
+        Vector& rVolumeForce,
+        const double& rIntegrationWeight,
+        const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -625,15 +542,6 @@ protected:
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues);
-
-
-    /**
-     * Initialize System Matrices
-     */
-    virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                          VectorType& rRightHandSideVector,
-                                          Flags& rCalculationFlags);
-
 
 
     /**

@@ -254,41 +254,14 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
 }
 
 //************************************************************************************
-//*****************check size of LHS and RHS matrices*********************************
-
-void UpdatedLagrangian::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        Flags& rCalculationFlags)
-{
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    // Resizing the LHS matrix if needed
-    unsigned int matrix_size = number_of_nodes * dimension;   //number of degrees of freedom
-
-    if ( rCalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-    {
-        if ( rLeftHandSideMatrix.size1() != matrix_size )
-            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
-
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size, matrix_size); //resetting LHS
-    }
-
-    // Resizing the RHS vector if needed
-    if ( rCalculationFlags.Is(UpdatedLagrangian::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
-    {
-        if ( rRightHandSideVector.size() != matrix_size )
-            rRightHandSideVector.resize( matrix_size, false );
-
-        rRightHandSideVector = ZeroVector( matrix_size ); //resetting RHS
-    }
-}
-
-//************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-        ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangian::CalculateElementalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -329,25 +302,30 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
         // Update MP_Density
         mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
     }
-    else if (is_explicit)
-    {
-        rLocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX, false);
-    }
 
     // The MP_Volume (integration weight) is evaluated
     mMP.volume = mMP.mass / mMP.density;
 
-    if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) // if calculation of the matrix is required
+    if (CalculateStiffnessMatrixFlag && !is_explicit) // if calculation of the matrix is required
     {
         // Contributions to stiffness matrix calculated on the reference configuration
-        this->CalculateAndAddLHS ( rLocalSystem, Variables, mMP.volume, rCurrentProcessInfo);
+        this->CalculateAndAddLHS(
+            rLeftHandSideMatrix,
+            Variables,
+            mMP.volume,
+            rCurrentProcessInfo);
     }
 
-    if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_RHS_VECTOR) ) // if calculation of the vector is required
+    if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
         Vector volume_force = mMP.volume_acceleration * mMP.mass;
-        this->CalculateAndAddRHS ( rLocalSystem, Variables, volume_force, mMP.volume,rCurrentProcessInfo);
+        this->CalculateAndAddRHS(
+            rRightHandSideVector,
+            Variables,
+            volume_force,
+            mMP.volume,
+            rCurrentProcessInfo);
     }
 
     KRATOS_CATCH( "" )
@@ -476,87 +454,57 @@ void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, 
-    GeneralVariables& rVariables, 
-    Vector& rVolumeForce, 
+void UpdatedLagrangian::CalculateAndAddRHS(
+    VectorType& rRightHandSideVector,
+    GeneralVariables& rVariables,
+    Vector& rVolumeForce,
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // Contribution of the internal and external forces
-    if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangian::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+    this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+    if (is_explicit)
     {
-        std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
-        const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
-        for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
-        {
-            bool calculated = false;
-            if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR )
-            {
-                // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-                this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rVolumeForce, rIntegrationWeight );
-                calculated = true;
-            }
+        Matrix Jacobian;
+        GetGeometry().Jacobian(Jacobian, 0);
+        Matrix InvJ;
+        double detJ;
+        MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+        rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
 
-            if( rRightHandSideVariables[i] == INTERNAL_FORCES_VECTOR )
-            {
-                // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-                this->CalculateAndAddInternalForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
-                calculated = true;
-            }
+        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+            : false;
 
-            KRATOS_ERROR_IF(calculated == false) << " ELEMENT can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
+        if (is_axisymmetric) {
+            Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
+            const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(
+                GetGeometry().ShapeFunctionsValues(), GetGeometry());
+            MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
+                rVariables.DN_DX, N, mMP.cauchy_stress_vector, mMP.volume,
+                mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
         }
+        else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
+            rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
+            mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
     }
     else
     {
-        VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-
-        // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-        this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
-
-        const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-            ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-            : false;
-        if (is_explicit)
-        {
-            Matrix Jacobian;
-            GetGeometry().Jacobian(Jacobian, 0);
-            Matrix InvJ;
-            double detJ;
-            MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-            const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-            rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
-
-            const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-                ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-                : false;
-
-            if (is_axisymmetric) {
-                Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
-                const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(
-                    GetGeometry().ShapeFunctionsValues(), GetGeometry());
-                MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
-                    rVariables.DN_DX, N, mMP.cauchy_stress_vector, mMP.volume,
-                    mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
-            }
-            else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
-                rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
-                mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
-        }
-        else
-        {
-            // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-            this->CalculateAndAddInternalForces(rRightHandSideVector, rVariables, rIntegrationWeight);
-        }
-
-        
+        // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+        this->CalculateAndAddInternalForces(rRightHandSideVector, rVariables, rIntegrationWeight);
     }
 }
 
 //************************************************************************************
 //*********************Calculate the contribution of external force*******************
 
-void UpdatedLagrangian::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+void UpdatedLagrangian::CalculateAndAddExternalForces(
+    VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
         const double& rIntegrationWeight)
@@ -677,64 +625,30 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
 //************************************************************************************
 
 void UpdatedLagrangian::CalculateAndAddLHS(
-    LocalSystemComponents& rLocalSystem,
+    MatrixType& rLeftHandSideMatrix,
     GeneralVariables& rVariables,
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // Contributions of the stiffness matrix calculated on the reference configuration
-    if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangian::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+    // Operation performed: add K_material to the rLefsHandSideMatrix
+    this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+    // Operation performed: add K_geometry to the rLefsHandSideMatrix
+    if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
     {
-        std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
-        const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
-
-        for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
-        {
-            bool calculated = false;
-            if( rLeftHandSideVariables[i] == MATERIAL_STIFFNESS_MATRIX )
-            {
-                // Operation performed: add K_material to the rLefsHandSideMatrix
-                this->CalculateAndAddKuum( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-                calculated = true;
-            }
-
-            if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX &&
-                !rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
-            {
-                // Operation performed: add K_geometry to the rLefsHandSideMatrix
-                const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-                    ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-                    : false;
-                this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight, is_axisymmetric);
-                calculated = true;
-            }
-
-            KRATOS_ERROR_IF(calculated == false) <<  " ELEMENT can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
-        }
-    }
-    else
-    {
-        MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-
-        // Operation performed: add K_material to the rLefsHandSideMatrix
-        this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-        // Operation performed: add K_geometry to the rLefsHandSideMatrix
-        if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
-        {
-            const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-                ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-                : false;
-            this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight, is_axisymmetric);
-        }
+        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+            : false;
+        this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight, is_axisymmetric);
     }
 }
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
+void UpdatedLagrangian::CalculateAndAddKuum(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -863,73 +777,65 @@ void UpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Matri
 
 //************************************************************************************
 //************************************************************************************
-void UpdatedLagrangian::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo)
 {
-    // Create local system components
-    LocalSystemComponents LocalSystem;
+    MatrixType left_hand_side_matrix = Matrix(0, 0);
 
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR);
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
+    }
+    rRightHandSideVector = ZeroVector(mat_size);
 
-    MatrixType LeftHandSideMatrix = Matrix();
-
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    CalculateElementalSystem(left_hand_side_matrix, rRightHandSideVector,
+        rCurrentProcessInfo, false, true);
 }
 
 //************************************************************************************
 //************************************************************************************
 
 
-void UpdatedLagrangian::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    ProcessInfo& rCurrentProcessInfo)
 {
-    // Create local system components
-    LocalSystemComponents LocalSystem;
+    VectorType right_hand_side_vector = Vector(0);
 
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX);
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    VectorType RightHandSideVector = Vector();
-
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(RightHandSideVector);
-
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    CalculateElementalSystem(
+        rLeftHandSideMatrix, right_hand_side_vector,
+        rCurrentProcessInfo, true, false);
 }
 //************************************************************************************
 //************************************************************************************
 
 
-void UpdatedLagrangian::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo)
 {
-    // Create local system components
-    LocalSystemComponents LocalSystem;
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX);
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR);
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
+    }
+    rRightHandSideVector = ZeroVector(mat_size);
 
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    CalculateElementalSystem(
+        rLeftHandSideMatrix, rRightHandSideVector,
+        rCurrentProcessInfo, true, true);
 }
 
 //*******************************************************************************************
