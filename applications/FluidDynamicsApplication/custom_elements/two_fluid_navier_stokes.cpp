@@ -3913,6 +3913,33 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
             //}
         }
     }
+    else if (/* this->Has( rVariable) && */ rVariable == CONTACT_VELOCITY) {
+        GeometryType::Pointer p_geom = this->pGetGeometry();
+        //const auto& r_geometry = GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& integration_points = 
+            p_geom->IntegrationPoints(GeometryData::GI_GAUSS_1); //p_geom->GetDefaultIntegrationMethod());
+
+        //const auto& rGeom = this->GetGeometry();
+        //const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        //const unsigned int num_gauss = IntegrationPoints.size();
+
+        const std::size_t number_of_integration_points = integration_points.size();
+
+        if ( rValues.size() != number_of_integration_points ) {
+            rValues.resize( number_of_integration_points );
+        }
+
+        //KRATOS_INFO("CalculateOnIntegrationPoints") << "CALLED!" << std::endl;
+        
+        const double value = this->GetValue( CONTACT_VELOCITY);
+        for (std::size_t point_number = 0; point_number < number_of_integration_points; ++point_number) {
+            rValues[point_number] = value;
+
+            //if (value != 0.0){
+            //    KRATOS_INFO("CalculateOnIntegrationPoints") << value << std::endl;
+            //}
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
