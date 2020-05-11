@@ -57,12 +57,12 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
     def test_create_entities_from_one_model_part(self):
         settings = KM.Parameters("""{
             "Parameters" : {
-                "root_model_part_name"       : "root_mp",
-                "new_sub_model_part_name"    : "smp_with_conditions",
-                "sub_model_part_names"       : ["smp_nodes_1"],
-                "entity_name"                : "PointCondition2D1N",
-                "entity_type"                : "condition",
-                "properties_id"              : 0
+                "model_part_name"         : "root_mp",
+                "new_sub_model_part_name" : "smp_with_conditions",
+                "sub_model_part_names"    : ["smp_nodes_1"],
+                "entity_name"             : "PointCondition2D1N",
+                "entity_type"             : "condition",
+                "properties_id"           : 0
             }
         }""")
 
@@ -75,7 +75,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
     def test_create_entities_from_multiple_model_parts(self):
         settings = KM.Parameters("""{
             "Parameters" : {
-                "root_model_part_name"       : "root_mp",
+                "model_part_name"            : "root_mp",
                 "new_sub_model_part_name"    : "manual_smp.create_conds",
                 "sub_model_part_names"       : ["smp_nodes_1", "smp_nodes_2"],
                 "entity_name"                : "PointCondition2D1N",
@@ -95,7 +95,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
     def test_create_entities_from_overlapping_model_parts(self):
         settings = KM.Parameters("""{
             "Parameters" : {
-                "root_model_part_name"       : "root_mp",
+                "model_part_name"            : "root_mp",
                 "new_sub_model_part_name"    : "smp_with_conditions",
                 "sub_model_part_names"       : ["smp_nodes_1", "smp_nodes_2", "smp_nodes_3"],
                 "entity_name"                : "PointCondition2D1N",
@@ -113,7 +113,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
     def test_create_entities_with_preexisting_entites(self):
         settings = KM.Parameters("""{
             "Parameters" : {
-                "root_model_part_name"       : "root_mp",
+                "model_part_name"            : "root_mp",
                 "new_sub_model_part_name"    : "smp_with_conditions",
                 "sub_model_part_names"       : ["smp_nodes_1", "smp_nodes_2"],
                 "entity_name"                : "PointCondition2D1N",
@@ -121,7 +121,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
                 "properties_id"              : 0
             }
         }""")
-        
+
         props = self.root_model_part.GetProperties(0, 0)
 
         num_local_nodes = self.root_model_part.NumberOfNodes()
@@ -139,7 +139,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
         # in a restart no new entities should be created!
         settings = KM.Parameters("""{
             "Parameters" : {
-                "root_model_part_name"       : "root_mp",
+                "model_part_name"            : "root_mp",
                 "new_sub_model_part_name"    : "smp_with_conditions",
                 "sub_model_part_names"       : ["smp_nodes_1"],
                 "entity_name"                : "PointCondition2D1N",

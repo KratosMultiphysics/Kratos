@@ -20,23 +20,24 @@ class CreatePointBasedEntitiesProcess(KM.Process):
         KM.Process.__init__(self)
 
         default_settings = KM.Parameters("""{
-            "root_model_part_name"       : "PLEASE_SPECIFY",
-            "new_sub_model_part_name"    : "PLEASE_SPECIFY",
-            "sub_model_part_names"       : [],
-            "entity_name"                : "PointLoadCondition3D1N",
-            "entity_type"                : "condition",
-            "properties_id"              : 0,
-            "kratos_application"         : ""
+            "model_part_name"          : "PLEASE_SPECIFY",
+            "new_sub_model_part_name"  : "PLEASE_SPECIFY",
+            "sub_model_part_names"     : [],
+            "entity_name"              : "PointLoadCondition3D1N",
+            "entity_type"              : "condition",
+            "properties_id"            : 0,
+            "kratos_application"       : ""
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        root_model_part = Model[settings["root_model_part_name"].GetString()]
-        if root_model_part.ProcessInfo[KM.IS_RESTARTED]:
+        model_part_name = settings["model_part_name"].GetString()
+        model_part = Model[model_part_name]
+        if model_part.ProcessInfo[KM.IS_RESTARTED]:
             # Do nothing in case of restart
             return
 
-        root_model_part_name = settings["root_model_part_name"].GetString()
+        root_model_part = model_part.GetRootModelPart()
         entity_name = settings["entity_name"].GetString()
         entity_type = settings["entity_type"].GetString()
         properties_id = settings["properties_id"].GetInt()
@@ -50,11 +51,11 @@ class CreatePointBasedEntitiesProcess(KM.Process):
 
         if settings["sub_model_part_names"].size() == 0:
             # if no sub-model-parts are specified then taking the root-model-part
-            model_parts = [root_model_part]
+            model_parts = [model_part]
         else:
-            model_parts = [Model[root_model_part_name+"."+model_part_name] for model_part_name in settings["sub_model_part_names"].GetStringArray()]
+            model_parts = [Model[model_part_name+"."+sub_model_part_name] for sub_model_part_name in settings["sub_model_part_names"].GetStringArray()]
 
-        new_model_part = RecursiveCreateModelParts(root_model_part, settings["new_sub_model_part_name"].GetString())
+        new_model_part = RecursiveCreateModelParts(model_part, settings["new_sub_model_part_name"].GetString())
 
         node_ids = [node.Id
             for mp in model_parts
