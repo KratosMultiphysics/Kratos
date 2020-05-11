@@ -8,6 +8,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(ConvectionDiffusionAnalysis
     def __init__(self,model,parameters):
         super(TestSymbolicEulerianConvectionDiffusionElement,self).__init__(model,parameters)
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
     def _CreateSolver(self):
         from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_stationary_solver
@@ -42,17 +43,24 @@ if __name__ == "__main__":
     simulation = TestSymbolicEulerianConvectionDiffusionElement(model, parameters)
     simulation.Run()
 
-    # check L2 error via midpoint rule
+    # check L2 error via midpoint rule and estimate minimal nodal h
     KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
+    find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(simulation._GetSolver().main_model_part)
+    find_nodal_h.Execute()
     error = 0
+    nodal_h = 1e9
     model_part_name = simulation.project_parameters["problem_data"]["model_part_name"].GetString()
     for node in simulation.model.GetModelPart(model_part_name).Nodes:
+        # L2 norm
         x = node.X
         y = node.Y
         u_analytical = cos(2*pi*x)*sin(2*pi*y)
         u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-
         error = error + ((u_analytical - u_numerical)**2*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+        # nodal h
+        if (node.GetValue(KratosMultiphysics.NODAL_H) < nodal_h):
+            nodal_h = node.GetValue(KratosMultiphysics.NODAL_H)
 
     error = sqrt(error)
+    print("minimal nodal h:",nodal_h)
     print("error:",error)
