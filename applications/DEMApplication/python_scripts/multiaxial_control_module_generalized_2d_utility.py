@@ -8,12 +8,12 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         self.dem_model_part = dem_model_part
         self.dem_fem_boundary_model_part = dem_fem_boundary_model_part
 
-        project_parameters_file_name = "ProjectParametersDEM.json"
+        project_parameters_file_name = "sp_2d_rigid_fem_parameters.json"
 
         with open(project_parameters_file_name,'r') as parameter_file:
-            project_parameters = Kratos.Parameters(parameter_file.read())
+            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        self.parameters = project_parameters["multiaxial_control_module_2d_utility"]
+        self.parameters = project_parameters["multiaxial_control_module_generalized_2d_utility"]
 
         # TODO
         # Blind test
@@ -21,7 +21,6 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         # face_area = 0.088343
         # alternate_axis_loading = True
         # limit_velocity = -15.0
-        
         # Negative target_stress means compression.
 
         '''
@@ -30,12 +29,12 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
             "Parameters"    : {
                 "control_module_delta_time": 4.0e-7,
                 "velocity_factor" : 1.0,
-                "stress_increment_tolerance": 1.0e-3,
+                "stress_tolerance": 1.0e-2,
+                "perturbation_period": 10,
                 "update_stiffness": true,
-                "stiffness_alpha": 0.2,
+                "stiffness_alpha": 1.0,
                 "start_time" : 0.0,
-                "stress_averaging_time": 1.0e-5,
-                "axisymmetry": false
+                "stress_averaging_time": 1.0e-5
             },
             "list_of_actuators" : [{
                 "Parameters"    : {
@@ -47,7 +46,8 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
                     "young_modulus" : 7.0e9
                 },
                 "list_of_dem_boundaries": [{
-                    "model_part_name" : "SpheresPart.Parts_dems"
+                    "model_part_name" : "Parts_dems",
+                    "outer_normal": [0.0,0.0,1.0]
                 }],
                 "list_of_fem_boundaries": []
             },{
@@ -55,16 +55,16 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
                     "actuator_name": "X",
                     "target_stress_table_id": 1,
                     "initial_velocity" : 0.0,
-                    "limit_velocity" : 5.0,
+                    "limit_velocity" : -5.0,
                     "compression_length" : 0.1524,
                     "young_modulus" : 21.0e13
                 },
                 "list_of_dem_boundaries": [],
                 "list_of_fem_boundaries": [{
-                    "model_part_name" : "RigidFacePart.1",
+                    "model_part_name" : "1",
                     "outer_normal": [-1.0,0.0,0.0]
                     },{
-                    "model_part_name" : "RigidFacePart.2",
+                    "model_part_name" : "2",
                     "outer_normal": [1.0,0.0,0.0]
                 }]
             },{
@@ -72,16 +72,16 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
                     "actuator_name": "Y",
                     "target_stress_table_id": 2,
                     "initial_velocity" : 0.0,
-                    "limit_velocity" : 5.0,
+                    "limit_velocity" : -5.0,
                     "compression_length" : 0.1524,
                     "young_modulus" : 21.0e13
                 },
                 "list_of_dem_boundaries": [],
                 "list_of_fem_boundaries": [{
-                    "model_part_name" : "RigidFacePart.3",
+                    "model_part_name" : "3",
                     "outer_normal": [0.0,-1.0,0.0]
                     },{
-                    "model_part_name" : "RigidFacePart.4",
+                    "model_part_name" : "4",
                     "outer_normal": [0.0,1.0,0.0]
                 }]
             }]

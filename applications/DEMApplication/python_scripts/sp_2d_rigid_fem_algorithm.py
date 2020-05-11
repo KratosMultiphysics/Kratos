@@ -32,6 +32,15 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.CreateSPMeasuringRingSubmodelpart(self.spheres_model_part)
         self.RebuildSkinElements()
 
+        from KratosMultiphysics.DEMApplication.multiaxial_control_module_generalized_2d_utility import MultiaxialControlModuleGeneralized2DUtility
+        self.multiaxial_control_module = MultiaxialControlModuleGeneralized2DUtility(self.spheres_model_part, self.rigid_face_model_part)
+        self.multiaxial_control_module.ExecuteInitialize()
+
+    def InitializeSolutionStep(self):
+        super(DEMAnalysisStage2DSpRigidFem, self).InitializeSolutionStep()
+
+        self.multiaxial_control_module.ExecuteInitializeSolutionStep()
+
     def SettingGeometricalSPValues(self):
 
         self.center = KratosMultiphysics.Array3()
@@ -97,6 +106,10 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
         self.ring_submodelpart.AddNodes(nodes_in_zone_radius_list)
         self.ring_submodelpart.AddElements(elements_in_zone_radius_list)
+
+    def FinalizeSolutionStep(self):
+        super(DEMAnalysisStage2DSpRigidFem, self).FinalizeSolutionStep()
+        self.multiaxial_control_module.ExecuteInitializeSolutionStep()
 
     def PrintResultsForGid(self, time):
         super(DEMAnalysisStage2DSpRigidFem, self).PrintResultsForGid(time)
