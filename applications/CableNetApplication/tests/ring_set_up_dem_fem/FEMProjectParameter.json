@@ -114,7 +114,7 @@
 			"python_module"   : "create_point_based_entites_process",
 			"kratos_module" : "KratosMultiphysics.CoSimulationApplication.processes",
 			"Parameters"            : {
-				"root_model_part_name"       : "Structure",
+				"model_part_name"       : "Structure",
 				"new_sub_model_part_name"    : "struct_sub",
 				"sub_model_part_names"       : [],
 				"entity_name"                : "PointLoadCondition3D1N",
