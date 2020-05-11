@@ -197,6 +197,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TANGENT_VECTOR)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTACT_VECTOR)
     KRATOS_REGISTER_VARIABLE( CONTACT_ANGLE)
+    KRATOS_REGISTER_VARIABLE( CONTACT_VELOCITY)
 
     // Enriched pressure is an array of NumNodes components defined for elements. Access it using Element.GetValue()
     KRATOS_REGISTER_VARIABLE( ENRICHED_PRESSURE_1)

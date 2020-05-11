@@ -124,7 +124,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.NORMAL_VECTOR)                  # Auxiliary normal vector at interface
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.TANGENT_VECTOR)                 # Auxiliary tangent vector at contact line
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_VECTOR)                 # Auxiliary contact vector 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_ANGLE)                  # Contact angle (may not needed at nodes)   
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_ANGLE)                  # Contact angle (may not be needed at nodes)  
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_VELOCITY)               # Contact line tangential velocity (normal to the contact-line) 
         #self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.VELOCITY_STAR)                  # Last known velocity
         #self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_STAR)                  # Last known pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_GRADIENT_AUX)          # Pressure gradient on positive and negative sides
@@ -294,6 +295,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         with open("MeanContactAngle.log", "w") as CangleLogFile:
             CangleLogFile.write( "time_step" + "\t" + "mean_contact_angle" + "\n" )
+
+        with open("ContactVelocity.log", "w") as CvelLogFile:
+            CvelLogFile.write( "element_id" + "\t" + "contact_velocity" + "\n" )
+
+        with open("MeanContactVelocity.log", "w") as CvelLogFile:
+            CvelLogFile.write( "time_step" + "\t" + "mean_velocity_angle" + "\n" )
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
 
@@ -525,19 +532,25 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if (TimeStep % 10 == 0):
             mean_Cangle = 0.0
+            mena_Cvel = 0.0
             num_C = 0
-            with open("ContactAngle.log", "a") as CangleLogFile:
+            with open("ContactAngle.log", "a") as CangleLogFile, open("ContactVelocity.log", "a") as CvelLogFile:
                 CangleLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
+                CvelLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
                 for elem in self.main_model_part.Elements:
                     cangle = elem.GetValue(KratosCFD.CONTACT_ANGLE)
+                    cvel = elem.GetValue(KratosCFD.CONTACT_VELOCITY)
                     if (cangle != 0.0):
                         CangleLogFile.write( str(elem.Id) + "\t" + str(cangle) + "\n" )
+                        CvelLogFile.write( str(elem.Id) + "\t" + str(cvel) + "\n" )
                         mean_Cangle += cangle
+                        mean_Cvel += cvel
                         num_C += 1
             
             if (num_C > 1):
-                with open("MeanContactAngle.log", "a") as meanCangleLogFile:
+                with open("MeanContactAngle.log", "a") as meanCangleLogFile, open("MeanContactVelocity.log", "a") as meanCvelLogFile:
                     meanCangleLogFile.write( str(TimeStep*DT) + "\t" + str(mean_Cangle/num_C) + "\n" )
+                    meanCvelLogFile.write( str(TimeStep*DT) + "\t" + str(mean_Cvel/num_C) + "\n" )
 
         if self._TimeBufferIsInitialized():
             (self.solver).FinalizeSolutionStep()

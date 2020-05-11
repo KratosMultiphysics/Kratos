@@ -95,6 +95,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         const double contact_line_coefficient = -0.5*surface_tension_coefficient;
 
         this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
+        this->SetValue(CONTACT_VELOCITY, 0.0); // Initialize the contact line velocity
         const unsigned int num_dim = NumNodes - 1;
         const VectorType zero_vector = ZeroVector(num_dim);
         GeometryType::Pointer p_geom = this->pGetGeometry();
@@ -3637,14 +3638,20 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
         //KRATOS_INFO("Cut Element, has contact line, NumCLGP") << NumCLGP << std::endl;
 
+        VectorType vel0_CL = ZeroVector(NumDim);
+        double weight_sum = 0.0;
+
         MathUtils<double>::UnitCrossProduct(contact_vector, rTangential, normal_avg);
 
         for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
+            weight_sum += rCLWeights(clgp);
 
             //KRATOS_INFO("Cut Element, has contact line, CLWeight") << rCLWeights(clgp) << std::endl;
             MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal[clgp], rTangential);
 
             for (unsigned int i = 0; i < NumNodes; i++){
+                const VectorType Vel0 = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY, 1);
+                vel0_CL += rCLWeights(clgp)*rCLShapeFunctions(clgp,i)*Vel0;
 
                 //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
 
@@ -3671,6 +3678,10 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         const double angle = acos (inner_prod(wall_tangent,contact_vector)) * 180.0 / PI;
         //KRATOS_INFO("HasContact") << angle << std::endl;
         this->SetValue(CONTACT_ANGLE, angle);
+
+        vel0_CL = 1.0/weight_sum*vel0_CL;
+        const double vel_CL = inner_prod(wall_tangent,vel0_CL);
+        this->SetValue(CONTACT_VELOCITY, vel_CL);
     }
 
     for (unsigned int i=0; i < NumNodes; ++i){
@@ -5438,9 +5449,9 @@ void TwoFluidNavierStokes<TElementData>::ContactSurfaceDissipation(
             Kratos::array_1d<double,n_nodes*(n_dim+1)> tempU; // Only the last known velocity
             Kratos::array_1d<double,n_nodes*(n_dim+1)> tempU0; // Only the last step velocity
             for (unsigned int i = 0; i < n_nodes; i++){
+                const VectorType Vel = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY);
+                const VectorType Vel0 = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY, 1);
                 for (unsigned int dimi = 0; dimi < n_dim; dimi++){
-                    const VectorType Vel = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY);
-                    const VectorType Vel0 = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY, 1);
                     tempU[i*(n_dim+1) + dimi] = //rData.Velocity(i,dimi);
                         Vel[dimi];
                     
@@ -5579,7 +5590,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
         const double value = this->GetValue( rVariable);
         for (std::size_t point_number = 0; point_number < number_of_integration_points; ++point_number) {
             KRATOS_INFO("CalculateOnIntegrationPoints") << "INSIDE IF!" << std::endl;
-            rOutput[point_number] = 180.0; value;
+            rOutput[point_number] = value;
         }
     }
 }
