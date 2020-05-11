@@ -39,8 +39,8 @@ namespace Kratos
         // Interpolate subdomain 1 velocities
         const Vector SubDomain1InterpolatedVelocities = (mJ == mTimeStepRatio)
             ? mSubDomain1FinalInterfaceVelocity
-            : (1.0 - mJ / mTimeStepRatio) * mSubDomain1InitialInterfaceVelocity
-                + mJ / mTimeStepRatio * mSubDomain1FinalInterfaceVelocity;
+            : (1.0 - double(mJ) / double(mTimeStepRatio)) * mSubDomain1InitialInterfaceVelocity
+                + double(mJ) / double(mTimeStepRatio) * mSubDomain1FinalInterfaceVelocity;
 
         // Invert sub domain 2 effective mass matrix
         ModelPart& r_sub_domain_2_active = mrSubDomain2.GetSubModelPart("active_nodes");
