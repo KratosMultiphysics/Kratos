@@ -170,17 +170,9 @@ class FemDemMechanicalSolver(object):
         print("::[Mechanical_Solver]:: General Variables ADDED")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, self.main_model_part)
+        AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
+        AddDofsProcess.Execute()
 
-        if (self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, self.main_model_part) 
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z, self.main_model_part) 
         print("::[Mechanical_Solver]:: DOF's ADDED")
 
     def ImportModelPart(self):
