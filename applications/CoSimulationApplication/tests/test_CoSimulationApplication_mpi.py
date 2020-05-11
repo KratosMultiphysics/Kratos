@@ -10,6 +10,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import tests
 from test_convergence_criteria import TestConvergenceCriteriaWrapper
 from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
+from test_processes import TestCreatePointBasedEntitiesProcess
 
 
 def AssembleTestSuites():
@@ -29,6 +30,7 @@ def AssembleTestSuites():
     smallSuite = suites['mpi_small'] # These tests are executed by the continuous integration tool
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteriaWrapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreatePointBasedEntitiesProcess]))
 
     ################################################################################
     nightSuite = suites['mpi_nightly'] # These tests are executed in the nightly build
