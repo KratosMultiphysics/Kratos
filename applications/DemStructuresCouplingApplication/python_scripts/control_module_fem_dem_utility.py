@@ -16,7 +16,7 @@ class ControlModuleFemDemUtility(object):
         if test_number == 1: # CTW16
             compression_length = 0.00381
             # face_area = 0.008062
-        elif test_number == 2: # CTW10            
+        elif test_number == 2: # CTW10
             compression_length = 0.00381
             # face_area = 0.007601
         else: # Blind test

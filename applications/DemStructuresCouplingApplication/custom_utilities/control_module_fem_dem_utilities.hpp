@@ -116,6 +116,8 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
 
     mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
 
+    mApplyCM = false;
+
     KRATOS_CATCH("");
 }
 
@@ -166,12 +168,6 @@ void ExecuteInitialize()
 // Before FEM and DEM solution
 void ExecuteInitializeSolutionStep()
 {
-    const double CurrentTime = mrFemModelPart.GetProcessInfo()[TIME];
-    const double DeltaTime = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
-    const int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
-    ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
-    TableType::Pointer pTargetStressTable = mrFemModelPart.pGetTable(mTargetStressTableId);
-
     double ReactionStress = CalculateReactionStress();
     ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 }

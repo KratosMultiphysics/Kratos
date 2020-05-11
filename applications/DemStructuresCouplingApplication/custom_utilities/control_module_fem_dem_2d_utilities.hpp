@@ -104,6 +104,8 @@ ControlModuleFemDem2DUtilities(ModelPart& rFemModelPart,
 
     mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
 
+    mApplyCM = false;
+
     KRATOS_CATCH("");
 }
 

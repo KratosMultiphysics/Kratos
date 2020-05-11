@@ -470,7 +470,6 @@ namespace Kratos {
         const bool local_coordination_option = r_process_info[LOCAL_COORDINATION_NUMBER_OPTION];
         const bool global_coordination_option = r_process_info[GLOBAL_COORDINATION_NUMBER_OPTION];
         added_search_distance = 0.0;
-        double amplification = 1.0;
 
         KRATOS_INFO("DEM") << "Setting up Coordination Number (input = "<<desired_coordination_number<<") by increasing or decreasing the search radius. ";
         KRATOS_INFO_IF("", local_coordination_option) << "Local extension activated. ";
@@ -537,6 +536,7 @@ namespace Kratos {
             //STAGE 2, Global Coordination Number
             tolerance = 1e-4;
             max_factor_between_iterations = 1.1;
+            double amplification = 1.0;
             double old_old_amplification = 1.0;
             double old_amplification = 1.0;
 

@@ -82,6 +82,8 @@ public:
         mYCounter = 2;
         mZCounter = 3;
 
+        mApplyCM = false;
+
         KRATOS_CATCH("");
     }
 
@@ -475,7 +477,7 @@ private:
         } else {
             ReactionStress = 0.0;
         }
-        
+
         return ReactionStress;
     }
 
