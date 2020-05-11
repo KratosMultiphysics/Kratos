@@ -86,39 +86,38 @@ namespace Testing
         mp_coordinate[1] = 0.2;
         mp_coordinate[2] = 0.0;
 
-        r_mpm_model_part.GetElement(1).SetValuesOnIntegrationPoints(
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check nodes
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[0].Id(), 1);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[1].Id(), 2);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[2].Id(), 3);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[3].Id(), 4);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 1);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 2);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 3);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[3].Id(), 4);
 
         // New Coordinates of Material Point
         mp_coordinate[0] = 1.2;
         mp_coordinate[1] = 0.0;
         mp_coordinate[2] = 0.0;
 
-        r_mpm_model_part.GetElement(1).SetValuesOnIntegrationPoints(
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         std::vector<array_1d<double, 3>> coords;
-        r_mpm_model_part.GetElement(1).CalculateOnIntegrationPoints(
+        r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
             MP_COORD, coords, r_mpm_model_part.GetProcessInfo());
         KRATOS_CHECK_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
         // Check nodes
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[0].Id(), 2);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[1].Id(), 9);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[2].Id(), 10);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(1).GetGeometry()[3].Id(), 3);
-
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 2);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 9);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 10);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[3].Id(), 3);
     }
 
 } // namespace Testing
