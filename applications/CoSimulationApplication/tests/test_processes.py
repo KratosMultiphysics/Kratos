@@ -72,6 +72,44 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
 
         self.__CheckCreatedEntitiesIdAreCorrectlyNumbered(self.root_model_part.Conditions)
 
+    def test_create_entities_from_entire_root_model_part(self):
+        settings = KM.Parameters("""{
+            "Parameters" : {
+                "model_part_name"         : "root_mp",
+                "new_sub_model_part_name" : "smp_with_conditions",
+                "sub_model_part_names"    : [],
+                "entity_name"             : "PointCondition2D1N",
+                "entity_type"             : "condition",
+                "properties_id"           : 0
+            }
+        }""")
+
+        self.process = self.__CreateProcess(settings)
+        self.assertTrue(self.root_model_part.HasSubModelPart("smp_with_conditions"))
+        self.assertEqual(self.root_model_part.NumberOfNodes(), self.root_model_part.NumberOfConditions())
+
+        self.__CheckCreatedEntitiesIdAreCorrectlyNumbered(self.root_model_part.Conditions)
+
+    def test_create_entities_from_one_sub_model_part(self):
+        settings = KM.Parameters("""{
+            "Parameters" : {
+                "model_part_name"         : "root_mp.smp_nodes_1",
+                "new_sub_model_part_name" : "smp_with_conditions",
+                "sub_model_part_names"    : [],
+                "entity_name"             : "PointCondition2D1N",
+                "entity_type"             : "condition",
+                "properties_id"           : 0
+            }
+        }""")
+
+        sub_mp = self.root_model_part.GetSubModelPart("smp_nodes_1")
+        self.process = self.__CreateProcess(settings)
+        self.assertFalse(self.root_model_part.HasSubModelPart("smp_with_conditions"))
+        self.assertTrue(sub_mp.HasSubModelPart("smp_with_conditions"))
+        self.assertEqual(self.root_model_part.GetSubModelPart("smp_nodes_1").NumberOfNodes(), self.root_model_part.NumberOfConditions())
+
+        self.__CheckCreatedEntitiesIdAreCorrectlyNumbered(self.root_model_part.Conditions)
+
     def test_create_entities_from_multiple_model_parts(self):
         settings = KM.Parameters("""{
             "Parameters" : {
