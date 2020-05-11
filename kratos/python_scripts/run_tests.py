@@ -280,7 +280,7 @@ def main():
     # Set timeout of the different levels
     signalTime = None
     if level == 'small':
-        signalTime = int(600)
+        signalTime = int(6000)
     elif level == 'nightly':
         signalTime = int(900)
 
