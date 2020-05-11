@@ -286,6 +286,8 @@ private:
 
     void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
 
+    int GetAdditionalNode() const;
+
     ///@}
     ///@name Private Operations
     ///@{

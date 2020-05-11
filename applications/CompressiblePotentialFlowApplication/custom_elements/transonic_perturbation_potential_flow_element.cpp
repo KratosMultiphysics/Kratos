@@ -119,12 +119,13 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
+    const int number_of_nodes = 4;
 
     if (wake == 0) // Normal element
     {
-        if (rResult.size() != TNumNodes)
+        if (rResult.size() != number_of_nodes)
         {
-             rResult.resize(TNumNodes, false);
+             rResult.resize(number_of_nodes, false);
         }
 
         const int kutta = r_this.GetValue(KUTTA);
@@ -375,10 +376,24 @@ template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorNormalElement(
     EquationIdVectorType& rResult) const
 {
+    const int additional_node_id = GetAdditionalNode();
+
+    const auto& r_geometry = this->GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
+        rResult[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
     }
+
+    // if(mpUpwindElement != nullptr)
+    // {
+        const auto& r_upwind_geometry = mpUpwindElement->GetGeometry();
+        rResult[TNumNodes] = r_upwind_geometry[additional_node_id].GetDof(VELOCITY_POTENTIAL).EquationId();
+    // }
+
+    // for (unsigned int i = 0; i < TNumNodes; i++)
+    // {
+    //     rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
+    // }
 }
 
 template <int TDim, int TNumNodes>
@@ -1037,6 +1052,42 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
             }
         }
     }
+}
+
+template<int TDim, int TNumNodes>
+int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAdditionalNode() const
+{
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+
+    // current and upwind element geometry
+    const GeometryType& r_geom = r_this.GetGeometry();
+    const GeometryType& r_upwind_geom = mpUpwindElement->GetGeometry();
+
+    int non_matching_nodes_counter = 0;
+    int additional_node = 0;
+    bool loop_stop = false;
+
+    for (unsigned int i = 0; i < TNumNodes && !loop_stop; i++)
+    {
+        for (unsigned int j = 0; j < TNumNodes && !loop_stop; j++)
+        {
+            // check if nodes are the same
+            if(r_upwind_geom[i].Id() != r_geom[j].Id())
+            {
+                non_matching_nodes_counter++;
+            }
+
+        }
+
+        // get index of non matching node
+        if (non_matching_nodes_counter == 3)
+        {
+            additional_node = i;
+            loop_stop = true;
+        }
+    }
+
+    return additional_node;
 }
 
 template <int TDim, int TNumNodes>
