@@ -450,6 +450,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
+        model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MIXED_TIME_LAGRANGE)
 
         # MPM dynamic variables
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)

@@ -464,6 +464,20 @@ namespace Kratos
             {
                 KRATOS_ERROR << "NOT YET DONE";
             }
+
+            // Write Lagrangian multiplier results to interface nodes
+            const SizeType working_space_dim = mrSubDomain1.ElementsBegin()->WorkingSpaceDimension();
+            KRATOS_ERROR_IF(rLamda.size() != mActiveInterfaceNodeIDs.size() * working_space_dim) << "Lamda size is wrong";
+            for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
+            {
+                auto result_node = mrSubDomain1.pGetNode(mActiveInterfaceNodeIDs[i]);
+                array_1d<double, 3>& r_nodal_lagrange = result_node->FastGetSolutionStepValue(NODAL_MIXED_TIME_LAGRANGE);
+                r_nodal_lagrange.clear();
+                for (IndexType k = 0; k < working_space_dim; ++k)
+                {
+                    r_nodal_lagrange[k] += rLamda[i * working_space_dim + k];
+                }
+            }
         }
     }
 
