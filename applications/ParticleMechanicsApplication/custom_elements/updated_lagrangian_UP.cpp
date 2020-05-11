@@ -177,11 +177,11 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     double MP_pressure = 0.0;
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (rVariables.N[i] > std::numeric_limits<double>::epsilon())
+        if (r_N(0, i) > std::numeric_limits<double>::epsilon())
         {
             auto r_geometry = GetGeometry();
             array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
@@ -189,12 +189,12 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
                 nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
 
             const double& nodal_pressure = r_geometry[i].FastGetSolutionStepValue(PRESSURE, 0);
-            MP_pressure += rVariables.N[i] * nodal_pressure;
+            MP_pressure += r_N(0, i) * nodal_pressure;
 
             for ( unsigned int j = 0; j < dimension; j++ )
             {
-                delta_xg[j] += rVariables.N[i] * rVariables.CurrentDisp(i,j);
-                MP_acceleration[j] += rVariables.N[i] * nodal_acceleration[j];
+                delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
+                MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
 
                 /* NOTE: The following interpolation techniques have been tried:
                     MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
@@ -381,7 +381,7 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     GeneralVariables Variables;
 
     // Calculating shape function
-    Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     mFinalizedStep = false;
 
@@ -405,24 +405,24 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
         // These are the values of nodal pressure evaluated in the initialize solution step
         const double& nodal_pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE,1);
 
-        aux_MP_pressure += Variables.N[j] * nodal_pressure;
+        aux_MP_pressure += r_N(0, j) * nodal_pressure;
 
         for (unsigned int k = 0; k < dimension; k++)
         {
-            aux_MP_velocity[k] += Variables.N[j] * nodal_velocity[k];
-            aux_MP_acceleration[k] += Variables.N[j] * nodal_acceleration[k];
+            aux_MP_velocity[k] += r_N(0, j) * nodal_velocity[k];
+            aux_MP_acceleration[k] += r_N(0, j) * nodal_acceleration[k];
         }
     }
 
     // Here MP contribution in terms of momentum, inertia, mass-pressure and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        double nodal_mpressure =  Variables.N[i] * (m_mp_pressure - aux_MP_pressure) * mMP.mass;
+        double nodal_mpressure = r_N(0, i) * (m_mp_pressure - aux_MP_pressure) * mMP.mass;
 
         for (unsigned int j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = Variables.N[i] * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
-            nodal_inertia[j]  = Variables.N[i] * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
+            nodal_momentum[j] = r_N(0, i) * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
+            nodal_inertia[j]  = r_N(0, i) * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
         }
 
         r_geometry[i].SetLock();
@@ -430,7 +430,7 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)   += nodal_inertia;
         r_geometry[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mpressure;
 
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * mMP.mass;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
     }
 }
@@ -478,6 +478,7 @@ void UpdatedLagrangianUP::CalculateAndAddExternalForces(VectorType& rRightHandSi
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -485,7 +486,7 @@ void UpdatedLagrangianUP::CalculateAndAddExternalForces(VectorType& rRightHandSi
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            rRightHandSideVector[index_up + j] += rVariables.N[i] * rVolumeForce[j];
+            rRightHandSideVector[index_up + j] += r_N(0, i) * rVolumeForce[j];
         }
     }
 
@@ -564,6 +565,7 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     // FIXME: This is only for Solid Mechanics Problem with young_modulus Modulus and Poisson Ratio
     // TODO: Think about a more general way to find Bulk Modulus
@@ -588,10 +590,10 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
             const double& pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
 
             // TODO: Check what is the meaning of this equation
-            rRightHandSideVector[index_p] += (1.0/(delta_coefficient * bulk_modulus)) * rVariables.N[i] * rVariables.N[j] * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
+            rRightHandSideVector[index_p] += (1.0/(delta_coefficient * bulk_modulus)) * r_N(0, i) * r_N(0, j) * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
         }
 
-        rRightHandSideVector[index_p] -=  coefficient/delta_coefficient * rVariables.N[i] * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+        rRightHandSideVector[index_p] -=  coefficient/delta_coefficient * r_N(0, i) * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
 
         index_p += (dimension + 1);
     }
@@ -795,6 +797,7 @@ void UpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -805,7 +808,7 @@ void UpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
         {
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_up+k,index_p) +=  rVariables.DN_DX ( i, k ) *  rVariables.N[j] * rIntegrationWeight * rVariables.detF;
+                rLeftHandSideMatrix(index_up+k,index_p) +=  rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight * rVariables.detF;
             }
             index_p += (dimension + 1);
         }
@@ -826,6 +829,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     // Assemble components considering added DOF matrix system
     unsigned int index_p = dimension;
@@ -836,7 +840,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
             unsigned int index_up = dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_p,index_up+k) +=  rVariables.N[i] * rVariables.DN_DX ( j, k ) * rIntegrationWeight * rVariables.detF;
+                rLeftHandSideMatrix(index_p,index_up+k) += r_N(0, i) * rVariables.DN_DX ( j, k ) * rIntegrationWeight * rVariables.detF;
             }
         }
         index_p += (dimension + 1);
@@ -856,6 +860,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     // FIXME: This is only for Solid Mechanics Problem with young_modulus Modulus and Poisson Ratio
     // TODO: Think about a more general way to find Bulk Modulus
@@ -877,7 +882,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
         unsigned int indexpj = dimension;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight /(delta_coefficient * (rVariables.detF0/rVariables.detF));
+            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight /(delta_coefficient * (rVariables.detF0/rVariables.detF));
 
             indexpj += (dimension + 1);
         }
@@ -1181,6 +1186,7 @@ void UpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariables, 
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     double voigtsize = 3;
     if ( dimension == 3)
@@ -1191,7 +1197,7 @@ void UpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariables, 
     // Evaluation of the pressure on the material point
     double nodal_mean_stress = 0.0;
     for (unsigned int i = 0; i < number_of_nodes; i++)
-        nodal_mean_stress += r_geometry[i].FastGetSolutionStepValue( PRESSURE ) * rVariables.N[i];
+        nodal_mean_stress += r_geometry[i].FastGetSolutionStepValue( PRESSURE ) * r_N(0, i);
 
     // Evaluation of the mean stress on the material point
     double mean_stress = 0.0;

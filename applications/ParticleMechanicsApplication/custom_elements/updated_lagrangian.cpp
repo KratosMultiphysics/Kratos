@@ -193,8 +193,6 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
-    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
-
     // Reading shape functions local gradients
     rVariables.DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
 
@@ -255,7 +253,7 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
-    rValues.SetShapeFunctionsValues(rVariables.N);
+    rValues.SetShapeFunctionsValues(row(GetGeometry().ShapeFunctionsValues(), 0));
 
 }
 
@@ -397,9 +395,11 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     this->CalculateDeformationGradient(rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, is_axisymmetric);
 
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
     if (is_axisymmetric) {
-        rVariables.CurrentRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
-        rVariables.ReferenceRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry(), Initial);
+        rVariables.CurrentRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
+        rVariables.ReferenceRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry(), Initial);
     }
 
     // Determinant of the previous Deformation Gradient F_n
@@ -407,14 +407,14 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     rVariables.F0    = mDeformationGradientF0;
 
     // Compute the deformation matrix B
-    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, rVariables.N, is_axisymmetric);
+    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, r_N, is_axisymmetric);
 
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
 
 void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
-        const Matrix& rDN_DX, const Vector& rN, const bool IsAxisymmetric)
+        const Matrix& rDN_DX, const Matrix& rN, const bool IsAxisymmetric)
 {
     KRATOS_TRY
 
@@ -433,7 +433,7 @@ void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
 
             rB(0, index + 0) = rDN_DX(i, 0);
             rB(1, index + 1) = rDN_DX(i, 1);
-            rB(2, index + 0) = rN[i] / radius;
+            rB(2, index + 0) = rN(0, i) / radius;
             rB(3, index + 0) = rDN_DX(i, 1);
             rB(3, index + 1) = rDN_DX(i, 0);
         }
@@ -522,7 +522,6 @@ void UpdatedLagrangian::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
             : false;
         if (is_explicit)
         {
-            rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
             Matrix Jacobian;
             GetGeometry().Jacobian(Jacobian, 0);
             Matrix InvJ;
@@ -536,9 +535,11 @@ void UpdatedLagrangian::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                 : false;
 
             if (is_axisymmetric) {
-                const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+                Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
+                const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(
+                    GetGeometry().ShapeFunctionsValues(), GetGeometry());
                 MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
-                    rVariables.DN_DX, rVariables.N, mMP.cauchy_stress_vector, mMP.volume,
+                    rVariables.DN_DX, N, mMP.cauchy_stress_vector, mMP.volume,
                     mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
             }
             else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
@@ -568,13 +569,15 @@ void UpdatedLagrangian::CalculateAndAddExternalForces(VectorType& rRightHandSide
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            rRightHandSideVector[index + j] += rVariables.N[i] * rVolumeForce[j];
+            rRightHandSideVector[index + j] += r_N(0, i) * rVolumeForce[j];
         }
     }
 
@@ -621,20 +624,20 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
 
     // Compute explicit element kinematics, strain is incremented here.
-    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
     Matrix Jacobian;
     GetGeometry().Jacobian(Jacobian, 0);
     Matrix InvJ;
     double detJ;
     MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Matrix DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
     rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
 
     if (is_axisymmetric)
     {
-        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
         MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
-            rVariables.N, mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
+            row(r_N, 0), mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
     }
     else
     {
@@ -756,9 +759,11 @@ void UpdatedLagrangian::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
         double alpha_2 = 0;
         double alpha_3 = 0;
 
+        const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
         const unsigned int number_of_nodes = GetGeometry().size();
         unsigned int index_i = 0;
-        const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+        const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
@@ -767,7 +772,7 @@ void UpdatedLagrangian::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
             {
                 alpha_1 = rVariables.DN_DX(j, 0) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[0] + rVariables.DN_DX(i, 1) * rVariables.StressVector[3]);
                 alpha_2 = rVariables.DN_DX(j, 1) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[3] + rVariables.DN_DX(i, 1) * rVariables.StressVector[1]);
-                alpha_3 = rVariables.N[i] * rVariables.N[j] * rVariables.StressVector[2] * (1.0 / radius * radius);
+                alpha_3 = r_N(0, i) * r_N(0, j) * rVariables.StressVector[2] * (1.0 / radius * radius);
 
                 rLeftHandSideMatrix(index_i, index_j) += (alpha_1 + alpha_2 + alpha_3) * rIntegrationWeight;
                 rLeftHandSideMatrix(index_i + 1, index_j + 1) += (alpha_1 + alpha_2) * rIntegrationWeight;
@@ -813,9 +818,8 @@ void UpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Matri
     if (IsAxisymmetric)
     {
         // Compute radius
-        Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
-        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(N, GetGeometry());
-        const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(N, GetGeometry(), Initial);
+        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry());
+        const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry(), Initial);
 
         rF = IdentityMatrix(3);
 
@@ -1034,8 +1038,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     mFinalizedStep = false;
 
     // Calculating shape functions
-    Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
-    
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     array_1d<double,3> aux_MP_velocity = ZeroVector(3);
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
@@ -1057,8 +1060,8 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
             for (unsigned int k = 0; k < dimension; k++)
             {
-                aux_MP_velocity[k] += N[j] * nodal_velocity[k];
-                aux_MP_acceleration[k] += N[j] * nodal_acceleration[k];
+                aux_MP_velocity[k] += r_N(0, j) * nodal_velocity[k];
+                aux_MP_acceleration[k] += r_N(0, j) * nodal_acceleration[k];
             }
         }
     }
@@ -1068,8 +1071,8 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     {
         for (unsigned int j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = N[i] * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
-            nodal_inertia[j] = N[i] * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
+            nodal_momentum[j] = r_N(0, i) * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
+            nodal_inertia[j] = r_N(0, i) * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
 
         }
 
@@ -1080,7 +1083,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
             if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
                 const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
                 for (unsigned int j = 0; j < dimension; j++) {
-                    nodal_momentum[j] += 0.5 * delta_time * (N[i] * mMP.acceleration[j]) * mMP.mass;
+                    nodal_momentum[j] += 0.5 * delta_time * (r_N(0, i) * mMP.acceleration[j]) * mMP.mass;
                 }
             }
         }
@@ -1088,7 +1091,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
         r_geometry[i].SetLock();
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += N[i] * mMP.mass;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
     }
 }
@@ -1101,8 +1104,8 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     KRATOS_TRY
 
     const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-    ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-    : false;
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
 
     KRATOS_ERROR_IF(is_explicit)
     << "FinalizeSolutionStep for explicit time integration is done in the scheme";
@@ -1188,11 +1191,11 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
     array_1d<double,3> MP_velocity = ZeroVector(3);
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    rVariables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (rVariables.N[i] > std::numeric_limits<double>::epsilon())
+        if (r_N(0, i) > std::numeric_limits<double>::epsilon())
         {
             auto r_geometry = GetGeometry();
             array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
@@ -1201,8 +1204,8 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 
             for ( unsigned int j = 0; j < dimension; j++ )
             {
-                delta_xg[j] += rVariables.N[i] * rVariables.CurrentDisp(i,j);
-                MP_acceleration[j] += rVariables.N[i] * nodal_acceleration[j];
+                delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
+                MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
 
                 /* NOTE: The following interpolation techniques have been tried:
                     MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
@@ -1248,10 +1251,8 @@ void UpdatedLagrangian::InitializeMaterial()
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
 
-        Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
-
-        mConstitutiveLawVector->InitializeMaterial( GetProperties(), GetGeometry(),
-                Variables.N );
+        mConstitutiveLawVector->InitializeMaterial( 
+            GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(), 0));
 
         mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
         mMP.cauchy_stress_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
@@ -1276,8 +1277,10 @@ void UpdatedLagrangian::ResetConstitutiveLaw()
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
-        Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
-        mConstitutiveLawVector->ResetMaterial( GetProperties(), GetGeometry(), Variables.N);
+        mConstitutiveLawVector->ResetMaterial(
+            GetProperties(),
+            GetGeometry(),
+            row(GetGeometry().ShapeFunctionsValues(), 0));
     }
 
     KRATOS_CATCH( "" )

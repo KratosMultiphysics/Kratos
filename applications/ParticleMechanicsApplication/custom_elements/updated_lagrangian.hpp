@@ -173,7 +173,6 @@ protected:
         double  detFT;
         Vector  StrainVector;
         Vector  StressVector;
-        Vector  N;
         Matrix  B;
         Matrix  F;
         Matrix  FT;
@@ -774,7 +773,7 @@ protected:
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
                                             const Matrix& rDN_DX,
-                                            const Vector& N,
+                                            const Matrix& rN,
                                             const bool IsAxisymmetric = false);
 
     /**
