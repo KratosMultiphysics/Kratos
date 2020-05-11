@@ -96,43 +96,49 @@ protected:
 
     void UtilityClearAndResizeVector(Vector& rVector, const SizeType desiredSize);
 
+    // Sub domain 1 kinematic storage -------------------
     Vector mSubDomain1InitialInterfaceVelocity;
+
     Vector mSubDomain1FinalInterfaceVelocity;
     Vector mSubDomain1FinalDomainVelocity;
     Vector mSubDomain1FinalDomainDisplacement;
     Vector mSubDomain1FinalDomainAcceleration;
     Vector mSubDomain1FinalDomainActiveNodes;
+
     Vector mSubDomain1AccumulatedLinkVelocity;
 
+    Vector mSubDomain1DofPositions;
+
+    // Sub domain 1 coupling and mass matrix -------------------
     Matrix mInvM1;
     Matrix mCoupling1;
 
+    // Time parameters -------------------
     IndexType mJ;
     const IndexType mTimeStepRatio;
     const double mSmallTimestep;
     array_1d<double, 2> mGamma;
 
+    // Sub domain modelpart references -------------------
     ModelPart& mrSubDomain1;
     ModelPart& mrSubDomain2;
 
+    // Interface node ID container -------------------
     Vector mActiveInterfaceNodeIDs;
-    Vector mSubDomain1DofPositions;
+
+    // Bools to ensure operations are performed in the correct order -------------------
     bool mActiveInterfaceNodesComputed = false;
     bool mIsSubDomain1QuantitiesPrepared = false;
 
-
-
-    // Coupling parameters ===================================================
+    // Coupling parameters -------------------
     const double mInterfaceVelocityTolerance = 1e-6;
     const bool mCheckInterfaceContinuity = true; // should normally be true
     const bool mDisableLagrangianMultipliers = false; // should normally be false
 
-    // Print bools - set all to 'false' normally
-    const bool mPrintEquilibratedInterfaceVelocity = false; // TODO delete, for debugging
-    const bool mPrintFreeInterfaceVelocity = false; // TODO delete, for debugging
-    const bool mPrintLagrangeMultipliers = false;
-
-
+    // Print bools - set all to 'false' normally -------------------
+    const bool mPrintEquilibratedInterfaceVelocity = true; // TODO delete, for debugging
+    const bool mPrintFreeInterfaceVelocity = true; // TODO delete, for debugging
+    const bool mPrintLagrangeMultipliers = true;
 }; // end namespace MPMTemporalCouplingUtility
 } // end namespace Kratos
 
