@@ -37,19 +37,19 @@ class MPMCoupledTimeSolver(MPMSolver):
         self.time_step_2 = self.time_step_1/self.time_step_ratio
         self.time_step_index_j = 0;
 
-        gamma_1 = 10.0
-        gamma_2 = 10.0
+        self.gamma_1 = 10.0
+        self.gamma_2 = 10.0
 
         if (self.settings["time_stepping"]["time_integration_method_1"].GetString() == "implicit"):
-            gamma_1 = 0.5
+            self.gamma_1 = 0.5
         elif (self.settings["time_stepping"]["time_integration_method_1"].GetString() == "explicit"):
-            gamma_1 = 1.0
+            self.gamma_1 = 1.0
         else:
             raise Exception("Check the time_integration_method_1 in project parameters file")
         if (self.settings["time_stepping"]["time_integration_method_2"].GetString() == "implicit"):
-            gamma_2 = 0.5
+            self.gamma_2 = 0.5
         elif (self.settings["time_stepping"]["time_integration_method_2"].GetString() == "explicit"):
-            gamma_2 = 1.0
+            self.gamma_2 = 1.0
         else:
             raise Exception("Check the time_integration_method_2 in project parameters file")
 
@@ -58,7 +58,7 @@ class MPMCoupledTimeSolver(MPMSolver):
                                                                           self.model_sub_domain_2,
                                                                           self.time_step_ratio,
                                                                           self.time_step_2,
-                                                                          gamma_1, gamma_2)
+                                                                          self.gamma_1, self.gamma_2)
 
         # TODO read from parameters
         self.interface_criteria_normal = [1,0,0]
@@ -72,6 +72,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         {
             "analysis_type"   : "linear",
             "scheme_type"   : "newmark",
+            "stress_update" : "usl",
             "newmark_beta"  : 0.25,
             "consistent_mass_matrix"  : true,
             "time_stepping"            : {
@@ -97,6 +98,10 @@ class MPMCoupledTimeSolver(MPMSolver):
         # The particle solution strategy is created here if it does not already exist.
         particle_solution_strategy_1 = self._GetSolutionStrategy(1)
         particle_solution_strategy_1.SetEchoLevel(self.settings["echo_level"].GetInt())
+        if self.gamma_1 == 1.0:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
+        else:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
 
         particle_solution_strategy_2 = self._GetSolutionStrategy(2)
         particle_solution_strategy_2.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -133,6 +138,10 @@ class MPMCoupledTimeSolver(MPMSolver):
 
 
     def InitializeSolutionStep(self):
+        if self.gamma_1 == 1.0:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
+        else:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         self._SearchElement()
         #print('Initializing sd1')
         #print("Subdomain 1 time = ", self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.TIME])
@@ -164,6 +173,11 @@ class MPMCoupledTimeSolver(MPMSolver):
             print("Subdomain 2 timestep", j, "of",self.time_step_ratio,
                   "(SD1 time = ",self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.TIME], ", SD2 time = ",time,")")
 
+            if self.gamma_2 == 1.0:
+                self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
+            else:
+                self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
+
             #print('Initializing sd2')
             self._GetSolutionStrategy(2).Initialize()
             self._GetSolutionStrategy(2).InitializeSolutionStep()
@@ -179,6 +193,10 @@ class MPMCoupledTimeSolver(MPMSolver):
             self._GetSolutionStrategy(2).FinalizeSolutionStep()
             self._GetSolutionStrategy(2).Clear()
         self.coupling_utility.CorrectSubDomain1()
+        if self.gamma_1 == 1.0:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
+        else:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         return is_converged
 
 
@@ -425,8 +443,6 @@ class MPMCoupledTimeSolver(MPMSolver):
 
 
     def _AddVariablesToModelPart(self, model_part):
-        print("\n\n ----------- _AddVariablesToModelPart -------------------")
-        print(model_part)
         # Add displacements and reaction
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -445,6 +461,12 @@ class MPMCoupledTimeSolver(MPMSolver):
         # MPM dynamic variables
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+
+        # Adding explicit variables
+        self.grid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+        self.grid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
 
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
@@ -538,24 +560,43 @@ class MPMCoupledTimeSolver(MPMSolver):
         domain_size = self._GetDomainSize()
         block_size  = domain_size
 
+        is_implicit = True
+        if index == 1:
+            if (self.settings["time_stepping"]["time_integration_method_1"].GetString() == "explicit"):
+                is_implicit = False
+        if index == 2:
+            if (self.settings["time_stepping"]["time_integration_method_2"].GetString() == "explicit"):
+                is_implicit = False
+
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()
         if(scheme_type == "newmark"):
             damp_factor_m = 0.0
             newmark_beta = self.settings["newmark_beta"].GetDouble()
+        elif scheme_type == "forward_euler":
+            stress_update_option = 1
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, stress_update_option)
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, False)
         else:
             err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"newmark\""
+            err_msg += "Available options are: \"newmark\", \"forward_euler\""
             raise Exception(err_msg)
 
         is_dynamic = self._IsDynamic()
 
-        return KratosParticle.MPMResidualBasedBossakScheme( grid_model_part,
-                                                            domain_size,
-                                                            block_size,
-                                                            damp_factor_m,
-                                                            newmark_beta,
-                                                            is_dynamic)
+        if (is_implicit):
+            return KratosParticle.MPMResidualBasedBossakScheme( grid_model_part,
+                                                                domain_size,
+                                                                block_size,
+                                                                damp_factor_m,
+                                                                newmark_beta,
+                                                                is_dynamic)
+        else:
+            stress_update_option = 1
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, stress_update_option)
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, False)
+            return KratosParticle.MPMExplicitScheme( grid_model_part)
+
 
     def _IsDynamic(self):
         return True
@@ -603,18 +644,37 @@ class MPMCoupledTimeSolver(MPMSolver):
                                                                         self.settings["move_mesh_flag"].GetBool())
 
     def _CreateLinearStrategy(self, index):
-        computing_model_part = self.GetComputingSubModelPart(index)
-        solution_scheme = self._GetSolutionScheme(index)
-        linear_solver = self._GetLinearSolver(index)
-        reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
-        calc_norm_dx_flag = False ## hard-coded, but can be changed upon implementation
-        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
-                                                              solution_scheme,
-                                                              linear_solver,
-                                                              self.settings["compute_reactions"].GetBool(),
-                                                              reform_dofs_at_each_step,
-                                                              calc_norm_dx_flag,
-                                                              self.settings["move_mesh_flag"].GetBool())
+        is_implicit = True
+        if index == 1:
+            if (self.settings["time_stepping"]["time_integration_method_1"].GetString() == "explicit"):
+                is_implicit = False
+        if index == 2:
+            if (self.settings["time_stepping"]["time_integration_method_2"].GetString() == "explicit"):
+                is_implicit = False
+        if is_implicit:
+            computing_model_part = self.GetComputingSubModelPart(index)
+            solution_scheme = self._GetSolutionScheme(index)
+            linear_solver = self._GetLinearSolver(index)
+            reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
+            calc_norm_dx_flag = False ## hard-coded, but can be changed upon implementation
+            return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
+                                                                  solution_scheme,
+                                                                  linear_solver,
+                                                                  self.settings["compute_reactions"].GetBool(),
+                                                                  reform_dofs_at_each_step,
+                                                                  calc_norm_dx_flag,
+                                                                  self.settings["move_mesh_flag"].GetBool())
+        else:
+            computing_model_part = self.GetComputingSubModelPart(index)
+            solution_scheme = self._GetSolutionScheme(index)
+            reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
+            move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
+            move_mesh_flag = False ## hard-coded
+            return KratosParticle.MPMExplicitStrategy(computing_model_part,
+                                                          solution_scheme,
+                                                          self.settings["compute_reactions"].GetBool(),
+                                                          reform_dofs_at_each_step,
+                                                          move_mesh_flag)
 
     def _SetBufferSize(self):
         current_buffer_size = self.grid_model_part.GetBufferSize()
