@@ -104,13 +104,14 @@ const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions
 template<class TDataType>
 void EmbeddedSkinVisualizationProcess::FillVariablesList(
     const Parameters rParameters,
-    std::vector<Variable<TDataType>>& rVariablesList)
+    std::vector<const Variable<TDataType>*>& rVariablesList)
 {
     rVariablesList.clear();
     for (auto i_var_params : rParameters["visualization_variables"]) {
         const std::string i_var_name = i_var_params.GetString();
         if(KratosComponents<Variable<TDataType>>::Has(i_var_name)){
-            rVariablesList.push_back(KratosComponents<Variable<TDataType>>::Get(i_var_name));
+            const auto& r_var = KratosComponents<Variable<TDataType>>::Get(i_var_name);
+            rVariablesList.push_back(&r_var);
         }
     }
 }
@@ -118,8 +119,8 @@ void EmbeddedSkinVisualizationProcess::FillVariablesList(
 EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     ModelPart& rModelPart,
     ModelPart& rVisualizationModelPart,
-    const std::vector<Variable< double> >& rVisualizationScalarVariables,
-    const std::vector<Variable< array_1d<double, 3> > >& rVisualizationVectorVariables,
+    const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
+    const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
     const std::string& rShapeFunctions,
     const bool ReformModelPartAtEachTimeStep) :
     Process(),
@@ -152,17 +153,17 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
         } (rParameters)
     )
     , mVisualizationScalarVariables(
-        [&] (Parameters& x) -> std::vector<Variable<double>> {
+        [&] (Parameters& x) -> std::vector<const Variable<double>*> {
             x.ValidateAndAssignDefaults(GetDefaultSettings());
-            std::vector<Variable<double>> aux_list;
+            std::vector<const Variable<double>*> aux_list;
             FillVariablesList<double>(x, aux_list);
             return aux_list;
         } (rParameters)
     )
     , mVisualizationVectorVariables(
-        [&] (Parameters& x) -> std::vector<Variable<array_1d<double,3>>> {
+        [&] (Parameters& x) -> std::vector<const Variable<array_1d<double,3>>*> {
             x.ValidateAndAssignDefaults(GetDefaultSettings());
-            std::vector<Variable<array_1d<double,3>>> aux_list;
+            std::vector<const Variable<array_1d<double,3>>*> aux_list;
             FillVariablesList<array_1d<double,3>>(x, aux_list);
             return aux_list;
         } (rParameters)
@@ -251,12 +252,14 @@ int EmbeddedSkinVisualizationProcess::Check()
 
     // Check visualization scalar variables
     for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationScalarVariables[i_var], r_orig_node);
+        const Variable<double>& r_var = *(mVisualizationScalarVariables[i_var]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_var, r_orig_node);
     }
 
     // Check visualization vector variables
     for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationVectorVariables[i_var], r_orig_node);
+        const Variable<array_1d<double,3>>& r_var = *(mVisualizationVectorVariables[i_var]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_var, r_orig_node);
     }
 
     return 0;
@@ -299,7 +302,7 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
 
                 // Interpolate the scalar variables
                 for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-                    const Variable<double> &r_scalar_var = mVisualizationScalarVariables[i_var];
+                    const Variable<double> &r_scalar_var = *(mVisualizationScalarVariables[i_var]);
                     const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_scalar_var);
                     const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_scalar_var);
                     p_node->FastGetSolutionStepValue(r_scalar_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
@@ -307,7 +310,7 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
 
                 // Interpolate the vector variables
                 for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-                    const Variable<array_1d<double, 3> > &r_vector_var = mVisualizationVectorVariables[i_var];
+                    const Variable<array_1d<double, 3> > &r_vector_var = *(mVisualizationVectorVariables[i_var]);
                     const array_1d<double, 3> &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_vector_var);
                     const array_1d<double, 3> &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_vector_var);
                     p_node->FastGetSolutionStepValue(r_vector_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
@@ -348,13 +351,13 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues()
         auto it_new_node = mrVisualizationModelPart.NodesBegin() + i_node;
 
         for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-            it_new_node->FastGetSolutionStepValue(mVisualizationScalarVariables[i_var]) =
-                it_old_node->FastGetSolutionStepValue(mVisualizationScalarVariables[i_var]);
+            const Variable<double>& r_var = *(mVisualizationScalarVariables[i_var]);
+            it_new_node->FastGetSolutionStepValue(r_var) = it_old_node->FastGetSolutionStepValue(r_var);
         }
 
         for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-            it_new_node->FastGetSolutionStepValue(mVisualizationVectorVariables[i_var]) =
-                it_old_node->FastGetSolutionStepValue(mVisualizationVectorVariables[i_var]);
+            const Variable<array_1d<double,3>>& r_var = *(mVisualizationVectorVariables[i_var]);
+            it_new_node->FastGetSolutionStepValue(r_var) = it_old_node->FastGetSolutionStepValue(r_var);
         }
     }
 }

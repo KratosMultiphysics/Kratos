@@ -141,7 +141,7 @@ public:
     template<class TDataType>
     static void FillVariablesList(
         const Parameters rParameters,
-        std::vector<Variable<TDataType>>& rVariablesList);
+        std::vector<const Variable<TDataType>*>& rVariablesList);
 
     /// Constructor.
 
@@ -157,8 +157,8 @@ public:
     EmbeddedSkinVisualizationProcess(
         ModelPart& rModelPart,
         ModelPart& rVisualizationModelPart,
-        const std::vector<Variable< double> >& rVisualizationScalarVariables,
-        const std::vector<Variable< array_1d<double, 3> > >& rVisualizationVectorVariables,
+        const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
+        const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
         const std::string& rShapeFunctions = "standard",
         const bool ReformModelPartAtEachTimeStep = false);
 
@@ -264,10 +264,10 @@ private:
     const bool mReformModelPartAtEachTimeStep;
 
     // Vector containing the scalar variables to be interpolated in the visualization mesh
-    const std::vector<Variable< double> > mVisualizationScalarVariables;
+    const std::vector<const Variable<double>*> mVisualizationScalarVariables;
 
     // Vector containing the vector variables to be interpolated in the visualization mesh
-    const std::vector<Variable< array_1d<double, 3> > > mVisualizationVectorVariables;
+    const std::vector<const Variable<array_1d<double, 3>>*> mVisualizationVectorVariables;
 
     ///@}
     ///@name Protected Operators

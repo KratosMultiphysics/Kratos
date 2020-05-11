@@ -105,8 +105,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init <
         ModelPart&,
         ModelPart&,
-        const std::vector<Variable <double> >,
-        const std::vector<Variable< array_1d<double, 3> > >,
+        const std::vector<const Variable <double>* >,
+        const std::vector<const Variable< array_1d<double, 3> >* >,
         std::string,
         const bool >())
     .def(py::init< Model&, Parameters >())
