@@ -16,7 +16,8 @@ import os
 
 # Check other applications dependency
 hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
-eignsolver_is_available = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
+eigensolver_is_available = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
+externalsolvers_is_available = kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 meshing_is_available = kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
 try:
     import stl
@@ -42,6 +43,8 @@ class PotentialFlowTests(UnitTest.TestCase):
         self.print_output = False
 
     def test_Naca0012SmallAdjoint(self):
+        if not externalsolvers_is_available:
+            self.skipTest("Missing required application: ExternalSolversApplication")
         if not hdf5_is_available:
             self.skipTest("Missing required application: HDF5Application")
         file_name = "naca0012_small_sensitivities"
@@ -65,7 +68,9 @@ class PotentialFlowTests(UnitTest.TestCase):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
     def test_Naca0012SmallCompressible(self):
-        if not eignsolver_is_available:
+        if not externalsolvers_is_available:
+            self.skipTest("Missing required application: ExternalSolversApplication")
+        if not eigensolver_is_available:
             self.skipTest("Missing required application: EigenSolversApplication")
         file_name = "naca0012_small_compressible"
         settings_file_name = file_name + "_parameters.json"
@@ -83,7 +88,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
     def test_Naca0012SmallTransonic(self):
-        if not eignsolver_is_available:
+        if not eigensolver_is_available:
             self.skipTest("Missing required application: EigenSolversApplication")
         file_name = "naca0012_small_transonic"
         settings_file_name = file_name + "_parameters.json"
@@ -99,7 +104,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         kratos_utilities.DeleteTimeFiles(work_folder)
 
     def test_Naca0012SmallPerturbationCompressible(self):
-        if not eignsolver_is_available:
+        if not eigensolver_is_available:
             self.skipTest("Missing required application: EigenSolversApplication")
         file_name = "naca0012_small_perturbation_compressible"
         settings_file_name = file_name + "_parameters.json"

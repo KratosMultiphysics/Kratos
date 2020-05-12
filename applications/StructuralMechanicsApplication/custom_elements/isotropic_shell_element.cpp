@@ -741,7 +741,7 @@ void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList, const P
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetValuesVector(Vector& values, int Step)
+void IsotropicShellElement::GetValuesVector(Vector& values, int Step) const
 {
     const unsigned int number_of_nodes = 3;
     //const unsigned int dim = 3;
@@ -937,17 +937,6 @@ void IsotropicShellElement::NicePrint(const Matrix& A)
         std::cout << std::endl;
     }
 }
-
-
-//************************************************************************************
-//************************************************************************************
-void IsotropicShellElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
 
 
 //************************************************************************************
@@ -2044,7 +2033,7 @@ void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step)
+void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize)   values.resize(MatSize,false);
@@ -2061,7 +2050,7 @@ void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step)
 }
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step)
+void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize) values.resize(MatSize,false);
