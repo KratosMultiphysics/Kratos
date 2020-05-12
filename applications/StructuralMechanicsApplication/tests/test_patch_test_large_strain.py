@@ -136,9 +136,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                 "name"          : "static_scheme"
             },
             "convergence_criteria_settings" : {
-                "name"               : "residual_criteria",
+                "name"               : "displacement_criteria",
                 "absolute_tolerance" : 1.0e-20,
-                "relative_tolerance" : 1.0e-14,
+                "relative_tolerance" : 1.0e-10,
                 "echo_level"         : 0
             },
             "builder_and_solver_settings" : {
