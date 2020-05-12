@@ -233,7 +233,7 @@ void NodalConcentratedElement::EquationIdVector(
 //*********************************DISPLACEMENT***************************************
 /***********************************************************************************/
 
-void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step )
+void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -279,7 +279,7 @@ void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 /***********************************************************************************/
 
-void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -324,7 +324,7 @@ void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int S
 //*********************************ACCELERATION***************************************
 /***********************************************************************************/
 
-void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();

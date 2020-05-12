@@ -64,7 +64,7 @@ namespace Testing
 
         // Fill the process info container
         auto &r_process_info = rModelPart.GetProcessInfo();
-        r_process_info.SetValue(THETA, 1.0);
+        r_process_info.SetValue(TIME_INTEGRATION_THETA, 1.0);
         r_process_info.SetValue(DELTA_TIME, 0.1);
         r_process_info.SetValue(DYNAMIC_TAU, 1.0);
     }
