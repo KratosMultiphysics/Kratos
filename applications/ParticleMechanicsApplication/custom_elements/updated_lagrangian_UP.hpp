@@ -240,7 +240,7 @@ protected:
     ///@{
 
     SizeType GetNumberOfDofs() override {
-        return 4;
+        return GetGeometry().WorkingSpaceDimension() + 1;
     }
 
     /**

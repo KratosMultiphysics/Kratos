@@ -457,7 +457,7 @@ protected:
     ///@{
 
     virtual SizeType GetNumberOfDofs() {
-        return 3;
+        return GetGeometry().WorkingSpaceDimension();
     }
 
     /**
