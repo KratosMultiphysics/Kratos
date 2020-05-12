@@ -114,12 +114,12 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         return A,b
 
-    def _solve(self,mp):
-        strategy = self._create_strategy(mp)
+    def _solve(self,mp, builder_type, linearize_on_old_iteration):
+        strategy = self._create_strategy(mp, builder_type, linearize_on_old_iteration)
         strategy.Check()
         strategy.Solve()
 
-    def _create_strategy(self, mp):
+    def _create_strategy(self, mp, builder_type, linearize_on_old_iteration):
         # Define a minimal newton raphson solver
         settings = KratosMultiphysics.Parameters("""
         {
@@ -146,6 +146,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             }
         }
         """)
+        if builder_type == "elimination_builder":
+            settings["builder_and_solver_settings"]["name"].SetString("elimination_builder_and_solver")
         strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         strategy.SetUseOldStiffnessInFirstIterationFlag(linearize_on_previous_iteration)
 
