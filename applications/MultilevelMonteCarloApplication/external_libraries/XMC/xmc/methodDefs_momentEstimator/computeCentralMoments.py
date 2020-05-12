@@ -1,7 +1,7 @@
 # Import PyCOMPSs
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 def centralMomentTaskWrapper(dimension,order,*args):
     if dimension==0:
@@ -73,3 +73,9 @@ def computeCentralMomentsOrderOneDimensionOne(power_sum_10,power_sum_01,number_s
     return partial_central_moment_1
 
 computeCentralMomentsOrderOneDimensionOne_Task = ExaquteTask(returns=1)(computeCentralMomentsOrderOneDimensionOne)
+
+def computeCentralMomentsOrderTwoDimensionOne(power_sum_10,power_sum_01,power_sum_20,power_sum_11,power_sum_02,number_samples):
+    partial_central_moment_2 = (number_samples*power_sum_02-power_sum_01**2) / ((number_samples-1)*number_samples)
+    return partial_central_moment_2
+
+computeCentralMomentsOrderTwoDimensionTwo_Task = ExaquteTask(returns=1)(computeCentralMomentsOrderTwoDimensionOne)

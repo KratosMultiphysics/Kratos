@@ -1,7 +1,7 @@
 # Import PyCOMPSs
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 @ExaquteTask(global_estimators=INOUT,batch_estimators=IN,global_cost_estimator=INOUT,batch_cost_estimator=IN)
 def updateGlobalMomentEstimator_Task(global_estimators,batch_estimators,global_cost_estimator,batch_cost_estimator,batch):

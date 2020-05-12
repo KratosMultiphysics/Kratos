@@ -2,13 +2,9 @@ import importlib
 import math
 
 # Import PyCOMPSs
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
-
-@ExaquteTask(returns=1)
-def convertObjectToFuture(inputObject):
-    return inputObject
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 def dynamicImport(fullName):
     """
@@ -47,6 +43,8 @@ def returnInput(*args):
     This is a function that returns exactly what is passed to it. Useful to hold a place in the dataflow without modifying the data.
     """
     return args
+
+convertObjectToFuture = ExaquteTask(returns=1)(returnInput)
 
 def getUnionAndMap(listOfLists):
     """
@@ -110,12 +108,10 @@ def strictlyPositiveBoundaryBooleans(indexSet):
         is_index_in_bias[i] = any(is_index_max) and all(is_index_nonzero)
     return is_index_in_bias
 
-@ExaquteTask(returns=1)
-def sum_Task(*args):
-    return sum(packedList(args))
-
 def summation(*args):
     return sum(packedList(args))
+
+sum_Task = ExaquteTask(returns=1)(summation)
 
 def packedList(obj):
     """
