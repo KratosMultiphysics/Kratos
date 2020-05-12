@@ -541,7 +541,7 @@ protected:
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues);
+                                     ConstitutiveLaw::Parameters& rValues, const Vector& rN);
 
 
     /**

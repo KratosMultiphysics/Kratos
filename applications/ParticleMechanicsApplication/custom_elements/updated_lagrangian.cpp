@@ -199,7 +199,7 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
 //************************************************************************************
 
 void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
-        ConstitutiveLaw::Parameters& rValues)
+        ConstitutiveLaw::Parameters& rValues, const Vector& rN)
 {
     GeometryType& r_geometry = GetGeometry();
 
@@ -249,8 +249,7 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
-    rValues.SetShapeFunctionsValues(row(GetGeometry().ShapeFunctionsValues(), 0));
-
+    rValues.SetShapeFunctionsValues(rN);
 }
 
 //************************************************************************************
@@ -268,6 +267,7 @@ void UpdatedLagrangian::CalculateElementalSystem(
     // Create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
     const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
         : false;
@@ -288,7 +288,7 @@ void UpdatedLagrangian::CalculateElementalSystem(
         this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
         // Set general variables to constitutivelaw parameters
-        this->SetGeneralVariables(Variables, Values);
+        this->SetGeneralVariables(Variables, Values, r_N);
 
         // Calculate Material Response
         /* NOTE:
@@ -611,7 +611,8 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
 
     // Set general variables to constitutivelaw parameters
-    this->SetGeneralVariables(rVariables, Values);
+    const Vector& r_N_vec = row(r_N, 0);
+    this->SetGeneralVariables(rVariables, Values, r_N_vec);
 
     // Calculate Material Response
     /* NOTE:
@@ -630,11 +631,15 @@ void UpdatedLagrangian::CalculateAndAddLHS(
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    const bool is_ignore_geometric_stiffness = (rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
+        ? rCurrentProcessInfo.GetValue(IGNORE_GEOMETRIC_STIFFNESS)
+        : false;
+
     // Operation performed: add K_material to the rLefsHandSideMatrix
     this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add K_geometry to the rLefsHandSideMatrix
-    if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
+    if (!is_ignore_geometric_stiffness)
     {
         const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
             ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
@@ -851,6 +856,10 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
     mFinalizedStep = false;
 
+    const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
+        : false;
+
     // Calculating shape functions
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double,3> nodal_momentum = ZeroVector(3);
@@ -868,12 +877,10 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
         // Add in the predictor velocity increment for central difference explicit
         // This is the 'previous grid acceleration', which is actually
         // be the initial particle acceleration mapped to the grid.
-        if (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
-            if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
-                const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-                for (unsigned int j = 0; j < dimension; j++) {
-                    nodal_momentum[j] += 0.5 * delta_time * (r_N(0, i) * mMP.acceleration[j]) * mMP.mass;
-                }
+        if (is_explicit_central_difference) {
+            const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
+            for (unsigned int j = 0; j < dimension; j++) {
+                nodal_momentum[j] += 0.5 * delta_time * (r_N(0, i) * mMP.acceleration[j]) * mMP.mass;
             }
         }
 
@@ -902,6 +909,7 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     // Create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -916,7 +924,7 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
     // Set general variables to constitutivelaw parameters
-    this->SetGeneralVariables(Variables,Values);
+    this->SetGeneralVariables(Variables,Values, r_N);
 
     // Call the constitutive law to update material variables
     mConstitutiveLawVector->FinalizeMaterialResponse(Values, Variables.StressMeasure);
@@ -1039,9 +1047,9 @@ void UpdatedLagrangian::InitializeMaterial()
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-
+        Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
         mConstitutiveLawVector->InitializeMaterial( 
-            GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(), 0));
+            GetProperties(), GetGeometry(), N);
 
         mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
         mMP.cauchy_stress_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
