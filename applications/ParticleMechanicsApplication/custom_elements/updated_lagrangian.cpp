@@ -630,11 +630,15 @@ void UpdatedLagrangian::CalculateAndAddLHS(
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    const bool is_ignore_geometric_stiffness = (rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
+        ? rCurrentProcessInfo.GetValue(IGNORE_GEOMETRIC_STIFFNESS)
+        : false;
+
     // Operation performed: add K_material to the rLefsHandSideMatrix
     this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add K_geometry to the rLefsHandSideMatrix
-    if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
+    if (!is_ignore_geometric_stiffness)
     {
         const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
             ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
@@ -851,6 +855,10 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
     mFinalizedStep = false;
 
+    const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
+        : false;
+
     // Calculating shape functions
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double,3> nodal_momentum = ZeroVector(3);
@@ -868,12 +876,10 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
         // Add in the predictor velocity increment for central difference explicit
         // This is the 'previous grid acceleration', which is actually
         // be the initial particle acceleration mapped to the grid.
-        if (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
-            if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
-                const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-                for (unsigned int j = 0; j < dimension; j++) {
-                    nodal_momentum[j] += 0.5 * delta_time * (r_N(0, i) * mMP.acceleration[j]) * mMP.mass;
-                }
+        if (is_explicit_central_difference) {
+            const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
+            for (unsigned int j = 0; j < dimension; j++) {
+                nodal_momentum[j] += 0.5 * delta_time * (r_N(0, i) * mMP.acceleration[j]) * mMP.mass;
             }
         }
 
