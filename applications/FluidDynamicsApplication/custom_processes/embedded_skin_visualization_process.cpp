@@ -43,6 +43,7 @@ Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
         "visualization_model_part_name"       : "EmbeddedSkinVisualizationModelPart",
         "shape_functions"                     : "",
         "reform_model_part_at_each_time_step" : false,
+        "distance_variable_name"              : ""
         "visualization_variables"             : ["VELOCITY","PRESSURE"]
     })");
 
@@ -101,11 +102,44 @@ EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationPr
         error_msg << "Admissible values are : \'standard\' and \'ausas\'" << std::endl;
         KRATOS_ERROR << error_msg.str();
     }
-    
+
     return aux_sh_func_type;
 }
 
-template<class TDataType>
+const Variable<double>* EmbeddedSkinVisualizationProcess::CreateDistanceVariablePointer(
+    const ShapeFunctionsType& rShapeFunctionsType,
+    const Parameters rParameters)
+{
+    Variable<double>* p_var_aux = nullptr;
+    const std::string distance_variable_name = rParameters["distance_variable_name"].GetString();
+    // If the distance variable name is not provided, try to deduce it from the FE space type
+    if (distance_variable_name == "") {
+        std::string default_distance_variable_name;
+        switch (rShapeFunctionsType) {
+            case ShapeFunctionsType::Ausas:
+                default_distance_variable_name = "ELEMENTAL_DISTANCE";
+                break;
+            case ShapeFunctionsType::Standard:
+                default_distance_variable_name = "DISTANCE";
+                break;
+            default:
+                KRATOS_ERROR << "Default \"distance_variable_name\" cannot be deduced from the shape functions type" << std::endl;
+        }
+        KRATOS_INFO("EmbeddedSkinVisualizationProcess") << "\'distance_variable_name\' is not prescribed. Using default variable " << default_distance_variable_name << std::endl;
+        p_var_aux = &(KratosComponents<Variable<double>>::Get("DISTANCE"));
+    // User-defined distance variable name case
+    } else {
+        if (KratosComponents<Variable<double>>::Has(distance_variable_name)) {
+            p_var_aux = &(KratosComponents<Variable<double>>::Get(distance_variable_name));
+        } else {
+            KRATOS_ERROR << "Provided \"distance_variable_name\" " << distance_variable_name << " is not in the KratosComponents. Please check." << std::endl;
+        }
+    }
+
+    return p_var_aux;
+}
+
+template <class TDataType>
 void EmbeddedSkinVisualizationProcess::FillVariablesList(
     const Parameters rParameters,
     std::vector<const Variable<TDataType>*>& rVariablesList)

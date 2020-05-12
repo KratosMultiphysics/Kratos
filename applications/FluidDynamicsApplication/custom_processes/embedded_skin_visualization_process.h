@@ -139,9 +139,20 @@ public:
      * @brief Check and return the shape functions
      * This method checks and return the user provided shape functions type
      * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
-     * @return ShapeFunctionsType The validated shape functions type 
+     * @return ShapeFunctionsType The validated shape functions type
      */
     static ShapeFunctionsType CheckAndReturnShapeFunctions(const Parameters rParameters);
+
+    /**
+     * @brief Create a Distance Variable Pointer object
+     * This method creates a pointer to the user defined distance variable
+     * If the variable is not prescribed, it sets the default values accoding to the selected FE space
+     * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
+     * @return Variable<double>* Pointer to the distance variable
+     */
+    static const Variable<double>* CreateDistanceVariablePointer(
+        const ShapeFunctionsType& rShapeFunctionsType,
+        const Parameters rParameters);
 
     /**
      * @brief Check and fill a visualization variable list
@@ -274,6 +285,9 @@ private:
 
     // If true, the visualization model part is created each time step (required in case the level set function is not constant)
     const bool mReformModelPartAtEachTimeStep;
+
+    // Pointer to the variable that stores the level set function
+    const Variable<double>* mpDistanceVariable;
 
     // Vector containing the scalar variables to be interpolated in the visualization mesh
     const std::vector<const Variable<double>*> mVisualizationScalarVariables;
