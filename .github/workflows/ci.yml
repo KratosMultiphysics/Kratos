@@ -61,14 +61,10 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
-        ls ${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/KratosMultiphysics/
-        ls ${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/KratosMultiphysics/xmc
         ccache -s
 
     - name: Running small tests
       run: |
-        ls ${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/KratosMultiphysics/
-        ls ${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/KratosMultiphysics/xmc
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
