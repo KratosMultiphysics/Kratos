@@ -156,8 +156,6 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignScalarVariableToEntitiesProcess(AssignScalarVariableToEntitiesProcess const& rOther);
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -250,8 +248,6 @@ private:
     ///@{
 
     /// Assignment operator.
-    AssignScalarVariableToEntitiesProcess& operator=(AssignScalarVariableToEntitiesProcess const& rOther);
-
     ///@}
     ///@name Serialization
     ///@{

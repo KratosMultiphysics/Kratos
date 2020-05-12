@@ -181,7 +181,7 @@ public:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal velocities
@@ -191,7 +191,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal accelerations
@@ -201,7 +201,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -256,7 +256,7 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHS,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
