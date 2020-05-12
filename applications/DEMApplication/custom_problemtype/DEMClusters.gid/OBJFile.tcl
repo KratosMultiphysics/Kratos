@@ -6,7 +6,6 @@ proc ExtractSurfaceTriangles_ext { basename dir problemtypedir } {
     ## Start OBJ file
     set filename [file join $dir ${basename}.obj]
     set FileVar [open $filename w]
-    puts $FileVar ""
 
     # set all_mesh [GiD_EntitiesLayers get Layer0 all_mesh]
     # If <over> is all_mesh then is obtained a list with 2 sublists: node id's and element id's
@@ -21,53 +20,34 @@ proc ExtractSurfaceTriangles_ext { basename dir problemtypedir } {
     W "list of tetrahedra"
     W $tetrahedra
     
-    puts $FileVar "Face Elements iD - not required in obj file"
-    foreach element_id $triangles { ;
-      puts $FileVar " f $element_id"
-    }
-    puts $FileVar "End Face Elements"
-    puts $FileVar ""
+    # puts $FileVar "Face Elements iD - not required in obj file"
+    # foreach element_id $triangles 
+    #   puts $FileVar " f $element_id"
+    # 
+    # puts $FileVar "End Face Elements"
+    # puts $FileVar ""
 
     
-    W "1"
-    set triangle_nodes [list]
-    set triangle_normals [list]
+    
     # set element_ids [GiD_EntitiesGroups get $groupid elements] ;               # get ids of all elements in cgroupid
     # #array set is_external_element [DEM::write::Compute_External_Elements 3 $groupid $element_ids]
-
-    foreach element_id $triangles { ;
-        set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;   # get the nodes of the element
-        lappend triangle_nodes {*}$element_nodes ;                              # add those nodes to the nodes_to_delete list
-        set ElementNormals [GiD_Mesh get element $element_id normal];
-        lappend triangle_normals {*}$ElementNormals ;  
-
-    }
-    W $triangle_normals
 
     # aux sumar a cada node de cada triangle la normal del triangle
     # aux nombre de normals de cada node
 
-    W "2"
-    puts $FileVar "Triangle faces defined by its associated vertex"
-    # corresponds to format #f v1 v2 v3 .... OBJ file
+    set triangle_nodes [list]
     foreach element_id $triangles { ;
-        set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;   # get the nodes of the element
-        lappend triangle_nodes {*}$element_nodes ;                              # add those nodes to the nodes_to_delete list
-        puts -nonewline $FileVar " "
-        puts $FileVar "f $element_nodes" ;
-        W "3"
+        set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;   # get the nodes of the element
+        lappend triangle_nodes {*}$nodes ;                              # add those nodes to the nodes_to_delete list
     }
 
 
-    W "4"
     ## Nodes only if belong to any triangle
-    # corresponds to format #f v1 v2 v3 .... OBJ file
     set Nodes [GiD_Info Mesh Nodes]
-    puts $FileVar " "
-    puts $FileVar "Ordered vertex list only if associated with any face triangle"
+    #puts $FileVar "Ordered vertex list only if associated with any face triangle"
     for {set i 0} {$i < [llength $Nodes]} {incr i 4} {
         if {[lindex $Nodes $i] in $triangle_nodes} {
-        puts -nonewline $FileVar "  [lindex $Nodes $i]  "
+        puts -nonewline $FileVar "v  "
         puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+1 }]]]
         puts -nonewline $FileVar " "
         puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+2 }]]]
@@ -75,16 +55,133 @@ proc ExtractSurfaceTriangles_ext { basename dir problemtypedir } {
         puts $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+3 }]]]
         }
     }
-    puts $FileVar "End Nodes"
-    puts $FileVar ""
-    puts $FileVar ""
+
+    # Lo que tienes que hacer es recorrer los elementos que son los que apuntan a
+    # sus nodos, y sumar a cada nodo la aportación de su normal.
+    # Aun así, cualquier función script que haga cosas como esta en malla puede
+    # ser lenta en mallas muy grandes, por crear arrays o listas grandes, pero si
+    # la haces mal no será lenta sino muy-muy-lenta
+    
+    set aux 1
+    dict set node_db_x $aux 0.0
+    dict unset node_db_x $aux
+
+    dict set node_db_y $aux 0.0
+    dict unset node_db_y $aux
+
+    dict set node_db_z $aux 0.0
+    dict unset node_db_z $aux
+
+    dict set node_db_counter $aux 0
+    dict unset node_db_counter $aux
+
+    foreach element_id $triangles { ;
+        W "___________next element of the list"
+        set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
+        W $nodes
+        set ElementNormal_x [lrange [GiD_Mesh get element $element_id normal] 0 0] ; 
+        set ElementNormal_y [lrange [GiD_Mesh get element $element_id normal] 1 1] ; 
+        set ElementNormal_z [lrange [GiD_Mesh get element $element_id normal] 2 2] ; 
+        
+        foreach node $nodes {
+            if {[dict exists $node_db_x $node]} {
+                set old_value [dict get $node_db_x $node]
+                set new_value [expr { $old_value+$ElementNormal_x}]
+                # set new_value [expr { $old_value[0]+$ElementNormal_x }] [expr { $old_value[1]+$ElementNormal_y }]
+                dict unset node_db_x $node
+                dict set node_db_x $node $new_value
+
+                dict incr node_db_counter $node 1
+            } else {
+                dict set node_db_x $node $ElementNormal_x
+                dict set node_db_counter $node 1
+            }
+        }
+        W "foreach element x "
+        W $node_db_x
+
+        foreach node $nodes {
+            if {[dict exists $node_db_y $node]} {
+                set old_value [dict get $node_db_y $node]
+                set new_value [expr { $old_value+$ElementNormal_y}]
+                dict unset node_db_y $node
+                dict set node_db_y $node $new_value
+            } else {
+                dict set node_db_y $node $ElementNormal_y
+            }
+        }
+        W "foreach element y "
+        W $node_db_y
+
+        foreach node $nodes {
+            if {[dict exists $node_db_z $node]} {
+                set old_value [dict get $node_db_z $node]
+                set new_value [expr { $old_value+$ElementNormal_z}]
+                dict unset node_db_z $node
+                dict set node_db_z $node $new_value
+            } else {
+                dict set node_db_z $node $ElementNormal_z
+            }
+        }
+        W "foreach element z"
+        W $node_db_z
+        W $node_db_counter
+
+    }
 
 
+    # Get a list of the keys and sort them
+    W "BEFORE ORDERING KEYS"
+    W $node_db_x
+    set node_db_x [lsort -stride 2 $node_db_x]
+    set node_db_y [lsort -stride 2 $node_db_y]
+    set node_db_z [lsort -stride 2 $node_db_z]
+    W "AFTER ORDERING KEYS"
+    W $node_db_x        
+
+    foreach item [dict keys $node_db_x] {
+            set val [dict get $node_db_x $item]
+            set counter [dict get $node_db_counter $item]
+            set avg_val_normal [expr { $val/$counter }]
+            lappend normals_x $avg_val_normal ;        
+    }
+
+    foreach item [dict keys $node_db_y] {
+            set val [dict get $node_db_y $item]
+            set counter [dict get $node_db_counter $item]
+            set avg_val_normal [expr { $val/$counter }]
+            lappend normals_y $avg_val_normal ;       
+    }
+
+    foreach item [dict keys $node_db_z] {
+            set val [dict get $node_db_z $item]
+            set counter [dict get $node_db_counter $item]
+            set avg_val_normal [expr { $val/$counter }]
+            lappend normals_z $avg_val_normal ;      
+    }
+
+    W $normals_x
+    W $normals_y
+    W $normals_z
+
+    foreach component1 $normals_x component2 $normals_y component3 $normals_z {
+        lappend normals $component1 $component2 $component3 ;
+    }
+    W $normals
 
 
-    # set ElementInfo [GiD_Mesh get element $ElemId]
-    # #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
-    # return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]"
+    ## vertex normals only if belong to any triangle
+    puts $FileVar " "
+    #puts $FileVar "Ordered vertex normals list only if associated with any face triangle"
+    for {set i 0} {$i < [llength $normals]} {incr i 3} {
+        puts -nonewline $FileVar "vn  "
+        puts -nonewline $FileVar [format  "%.10f" [lindex $normals [expr { $i }]]]
+        puts -nonewline $FileVar " "
+        puts -nonewline $FileVar [format  "%.10f" [lindex $normals [expr { $i+1 }]]]
+        puts -nonewline $FileVar " "
+        puts $FileVar [format  "%.10f" [lindex $normals [expr { $i+2 }]]]
+    }
+
 
     # required format is
     # v 987.823009 -583.341002 122.360997    
@@ -96,10 +193,22 @@ proc ExtractSurfaceTriangles_ext { basename dir problemtypedir } {
     # f 18//18 9//9 17//17 
     # f 19//19 11//11 10//10 
 
-    # could possibly also work with just f v1 v2 v3 ordered list
-    #Each face can contain three or more vertices.
 
-    #f v1 v2 v3 ....
+    #puts $FileVar "Triangle faces defined by its associated vertex"
+    #f v1//vn1 v2//vn2 v3//vn3
+    puts $FileVar " "
+    foreach element_id $triangles { ;
+        set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
+        puts $FileVar "f [lindex $nodes 0]//[lindex $nodes 0] [lindex $nodes 1]//[lindex $nodes 1] [lindex $nodes 2]//[lindex $nodes 2]" ;
+    }
+
+
+
+
+
+
+
+
 
 
 
