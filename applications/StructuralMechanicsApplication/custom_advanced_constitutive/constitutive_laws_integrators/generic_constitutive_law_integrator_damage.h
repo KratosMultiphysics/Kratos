@@ -210,7 +210,7 @@ class GenericConstitutiveLawIntegratorDamage
         const double rp = 1.5 * re;
         const double Ad = (rp - re) / re;
         const double Ad_tilda = Ad * (std::pow(rp, 3) - 3.0 * rp + 2.0 / 3.0) / (6.0 * re * std::pow((rp - 1.0), 2));
-        const double Hd = 1.0 / (2.0 * (E * Gf / max_stress / max_stress / CharacteristicLength - 0.5 * rp / re - Ad_tilda));
+        const double Hd = 1.0 / (2.0 * (E * Gf * n * n / max_stress / max_stress / CharacteristicLength - 0.5 * rp / re - Ad_tilda));
 
         const double r = UniaxialStress / initial_threshold;
 
