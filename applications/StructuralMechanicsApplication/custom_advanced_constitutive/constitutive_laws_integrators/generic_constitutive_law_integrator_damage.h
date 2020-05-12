@@ -141,6 +141,9 @@ class GenericConstitutiveLawIntegratorDamage
         case static_cast<int>(SofteningType::Exponential):
             CalculateExponentialDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
             break;
+        case static_cast<int>(SofteningType::HardeningDamage):
+            CalculateHardeningDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
+            break;
         default:
             KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
             break;
