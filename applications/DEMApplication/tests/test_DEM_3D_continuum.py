@@ -161,7 +161,8 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         properties[DEM.PARTICLE_DENSITY] = 4000.0
         properties[KratosMultiphysics.YOUNG_MODULUS] = 1.0e9
         properties[KratosMultiphysics.POISSON_RATIO] = 0.20
-        properties[DEM.FRICTION] = 0.5
+        properties[DEM.STATIC_FRICTION] = 0.5
+        properties[DEM.DYNAMIC_FRICTION] = 0.5
         properties[DEM.PARTICLE_COHESION] = 0.0
         properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.5
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
@@ -173,7 +174,8 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         properties[DEM.CONTACT_INTERNAL_FRICC] = 1.0
         properties[DEM.ROTATIONAL_MOMENT_COEFFICIENT] = 0.0
 
-        properties_walls[DEM.FRICTION] = 0.0
+        properties_walls[DEM.STATIC_FRICTION] = 0.0
+        properties_walls[DEM.DYNAMIC_FRICTION] = 0.0
         properties_walls[DEM.WALL_COHESION] = 0.0
         properties_walls[DEM.COMPUTE_WEAR] = 0
         properties_walls[DEM.SEVERITY_OF_WEAR] = 0.001

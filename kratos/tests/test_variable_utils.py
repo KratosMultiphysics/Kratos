@@ -366,8 +366,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
         ##save the variable values
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.VISCOSITY, KratosMultiphysics.DENSITY, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().CopyComponentVar(KratosMultiphysics.FORCE_X, KratosMultiphysics.REACTION_Y, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().CopyComponentVar(KratosMultiphysics.FORCE_X, KratosMultiphysics.FORCE_Y, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.FORCE_X, KratosMultiphysics.REACTION_Y, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.FORCE_X, KratosMultiphysics.FORCE_Y, model_part.Nodes)
         KratosMultiphysics.VariableUtils().CopyVectorVar(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.VELOCITY, model_part.Nodes)
 
         ##verify the result

@@ -31,10 +31,10 @@ namespace Kratos
 
 template <class TPrimalElement>
 void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    GeometryType& geom = this->GetGeometry();
+    const GeometryType& geom = this->GetGeometry();
 
     const SizeType number_of_nodes = geom.PointsNumber();
     const SizeType dimension = geom.WorkingSpaceDimension();
@@ -47,7 +47,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(Equa
     for(IndexType i = 0; i < geom.size(); ++i)
     {
         const IndexType index = i * num_dofs_per_node;
-        NodeType& iNode = geom[i];
+        const NodeType& iNode = geom[i];
 
         rResult[index]     = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
         rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
@@ -65,7 +65,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(Equa
 
 template <class TPrimalElement>
 void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -97,7 +97,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVector
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -251,7 +251,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -406,7 +406,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
     initial_state_variables.resize(num_dofs, false);
 
     // Build vector of variables containing the DOF-variables of the primal problem
-    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
+    std::vector<Variable<double>> primal_solution_variable_list;
     primal_solution_variable_list.reserve(num_dofs_per_node);
     primal_solution_variable_list.push_back(DISPLACEMENT_X);
     primal_solution_variable_list.push_back(DISPLACEMENT_Y);
