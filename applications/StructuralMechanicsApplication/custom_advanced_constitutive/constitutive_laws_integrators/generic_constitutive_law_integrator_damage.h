@@ -177,6 +177,28 @@ class GenericConstitutiveLawIntegratorDamage
     }
 
     /**
+     * @brief This computes the damage variable according to parabolic hardening and exponential 
+     * softening
+     * @param UniaxialStress The equivalent uniaxial stress
+     * @param Threshold The maximum uniaxial stress achieved previously
+     * @param rDamage The internal variable of the damage model
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     */
+    static void CalculateHardeningDamage(
+        const double UniaxialStress,
+        const double Threshold,
+        const double DamageParameter,
+        const double CharacteristicLength,
+        ConstitutiveLaw::Parameters& rValues,
+        double& rDamage
+        )
+    {
+
+
+    }
+
+    /**
      * @brief This computes the damage variable according to linear softening
      * @param UniaxialStress The equivalent uniaxial stress
      * @param Threshold The maximum uniaxial stress achieved previously
