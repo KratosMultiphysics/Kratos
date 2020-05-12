@@ -4,7 +4,7 @@ import xmc.tools as tools
 # from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 from exaqute.ExaquteTaskLocal import *      # to execute with python3
-from pycompss.api.parameter import *
+# from pycompss.api.parameter import *
 
 
 @ExaquteTask(qoi_estimators=INOUT,new_samples={Type: COLLECTION_IN, Depth: 4})
