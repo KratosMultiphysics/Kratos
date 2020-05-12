@@ -145,6 +145,8 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
             "e_mid_re": 0.0,
             "e_mid_im": 0.0,
             "e_r": 30.0,
+            "sort_eigenvalues": true,
+            "sort_order": "li",
             "echo_level": 0
          }''')
 
@@ -168,8 +170,8 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         # Solve
         eigen_solver.Solve(K, M, eigenvalues, eigenvectors)
 
-        self.assertAlmostEqual(eigenvalues[0], 0.0-1.0j, 7)
-        self.assertAlmostEqual(eigenvalues[1], 0.0+1.0j, 7)
+        self.assertAlmostEqual(eigenvalues[0], 0.0+1.0j, 7)
+        self.assertAlmostEqual(eigenvalues[1], 0.0-1.0j, 7)
 
         Kc = KratosMultiphysics.ComplexCompressedMatrix(K)
         Mc = KratosMultiphysics.ComplexCompressedMatrix(M)
@@ -199,6 +201,8 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
             "e_mid_re": 0.0,
             "e_mid_im": 0.0,
             "e_r": 0.16,
+            "sort_eigenvalues": true,
+            "sort_order": "lm",
             "echo_level": 0
          }''')
 
@@ -258,6 +262,8 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
             "e_mid_re": 10.0,
             "e_mid_im": 0.0,
             "e_r": 3.0,
+            "sort_eigenvalues": true,
+            "sort_order": "sm",
             "echo_level": 0
          }''')
 
@@ -295,8 +301,8 @@ class TestFeastEigensystemSolver(KratosUnittest.TestCase):
         self.assertEqual(eigenvectors.Size1(), 2)
         self.assertEqual(eigenvectors.Size2(), 5)
 
-        self.assertAlmostEqual(eigenvalues[0], 12.0+1.2j, 7)
-        self.assertAlmostEqual(eigenvalues[1], 10.5+1.05j, 7)
+        self.assertAlmostEqual(eigenvalues[0], 10.5+1.05j, 7)
+        self.assertAlmostEqual(eigenvalues[1], 12.0+1.2j, 7)
 
         for i in range(eigenvalues.Size()):
             eigenvector = KratosMultiphysics.ComplexVector(n)
