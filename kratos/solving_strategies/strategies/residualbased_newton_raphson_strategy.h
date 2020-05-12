@@ -448,6 +448,24 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
+     * @brief This method sets the flag mFullUpdateFlag
+     * @param UseOldStiffnessInFirstIterationFlag The flag that tells if
+     */
+    void SetUseOldStiffnessInFirstIterationFlag(bool UseOldStiffnessInFirstIterationFlag)
+    {
+        mUseOldStiffnessInFirstIteration = UseOldStiffnessInFirstIterationFlag;
+    }
+
+    /**
+     * @brief This method returns the flag mFullUpdateFlag
+     * @return The flag that tells if
+     */
+    bool GetUseOldStiffnessInFirstIterationFlag()
+    {
+        return mUseOldStiffnessInFirstIteration;
+    }
+
+    /**
      * @brief This method sets the flag mReformDofSetAtEachStep
      * @param Flag The flag that tells if each time step the system is rebuilt
      */
@@ -796,11 +814,10 @@ class ResidualBasedNewtonRaphsonStrategy
         //initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-        bool is_converged = false;
         bool residual_is_updated = false;
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-        is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+        bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
@@ -808,9 +825,13 @@ class ResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
 
-            p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            if (mUseOldStiffnessInFirstIteration){
+                p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
+            } else {
+                p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            }
         } else {
-            TSparseSpace::SetToZero(rDx); //Dx=0.00;
+            TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
             TSparseSpace::SetToZero(rb);
 
             p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
@@ -1100,7 +1121,7 @@ class ResidualBasedNewtonRaphsonStrategy
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
     typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria employed
 
-    TSystemVectorPointerType mpDx; /// The incremement in the solution
+    TSystemVectorPointerType mpDx; /// The increment in the solution
     TSystemVectorPointerType mpb; /// The RHS vector of the system of equations
     TSystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
 
@@ -1118,6 +1139,12 @@ class ResidualBasedNewtonRaphsonStrategy
      * @details default = true
      */
     bool mCalculateReactionsFlag;
+
+    /**
+     * @brief Flag telling if a full update of the database will be performed at the first iteration
+     * @details default = false
+     */
+    bool mUseOldStiffnessInFirstIteration = false;
 
     bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
 
@@ -1205,6 +1232,7 @@ class ResidualBasedNewtonRaphsonStrategy
     virtual Parameters GetDefaultSettings()
     {
         Parameters default_settings(R"({
+            "use_old_stiffness_in_first_iteration": false,
             "max_iterations"           : 30,
             "reform_dofs_at_each_step" : false,
             "calculate_reactions"      : false
@@ -1221,6 +1249,7 @@ class ResidualBasedNewtonRaphsonStrategy
         mMaxIterationNumber = Settings["max_iterations"].GetInt();
         mReformDofSetAtEachStep = Settings["reform_dofs_at_each_step"].GetBool();
         mCalculateReactionsFlag = Settings["calculate_reactions"].GetBool();
+        mUseOldStiffnessInFirstIteration = Settings["use_old_stiffness_in_first_iteration"].GetBool();
     }
 
     ///@}

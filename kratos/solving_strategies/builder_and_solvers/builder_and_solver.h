@@ -430,6 +430,31 @@ public:
     }
 
     /**
+     * @brief Function to perform the building and solving phase at the same time Linearizing with the database at the old iteration
+     * @details It is ideally the fastest and safer function to use when it is possible to solve just after building
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     * @param MoveMesh tells if the update of the scheme needs  to be performed when calling the Update of the scheme
+     */
+    virtual void BuildAndSolveLinearizedOnPreviousIteration(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        const bool MoveMesh
+        )
+    {
+        KRATOS_ERROR << "No special implementation available for "
+            << "BuildAndSolveLinearizedOnPreviousIteration "
+            << " please use UseOldStiffnessInFirstIterationFlag=false in the settings of the strategy "
+            << std::endl;
+    }
+
+    /**
      * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
