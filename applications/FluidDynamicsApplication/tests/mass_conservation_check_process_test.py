@@ -13,7 +13,7 @@ if KratosMultiphysics.DataCommunicator.GetDefault().IsDistributed():
 def GetFilePath(fileName):
     return KratosMultiphysics.os.path.dirname(KratosMultiphysics.os.path.realpath(__file__)) + "/" + fileName
 
-class TestMassConservationUtility(KratosUnittest.TestCase):
+class MassConservationUtility(KratosUnittest.TestCase):
     def setUp(self):
         self.comm = KratosMultiphysics.DataCommunicator.GetDefault()
         self.size = self.comm.Size()
@@ -67,10 +67,20 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
             import_flags = KratosMultiphysics.ModelPartIO.READ
             KratosMultiphysics.ModelPartIO(import_settings['model_import_settings']['input_filename'].GetString(), import_flags).ReadModelPart(model_part)
 
+    def _SetInletAndOutlet(self, model_part):
+        inlet_conds = [5,6,17,18,29,30,41,42]
+        outlet_conds = [11,12,23,24,35,36,47,48]
+        for cond in model_part.Conditions:
+            if cond.Id in inlet_conds:
+                cond.Set(KratosMultiphysics.INLET)
+            if cond.Id in outlet_conds:
+                cond.Set(KratosMultiphysics.OUTLET)
+
+
 
     def test_Initialize(self):
         self.work_folder = "auxiliary_files"
-        self.file_name = "cube_few_elements"
+        self.file_name = "cube_tetrahedra_elements_coarse"
         model_part = self._CreateModelPart()
         for node in model_part.GetCommunicator().LocalMesh().Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - 0.5)
@@ -84,18 +94,12 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
 
     def test_ComputeBalancedVolume(self):
         self.work_folder = "auxiliary_files"
-        self.file_name = "cube_few_elements"
+        self.file_name = "cube_tetrahedra_elements_coarse"
         model_part = self._CreateModelPart()
         for node in model_part.GetCommunicator().LocalMesh().Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - 0.5)
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 1.0 - 0.5*node.X)
-        inlet_conds = [5,6,17,18,29,30,41,42]
-        outlet_conds = [11,12,23,24,35,36,47,48]
-        for cond in model_part.Conditions:
-            if cond.Id in inlet_conds:
-                cond.Set(KratosMultiphysics.INLET)
-            if cond.Id in outlet_conds:
-                cond.Set(KratosMultiphysics.OUTLET)
+        self._SetInletAndOutlet(model_part)
         settings = KratosMultiphysics.Parameters()
         mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
         model_part.CloneTimeStep(0.1)
@@ -106,21 +110,21 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
         current_time = float(filtered_results[0])
         neg_vol = float(filtered_results[1])
         pos_vol = float(filtered_results[2])
-        mWaterVolumeError = float(filtered_results[3])
+        volume_error = float(filtered_results[3])
         net_inflow_inlet = float(filtered_results[4])
         net_inflow_outlet = float(filtered_results[5])
         inlet_area = float(filtered_results[6])
         self.assertAlmostEqual(current_time, 0.1)
         self.assertAlmostEqual(neg_vol, 0.5)
         self.assertAlmostEqual(pos_vol, 0.5)
-        self.assertAlmostEqual(mWaterVolumeError, 0.025)
+        self.assertAlmostEqual(volume_error, 0.025)
         self.assertAlmostEqual(net_inflow_inlet, 0.5)
         self.assertAlmostEqual(net_inflow_outlet, -0.25)
         self.assertAlmostEqual(inlet_area, 1.0)
 
     def test_OrthogonalFlowIntoAir(self):
         self.work_folder = "auxiliary_files"
-        self.file_name = "cube_few_elements"
+        self.file_name = "cube_tetrahedra_elements_coarse"
         model_part = self._CreateModelPart()
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - 0.5)
@@ -135,7 +139,7 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
 
     def test_NoOrthogonalFlowIntoAir(self):
         self.work_folder = "auxiliary_files"
-        self.file_name = "cube_few_elements"
+        self.file_name = "cube_tetrahedra_elements_coarse"
         model_part = self._CreateModelPart()
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - 0.5)
@@ -150,7 +154,7 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
 
     def test_ReverseOrthogonalFlowIntoAir(self):
         self.work_folder = "auxiliary_files"
-        self.file_name = "cube_few_elements"
+        self.file_name = "cube_tetrahedra_elements_coarse"
         model_part = self._CreateModelPart()
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - 0.5)
@@ -165,19 +169,13 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
 
     def test_ComputeDtForConvection(self):
         self.work_folder = "auxiliary_files"
-        self.file_name = "cube_few_elements"
+        self.file_name = "cube_tetrahedra_elements_coarse"
         model_part = self._CreateModelPart()
         for node in model_part.GetCommunicator().LocalMesh().Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.X - 0.5)
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 1.0 - node.X)
 
-        inlet_conds = [5,6,17,18,29,30,41,42]
-        outlet_conds = [11,12,23,24,35,36,47,48]
-        for cond in model_part.Conditions:
-            if cond.Id in inlet_conds:
-                cond.Set(KratosMultiphysics.INLET)
-            if cond.Id in outlet_conds:
-                cond.Set(KratosMultiphysics.OUTLET)
+        self._SetInletAndOutlet(model_part)
         settings = KratosMultiphysics.Parameters()
         mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
         model_part.CloneTimeStep(0.1)
@@ -188,19 +186,13 @@ class TestMassConservationUtility(KratosUnittest.TestCase):
 
     def test_CorrectMass(self):
         self.work_folder = "auxiliary_files"
-        self.file_name = "cube_few_elements"
+        self.file_name = "cube_tetrahedra_elements_coarse"
         model_part = self._CreateModelPart()
         for node in model_part.GetCommunicator().LocalMesh().Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.X - 0.5)
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 1.0 - node.Y)
 
-        inlet_conds = [5,6,17,18,29,30,41,42]
-        outlet_conds = [11,12,23,24,35,36,47,48]
-        for cond in model_part.Conditions:
-            if cond.Id in inlet_conds:
-                cond.Set(KratosMultiphysics.INLET)
-            if cond.Id in outlet_conds:
-                cond.Set(KratosMultiphysics.OUTLET)
+        self._SetInletAndOutlet(model_part)
         settings = KratosMultiphysics.Parameters("""{
             "model_part_name" : "ModelPart"
         }""")

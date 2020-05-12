@@ -183,12 +183,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<MassConservationUtility>(m,"MassConservationUtility")
-    .def(py::init < ModelPart& >())
+    .def(py::init < Model&, Parameters >())
     .def(py::init< ModelPart&, Parameters >())
     .def("Initialize", &MassConservationUtility::Initialize)
     .def("ComputePositiveVolume", &MassConservationUtility::ComputePositiveVolume)
     .def("ComputeNegativeVolume", &MassConservationUtility::ComputeNegativeVolume)
-    .def("ComputeInterfaceArea", &MassConservationUtility::ComputeInterfaceArea)
     .def("ComputeFlowOverBoundary", &MassConservationUtility::ComputeFlowOverBoundary)
     .def("ComputeBalancedVolume", &MassConservationUtility::ComputeBalancedVolume)
     .def("ComputeDtForConvection", &MassConservationUtility::ComputeDtForConvection)

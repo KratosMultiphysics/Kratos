@@ -50,8 +50,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility to modify497 the distances of an embedded object in order to avoid bad intersections
-/// Besides, it also deactivate the full negative distance elements
+enum struct FluidVolumeConservation {
+    VOLUME_LOST = 0,
+    VOLUME_GAINED = 1,
+    EXACT_VOLUME = 2
+};
+
+/// This utility contains several functions that are used inside mass_conservation_check_process.py
+/// to compensate mass losses in a two fluids problem.
 
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) MassConservationUtility
 {
@@ -77,7 +83,8 @@ public:
      * @param CorrectionFreq Frequency of the correction (if wished) in time steps
      */
     MassConservationUtility(
-        ModelPart& rModelPart);
+        Model& rModel,
+        Parameters rParameters);
 
     /**
      * @brief Constructor with Kratos parameters
@@ -119,13 +126,6 @@ public:
     double ComputeNegativeVolume();
 
     /**
-     * @brief Function to compute the area of the interface between both fluids
-     *
-     * @return double Area of the interface
-     */
-    double ComputeInterfaceArea();
-
-    /**
      * @brief Function to compute the "negative" (water) volume flow over a specified boundary
      *
      * @param BoundaryFlag Boundary to consider
@@ -160,7 +160,7 @@ public:
      *
      * @param rAuxDistVar Non-historical variable of the auxiliary distance field
      */
-    void ApplyLocalCorrection( Variable<double>& rAuxDistVar );
+    void ApplyLocalCorrection( const Variable<double>& rAuxDistVar );
 
 
     /**
@@ -194,6 +194,13 @@ public:
      * @return Default setings
      */
     const Parameters GetDefaultParameters();
+
+    /**
+     * @brief Validates input data and initializes member variables
+     * @param Settings Parameters object with settings
+     */
+
+    void ValidateInput (Parameters Settings);
 
     // ///@}
     // ///@name Inquiry
@@ -244,8 +251,8 @@ private:
     // Inital volume with positive distance field ("air" volume)
     double mInitialPositiveVolume = -1.0;
 
-    //Name of time variable
-    std::string mTimeVariableName;
+    // Time variable
+    const Variable<double>* mpTimeVariable = nullptr;
 
     //Option to correct backwards or not (it might be problematic in some cases)
     bool mCorrectBackwards;
@@ -257,7 +264,7 @@ private:
     double mInterfaceArea = -1.0;
 
     // Remember the necessary operation
-    bool mAddWater = true;
+    FluidVolumeConservation mFluidVolumeConservation;
 
     // Net inflow into the domain (please consider that inflow at the outlet and outflow at the inlet are possible)
     double mQNet0 = 0.0;      // for the current time step (t)
@@ -317,16 +324,24 @@ private:
      * @param rGeom Reference to original geometry
      * @param rDistance Distance of the initial boundary nodes
      * @param rpAuxLine Resulting line segment (output)
-     * @param rAuxVelocity1 Velocity at the first node of the new line segment(output)
-     * @param rAuxVelocity2 Velocity at the second node of the new line segment (output)
+     * @param rVelocityLinePoint1 Velocity at the first node of the new line segment(output)
+     * @param rVelocityLinePoint2 Velocity at the second node of the new line segment (output)
      */
-    void GenerateAuxLine(   const Geometry<Node<3> >& rGeom,
-                            const Vector& rDistance,
-                            Line3D2<IndexedPoint>::Pointer& rpAuxLine,
-                            array_1d<double, 3>& rAuxVelocity1,
-                            array_1d<double, 3>& rAuxVelocity2 );
+    void GenerateAuxLine(
+        const GeometryType& rGeom,
+        const Vector& rDistance,
+        Line3D2<IndexedPoint>::Pointer& rpAuxLine,
+        array_1d<double, 3>& rVelocityLinePoint1,
+        array_1d<double, 3>& rVelocityLinePoint2 );
 
-    bool IsGeometryCut(const Geometry<Node<3>> &rGeom, unsigned int &PtCountNeg, unsigned int &PtCountPos);
+    bool IsGeometryCut(
+        const GeometryType &rGeom,
+        unsigned int &PtCountNeg,
+        unsigned int &PtCountPos);
+
+    ModifiedShapeFunctions::Pointer GetModifiedShapeFunctions(
+        GeometryType::Pointer pGeometry,
+        const Vector& rNodalDistances);
 
     ///@}
     ///@name Private  Access
