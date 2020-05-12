@@ -236,12 +236,12 @@ public:
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -269,12 +269,12 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* COMPUTING  METHODS
@@ -291,7 +291,7 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -300,7 +300,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -309,7 +309,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -327,7 +327,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void AddExplicitContribution(const VectorType& rRHSVector,
@@ -468,7 +468,7 @@ protected:
     virtual void CalculateElementalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag);
 
@@ -564,7 +564,7 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**

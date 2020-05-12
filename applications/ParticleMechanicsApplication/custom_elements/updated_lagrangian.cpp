@@ -258,7 +258,7 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
 void UpdatedLagrangian::CalculateElementalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag)
 {
@@ -334,7 +334,7 @@ void UpdatedLagrangian::CalculateElementalSystem(
 //************************************************************************************
 
 
-void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 
 {
     KRATOS_TRY
@@ -784,7 +784,7 @@ void UpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Matri
 //************************************************************************************
 void UpdatedLagrangian::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType left_hand_side_matrix = Matrix(0, 0);
 
@@ -804,7 +804,7 @@ void UpdatedLagrangian::CalculateRightHandSide(
 
 void UpdatedLagrangian::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType right_hand_side_vector = Vector(0);
 
@@ -825,7 +825,7 @@ void UpdatedLagrangian::CalculateLeftHandSide(
 void UpdatedLagrangian::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
     if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size) {
@@ -845,7 +845,7 @@ void UpdatedLagrangian::CalculateLocalSystem(
 
 //*******************************************************************************************
 //*******************************************************************************************
-void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
@@ -895,7 +895,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 ////************************************************************************************
 ////************************************************************************************
 
-void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1220,9 +1220,9 @@ double& UpdatedLagrangian::CalculateIntegrationWeight(double& rIntegrationWeight
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
+void UpdatedLagrangian::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     int number_of_nodes = r_geometry.size();
     int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
@@ -1245,9 +1245,9 @@ void UpdatedLagrangian::EquationIdVector( EquationIdVectorType& rResult, Process
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo )
+void UpdatedLagrangian::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     rElementalDofList.resize( 0 );
 
     for ( unsigned int i = 0; i < r_geometry.size(); i++ )
@@ -1267,7 +1267,7 @@ void UpdatedLagrangian::GetDofList( DofsVectorType& rElementalDofList, ProcessIn
 //************************************************************************************
 //*******************DAMPING MATRIX***************************************************
 
-void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

@@ -236,7 +236,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
 //************************************************************************************
 
 
-void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -340,7 +340,7 @@ void UpdatedLagrangianUP::CalculateDeformationMatrix(Matrix& rB,
 ////************************************************************************************
 ////************************************************************************************
 
-void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianUP::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
@@ -949,9 +949,9 @@ double& UpdatedLagrangianUP::CalculateVolumeChange( double& rVolumeChange, Gener
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
+void UpdatedLagrangianUP::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int element_size          = number_of_nodes * dimension + number_of_nodes;
@@ -980,11 +980,11 @@ void UpdatedLagrangianUP::EquationIdVector( EquationIdVectorType& rResult, Proce
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo )
+void UpdatedLagrangianUP::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo ) const
 {
     rElementalDofList.resize( 0 );
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     for ( unsigned int i = 0; i < r_geometry.size(); i++ )
