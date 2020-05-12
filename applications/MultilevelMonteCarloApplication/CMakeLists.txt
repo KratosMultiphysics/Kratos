@@ -95,11 +95,11 @@ endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
 #####
 ############################################################################
 # Install XMC library
-if (NOT DEFINED INCLUDE_XMC OR INCLUDE_XMC)
+if (NOT DEFINED USING_INTERNAL_XMC OR USING_INTERNAL_XMC)
     message ( STATUS "Automatic installation of XMC library" )
     add_definitions(-DKRATOS_MLMC_USE_INTERNAL_XMC=1)
 	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME}/XMC )
-else (NOT XMC_INCLUDE_DIR)
+else (NOT USING_INTERNAL_XMC)
     message ( STATUS "Manual installation of XMC library" )
     add_definitions(-DKRATOS_MLMC_USE_INTERNAL_XMC=0)
-endif(NOT DEFINED INCLUDE_XMC OR INCLUDE_XMC)
+endif(NOT DEFINED USING_INTERNAL_XMC OR USING_INTERNAL_XMC)
