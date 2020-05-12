@@ -43,10 +43,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
     #### Private functions ####
     def _create_solution_scheme(self):
         # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        self.GetComputingModelPart().ProcessInfo[ConvectionDiffusionApplication.THETA] = self.transient_settings["transient_parameters"]["theta"].GetDouble()
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.transient_settings["transient_parameters"]["theta"].GetDouble()
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.transient_settings["transient_parameters"]["dynamic_tau"].GetDouble()
         convection_diffusion_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return convection_diffusion_scheme
-
-
-
