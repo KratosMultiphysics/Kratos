@@ -34,6 +34,8 @@ namespace MPMSearchElementUtility
 
     typedef std::size_t SizeType;
 
+    typedef Kratos::GeometricalObject::GeometryType::Pointer MPElement;
+
     /**
      * @brief Search element connectivity for each particle
      * @details A search is performed to know in which grid element the material point falls.
@@ -50,7 +52,12 @@ namespace MPMSearchElementUtility
         const double Tolerance)
     {
         const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
-        const bool is_explicit = r_process_info.GetValue(IS_EXPLICIT);
+        const bool is_explicit = (r_process_info.Has(IS_EXPLICIT))
+            ? r_process_info.GetValue(IS_EXPLICIT)
+            : false;
+        const bool is_pqmpm = (r_process_info.Has(IS_PQMPM))
+            ? r_process_info.GetValue(IS_PQMPM)
+            : false;
 
         // Reset elements to inactive
         #pragma omp parallel for
@@ -127,9 +134,9 @@ namespace MPMSearchElementUtility
                 if (is_found == true) {
                     pelem->Set(ACTIVE);
 
-                    auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                        pelem->pGetGeometry(), xg[0],
-                        element_itr->GetGeometry().IntegrationPoints()[0].Weight());
+                    MPElement p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                        pelem->pGetGeometry(), xg[0], element_itr->GetGeometry().IntegrationPoints()[0].Weight());
+                    if (is_pqmpm) PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, *p_new_geometry, MaxNumberOfResults, Tolerance);
 
                     // Update geometry of particle element
                     element_itr->SetGeometry(p_new_geometry);
@@ -184,6 +191,23 @@ namespace MPMSearchElementUtility
                 }
             }
         }
+    }
+
+    void PartitionMasterMaterialPointsIntoSubPoints(ModelPart& rBackgroundGridModelPart, 
+                                                    MPElement& rMasterMaterialPoint, 
+                                                    const std::size_t MaxNumberOfResults,
+                                                    const double Tolerance)
+    {
+        // Get volume
+
+        // Find bounds
+
+        // Do splitting algorithm
+
+        // Add insert sub points as quadrature points in current MP
+
+        // Set elements to active
+
     }
 } // end namespace MPMSearchElementUtility
 

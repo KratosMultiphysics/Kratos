@@ -553,6 +553,9 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
         ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
         : false;
+    const bool is_pqmpm = (rCurrentProcessInfo.Has(IS_PQMPM))
+        ? rCurrentProcessInfo.GetValue(IS_PQMPM)
+        : false;
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -588,6 +591,10 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     {
         MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
             mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
+        // TODO split the above function into 1) calc vel grad, 2) calc strain increment
+        // CalcVelGrad()
+        // if (is_pqmpm) RecombineSubPointsIntoMasterPoint() This probably needs to be moved outside this utility so 
+        // Calc strain increment and def grad of master particle
     }
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;

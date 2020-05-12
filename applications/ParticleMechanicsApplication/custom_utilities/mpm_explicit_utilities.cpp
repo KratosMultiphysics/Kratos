@@ -303,6 +303,8 @@ namespace Kratos
             }
         }
 
+        // TODO split this function into: calc velgrad, calc strain and compressibility
+
         //Calculate rate of deformation and spin tensors
         const Matrix rateOfDeformation = 0.5 * (velocityGradient + trans(velocityGradient));
         const Matrix spinTensor = velocityGradient - rateOfDeformation;
