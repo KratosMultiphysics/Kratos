@@ -1513,7 +1513,7 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<bool>& rVari
     }
     else if (rVariable == CALCULATE_MUSL_VELOCITY_FIELD)
     {
-        MPMExplicitUtilities::CalculateMUSLGridVelocity(*this);
+        MPMExplicitUtilities::CalculateMUSLGridVelocity(rCurrentProcessInfo, *this);
         rValues[0] = true;
     }
     else

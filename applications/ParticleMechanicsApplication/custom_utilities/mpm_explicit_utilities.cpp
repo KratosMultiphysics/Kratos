@@ -236,7 +236,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
 
-    void MPMExplicitUtilities::CalculateMUSLGridVelocity(
+    void MPMExplicitUtilities::CalculateMUSLGridVelocity(const ProcessInfo& rCurrentProcessInfo,
         Element& rElement)
     {
         KRATOS_TRY
@@ -244,13 +244,12 @@ namespace Kratos
         GeometryType& rGeom = rElement.GetGeometry();
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
-        const ProcessInfo& rProcessInfo = ProcessInfo();
         const Matrix& r_N = rElement.GetGeometry().ShapeFunctionsValues();
 
         std::vector<array_1d<double, 3 > > MP_Velocity;
         std::vector<double> MP_Mass;
-        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_Velocity,rProcessInfo);
-        rElement.CalculateOnIntegrationPoints(MP_MASS, MP_Mass, rProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_Velocity, rCurrentProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_MASS, MP_Mass, rCurrentProcessInfo);
 
         for (IndexType i = 0; i < number_of_nodes; i++)
         {
