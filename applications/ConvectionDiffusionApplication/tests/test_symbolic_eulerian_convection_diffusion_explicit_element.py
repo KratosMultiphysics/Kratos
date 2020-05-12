@@ -24,7 +24,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(ConvectionDiffusionAnalysis
             x = node.X
             y = node.Y
             diffusivity = 2.0 # check in materials.json
-            convective_velocity = [200.0,300.0,0.0]
+            convective_velocity = [2.0,3.0,0.0]
 
             forcing = -diffusivity*(-4*pi*pi*cos(2*pi*x)*sin(2*pi*y)-4*pi*pi*cos(2*pi*x)*sin(2*pi*y)) + \
                 convective_velocity[0]*(-2*pi*sin(2*pi*x)*sin(2*pi*y)) + convective_velocity[1]*(2*pi*cos(2*pi*x)*cos(2*pi*y))

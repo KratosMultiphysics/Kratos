@@ -62,6 +62,7 @@ for dim in dim_vector:
     w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N
     v_gauss = v.transpose()*N
+    phi_gauss = phi.transpose()*N
 
     ## Gradient and divergence computation
     grad_w = DfjDxi(DN,w)
@@ -74,6 +75,7 @@ for dim in dim_vector:
     rhs_forcing = q_gauss.transpose() * f_gauss
     rhs_diffusion = - k * grad_phi.transpose() * grad_q
     rhs_convective = - q_gauss * (v_gauss.transpose() * grad_phi)
+    # rhs_convective = - phi_gauss * (v_gauss.transpose() * grad_q) # gives equivalent result
     rhs_galerkin = rhs_forcing + rhs_diffusion + rhs_convective
 
     ##  Stabilization functional terms
