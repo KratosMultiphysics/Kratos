@@ -29,27 +29,37 @@
 		}
 	},
 	"processes" : {
-	"my_processes"  : [{
-		"python_module" : "fix_vector_variable_process",
-		"kratos_module" : "KratosMultiphysics",
-		"help" : "This process fixes the selected components of a given vector variable",
-		"Parameters" : {
-			"model_part_name" : "Structure.DISPLACEMENT_dirichXYZ",
-			"variable_name" : "DISPLACEMENT",
-			"constrained" : [true, true, true]
+		"my_processes"  : [{
+			"python_module" : "fix_vector_variable_process",
+			"kratos_module" : "KratosMultiphysics",
+			"help" : "This process fixes the selected components of a given vector variable",
+			"Parameters" : {
+				"model_part_name" : "Structure.DISPLACEMENT_dirichXYZ",
+				"variable_name" : "DISPLACEMENT",
+				"constrained" : [true, true, true]
+				}
+		},{
+			"python_module"   : "from_json_check_result_process",
+			"kratos_module" : "KratosMultiphysics",
+			"help"                  : "",
+			"process_name"          : "FromJsonCheckResultProcess",
+			"Parameters"            : {
+				"check_variables"  : ["DISPLACEMENT_Z"],
+				"input_file_name"  : "dem_fem_cable_net/dem_fem_cable_net_test_results.json",
+				"model_part_name"  : "Structure.RESULT_middleNode",
+				"time_frequency"   : 5e-04,
+				"tolerance"        : 1e-2
 			}
-	},{
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_Z"],
-            "input_file_name"  : "dem_fem_cable_net/dem_fem_cable_net_test_results.json",
-            "model_part_name"  : "Structure.RESULT_middleNode",
-			"time_frequency"   : 5e-04,
-			"tolerance"        : 1e-2
-        }
-    }]
+		},{
+			"python_module"   : "create_point_based_entites_process",
+			"kratos_module" : "KratosMultiphysics.CoSimulationApplication.processes",
+			"Parameters"            : {
+				"model_part_name"         : "Structure",
+				"new_sub_model_part_name" : "struct_sub",
+				"entity_name"             : "PointLoadCondition3D1N",
+				"entity_type"             : "condition",
+				"properties_id"           : 0
+			}
+		}]
 	}
 }

@@ -149,7 +149,6 @@ public:
 		bool ReformDofAtEachIteration = false; // DofSet modifiaction is managed by the fractional step strategy, auxiliary strategies should not modify the DofSet directly.
 
 		// Additional Typedefs
-		//typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
 		typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 		typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
