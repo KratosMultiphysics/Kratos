@@ -25,6 +25,7 @@
 #include "containers/model.h"
 #include "spatial_containers/spatial_containers.h"
 
+#include "includes/kratos_components.h"
 
 namespace Kratos
 {
@@ -71,6 +72,12 @@ public:
 
     /// Destructor.
     virtual ~Modeler() = default;
+
+    /// Creates the Modeler Pointer
+    virtual Modeler::Pointer Create(const Parameters ModelParameters) const
+    {
+        KRATOS_ERROR << "Trying to Create Modeler. Please check derived class 'Create' definition." << std::endl;
+    }
 
     ///@}
     ///@name Modeler Stages at Initialize
@@ -161,6 +168,10 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
+
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Modeler>;
+
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Modeler const& ThisComponent);
 
 }  // namespace Kratos.
 
