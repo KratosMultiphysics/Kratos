@@ -116,7 +116,7 @@ class ConvectionDiffusionSolver(object):
         verbose = True
         self.ValidateInput(verbose)
 
-        self.model_part.ProcessInfo[THETA] = self.theta
+        self.model_part.ProcessInfo[TIME_INTEGRATION_THETA] = self.theta
         self.model_part.ProcessInfo[DYNAMIC_TAU] = self.dynamic_tau
 
     def Solve(self):

@@ -23,7 +23,8 @@ class SaveRestartProcess(KratosMultiphysics.Process):
             "serializer_trace"             : "no_trace",
             "restart_save_frequency"       : 0.0,
             "restart_control_type"         : "time",
-            "save_restart_files_in_folder" : true
+            "save_restart_files_in_folder" : true,
+            "io_foldername"                : ""
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -36,6 +37,12 @@ class SaveRestartProcess(KratosMultiphysics.Process):
             from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as RestartUtility
         else:
             from KratosMultiphysics.restart_utility import RestartUtility
+
+        if params["io_foldername"].GetString() == '':
+            default_io_folder = params["model_part_name"].GetString() + "__restart_files"
+            info_msg  = 'No entry found for "io_foldername"\n'
+            info_msg += 'Using the default "' + default_io_folder + '"'
+            KratosMultiphysics.Logger.PrintInfo("SaveRestartProcess", info_msg)
 
         params.AddValue("input_filename", params["model_part_name"])
         params.RemoveValue("model_part_name")
