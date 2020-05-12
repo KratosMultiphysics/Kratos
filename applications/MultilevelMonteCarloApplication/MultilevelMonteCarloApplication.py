@@ -11,4 +11,11 @@ application_name = "KratosMultilevelMonteCarloApplication"
 
 _ImportApplication(application, application_name)
 
-sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'XMC'))
+print("Using internal PyCOMPSs...", UseInternalPyCOMPSs())
+print("Using internal XMC...", UseInternalXMC())
+
+if UseInternalPyCOMPSs():
+    sys.path.append(os.path.join(os.path.dirname(__file__),'PyCOMPSs'))
+
+if UseInternalXMC():
+    sys.path.append(os.path.join(os.path.dirname(__file__),'XMC'))

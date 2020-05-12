@@ -44,6 +44,9 @@ PYBIND11_MODULE(KratosMultilevelMonteCarloApplication,m)
     // AddCustomUtilitiesToPython(m);
     AddCustomStatisticsToPython(m);
 
+    m.def("UseInternalPyCOMPSs", [](){return KRATOS_MLMC_USE_INTERNAL_PYCOMPSS;});
+    m.def("UseInternalXMC", [](){return KRATOS_MLMC_USE_INTERNAL_XMC;});
+
     //registering variables in python
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POWER_SUM_1 )
