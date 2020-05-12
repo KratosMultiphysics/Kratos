@@ -80,6 +80,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     // Solver parameters
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MACH_LIMIT);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MACH_SQUARED_LIMIT);
 
     // Integral magnitudes
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LIFT_COEFFICIENT);

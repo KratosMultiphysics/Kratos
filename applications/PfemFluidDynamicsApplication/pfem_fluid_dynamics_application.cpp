@@ -111,6 +111,7 @@ void KratosPfemFluidDynamicsApplication::Register()
   KRATOS_REGISTER_VARIABLE(BAD_VELOCITY_CONVERGENCE);
   KRATOS_REGISTER_VARIABLE(BAD_PRESSURE_CONVERGENCE);
   KRATOS_REGISTER_VARIABLE(STEPS_WITH_CHANGED_DT);
+  KRATOS_REGISTER_VARIABLE(THETA_MOMENTUM);
 
   //Papanastasiou variables
   KRATOS_REGISTER_VARIABLE(YIELDED);
@@ -210,7 +211,27 @@ void KratosPfemFluidDynamicsApplication::Register()
 
   //Register Conditions
 
-  //Register Constitutive Laws
+  //Register Fluid Constitutive Laws
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham2DLaw", mBingham2DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent2DLaw", mBinghamTemperatureDependent2DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent3DLaw", mBinghamTemperatureDependent3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian2DLaw", mNewtonian2DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian3DLaw", mNewtonian3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent2DLaw", mNewtonianTemperatureDependent2DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent3DLaw", mNewtonianTemperatureDependent3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology2DLaw", mPapanastasiouMuIRheology2DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology3DLaw", mPapanastasiouMuIRheology3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("JopMuIRheology3DLaw", mJopMuIRheology3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("BarkerMuIRheology3DLaw", mBarkerMuIRheology3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("BarkerBercovierMuIRheology3DLaw", mBarkerBercovierMuIRheology3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("BercovierMuIRheology3DLaw", mBercovierMuIRheology3DLaw);
+
+  //Register Solid Constitutive Laws
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("Hypoelastic2DLaw", mHypoelastic2DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("Hypoelastic3DLaw", mHypoelastic3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("HypoelasticTemperatureDependent2DLaw", mHypoelasticTemperatureDependent2DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("HypoelasticTemperatureDependent3DLaw", mHypoelasticTemperatureDependent3DLaw);
 
   //Register Flow Rules
 
