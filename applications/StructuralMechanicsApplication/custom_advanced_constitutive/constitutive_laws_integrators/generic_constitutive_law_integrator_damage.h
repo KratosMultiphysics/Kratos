@@ -194,8 +194,31 @@ class GenericConstitutiveLawIntegratorDamage
         double& rDamage
         )
     {
+        const auto &r_mat_props = rValues.GetMaterialProperties();
+        const double max_stress = r_mat_props[MAXIMUM_STRESS];
+        const double Gf = r_mat_props[FRACTURE_ENERGY];
+        const double E = r_mat_props[YOUNG_MODULUS];
+        const bool has_symmetric_yield_stress = r_mat_props.Has(YIELD_STRESS);
+        const double yield_compression = has_symmetric_yield_stress ? r_mat_props[YIELD_STRESS] : r_mat_props[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = has_symmetric_yield_stress ? r_mat_props[YIELD_STRESS] : r_mat_props[YIELD_STRESS_TENSION];
+        const double n = yield_compression / yield_tension;
 
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
 
+        const double re = max_stress / initial_threshold;
+        const double rp = 1.5 * re;
+        const double Ad = (rp - re) / re;
+        const double Ad_tilda = Ad * (std::pow(rp, 3) - 3.0 * rp + 2.0 / 3.0) / (6.0 * re * std::pow((rp - 1.0), 2));
+        const double Hd = 1.0 / (2.0 * (E * Gf / max_stress / max_stress / CharacteristicLength - 0.5 * rp / re - Ad_tilda));
+
+        const double r = UniaxialStress / initial_threshold;
+
+        if (r <= rp) {
+            rDamage = Ad * re / r * std::pow(((r - 1.0) / (rp - 1.0)), 2);            
+        } else {
+            rDamage = 1.0 - re / r + Hd * (1.0 - rp / r);
+        } 
     }
 
     /**
