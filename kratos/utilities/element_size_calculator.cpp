@@ -411,6 +411,7 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >
 template<>
 double ElementSizeCalculator<3,6>::ProjectedElementSize(const Geometry<Node<3> > &rGeometry,
                                                         const array_1d<double,3>& rVelocity){
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
     return 0.0; // TODO: complete this
 }
 
