@@ -172,8 +172,6 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignScalarFieldToEntitiesProcess(AssignScalarFieldToEntitiesProcess const& rOther);
-
     ///@}
     ///@name Protected Operations
     ///@{

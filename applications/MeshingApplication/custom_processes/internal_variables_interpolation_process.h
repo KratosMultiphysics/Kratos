@@ -310,7 +310,7 @@ private:
         )
     {
         std::vector<TVarType> values;
-        itElemOrigin->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        itElemOrigin->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         pPointOrigin->SetValue(rThisVar, values[GaussPointId]);
     }
 
@@ -353,7 +353,7 @@ private:
         )
     {
         std::vector<TVarType> values;
-        itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        itElemDestination->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         TVarType aux_value;
         values[GaussPointId] = pPointOrigin->GetValue(rThisVar, aux_value);
         itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
@@ -445,7 +445,7 @@ private:
         const TVarType destination_value = weighting_function_numerator/weighting_function_denominator;
 
         std::vector<TVarType> values;
-        itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        itElemDestination->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         values[GaussPointId] = destination_value;
         itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
@@ -499,7 +499,7 @@ private:
         )
     {
         std::vector<TVarType> origin_values;
-        itElemOrigin->GetValueOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+        itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
 
         // We sum all the contributions
         for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
@@ -609,7 +609,7 @@ private:
             destination_value += N[i_node] * rThisGeometry[i_node].GetValue(rThisVar);
 
         std::vector<TVarType> values;
-        itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        itElemDestination->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         values[GaussPointId] = destination_value;
         itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }

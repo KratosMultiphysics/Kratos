@@ -25,6 +25,8 @@ class PotentialFlowFormulation(object):
                 self._SetUpIncompressiblePerturbationElement(formulation_settings)
             elif element_type == "perturbation_compressible":
                 self._SetUpCompressiblePerturbationElement(formulation_settings)
+            elif element_type == "perturbation_transonic":
+                self._SetUpTransonicPerturbationElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
@@ -68,17 +70,26 @@ class PotentialFlowFormulation(object):
         self.element_name = "CompressiblePerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
+    def _SetUpTransonicPerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_transonic"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "TransonicPerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "embedded_incompressible",
-            "penalty_coefficient": 0.0
+            "stabilization_factor": 0.0
 
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -192,13 +203,13 @@ class PotentialFlowSolver(FluidSolver):
     def _GetStrategyType(self):
         element_type = self.settings["formulation"]["element_type"].GetString()
         if "incompressible" in element_type:
-            if not self.settings["formulation"].Has("penalty_coefficient"):
+            if not self.settings["formulation"].Has("stabilization_factor"):
                 strategy_type = "linear"
-            elif self.settings["formulation"]["penalty_coefficient"].GetDouble() == 0.0:
+            elif self.settings["formulation"]["stabilization_factor"].GetDouble() == 0.0:
                 strategy_type = "linear"
             else:
                 strategy_type = "non_linear"
-        elif "compressible" in element_type:
+        elif "compressible" or "transonic" in element_type:
             strategy_type = "non_linear"
         else:
             strategy_type = None

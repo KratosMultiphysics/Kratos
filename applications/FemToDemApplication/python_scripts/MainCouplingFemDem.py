@@ -209,6 +209,10 @@ class MainCoupledFemDem_Solution:
         self.DEM_Solution.solver.Solve()
         ########################################################
 
+
+#============================================================================================================================
+    def FinalizeSolutionStep(self):
+
         self.DEM_Solution.FinalizeSolutionStep()
         self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
@@ -229,9 +233,7 @@ class MainCoupledFemDem_Solution:
 
         # Print required info
         self.PrintPlotsFiles()
-
-#============================================================================================================================
-    def FinalizeSolutionStep(self):
+        
         # MODIFIED FOR THE REMESHING
         self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
 
