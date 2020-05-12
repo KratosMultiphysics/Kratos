@@ -69,6 +69,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         self.coupling_operations_dict = factories_helper.CreateCouplingOperations(
             self.settings["coupling_operations"],
             self.solver_wrappers,
+            self.process_info,
             self.echo_level)
 
         ### Creating the data transfer operators
