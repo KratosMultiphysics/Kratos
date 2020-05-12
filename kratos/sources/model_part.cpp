@@ -1786,6 +1786,9 @@ void ModelPart::PrintData(std::ostream& rOStream) const
     rOStream << "    Number of tables : " << NumberOfTables() << std::endl;
     rOStream << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
     if (!IsSubModelPart()) {
+        if (IsDistributed()) {
+            rOStream << "    Distributed; Communicator has " << mpCommunicator->TotalProcesses() << " total processes" << std::endl;
+        }
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
@@ -1834,7 +1837,7 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
     }
     rOStream << std::endl;
     rOStream << PrefixString << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
-    
+
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
@@ -1914,25 +1917,5 @@ void ModelPart::load(Serializer& rSerializer)
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
         i_sub_model_part->SetParentModelPart(this);
 }
-
-
-/// input stream function
-//	inline std::istream & operator >>(std::istream& rIStream,
-//		ModelPart& rThis)
-//	{
-//		return rIStream;
-//	}
-
-//	/// output stream function
-//	inline std::ostream & operator <<(std::ostream& rOStream,
-//		const ModelPart& rThis)
-//	{
-//		rThis.PrintInfo(rOStream);
-//		rOStream << std::endl;
-//		rThis.PrintData(rOStream);
-
-//		return rOStream;
-//	}
-
 
 }  // namespace Kratos.

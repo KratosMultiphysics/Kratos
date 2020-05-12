@@ -17,10 +17,10 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "rectangular_plate"
+            "input_filename"   : "adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/StructuralMaterials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -29,9 +29,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
-        },
         "rotation_dofs"                      : true
     },
     "processes" : {

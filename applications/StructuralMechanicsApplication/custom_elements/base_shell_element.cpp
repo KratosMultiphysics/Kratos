@@ -45,7 +45,7 @@ BaseShellElement::~BaseShellElement()
 }
 
 void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -53,11 +53,11 @@ void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
         rResult.resize(num_dofs, false);
     }
 
-    auto& r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
 
     for (IndexType i = 0; i < r_geom.size(); ++i) {
         const IndexType index = i * 6;
-        NodeType& i_node = r_geom[i];
+        const NodeType& i_node = r_geom[i];
 
         rResult[index]     = i_node.GetDof(DISPLACEMENT_X).EquationId();
         rResult[index + 1] = i_node.GetDof(DISPLACEMENT_Y).EquationId();
@@ -70,17 +70,17 @@ void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
 }
 
 void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
     rElementalDofList.resize(0);
     rElementalDofList.reserve(num_dofs);
 
-    auto& r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
 
     for (IndexType i = 0; i < r_geom.size(); ++i) {
-        NodeType& i_node = r_geom[i];
+        const NodeType& i_node = r_geom[i];
 
         rElementalDofList.push_back(i_node.pGetDof(DISPLACEMENT_X));
         rElementalDofList.push_back(i_node.pGetDof(DISPLACEMENT_Y));
@@ -92,7 +92,7 @@ void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
+void BaseShellElement::GetValuesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -118,7 +118,7 @@ void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
     }
 }
 
-void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
+void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -144,7 +144,7 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
     }
 }
 
-void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
+void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -185,7 +185,7 @@ void BaseShellElement::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-void BaseShellElement::Initialize()
+void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const auto& r_props = GetProperties();
@@ -344,7 +344,7 @@ void BaseShellElement::CalculateDampingMatrix(
         matrix_size);
 }
 
-int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

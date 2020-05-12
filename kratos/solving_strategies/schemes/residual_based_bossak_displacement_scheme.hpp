@@ -88,7 +88,7 @@ public:
 
     typedef typename BaseType::Pointer                                 BaseTypePointer;
 
-    typedef VectorComponentAdaptor< array_1d< double, 3 > >              ComponentType;
+    typedef double              ComponentType;
 
     ///@}
     ///@name Life Cycle
@@ -279,9 +279,9 @@ public:
         // Auxiliar variables
         array_1d<double, 3 > delta_displacement;
         std::array<bool, 3> predicted = {false, false, false};
-        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
-        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
-        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+        const std::array<Variable<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+        const std::array<Variable<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
+        const std::array<Variable<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
 
         #pragma omp parallel for private(delta_displacement, predicted)
         for(int i = 0;  i < num_nodes; ++i) {
@@ -375,9 +375,9 @@ public:
         const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
 
         std::array<bool, 3> fixed = {false, false, false};
-        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
-        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
-        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+        const std::array<Variable<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+        const std::array<Variable<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
+        const std::array<Variable<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
 
         #pragma omp parallel for private(fixed)
         for(int i = 0;  i < num_nodes; ++i) {
@@ -414,7 +414,7 @@ public:
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-    int Check(ModelPart& rModelPart) override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY;
 
@@ -604,7 +604,7 @@ protected:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         // Adding mass contribution to the dynamic stiffness
@@ -618,28 +618,28 @@ protected:
 
     /**
      * @brief It adds the dynamic RHS contribution of the elements b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
-     * @param pElement The element to compute
+     * @param rElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Element::Pointer pElement,
+        Element& rElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         // Adding inertia contribution
         if (M.size1() != 0) {
-            pElement->GetSecondDerivativesVector(mVector.a[this_thread], 0);
+            rElement.GetSecondDerivativesVector(mVector.a[this_thread], 0);
             mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
-            pElement->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            rElement.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
             noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
@@ -647,7 +647,7 @@ protected:
 
         // Adding damping contribution
         if (D.size1() != 0) {
-            pElement->GetFirstDerivativesVector(mVector.v[this_thread], 0);
+            rElement.GetFirstDerivativesVector(mVector.v[this_thread], 0);
 
             noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
@@ -655,28 +655,28 @@ protected:
 
     /**
      * @brief It adds the dynamic RHS contribution of the condition b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
-     * @param pCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Condition::Pointer pCondition,
+        Condition& rCondition,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         // Adding inertia contribution
         if (M.size1() != 0) {
-            pCondition->GetSecondDerivativesVector(mVector.a[this_thread], 0);
+            rCondition.GetSecondDerivativesVector(mVector.a[this_thread], 0);
             mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
-            pCondition->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            rCondition.GetSecondDerivativesVector(mVector.ap[this_thread], 1);
             noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
@@ -685,7 +685,7 @@ protected:
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0) {
-            pCondition->GetFirstDerivativesVector(mVector.v[this_thread], 0);
+            rCondition.GetFirstDerivativesVector(mVector.v[this_thread], 0);
 
             noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }

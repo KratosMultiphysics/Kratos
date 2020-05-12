@@ -51,7 +51,7 @@ public:
     typedef Node<3> NodeType;
 
     /// Definition of array component
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
@@ -108,6 +108,11 @@ public:
      */
     void Clear() override;
     
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -156,8 +161,6 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignScalarVariableToEntitiesProcess(AssignScalarVariableToEntitiesProcess const& rOther);
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -293,8 +296,6 @@ private:
     ///@{
 
     /// Assignment operator.
-    AssignScalarVariableToEntitiesProcess& operator=(AssignScalarVariableToEntitiesProcess const& rOther);
-
     ///@}
     ///@name Serialization
     ///@{

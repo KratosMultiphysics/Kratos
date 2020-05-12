@@ -209,24 +209,6 @@ private:
     ///@{
 
 
-    //TODO: remove in favor of generic implementation in communicator
-    template< class TDataType>
-    TDataType SendRecv(TDataType& send_buffer, int send_rank, int recv_rank)
-    {
-        MpiSerializer send_serializer;
-        send_serializer.save("data",send_buffer);
-        std::string send_string = send_serializer.GetStringRepresentation();
-
-        std::string recv_string = mrComm.SendRecv(send_string, send_rank, send_rank);
-
-        MpiSerializer recv_serializer(recv_string);
-
-        TDataType recv_data;
-        recv_serializer.load("data",recv_data);
-        return recv_data;
-    }
-
-
     ///@}
     ///@name Private Operations
     ///@{

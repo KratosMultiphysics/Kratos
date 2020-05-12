@@ -409,7 +409,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
 
     }
 
@@ -442,7 +442,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
 
     }
 
@@ -478,7 +478,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
 
     }
 
@@ -517,7 +517,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
 
     }
 
@@ -641,7 +641,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
 
         //std::cout<<" transfer ["<<i_elem.Id()<<"] "<<NodesDoubleVariableArray[0]<<" element "<<ElementDoubleVariableArray[0]<<std::endl;
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
 
       }
 
@@ -672,7 +672,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
         }
 
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
 
       }
 
@@ -707,7 +707,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
         }
 
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
 
       }
 
@@ -744,7 +744,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
         }
 
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
 
       }
 
@@ -1315,37 +1315,43 @@ void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rMo
     // In case of interaction of two or more fluids with different properties, the property
     // of the new element is retrivied from the nodes using the PROPERTY_ID variable.
     if (rModelPart.NumberOfProperties() > 1) {
-
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
-        GeometryType &rGeom = new_element->GetGeometry();
+        GeometryType& r_geometry = new_element->GetGeometry();
         std::vector<int> array_of_properties;
-        unsigned int max_count = 1, curr_count = 1;
+        // unsigned int max_count = 1, curr_count = 1;
 
-        for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id()-1].size(); i++) {
-            if (rGeom[i].IsNot(RIGID)){
-                array_of_properties.push_back(rGeom[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
+        for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id() - 1].size(); i++) {
+            if (r_geometry[i].IsNot(RIGID)) {
+                array_of_properties.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
             }
         }
         std::sort(array_of_properties.begin(), array_of_properties.end());
         unsigned int property_id = array_of_properties[0];
 
-        for (unsigned int i = 0; i < array_of_properties.size(); i++) {
-            if (array_of_properties[i+1] == array_of_properties[i]) {
-                curr_count++;
-            } else {
-                if (curr_count > max_count) {
-                    max_count = curr_count;
-                    property_id = array_of_properties[i];
-                }
-                curr_count = 1;
-            }
-        }
-        if (curr_count > max_count) {
-            property_id = array_of_properties.back();
-        }
-        Properties::Pointer pElemNewProp = rModelPart.pGetProperties(property_id);
-        new_element->SetProperties(pElemNewProp);
+        // for (unsigned int i = 0; i < array_of_properties.size(); i++) {
+        //    if (array_of_properties[i+1] == array_of_properties[i]) {
+        //        curr_count++;
+        //    } else {
+        //        if (curr_count > max_count) {
+        //            max_count = curr_count;
+        //            property_id = array_of_properties[i];
+        //        }
+        //        curr_count = 1;
+        //    }
+        //}
+        // if (curr_count > max_count) {
+        //    property_id = array_of_properties.back();
+        //}
+        Properties::Pointer p_new_property = rModelPart.pGetProperties(property_id);
+        new_element->SetProperties(p_new_property);
+    }
+
+    // Clone the constitutive law
+    const PropertiesType& rProperties = new_element->GetProperties();
+    if (rProperties.Has(CONSTITUTIVE_LAW)) {
+        const ConstitutiveLaw::Pointer& pConstitutiveLaw = rProperties[CONSTITUTIVE_LAW];
+        new_element->SetValue(CONSTITUTIVE_LAW, pConstitutiveLaw->Clone());
     }
 
     //check

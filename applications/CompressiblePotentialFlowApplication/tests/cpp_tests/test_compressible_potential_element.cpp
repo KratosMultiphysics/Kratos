@@ -134,7 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePoten
 
     pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-    std::array<double, 9> reference({0.615556466, -0.615561780, 5.314318652e-06, -0.615561780, 1.231123561, -0.615561780, 5.314318652e-06, -0.615561780, 0.615556466});
+    std::array<double, 9> reference{0.615556466, -0.615561780, 5.314318652e-06, -0.615561780, 1.231123561, -0.615561780, 5.314318652e-06, -0.615561780, 0.615556466};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
@@ -151,9 +151,9 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     Element::Pointer pElement = model_part.pGetElement(1);
 
     // Define the nodal values
-    std::array<double, 3> potential({1.0, 2.0, 3.0});
+    std::array<double, 3> potential{1.0, 2.0, 3.0};
     // Define the distance values
-    std::array<double, 3> level_set({1.0, -1.0, -1.0});
+    std::array<double, 3> level_set{1.0, -1.0, -1.0};
 
     for (unsigned int i = 0; i < 3; i++) {
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
 
     pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-    std::vector<double> reference({0.125625, 0.0, -0.125625});
+    std::vector<double> reference{0.125625, 0.0, -0.125625};
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-6);
 }
@@ -179,9 +179,9 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     Element::Pointer pElement = model_part.pGetElement(1);
 
     // Define the nodal values
-    std::array<double, 3> potential({1.0, 2.0, 3.0});
+    std::array<double, 3> potential{1.0, 2.0, 3.0};
     // Define the distance values
-    std::array<double, 3> level_set({1.0, -1.0, -1.0});
+    std::array<double, 3> level_set{1.0, -1.0, -1.0};
     for (unsigned int i = 0; i < 3; i++) {
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
         pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set[i];
@@ -193,7 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
 
     pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-    std::array<double, 9> reference_array({0.251249, -0.25125, 1.08455e-06, -0.25125, 0.502499, -0.25125, 1.08455e-06, -0.25125, 0.251249});
+    std::array<double, 9> reference_array{0.251249, -0.25125, 1.08455e-06, -0.25125, 0.502499, -0.25125, 1.08455e-06, -0.25125, 0.251249};
     // Copying to a 3x3 matrix to check against LHS
     Matrix reference(3, 3);
     for (unsigned int i = 0; i < reference.size1(); i++) {
@@ -249,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHSWake, CompressibleP
 
     pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-    std::array<double, 6> reference({0.615561780, 0.0, 0.0, 0.0, 0.0, -0.615561780});
+    std::array<double, 6> reference{0.615561780, 0.0, 0.0, 0.0, 0.0, -0.615561780};
 
     for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
@@ -302,12 +302,12 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHSWake, CompressibleP
 
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-    std::array<double,36> reference({0.615556466,-0.615561780,5.314318652e-06,0.0,0.0,0.0,
+    std::array<double,36> reference{0.615556466,-0.615561780,5.314318652e-06,0.0,0.0,0.0,
                                   -0.615561780,1.231123561,-0.615561780,0.615561780,-1.231123561,0.615561780,
                                   5.314318652e-06,-0.615561780, 0.615556466,-5.314318652e-06,0.615561780, -0.615556466,
                                   -0.615556466, 0.615561780,-5.314318652e-06,0.615556466, -0.615561780,5.314318652e-06,
                                   0.0,0.0,0.0,-0.615561780,1.231123561,-0.615561780,
-                                  0.0,0.0,0.0,5.314318652e-06,-0.615561780,0.615556466});
+                                  0.0,0.0,0.0,5.314318652e-06,-0.615561780,0.615556466};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {

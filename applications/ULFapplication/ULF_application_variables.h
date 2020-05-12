@@ -30,7 +30,6 @@
 #include "includes/variables.h"
 #include "includes/dem_variables.h"
 #include "includes/cfd_variables.h"
-#include "includes/legacy_structural_app_vars.h"
 
 namespace Kratos
 {

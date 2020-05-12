@@ -29,32 +29,7 @@ MetricErrorProcess<TDim>::MetricErrorProcess(
         Parameters ThisParameters
         ):mrThisModelPart(rThisModelPart)
 {
-    /**
-     * We configure using the following parameters:
-     * minimal_size: The minimal size to consider on the remeshing
-     * maximal_size: The maximal size to consider on the remeshing
-     * target_error: The target error
-     * set_target_number_of_elements: If the number of elements will be forced or not
-     * target_number_of_elements: The estimated/desired number of elements
-     * perform_nodal_h_averaging: If the nodal size to consider will be averaged over the mesh
-     * echo_level: The verbosity
-     */
-    Parameters default_parameters = Parameters(R"(
-    {
-        "minimal_size"                        : 0.01,
-        "maximal_size"                        : 1.0,
-        "error_strategy_parameters":
-        {
-            "target_error"                        : 0.01,
-            "set_target_number_of_elements"       : false,
-            "target_number_of_elements"           : 1000,
-            "perform_nodal_h_averaging"           : false
-        },
-        "echo_level"                          : 0
-    })"
-    );
-
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
@@ -194,6 +169,40 @@ void MetricErrorProcess<TDim>::CalculateMetric()
 
         KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< h_min << std::endl;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+const Parameters MetricErrorProcess<TDim>::GetDefaultParameters() const
+{
+    /**
+     * We configure using the following parameters:
+     * minimal_size: The minimal size to consider on the remeshing
+     * maximal_size: The maximal size to consider on the remeshing
+     * target_error: The target error
+     * set_target_number_of_elements: If the number of elements will be forced or not
+     * target_number_of_elements: The estimated/desired number of elements
+     * perform_nodal_h_averaging: If the nodal size to consider will be averaged over the mesh
+     * echo_level: The verbosity
+     */
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "minimal_size"                        : 0.01,
+        "maximal_size"                        : 1.0,
+        "error_strategy_parameters":
+        {
+            "target_error"                        : 0.01,
+            "set_target_number_of_elements"       : false,
+            "target_number_of_elements"           : 1000,
+            "perform_nodal_h_averaging"           : false
+        },
+        "echo_level"                          : 0
+    })"
+    );
+
+    return default_parameters;
 }
 
 /***********************************************************************************/

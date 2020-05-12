@@ -64,11 +64,11 @@ PairedCondition::~PairedCondition( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-void PairedCondition::Initialize( )
+void PairedCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    BaseType::Initialize();
+    BaseType::Initialize(rCurrentProcessInfo);
 
     // The normal of the paired condition
     const auto& r_paired_geometry = GetPairedGeometry();
@@ -82,7 +82,7 @@ void PairedCondition::Initialize( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-void PairedCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void PairedCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -100,7 +100,7 @@ void PairedCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void PairedCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void PairedCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 

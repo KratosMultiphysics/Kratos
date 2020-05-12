@@ -468,6 +468,11 @@ public:
         OtreeCellVectorType& rLeaves
         );
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -622,11 +627,6 @@ private:
         OtreeCellVectorType& rLeaves,
         PointerVector<GeometricalObject>& rResults
         );
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Un accessible methods
