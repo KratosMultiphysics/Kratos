@@ -122,6 +122,7 @@ class MechanicalSolver(PythonSolver):
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
             "line_search": false,
+            "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": true,
             "builder_and_solver_settings" : {
                 "use_block_builder" : true,
@@ -516,7 +517,7 @@ class MechanicalSolver(PythonSolver):
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                      mechanical_scheme,
                                                                      linear_solver,
                                                                      mechanical_convergence_criterion,
@@ -525,6 +526,8 @@ class MechanicalSolver(PythonSolver):
                                                                      self.settings["compute_reactions"].GetBool(),
                                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                      self.settings["move_mesh_flag"].GetBool())
+        strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
+        return strategy
 
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
@@ -532,7 +535,7 @@ class MechanicalSolver(PythonSolver):
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.LineSearchStrategy(computing_model_part,
+        strategy = KratosMultiphysics.LineSearchStrategy(computing_model_part,
                                                      mechanical_scheme,
                                                      linear_solver,
                                                      mechanical_convergence_criterion,
@@ -541,3 +544,5 @@ class MechanicalSolver(PythonSolver):
                                                      self.settings["compute_reactions"].GetBool(),
                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                      self.settings["move_mesh_flag"].GetBool())
+        strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
+        return strategy
