@@ -19,7 +19,7 @@ class ModelEstimator():
         self.oldParameters = keywordArgs.get('oldParameters',None)
         self.isDataStored = keywordArgs.get('isDataStored',False)
         self.data = keywordArgs.get('data',[])
-        
+
         # Methods
         self.updater = dynamicImport(keywordArgs.get('updater'))
         self._valueForParameters = dynamicImport(keywordArgs.get('valueForParameters'))

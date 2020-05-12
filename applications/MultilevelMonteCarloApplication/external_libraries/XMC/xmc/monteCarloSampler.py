@@ -181,7 +181,6 @@ class MonteCarloSampler():
         listOfIndicesToAdd.
         """
         assert(self.indexConstructor is not None),"Index constructor is not defined."
-        new_indices = []
         for i in listOfIndicesToAdd:
             self.indexConstructorDictionary['indexValue']=i
             self.indices.append(self.indexConstructor(**self.indexConstructorDictionary))
@@ -333,7 +332,7 @@ class MonteCarloSampler():
         else:
             new_number_batches = 1
         self.numberBatches = self.numberBatches + new_number_batches
-        for new_batch in range (new_number_batches):
+        for _ in range (new_number_batches):
             self.batchIndices.append([])
             self.batchesLaunched.append(False)
             self.batchesExecutionFinished.append(False)

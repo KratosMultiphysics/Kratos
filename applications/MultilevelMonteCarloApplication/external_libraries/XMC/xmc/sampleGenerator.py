@@ -6,8 +6,6 @@ from exaqute.ExaquteTaskLocal import *      # to execute with python3
 # Import XMC methods
 from xmc.tools import dynamicImport
 from xmc.tools import instantiateObject
-from xmc.tools import sum_Task
-from xmc.tools import unpackedList
 
 class SampleGenerator():
     """

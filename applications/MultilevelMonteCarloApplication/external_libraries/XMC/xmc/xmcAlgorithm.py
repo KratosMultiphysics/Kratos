@@ -1,11 +1,8 @@
 import pickle
-import sys
 import pathlib as pl
-import os
 
 # XMC imports
 from xmc.tools import dynamicImport
-from xmc.tools import instantiateObject
 from xmc.tools import splitOneListIntoTwo
 
 # TODO: remove PyCOMPSs import from here

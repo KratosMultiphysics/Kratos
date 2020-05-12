@@ -14,8 +14,6 @@ import xmc.solverWrapper as sw
 # Import cpickle to pickle the serializer
 import pickle
 
-from math import ceil
-
 # Import PyCOMPSs
 # from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler

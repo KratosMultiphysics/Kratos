@@ -1,14 +1,8 @@
 # XMC imports
-import xmc
-from xmc.tools import dynamicImport
 from xmc.tools import instantiateObject
-from xmc.tools import convertObjectToFuture
 
 # Import external libraries
 import itertools as it
-import numpy as np
-import time
-import sys
 from math import ceil
 
 import xmc.methodDefs_monteCarloIndex.updateEstimators as mdu

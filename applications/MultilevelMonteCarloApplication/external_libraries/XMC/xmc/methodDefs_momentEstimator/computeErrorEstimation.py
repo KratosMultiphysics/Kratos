@@ -1,5 +1,3 @@
-import numpy as np
-
 # Import PyCOMPSs
 # from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
