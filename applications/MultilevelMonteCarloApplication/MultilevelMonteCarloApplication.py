@@ -11,10 +11,12 @@ application_name = "KratosMultilevelMonteCarloApplication"
 
 _ImportApplication(application, application_name)
 
-print("Using internal PyCOMPSs...", UseInternalPyCOMPSs())
-print("Using internal XMC...", UseInternalXMC())
+if UseMockupPyCOMPSs():
+    print("*********************************************************")
+    print("** Warning: Running a mockup version of PyCOMPSs       **")
+    print("** Warning: The code will NOT RUN USING PARALLEL TASKS **")
+    print("*********************************************************")
 
-if UseInternalPyCOMPSs():
     sys.path.append(os.path.join(os.path.dirname(__file__),'PyCOMPSs'))
 
 if UseInternalXMC():

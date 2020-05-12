@@ -82,11 +82,11 @@ install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
 # Install PyCOMPSs mockup library
 if(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
     message ( STATUS "Automatic installation of PyCOMPSs mockup library" )
-    add_definitions(-DKRATOS_MLMC_USE_INTERNAL_PYCOMPSS=1)
+    add_definitions(-DKRATOS_MLMC_USE_MOCKUP_PYCOMPSS=1)
 	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/PyCOMPSs KratosMultiphysics/${CURRENT_DIR_NAME}/PyCOMPSs )
 else (USING_PYCOMPSS)
     message ( STATUS "Manual installation of PyCOMPSs library" )
-    add_definitions(-DKRATOS_MLMC_USE_INTERNAL_PYCOMPSS=0)
+    add_definitions(-DKRATOS_MLMC_USE_MOCKUP_PYCOMPSS=0)
 endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
 
 ############################################################################
