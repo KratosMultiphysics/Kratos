@@ -54,7 +54,7 @@ namespace Kratos
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(const ProcessInfo& rCurrentProcessInfo, 
             Element& rElement, const Vector& rN);
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateMUSLGridVelocity(Element& rElement, const Vector& rN);
+        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateMUSLGridVelocity(Element& rElement, const Matrix& rN);
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitKinematics(const ProcessInfo& rCurrentProcessInfo,
             Element& rElement, const Matrix& rDN_DX, Vector& rMPStrain, Matrix& rDeformationGradient,

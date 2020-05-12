@@ -24,6 +24,8 @@
 #include "utilities/quadrature_points_utility.h"
 
 #include "particle_mechanics_application_variables.h"
+#include "geometries/geometry_shape_function_container.h"
+#include "custom_geometries/quadrature_point_partitioned_geometry.h"
 
 namespace Kratos
 {
@@ -134,12 +136,20 @@ namespace MPMSearchElementUtility
                 if (is_found == true) {
                     pelem->Set(ACTIVE);
 
-                    MPElement p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                        pelem->pGetGeometry(), xg[0], element_itr->GetGeometry().IntegrationPoints()[0].Weight());
-                    if (is_pqmpm) PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, *p_new_geometry, MaxNumberOfResults, Tolerance);
+                    // location: xg[0]
+                    // element_itr->GetGeometry().IntegrationPoints()[0].Weight() instead element_itr->GetValue(MP_VOLUME)
+                    // pelem->pGetGeometry()
+
+                    auto p_new_geometry = (is_pqmpm)
+                        ? PartitionMasterMaterialPointsIntoSubPoints(
+                            rBackgroundGridModelPart, xg[0], *element_itr, pelem->pGetGeometry(), MaxNumberOfResults, Tolerance)
+                        : CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                            pelem->pGetGeometry(), xg[0],
+                            element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
                     // Update geometry of particle element
                     element_itr->SetGeometry(p_new_geometry);
+
 
                     for (IndexType j = 0; j < p_new_geometry->PointsNumber(); ++j)
                         (*p_new_geometry)[j].Set(ACTIVE);
@@ -193,8 +203,10 @@ namespace MPMSearchElementUtility
         }
     }
 
-    void PartitionMasterMaterialPointsIntoSubPoints(ModelPart& rBackgroundGridModelPart, 
-                                                    MPElement& rMasterMaterialPoint, 
+    typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(ModelPart& rBackgroundGridModelPart,
+                                                    MPElement& rMasterMaterialPoint,
+        typename Geometry<Node<3>>::Pointer pGeometry,
+        const array_1d<double, 3>& rCoordinates,
                                                     const std::size_t MaxNumberOfResults,
                                                     const double Tolerance)
     {
@@ -207,7 +219,98 @@ namespace MPMSearchElementUtility
         // Add insert sub points as quadrature points in current MP
 
         // Set elements to active
+        KRATOS_TRY;
 
+        PointerVector<Node<3>> nodes_list; // all nodes
+
+        GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
+        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType ips(size);
+
+        IntegrationPoint<3> int_p(x, y, z, w);
+        ips.push_back(int_p);
+        //ips[whateverposition] = int_p;
+        Matrix N_matrix;
+        Matrix DN_De;
+        DenseVector<Matrix> DN_De_vector;
+        for (int i + ...)
+        {
+            array_1d<double, 3> local_coordinates;
+            pGeometry->PointLocalCoordinates(local_coordinates, rCoordinates);
+
+            IntegrationPoint<3> int_p(local_coordinates, integration_weight);
+
+            Vector N;
+            pGeometry->ShapeFunctionsValues(N, local_coordinates);
+            for (IndexType i = 0; i < N.size(); ++i)
+            {
+                N_matrix(integration_point_index, i) = N[i];
+            }
+
+            Matrix DN_De;
+            pGeometry->ShapeFunctionsLocalGradients(DN_De, local_coordinates);
+        }
+        ips[0] = ThisIntegrationPoint;
+
+        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
+        ips_container[ThisDefaultMethod] = ips;
+        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType shape_function_container;
+        shape_function_container[ThisDefaultMethod] = N_matrix;
+        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType shape_function_derivatives_container;
+        shape_function_derivatives_container[ThisDefaultMethod] = DN_De_vector;
+
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+            ThisDefaultMethod,
+            ips_container,
+            shape_function_container,
+            shape_function_derivatives_container);
+
+        return CreateQuadraturePoint(
+            pGeometry->WorkingSpaceDimension(),
+            pGeometry->LocalSpaceDimension(),
+            data_container,
+            nodes_list);
+
+        KRATOS_CATCH("");
+    }
+
+    //template<class TPointType>
+    static typename Geometry<Node<3>>::Pointer CreateQuadraturePoint(
+        SizeType WorkingSpaceDimension,
+        SizeType LocalSpaceDimension,
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+        typename Geometry<Node<3>>::PointsArrayType rPoints)
+    {
+        if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
+            return Kratos::make_shared<
+            QuadraturePointPartitionedGeometry<Node<3>, 1>>(
+                rPoints,
+                rShapeFunctionContainer);
+        else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
+            return Kratos::make_shared<
+            QuadraturePointPartitionedGeometry<Node<3>, 2, 1>>(
+                rPoints,
+                rShapeFunctionContainer);
+        else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
+            return Kratos::make_shared<
+            QuadraturePointPartitionedGeometry<Node<3>, 2>>(
+                rPoints,
+                rShapeFunctionContainer);
+        else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
+            return Kratos::make_shared<
+            QuadraturePointPartitionedGeometry<Node<3>, 3, 2>>(
+                rPoints,
+                rShapeFunctionContainer);
+        else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
+            return Kratos::make_shared<
+            QuadraturePointPartitionedGeometry<Node<3>, 3>>(
+                rPoints,
+                rShapeFunctionContainer);
+        else {
+            KRATOS_ERROR << "Working/Local space dimension combinations are "
+                << "not provided for QuadraturePointGeometry. WorkingSpaceDimension: "
+                << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
+                << std::endl;
+        }
     }
 } // end namespace MPMSearchElementUtility
 

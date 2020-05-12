@@ -238,7 +238,7 @@ namespace Kratos
 
     void MPMExplicitUtilities::CalculateMUSLGridVelocity(
         Element& rElement,
-        const Vector& rN)
+        const Matrix& rN)
     {
         KRATOS_TRY
 
@@ -247,21 +247,26 @@ namespace Kratos
         const SizeType number_of_nodes = rGeom.PointsNumber();
         const ProcessInfo& rProcessInfo = ProcessInfo();
 
+        auto integration_points = rGeom.IntegrationPoints();
+
         std::vector<array_1d<double, 3 > > MP_Velocity;
         std::vector<double> MP_Mass;
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_Velocity,rProcessInfo);
         rElement.CalculateOnIntegrationPoints(MP_MASS, MP_Mass, rProcessInfo);
 
-        for (IndexType i = 0; i < number_of_nodes; i++)
+        for (IndexType integration_point_number = 0; integration_point_number < integration_points.size(); ++integration_point_number)
         {
-            const double& r_nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
-
-            if (r_nodal_mass > std::numeric_limits<double>::epsilon())
+            for (IndexType i = 0; i < number_of_nodes; i++)
             {
-                array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-                for (IndexType j = 0; j < dimension; j++)
+                const double& r_nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
+
+                if (r_nodal_mass > std::numeric_limits<double>::epsilon())
                 {
-                    r_current_velocity[j] += rN[i] * MP_Mass[0] * MP_Velocity[0][j] / r_nodal_mass;
+                    array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                    for (IndexType j = 0; j < dimension; j++)
+                    {
+                        r_current_velocity[j] += rN(integration_point_number, i) * MP_Mass[0] * MP_Velocity[0][j] / r_nodal_mass;
+                    }
                 }
             }
         }
