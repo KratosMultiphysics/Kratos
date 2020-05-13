@@ -78,39 +78,39 @@ public:
     /// Destructor.
     virtual ~ResultsProxy() {}
 
-    /**this function returns the effect of "user_function(gp)" both if the gp is locally owned
+    /**this function returns the effect of "user_function(rGlobalPointer)" both if the rGlobalPointer is locally owned
      * and if it is remotely owned
      */
-    TSendType Get(GlobalPointer<TPointerDataType>& gp)
+    TSendType Get(GlobalPointer<TPointerDataType>& rGlobalPointer)
     {
-        if(gp.GetRank() == mCurrentRank)
-            return mUserFunctor(gp);
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return mUserFunctor(rGlobalPointer);
         else
-            return mNonLocalData[gp];
+            return mNonLocalData[rGlobalPointer];
     }
 
-    TSendType Get(GlobalPointer<TPointerDataType> const& gp)
+    TSendType Get(const GlobalPointer<TPointerDataType>& rGlobalPointer)
     {
-        if(gp.GetRank() == mCurrentRank)
-            return mUserFunctor(gp);
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return mUserFunctor(rGlobalPointer);
         else
-            return mNonLocalData[gp];
+            return mNonLocalData[rGlobalPointer];
     }
     
-    bool Has(GlobalPointer<TPointerDataType>& gp) 
+    bool Has(GlobalPointer<TPointerDataType>& rGlobalPointer) const 
     {
-        if(gp.GetRank() == mCurrentRank)
+        if(rGlobalPointer.GetRank() == mCurrentRank)
             return true;
         else
-            return mNonLocalData.find(gp) != mNonLocalData.end();
+            return mNonLocalData.find(rGlobalPointer) != mNonLocalData.end();
     }   
 
-    bool Has(GlobalPointer<TPointerDataType> const& gp) 
+    bool Has(const GlobalPointer<TPointerDataType>& rGlobalPointer) const
     {
-        if(gp.GetRank() == mCurrentRank)
+        if(rGlobalPointer.GetRank() == mCurrentRank)
             return true;
         else
-            return mNonLocalData.find(gp) != mNonLocalData.end();
+            return mNonLocalData.find(rGlobalPointer) != mNonLocalData.end();
     }
 
     void Update()
