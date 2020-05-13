@@ -177,7 +177,7 @@ double MassConservationUtility::ComputeDtForConvection(){
 void MassConservationUtility::ApplyLocalCorrection( const Variable<double>& rAuxDistVar ){
 
     const auto node_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
-    const int number_nodes = static_cast<int>(mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes());
+    const int number_nodes = mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
 
     #pragma omp parallel for
     for (int i_node = 0; i_node < number_nodes; ++i_node){
