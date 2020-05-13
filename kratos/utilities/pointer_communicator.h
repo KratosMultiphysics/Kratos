@@ -81,20 +81,32 @@ public:
     /**this function returns the effect of "user_function(rGlobalPointer)" both if the rGlobalPointer is locally owned
      * and if it is remotely owned
      */
-    TSendType Get(GlobalPointer<TPointerDataType>& rGlobalPointer)
+    TSendType Get(GlobalPointer<TPointerDataType>& rGlobalPointer) const
     {
         if(rGlobalPointer.GetRank() == mCurrentRank)
             return mUserFunctor(rGlobalPointer);
-        else
-            return mNonLocalData[rGlobalPointer];
+        else {
+            auto non_local_gp = mNonLocalData.find(rGlobalPointer);
+#ifdef KRATOS_DEBUG
+            if(non_local_gp == mNonLocalData.end())
+                KRATOS_ERROR << "Missing entry in NonLocalData" << std::endl;
+#endif
+            return non_local_gp->second;
+        }
     }
 
-    TSendType Get(const GlobalPointer<TPointerDataType>& rGlobalPointer)
+    TSendType Get(const GlobalPointer<TPointerDataType>& rGlobalPointer) const
     {
         if(rGlobalPointer.GetRank() == mCurrentRank)
             return mUserFunctor(rGlobalPointer);
-        else
-            return mNonLocalData[rGlobalPointer];
+        else {
+            auto non_local_gp = mNonLocalData.find(rGlobalPointer);
+#ifdef KRATOS_DEBUG
+            if(non_local_gp == mNonLocalData.end())
+                KRATOS_ERROR << "Missing entry in NonLocalData" << std::endl;
+#endif
+            return non_local_gp->second;
+        }
     }
     
     bool Has(GlobalPointer<TPointerDataType>& rGlobalPointer) const 
