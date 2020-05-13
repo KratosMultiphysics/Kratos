@@ -30,6 +30,12 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/bounding_box.h"
 
+#include "boost/geometry/geometry.hpp"
+#include "boost/geometry/geometries/register/point.hpp" 
+#include "boost/geometry/geometries/register/ring.hpp"
+
+
+
 namespace Kratos
 {
 namespace MPMSearchElementUtility
@@ -39,6 +45,8 @@ namespace MPMSearchElementUtility
     typedef std::size_t SizeType;
 
     typedef GeometricalObject::GeometryType GeometryType;
+
+    typedef boost::geometry::model::point<double, 3, boost::geometry::cs::cartesian> BoostPoint;
 
     /**
      * @brief Search element connectivity for each particle
@@ -272,6 +280,9 @@ namespace MPMSearchElementUtility
             Quadrilateral2D4<Point> master_domain (p1,p2,p3,p4);
 
             IndexType node_index = 0;
+            double sub_point_area;
+            BoostPoint centroid_result;
+            array_1d<double, 3> sub_point_position;
 
             for (size_t i = 0; i < number_of_subpoints; ++i)
             {
@@ -282,14 +293,46 @@ namespace MPMSearchElementUtility
                         intersected_elements[i].GetGeometry(),N,DN_De);
                 }
                 else  {
-                    // only some of the background element is within the bounding box
+                    // only some of the background element is within the bounding box - most expensive check
 
+                    // make boost polygon of current background element geometry
+                    std::vector<BoostPoint&> polygon_grid_points(intersected_elements[i].GetGeometry().PointsNumber());
+                    boost::geometry::model::polygon<BoostPoint> polygon_grid;
+                    CreatePolygonFromGeometry(intersected_elements[i].GetGeometry(), polygon_grid_points, polygon_grid);
+
+                    // make boost polygon of bounding box
+                    std::vector<BoostPoint&> polygon_box_points(master_domain.PointsNumber());
+                    boost::geometry::model::polygon<BoostPoint> polygon_box;
+                    CreatePolygonFromGeometry(master_domain, polygon_box_points, polygon_box);
+
+                    // make boost polygon result container
+                    std::vector<boost::geometry::model::polygon<BoostPoint>> polygon_result_container;
+
+                    // reset accumulated quantities
+                    sub_point_area = 0.0;
+                    sub_point_position.clear();
+
+                    // accumulate result over intersected sub-polygons
+                    if (boost::geometry::intersection(polygon_grid, polygon_grid, polygon_result_container)) {
+                        for (auto& polygon_result : polygon_result_container) {
+                            sub_point_area += boost::geometry::area(polygon_result);
+                            boost::geometry::centroid(polygon_result, centroid_result);
+                            sub_point_position[0] += centroid_result.get<0>();
+                            sub_point_position[1] += centroid_result.get<1>();
+                            sub_point_position[2] += centroid_result.get<2>();
+                        }
+                    }
+                    else 
+                        KRATOS_ERROR << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED!";
+                    sub_point_position /= double(polygon_result_container.size());
+                    ips[i] = CreateSubPoint(sub_point_position, sub_point_area / mp_volume[0],
+                        intersected_elements[i].GetGeometry(), N, DN_De);
                 }
 
                 // Transfer local data to containers
                 for (size_t j = 0; j < N.size(); ++j) {
                     N_matrix(i, node_index) = N[j];
-                    nodes_list[node_index] = intersected_elements[0].GetGeometry().Points()[j];
+                    nodes_list[node_index] = intersected_elements[i].GetGeometry().Points()[j];
                     node_index += 1;
                 }
                 DN_De_vector[i] = DN_De;
@@ -382,6 +425,22 @@ namespace MPMSearchElementUtility
 
         return IntegrationPoint<3>(local_coordinates, rVolumeFraction);
     }
+
+
+    void CreatePolygonFromGeometry(const GeometryType& rGeom, 
+        std::vector<BoostPoint&>& rPolygonPoints, 
+        boost::geometry::model::polygon<BoostPoint>& rPolygon)
+    {
+        if (rPolygonPoints.size() != rGeom.PointsNumber()) rPolygonPoints.resize(rGeom.PointsNumber());
+
+        for (size_t i = 0; i < rGeom.PointsNumber(); ++i)
+        {
+            rPolygonPoints[i] = BoostPoint(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Y(), rGeom.GetPoint(i).Z());
+            boost::geometry::append(rPolygon, rPolygonPoints[i]);
+        }
+        boost::geometry::correct(rPolygon);
+    }
+
 } // end namespace MPMSearchElementUtility
 
 } // end namespace Kratos
