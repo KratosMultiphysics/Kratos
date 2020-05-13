@@ -225,8 +225,8 @@ namespace MPMSearchElementUtility
         // TODO should we be attaching the each background grid element to each subpoint?
 
         const SizeType working_dim = pGeometry->WorkingSpaceDimension();
+
         KRATOS_ERROR_IF(working_dim > 2) << "PQMPM is currently limited to 2D!" << std::endl;
-        const SizeType safety_buffer = 5;
 
 
         // Get volume and set up master domain bounding square
@@ -235,64 +235,61 @@ namespace MPMSearchElementUtility
         const double side_length = std::pow(mp_volume[0], double(1.0 / working_dim));
         const SizeType n_bounding_box_vertices = std::pow(2, working_dim);
 
-        Point point_low(rCoordinates[0] - side_length, rCoordinates[1] - side_length, rCoordinates[2]);
-        Point point_high(rCoordinates[0] + side_length, rCoordinates[1] + side_length, rCoordinates[2]);
 
-        // Determine what elements we intersect
-        // TODO try to reduce this search more with initial binning
-        std::vector<Element&> intersected_elements;
-        auto element_begin = rBackgroundGridModelPart.ElementsBegin();
-        for (IndexType i = 0; i < rBackgroundGridModelPart.Elements().size(); ++i) {
-            auto ele_it = element_begin + i;
-            if (ele_it->GetGeometry().HasIntersection(point_low, point_high)) intersected_elements.push_back(*ele_it);
-        }
+        // Initial check is to see if the bounding box is completely contained within grid element
+        Point::Pointer p1(new Point(rCoordinates[0] - side_length, rCoordinates[1] - side_length, rCoordinates[2]));
+        Point::Pointer p2(new Point(rCoordinates[0] + side_length, rCoordinates[1] - side_length, rCoordinates[2]));
+        Point::Pointer p3(new Point(rCoordinates[0] + side_length, rCoordinates[1] + side_length, rCoordinates[2]));
+        Point::Pointer p4(new Point(rCoordinates[0] - side_length, rCoordinates[1] + side_length, rCoordinates[2]));
+        Quadrilateral2D4<Point> master_domain(p1, p2, p3, p4);
 
-        // Prepare containers
-        const SizeType number_of_subpoints = intersected_elements.size();
-
-        PointerVector<Node<3>> nodes_list(number_of_subpoints * element_begin->GetGeometry().PointsNumber());
-        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType ips(number_of_subpoints);
-        Matrix N_matrix (number_of_subpoints, element_begin->GetGeometry().PointsNumber(),0.0);
-        DenseVector<Matrix> DN_De_vector (number_of_subpoints, ZeroMatrix(number_of_subpoints,working_dim));
-
-        // Temporary local containers
-        Vector N(number_of_subpoints);
-        Matrix DN_De (number_of_subpoints,working_dim);
-
-
-        if (number_of_subpoints == 1) {
-            // bounding box must be within entire element - same as normal case
-            ips[0] = CreateSubPoint(rCoordinates, 1.0, intersected_elements[0].GetGeometry(),N,DN_De);
-
-            for (size_t i = 0; i < N.size(); ++i) {
-                N_matrix(0, i) = N[i];
-                nodes_list[i] = intersected_elements[0].GetGeometry().Points()[i];
-            }
-            DN_De_vector[0] = DN_De;
+        if (CheckGeometryIsCompletelyWithinAnother(master_domain, *pGeometry))
+        {
+            // we reduce to the non-pqmpm case. Add the original quadrature point instead
+            return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                pGeometry, rCoordinates,
+                rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
         }
         else
         {
-            // Setup master domain as a quad geom to use core geom tests
-            Point::Pointer p1(new Point(rCoordinates[0] - side_length, rCoordinates[1] - side_length, rCoordinates[2]));
-            Point::Pointer p2(new Point(rCoordinates[0] + side_length, rCoordinates[1] - side_length, rCoordinates[2]));
-            Point::Pointer p3(new Point(rCoordinates[0] + side_length, rCoordinates[1] + side_length, rCoordinates[2]));
-            Point::Pointer p4(new Point(rCoordinates[0] - side_length, rCoordinates[1] + side_length, rCoordinates[2]));
-            Quadrilateral2D4<Point> master_domain (p1,p2,p3,p4);
+            // we need to do splitting. Initially determine all grid elements we intersect with
+
+            // TODO try to reduce this search more with initial binning
+            std::vector<Element&> intersected_elements;
+            Point point_low(rCoordinates[0] - side_length, rCoordinates[1] - side_length, rCoordinates[2]);
+            Point point_high(rCoordinates[0] + side_length, rCoordinates[1] + side_length, rCoordinates[2]);
+            auto element_begin = rBackgroundGridModelPart.ElementsBegin();
+            for (IndexType i = 0; i < rBackgroundGridModelPart.Elements().size(); ++i) {
+                auto ele_it = element_begin + i;
+                if (ele_it->GetGeometry().HasIntersection(point_low, point_high)) intersected_elements.push_back(*ele_it);
+            }
+
+            // Prepare containers to hold all sub-points
+            const SizeType number_of_subpoints = intersected_elements.size();
+            PointerVector<Node<3>> nodes_list(number_of_subpoints * element_begin->GetGeometry().PointsNumber());
+            typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType ips(number_of_subpoints);
+            Matrix N_matrix(number_of_subpoints, element_begin->GetGeometry().PointsNumber(), 0.0);
+            DenseVector<Matrix> DN_De_vector(number_of_subpoints, ZeroMatrix(number_of_subpoints, working_dim));
+
+            // Temporary local containers
+            Vector N(number_of_subpoints);
+            Matrix DN_De(number_of_subpoints, working_dim);
 
             IndexType node_index = 0;
             double sub_point_area;
             BoostPoint centroid_result;
             array_1d<double, 3> sub_point_position;
 
+            // Loop over all subpoints
             for (size_t i = 0; i < number_of_subpoints; ++i)
             {
-                if (CheckGeometryIsCompletelyWithinAnother(intersected_elements[i].GetGeometry(), master_domain)) { 
+                if (CheckGeometryIsCompletelyWithinAnother(intersected_elements[i].GetGeometry(), master_domain)) {
                     // whole element is completely inside bounding box
-                    ips[i] = CreateSubPoint(intersected_elements[i].GetGeometry().Center(), 
-                        intersected_elements[i].GetGeometry().DomainSize()/mp_volume[0], 
-                        intersected_elements[i].GetGeometry(),N,DN_De);
+                    ips[i] = CreateSubPoint(intersected_elements[i].GetGeometry().Center(),
+                        intersected_elements[i].GetGeometry().DomainSize() / mp_volume[0],
+                        intersected_elements[i].GetGeometry(), N, DN_De);
                 }
-                else  {
+                else {
                     // only some of the background element is within the bounding box - most expensive check
 
                     // make boost polygon of current background element geometry
@@ -322,8 +319,9 @@ namespace MPMSearchElementUtility
                             sub_point_position[2] += centroid_result.get<2>();
                         }
                     }
-                    else 
+                    else
                         KRATOS_ERROR << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED!";
+
                     sub_point_position /= double(polygon_result_container.size());
                     ips[i] = CreateSubPoint(sub_point_position, sub_point_area / mp_volume[0],
                         intersected_elements[i].GetGeometry(), N, DN_De);
@@ -337,35 +335,32 @@ namespace MPMSearchElementUtility
                 }
                 DN_De_vector[i] = DN_De;
             }
+
+            // Set elements to active
+
+
+            GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
+            typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
+            ips_container[ThisDefaultMethod] = ips;
+            typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType shape_function_container;
+            shape_function_container[ThisDefaultMethod] = N_matrix;
+            typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType shape_function_derivatives_container;
+            shape_function_derivatives_container[ThisDefaultMethod] = DN_De_vector;
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                ThisDefaultMethod,
+                ips_container,
+                shape_function_container,
+                shape_function_derivatives_container);
+
+            return CreateQuadraturePoint( working_dim, pGeometry->LocalSpaceDimension(), data_container, nodes_list);
         }
-        // Set elements to active
-
-
-        GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
-        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
-        ips_container[ThisDefaultMethod] = ips;
-        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType shape_function_container;
-        shape_function_container[ThisDefaultMethod] = N_matrix;
-        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType shape_function_derivatives_container;
-        shape_function_derivatives_container[ThisDefaultMethod] = DN_De_vector;
-
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-            ThisDefaultMethod,
-            ips_container,
-            shape_function_container,
-            shape_function_derivatives_container);
-
-        return CreateQuadraturePoint(
-            pGeometry->WorkingSpaceDimension(),
-            pGeometry->LocalSpaceDimension(),
-            data_container,
-            nodes_list);
 
         KRATOS_CATCH("");
     }
 
     //template<class TPointType>
-    static typename Geometry<Node<3>>::Pointer CreateQuadraturePoint(
+    static typename Geometry<Node<3>>::Pointer MPMSearchElementUtility::CreateQuadraturePoint(
         SizeType WorkingSpaceDimension,
         SizeType LocalSpaceDimension,
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
@@ -405,7 +400,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    const bool CheckGeometryIsCompletelyWithinAnother(const GeometryType& rTestGeom, const GeometryType& rReferenceGeom)
+    const bool MPMSearchElementUtility::CheckGeometryIsCompletelyWithinAnother(const GeometryType& rTestGeom, const GeometryType& rReferenceGeom)
     {
         array_1d<double, 3> local_coords;
         for (size_t i = 0; i < rTestGeom.PointsNumber(); i++) {
@@ -415,7 +410,8 @@ namespace MPMSearchElementUtility
         return true;
     }
 
-    IntegrationPoint<3> CreateSubPoint(const array_1d<double, 3>& rGlobalCoords, const double rVolumeFraction, 
+
+    IntegrationPoint<3> MPMSearchElementUtility::CreateSubPoint(const array_1d<double, 3>& rGlobalCoords, const double rVolumeFraction,
         const GeometryType& rBackgroundGridElementGeom, Vector& rN, Matrix& rDN_De)
     {
         array_1d<double, 3> local_coordinates;
@@ -427,7 +423,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    void CreatePolygonFromGeometry(const GeometryType& rGeom, 
+    void MPMSearchElementUtility::CreatePolygonFromGeometry(const GeometryType& rGeom,
         std::vector<BoostPoint&>& rPolygonPoints, 
         boost::geometry::model::polygon<BoostPoint>& rPolygon)
     {
