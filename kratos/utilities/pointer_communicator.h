@@ -87,10 +87,7 @@ public:
             return mUserFunctor(rGlobalPointer);
         else {
             auto non_local_gp = mNonLocalData.find(rGlobalPointer);
-#ifdef KRATOS_DEBUG
-            if(non_local_gp == mNonLocalData.end())
-                KRATOS_ERROR << "Missing entry in NonLocalData" << std::endl;
-#endif
+            KRATOS_DEBUG_ERROR_IF(non_local_gp == mNonLocalData.end()) << "Missing entry in NonLocalData" << std::endl;
             return non_local_gp->second;
         }
     }
@@ -101,10 +98,7 @@ public:
             return mUserFunctor(rGlobalPointer);
         else {
             auto non_local_gp = mNonLocalData.find(rGlobalPointer);
-#ifdef KRATOS_DEBUG
-            if(non_local_gp == mNonLocalData.end())
-                KRATOS_ERROR << "Missing entry in NonLocalData" << std::endl;
-#endif
+            KRATOS_DEBUG_ERROR_IF(non_local_gp == mNonLocalData.end()) << "Missing entry in NonLocalData" << std::endl;
             return non_local_gp->second;
         }
     }
