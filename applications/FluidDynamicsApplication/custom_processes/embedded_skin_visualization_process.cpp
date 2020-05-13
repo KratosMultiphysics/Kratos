@@ -87,44 +87,42 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     return r_visualization_model_part;
 }
 
-EmbeddedSkinVisualizationProcess::LevelSetType EmbeddedSkinVisualizationProcess::CheckAndReturnLevelSetType(const Parameters rParameters)
+void EmbeddedSkinVisualizationProcess::CheckAndSetLevelSetType(
+    const Parameters rParameters,
+    LevelSetType& rLevelSetType)
 {
     const std::string level_set_type = rParameters["level_set_type"].GetString();
     KRATOS_ERROR_IF(level_set_type == "") << "\'level_set_type\' is not prescribed. Admissible values are: \'continuous\' and \'discontinuous\'." << std::endl;
 
-    LevelSetType aux_level_set_type;
     if (level_set_type == "continuous") {
-        aux_level_set_type = LevelSetType::Continuous;
+        rLevelSetType = LevelSetType::Continuous;
     } else if (level_set_type == "discontinuous") {
-        aux_level_set_type = LevelSetType::Discontinuous;
+        rLevelSetType = LevelSetType::Discontinuous;
     } else {
         std::stringstream error_msg;
         error_msg << "Currently prescribed \'level_set_type\': " << level_set_type << std::endl;
         error_msg << "Admissible values are : \'continuous\' and \'discontinuous\'" << std::endl;
         KRATOS_ERROR << error_msg.str();
     }
-
-    return aux_level_set_type;
 }
 
-EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctionsType(const Parameters rParameters)
+void EmbeddedSkinVisualizationProcess::CheckAndSetShapeFunctionsType(
+    const Parameters rParameters,
+    ShapeFunctionsType& rShapeFunctionsType)
 {
     const std::string shape_functions = rParameters["shape_functions"].GetString();
     KRATOS_ERROR_IF(shape_functions == "") << "\'shape_functions\' is not prescribed. Admissible values are: \'standard\' and \'ausas\'." << std::endl;
 
-    ShapeFunctionsType aux_sh_func_type;
     if (shape_functions == "ausas") {
-        aux_sh_func_type = ShapeFunctionsType::Ausas;
+        rShapeFunctionsType = ShapeFunctionsType::Ausas;
     } else if (shape_functions == "standard") {
-        aux_sh_func_type = ShapeFunctionsType::Standard;
+        rShapeFunctionsType = ShapeFunctionsType::Standard;
     } else {
         std::stringstream error_msg;
         error_msg << "Currently prescribed \'shape_functions\': " << shape_functions << std::endl;
         error_msg << "Admissible values are : \'standard\' and \'ausas\'" << std::endl;
         KRATOS_ERROR << error_msg.str();
     }
-
-    return aux_sh_func_type;
 }
 
 const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnDistanceVariableName(
@@ -200,13 +198,17 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     , mLevelSetType(
         [&] (Parameters& x) {
             x.ValidateAndAssignDefaults(GetDefaultSettings());
-            return CheckAndReturnLevelSetType(x);
+            LevelSetType aux_level_set_type;
+            CheckAndSetLevelSetType(x, aux_level_set_type);
+            return aux_level_set_type;
         } (rParameters)
     )
     , mShapeFunctionsType(
         [&] (Parameters& x) {
             x.ValidateAndAssignDefaults(GetDefaultSettings());
-            return CheckAndReturnShapeFunctionsType(x);
+            ShapeFunctionsType aux_shape_func_type;
+            CheckAndSetShapeFunctionsType(x, aux_shape_func_type);
+            return aux_shape_func_type;
         } (rParameters)
     )
     , mReformModelPartAtEachTimeStep(

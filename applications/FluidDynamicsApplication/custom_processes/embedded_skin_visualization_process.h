@@ -151,17 +151,21 @@ public:
      * @brief Check and return the level set type
      * This method checks and return the user provided level set type
      * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
-     * @return LevelSetType The validated level set type
+     * @param rLevelSetType The validated level set type
      */
-    static LevelSetType CheckAndReturnLevelSetType(const Parameters rParameters);
+    static void CheckAndSetLevelSetType(
+        const Parameters rParameters,
+        LevelSetType& rLevelSetType);
 
     /**
      * @brief Check and return the shape functions
      * This method checks and return the user provided shape functions type
      * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
-     * @return ShapeFunctionsType The validated shape functions type
+     * @param rShapeFunctionsType The validated shape functions type
      */
-    static ShapeFunctionsType CheckAndReturnShapeFunctionsType(const Parameters rParameters);
+    static void CheckAndSetShapeFunctionsType(
+        const Parameters rParameters,
+        ShapeFunctionsType& rShapeFunctionsType);
 
     /**
      * @brief Checks and returns the distance variable name
