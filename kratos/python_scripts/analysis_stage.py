@@ -21,10 +21,10 @@ class AnalysisStage(object):
         model -- The Model to be used
         project_parameters -- The ProjectParameters used
         """
-        if (type(model) != KratosMultiphysics.Model):
+        if not isinstance(model, KratosMultiphysics.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
-        if (type(project_parameters) != KratosMultiphysics.Parameters):
+        if not isinstance(project_parameters, KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.model = model
@@ -128,10 +128,6 @@ class AnalysisStage(object):
         """
         self.PrintAnalysisStageProgressInformation()
 
-        # updates, modifies and maps within the models.
-        for modeler in self._GetListOfModelers():
-            modeler.UpdateModelInitializeSolutionStep(self.model)
-
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
@@ -145,10 +141,6 @@ class AnalysisStage(object):
         """This function performs all the required operations that should be executed
         (for each step) AFTER solving the solution step.
         """
-        # updates, modifies and maps within the models.
-        for modeler in self._GetListOfModelers():
-            modeler.UpdateModelFinalizeSolutionStep(self.model)
-
         self._GetSolver().FinalizeSolutionStep()
 
         for process in self._GetListOfProcesses():
