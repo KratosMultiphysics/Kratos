@@ -248,18 +248,18 @@ class AnalysisStage(object):
     def _CreateModelers(self, initialization_order):
         """ List of modelers in following format:
         "modelers" : {
-            initialize_modelers : [
+            import_modelers : [
                 { modeler_specific_params },
                 ...
             ],
-            update_modelers : [
+            generate_modelers : [
                 { modeler_specific_params },
                 ...
             ]
         }
         The order of intialization can be specified by setting it in "initialization_order"
         if e.g. the "initial_modelers" should be constructed before the "update_modelers", then
-        initialization_order should be a list containing ["initialize_modelers", "update_modelers"]
+        initialization_order should be a list containing ["import_modelers", "generate_modelers"]
         see the functions _GetOrderOfModelerInitialization
         """
         list_of_modelers = []
