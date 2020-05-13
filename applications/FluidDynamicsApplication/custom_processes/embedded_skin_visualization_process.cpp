@@ -43,7 +43,7 @@ Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
         "visualization_model_part_name"       : "EmbeddedSkinVisualizationModelPart",
         "shape_functions"                     : "",
         "reform_model_part_at_each_time_step" : false,
-        "distance_variable_name"              : ""
+        "distance_variable_name"              : "",
         "visualization_variables"             : ["VELOCITY","PRESSURE"]
     })");
 
@@ -106,37 +106,33 @@ EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationPr
     return aux_sh_func_type;
 }
 
-const Variable<double>* EmbeddedSkinVisualizationProcess::CreateDistanceVariablePointer(
-    const ShapeFunctionsType& rShapeFunctionsType,
-    const Parameters rParameters)
+const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnDistanceVariableName(
+    const Parameters rParameters,
+    const ShapeFunctionsType& rShapeFunctionsType)
 {
-    Variable<double>* p_var_aux = nullptr;
-    const std::string distance_variable_name = rParameters["distance_variable_name"].GetString();
+    std::string distance_variable_name = rParameters["distance_variable_name"].GetString();
     // If the distance variable name is not provided, try to deduce it from the FE space type
     if (distance_variable_name == "") {
-        std::string default_distance_variable_name;
         switch (rShapeFunctionsType) {
+            // Element-based level set
             case ShapeFunctionsType::Ausas:
-                default_distance_variable_name = "ELEMENTAL_DISTANCE";
+                distance_variable_name = "ELEMENTAL_DISTANCES";
                 break;
+            // Nodal-based level set
             case ShapeFunctionsType::Standard:
-                default_distance_variable_name = "DISTANCE";
+                distance_variable_name = "DISTANCE";
                 break;
             default:
                 KRATOS_ERROR << "Default \"distance_variable_name\" cannot be deduced from the shape functions type" << std::endl;
         }
-        KRATOS_INFO("EmbeddedSkinVisualizationProcess") << "\'distance_variable_name\' is not prescribed. Using default variable " << default_distance_variable_name << std::endl;
-        p_var_aux = &(KratosComponents<Variable<double>>::Get("DISTANCE"));
+        KRATOS_INFO("EmbeddedSkinVisualizationProcess") << "\'distance_variable_name\' is not prescribed. Using default " << distance_variable_name << std::endl;
     // User-defined distance variable name case
     } else {
-        if (KratosComponents<Variable<double>>::Has(distance_variable_name)) {
-            p_var_aux = &(KratosComponents<Variable<double>>::Get(distance_variable_name));
-        } else {
-            KRATOS_ERROR << "Provided \"distance_variable_name\" " << distance_variable_name << " is not in the KratosComponents. Please check." << std::endl;
-        }
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(distance_variable_name) || KratosComponents<Variable<Vector>>::Has(distance_variable_name))
+           << "Provided \"distance_variable_name\" " << distance_variable_name << " is not in the KratosComponents. Please check the provided value." << std::endl;
     }
 
-    return p_var_aux;
+    return distance_variable_name;
 }
 
 template <class TDataType>
@@ -188,6 +184,22 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
         [&] (Parameters& x) {
             x.ValidateAndAssignDefaults(GetDefaultSettings());
             return x["reform_model_part_at_each_time_step"].GetBool();
+        } (rParameters)
+    )
+    , mpNodalDistanceVariable(
+        [&] (Parameters& x) -> const Variable<double>* {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mShapeFunctionsType));
+            const Variable<double>* p_aux = (KratosComponents<Variable<double>>::Has(dist_var_name)) ? &(KratosComponents<Variable<double>>::Get(dist_var_name)) : nullptr;
+            return p_aux;
+        } (rParameters)
+    )
+    , mpElementalDistanceVariable(
+        [&] (Parameters& x) -> const Variable<Vector>* {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mShapeFunctionsType));
+            const Variable<Vector>* p_aux = (KratosComponents<Variable<Vector>>::Has(dist_var_name)) ? &(KratosComponents<Variable<Vector>>::Get(dist_var_name)) : nullptr;
+            return p_aux;
         } (rParameters)
     )
     , mVisualizationScalarVariables(
@@ -699,12 +711,12 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
         // Continuous nodal distance function case
         case ShapeFunctionsType::Standard:
             for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+                nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(*mpNodalDistanceVariable);
             }
             break;
         // Discontinuous elemental distance function case
         case ShapeFunctionsType::Ausas:
-            nodal_distances = ItElem->GetValue(ELEMENTAL_DISTANCES);
+            nodal_distances = ItElem->GetValue(*mpElementalDistanceVariable);
             break;
         // Default error case
         default:

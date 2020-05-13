@@ -144,15 +144,15 @@ public:
     static ShapeFunctionsType CheckAndReturnShapeFunctions(const Parameters rParameters);
 
     /**
-     * @brief Create a Distance Variable Pointer object
-     * This method creates a pointer to the user defined distance variable
-     * If the variable is not prescribed, it sets the default values accoding to the selected FE space
+     * @brief Checks and returns the distance variable name
+     * This method checks the user provided distance variable name
+     * If the variable is not prescribed, it returns a default one accoding to the selected FE space
      * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
-     * @return Variable<double>* Pointer to the distance variable
+     * @return std::string The distance variable name
      */
-    static const Variable<double>* CreateDistanceVariablePointer(
-        const ShapeFunctionsType& rShapeFunctionsType,
-        const Parameters rParameters);
+    static const std::string CheckAndReturnDistanceVariableName(
+        const Parameters rParameters,
+        const ShapeFunctionsType& rShapeFunctionsType);
 
     /**
      * @brief Check and fill a visualization variable list
@@ -286,8 +286,11 @@ private:
     // If true, the visualization model part is created each time step (required in case the level set function is not constant)
     const bool mReformModelPartAtEachTimeStep;
 
-    // Pointer to the variable that stores the level set function
-    const Variable<double>* mpDistanceVariable;
+    // Pointer to the variable that stores the nodal level set function
+    const Variable<double>* mpNodalDistanceVariable;
+
+    // Pointer to the variable that stores the elemental level set function
+    const Variable<Vector>* mpElementalDistanceVariable;
 
     // Vector containing the scalar variables to be interpolated in the visualization mesh
     const std::vector<const Variable<double>*> mVisualizationScalarVariables;
