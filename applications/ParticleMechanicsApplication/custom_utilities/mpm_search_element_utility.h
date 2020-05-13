@@ -401,10 +401,21 @@ namespace MPMSearchElementUtility
     const bool MPMSearchElementUtility::CheckGeometryIsCompletelyWithinAnother(const GeometryType& rTestGeom, const GeometryType& rReferenceGeom)
     {
         array_1d<double, 3> local_coords;
-        for (size_t i = 0; i < rTestGeom.PointsNumber(); i++) {
-            if (!rReferenceGeom.IsInside(rTestGeom.GetPoint(i).Coordinates(), local_coords)) return false;
+        bool is_coincident;
+        for (size_t i = 0; i < rTestGeom.PointsNumber(); ++i) {
+            if (!rReferenceGeom.IsInside(rTestGeom.GetPoint(i).Coordinates(), local_coords)) {
+                // the test geom point may directly lie on one of the ref geom nodes - test this
+                is_coincident = false;
+                for (size_t j = 0; j < rReferenceGeom.PointsNumber(); ++j) {
+                    if (norm_2(rTestGeom.GetPoint(i).Coordinates()- rReferenceGeom.GetPoint(j).Coordinates()) < std::numeric_limits<double>::epsilon())
+                    {
+                        is_coincident = true;
+                        break;
+                    }
+                }
+                if (!is_coincident) return false;
+            }
         }
-
         return true;
     }
 
