@@ -505,7 +505,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             noalias(rValue) = prod(invAe, r_plastic_strain);
 
             // We rotate to the global system
-            noalias(rValue) = prod(inv_voigt_rotation_matrix, r_plastic_strain);
+            rValue = prod(inv_voigt_rotation_matrix, rValue);
             return rValue;
         }
     }
