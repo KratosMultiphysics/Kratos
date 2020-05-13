@@ -172,8 +172,6 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
 {
     KRATOS_TRY
 
-    if (rElasticityTensor.size1() != VoigtSize || rElasticityTensor.size2() != VoigtSize)
-        rElasticityTensor.resize(VoigtSize, VoigtSize, false);
     noalias(rElasticityTensor) = ZeroMatrix(VoigtSize, VoigtSize);
 
     const double Ex  = rMaterialProperties[YOUNG_MODULUS_X];
