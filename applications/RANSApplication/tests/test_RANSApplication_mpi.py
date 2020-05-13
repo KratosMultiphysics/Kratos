@@ -22,6 +22,10 @@ from fractional_step_velocity_pressure_formulation_tests import FractionalStepVe
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKEpsilonHighReTest
 from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
+from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
+from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
+from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSSTTest
+from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
 
 
 def AssembleTestSuites():
@@ -46,17 +50,38 @@ def AssembleTestSuites():
     nightlyMPISuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlowMPI')))
     nightlyMPISuite.addTest((FractionalStepVelocityPressureFormulationTest('testFractionalStepVelocityPressureMPI')))
     nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureMPI')))
-    ## fractional step tests
+
+    # ## fractional step tests
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcTkeMPI')))
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReAfcVelocityMPI')))
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcTkeMPI')))
     nightlyMPISuite.addTest((FractionalStepKEpsilonHighReTest('testFractionalStepKEpsilonHighReRfcVelocityMPI')))
+
+    nightlyMPISuite.addTest((FractionalStepKOmegaTest('testFractionalStepKOmegaAfcTkeMPI')))
+    nightlyMPISuite.addTest((FractionalStepKOmegaTest('testFractionalStepKOmegaAfcVelocityMPI')))
+    nightlyMPISuite.addTest((FractionalStepKOmegaTest('testFractionalStepKOmegaRfcTkeMPI')))
+    nightlyMPISuite.addTest((FractionalStepKOmegaTest('testFractionalStepKOmegaRfcVelocityMPI')))
+
+    nightlyMPISuite.addTest((FractionalStepKOmegaSSTTest('testFractionalStepKOmegaSSTAfcTkeMPI')))
+    nightlyMPISuite.addTest((FractionalStepKOmegaSSTTest('testFractionalStepKOmegaSSTAfcVelocityMPI')))
+    nightlyMPISuite.addTest((FractionalStepKOmegaSSTTest('testFractionalStepKOmegaSSTRfcTkeMPI')))
+    nightlyMPISuite.addTest((FractionalStepKOmegaSSTTest('testFractionalStepKOmegaSSTRfcVelocityMPI')))
 
     ### monolithic tests
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeMPI')))
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocityMPI')))
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeMPI')))
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocityMPI')))
+
+    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcTkeMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcVelocityMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocityMPI')))
+
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcTkeMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcVelocityMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcTkeMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcVelocityMPI')))
 
 
     nightlyMPISuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonTransientMPI'))
