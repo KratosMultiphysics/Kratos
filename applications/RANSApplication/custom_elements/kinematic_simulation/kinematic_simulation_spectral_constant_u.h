@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Mayu Sakuma 
+//  Main authors:    Mayu Sakuma
 //
 
 #if !defined(KRATOS_KINEMATIC_SIMULATION_SPECTRAL_CONSTANT_U_H_INCLUDED)
@@ -47,14 +47,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <unsigned int TDim, unsigned int TNumNodes>
-class KinematicSimulationSpectralConstantUElement : public KinematicSimulationElement
+template <unsigned int TNumNodes>
+class KinematicSimulationSpectralConstantUElement : public KinematicSimulationElement<TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = KinematicSimulationElement<TDim, TNumNodes>;
+    using BaseType = KinematicSimulationElement<TNumNodes>;
 
     /// Node type (default is: Node<3>)
     using NodeType = Node<3>;
@@ -87,7 +87,7 @@ public:
     /**
      * Constructor.
      */
-    explicit KinematicSimulationSpectralConstantUElement(IndexType NewId = 0) 
+    explicit KinematicSimulationSpectralConstantUElement(IndexType NewId = 0)
         : BaseType(NewId)
     {
     }
@@ -119,7 +119,7 @@ public:
     /**
      * Copy Constructor
      */
-    KinematicSimulationSpectralConstantUElement(LaplaceElement const& rOther) 
+    KinematicSimulationSpectralConstantUElement(LaplaceElement const& rOther)
         : BaseType(rOther)
     {
     }
@@ -154,7 +154,7 @@ public:
                             PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
-        return Kratos::make_intrusive<KinematicSimulationSpectralConstantUElement>(
+        return Kratos::make_intrusive<KinematicSimulationSpectralConstantUElement<TNumNodes>>(
             NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
@@ -171,7 +171,7 @@ public:
                             PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
-        return Kratos::make_intrusive<KinematicSimulationSpectralConstantUElement>(
+        return Kratos::make_intrusive<KinematicSimulationSpectralConstantUElement<TNumNodes>>(
             NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
@@ -186,7 +186,7 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY;
-        return Kratos::make_intrusive<KinematicSimulationSpectralConstantUElement>(
+        return Kratos::make_intrusive<KinematicSimulationSpectralConstantUElement<TNumNodes>>(
             NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
         KRATOS_CATCH("");
     }
@@ -196,7 +196,7 @@ public:
         return SPECTRAL_CONSTANT_U;
     }
 
-    
+
     /**
      * ELEMENTS inherited from this class have to implement next
      * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide
@@ -212,26 +212,25 @@ public:
      * @param TurbulentKineticEnergy
      * @param EffectiveWaveNumber
      */
-    void CalculateWaveNumberIntegration(double rOutput,
-                                        const int TotalWaveNumber,
+    double CalculateWaveNumberIntegration(const int TotalWaveNumber,
                                         const double TurbulentEnergyDissipationRate,
                                         const double TurbulentKineticEnergy,
                                         const double EffectiveWaveNumber,
-                                        const double KinematicViscosity)
+                                        const double KinematicViscosity) const override
     {
+        double output = 0.0;
         double k1 = 2*M_PI*TurbulentEnergyDissipationRate*pow(TurbulentKineticEnergy, -1.5)
         double kN = pow(TurbulentEnergyDissipationRate, 0.25)*pow(KinematicViscosity, -0.75)
-        double dk = (log(kN) - log(k1))/(TotalWaveNumber-1) 
-        rOutput = 0.0 
+        double dk = (log(kN) - log(k1))/(TotalWaveNumber-1)
         double kn = k1
         for (unsigned int i = 0; i < TotalWaveNumber; ++i)
         {
-            rOutput += (2/EffectiveWaveNumber) * dk * exp(-2*pow((kn/kN), 2)) / (pow(1+pow((kn/EffectiveWaveNumber), 2), 5/6))
+            output += (2/EffectiveWaveNumber) * dk * exp(-2*pow((kn/kN), 2)) / (pow(1+pow((kn/EffectiveWaveNumber), 2), 5/6))
             kn += dk
         }
     }
 
-    
+
     /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected
@@ -306,7 +305,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -385,14 +384,14 @@ private:
 ///@name Input and output
 ///@{
 
-template <unsigned int TDim, unsigned int TNumNodes>
+template <unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                KinematicSimulationSpectralConstantUElement<TDim, TNumNodes>& rThis);
+                                KinematicSimulationSpectralConstantUElement<TNumNodes>& rThis);
 
 /// output stream function
-template <unsigned int TDim, unsigned int TNumNodes>
+template <unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const KinematicSimulationSpectralConstantUElement<TDim, TNumNodes>& rThis)
+                                const KinematicSimulationSpectralConstantUElement<TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

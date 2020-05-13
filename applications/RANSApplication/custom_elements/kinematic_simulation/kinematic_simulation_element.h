@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Mayu Sakuma 
+//  Main authors:    Mayu Sakuma
 //
 
 #if !defined(KRATOS_KINEMATIC_SIMULATION_ELEMENT_H_INCLUDED)
@@ -24,6 +24,7 @@
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "rans_application_variables.h"
 
 namespace Kratos
 {
@@ -46,7 +47,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <unsigned int TDim, unsigned int TNumNodes>
+template <unsigned int TNumNodes>
 class KinematicSimulationElement : public Element
 {
 public:
@@ -294,7 +295,7 @@ public:
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
     }
 
-    
+
     /**
      * this is called during the assembling process in order
      * to calculate the elemental right hand side vector only
@@ -334,8 +335,13 @@ public:
         noalias(rRHS) = ZeroVector(TNumNodes);
 
         // Get Shape function data
+        // vector of gauss weights for each gauss point
         Vector gauss_weights;
+        // matrix of gauss shape functions evaluated at each gauss point
+        // rows of this matrix contains shape function values evaluated at that respective gauss point
         Matrix shape_functions;
+        // vector of matrices of shape function derivatives, a matrix for each shape function evaluated at gauss point
+        // matrix row index corresponds to shape function, column index to dimension
         ShapeFunctionDerivativesArrayType shape_derivatives;
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
@@ -344,18 +350,11 @@ public:
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
-            
             const Vector gauss_shape_functions = row(shape_functions, g);
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {
-                double value = 0.0;
-                for (IndexType d = 0; d < TDim; ++d)
-                {
-                    value += r_shape_values(a, d);
-                }
-
-                rRHS[a] += gauss_weights[g] * value;
+                rRHS[a] += gauss_shape_functions * gauss_weights[g];
             }
         }
     }
@@ -368,23 +367,24 @@ public:
      * @param TurbulentKineticEnergy
      * @param EffectiveWaveNumber
      */
-    virtual void CalculateWaveNumberIntegration(double rOutput,
+    virtual double CalculateWaveNumberIntegration(
                                         const int TotalWaveNumber,
                                         const double TurbulentEnergyDissipationRate,
                                         const double TurbulentKineticEnergy,
                                         const double EffectiveWaveNumber,
-                                        const double KinematicViscosity)
+                                        const double KinematicViscosity) const
     {
+        double output = 0.0;
         double k1 = 2*M_PI*TurbulentEnergyDissipationRate*pow(TurbulentKineticEnergy, -1.5)
         double kN = pow(TurbulentEnergyDissipationRate, 0.25)*pow(KinematicViscosity, -0.75)
-        double dk = (log(kN) - log(k1))/(TotalWaveNumber-1) 
-        rOutput = 0.0 
+        double dk = (log(kN) - log(k1))/(TotalWaveNumber-1)
         double kn = k1
         for (unsigned int i = 0; i < TotalWaveNumber; ++i)
         {
-            rOutput += (2/EffectiveWaveNumber) * dk * pow((kn/EffectiveWaveNumber),2) exp(-2*pow((kn/kN), 2)) / (pow(1+pow((kn/EffectiveWaveNumber), 2), 11/6))
+            output += (2/EffectiveWaveNumber) * dk * pow((kn/EffectiveWaveNumber),2) exp(-2*pow((kn/kN), 2)) / (pow(1+pow((kn/EffectiveWaveNumber), 2), 11/6))
             kn += dk
         }
+        return output;
     }
 
     /**
@@ -401,6 +401,8 @@ public:
         if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
 
+        const double total_wave_number = rCurrentProcessInfo[TOTAL_WAVE_NUMBER];
+
         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
         // Get Shape function data
@@ -410,29 +412,23 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
 
+        const GeometryType& r_geometry = this->GetGeometry();
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
-            const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
-            const Matrix& r_shape_values = shape_functions[g];
 
-            const GeometryType& r_geometry = this->GetGeometry();
-
-            double turbulent_kinetic_energy = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, r_shape_values)
-            double turbulent_energy_dissipation_rate = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, r_shape_values)
-            double effective_wave_number = RansCalculationUtilities::EvaluateInPoint(r_geometry, EFFECTIVE_WAVE_NUMBER, r_shape_values)
-            double r_wavenumber_integration
-            this-> CalculateWaveNumberIntegration(r_wavenumber_integration, TOTAL_WAVE_NUMBER,turbulent_energy_dissipation_rate,turbulent_kinetic_energy,effective_wave_number, KINEMATIC_VISCOSITY)
+            const double turbulent_kinetic_energy = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, r_shape_values);
+            const double turbulent_energy_dissipation_rate = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, r_shape_values);
+            const double effective_wave_number = RansCalculationUtilities::EvaluateInPoint(r_geometry, EFFECTIVE_WAVE_NUMBER, r_shape_values);
+            const double kinematic_viscosity = RansCalculationUtilities::EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, r_shape_values);
+            const double r_wavenumber_integration= this->CalculateWaveNumberIntegration(total_wave_number, turbulent_energy_dissipation_rate,turbulent_kinetic_energy,effective_wave_number, kinematic_viscosity);
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {
                 for (IndexType b = 0; b < TNumNodes; ++b)
                 {
-                    double ha_hb = 0.0;
-                    for (IndexType i = 0; i < TDim; ++i)
-                        ha_hb += r_shape_values(a, i) * r_shape_values(b, i) * ;
-
-                    rLeftHandSideMatrix(a, b) += gauss_weights[g] * ha_hb * r_wavenumber_integration;
+                    rLeftHandSideMatrix(a, b) += gauss_weights[g] * gauss_shape_functions[a] * gauss_shape_functions[b] * r_wavenumber_integration;
                 }
             }
         }
@@ -440,7 +436,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    
+
     /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected
@@ -611,14 +607,14 @@ private:
 ///@name Input and output
 ///@{
 
-template <unsigned int TDim, unsigned int TNumNodes>
+template <unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                LaplaceElement<TDim, TNumNodes>& rThis);
+                                LaplaceElement<TNumNodes>& rThis);
 
 /// output stream function
-template <unsigned int TDim, unsigned int TNumNodes>
+template <unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const LaplaceElement<TDim, TNumNodes>& rThis)
+                                const LaplaceElement<TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

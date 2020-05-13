@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Mayu Sakuma 
+//  Main authors:    Mayu Sakuma
 //
 
 #if !defined(KRATOS_KINEMATIC_SIMULATION_SPECTRAL_CONSTANT_V_H_INCLUDED)
@@ -47,14 +47,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <unsigned int TDim, unsigned int TNumNodes>
-class KinematicSimulationSpectralConstantVElement : public KinematicSimulationElement
+template <unsigned int TNumNodes>
+class KinematicSimulationSpectralConstantVElement : public KinematicSimulationElement<TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = KinematicSimulationElement<TDim, TNumNodes>;
+    using BaseType = KinematicSimulationElement<TNumNodes>;
 
     /// Node type (default is: Node<3>)
     using NodeType = Node<3>;
@@ -87,7 +87,7 @@ public:
     /**
      * Constructor.
      */
-    explicit KinematicSimulationSpectralConstantVElement(IndexType NewId = 0) 
+    explicit KinematicSimulationSpectralConstantVElement(IndexType NewId = 0)
         : BaseType(NewId)
     {
     }
@@ -119,7 +119,7 @@ public:
     /**
      * Copy Constructor
      */
-    KinematicSimulationSpectralConstantVElement(LaplaceElement const& rOther) 
+    KinematicSimulationSpectralConstantVElement(LaplaceElement const& rOther)
         : BaseType(rOther)
     {
     }
@@ -154,7 +154,7 @@ public:
                             PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
-        return Kratos::make_intrusive<KinematicSimulationSpectralConstantVElement>(
+        return Kratos::make_intrusive<KinematicSimulationSpectralConstantVElement<TNumNodes>>(
             NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
@@ -171,7 +171,7 @@ public:
                             PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
-        return Kratos::make_intrusive<KinematicSimulationSpectralConstantVElement>(
+        return Kratos::make_intrusive<KinematicSimulationSpectralConstantVElement<TNumNodes>>(
             NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
@@ -186,7 +186,7 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY;
-        return Kratos::make_intrusive<KinematicSimulationSpectralConstantVElement>(
+        return Kratos::make_intrusive<KinematicSimulationSpectralConstantVElement<TNumNodes>>(
             NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
         KRATOS_CATCH("");
     }
@@ -278,7 +278,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -357,14 +357,14 @@ private:
 ///@name Input and output
 ///@{
 
-template <unsigned int TDim, unsigned int TNumNodes>
+template <unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                KinematicSimulationSpectralConstantVElement<TDim, TNumNodes>& rThis);
+                                KinematicSimulationSpectralConstantVElement<TNumNodes>& rThis);
 
 /// output stream function
-template <unsigned int TDim, unsigned int TNumNodes>
+template <unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const KinematicSimulationSpectralConstantVElement<TDim, TNumNodes>& rThis)
+                                const KinematicSimulationSpectralConstantVElement<TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
