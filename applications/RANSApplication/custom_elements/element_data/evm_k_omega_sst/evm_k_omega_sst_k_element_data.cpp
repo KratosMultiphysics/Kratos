@@ -104,6 +104,7 @@ void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
         1e-12);
     mKinematicViscosity = EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, rShapeFunctions);
     mWallDistance = EvaluateInPoint(r_geometry, DISTANCE, rShapeFunctions);
+    KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
     mTurbulentKinematicViscosity =
         EvaluateInPoint(r_geometry, TURBULENT_VISCOSITY, rShapeFunctions);
 
