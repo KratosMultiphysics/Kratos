@@ -155,6 +155,7 @@ namespace Kratos {
             // Set the embedded skin visualization process
             Parameters visualization_settings(R"(
             {
+                "level_set_type"          : "continuous",
                 "shape_functions"         : "standard",
                 "visualization_variables" : ["VELOCITY","PRESSURE"]
             })");
@@ -206,6 +207,7 @@ namespace Kratos {
             // Set the embedded skin visualization process
             Parameters visualization_settings(R"(
             {
+                "level_set_type"          : "discontinuous",
                 "shape_functions"         : "ausas",
                 "visualization_variables" : ["VELOCITY","PRESSURE"]
             })");
@@ -257,6 +259,7 @@ namespace Kratos {
             // Set the embedded skin visualization process
             Parameters visualization_settings(R"(
             {
+                "level_set_type"          : "continuous",
                 "shape_functions"         : "standard",
                 "visualization_variables" : ["VELOCITY","PRESSURE"]
             })");
@@ -320,6 +323,7 @@ namespace Kratos {
             // Set the embedded skin visualization process
             Parameters visualization_settings(R"(
             {
+                "level_set_type"          : "discontinuous",
                 "shape_functions"         : "ausas",
                 "visualization_variables" : ["VELOCITY","PRESSURE"]
             })");

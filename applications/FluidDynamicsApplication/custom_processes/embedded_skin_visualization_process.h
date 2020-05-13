@@ -78,6 +78,18 @@ public:
     ///@{
 
     /**
+     * @brief Enum class with the available level set types
+     * Auxiliary enum class to store the available level set types
+     * Continuous: standard nodal based continuous level set function
+     * Discontinuous: elementwise discontinuous level set function
+     */
+    enum class LevelSetType
+    {
+        Continuous,
+        Discontinuous
+    };
+
+    /**
      * @brief Enum class with the available shape functions type
      * Auxiliary enum class to store the available shape functions types
      * Available shape functions are the standard linear FE shape functions (Standard)
@@ -136,23 +148,31 @@ public:
     );
 
     /**
+     * @brief Check and return the level set type
+     * This method checks and return the user provided level set type
+     * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
+     * @return LevelSetType The validated level set type
+     */
+    static LevelSetType CheckAndReturnLevelSetType(const Parameters rParameters);
+
+    /**
      * @brief Check and return the shape functions
      * This method checks and return the user provided shape functions type
      * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
      * @return ShapeFunctionsType The validated shape functions type
      */
-    static ShapeFunctionsType CheckAndReturnShapeFunctions(const Parameters rParameters);
+    static ShapeFunctionsType CheckAndReturnShapeFunctionsType(const Parameters rParameters);
 
     /**
      * @brief Checks and returns the distance variable name
      * This method checks the user provided distance variable name
-     * If the variable is not prescribed, it returns a default one accoding to the selected FE space
+     * If the variable is not prescribed, it returns a default one according to the selected level set type
      * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
      * @return std::string The distance variable name
      */
     static const std::string CheckAndReturnDistanceVariableName(
         const Parameters rParameters,
-        const ShapeFunctionsType& rShapeFunctionsType);
+        const LevelSetType& rLevelSetType);
 
     /**
      * @brief Check and fill a visualization variable list
@@ -174,7 +194,8 @@ public:
      * @param rVisualizationModelPart The visualization model part to be filled
      * @param rVisualizationScalarVariables Scalar variables to be interpolated in the visualization model part
      * @param rVisualizationVectorVariables Vector variables to be interpolated in the visualization model part
-     * @param rShapeFunctions Shape functions type. So far "standard" and "ausas" are implemented
+     * @param rLevelSetType Level set type. So far "continuous" and "discontinuous" are implemented
+     * @param rShapeFunctionsType Shape functions type. So far "standard" and "ausas" are implemented
      * @param ReformModelPartAtEachTimeStep Redo visualization model part at each time step flag
      */
     EmbeddedSkinVisualizationProcess(
@@ -182,7 +203,8 @@ public:
         ModelPart& rVisualizationModelPart,
         const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
         const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
-        const ShapeFunctionsType& rShapeFunctions = ShapeFunctionsType::Standard,
+        const LevelSetType& rLevelSetType,
+        const ShapeFunctionsType& rShapeFunctionsType,
         const bool ReformModelPartAtEachTimeStep = false);
 
     /**
@@ -279,6 +301,9 @@ private:
 
     // Reference to the visualization model part
     ModelPart& mrVisualizationModelPart;
+
+    // Level set type. Current available options continuous and discontinuous
+    const LevelSetType mLevelSetType;
 
     // Shape functions type. Current available options ausas and standard
     const ShapeFunctionsType mShapeFunctionsType;

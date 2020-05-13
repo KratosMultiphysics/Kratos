@@ -41,8 +41,9 @@ Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
     {
         "model_part_name"                     : "",
         "visualization_model_part_name"       : "EmbeddedSkinVisualizationModelPart",
-        "shape_functions"                     : "",
         "reform_model_part_at_each_time_step" : false,
+        "level_set_type"                      : "",
+        "shape_functions"                     : "",
         "distance_variable_name"              : "",
         "visualization_variables"             : ["VELOCITY","PRESSURE"]
     })");
@@ -86,7 +87,27 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     return r_visualization_model_part;
 }
 
-EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctions(const Parameters rParameters)
+EmbeddedSkinVisualizationProcess::LevelSetType EmbeddedSkinVisualizationProcess::CheckAndReturnLevelSetType(const Parameters rParameters)
+{
+    const std::string level_set_type = rParameters["level_set_type"].GetString();
+    KRATOS_ERROR_IF(level_set_type == "") << "\'level_set_type\' is not prescribed. Admissible values are: \'continuous\' and \'discontinuous\'." << std::endl;
+
+    LevelSetType aux_level_set_type;
+    if (level_set_type == "continuous") {
+        aux_level_set_type = LevelSetType::Continuous;
+    } else if (level_set_type == "discontinuous") {
+        aux_level_set_type = LevelSetType::Discontinuous;
+    } else {
+        std::stringstream error_msg;
+        error_msg << "Currently prescribed \'level_set_type\': " << level_set_type << std::endl;
+        error_msg << "Admissible values are : \'continuous\' and \'discontinuous\'" << std::endl;
+        KRATOS_ERROR << error_msg.str();
+    }
+
+    return aux_level_set_type;
+}
+
+EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationProcess::CheckAndReturnShapeFunctionsType(const Parameters rParameters)
 {
     const std::string shape_functions = rParameters["shape_functions"].GetString();
     KRATOS_ERROR_IF(shape_functions == "") << "\'shape_functions\' is not prescribed. Admissible values are: \'standard\' and \'ausas\'." << std::endl;
@@ -98,7 +119,7 @@ EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationPr
         aux_sh_func_type = ShapeFunctionsType::Standard;
     } else {
         std::stringstream error_msg;
-        error_msg << "Currently prescribed \'shape_functions\': " << rParameters["shape_functions"].GetString() << std::endl;
+        error_msg << "Currently prescribed \'shape_functions\': " << shape_functions << std::endl;
         error_msg << "Admissible values are : \'standard\' and \'ausas\'" << std::endl;
         KRATOS_ERROR << error_msg.str();
     }
@@ -108,19 +129,19 @@ EmbeddedSkinVisualizationProcess::ShapeFunctionsType EmbeddedSkinVisualizationPr
 
 const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnDistanceVariableName(
     const Parameters rParameters,
-    const ShapeFunctionsType& rShapeFunctionsType)
+    const LevelSetType& rLevelSetType)
 {
     std::string distance_variable_name = rParameters["distance_variable_name"].GetString();
     // If the distance variable name is not provided, try to deduce it from the FE space type
     if (distance_variable_name == "") {
-        switch (rShapeFunctionsType) {
-            // Element-based level set
-            case ShapeFunctionsType::Ausas:
-                distance_variable_name = "ELEMENTAL_DISTANCES";
-                break;
+        switch (rLevelSetType) {
             // Nodal-based level set
-            case ShapeFunctionsType::Standard:
+            case LevelSetType::Continuous:
                 distance_variable_name = "DISTANCE";
+                break;
+            // Element-based level set
+            case LevelSetType::Discontinuous:
+                distance_variable_name = "ELEMENTAL_DISTANCES";
                 break;
             default:
                 KRATOS_ERROR << "Default \"distance_variable_name\" cannot be deduced from the shape functions type" << std::endl;
@@ -155,12 +176,14 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     ModelPart& rVisualizationModelPart,
     const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
     const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
-    const ShapeFunctionsType& rShapeFunctions,
+    const LevelSetType& rLevelSetType,
+    const ShapeFunctionsType& rShapeFunctionsType,
     const bool ReformModelPartAtEachTimeStep) :
     Process(),
     mrModelPart(rModelPart),
     mrVisualizationModelPart(rVisualizationModelPart),
-    mShapeFunctionsType(rShapeFunctions),
+    mLevelSetType(rLevelSetType),
+    mShapeFunctionsType(rShapeFunctionsType),
     mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep),
     mVisualizationScalarVariables(rVisualizationScalarVariables),
     mVisualizationVectorVariables(rVisualizationVectorVariables)
@@ -174,10 +197,16 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     : Process()
     , mrModelPart(rModelPart)
     , mrVisualizationModelPart(rVisualizationModelPart)
+    , mLevelSetType(
+        [&] (Parameters& x) {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            return CheckAndReturnLevelSetType(x);
+        } (rParameters)
+    )
     , mShapeFunctionsType(
         [&] (Parameters& x) {
             x.ValidateAndAssignDefaults(GetDefaultSettings());
-            return CheckAndReturnShapeFunctions(x);
+            return CheckAndReturnShapeFunctionsType(x);
         } (rParameters)
     )
     , mReformModelPartAtEachTimeStep(
@@ -188,18 +217,34 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mpNodalDistanceVariable(
         [&] (Parameters& x) -> const Variable<double>* {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
-            const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mShapeFunctionsType));
-            const Variable<double>* p_aux = (KratosComponents<Variable<double>>::Has(dist_var_name)) ? &(KratosComponents<Variable<double>>::Get(dist_var_name)) : nullptr;
-            return p_aux;
+            const Variable<double>* p_aux;
+            switch (mLevelSetType) {
+                case LevelSetType::Continuous: {
+                    x.ValidateAndAssignDefaults(GetDefaultSettings());
+                    const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mLevelSetType));
+                    p_aux = &(KratosComponents<Variable<double>>::Get(dist_var_name));
+                    return p_aux;
+                } default: {
+                    p_aux = nullptr;
+                    return p_aux;
+                }
+            }
         } (rParameters)
     )
     , mpElementalDistanceVariable(
         [&] (Parameters& x) -> const Variable<Vector>* {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
-            const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mShapeFunctionsType));
-            const Variable<Vector>* p_aux = (KratosComponents<Variable<Vector>>::Has(dist_var_name)) ? &(KratosComponents<Variable<Vector>>::Get(dist_var_name)) : nullptr;
-            return p_aux;
+            const Variable<Vector>* p_aux;
+            switch (mLevelSetType) {
+                case LevelSetType::Discontinuous: {
+                    x.ValidateAndAssignDefaults(GetDefaultSettings());
+                    const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mLevelSetType));
+                    p_aux = &(KratosComponents<Variable<Vector>>::Get(dist_var_name));
+                    return p_aux;
+                } default: {
+                    p_aux = nullptr;
+                    return p_aux;
+                }
+            }
         } (rParameters)
     )
     , mVisualizationScalarVariables(
@@ -707,15 +752,15 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
     const auto &r_geom = ItElem->GetGeometry();
     Vector nodal_distances(r_geom.PointsNumber());
 
-    switch (mShapeFunctionsType) {
+    switch (mLevelSetType) {
         // Continuous nodal distance function case
-        case ShapeFunctionsType::Standard:
+        case LevelSetType::Continuous:
             for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                 nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(*mpNodalDistanceVariable);
             }
             break;
         // Discontinuous elemental distance function case
-        case ShapeFunctionsType::Ausas:
+        case LevelSetType::Discontinuous:
             nodal_distances = ItElem->GetValue(*mpElementalDistanceVariable);
             break;
         // Default error case
