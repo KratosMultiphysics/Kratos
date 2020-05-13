@@ -368,7 +368,9 @@ double MassConservationUtility::OrthogonalFlowIntoAir( const double Factor )
                 const auto& r_N = row(shape_functions, i_gauss);
 
                 auto& r_normal = normal_vectors[i_gauss];
-                r_normal /= norm_2( r_normal );
+                if (norm_2( r_normal ) > 1e-15) {
+                    r_normal /= norm_2( r_normal );
+                }
                 r_normal *= Factor;
 
                 array_1d<double,3> interpolated_velocity = ZeroVector(3);
