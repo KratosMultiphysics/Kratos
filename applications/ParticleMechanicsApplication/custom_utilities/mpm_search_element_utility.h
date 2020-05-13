@@ -27,16 +27,18 @@
 #include "geometries/geometry_shape_function_container.h"
 #include "custom_geometries/quadrature_point_partitioned_geometry.h"
 
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/bounding_box.h"
+
 namespace Kratos
 {
 namespace MPMSearchElementUtility
 {
-
     typedef std::size_t IndexType;
 
     typedef std::size_t SizeType;
 
-    typedef Kratos::GeometricalObject::GeometryType::Pointer MPElement;
+    typedef GeometricalObject::GeometryType GeometryType;
 
     /**
      * @brief Search element connectivity for each particle
@@ -204,53 +206,99 @@ namespace MPMSearchElementUtility
     }
 
     typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(ModelPart& rBackgroundGridModelPart,
-                                                    MPElement& rMasterMaterialPoint,
-        typename Geometry<Node<3>>::Pointer pGeometry,
-        const array_1d<double, 3>& rCoordinates,
+                                                    const array_1d<double, 3>& rCoordinates,
+                                                    Element& rMasterMaterialPoint,
+                                                    typename Geometry<Node<3>>::Pointer pGeometry,
                                                     const std::size_t MaxNumberOfResults,
                                                     const double Tolerance)
     {
-        // Get volume
-
-        // Find bounds
-
-        // Do splitting algorithm
-
-        // Add insert sub points as quadrature points in current MP
-
-        // Set elements to active
         KRATOS_TRY;
 
-        PointerVector<Node<3>> nodes_list; // all nodes
+        // TODO should we be attaching the each background grid element to each subpoint?
+
+        const SizeType working_dim = pGeometry->WorkingSpaceDimension();
+        KRATOS_ERROR_IF(working_dim > 2) << "PQMPM is currently limited to 2D!" << std::endl;
+        const SizeType safety_buffer = 5;
+
+
+        // Get volume and set up master domain bounding square
+        std::vector<double> mp_volume;
+        rMasterMaterialPoint.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume, rBackgroundGridModelPart.GetProcessInfo());
+        const double side_length = std::pow(mp_volume[0], double(1.0 / working_dim));
+        const SizeType n_bounding_box_vertices = std::pow(2, working_dim);
+
+        Point point_low(rCoordinates[0] - side_length, rCoordinates[1] - side_length, rCoordinates[2]);
+        Point point_high(rCoordinates[0] + side_length, rCoordinates[1] + side_length, rCoordinates[2]);
+
+        // Determine what elements we intersect
+        // TODO try to reduce this search more with initial binning
+        std::vector<Element&> intersected_elements;
+        auto element_begin = rBackgroundGridModelPart.ElementsBegin();
+        for (IndexType i = 0; i < rBackgroundGridModelPart.Elements().size(); ++i) {
+            auto ele_it = element_begin + i;
+            if (ele_it->GetGeometry().HasIntersection(point_low, point_high)) intersected_elements.push_back(*ele_it);
+        }
+
+        // Prepare containers
+        const SizeType number_of_subpoints = intersected_elements.size();
+
+        PointerVector<Node<3>> nodes_list(number_of_subpoints * element_begin->GetGeometry().PointsNumber());
+        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType ips(number_of_subpoints);
+        Matrix N_matrix (number_of_subpoints, element_begin->GetGeometry().PointsNumber(),0.0);
+        DenseVector<Matrix> DN_De_vector (number_of_subpoints, ZeroMatrix(number_of_subpoints,working_dim));
+
+        // Temporary local containers
+        Vector N(number_of_subpoints);
+        Matrix DN_De (number_of_subpoints,working_dim);
+
+
+        if (number_of_subpoints == 1) {
+            // bounding box must be within entire element - same as normal case
+            ips[0] = CreateSubPoint(rCoordinates, 1.0, intersected_elements[0].GetGeometry(),N,DN_De);
+
+            for (size_t i = 0; i < N.size(); ++i) {
+                N_matrix(0, i) = N[i];
+                nodes_list[i] = intersected_elements[0].GetGeometry().Points()[i];
+            }
+            DN_De_vector[0] = DN_De;
+        }
+        else
+        {
+            // Setup master domain as a quad geom to use core geom tests
+            Point::Pointer p1(new Point(rCoordinates[0] - side_length, rCoordinates[1] - side_length, rCoordinates[2]));
+            Point::Pointer p2(new Point(rCoordinates[0] + side_length, rCoordinates[1] - side_length, rCoordinates[2]));
+            Point::Pointer p3(new Point(rCoordinates[0] + side_length, rCoordinates[1] + side_length, rCoordinates[2]));
+            Point::Pointer p4(new Point(rCoordinates[0] - side_length, rCoordinates[1] + side_length, rCoordinates[2]));
+            Quadrilateral2D4<Point> master_domain (p1,p2,p3,p4);
+
+            IndexType node_index = 0;
+
+            for (size_t i = 0; i < number_of_subpoints; ++i)
+            {
+                if (CheckGeometryIsCompletelyWithinAnother(intersected_elements[i].GetGeometry(), master_domain)) { 
+                    // whole element is completely inside bounding box
+                    ips[i] = CreateSubPoint(intersected_elements[i].GetGeometry().Center(), 
+                        intersected_elements[i].GetGeometry().DomainSize()/mp_volume[0], 
+                        intersected_elements[i].GetGeometry(),N,DN_De);
+                }
+                else  {
+                    // only some of the background element is within the bounding box
+
+                }
+
+                // Transfer local data to containers
+                for (size_t j = 0; j < N.size(); ++j) {
+                    N_matrix(i, node_index) = N[j];
+                    nodes_list[node_index] = intersected_elements[0].GetGeometry().Points()[j];
+                    node_index += 1;
+                }
+                DN_De_vector[i] = DN_De;
+            }
+        }
+        // Set elements to active
+
 
         GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
-        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType ips(size);
-
-        IntegrationPoint<3> int_p(x, y, z, w);
-        ips.push_back(int_p);
-        //ips[whateverposition] = int_p;
-        Matrix N_matrix;
-        Matrix DN_De;
-        DenseVector<Matrix> DN_De_vector;
-        for (int i + ...)
-        {
-            array_1d<double, 3> local_coordinates;
-            pGeometry->PointLocalCoordinates(local_coordinates, rCoordinates);
-
-            IntegrationPoint<3> int_p(local_coordinates, integration_weight);
-
-            Vector N;
-            pGeometry->ShapeFunctionsValues(N, local_coordinates);
-            for (IndexType i = 0; i < N.size(); ++i)
-            {
-                N_matrix(integration_point_index, i) = N[i];
-            }
-
-            Matrix DN_De;
-            pGeometry->ShapeFunctionsLocalGradients(DN_De, local_coordinates);
-        }
-        ips[0] = ThisIntegrationPoint;
-
         typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
         ips_container[ThisDefaultMethod] = ips;
         typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType shape_function_container;
@@ -311,6 +359,28 @@ namespace MPMSearchElementUtility
                 << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
                 << std::endl;
         }
+    }
+
+
+    const bool CheckGeometryIsCompletelyWithinAnother(const GeometryType& rTestGeom, const GeometryType& rReferenceGeom)
+    {
+        array_1d<double, 3> local_coords;
+        for (size_t i = 0; i < rTestGeom.PointsNumber(); i++) {
+            if (!rReferenceGeom.IsInside(rTestGeom.GetPoint(i).Coordinates(), local_coords)) return false;
+        }
+
+        return true;
+    }
+
+    IntegrationPoint<3> CreateSubPoint(const array_1d<double, 3>& rGlobalCoords, const double rVolumeFraction, 
+        const GeometryType& rBackgroundGridElementGeom, Vector& rN, Matrix& rDN_De)
+    {
+        array_1d<double, 3> local_coordinates;
+        rBackgroundGridElementGeom.PointLocalCoordinates(local_coordinates, rGlobalCoords);
+        rBackgroundGridElementGeom.ShapeFunctionsValues(rN, local_coordinates);
+        rBackgroundGridElementGeom.ShapeFunctionsLocalGradients(rDN_De, local_coordinates);
+
+        return IntegrationPoint<3>(local_coordinates, rVolumeFraction);
     }
 } // end namespace MPMSearchElementUtility
 
