@@ -67,7 +67,8 @@ class MassConservationUtility(KratosUnittest.TestCase):
             import_flags = KratosMultiphysics.ModelPartIO.READ
             KratosMultiphysics.ModelPartIO(import_settings['model_import_settings']['input_filename'].GetString(), import_flags).ReadModelPart(model_part)
 
-    def _SetInletAndOutlet(self, model_part):
+    @staticmethod
+    def _SetInletAndOutlet(model_part):
         inlet_conds = [5,6,17,18,29,30,41,42]
         outlet_conds = [11,12,23,24,35,36,47,48]
         for cond in model_part.Conditions:
@@ -75,8 +76,6 @@ class MassConservationUtility(KratosUnittest.TestCase):
                 cond.Set(KratosMultiphysics.INLET)
             if cond.Id in outlet_conds:
                 cond.Set(KratosMultiphysics.OUTLET)
-
-
 
     def test_Initialize(self):
         self.work_folder = "auxiliary_files"
