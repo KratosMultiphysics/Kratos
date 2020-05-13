@@ -95,9 +95,7 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         RansWallDistanceCalculationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     py::class_<RansWallDistanceCalculationProcessType, RansWallDistanceCalculationProcessType::Pointer, Process>(
         m, "RansWallDistanceCalculationProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def("SetBuilderAndSolver", &RansWallDistanceCalculationProcessType::SetBuilderAndSolver)
-        .def("GetLinearSolver", &RansWallDistanceCalculationProcessType::GetLinearSolver);
+        .def(py::init<Model&, Parameters&>());
 
     using RansLogarithmicYPlusCalculationProcessType = RansLogarithmicYPlusCalculationProcess;
     py::class_<RansLogarithmicYPlusCalculationProcessType, RansLogarithmicYPlusCalculationProcessType::Pointer, Process>(

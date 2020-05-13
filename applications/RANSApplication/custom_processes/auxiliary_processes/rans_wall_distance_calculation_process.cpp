@@ -15,7 +15,8 @@
 // External includes
 
 // Project includes
-#include "processes/variational_distance_calculation_process.h"
+#include "factories/linear_solver_factory.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 // Application includes
 
@@ -28,67 +29,30 @@ template <>
 void RansWallDistanceCalculationProcess<
     UblasSpace<double, CompressedMatrix, Vector>,
     UblasSpace<double, Matrix, Vector>,
-    LinearSolver<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>>>::ExecuteVariationalDistanceCalculationProcess()
+    LinearSolver<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>>>::CreateLinearSolver()
 {
-    KRATOS_TRY
+    mpLinearSolver = LinearSolverFactory<SparseSpaceType, DenseSpaceType>().Create(
+        mrParameters["linear_solver_settings"]);
+}
 
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
-    using LinearSolverType =
-        LinearSolver<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>>;
+template <>
+void RansWallDistanceCalculationProcess<
+    UblasSpace<double, CompressedMatrix, Vector>,
+    UblasSpace<double, Matrix, Vector>,
+    LinearSolver<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>>>::CreateBuilderAndSolver()
+{
+    mpBuilderAndSolver =
+        Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, DenseSpaceType, LinearSolverType>>(
+            mpLinearSolver);
+}
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-    const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
-
-    if (domain_size == 2)
-    {
-        if (mpBuilderAndSolver)
-        {
-            VariationalDistanceCalculationProcess<2, SparseSpaceType, DenseSpaceType, LinearSolverType> distance_calculation_process(
-                r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
-            distance_calculation_process.Execute();
-        }
-        else if (!r_model_part.IsDistributed())
-        {
-            VariationalDistanceCalculationProcess<2, SparseSpaceType, DenseSpaceType, LinearSolverType> distance_calculation_process(
-                r_model_part, mpLinearSolver, mMaxIterations);
-            distance_calculation_process.Execute();
-        }
-        else
-        {
-            KRATOS_ERROR << "Distributed run requires to use "
-                            "SetBuilderAndSolver method to provide "
-                            "appropriate distributed builder and solver.\n";
-        }
-    }
-    else if (domain_size == 3)
-    {
-        if (mpBuilderAndSolver)
-        {
-            VariationalDistanceCalculationProcess<3, SparseSpaceType, DenseSpaceType, LinearSolverType> distance_calculation_process(
-                r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
-            distance_calculation_process.Execute();
-        }
-        else if (!r_model_part.IsDistributed())
-        {
-            VariationalDistanceCalculationProcess<3, SparseSpaceType, DenseSpaceType, LinearSolverType> distance_calculation_process(
-                r_model_part, mpLinearSolver, mMaxIterations);
-            distance_calculation_process.Execute();
-        }
-        else
-        {
-            KRATOS_ERROR << "Distributed run requires to use "
-                            "SetBuilderAndSolver method to provide "
-                            "appropriate distributed builder and solver.\n";
-        }
-    }
-    else
-    {
-        KRATOS_ERROR << "Unknown domain size = " << domain_size;
-    }
-
-    KRATOS_CATCH("");
+template <>
+std::string RansWallDistanceCalculationProcess<
+    UblasSpace<double, CompressedMatrix, Vector>,
+    UblasSpace<double, Matrix, Vector>,
+    LinearSolver<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>>>::Info() const
+{
+    return std::string("RansWallDistanceCalculationProcess");
 }
 
 } // namespace Kratos.

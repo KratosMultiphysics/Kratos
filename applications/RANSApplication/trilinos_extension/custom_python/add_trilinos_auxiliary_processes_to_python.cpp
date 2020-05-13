@@ -18,7 +18,7 @@
 #include "add_trilinos_auxiliary_processes_to_python.h"
 
 // Application includes
-#include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
+#include "trilinos_extension/custom_processes/auxiliary_processes/rans_trilinos_wall_distance_calculation_process.h"
 
 namespace Kratos
 {
@@ -33,12 +33,10 @@ void AddTrilinosAuxiliaryProcessesToPython(pybind11::module& m)
     using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
     using MPILinearSolverType = LinearSolver<MPISparseSpaceType, LocalSpaceType>;
 
-    using MPIRansWallDistanceCalculationProcessType = RansWallDistanceCalculationProcess<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
-    py::class_<MPIRansWallDistanceCalculationProcessType, MPIRansWallDistanceCalculationProcessType::Pointer, Process>(
-        m, "MPIRansWallDistanceCalculationProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def("SetBuilderAndSolver", &MPIRansWallDistanceCalculationProcessType::SetBuilderAndSolver)
-        .def("GetLinearSolver", &MPIRansWallDistanceCalculationProcessType::GetLinearSolver);
+    using TrilinosRansWallDistanceCalculationProcessType = TrilinosRansWallDistanceCalculationProcess<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
+    py::class_<TrilinosRansWallDistanceCalculationProcessType, TrilinosRansWallDistanceCalculationProcessType::Pointer, Process>(
+        m, "TrilinosRansWallDistanceCalculationProcess")
+        .def(py::init<Model&, Parameters&>());
 }
 
 } // namespace Python.

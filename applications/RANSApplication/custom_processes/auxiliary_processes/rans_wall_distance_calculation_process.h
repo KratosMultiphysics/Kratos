@@ -20,12 +20,15 @@
 
 // Project includes
 #include "containers/model.h"
-#include "factories/linear_solver_factory.h"
+#include "includes/communicator.h"
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "linear_solvers/linear_solver.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/process.h"
+#include "processes/variational_distance_calculation_process.h"
+
 #include "utilities/variable_utils.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
 // Application includes
 #include "custom_utilities/rans_check_utilities.h"
@@ -55,45 +58,47 @@ namespace Kratos
 ///@{
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class KRATOS_API(RANS_APPLICATION) RansWallDistanceCalculationProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansWallDistanceCalculationBaseProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
     using NodeType = ModelPart::NodeType;
+    using SparseSpaceType = TSparseSpace;
+    using DenseSpaceType = TDenseSpace;
+    using LinearSolverType = TLinearSolver;
     using BuilderSolverPointerType =
         typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer;
 
-    /// Pointer definition of RansWallDistanceCalculationProcess
-    KRATOS_CLASS_POINTER_DEFINITION(RansWallDistanceCalculationProcess);
+    /// Pointer definition of RansWallDistanceCalculationBaseProcess
+    KRATOS_CLASS_POINTER_DEFINITION(RansWallDistanceCalculationBaseProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    RansWallDistanceCalculationProcess(Model& rModel, Parameters rParameters)
+    RansWallDistanceCalculationBaseProcess(Model& rModel, Parameters rParameters)
         : mrModel(rModel), mrParameters(rParameters)
     {
         KRATOS_TRY
 
         Parameters default_parameters = Parameters(R"(
         {
-            "model_part_name"               : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "max_iterations"                : 10,
-            "echo_level"                    : 0,
-            "wall_flag_variable_name"       : "STRUCTURE",
-            "wall_flag_variable_value"      : true,
-            "re_calculate_at_each_time_step": false,
+            "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "max_iterations"                   : 10,
+            "echo_level"                       : 0,
+            "wall_flag_variable_name"          : "STRUCTURE",
+            "wall_flag_variable_value"         : true,
+            "re_calculate_at_each_time_step"   : false,
+            "correct_distances_using_neighbors": true,
             "linear_solver_settings" : {
                 "solver_type"     : "amgcl"
             }
         })");
 
         mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-        this->CreateLinearSolver();
 
         mMaxIterations = mrParameters["max_iterations"].GetInt();
         mEchoLevel = mrParameters["echo_level"].GetInt();
@@ -102,12 +107,14 @@ public:
         mWallFlagVariableValue = mrParameters["wall_flag_variable_value"].GetBool();
         mRecalculateAtEachTimeStep =
             mrParameters["re_calculate_at_each_time_step"].GetBool();
+        mCorrectDistancesUsingNeighbors =
+            mrParameters["correct_distances_using_neighbors"].GetBool();
 
         KRATOS_CATCH("");
     }
 
     /// Destructor.
-    ~RansWallDistanceCalculationProcess() override = default;
+    ~RansWallDistanceCalculationBaseProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -132,18 +139,11 @@ public:
         KRATOS_CATCH("");
     }
 
-    void SetBuilderAndSolver(BuilderSolverPointerType pBuilderAndSolver)
-    {
-        mpBuilderAndSolver = pBuilderAndSolver;
-    }
-
-    typename TLinearSolver::Pointer GetLinearSolver()
-    {
-        return mpLinearSolver;
-    }
-
     void ExecuteInitialize() override
     {
+        this->CreateLinearSolver();
+        this->CreateBuilderAndSolver();
+
         CalculateWallDistances();
     }
 
@@ -167,12 +167,6 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansWallDistanceCalculationProcess");
-    }
-
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
@@ -183,6 +177,283 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
     }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    Model& mrModel;
+    Parameters mrParameters;
+    std::string mModelPartName;
+
+    typename TLinearSolver::Pointer mpLinearSolver;
+    BuilderSolverPointerType mpBuilderAndSolver;
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    virtual void CreateLinearSolver() = 0;
+
+    virtual void CreateBuilderAndSolver() = 0;
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    int mMaxIterations;
+    int mEchoLevel;
+    std::string mWallFlagVariableName;
+    bool mWallFlagVariableValue;
+    bool mRecalculateAtEachTimeStep;
+    bool mCorrectDistancesUsingNeighbors;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    void CalculateWallDistances()
+    {
+        KRATOS_TRY
+
+        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+        const Flags& r_wall_flag = KratosComponents<Flags>::Get(mWallFlagVariableName);
+
+        VariableUtils variable_utilities;
+
+        variable_utilities.SetVariable(DISTANCE, 1.0, r_model_part.Nodes());
+        variable_utilities.SetVariable(DISTANCE, 0.0, r_model_part.Nodes(),
+                                       r_wall_flag, mWallFlagVariableValue);
+
+        const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
+
+        if (domain_size == 2)
+        {
+            using distance_calculation_process_type =
+                VariationalDistanceCalculationProcess<2, SparseSpaceType, DenseSpaceType, LinearSolverType>;
+            distance_calculation_process_type distance_calculation_process(
+                r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
+            distance_calculation_process.Execute();
+        }
+        else if (domain_size == 3)
+        {
+            using distance_calculation_process_type =
+                VariationalDistanceCalculationProcess<3, SparseSpaceType, DenseSpaceType, LinearSolverType>;
+            distance_calculation_process_type distance_calculation_process(
+                r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
+            distance_calculation_process.Execute();
+        }
+        else
+        {
+            KRATOS_ERROR << "Unknown domain size = " << domain_size;
+        }
+
+        // CorrectWallDistances();
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+            << "Wall distances calculated in " << mModelPartName << ".\n";
+
+        KRATOS_CATCH("");
+    }
+
+    void CorrectWallDistances()
+    {
+        KRATOS_TRY
+
+        if (mCorrectDistancesUsingNeighbors)
+        {
+            ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+            Communicator& r_communicator = r_model_part.GetCommunicator();
+
+            FindGlobalNodalNeighboursProcess find_nodal_neighbours_process(
+                r_communicator.GetDataCommunicator(), r_model_part);
+            find_nodal_neighbours_process.Execute();
+
+            ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+            const int number_of_nodes = r_nodes.size();
+
+            VariableUtils().SetNonHistoricalVariableToZero(
+                DISTANCE, r_model_part.Nodes());
+            int number_of_modified_nodes = 0;
+#pragma omp parallel for reduction(+ : number_of_modified_nodes)
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+            {
+                ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
+                if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0)
+                {
+                    const GlobalPointersVector<Node<3>>& r_neighbours =
+                        r_node.GetValue(NEIGHBOUR_NODES);
+                    int count = 0;
+                    double average_value = 0.0;
+                    for (int j_node = 0;
+                         j_node < static_cast<int>(r_neighbours.size()); ++j_node)
+                    {
+                        const ModelPart::NodeType& r_j_node = r_neighbours[j_node];
+                        const double j_distance =
+                            r_j_node.FastGetSolutionStepValue(DISTANCE);
+                        if (j_distance > 0.0)
+                        {
+                            average_value += j_distance;
+                            count++;
+                        }
+                    }
+
+                    if (count > 0)
+                    {
+                        r_node.SetValue(DISTANCE, average_value / static_cast<double>(count));
+                        number_of_modified_nodes++;
+                    }
+                    else
+                    {
+                        KRATOS_ERROR << "Node " << r_node.Id() << " at "
+                                     << r_node.Coordinates() << " didn't find any neighbour("
+                                     << r_neighbours.size() << ") with positive DISTANCE. Please recheck "
+                                     << mModelPartName << ".\n";
+                    }
+                }
+            }
+
+            if (number_of_modified_nodes > 0)
+            {
+#pragma omp parallel for
+                for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+                {
+                    ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
+                    double& r_distance = r_node.FastGetSolutionStepValue(DISTANCE);
+                    const double avg_distance = r_node.GetValue(DISTANCE);
+                    if (r_distance < 0.0)
+                    {
+                        KRATOS_WATCH(r_node);
+                        r_distance = avg_distance;
+                    }
+                }
+            }
+
+            r_communicator.SynchronizeVariable(DISTANCE);
+            number_of_modified_nodes =
+                r_communicator.GetDataCommunicator().SumAll(number_of_modified_nodes);
+
+            KRATOS_INFO_IF(this->Info(), mEchoLevel > 0 && number_of_modified_nodes > 0)
+                << "Corrected " << number_of_modified_nodes
+                << " nodal wall distances in " << mModelPartName << ".\n";
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    RansWallDistanceCalculationBaseProcess& operator=(RansWallDistanceCalculationBaseProcess const& rOther);
+
+    /// Copy constructor.
+    RansWallDistanceCalculationBaseProcess(RansWallDistanceCalculationBaseProcess const& rOther);
+
+    ///@}
+
+}; // Class RansWallDistanceCalculationBaseProcess
+
+template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
+class KRATOS_API(RANS_APPLICATION) RansWallDistanceCalculationProcess
+    : public RansWallDistanceCalculationBaseProcess<TSparseSpace, TDenseSpace, TLinearSolver>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    using NodeType = ModelPart::NodeType;
+    using SparseSpaceType = TSparseSpace;
+    using DenseSpaceType = TDenseSpace;
+    using LinearSolverType = TLinearSolver;
+    using BuilderSolverPointerType =
+        typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer;
+    using BaseType =
+        RansWallDistanceCalculationBaseProcess<TSparseSpace, TDenseSpace, TLinearSolver>;
+
+    /// Pointer definition of RansWallDistanceCalculationBaseProcess
+    KRATOS_CLASS_POINTER_DEFINITION(RansWallDistanceCalculationProcess);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor
+    RansWallDistanceCalculationProcess(Model& rModel, Parameters rParameters)
+        : BaseType(rModel, rParameters)
+    {
+    }
+
+    /// Destructor.
+    ~RansWallDistanceCalculationProcess() override = default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    std::string Info() const override;
 
     ///@}
     ///@name Friends
@@ -228,19 +499,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    Model& mrModel;
-    Parameters mrParameters;
-    std::string mModelPartName;
-
-    typename TLinearSolver::Pointer mpLinearSolver;
-    BuilderSolverPointerType mpBuilderAndSolver;
-
-    int mMaxIterations;
-    int mEchoLevel;
-    std::string mWallFlagVariableName;
-    bool mWallFlagVariableValue;
-    bool mRecalculateAtEachTimeStep;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -249,35 +507,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CreateLinearSolver()
-    {
-        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
-            mrParameters["linear_solver_settings"]);
-    }
+    void CreateLinearSolver() override;
 
-    void ExecuteVariationalDistanceCalculationProcess();
-
-    void CalculateWallDistances()
-    {
-        KRATOS_TRY
-
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-        const Flags& r_wall_flag = KratosComponents<Flags>::Get(mWallFlagVariableName);
-
-        VariableUtils variable_utilities;
-
-        variable_utilities.SetVariable(DISTANCE, 1.0, r_model_part.Nodes());
-        variable_utilities.SetVariable(DISTANCE, 0.0, r_model_part.Nodes(),
-                                       r_wall_flag, mWallFlagVariableValue);
-
-        ExecuteVariationalDistanceCalculationProcess();
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << "Wall distances calculated in " << mModelPartName << ".\n";
-
-        KRATOS_CATCH("");
-    }
+    void CreateBuilderAndSolver() override;
 
     ///@}
     ///@name Private  Access
@@ -298,8 +530,7 @@ private:
     RansWallDistanceCalculationProcess(RansWallDistanceCalculationProcess const& rOther);
 
     ///@}
-
-}; // Class RansWallDistanceCalculationProcess
+};
 
 ///@}
 
