@@ -348,7 +348,7 @@ double MassConservationUtility::OrthogonalFlowIntoAir( const double Factor )
             const auto p_modified_sh_func = GetModifiedShapeFunctions(it_elem->pGetGeometry(), distance);
 
             // Concerning their area, the positive and negative side of the interface are equal
-            p_modified_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+            p_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
                     shape_functions,                    // N
                     shape_derivatives,                  // DN
                     w_gauss_interface,                  // includes the weights of the GAUSS points (!!!)
