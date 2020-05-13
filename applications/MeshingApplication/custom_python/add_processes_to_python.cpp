@@ -39,8 +39,6 @@ namespace Python
 {
 namespace py = pybind11;
 
-typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
 void  AddProcessesToPython(pybind11::module& m)
 {
     // The process to interpolate nodal values
@@ -87,8 +85,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&>())
     .def(py::init<ModelPart&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ComponentType&>())
-    .def(py::init<ModelPart&, ComponentType&, Parameters>())
     ;
 
     m.attr("ComputeHessianSolMetricProcess2D") = m.attr("ComputeHessianSolMetricProcess");

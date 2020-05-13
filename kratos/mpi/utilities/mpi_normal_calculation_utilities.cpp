@@ -288,7 +288,7 @@ void MPINormalCalculationUtils::InitializeNormalData(ModelPart& rModelPart,
         {
             for (Geometry< Node<3> >::iterator i_node = r_geometry.begin(); i_node != r_geometry.end(); i_node++)
             {
-                const int node_index = static_cast<const int>(i_node->FastGetSolutionStepValue(AUX_INDEX));
+                const int node_index = static_cast<int>(i_node->FastGetSolutionStepValue(AUX_INDEX));
                 //if (node_index == 0) std::cout << rModelPart.GetCommunicator().MyPID() << " found AUX_INDEX 0: node " << i_node->Id() << std::endl;
 
                 int offset = 3*( MaxNeigh*node_index + rActiveNeigh[node_index] );
@@ -326,7 +326,7 @@ void MPINormalCalculationUtils::InitializeNormalData(ModelPart& rModelPart,
                 if (i_node->FastGetSolutionStepValue(NODAL_PAUX) > 0.0)
                 {
                     node_send_size++;
-                    const int node_index = static_cast<const int>( i_node->FastGetSolutionStepValue(AUX_INDEX) );
+                    const int node_index = static_cast<int>( i_node->FastGetSolutionStepValue(AUX_INDEX) );
                     data_send_size += 3*rActiveNeigh[ node_index ];
                 }
 
