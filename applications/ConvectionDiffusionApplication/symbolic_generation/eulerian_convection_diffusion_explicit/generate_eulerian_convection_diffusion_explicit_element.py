@@ -10,7 +10,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 ## Symbolic generation settings
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-ASGS_stabilization = False          # Consider ASGS stabilization terms
+ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
 
 if (dim_to_compute == "2D"):
@@ -44,18 +44,17 @@ for dim in dim_vector:
     N,DN = DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
 
     ## Unknown fields definition
-    phi = DefineVector('phi',nnodes) # scalar unknown
+    phi = DefineVector('phi',nnodes)   # scalar unknown
 
     ## Test functions definition
-    w = DefineMatrix('w',nnodes,dim) # vector unknown field test function (not needed)
-    q = DefineVector('q',nnodes)     # scalar unknown field test function
+    w = DefineMatrix('w',nnodes,dim)   # vector unknown field test function (not needed)
+    q = DefineVector('q',nnodes)       # scalar unknown field test function
 
     ## Other data definitions
-    f = DefineVector('f',nnodes)     # forcing term
-
-    ## Other simbols definition
-    k = Symbol('k',positive= True)   # diffusion coefficient
-    v = DefineMatrix('v',nnodes,dim) # convective velocity
+    f = DefineVector('f',nnodes)       # forcing term
+    k = Symbol('k',positive= True)     # diffusion coefficient
+    v = DefineMatrix('v',nnodes,dim)   # convective velocity
+    tau = Symbol('tau',positive= True) # stabilization coefficient
 
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
@@ -69,24 +68,34 @@ for dim in dim_vector:
     grad_q = DfjDxi(DN,q)
     grad_phi = DfjDxi(DN,phi)
     div_w = div(DN,w)
+    div_v = div(DN,v)
 
-    ## Compute galerkin functional
-    # Diffusion functional
+    ## Galerkin functional terms
     rhs_forcing = q_gauss.transpose() * f_gauss
     rhs_diffusion = - k * grad_phi.transpose() * grad_q
     rhs_convective = - q_gauss * (v_gauss.transpose() * grad_phi)
-    # rhs_convective = - phi_gauss * (v_gauss.transpose() * grad_q) # gives equivalent result
     rhs_galerkin = rhs_forcing + rhs_diffusion + rhs_convective
 
     ##  Stabilization functional terms
+    # Term coming from \int v \cdot \nabla (q_h) phi_s
+    rhs_stab_1_forcing = tau * f_gauss * (v_gauss.transpose() * grad_q)
+    rhs_stab_1_mass = 0
+    rhs_stab_1_convection = - tau * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
+    rhs_stab_1 = rhs_stab_1_forcing + rhs_stab_1_convection
+    # Term coming from \int q_h \nabla \cdot v phi_s
+    rhs_stab_2_forcing = tau * f_gauss * q_gauss * div_v
+    rhs_stab_2_mass = 0
+    rhs_stab_2_convection = - tau * q_gauss * div_v * (v_gauss.transpose() * grad_phi)
+    rhs_stab_2 = rhs_stab_2_forcing + rhs_stab_2_convection
 
     # Mass conservation residual
 
     # Compute the ASGS stabilization terms using the momentum and mass conservation residuals above
+    rhs_stabilization = rhs_stab_1 + rhs_stab_2
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
-        res = rhs_galerkin + rhs_stab
+        res = rhs_galerkin + rhs_stabilization
     else:
         res = rhs_galerkin
 

@@ -147,6 +147,7 @@ protected:
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
         BoundedMatrix<double,TNumNodes,3> convective_velocity;
+        double tau = 2; // stabilization coefficient, stard tau = {2,4}
 
         // auxiliary containers for the symbolically-generated matrices
         BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;

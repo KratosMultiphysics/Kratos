@@ -248,6 +248,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContributi
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
     const auto v = rVariables.convective_velocity;
+    const auto tau = rVariables.tau;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
@@ -274,6 +275,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContributi
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
     const auto v = rVariables.convective_velocity;
+    const auto tau = rVariables.tau;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
