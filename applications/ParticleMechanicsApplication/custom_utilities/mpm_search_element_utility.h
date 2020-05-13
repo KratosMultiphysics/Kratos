@@ -434,6 +434,7 @@ namespace MPMSearchElementUtility
             rPolygonPoints[i] = BoostPoint(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Y(), rGeom.GetPoint(i).Z());
             boost::geometry::append(rPolygon, rPolygonPoints[i]);
         }
+        boost::geometry::append(rPolygon, rPolygonPoints[0]); // to close the polygon
         boost::geometry::correct(rPolygon);
     }
 
