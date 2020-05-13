@@ -219,7 +219,7 @@ void AdjointSolidElement<TPrimalElement>::CalculateSecondDerivativesLHS(
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
+void AdjointSolidElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY;
     const auto& r_geom = mPrimalElement.GetGeometry();
