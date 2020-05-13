@@ -12,6 +12,7 @@ from KratosMultiphysics.RANSApplication.model_part_factory import CreateDuplicat
 if (IsDistributedRun()
         and CheckIfApplicationsAvailable("TrilinosApplication")):
     from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory as linear_solver_factory
+    from KratosMultiphysics.RANSApplication.TrilinosExtension import TrilinosRansWallDistanceCalculationProcess as wall_distance_calculation_process
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIAlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedBossakVelocityDynamicScalarScheme as bossak_scheme
@@ -25,6 +26,7 @@ if (IsDistributedRun()
     from KratosMultiphysics.TrilinosApplication import TrilinosResidualBasedIncrementalUpdateStaticScheme as incemental_update_static_scheme
 elif (not IsDistributedRun()):
     from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+    from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess as wall_distance_calculation_process
     from KratosMultiphysics.RANSApplication import GenericScalarConvergenceCriteria as residual_criteria
     from KratosMultiphysics.RANSApplication import GenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
     from KratosMultiphysics.RANSApplication import AlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
@@ -51,6 +53,10 @@ def GetDefaultConditionName(model_part):
             raise Exception("Unsupported domain size. [ DOMAIN_SIZE = " + str(domain_size) + " ].")
     else:
         raise Exception("DOMAIN_SIZE is not found in process info of " + model_part.Name() + ".")
+
+def CreateWallDistanceCalculationProcess(model, settings):
+    return wall_distance_calculation_process(model, settings)
+
 
 def CreateResidualBasedBlockBuilderAndSolver(linear_solver, is_periodic,
                                              communicator):

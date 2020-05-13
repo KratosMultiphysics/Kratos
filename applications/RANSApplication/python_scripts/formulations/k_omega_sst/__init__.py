@@ -19,6 +19,7 @@ from .k_omega_sst_omega_formulation import KOmegaSSTOmegaFormulation
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication import ScalarVariableDifferenceNormCalculationUtility
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateWallDistanceCalculationProcess
 
 class KOmegaSSTFormulation(Formulation):
     def __init__(self, model_part, settings):
@@ -117,7 +118,7 @@ class KOmegaSSTFormulation(Formulation):
         wall_distance_calculation_settings.AddEmptyValue("model_part_name")
         wall_distance_calculation_settings["model_part_name"].SetString(self.GetBaseModelPart().Name)
 
-        wall_distance_process = KratosRANS.RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
+        wall_distance_process = CreateWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
         self.AddProcess(wall_distance_process)
 
         process_info = model_part.ProcessInfo
