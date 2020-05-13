@@ -238,6 +238,12 @@ private:
     void GetDofListKuttaElement(DofsVectorType& rElementalDofList) const;
 
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
+    
+    void CalculateLeftHandSideInletElement(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSideInletElement(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo);                                        
 
     void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo);
