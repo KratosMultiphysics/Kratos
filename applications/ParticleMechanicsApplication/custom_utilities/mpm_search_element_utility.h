@@ -34,8 +34,6 @@
 #include "boost/geometry/geometries/register/point.hpp" 
 #include "boost/geometry/geometries/register/ring.hpp"
 
-
-
 namespace Kratos
 {
 namespace MPMSearchElementUtility
@@ -427,14 +425,17 @@ namespace MPMSearchElementUtility
         std::vector<BoostPoint&>& rPolygonPoints, 
         boost::geometry::model::polygon<BoostPoint>& rPolygon)
     {
-        if (rPolygonPoints.size() != rGeom.PointsNumber()) rPolygonPoints.resize(rGeom.PointsNumber());
+        // TODO look at using using polygon instead of boost geometry
+        if (rPolygonPoints.size() != rGeom.PointsNumber()) rPolygonPoints.resize(rGeom.PointsNumber()+1);
 
-        for (size_t i = 0; i < rGeom.PointsNumber(); ++i)
-        {
+        rPolygon.clear();
+
+        for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
             rPolygonPoints[i] = BoostPoint(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Y(), rGeom.GetPoint(i).Z());
-            boost::geometry::append(rPolygon, rPolygonPoints[i]);
         }
-        boost::geometry::append(rPolygon, rPolygonPoints[0]); // to close the polygon
+        rPolygonPoints[rGeom.PointsNumber()] = rPolygonPoints[0]; // to close the polygon
+
+        rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
         boost::geometry::correct(rPolygon);
     }
 
