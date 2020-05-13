@@ -47,7 +47,7 @@ class CouplingInterfaceData(object):
 
         self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
-        admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
+        admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double"]
         admissible_vector_variable_types = ["Array"]
 
         if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
@@ -91,13 +91,8 @@ class CouplingInterfaceData(object):
                     if domain_size != self.dimension:
                         cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.model_part_name, self.dimension))
 
-        if self.location == "node_historical":
-            if self.variable_type == "Component":
-                var_to_check = self.variable.GetSourceVariable()
-            else:
-                var_to_check = self.variable
-            if not self.model_part.HasNodalSolutionStepVariable(var_to_check):
-                self.__RaiseException('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(var_to_check.Name(), self.model_part_name))
+        if self.location == "node_historical" and not self.model_part.HasNodalSolutionStepVariable(self.variable):
+            self.__RaiseException('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(self.variable.Name(), self.model_part_name))
 
         self.is_initialized = True
 
