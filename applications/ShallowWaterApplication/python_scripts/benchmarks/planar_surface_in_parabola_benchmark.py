@@ -41,7 +41,7 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
         x0 = self.__x0(time)
         x1 = self.__x1(time)
         if x0 < x < x1:
-            return -self.h0*(((x - 0.5*self.L)/a + 0.5/self.a*np.cos(self.C*time/self.a))**2 - 1)
+            return -self.h0*(((x - 0.5*self.L)/self.a + 0.5/self.a*np.cos(self.C*time/self.a))**2 - 1)
         else:
             return 0.0
 

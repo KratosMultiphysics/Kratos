@@ -35,16 +35,14 @@ class BaseBenchmarkProcess(KM.Process):
 
     def ExecuteInitialize(self):
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(SW.TOPOGRAPHY, self.Topography(node))
+            node.SetValue(SW.TOPOGRAPHY, self.Topography(node))
 
     def ExecuteBeforeSolutionLoop(self):
         time = self.model_part.ProcessInfo[KM.TIME]
         for node in self.model_part.Nodes:
-            height = self.Height(node, time)
-            velocity = self.Velocity(node, time)
-            node.SetSolutionStepValue(SW.HEIGHT, height)
-            node.SetSolutionStepValue(KM.VELOCITY, velocity)
-            node.SetSolutionStepValue(KM.MOMENTUM, height*velocity)
+            node.SetSolutionStepValue(SW.HEIGHT, self.Height(node, time))
+            node.SetSolutionStepValue(KM.VELOCITY, self.Velocity(node, time))
+            node.SetSolutionStepValue(KM.MOMENTUM, self.Momentum(node, time))
 
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KM.TIME]
@@ -88,4 +86,4 @@ class BaseBenchmarkProcess(KM.Process):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
 
     def Momentum(self, coordinates, time):
-        return self.Height(coordinates, time) * self.Velocity(coordinates, time)
+        return [self.Height(coordinates, time)*v for v in self.Velocity(coordinates, time)]
