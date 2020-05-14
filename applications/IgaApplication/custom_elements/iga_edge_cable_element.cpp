@@ -38,12 +38,16 @@ namespace Kratos
 
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
+        // Prepare memory
+        if (mReferenceBaseVector.size() != r_number_of_integration_points)
+            mReferenceBaseVector.resize(r_number_of_integration_points);
+
         for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
         {
             const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
 
-            mReferenceBaseVector[point_number] = GetActualBaseVector(r_DN_De); 
-        }   
+            mReferenceBaseVector[point_number] = GetActualBaseVector(r_DN_De);          
+        }
 
         KRATOS_CATCH("")
     }
@@ -141,10 +145,10 @@ namespace Kratos
                 IndexType kr = r / 3;
                 IndexType dirr = r % 3;
 
-                const double epsilon_var_r = actual_base_vector[kr] *
-                    (r_DN_De(dirr, 0) * t[0] 
-                    + r_DN_De(dirr, 1) * t[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
-                
+                const double epsilon_var_r = actual_base_vector[dirr] *
+                    (r_DN_De(kr, 0) * t[0] 
+                    + r_DN_De(kr, 1) * t[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+
                 if (CalculateStiffnessMatrixFlag) {
                     for (IndexType s = 0; s <= r; s++)
                     {
@@ -153,17 +157,17 @@ namespace Kratos
                         IndexType dirs = s % 3;
 
                         const double epsilon_var_s =
-                            actual_base_vector[ks] *
-                            (r_DN_De(dirs, 0) * t[0]
-                            + r_DN_De(dirs, 1) * t[1])
+                            actual_base_vector[dirs] *
+                            (r_DN_De(ks, 0) * t[0]
+                            + r_DN_De(ks, 1) * t[1])
                             / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                         rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s;
 
                         if (kr == ks) {
                             const double epsilon_var_rs =
-                            (r_DN_De(dirr, 0) * t[0] + r_DN_De(dirr, 1) * t[1]) *
-                            (r_DN_De(dirs, 0) * t[0] + r_DN_De(dirs, 1) * t[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                            (r_DN_De(kr, 0) * t[0] + r_DN_De(kr, 1) * t[1]) *
+                            (r_DN_De(ks, 0) * t[0] + r_DN_De(ks, 1) * t[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
                      
                             rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs; 
                         }
