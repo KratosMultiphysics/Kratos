@@ -255,12 +255,6 @@ class AnalysisStage(object):
             raise Exception("The list of modelers was not yet created!")
         return self._list_of_modelers
 
-    def _GetOrderOfModelers(self):
-        """ This function can be overridden in derived classes if the order of
-            the modelers matters
-        """
-        return []
-
     def _CreateModelers(self, initialization_order):
         """ List of modelers in following format:
         "modelers" : [{
