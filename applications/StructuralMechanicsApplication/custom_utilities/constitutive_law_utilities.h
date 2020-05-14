@@ -405,35 +405,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
-     * @brief This computes the mapper operator between the stresses in the isotropic
-     * "ficticious" space and the real anisotropic space. S_iso = As*Sa_niso
-     * @param rValues The values of the constitutive la
-     * @param rAs The stress mapper operator
-     * @param rAs The stress mapper operator inverse
-     * @note Eq.(2.39) S. Oller book: Comportamiento mecánico de los materiales compuestos
-     */
-    static void CalculateAnisotropicStressMapperMatrix(
-        const Properties& rProperties,
-        BoundedMatrixVoigtType &rAs,
-        BoundedMatrixVoigtType& rAsInv
-        );
-
-    /**
-     * @brief This computes the mapper operator between the strain in the isotropic
-     * "ficticious" space and the real anisotropic space
-     * @param rValues The values of the constitutive la
-     * @param rAs The mapper operator
-     * @param rAs The mapper operator inverse
-     * @note Eq.(2.35) S. Oller book: Comportamiento mecánico de los materiales compuestos
-     */
-    static void CalculateAnisotropicStrainMapperMatrix(
-        const BoundedMatrixVoigtType& rAnisotropicElasticMatrix,
-        const BoundedMatrixVoigtType& rIsotropicElasticMatrix,
-        const BoundedMatrixVoigtType &rAs,
-        BoundedMatrixVoigtType& rAe
-        );
-
-    /**
      * @brief This computes the rotation matrix for the 1st Euler angle
      * http://mathworld.wolfram.com/EulerAngles.html
      */

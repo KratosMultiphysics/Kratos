@@ -126,10 +126,10 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         BoundedMatrixVoigtType anisotropic_elastic_matrix;
         Matrix isotropic_elastic_matrix;
 
-        ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
+        this->CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
         mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
         this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
+        this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
                                                                                     isotropic_elastic_matrix, stress_mapper, 
                                                                                     strain_mapper);
         Vector &r_iso_strain_vector = rValues.GetStrainVector();
@@ -282,10 +282,10 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     BoundedMatrixVoigtType anisotropic_elastic_matrix;
     Matrix isotropic_elastic_matrix;
 
-    ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
+    this->CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
     mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
     this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
-    ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
+    this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
                                                                                 isotropic_elastic_matrix, stress_mapper, 
                                                                                 strain_mapper);
     Vector &r_iso_strain_vector = rValues.GetStrainVector();
@@ -492,10 +492,10 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             BoundedMatrixVoigtType anisotropic_elastic_matrix;
             Matrix isotropic_elastic_matrix;
 
-            ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
+            this->CalculateAnisotropicStressMapperMatrix(r_material_properties, stress_mapper, stress_mapper_inv);
             mpIsotropicCL->CalculateValue(values_iso_cl, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix);
             this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
-            ConstitutiveLawUtilities<VoigtSize>::CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
+            this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
                                                                                         isotropic_elastic_matrix, stress_mapper, 
                                                                                         strain_mapper);
             BoundedMatrixVoigtType invAe;
@@ -512,6 +512,55 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
     }
 
     return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GenericAnisotropic3DLaw::CalculateAnisotropicStressMapperMatrix(
+    const Properties& rProperties,
+    BoundedMatrixVoigtType& rAs,
+    BoundedMatrixVoigtType& rAsInv
+)
+{
+    noalias(rAs)    = ZeroMatrix(VoigtSize, VoigtSize);
+    noalias(rAsInv) = ZeroMatrix(VoigtSize, VoigtSize);
+    const Vector &r_iso_aniso_yield_ratios = rProperties[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
+    KRATOS_ERROR_IF_NOT(r_iso_aniso_yield_ratios.size() == VoigtSize) << "The length of the ISOTROPIC_ANISOTROPIC_YIELD_RATIO is not correct" << std::endl;
+
+    if (VoigtSize == 6) {
+        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
+        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
+        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
+        rAs(3, 3) = r_iso_aniso_yield_ratios(3);
+        rAs(4, 4) = r_iso_aniso_yield_ratios(4);
+        rAs(5, 5) = r_iso_aniso_yield_ratios(5);
+    } else {
+        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
+        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
+        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
+    }
+    for (IndexType i = 0; i < VoigtSize; ++i)
+        rAsInv(i, i) = 1.0 / rAs(i, i);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GenericAnisotropic3DLaw::CalculateAnisotropicStrainMapperMatrix(
+    const BoundedMatrixVoigtType& rAnisotropicElasticMatrix,
+    const BoundedMatrixVoigtType& rIsotropicElasticMatrix,
+    const BoundedMatrixVoigtType &rAs,
+    BoundedMatrixVoigtType& rAe
+)
+{
+    noalias(rAe) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    Matrix inv_isotropic_elastic_matrix(VoigtSize, VoigtSize);
+    noalias(inv_isotropic_elastic_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
+    double aux_det;
+    MathUtils<double>::InvertMatrix(rIsotropicElasticMatrix, inv_isotropic_elastic_matrix, aux_det);
+    noalias(rAe) = prod(inv_isotropic_elastic_matrix, Matrix(prod(rAs, rAnisotropicElasticMatrix)));
 }
 
 /***********************************************************************************/

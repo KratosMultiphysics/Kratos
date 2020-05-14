@@ -942,57 +942,6 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGr
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatrix(
-    const Properties& rProperties,
-    BoundedMatrixVoigtType& rAs,
-    BoundedMatrixVoigtType& rAsInv
-)
-{
-    noalias(rAs)    = ZeroMatrix(VoigtSize, VoigtSize);
-    noalias(rAsInv) = ZeroMatrix(VoigtSize, VoigtSize);
-    const Vector &r_iso_aniso_yield_ratios = rProperties[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
-    KRATOS_ERROR_IF_NOT(r_iso_aniso_yield_ratios.size() == VoigtSize) << "The length of the ISOTROPIC_ANISOTROPIC_YIELD_RATIO is not correct" << std::endl;
-
-    if (VoigtSize == 6) {
-        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
-        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
-        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
-        rAs(3, 3) = r_iso_aniso_yield_ratios(3);
-        rAs(4, 4) = r_iso_aniso_yield_ratios(4);
-        rAs(5, 5) = r_iso_aniso_yield_ratios(5);
-    } else {
-        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
-        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
-        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
-    }
-    for (IndexType i = 0; i < VoigtSize; ++i)
-        rAsInv(i, i) = 1.0 / rAs(i, i);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>:: CalculateAnisotropicStrainMapperMatrix(
-    const BoundedMatrixVoigtType& rAnisotropicElasticMatrix,
-    const BoundedMatrixVoigtType& rIsotropicElasticMatrix,
-    const BoundedMatrixVoigtType &rAs,
-    BoundedMatrixVoigtType& rAe
-)
-{
-    noalias(rAe) = ZeroMatrix(VoigtSize, VoigtSize);
-
-    Matrix inv_isotropic_elastic_matrix(VoigtSize, VoigtSize);
-    noalias(inv_isotropic_elastic_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
-    double aux_det;
-    MathUtils<double>::InvertMatrix(rIsotropicElasticMatrix, inv_isotropic_elastic_matrix, aux_det);
-    noalias(rAe) = prod(inv_isotropic_elastic_matrix, Matrix(prod(rAs, rAnisotropicElasticMatrix)));
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<>
 void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(
     const double EulerAngle1,
