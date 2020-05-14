@@ -30,15 +30,13 @@ void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateSensitiv
 {
     KRATOS_TRY;
 
-    if((rDesignVariable == PRESTRESS_VECTOR_X_SENSITIVITY || rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) && this->GetProperties().Has(PRESTRESS_VECTOR)) {
+ if((rDesignVariable == PRESTRESS_VECTOR_X_SENSITIVITY || rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY || rDesignVariable == PRESTRESS_VECTOR_ISOTROPIC_XY_SENSITIVITY) 
+            && this->GetProperties().Has(PRESTRESS_VECTOR)) {
         // define working variables
         ProcessInfo process_info = rCurrentProcessInfo;
         Vector RHS;
         Vector RHS_perturbed;
-        int component_index = 0;
-        if (rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) {
-            component_index = 1;
-        }
+        Vector prestress_component_disturbance = ZeroVector(3);
 
         // compute unperturbed RHS
         this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
@@ -52,15 +50,36 @@ void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateSensitiv
 
         auto pre_stress = this->pGetPrimalElement()->GetProperties()[PRESTRESS_VECTOR];
 
+        if (rDesignVariable == PRESTRESS_VECTOR_X_SENSITIVITY) {
+            prestress_component_disturbance[0] = 1.0;
+        }
+        else if (rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) {
+            prestress_component_disturbance[1] = 1.0;
+        }
+        else if (rDesignVariable == PRESTRESS_VECTOR_ISOTROPIC_XY_SENSITIVITY) {
+            prestress_component_disturbance[0] = 1.0;
+            prestress_component_disturbance[1] = 1.0;
+            const double tolerance = std::numeric_limits<double>::epsilon();
+            KRATOS_ERROR_IF(std::abs(pre_stress[0]-pre_stress[1])>tolerance) <<
+                "Sensitivity matrix for variable 'PRESTRESS_VECTOR_ISOTROPIC_XY_SENSITIVITY' not available since prestress is not isotropic!" << std::endl;
+        }
+
         // Get perturbation size
         double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
-        if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
-            delta *= pre_stress[component_index];
+        const double num_components = prestress_component_disturbance[0] + prestress_component_disturbance[1] + prestress_component_disturbance[2];
+        prestress_component_disturbance *= delta;
+        if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) { 
+            prestress_component_disturbance[0] *= pre_stress[0];
+            prestress_component_disturbance[1] *= pre_stress[1];
+            prestress_component_disturbance[2] *= pre_stress[2];  
         }
+        delta = 1.0 / num_components * (prestress_component_disturbance[0] + prestress_component_disturbance[1] + prestress_component_disturbance[2]);
+        
+ 
         KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
 
-        // perturb the design variable
-        pre_stress[component_index] += delta;
+        // perturb the prestress vector
+        pre_stress += prestress_component_disturbance;
         p_local_property->SetValue(PRESTRESS_VECTOR, pre_stress);
 
         // Compute RHS after perturbation
@@ -90,14 +109,11 @@ void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateStressDe
 {
     KRATOS_TRY;
 
-    if((rDesignVariable == PRESTRESS_VECTOR_X_SENSITIVITY || rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) && this->GetProperties().Has(PRESTRESS_VECTOR)) {
+    if((rDesignVariable == PRESTRESS_VECTOR_X_SENSITIVITY || rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY || rDesignVariable == PRESTRESS_VECTOR_ISOTROPIC_XY_SENSITIVITY) && this->GetProperties().Has(PRESTRESS_VECTOR)) {
         // Define working variables
         Vector stress_vector_undist;
         Vector stress_vector_dist;
-        int component_index = 0;
-        if (rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) {
-            component_index = 1;
-        }
+        Vector prestress_component_disturbance = ZeroVector(3);
  
         // Compute stress on GP before perturbation
         TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
@@ -117,15 +133,33 @@ void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateStressDe
 
         auto pre_stress = this->pGetPrimalElement()->GetProperties()[PRESTRESS_VECTOR];
 
+        if (rDesignVariable == PRESTRESS_VECTOR_X_SENSITIVITY) {
+            prestress_component_disturbance[0] = 1.0;
+        }
+        else if (rDesignVariable == PRESTRESS_VECTOR_Y_SENSITIVITY) {
+            prestress_component_disturbance[1] = 1.0;
+        }
+        else if (rDesignVariable == PRESTRESS_VECTOR_ISOTROPIC_XY_SENSITIVITY) {
+            prestress_component_disturbance[0] = 1.0;
+            prestress_component_disturbance[1] = 1.0;
+            const double tolerance = std::numeric_limits<double>::epsilon();
+            KRATOS_ERROR_IF(std::abs(pre_stress[0]-pre_stress[1])>tolerance) <<
+                "Sensitivity matrix for variable 'PRESTRESS_VECTOR_ISOTROPIC_XY_SENSITIVITY' not available since prestress is not isotropic!" << std::endl;
+        }
+
         // Get perturbation size
         double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
-        if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
-            delta *= pre_stress[component_index];
+        const double num_components = prestress_component_disturbance[0] + prestress_component_disturbance[1] + prestress_component_disturbance[2];
+        prestress_component_disturbance *= delta;
+        if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) { 
+            prestress_component_disturbance[0] *= pre_stress[0];
+            prestress_component_disturbance[1] *= pre_stress[1];
+            prestress_component_disturbance[2] *= pre_stress[2];  
         }
-        KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
+        delta = 1.0 / num_components * (prestress_component_disturbance[0] + prestress_component_disturbance[1] + prestress_component_disturbance[2]);
 
-        // perturb the design variable
-        pre_stress[component_index] += delta;
+        // perturb the prestress vector
+        pre_stress += prestress_component_disturbance;
         p_local_property->SetValue(PRESTRESS_VECTOR, pre_stress);
 
         // Compute stress on GP after perturbation
