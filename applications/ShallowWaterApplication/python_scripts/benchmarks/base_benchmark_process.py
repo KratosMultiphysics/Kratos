@@ -34,6 +34,10 @@ class BaseBenchmarkProcess(KM.Process):
         self.error_variables = GenerateVariableListFromInput(settings["error_variables_list"])
         self.benchmark_settings = settings["benchmark_settings"]
 
+    def ExecuteInitialize(self):
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(SW.TOPOGRAPHY, self.Topography(node))
+
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KM.TIME]
 
@@ -66,6 +70,9 @@ class BaseBenchmarkProcess(KM.Process):
             if KM.KratosGlobals.GetVariableType(var.Name()) != KM.KratosGlobals.GetVariableType(error.Name()):
                 msg = var.Name() + " variable type does not match the " + error.Name() + " variable type"
                 raise Exception(msg)
+
+    def Topography(self, coordinates):
+        raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
 
     def Height(self, coordinates, time):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")

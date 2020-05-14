@@ -51,6 +51,9 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
             msg = label + "The dam position must be a positive value"
             raise Exception(msg)
 
+    def Topography(self, coordinates):
+        return 0.0
+
     def Height(self, coordinates, time):
         x = coordinates.X
 
