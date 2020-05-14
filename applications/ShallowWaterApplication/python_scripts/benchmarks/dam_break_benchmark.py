@@ -26,11 +26,11 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
             """
             )
 
-        self.benchmark_settings.ValidateAndAssignDefaults(benchmark_default_settings)
+        self.settings.ValidateAndAssignDefaults(benchmark_default_settings)
 
-        self.dam = self.benchmark_settings["dam_position"].GetDouble()
-        self.hl = self.benchmark_settings["left_height"].GetDouble()
-        self.hr = self.benchmark_settings["right_height"].GetDouble()
+        self.dam = self.settings["dam_position"].GetDouble()
+        self.hl = self.settings["left_height"].GetDouble()
+        self.hr = self.settings["right_height"].GetDouble()
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
 
         self.cm = self.__cm()
