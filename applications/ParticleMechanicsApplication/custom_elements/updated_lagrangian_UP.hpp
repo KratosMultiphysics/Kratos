@@ -169,7 +169,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             ProcessInfo& rCurrentProcessInfo) override;
+                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************************************************************************************
@@ -265,7 +265,8 @@ protected:
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                             GeneralVariables& rVariables,
                             Vector& rVolumeForce,
-                            const double& rIntegrationWeight) override;
+                            const double& rIntegrationWeight,
+                            const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**

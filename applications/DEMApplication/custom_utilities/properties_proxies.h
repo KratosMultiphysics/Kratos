@@ -140,9 +140,9 @@ namespace Kratos {
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const;
+        void save(Serializer& rSerializer) const;
 
-        virtual void load(Serializer& rSerializer);
+        void load(Serializer& rSerializer);
     }; // class PropertiesProxy
 
 

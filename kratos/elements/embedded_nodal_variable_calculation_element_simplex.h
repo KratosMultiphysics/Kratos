@@ -341,8 +341,6 @@ private:
 
     const array_1d<double, 2> GetDistanceBasedShapeFunctionValues();
 
-    Variable<TVarType> GetUnknownVariable();
-
     ///@}
     ///@name Private  Access
     ///@{
