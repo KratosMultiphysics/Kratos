@@ -88,4 +88,4 @@ class BaseBenchmarkProcess(KM.Process):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
 
     def Momentum(self, coordinates, time):
-        raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
+        return self.Height(coordinates, time) * self.Velocity(coordinates, time)

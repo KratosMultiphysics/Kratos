@@ -86,9 +86,6 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         else:
             return [0.0, 0.0, 0.0]
 
-    def Momentum(self, coordinates, time):
-        return self.Height(coordinates, time) * self.Velocity(coordinates, time)
-
     def __xa(self, t):
         return self.dam - t * np.sqrt(self.g * self.hl)
 
