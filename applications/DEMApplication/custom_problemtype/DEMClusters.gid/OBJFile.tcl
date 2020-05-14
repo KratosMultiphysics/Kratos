@@ -47,7 +47,7 @@ proc ExtractSurfaceTriangles_ext { basename dir problemtypedir } {
     #puts $FileVar "Ordered vertex list only if associated with any face triangle"
     for {set i 0} {$i < [llength $Nodes]} {incr i 4} {
         if {[lindex $Nodes $i] in $triangle_nodes} {
-        puts -nonewline $FileVar "v  "
+        puts -nonewline $FileVar "v "
         puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+1 }]]]
         puts -nonewline $FileVar " "
         puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+2 }]]]
@@ -141,40 +141,56 @@ proc ExtractSurfaceTriangles_ext { basename dir problemtypedir } {
 
     foreach item [dict keys $node_db_x] {
             set val [dict get $node_db_x $item]
-            set counter [dict get $node_db_counter $item]
-            set avg_val_normal [expr { $val/$counter }]
-            lappend normals_x $avg_val_normal ;        
+            # set counter [dict get $node_db_counter $item]
+            # set avg_val_normal [expr { $val/$counter }]
+            # lappend normals_x $avg_val_normal ;
+            lappend normals_x $val ;        
     }
 
     foreach item [dict keys $node_db_y] {
             set val [dict get $node_db_y $item]
-            set counter [dict get $node_db_counter $item]
-            set avg_val_normal [expr { $val/$counter }]
-            lappend normals_y $avg_val_normal ;       
+            # set counter [dict get $node_db_counter $item]
+            # set avg_val_normal [expr { $val/$counter }]
+            # lappend normals_y $avg_val_normal ; 
+            lappend normals_y $val ;          
     }
 
     foreach item [dict keys $node_db_z] {
             set val [dict get $node_db_z $item]
-            set counter [dict get $node_db_counter $item]
-            set avg_val_normal [expr { $val/$counter }]
-            lappend normals_z $avg_val_normal ;      
+            # set counter [dict get $node_db_counter $item]
+            # set avg_val_normal [expr { $val/$counter }]
+            # lappend normals_z $avg_val_normal ; 
+            lappend normals_z $val ;         
     }
 
     W $normals_x
     W $normals_y
     W $normals_z
 
+    # foreach component1 $normals_x component2 $normals_y component3 $normals_z {
+    #     lappend normals $component1 $component2 $component3 ;
+    # }
+    # # W $normals
+
+    # normalization is required.
     foreach component1 $normals_x component2 $normals_y component3 $normals_z {
-        lappend normals $component1 $component2 $component3 ;
+        set magnitude [expr { sqrt( $component1 * $component1 + $component2 * $component2 + $component3 * $component3) }]
+        set component1_normalized [expr { $component1/$magnitude }]
+        set component2_normalized [expr { $component2/$magnitude }]
+        set component3_normalized [expr { $component3/$magnitude }]
+        lappend normals $component1_normalized $component2_normalized $component3_normalized ;
     }
     W $normals
 
+    
+
+    
 
     ## vertex normals only if belong to any triangle
     puts $FileVar " "
     #puts $FileVar "Ordered vertex normals list only if associated with any face triangle"
     for {set i 0} {$i < [llength $normals]} {incr i 3} {
-        puts -nonewline $FileVar "vn  "
+        puts -nonewline $FileVar "vn "
         puts -nonewline $FileVar [format  "%.10f" [lindex $normals [expr { $i }]]]
         puts -nonewline $FileVar " "
         puts -nonewline $FileVar [format  "%.10f" [lindex $normals [expr { $i+1 }]]]

@@ -175,38 +175,44 @@ proc DEMClusters::call_TreeMedial { } {
     set erFact [GiD_AccessValue get gendata erFact]
     set numSamples [GiD_AccessValue get gendata numSamples]
     set minSamples [GiD_AccessValue get gendata minSamples]
-    set genericOBJFilename  generic_obj.obj
+    # set genericOBJFilename cup_reference.obj
+    set genericOBJFilename [file join $::DEMClusters::ProblemTypePath exec cup_reference.obj]
 
     #TODO: now define the arguments and call the external script sphereTree:
-    set argv {$Algorithm -depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename}
+    W [info tclversion]
+    # set argv {$Algorithm -depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename}
+    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 cup_reference.obj"
+    W $argv
 
     W "path:"
     W $::DEMClusters::ProblemTypePath
 
     #set program [lindex $argv 0]
     # define  problemtypedir and the tcl environment from the init
-    set program  [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
-    set arguments [lrange $argv 1 end]
+    set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
+    # set arguments [lrange $argv 1 end]
     # Execute external script
 
-    W $program
-    W $arguments
-
-    exec $program {*}$arguments
+    # exec $program {*}$arguments
+    # eval [list exec $program] [lrange $argv 1 end]
+    #MakeTreeHubbard.exe  -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause cup_reference.obj 
+    set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeHubbard.exe]
+    set argv "-branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause $genericOBJFilename"
+    exec $program {*}$argv
 
 
     # works with default apps but not with custom exes
     #exec notepad myfile.txt &
-    exec {*}[auto_execok notepad.exe]
-    append ::env(PATH) $::tcl_platform(pathSeparator) [file nativename "G:\Program Files\GiD 14.1.8d\problemtypes\DEMClusters\DEMClusters.gid\exec\MakeTreeOctree"]    
-    exec {*}[auto_execok MakeTreeHubbard.exe -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause cup.obj]
+    #exec {*}[auto_execok notepad.exe]
+    #append ::env(PATH) $::tcl_platform(pathSeparator) [file nativename "G:\Program Files\GiD 14.1.8d\problemtypes\DEMClusters\DEMClusters.gid\exec\MakeTreeOctree"]    
+    #exec {*}[auto_execok MakeTreeHubbard.exe -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause cup.obj]
     # MakeTreeHubbard.exe  -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause cup.obj 
               
 
-    append ::env(PATH) {;G:\Program Files\GiD 14.1.8d\problemtypes\DEMClusters\DEMClusters.gid\exec\MakeTreeOctree}    
-    exec dir {*}[glob *.tcl]
+    # append ::env(PATH) {;G:\Program Files\GiD 14.1.8d\problemtypes\DEMClusters\DEMClusters.gid\exec\MakeTreeOctree}    
+    # exec dir {*}[glob *.tcl]
 
-    exec $program {*}$arguments
+    # exec $program {*}$arguments
 
 
     # When Tcl execs a program, it searches for the program on your PATH (i.e., $::env(PATH)) using the OS's normal rules. Programs not on the PATH (and not in the current directory on Windows) are simply not found.
