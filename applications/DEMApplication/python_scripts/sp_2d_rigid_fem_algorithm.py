@@ -109,7 +109,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
     def FinalizeSolutionStep(self):
         super(DEMAnalysisStage2DSpRigidFem, self).FinalizeSolutionStep()
-        self.multiaxial_control_module.ExecuteInitializeSolutionStep()
+        self.multiaxial_control_module.ExecuteFinalizeSolutionStep()
 
     def PrintResultsForGid(self, time):
         super(DEMAnalysisStage2DSpRigidFem, self).PrintResultsForGid(time)

@@ -160,6 +160,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         mLimitVelocities[i] = limit_velocity;
         mStiffness(i,i) = stiffness;
         mReactionStress[i] = 0.0;
+        mOrderedMapKeys.push_back(actuator_name);
     }
 
     mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
@@ -238,6 +239,7 @@ protected:
     unsigned int mActuatorCounter;
     double mCMTime;
     unsigned int mPerturbationPeriod;
+    std::vector<std::string> mOrderedMapKeys; // TODO: we could have std::vectors instead of std::maps
     std::map<std::string, std::vector<ModelPart*>> mFEMBoundariesSubModelParts; /// FEM SubModelParts associated to each boundary of every actuator
     std::map<std::string, std::vector<ModelPart*>> mDEMBoundariesSubModelParts; /// DEM SubModelParts associated to each boundary of every actuator
     std::map<std::string, std::vector<array_1d<double,3>>> mFEMOuterNormals; /// OuterNormal associated to each FEM boundary of every actuator
@@ -267,6 +269,39 @@ protected:
 ///@{
 
 virtual Vector MeasureReactionStress();
+
+Vector GetPerturbations(const Vector& rTargetStress, const double& rTime);
+
+double GetConditionNumber(const Matrix& rInputMatrix, const Matrix& rInvertedMatrix);
+
+// double UpdateVectorOfHistoricalStressesAndComputeNewAverage(const double& last_reaction) {
+//     KRATOS_TRY;
+//     int length_of_vector = mVectorOfLastStresses.size();
+//     if (length_of_vector == 0) { //only the first time
+//         int number_of_steps_for_stress_averaging = (int) (mStressAveragingTime / mrDemModelPart.GetProcessInfo()[DELTA_TIME]);
+//         if(number_of_steps_for_stress_averaging < 1) number_of_steps_for_stress_averaging = 1;
+//         mVectorOfLastStresses.resize(number_of_steps_for_stress_averaging);
+//         KRATOS_INFO("DEM") << " 'number_of_steps_for_stress_averaging' is "<< number_of_steps_for_stress_averaging << std::endl;
+//     }
+
+//     length_of_vector = mVectorOfLastStresses.size();
+
+//     if(length_of_vector > 1) {
+//         for(int i=1; i<length_of_vector; i++) {
+//             mVectorOfLastStresses[i-1] = mVectorOfLastStresses[i];
+//         }
+//     }
+//     mVectorOfLastStresses[length_of_vector-1] = last_reaction;
+
+//     double average = 0.0;
+//     for(int i=0; i<length_of_vector; i++) {
+//         average += mVectorOfLastStresses[i];
+//     }
+//     average /= (double) length_of_vector;
+//     return average;
+
+//     KRATOS_CATCH("");
+// }
 
 ///@}
 ///@name Protected  Access
@@ -300,37 +335,6 @@ private:
 ///@}
 ///@name Private Operations
 ///@{
-
-Vector GetPerturbations(const Vector& rTargetStress, const double& rTime);
-
-// double UpdateVectorOfHistoricalStressesAndComputeNewAverage(const double& last_reaction) {
-//     KRATOS_TRY;
-//     int length_of_vector = mVectorOfLastStresses.size();
-//     if (length_of_vector == 0) { //only the first time
-//         int number_of_steps_for_stress_averaging = (int) (mStressAveragingTime / mrDemModelPart.GetProcessInfo()[DELTA_TIME]);
-//         if(number_of_steps_for_stress_averaging < 1) number_of_steps_for_stress_averaging = 1;
-//         mVectorOfLastStresses.resize(number_of_steps_for_stress_averaging);
-//         KRATOS_INFO("DEM") << " 'number_of_steps_for_stress_averaging' is "<< number_of_steps_for_stress_averaging << std::endl;
-//     }
-
-//     length_of_vector = mVectorOfLastStresses.size();
-
-//     if(length_of_vector > 1) {
-//         for(int i=1; i<length_of_vector; i++) {
-//             mVectorOfLastStresses[i-1] = mVectorOfLastStresses[i];
-//         }
-//     }
-//     mVectorOfLastStresses[length_of_vector-1] = last_reaction;
-
-//     double average = 0.0;
-//     for(int i=0; i<length_of_vector; i++) {
-//         average += mVectorOfLastStresses[i];
-//     }
-//     average /= (double) length_of_vector;
-//     return average;
-
-//     KRATOS_CATCH("");
-// }
 
 ///@}
 ///@name Private  Access

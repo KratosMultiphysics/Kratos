@@ -12,35 +12,14 @@
 //
 
 // Project includes
-#include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
+#include "custom_utilities/multiaxial_control_module_fem_dem_generalized_2d_utilities.hpp"
 
 namespace Kratos
 {
 
 // Before FEM and DEM solution
-void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize() {
+void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitialize() {
     KRATOS_TRY;
-
-    // Iterate through all on plane actuators to set velocities to 0.0
-    for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
-        const std::string actuator_name = mOrderedMapKeys[map_index];
-        std::vector<ModelPart*> SubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
-        if (actuator_name != "Radial" && actuator_name != "Z") {
-            // Iterate through all FEMBoundaries
-            for (unsigned int i = 0; i < SubModelPartList.size(); i++) {
-                ModelPart& rSubModelPart = *(SubModelPartList[i]);
-                // Iterate through nodes of Fem boundary
-                const int NNodes = static_cast<int>(rSubModelPart.Nodes().size());
-                ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
-                #pragma omp parallel for
-                for(int j = 0; j<NNodes; j++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    array_1d<double,3>& r_velocity = it->FastGetSolutionStepValue(VELOCITY);
-                    noalias(r_velocity) = ZeroVector(3);
-                }
-            }
-        }
-    }
 
     // Iterate through all actuators
     for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
@@ -55,21 +34,14 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize() {
             #pragma omp parallel for
             for(int i = 0; i<NNodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                const double external_radius = std::sqrt(it->X()*it->X() + it->Y()*it->Y());
-                const double cos_theta = it->X()/external_radius;
-                const double sin_theta = it->Y()/external_radius;
-                array_1d<double,3>& r_displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
-                array_1d<double,3>& r_delta_displacement = it->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                array_1d<double,3>& r_velocity = it->FastGetSolutionStepValue(VELOCITY);
-                noalias(r_displacement) = ZeroVector(3);
-                noalias(r_delta_displacement) = ZeroVector(3);
-                r_velocity[0] = mVelocity[map_index] * cos_theta;
-                r_velocity[1] = mVelocity[map_index] * sin_theta;
-                r_velocity[2] = 0.0;
+                it->Fix(DISPLACEMENT_X);
+                it->Fix(DISPLACEMENT_Y);
+                it->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
+                it->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
             }
         } else if (actuator_name == "Z") {
             mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] = 0.0;
-        } else {
+        } else if (actuator_name == "X") {
             // Iterate through all FEMBoundaries
             for (unsigned int i = 0; i < SubModelPartList.size(); i++) {
                 ModelPart& rSubModelPart = *(SubModelPartList[i]);
@@ -79,15 +51,24 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize() {
                 #pragma omp parallel for
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    array_1d<double,3>& r_displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
-                    array_1d<double,3>& r_delta_displacement = it->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                    array_1d<double,3>& r_velocity = it->FastGetSolutionStepValue(VELOCITY);
-                    noalias(r_displacement) = ZeroVector(3);
-                    noalias(r_delta_displacement) = ZeroVector(3);
-                    noalias(r_velocity) += mVelocity[map_index] * mFEMOuterNormals[actuator_name][i];
-                    r_velocity[2] = 0.0;
+                    it->Fix(DISPLACEMENT_X);
+                    it->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
                 }
             }
+        } else if (actuator_name == "Y") {
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < SubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(SubModelPartList[i]);
+                // Iterate through nodes of Fem boundary
+                const int NNodes = static_cast<int>(rSubModelPart.Nodes().size());
+                ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
+                #pragma omp parallel for
+                for(int j = 0; j<NNodes; j++) {
+                    ModelPart::NodesContainerType::iterator it = it_begin + j;
+                    it->Fix(DISPLACEMENT_Y);
+                    it->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
+                }
+            }            
         }
     }
 
@@ -97,10 +78,10 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize() {
 //***************************************************************************************************************
 
 // Before FEM and DEM solution
-void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionStep() {
+void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolutionStep() {
     KRATOS_TRY;
 
-    const double current_time = mrDemModelPart.GetProcessInfo()[TIME];
+    const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
 
     // Update velocities
     if (mCMTime < current_time) {
@@ -115,19 +96,15 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionSte
         for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
             const std::string actuator_name = mOrderedMapKeys[map_index];
             std::vector<ModelPart*> FEMSubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
-            std::vector<ModelPart*> DEMSubModelPartList = mDEMBoundariesSubModelParts[actuator_name];
             unsigned int target_stress_table_id = mTargetStressTableIds[actuator_name];
-            if (actuator_name == "Z") {
-                TableType::Pointer pDEMTargetStressTable = (*(DEMSubModelPartList[0])).pGetTable(target_stress_table_id);
-                next_target_stress[map_index] = pDEMTargetStressTable->GetValue(next_cm_time);
-            } else {
-                TableType::Pointer pFEMTargetStressTable = (*(FEMSubModelPartList[0])).pGetTable(target_stress_table_id);
-                next_target_stress[map_index] = pFEMTargetStressTable->GetValue(next_cm_time);
-            }
+            TableType::Pointer pFEMTargetStressTable = (*(FEMSubModelPartList[0])).pGetTable(target_stress_table_id);
+            next_target_stress[map_index] = pFEMTargetStressTable->GetValue(next_cm_time);
         }
 
+        
+
         Vector target_stress_perturbation(number_of_actuators);
-        noalias(target_stress_perturbation) = GetPerturbations(next_target_stress,next_cm_time);
+        noalias(target_stress_perturbation) = this->GetPerturbations(next_target_stress,next_cm_time);
         noalias(next_target_stress) += target_stress_perturbation;
         Matrix k_inverse(number_of_actuators,number_of_actuators);
         double k_det = 0.0;
@@ -160,7 +137,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionSte
     }
 
     // Move Actuators
-    const double delta_time = mrDemModelPart.GetProcessInfo()[DELTA_TIME];
+    const double delta_time = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
 
     // Iterate through all actuators
     for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
@@ -179,17 +156,37 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionSte
                 const double cos_theta = it->X()/external_radius;
                 const double sin_theta = it->Y()/external_radius;
                 array_1d<double,3>& r_displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
-                array_1d<double,3>& r_delta_displacement = it->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                array_1d<double,3>& r_velocity = it->FastGetSolutionStepValue(VELOCITY);
-                r_velocity[0] = mVelocity[map_index] * cos_theta;
-                r_velocity[1] = mVelocity[map_index] * sin_theta;
-                r_velocity[2] = 0.0;
-                noalias(r_delta_displacement) = r_velocity * delta_time;
-                noalias(r_displacement) += r_delta_displacement;
-                noalias(it->Coordinates()) = it->GetInitialPosition().Coordinates() + r_displacement;
+                r_displacement[0] += mVelocity[map_index] * cos_theta * delta_time;
+                r_displacement[1] += mVelocity[map_index] * sin_theta * delta_time;
             }
         } else if (actuator_name == "Z") {
+            // DEM
             mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += mVelocity[map_index]*delta_time/1.0;
+            // FEM
+            const double imposed_z_strain = mrDemModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE];
+            const ProcessInfo& CurrentProcessInfo = mrFemModelPart.GetProcessInfo();
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < SubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(SubModelPartList[i]);
+                int NElems = static_cast<int>(rSubModelPart.Elements().size());
+                ModelPart::ElementsContainerType::iterator elem_begin = rSubModelPart.ElementsBegin();
+                #pragma omp parallel for
+                for(int j = 0; j < NElems; j++)
+                {
+                    ModelPart::ElementsContainerType::iterator itElem = elem_begin + j;
+                    Element::GeometryType& rGeom = itElem->GetGeometry();
+                    GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
+                    const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
+                    unsigned int NumGPoints = IntegrationPoints.size();
+                    std::vector<double> imposed_z_strain_vector(NumGPoints);
+                    // Loop through GaussPoints
+                    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+                    {
+                        imposed_z_strain_vector[GPoint] = imposed_z_strain;
+                    }
+                    itElem->SetValuesOnIntegrationPoints( IMPOSED_Z_STRAIN_VALUE, imposed_z_strain_vector, CurrentProcessInfo );
+                }
+            }
         } else {
             // Iterate through all FEMBoundaries
             for (unsigned int i = 0; i < SubModelPartList.size(); i++) {
@@ -201,13 +198,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionSte
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
                     array_1d<double,3>& r_displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
-                    array_1d<double,3>& r_delta_displacement = it->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                    array_1d<double,3>& r_velocity = it->FastGetSolutionStepValue(VELOCITY);
-                    noalias(r_velocity) = mVelocity[map_index] * mFEMOuterNormals[actuator_name][i];
-                    r_velocity[2] = 0.0;
-                    noalias(r_delta_displacement) = r_velocity * delta_time;
-                    noalias(r_displacement) += r_delta_displacement;
-                    noalias(it->Coordinates()) = it->GetInitialPosition().Coordinates() + r_displacement;
+                    noalias(r_displacement) += mVelocity[map_index] * mFEMOuterNormals[actuator_name][i] * delta_time;
                 }
             }
         }
@@ -219,19 +210,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionSte
 //***************************************************************************************************************
 
 // After FEM and DEM solution
-void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep() {
-    const double current_time = mrDemModelPart.GetProcessInfo()[TIME];
+void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutionStep() {
+    const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
-
-        // KRATOS_WATCH("Beginning FinalizeSolutionStep")
-        // KRATOS_WATCH(mCMTime)
-        // KRATOS_WATCH(current_time)
-        // KRATOS_WATCH(mCMStep)
-        // KRATOS_WATCH(mActuatorCounter)
-        // KRATOS_WATCH(mDeltaDisplacement)
-        // KRATOS_WATCH(mDeltaReactionStress)
-        // KRATOS_WATCH(mReactionStress)
-        // KRATOS_WATCH(mStiffness)
 
     // Update ReactionStresses and Stiffness matrix
     if (mCMTime < current_time) {
@@ -241,23 +222,13 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
         mCMStep += 1;
         
         Vector delta_reaction_stress(number_of_actuators);
-        noalias(delta_reaction_stress) = MeasureReactionStress() - mReactionStress;
+        noalias(delta_reaction_stress) = this->MeasureReactionStress() - mReactionStress;
         noalias(mReactionStress) += delta_reaction_stress;
 
         for (unsigned int i = 0; i < number_of_actuators; i++) {
             mDeltaDisplacement(i,mActuatorCounter) = mVelocity[i]*mCMDeltaTime;
             mDeltaReactionStress(i,mActuatorCounter) = delta_reaction_stress[i];
         }
-
-        // KRATOS_WATCH("Middle FinalizeSolutionStep")
-        // KRATOS_WATCH(mCMTime)
-        // KRATOS_WATCH(current_time)
-        // KRATOS_WATCH(mCMStep)
-        // KRATOS_WATCH(mActuatorCounter)
-        // KRATOS_WATCH(mDeltaDisplacement)
-        // KRATOS_WATCH(mDeltaReactionStress)
-        // KRATOS_WATCH(mReactionStress)
-        // KRATOS_WATCH(mStiffness)
 
         if (mCMStep > 2) {
             // Update K if DeltaDisplacement is invertible
@@ -289,7 +260,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
             noalias(mStiffness) = mStiffnessAlpha * k_estimated + (1.0 - mStiffnessAlpha) * mStiffness;
 
             KRATOS_WATCH("End Updating K........")
-            KRATOS_WATCH(mStiffness)      
+            KRATOS_WATCH(mStiffness)    
         }
 
         if (mActuatorCounter == number_of_actuators-1) {
@@ -298,16 +269,6 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
             mActuatorCounter++;
         }
     }
-
-        // KRATOS_WATCH("End FinalizeSolutionStep")
-        // KRATOS_WATCH(mCMTime)
-        // KRATOS_WATCH(current_time)
-        // KRATOS_WATCH(mCMStep)
-        // KRATOS_WATCH(mActuatorCounter)
-        // KRATOS_WATCH(mDeltaDisplacement)
-        // KRATOS_WATCH(mDeltaReactionStress)
-        // KRATOS_WATCH(mReactionStress)
-        // KRATOS_WATCH(mStiffness)
 
     // Print results
 
@@ -364,10 +325,11 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
                 it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = mVelocity[map_index] * sin_theta;
             }
         } else if (actuator_name == "Z") {
-            // Iterate through all DEMBoundaries
-            for (unsigned int i = 0; i < DEMSubModelPartList.size(); i++) {
-                ModelPart& rSubModelPart = *(DEMSubModelPartList[i]);
-                // Iterate through nodes of DEM boundary
+            // Note: we only print on FEM nodes
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < FEMSubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(FEMSubModelPartList[i]);
+                // Iterate through nodes of FEM boundary
                 const int NNodes = static_cast<int>(rSubModelPart.Nodes().size());
                 ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
                 TableType::Pointer TargetStressTable = rSubModelPart.pGetTable(target_stress_table_id);
@@ -407,30 +369,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
 
 //***************************************************************************************************************
 
-Vector MultiaxialControlModuleGeneralized2DUtilities::GetPerturbations(const Vector& rTargetStress, const double& rTime) {
-
-    const unsigned int number_of_actuators = rTargetStress.size();
-    Vector stress_perturbation(number_of_actuators);
-    noalias(stress_perturbation) = ZeroVector(number_of_actuators);
-
-    // Iterate through all actuators
-    for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
-        const std::string actuator_name = mOrderedMapKeys[map_index];
-        if (actuator_name == "Z") {
-            stress_perturbation[map_index] = 0.0;
-        } else {
-            double amplitude = rTargetStress[map_index] * mStressTolerance;
-            double omega = 2.0 * Globals::Pi / (mPerturbationPeriod * mCMDeltaTime);
-            double phi = map_index * 2.0 * Globals::Pi / number_of_actuators;
-            stress_perturbation[map_index] = amplitude * std::sin(omega * rTime + phi);
-        }
-    }
-    return stress_perturbation;
-}
-
-//***************************************************************************************************************
-
-Vector MultiaxialControlModuleGeneralized2DUtilities::MeasureReactionStress() {
+Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStress() {
 
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
     Vector reaction_stress(number_of_actuators);
@@ -459,6 +398,18 @@ Vector MultiaxialControlModuleGeneralized2DUtilities::MeasureReactionStress() {
                     face_area += Globals::Pi*radius*radius;
                 }
             }
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < FEMSubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(FEMSubModelPartList[i]);
+                int NElems = static_cast<int>(rSubModelPart.Elements().size());
+                ModelPart::ElementsContainerType::iterator elem_begin = rSubModelPart.ElementsBegin();
+                #pragma omp parallel for reduction(+:face_area)
+                for(int j = 0; j < NElems; j++)
+                {
+                    ModelPart::ElementsContainerType::iterator itElem = elem_begin + j;
+                    face_area += itElem->GetGeometry().Area();
+                }
+            }
             // Calculate face_reaction
             // Iterate through all DEMBoundaries
             for (unsigned int i = 0; i < DEMSubModelPartList.size(); i++) {
@@ -474,6 +425,30 @@ Vector MultiaxialControlModuleGeneralized2DUtilities::MeasureReactionStress() {
                     noalias(stress_tensor) = (*(pDemElem->mSymmStressTensor));
                     const double radius = pDemElem->GetRadius();
                     face_reaction += stress_tensor(2,2) * Globals::Pi*radius*radius;
+                }
+            }
+            const ProcessInfo& CurrentProcessInfo = mrFemModelPart.GetProcessInfo();
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < FEMSubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(FEMSubModelPartList[i]);
+                int NElems = static_cast<int>(rSubModelPart.Elements().size());
+                ModelPart::ElementsContainerType::iterator elem_begin = rSubModelPart.ElementsBegin();
+                #pragma omp parallel for reduction(+:face_reaction)
+                for(int j = 0; j < NElems; j++)
+                {
+                    ModelPart::ElementsContainerType::iterator itElem = elem_begin + j;
+                    Element::GeometryType& rGeom = itElem->GetGeometry();
+                    GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
+                    const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
+                    unsigned int NumGPoints = IntegrationPoints.size();
+                    std::vector<Vector> stress_vector(NumGPoints);
+                    itElem->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, CurrentProcessInfo );
+                    const double area_over_gp = rGeom.Area()/NumGPoints;
+                    // Loop through GaussPoints
+                    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+                    {
+                        face_reaction += stress_vector[GPoint][2] * area_over_gp;
+                    }
                 }
             }
             if (std::abs(face_area) > 1.0e-12) {
@@ -505,8 +480,8 @@ Vector MultiaxialControlModuleGeneralized2DUtilities::MeasureReactionStress() {
                 #pragma omp parallel for reduction(+:face_reaction)
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(CONTACT_FORCES);
-                    face_reaction -= inner_prod(r_force,mFEMOuterNormals[actuator_name][i]);
+                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(REACTION);
+                    face_reaction += inner_prod(r_force,mFEMOuterNormals[actuator_name][i]);
                 }
             }
             if (std::abs(face_area) > 1.0e-12) {
@@ -518,18 +493,6 @@ Vector MultiaxialControlModuleGeneralized2DUtilities::MeasureReactionStress() {
     }
 
     return reaction_stress;
-}
-
-double MultiaxialControlModuleGeneralized2DUtilities::GetConditionNumber(const Matrix& rInputMatrix, const Matrix& rInvertedMatrix) {
-
-    // Find the condition number to define is inverse is OK
-    const double input_matrix_norm = norm_frobenius(rInputMatrix);
-    const double inverted_matrix_norm = norm_frobenius(rInvertedMatrix);
-
-    // Now the condition number is the product of both norms
-    const double cond_number = input_matrix_norm * inverted_matrix_norm ;
-
-    return cond_number;
 }
 
 }  // namespace Kratos
