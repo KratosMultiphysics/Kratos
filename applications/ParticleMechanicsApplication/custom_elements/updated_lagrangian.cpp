@@ -1522,8 +1522,8 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<bool>& rVari
     }
     else if (rVariable == CALCULATE_MUSL_VELOCITY_FIELD)
     {
-        Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
-        MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, N);
+
+        MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, GetGeometry().ShapeFunctionsValues());
         rValues[0] = true;
     }
     else
