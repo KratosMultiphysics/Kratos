@@ -75,11 +75,6 @@ class SPRISMProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
 
-        # If explicit simulation we set the variable EXPLICIT_RHS_COMPUTATION
-        if self.settings["preprocess_shell_to_solidshell"].GetBool():
-            for prop in self.solid_shell_model_part.GetProperties():
-                prop.SetValue(SMA.EXPLICIT_RHS_COMPUTATION, True)
-
         # We preprocess from triangle shells to SPRISM solid-shells
         if self.settings["preprocess_shell_to_solidshell"].GetBool():
             parameters_shell_to_solidshell = KM.Parameters("""{}""")
