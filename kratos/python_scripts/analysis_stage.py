@@ -247,40 +247,24 @@ class AnalysisStage(object):
 
     def _CreateModelers(self, initialization_order):
         """ List of modelers in following format:
-        "modelers" : {
-            import_modelers : [
-                { modeler_specific_params },
-                ...
-            ],
-            generate_modelers : [
-                { modeler_specific_params },
-                ...
-            ]
-        }
-        The order of intialization can be specified by setting it in "initialization_order"
-        if e.g. the "initial_modelers" should be constructed before the "update_modelers", then
-        initialization_order should be a list containing ["import_modelers", "generate_modelers"]
-        see the functions _GetOrderOfModelerInitialization
+        "modelers" : [{
+            "modeler_name" : "geometry_import":
+            "echo_level" : 0:
+            "parameters" : {
+                // settings for this modeler
+            }
+        },{ ... }]
+        The order of intialization is specified by the
+        order within this list.
         """
-        list_of_modelers = []
+        self._list_of_modelers = []
 
         if self.project_parameters.Has("modelers"):
             from KratosMultiphysics.modeler_factory import KratosModelerFactory
             factory = KratosModelerFactory()
 
-            modelers_params = self.project_parameters["modelers"]
-
-            # first initialize the modelers that depend on the order
-            for modelers_names in initialization_order:
-                if modelers_names.Has(modelers_names):
-                    list_of_modelers += factory.ConstructListOfModelers(modelers_params[modelers_names])
-
-            # then initialize the modelers that don't depend on the order
-            for name, value in modelers_params.items():
-                if not name in initialization_order:
-                    list_of_modelers += factory.ConstructListOfModelers(value) # Does this work? or should it be processes[name]
-
-        return list_of_modelers
+            modelers_list = self.project_parameters["modelers"]
+            self.list_of_modelers = factory.ConstructListOfModelers(modeler_parameters)
 
     ### Processes
     def _GetListOfProcesses(self):
