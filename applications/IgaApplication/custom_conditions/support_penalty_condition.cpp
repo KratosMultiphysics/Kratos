@@ -57,7 +57,7 @@ namespace Kratos
             const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
             for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
             {
-                Matrix N = r_geometry.ShapeFunctionsValues();
+                const Matrix& N = r_geometry.ShapeFunctionsValues();
 
                 //FOR DISPLACEMENTS
                 Matrix H = ZeroMatrix(3, mat_size);
@@ -103,6 +103,7 @@ namespace Kratos
     {
         KRATOS_TRY;
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR)) << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyPointDiscreteCondition" << std::endl;
+        KRATOS_WATCH(GetGeometry())
         return 0;
         KRATOS_CATCH("");
     }   
