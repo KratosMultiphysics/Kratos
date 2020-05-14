@@ -15,6 +15,7 @@ def Factory(settings, model):
 class DamBreakBenchmark(BaseBenchmarkProcess):
 
     def __init__(self, model, settings ):
+        # The base class sets the model_part, variables and benchmark_settings
         super(DamBreakBenchmark, self).__init__(model, settings)
 
         benchmark_default_settings = KM.Parameters("""
@@ -25,12 +26,11 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
             }
             """
             )
+        self.benchmark_settings.ValidateAndAssignDefaults(benchmark_default_settings)
 
-        self.settings.ValidateAndAssignDefaults(benchmark_default_settings)
-
-        self.dam = self.settings["dam_position"].GetDouble()
-        self.hl = self.settings["left_height"].GetDouble()
-        self.hr = self.settings["right_height"].GetDouble()
+        self.dam = self.benchmark_settings["dam_position"].GetDouble()
+        self.hl = self.benchmark_settings["left_height"].GetDouble()
+        self.hr = self.benchmark_settings["right_height"].GetDouble()
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
 
         self.cm = self.__cm()
@@ -39,16 +39,16 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         super(DamBreakBenchmark, self).Check()
         label = "DamBreakBenchmark. "
         if self.g <= 0:
-            msg = label + "Gravity must be a positive value"
+            msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z compontent in the ProcessInfo."
             raise Exception(msg)
         elif self.hr <= 0:
-            msg = label + "Right height must be a positive value"
+            msg = label + "Right height must be a positive value. Please, check the Parameters."
             raise Exception(msg)
         elif self.hl <= 0:
-            msg = label + "Left height must be a positive value"
+            msg = label + "Left height must be a positive value. Please, check the Parameters."
             raise Exception(msg)
         elif self.dam <= 0:
-            msg = label + "The dam position must be a positive value"
+            msg = label + "The dam position must be a positive value. Please, check the Parameters."
             raise Exception(msg)
 
     def Topography(self, coordinates):
