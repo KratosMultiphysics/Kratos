@@ -194,10 +194,10 @@ namespace Kratos {
 
             // Check values
             const double tolerance = 1.0e-8;
-            const std::array<double, 8> expected_p({-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1});
-            const std::array<double, 8> expected_v_x({-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1});
-            const std::array<double, 8> expected_t({2.0,2.0,-2.0,0.2,0.2,0.2,0.2,0.2});
-            const std::array<double, 8> expected_d_y({-2.0,-2.0,2.0,-0.2,-0.2,-0.2,-0.2,-0.2});
+            const std::array<double, 8> expected_p({{-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1}});
+            const std::array<double, 8> expected_v_x({{-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1}});
+            const std::array<double, 8> expected_t({{2.0,2.0,-2.0,0.2,0.2,0.2,0.2,0.2}});
+            const std::array<double, 8> expected_d_y({{-2.0,-2.0,2.0,-0.2,-0.2,-0.2,-0.2,-0.2}});
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
                 KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
@@ -246,10 +246,10 @@ namespace Kratos {
 
             // Check values
             const double tolerance = 1.0e-8;
-            const std::array<double, 8> expected_p({-1.0,-1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0});
-            const std::array<double, 8> expected_v_x({-1.0,-1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0});
-            const std::array<double, 8> expected_t({2.0,2.0,-2.0,-2.0,-2.0,2.0,2.0,2.0});
-            const std::array<double, 8> expected_d_y({-2.0,-2.0,2.0,2.0,2.0,-2.0,-2.0,-2.0});
+            const std::array<double, 8> expected_p({{-1.0,-1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0}});
+            const std::array<double, 8> expected_v_x({{-1.0,-1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0}});
+            const std::array<double, 8> expected_t({{2.0,2.0,-2.0,-2.0,-2.0,2.0,2.0,2.0}});
+            const std::array<double, 8> expected_d_y({{-2.0,-2.0,2.0,2.0,2.0,-2.0,-2.0,-2.0}}});
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
                 KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
@@ -298,10 +298,10 @@ namespace Kratos {
 
             // Check values
             const double tolerance = 1.0e-8;
-            const std::array<double, 13> expected_p({-1.0,-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1});
-            const std::array<double, 13> expected_v_x({-1.0,-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1});
-            const std::array<double, 13> expected_t({2.0,2.0,2.0,-2.0,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2});
-            const std::array<double, 13> expected_d_y({-2.0,-2.0,-2.0,2.0,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2});
+            const std::array<double, 13> expected_p({{-1.0,-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1}});
+            const std::array<double, 13> expected_v_x({{-1.0,-1.0,-1.0,1.0,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1}});
+            const std::array<double, 13> expected_t({{2.0,2.0,2.0,-2.0,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2}});
+            const std::array<double, 13> expected_d_y({{-2.0,-2.0,-2.0,2.0,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2}});
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
                 KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
@@ -350,10 +350,10 @@ namespace Kratos {
 
             // Check values
             const double tolerance = 1.0e-8;
-            const std::array<double, 13> expected_p({-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0});
-            const std::array<double, 13> expected_v_x({-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0});
-            const std::array<double, 13> expected_t({2.0,2.0,2.0,-2.0,-2.0,-2.0,-2.0,2.0,2.0,2.0,2.0,2.0,2.0});
-            const std::array<double, 13> expected_d_y({-2.0,-2.0,-2.0,2.0,2.0,2.0,2.0,-2.0,-2.0,-2.0,-2.0,-2.0,-2.0});
+            const std::array<double, 13> expected_p({{-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0}}});
+            const std::array<double, 13> expected_v_x({{-1.0,-1.0,-1.0,1.0,1.0,1.0,1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0}}});
+            const std::array<double, 13> expected_t({{2.0,2.0,2.0,-2.0,-2.0,-2.0,-2.0,2.0,2.0,2.0,2.0,2.0,2.0}}});
+            const std::array<double, 13> expected_d_y({{-2.0,-2.0,-2.0,2.0,2.0,2.0,2.0,-2.0,-2.0,-2.0,-2.0,-2.0,-2.0}}});
             unsigned int i = 0;
             for (auto& r_node : visualization_model_part.Nodes()) {
                 KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), expected_p[i], tolerance);
