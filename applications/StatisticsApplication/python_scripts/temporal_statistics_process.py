@@ -57,6 +57,11 @@ class TemporalStatisticsProcess(Kratos.Process):
         if (not Kratos.KratosGlobals.HasVariable(statistics_control_variable_name)):
             raise Exception("Unknown statistics control variable. [ \"statistics_control_variable_name\" = \"" + statistics_control_variable_name + "\" ]")
 
+        ## this is required to support restarting capabilities. If STEP is used, there need to be a way to retrieve
+        ## initial starting time for integration in the case of restarting.
+        if (statistics_control_variable_name != "TIME"):
+            raise Exception("Only \"TIME\" is supported as statistics_start_point_control_variable_name.")
+
         self.statistics_control_variable = Kratos.KratosGlobals.GetVariable(statistics_control_variable_name)
         statistics_control_variable_type = Kratos.KratosGlobals.GetVariableType(statistics_control_variable_name)
         if (statistics_control_variable_type == "Integer"):
@@ -88,16 +93,13 @@ class TemporalStatisticsProcess(Kratos.Process):
             self.method_list.extend(method_objects)
 
         for method in self.method_list:
-            method.InitializeStatisticsMethod()
-        self.previous_value = 0.0
+            method.InitializeStatisticsMethod(self.statistics_control_value)
 
     def ExecuteFinalizeSolutionStep(self):
         current_value = self.model_part.ProcessInfo[self.statistics_control_variable]
         if (current_value >= self.statistics_control_value):
-            delta_time = current_value - self.previous_value
             for method in self.method_list:
-                method.CalculateStatistics(delta_time)
-        self.previous_value = current_value
+                method.CalculateStatistics()
 
     def __get_model_part(self):
         if (not hasattr(self, "model_part")):
