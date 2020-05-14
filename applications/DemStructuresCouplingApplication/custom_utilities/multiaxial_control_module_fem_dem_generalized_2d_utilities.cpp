@@ -113,15 +113,16 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
         const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness, 
                                                         k_inverse, std::numeric_limits<double>::epsilon(),
                                                         false);
+        const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
 
         Vector delta_velocity(number_of_actuators);
         Vector delta_target_stress(number_of_actuators);
         noalias(delta_target_stress) = next_target_stress-mReactionStress;
-        if (is_k_invertible == true) {
-            noalias(delta_velocity) = prod(k_inverse,delta_target_stress)/mCMDeltaTime - mVelocity;
-        } else {
+        if (is_k_invertible == false || std::isnan(k_condition_number)) {
             noalias(delta_velocity) = ZeroVector(number_of_actuators);
-            std::cout << "Stiffness matrix is not invertible. Keeping loading velocity constant" << std::endl;
+            std::cout << "Stiffness matrix is not invertible. Keeping loading velocity constant" << std::endl;            
+        } else {
+            noalias(delta_velocity) = prod(k_inverse,delta_target_stress)/mCMDeltaTime - mVelocity;
         }
         noalias(mVelocity) += mVelocityFactor * delta_velocity;
 
@@ -241,26 +242,22 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
                                                             false);
             const double delta_displacement_condition_number = GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
 
-            KRATOS_WATCH("Begin Updating K.........")
-            // KRATOS_WATCH(mCMStep)
-            // KRATOS_WATCH(mActuatorCounter)
-            KRATOS_WATCH(mDeltaDisplacement)
-            // KRATOS_WATCH(delta_displacement_inverse)
-            KRATOS_WATCH(delta_displacement_condition_number)
-            KRATOS_WATCH(mStiffness)
-            // KRATOS_WATCH(is_delta_displacement_invertible)
+            // KRATOS_WATCH("Begin Updating K.........")
+            // KRATOS_WATCH(mDeltaDisplacement)
+            // KRATOS_WATCH(delta_displacement_condition_number)
+            // KRATOS_WATCH(mStiffness)
 
             Matrix k_estimated(number_of_actuators,number_of_actuators);
-            if (is_delta_displacement_invertible == true) {
-                noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
-            } else {
+            if (is_delta_displacement_invertible == false || std::isnan(delta_displacement_condition_number) ) {
                 noalias(k_estimated) = mStiffness;
                 std::cout << "Delta displacement matrix is not invertible. Keeping stiffness matrix constant" << std::endl;
+            } else {
+                noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
             }
             noalias(mStiffness) = mStiffnessAlpha * k_estimated + (1.0 - mStiffnessAlpha) * mStiffness;
 
-            KRATOS_WATCH("End Updating K........")
-            KRATOS_WATCH(mStiffness)    
+            // KRATOS_WATCH("End Updating K........")
+            // KRATOS_WATCH(mStiffness)    
         }
 
         if (mActuatorCounter == number_of_actuators-1) {

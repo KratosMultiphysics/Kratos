@@ -77,9 +77,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
                 "velocity_factor" : 1.0,
                 "stress_tolerance": 1.0e-2,
                 "perturbation_period": 10,
-                "update_stiffness": true,
                 "stiffness_alpha": 1.0,
-                "start_time" : 0.0,
                 "stress_averaging_time": 1.0e-5
             },
             "list_of_actuators" : []
@@ -90,10 +88,8 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
 
     // mVectorOfLastStresses.resize(0);
     mVelocityFactor = rParameters["Parameters"]["velocity_factor"].GetDouble();
-    // mStartTime = rParameters["Parameters"]["start_time"].GetDouble();
     mStressTolerance = rParameters["Parameters"]["stress_tolerance"].GetDouble();
     mPerturbationPeriod = rParameters["Parameters"]["perturbation_period"].GetInt();
-    // mUpdateStiffness = rParameters["Parameters"]["update_stiffness"].GetBool();
     // mStressAveragingTime = rParameters["Parameters"]["stress_averaging_time"].GetDouble();
     mStiffnessAlpha = rParameters["Parameters"]["stiffness_alpha"].GetDouble();
     mCMDeltaTime = rParameters["Parameters"]["control_module_delta_time"].GetDouble();
@@ -228,11 +224,9 @@ protected:
 
     ModelPart& mrDemModelPart;
     ModelPart& mrFemModelPart;
-    // double mStartTime; // TODO
     // double mStressAveragingTime; // TODO
     double mVelocityFactor;
     double mStressTolerance;
-    // bool mUpdateStiffness; // TODO
     double mCMDeltaTime;
     double mStiffnessAlpha;
     unsigned int mCMStep;
@@ -251,7 +245,7 @@ protected:
     Matrix mStiffness;
     Matrix mDeltaDisplacement;
     Matrix mDeltaReactionStress;
-    // std::vector<Vector> mVectorsOfLastStresses; // TODO
+    // std::vector<Vector> mVectorOfLastStresses; // TODO
 
 
 ///@}
