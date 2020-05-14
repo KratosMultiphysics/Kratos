@@ -332,7 +332,8 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
     }
     else if (rVariable == VECTOR_TO_UPWIND_ELEMENT)
     {
-        rValues[0] = this->GetValue(VECTOR_TO_UPWIND_ELEMENT);
+        // rValues[0] = this->GetValue(VECTOR_TO_UPWIND_ELEMENT);
+        rValues[0] = pGetUpwindElement()->GetGeometry().Center() - this->GetGeometry().Center();
     }
 }
 
@@ -362,6 +363,14 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::PrintData(std::
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <int TDim, int TNumNodes>
+inline GlobalPointer<Element> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::pGetUpwindElement() const
+{
+    KRATOS_ERROR_IF(mpUpwindElement.get() == nullptr)
+        << "No upwind element found for element #" << this->Id() << std::endl;
+    return mpUpwindElement;
+}
 
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetWakeDistances(
@@ -934,109 +943,103 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
 
-    // current element geometry
-    const GeometryType& r_geom = r_this.GetGeometry();
-    const Point current_element_center = r_geom.Center();
+    // find nodes of element which should be the upwind element
+    vector<double> upwind_element_nodes(TDim);
+    FindUpwindNodes(upwind_element_nodes, rCurrentProcessInfo);
+    std::sort(upwind_element_nodes.begin(), upwind_element_nodes.end());
+        
+    std::vector<size_t> neighbor_element_ids;
 
-    // current element edges
-    const auto edges = r_geom.GenerateEdges();
+    // find neighboring elements to nodes of current element
+    GlobalPointersVector<Element> upwind_element_candidates;
+    PotentialFlowUtilities::GetNodeNeighborElementCandidates<TDim, TNumNodes>(upwind_element_candidates, r_this);
 
-    // get local coordinates of element center
-    array_1d<double,3> aux_coordinates;
-    r_geom.PointLocalCoordinates(aux_coordinates, current_element_center);
-
-    // outward pointing normals of each edge
-    auto first_edge_normal = edges[0].Normal(aux_coordinates);
-    auto second_edge_normal = edges[1].Normal(aux_coordinates);
-    auto third_edge_normal = edges[2].Normal(aux_coordinates);
-
-    // make normals point into element
-    first_edge_normal[0] = -1.0 * first_edge_normal[0];
-    first_edge_normal[1] = -1.0 * first_edge_normal[1];
-
-    second_edge_normal[0] = -1.0 * second_edge_normal[0];
-    second_edge_normal[1] = -1.0 * second_edge_normal[1];
-
-    third_edge_normal[0] = -1.0 * third_edge_normal[0];
-    third_edge_normal[1] = -1.0 * third_edge_normal[1];
-
-    // get free stream velocity and norm
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double free_stream_velocity_norm = MathUtils<double>::Norm3(free_stream_velocity);
-
-    // find component of element edge normal vector in direction of free stream velocity
-    const double first_edge_normal_fs_comp = inner_prod(first_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
-    const double second_edge_normal_fs_comp = inner_prod(second_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
-    const double third_edge_normal_fs_comp = inner_prod(third_edge_normal, free_stream_velocity) / free_stream_velocity_norm;
-
-    vector<double> edge_normal_velocity_components (3);
-    edge_normal_velocity_components[0] = first_edge_normal_fs_comp;
-    edge_normal_velocity_components[1] = second_edge_normal_fs_comp;
-    edge_normal_velocity_components[2] = third_edge_normal_fs_comp;
-
-    this->SetValue(EDGE_NORMAL_VELOCITY_COMPONENTS, edge_normal_velocity_components);
-
-    // get node IDs of upwind element
-    int upwind_element_one_node_id = 0;
-    int upwind_element_two_node_id = 0;
-
-    // vector between points 0 and 1 has biggest streamwise component
-    if(first_edge_normal_fs_comp > second_edge_normal_fs_comp && first_edge_normal_fs_comp > third_edge_normal_fs_comp)
+    for (SizeType i = 0; i < upwind_element_candidates.size(); i++)
     {
-        upwind_element_one_node_id = 0;
-        upwind_element_two_node_id = 1;
-    }
-    // vector between points 1 and 2 has biggest streamwise component
-    else if(second_edge_normal_fs_comp > first_edge_normal_fs_comp && second_edge_normal_fs_comp > third_edge_normal_fs_comp)
-    {
-        upwind_element_one_node_id = 1;
-        upwind_element_two_node_id = 2;
-    }
-    // vector between points 0 and 2 has biggest streamwise component
-    else if(third_edge_normal_fs_comp > second_edge_normal_fs_comp && third_edge_normal_fs_comp > first_edge_normal_fs_comp)
-    {
-        upwind_element_one_node_id = 0;
-        upwind_element_two_node_id = 2;
-    }
-    else
-    {
-         KRATOS_WARNING("Transonic perturbation element: FindUpWindElement") <<
-        "no maximum streamwise component found" << std::endl;
-    }
+        // get sorted node ids of neighbording elements
+        PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(neighbor_element_ids, upwind_element_candidates[i]);
 
-    // find elements attached to each node
-    const GlobalPointersVector<Element>& rNodeOneElementCandidates = r_geom[upwind_element_one_node_id].GetValue(NEIGHBOUR_ELEMENTS);
-    const GlobalPointersVector<Element>& rNodeTwoElementCandidates = r_geom[upwind_element_two_node_id].GetValue(NEIGHBOUR_ELEMENTS);
-
-    bool loop_stop = false;
-
-    // find element which shares both nodes
-    for (SizeType i = 0; i < rNodeOneElementCandidates.size() && !loop_stop; i++)
-    {
-        for (SizeType j = 0; j < rNodeTwoElementCandidates.size() && !loop_stop; j++)
+        // find element which shares the upwind element nodes with current element but is not the current element
+        if(std::includes(neighbor_element_ids.begin(), neighbor_element_ids.end(), 
+            upwind_element_nodes.begin(), upwind_element_nodes.end()) 
+            && upwind_element_candidates[i].Id() != r_this.Id())
         {
-            if(rNodeOneElementCandidates(i)->Id() == rNodeTwoElementCandidates(j)->Id() && rNodeOneElementCandidates(i)->Id() != r_this.Id())
-            {
-                // assign upwind element
-                mpUpwindElement = rNodeOneElementCandidates(i);
-
-                // get current element and upwind element center points
-                const GeometryType& r_upwind_element_geometry = rNodeOneElementCandidates(i)->GetGeometry();
-                const Point upwind_element_center = r_upwind_element_geometry.Center();
-
-                // make vector pointing from current element to upwind element
-                vector<double> vector_to_upwind_element (3, 0.0);
-                vector_to_upwind_element[0] = upwind_element_center[0] - current_element_center[0];
-                vector_to_upwind_element[1] = upwind_element_center[1] - current_element_center[1];
-                vector_to_upwind_element[2] = upwind_element_center[2] - current_element_center[2];
-
-                this->SetValue(VECTOR_TO_UPWIND_ELEMENT, vector_to_upwind_element);
-
-                loop_stop = true;
-                break;
-            }
+            mpUpwindElement = upwind_element_candidates(i);
+            break;
         }
     }
+
+    // If no upwind element is found, the element is an INLET element and the
+    // upwind element pointer points to itself
+    if (mpUpwindElement.get() == nullptr)
+    {
+        mpUpwindElement = this;
+        this->SetFlags(INLET);
+    }
+
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindNodes(VectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rResult.size() != TDim)
+    {
+        rResult.resize(TDim);
+    }
+    rResult.clear();
+    
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+
+    // free stream values
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    // current element geometry
+    const GeometryType& r_geom = r_this.GetGeometry();
+    // const Point current_element_center = r_geom.Center();
+
+    // get element edges or faces depending on dimension of the problem
+    Element::GeometryType::GeometriesArrayType element_boundary_geometry;
+
+    if(TDim == 2)
+    {
+        // current element edges
+        element_boundary_geometry = r_geom.GenerateEdges();
+    }
+    else if(TDim == 3)
+    {
+        // current element faces
+        element_boundary_geometry = r_geom.GenerateFaces();
+    }
+
+    array_1d<double,3> aux_coordinates;
+    vector<double> element_boundary_normal_velocity_components(element_boundary_geometry.size(), 0.0);
+
+    for (SizeType i = 0; i < element_boundary_geometry.size(); i++)
+    { 
+        // get local coordinates of bondary geometry center
+        element_boundary_geometry[i].PointLocalCoordinates(aux_coordinates, element_boundary_geometry[i].Center());
+        
+        // compute portion of normal vectors of faces or edges in free stream direction
+        element_boundary_normal_velocity_components[i] = 
+            PotentialFlowUtilities::ComputeScalarProductProjection<TDim, TNumNodes>(
+                element_boundary_geometry[i].Normal(aux_coordinates), free_stream_velocity);
+    }
+
+    // find min normal component, which belongs to the edge or face which acts as the boundary to the upwind element
+    const auto min_normal_v_comp = std::min_element(
+        element_boundary_normal_velocity_components.begin(), element_boundary_normal_velocity_components.end());    
+    
+    // get vector location of the edg of face which is shared between the current and upwind element
+    const auto upwind_geometry_iterator = std::distance(
+        std::begin(element_boundary_normal_velocity_components), min_normal_v_comp);
+
+    // get node ids of edge of face which is shared between the current and upwind element
+    for(SizeType i = 0; i < rResult.size(); i++)
+    {
+        rResult[i] = element_boundary_geometry[upwind_geometry_iterator][i].Id();
+    }
+
 }
 
 template <int TDim, int TNumNodes>

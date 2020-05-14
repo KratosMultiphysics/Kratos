@@ -138,8 +138,6 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
@@ -150,6 +148,8 @@ public:
 
     Element::Pointer Clone(IndexType NewId,
                            NodesArrayType const& ThisNodes) const override;
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -221,6 +221,7 @@ private:
 
     ///@name Private Operators
     ///@{
+    inline GlobalPointer<Element> pGetUpwindElement() const;
 
     void GetWakeDistances(array_1d<double,
                          TNumNodes>& distances) const;
@@ -285,6 +286,9 @@ private:
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
+
+    void FindUpwindNodes(VectorType& rResult,
+                        const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Private Operations

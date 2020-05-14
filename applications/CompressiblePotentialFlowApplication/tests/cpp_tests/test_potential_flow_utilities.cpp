@@ -301,5 +301,53 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalMachNumber, CompressiblePotent
     KRATOS_CHECK_NEAR(local_mach_number, 0.9474471158469713, 1e-16);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ComputeScalarProductProjection, CompressiblePotentialApplicationFastSuite){
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+    
+    const auto rGeom = pElement->GetGeometry();
+
+    // generate edges
+    vector<array_1d<double, 3>> edges(3);
+
+    edges[0][0] = rGeom[1].X() - rGeom[0].X();
+    edges[0][1] = rGeom[1].Y() - rGeom[0].Y();
+    edges[0][2] = rGeom[1].Z() - rGeom[0].Z();
+
+    edges[1][0] = rGeom[2].X() - rGeom[1].X();
+    edges[1][1] = rGeom[2].Y() - rGeom[1].Y();
+    edges[1][2] = rGeom[2].Z() - rGeom[1].Z();
+
+    edges[2][0] = rGeom[0].X() - rGeom[2].X();
+    edges[2][1] = rGeom[0].Y() - rGeom[2].Y();
+    edges[2][2] = rGeom[0].Z() - rGeom[2].Z();
+
+    // z vector
+    array_1d<double, 3> z_vector(3, 0.0);
+    z_vector[2] = 1.0;
+    
+    // free stream velocity
+    const array_1d<double, 3> free_stream_velocity = model_part.GetProcessInfo()[FREE_STREAM_VELOCITY];
+
+    // compute normals and projection of edge normal in free stream velocity direction
+    vector<array_1d<double, 3>>  edge_normals(3);
+    vector<double> edge_normal_velocity_components (3, 0.0);
+
+    for (unsigned int i = 0; i < edges.size(); i++)
+    { 
+        MathUtils<double>::CrossProduct(edge_normals[i], edges[i], z_vector);
+        edge_normal_velocity_components[i] = 
+            PotentialFlowUtilities::ComputeScalarProductProjection<2, 3>(
+            edge_normals[i], free_stream_velocity);
+    }
+
+    KRATOS_CHECK_NEAR(edge_normal_velocity_components[0], 0.0, 1e-15);
+    KRATOS_CHECK_NEAR(edge_normal_velocity_components[1], 1.0, 1e-15);
+    KRATOS_CHECK_NEAR(edge_normal_velocity_components[2], -1.0, 1e-15);
+}
+
 } // namespace Testing
 } // namespace Kratos.

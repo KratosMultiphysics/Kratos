@@ -16,6 +16,8 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
+#include "containers/global_pointers_vector.h"
+
 
 namespace Kratos
 {
@@ -119,6 +121,15 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
 
 template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+
+template <int Dim, int NumNodes>
+double ComputeScalarProductProjection(const Vector& rFirstVector, const Vector& rSecondVector);
+
+template <int Dim, int NumNodes>
+void GetSortedIds(std::vector<size_t>& Ids, const Element& rElement);
+
+template <int Dim, int NumNodes>
+void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const Element& rElement);
 } // namespace PotentialFlow
 } // namespace Kratos
 

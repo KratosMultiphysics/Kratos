@@ -241,24 +241,5 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, Comp
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ComputeEdgeNormalVelocityComponent, CompressiblePotentialApplicationFastSuite){
-    Model this_model;
-    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-
-    GenerateTransonicPerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-
-    const auto rGeom = pElement->GetGeometry();
-
-    pElement->Initialize(model_part.GetProcessInfo());
-
-    // find edge vector components in free stream velocity direction
-    auto edge_velocity_components = pElement->GetValue(EDGE_NORMAL_VELOCITY_COMPONENTS);
-
-    KRATOS_CHECK_NEAR(edge_velocity_components[0], 0.0, 1e-15);
-    KRATOS_CHECK_NEAR(edge_velocity_components[1], -1.0, 1e-15);
-    KRATOS_CHECK_NEAR(edge_velocity_components[2], 1.0, 1e-15);
-}
-
 } // namespace Testing
 } // namespace Kratos.
