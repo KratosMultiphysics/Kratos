@@ -39,13 +39,14 @@ Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
 {
     Parameters default_settings(R"(
     {
-        "model_part_name"                     : "",
-        "visualization_model_part_name"       : "EmbeddedSkinVisualizationModelPart",
-        "reform_model_part_at_each_time_step" : false,
-        "level_set_type"                      : "",
-        "shape_functions"                     : "",
-        "distance_variable_name"              : "",
-        "visualization_variables"             : ["VELOCITY","PRESSURE"]
+        "model_part_name"                       : "",
+        "visualization_model_part_name"         : "EmbeddedSkinVisualizationModelPart",
+        "reform_model_part_at_each_time_step"   : false,
+        "level_set_type"                        : "",
+        "shape_functions"                       : "",
+        "distance_variable_name"                : "",
+        "visualization_variables"               : ["VELOCITY","PRESSURE"],
+        "visualization_nonhistorical_variables" : []
     })");
 
     return default_settings;
@@ -160,11 +161,13 @@ void EmbeddedSkinVisualizationProcess::FillVariablesList(
     std::vector<const Variable<TDataType>*>& rVariablesList)
 {
     rVariablesList.clear();
-    for (auto i_var_params : rParameters["visualization_variables"]) {
+    for (auto i_var_params : rParameters) {
+        const Variable<TDataType>* p_aux = nullptr;
         const std::string i_var_name = i_var_params.GetString();
         if(KratosComponents<Variable<TDataType>>::Has(i_var_name)){
             const auto& r_var = KratosComponents<Variable<TDataType>>::Get(i_var_name);
-            rVariablesList.push_back(&r_var);
+            p_aux = &r_var;
+            rVariablesList.push_back(p_aux);
         }
     }
 }
@@ -174,6 +177,8 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     ModelPart& rVisualizationModelPart,
     const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
     const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
+    const std::vector<const Variable< double>* >& rVisualizationNonHistoricalScalarVariables,
+    const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationNonHistoricalVectorVariables,
     const LevelSetType& rLevelSetType,
     const ShapeFunctionsType& rShapeFunctionsType,
     const bool ReformModelPartAtEachTimeStep) :
@@ -184,7 +189,9 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     mShapeFunctionsType(rShapeFunctionsType),
     mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep),
     mVisualizationScalarVariables(rVisualizationScalarVariables),
-    mVisualizationVectorVariables(rVisualizationVectorVariables)
+    mVisualizationVectorVariables(rVisualizationVectorVariables),
+    mVisualizationNonHistoricalScalarVariables(rVisualizationNonHistoricalScalarVariables),
+    mVisualizationNonHistoricalVectorVariables(rVisualizationNonHistoricalVectorVariables)
 {
 }
 
@@ -253,7 +260,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
         [&] (Parameters& x) -> std::vector<const Variable<double>*> {
             x.ValidateAndAssignDefaults(GetDefaultSettings());
             std::vector<const Variable<double>*> aux_list;
-            FillVariablesList<double>(x, aux_list);
+            FillVariablesList<double>(x["visualization_variables"], aux_list);
             return aux_list;
         } (rParameters)
     )
@@ -261,11 +268,26 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
         [&] (Parameters& x) -> std::vector<const Variable<array_1d<double,3>>*> {
             x.ValidateAndAssignDefaults(GetDefaultSettings());
             std::vector<const Variable<array_1d<double,3>>*> aux_list;
-            FillVariablesList<array_1d<double,3>>(x, aux_list);
+            FillVariablesList<array_1d<double,3>>(x["visualization_variables"], aux_list);
             return aux_list;
         } (rParameters)
     )
-
+    , mVisualizationNonHistoricalScalarVariables(
+        [&] (Parameters& x) -> std::vector<const Variable<double>*> {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            std::vector<const Variable<double>*> aux_list;
+            FillVariablesList<double>(x["visualization_nonhistorical_variables"], aux_list);
+            return aux_list;
+        } (rParameters)
+    )
+    , mVisualizationNonHistoricalVectorVariables(
+        [&] (Parameters& x) -> std::vector<const Variable<array_1d<double,3>>*> {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            std::vector<const Variable<array_1d<double,3>>*> aux_list;
+            FillVariablesList<array_1d<double,3>>(x["visualization_nonhistorical_variables"], aux_list);
+            return aux_list;
+        } (rParameters)
+    )
 {
 }
 
@@ -397,24 +419,78 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
                 double weight_edge_node_i, weight_edge_node_j;
                 std::tie(p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j) = std::get<1>(*cut_node_info);
 
-                // Interpolate the scalar variables
-                for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-                    const Variable<double> &r_scalar_var = *(mVisualizationScalarVariables[i_var]);
-                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_scalar_var);
-                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_scalar_var);
-                    p_node->FastGetSolutionStepValue(r_scalar_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
-                }
-
-                // Interpolate the vector variables
-                for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-                    const Variable<array_1d<double, 3> > &r_vector_var = *(mVisualizationVectorVariables[i_var]);
-                    const array_1d<double, 3> &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_vector_var);
-                    const array_1d<double, 3> &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_vector_var);
-                    p_node->FastGetSolutionStepValue(r_vector_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
-                }
+                // Interpolate the visualization variables
+                InterpolateVariablesListValues<double, true>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationScalarVariables);
+                InterpolateVariablesListValues<double, false>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationNonHistoricalScalarVariables);
+                InterpolateVariablesListValues<array_1d<double,3>, true>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationVectorVariables);
+                InterpolateVariablesListValues<array_1d<double,3>, false>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationNonHistoricalVectorVariables);
             }
         }
     }
+}
+
+template<class TDataType, bool IsHistorical>
+void EmbeddedSkinVisualizationProcess::CopyVariablesListValues(
+    const ModelPart::NodeIterator& rItOriginNode,
+    ModelPart::NodeIterator& rItVisualizationNode,
+    const std::vector<const Variable<TDataType>*>& rVariablesList)
+{
+    for (unsigned int i_var = 0; i_var < rVariablesList.size(); ++i_var){
+        const Variable<TDataType> &r_var = *(rVariablesList[i_var]);
+        const TDataType &r_origin_value = AuxiliaryGetValue<IsHistorical>(*rItOriginNode, r_var);
+        TDataType &r_visualization_value = AuxiliaryGetValue<IsHistorical>(*rItVisualizationNode, r_var);
+        r_visualization_value = r_origin_value;
+    }
+}
+
+template<class TDataType, bool IsHistorical>
+void EmbeddedSkinVisualizationProcess::InterpolateVariablesListValues(
+    const Node<3>::Pointer& rpNode,
+    const Node<3>::Pointer& rpNodeI,
+    const Node<3>::Pointer& rpNodeJ,
+    const double WeightI,
+    const double WeightJ,
+    const std::vector<const Variable<TDataType>*>& rVariablesList)
+{
+    for (unsigned int i_var = 0; i_var < rVariablesList.size(); ++i_var){
+        const auto &r_var = *(rVariablesList[i_var]);
+        const TDataType &r_edge_node_i_value = AuxiliaryGetValue<IsHistorical>(*rpNodeI, r_var);
+        const TDataType &r_edge_node_j_value = AuxiliaryGetValue<IsHistorical>(*rpNodeJ, r_var);
+        TDataType& r_value = AuxiliaryGetValue<IsHistorical>(*rpNode, r_var);
+        r_value = WeightI * r_edge_node_i_value + WeightJ * r_edge_node_j_value;
+    }
+}
+
+template<>
+double& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<true>(
+    Node<3>& rNode,
+    const Variable<double>& rVariable)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template<>
+double& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<false>(
+    Node<3>& rNode,
+    const Variable<double>& rVariable)
+{
+    return rNode.GetValue(rVariable);
+}
+
+template<>
+array_1d<double,3>& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<true>(
+    Node<3>& rNode,
+    const Variable<array_1d<double,3>>& rVariable)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template<>
+array_1d<double,3>& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<false>(
+    Node<3>& rNode,
+    const Variable<array_1d<double,3>>& rVariable)
+{
+    return rNode.GetValue(rVariable);
 }
 
 void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
@@ -424,6 +500,10 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
 
     // Creates the visualization model part geometrical entities (elements and conditions)
     this->CreateVisualizationGeometries();
+
+    // Initialize (allocate) non-historical variables
+    InitializeNonHistoricalVariables<double>(mVisualizationNonHistoricalScalarVariables);
+    InitializeNonHistoricalVariables<array_1d<double,3>>(mVisualizationNonHistoricalVectorVariables);
 }
 
 void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
@@ -444,18 +524,13 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues()
 
     #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(n_old_nodes); ++i_node){
-        const auto it_old_node = mrModelPart.NodesBegin() + i_node;
-        auto it_new_node = mrVisualizationModelPart.NodesBegin() + i_node;
+        const auto it_origin_node = mrModelPart.NodesBegin() + i_node;
+        auto it_visualization_node = mrVisualizationModelPart.NodesBegin() + i_node;
 
-        for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-            const Variable<double>& r_var = *(mVisualizationScalarVariables[i_var]);
-            it_new_node->FastGetSolutionStepValue(r_var) = it_old_node->FastGetSolutionStepValue(r_var);
-        }
-
-        for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-            const Variable<array_1d<double,3>>& r_var = *(mVisualizationVectorVariables[i_var]);
-            it_new_node->FastGetSolutionStepValue(r_var) = it_old_node->FastGetSolutionStepValue(r_var);
-        }
+        CopyVariablesListValues<double, true>(it_origin_node, it_visualization_node, mVisualizationScalarVariables);
+        CopyVariablesListValues<double, false>(it_origin_node, it_visualization_node, mVisualizationNonHistoricalScalarVariables);
+        CopyVariablesListValues<array_1d<double,3>, true>(it_origin_node, it_visualization_node, mVisualizationVectorVariables);
+        CopyVariablesListValues<array_1d<double,3>, false>(it_origin_node, it_visualization_node, mVisualizationNonHistoricalVectorVariables);
     }
 }
 
@@ -711,6 +786,16 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
 
     // Wait for all nodes to renumber its nodes
     r_comm.Barrier();
+}
+
+template<class TDataType>
+void EmbeddedSkinVisualizationProcess::InitializeNonHistoricalVariables(const std::vector<const Variable<TDataType>*>& rNonHistoricalVariablesVector)
+{
+    for (auto& r_node : mrVisualizationModelPart.Nodes()) {
+        for (auto& r_var : rNonHistoricalVariablesVector) {
+            r_node.SetValue(*r_var, r_var->Zero());
+        }
+    }
 }
 
 bool EmbeddedSkinVisualizationProcess::ElementIsPositive(

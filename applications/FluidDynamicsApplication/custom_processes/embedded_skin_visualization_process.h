@@ -207,6 +207,8 @@ public:
         ModelPart& rVisualizationModelPart,
         const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
         const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
+        const std::vector<const Variable< double>* >& rVisualizationNonHistoricalScalarVariables,
+        const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationNonHistoricalVectorVariables,
         const LevelSetType& rLevelSetType,
         const ShapeFunctionsType& rShapeFunctionsType,
         const bool ReformModelPartAtEachTimeStep = false);
@@ -327,6 +329,12 @@ private:
     // Vector containing the vector variables to be interpolated in the visualization mesh
     const std::vector<const Variable<array_1d<double, 3>>*> mVisualizationVectorVariables;
 
+    // Vector containing the non-historical scalar variables to be interpolated in the visualization mesh
+    const std::vector<const Variable<double>*> mVisualizationNonHistoricalScalarVariables;
+
+    // Vector containing the non-historical vector variables to be interpolated in the visualization mesh
+    const std::vector<const Variable<array_1d<double, 3>>*> mVisualizationNonHistoricalVectorVariables;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -335,6 +343,34 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Auxiliary get double value method
+     * This is an auxiliary method to get scalar values from the nodal databases
+     * It is specialized for the historical and non-historical databases
+     * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
+     * @param rNode Node from which the values are retrieved
+     * @param rVariable Scalar variable to be retrieved
+     * @return double& Reference to the retrieved value
+     */
+    template<bool IsHistorical>
+    double& AuxiliaryGetValue(
+        Node<3>& rNode,
+        const Variable<double>& rVariable);
+
+    /**
+     * @brief Auxiliary get vector value method
+     * This is an auxiliary method to get vector values from the nodal databases
+     * It is specialized for the historical and non-historical databases
+     * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
+     * @param rNode Node from which the values are retrieved
+     * @param rVariable Vector variable to be retieved
+     * @return array_1d<double,3>& Reference to the retrieved value
+     */
+    template<bool IsHistorical>
+    array_1d<double,3>& AuxiliaryGetValue(
+        Node<3>& rNode,
+        const Variable<array_1d<double,3>>& rVariable);
 
     /**
      * @brief Create a Visualization Mesh object
@@ -348,6 +384,27 @@ private:
     void ComputeNewNodesInterpolation();
 
     /**
+     * @brief Auxiliary method to calculate the interpolation
+     * For a given variables list, this method does the interpolation from to the intersected edges values
+     * @tparam TDataType Variable list data type
+     * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
+     * @param rpNode Pointer to the visualization node in which the interpolation is calculated
+     * @param rpNodeI Pointer to the I node of the intersected edge
+     * @param rpNodeJ Pointer to the J node of the intersected edge
+     * @param WeightI Weight of the I node value
+     * @param WeightJ Weight of the J node value
+     * @param rVariablesList List containing the variables to be interpolated
+     */
+    template<class TDataType, bool IsHistorical>
+    void InterpolateVariablesListValues(
+        const Node<3>::Pointer& rpNode,
+        const Node<3>::Pointer& rpNodeI,
+        const Node<3>::Pointer& rpNodeJ,
+        const double WeightI,
+        const double WeightJ,
+        const std::vector<const Variable<TDataType>*>& rVariablesList);
+    
+    /**
      * Copies the non-interface nodes from the origin model part to the visualization one
      */
     void CopyOriginNodes();
@@ -358,9 +415,34 @@ private:
     void CopyOriginNodalValues();
 
     /**
+     * @brief Copy the values from the origin to the visualization mesh
+     * For the nodes that are no created from an intersected edge (i.e. those already existent in the origin model part),
+     * this method copies the values of the variables in the provided list from the origin to the visualization model part
+     * @tparam TDataType Variable list data type
+     * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
+     * @param rItOriginNode Origin node in the origin model part
+     * @param rItVisualizationNode Destination node in the visualization model part
+     * @param rVariablesList List containing the variables whose values are to be copied
+     */
+    template<class TDataType, bool IsHistorical>
+    void CopyVariablesListValues(
+        const ModelPart::NodeIterator& rItOriginNode,
+        ModelPart::NodeIterator& rItVisualizationNode,
+        const std::vector<const Variable<TDataType>*>& rVariablesList);
+
+    /**
      * Creates the new geometrical entities (elements and conditions) in the visualization model part
      */
     void CreateVisualizationGeometries();
+
+    /**
+     * @brief Initializes the non historical database in the visualization model part
+     * This method initializes the non-historical variables in the provided variables list
+     * @tparam TDataType The data type of the variables in the list
+     * @param rNonHistoricalVariablesVector The vector containing the non-historical variables to be initialized
+     */
+    template<class TDataType>
+    void InitializeNonHistoricalVariables(const std::vector<const Variable<TDataType>*>& rNonHistoricalVariablesVector);
 
     /**
      * Checks wether the element is split or not

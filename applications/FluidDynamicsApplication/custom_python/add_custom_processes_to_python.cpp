@@ -107,6 +107,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
         ModelPart&,
         const std::vector<const Variable <double>* >,
         const std::vector<const Variable< array_1d<double, 3> >* >,
+        const std::vector<const Variable <double>* >,
+        const std::vector<const Variable< array_1d<double, 3> >* >,
         const EmbeddedSkinVisualizationProcess::LevelSetType&,
         const EmbeddedSkinVisualizationProcess::ShapeFunctionsType&,
         const bool >())
