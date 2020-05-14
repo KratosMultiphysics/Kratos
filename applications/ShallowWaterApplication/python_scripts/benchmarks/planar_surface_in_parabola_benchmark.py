@@ -13,6 +13,7 @@ def Factory(settings, model):
 
 class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
     def __init__(self, model, settings):
+        # The base class sets the model_part, variables and benchmark_settings
         super(PlanarSurfaceInParabolaBenchmark, self).__init__(model, settings)
 
         benchmark_default_settings = KM.Parameters("""
@@ -22,10 +23,10 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
             }
             """
             )
-        self.settings.ValidateAndAssignDefaults(benchmark_default_settings)
+        self.benchmark_settings.ValidateAndAssignDefaults(benchmark_default_settings)
 
-        self.h0 = self.settings["depth"].GetDouble()
-        self.a = self.settings["amplitude"].GetDouble()
+        self.h0 = self.benchmark_settings["depth"].GetDouble()
+        self.a = self.benchmark_settings["amplitude"].GetDouble()
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
         self.B = self.__B()
         self.C = self.__C()
