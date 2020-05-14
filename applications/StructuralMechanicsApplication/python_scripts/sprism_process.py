@@ -77,17 +77,11 @@ class SPRISMProcess(KM.Process):
 
         # We preprocess from triangle shells to SPRISM solid-shells
         if self.settings["preprocess_shell_to_solidshell"].GetBool():
-            parameters_shell_to_solidshell = KM.Parameters("""{}""")
-            parameters_shell_to_solidshell.AddValue("element_name", self.settings["parameters_shell_to_solidshell"]["element_name"])
-            parameters_shell_to_solidshell.AddValue("new_constitutive_law_name", self.settings["parameters_shell_to_solidshell"]["new_constitutive_law_name"])
+            parameters_shell_to_solidshell = KM.Parameters(self.settings["parameters_shell_to_solidshell"])
+            parameters_shell_to_solidshell.AddValue("computing_model_part_name", self.settings["model_part_name"])
+            parameters_shell_to_solidshell["computing_model_part_name"].SetString("")
             parameters_shell_to_solidshell.AddValue("model_part_name", self.settings["model_part_name"])
-            parameters_shell_to_solidshell.AddValue("number_of_layers", self.settings["parameters_shell_to_solidshell"]["number_of_layers"])
-            parameters_shell_to_solidshell.AddValue("export_to_mdpa", self.settings["parameters_shell_to_solidshell"]["export_to_mdpa"])
-            parameters_shell_to_solidshell.AddValue("output_name", self.settings["parameters_shell_to_solidshell"]["output_name"])
-            parameters_shell_to_solidshell.AddValue("computing_model_part_name", self.settings["parameters_shell_to_solidshell"]["computing_model_part_name"])
-            parameters_shell_to_solidshell.AddValue("create_submodelparts_external_layers", self.settings["parameters_shell_to_solidshell"]["create_submodelparts_external_layers"])
-            parameters_shell_to_solidshell.AddValue("append_submodelparts_external_layers", self.settings["parameters_shell_to_solidshell"]["append_submodelparts_external_layers"])
-            parameters_shell_to_solidshell.AddValue("initialize_elements", self.settings["parameters_shell_to_solidshell"]["initialize_elements"])
+            parameters_shell_to_solidshell["model_part_name"].SetString(self.solid_shell_model_part.Name)
 
             preprocess_shell_to_solidshell = SMA.TriangleShellToSolidShellProcess(self.main_model_part, parameters_shell_to_solidshell)
             preprocess_shell_to_solidshell.Execute()
