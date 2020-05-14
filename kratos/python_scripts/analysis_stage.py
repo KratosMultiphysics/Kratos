@@ -265,8 +265,8 @@ class AnalysisStage(object):
         """ List of modelers in following format:
         "modelers" : [{
             "modeler_name" : "geometry_import":
-            "echo_level" : 0:
             "parameters" : {
+                "echo_level" : 0:
                 // settings for this modeler
             }
         },{ ... }]
