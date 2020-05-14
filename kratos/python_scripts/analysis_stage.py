@@ -255,7 +255,7 @@ class AnalysisStage(object):
             raise Exception("The list of modelers was not yet created!")
         return self._list_of_modelers
 
-    def _CreateModelers(self, initialization_order):
+    def _CreateModelers(self):
         """ List of modelers in following format:
         "modelers" : [{
             "modeler_name" : "geometry_import":
