@@ -622,7 +622,6 @@ private:
             << "Size of inner vector incorrect!"
             << std::endl;
 
-        SizeType number_of_entries = rParameters[0].size();
         for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
         {
             control_point_weights[cp_idx] = rParameters[cp_idx][number_of_entries - 1][3].GetDouble();
