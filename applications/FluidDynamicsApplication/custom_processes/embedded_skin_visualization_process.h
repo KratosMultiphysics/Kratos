@@ -246,8 +246,6 @@ public:
 
     void ExecuteBeforeSolutionLoop() override;
 
-    void ExecuteInitializeSolutionStep() override;
-
     void ExecuteBeforeOutputStep() override;
 
     void ExecuteAfterOutputStep() override;

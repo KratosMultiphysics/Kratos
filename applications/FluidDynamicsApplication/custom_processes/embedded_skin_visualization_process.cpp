@@ -71,7 +71,11 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
 
     // Create the visualization model part
     auto &r_visualization_model_part = rModel.CreateModelPart(visualization_mp_name, buffer_size);
-    r_visualization_model_part.GetProcessInfo()[DOMAIN_SIZE] = domain_size;
+    
+    // Set visualization model part ProcessInfo
+    // Note that the visualization model part and the origin model part share the ProcessInfo container
+    const auto p_process_info = r_origin_model_part.pGetProcessInfo();
+    r_visualization_model_part.SetProcessInfo(p_process_info);
 
     // Check and add variables to visualization model part
     auto &r_origin_variables_list = r_origin_model_part.GetNodalSolutionStepVariablesList();
@@ -314,12 +318,6 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop()
     if (!mReformModelPartAtEachTimeStep) {
         this->CreateVisualizationMesh();
     }
-}
-
-void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep()
-{
-    mrVisualizationModelPart.GetProcessInfo().GetValue(STEP) = mrModelPart.GetProcessInfo().GetValue(STEP);
-    mrVisualizationModelPart.GetProcessInfo().GetValue(TIME) = mrModelPart.GetProcessInfo().GetValue(TIME);
 }
 
 void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep()
