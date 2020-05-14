@@ -24,7 +24,6 @@ class BaseBenchmarkProcess(KM.Process):
             }
             """
             )
-
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model[settings["model_part_name"].GetString()]
@@ -38,9 +37,17 @@ class BaseBenchmarkProcess(KM.Process):
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(SW.TOPOGRAPHY, self.Topography(node))
 
+    def ExecuteBeforeSolutionLoop(self):
+        time = self.model_part.ProcessInfo[KM.TIME]
+        for node in self.model_part.Nodes:
+            height = self.Height(node, time)
+            velocity = self.Velocity(node, time)
+            node.SetSolutionStepValue(SW.HEIGHT, height)
+            node.SetSolutionStepValue(KM.VELOCITY, velocity)
+            node.SetSolutionStepValue(KM.MOMENTUM, height*velocity)
+
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KM.TIME]
-
         for node in self.model_part.Nodes:
             for (variable, exact_variable, error_variable) in zip(self.variables, self.exact_variables, self.error_variables):
                 if variable == SW.HEIGHT:
