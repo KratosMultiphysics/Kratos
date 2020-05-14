@@ -130,8 +130,8 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
         this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
         this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                                                    isotropic_elastic_matrix, stress_mapper, 
-                                                                                    strain_mapper);
+                                                     isotropic_elastic_matrix, stress_mapper, 
+                                                     strain_mapper);
         Vector &r_iso_strain_vector = rValues.GetStrainVector();
 
         // Now we rotate the strain Eglob-> Eloc
@@ -297,8 +297,8 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     mpIsotropicCL->CalculateValue(rValues, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix); // takes the props of the iso cl
     this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
     this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                                                isotropic_elastic_matrix, stress_mapper, 
-                                                                                strain_mapper);
+                                                 isotropic_elastic_matrix, stress_mapper, 
+                                                 strain_mapper);
     Vector &r_iso_strain_vector = rValues.GetStrainVector();
     // Now we rotate the strain Eglob-> Eloc
     r_iso_strain_vector = prod((voigt_rotation_matrix), r_iso_strain_vector);
@@ -507,8 +507,8 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             mpIsotropicCL->CalculateValue(values_iso_cl, CONSTITUTIVE_MATRIX, isotropic_elastic_matrix);
             this->CalculateOrthotropicElasticMatrix(anisotropic_elastic_matrix, r_material_properties);
             this->CalculateAnisotropicStrainMapperMatrix(anisotropic_elastic_matrix,
-                                                                                        isotropic_elastic_matrix, stress_mapper, 
-                                                                                        strain_mapper);
+                                                         isotropic_elastic_matrix, stress_mapper, 
+                                                         strain_mapper);
             BoundedMatrixVoigtType invAe;
             double aux_det;
             MathUtils<double>::InvertMatrix(strain_mapper, invAe, aux_det);
