@@ -174,12 +174,23 @@ void GenericAnisotropic3DLaw::CalculateOrthotropicElasticMatrix(
 
     noalias(rElasticityTensor) = ZeroMatrix(VoigtSize, VoigtSize);
 
-    const double Ex  = rMaterialProperties[YOUNG_MODULUS_X];
-    const double Ey  = rMaterialProperties[YOUNG_MODULUS_Y];
-    const double Ez  = rMaterialProperties[YOUNG_MODULUS_Z];
-    const double vxy = rMaterialProperties[POISSON_RATIO_XY];
-    const double vyz = rMaterialProperties[POISSON_RATIO_YZ];
-    const double vxz = rMaterialProperties[POISSON_RATIO_XZ];
+    double Ex, Ey, Ez, vxy, vyz, vxz;
+    if (rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) {
+        const Vector ortho_elastic_constants = rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS];
+        Ex  = ortho_elastic_constants(0);
+        Ey  = ortho_elastic_constants(1);
+        Ez  = ortho_elastic_constants(2);
+        vxy = ortho_elastic_constants(3);
+        vyz = ortho_elastic_constants(4);
+        vxz = ortho_elastic_constants(5);
+    } else {
+        Ex  = rMaterialProperties[YOUNG_MODULUS_X];
+        Ey  = rMaterialProperties[YOUNG_MODULUS_Y];
+        Ez  = rMaterialProperties[YOUNG_MODULUS_Z];
+        vxy = rMaterialProperties[POISSON_RATIO_XY];
+        vyz = rMaterialProperties[POISSON_RATIO_YZ];
+        vxz = rMaterialProperties[POISSON_RATIO_XZ];
+    }
 
     const double vyx = vxy * Ey / Ex;
     const double vzx = vxz * Ez / Ex;
@@ -582,13 +593,17 @@ void GenericAnisotropic3DLaw::InitializeMaterial(
 
     // Let's check variables
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO not defined in properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS_X))  << "YOUNG_MODULUS_X not defined in properties"  << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS_Y))  << "YOUNG_MODULUS_Y not defined in properties"  << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO_XY)) << "POISSON_RATIO_XY not defined in properties" << std::endl;
-    if (VoigtSize == 6) {
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS) && !rMaterialProperties.Has(YOUNG_MODULUS_X)) <<  "The orthotropic elastic constants have not been defined..." << std::endl;
+
+    if (!rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) {
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS_X))  << "YOUNG_MODULUS_X not defined in properties"  << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS_Y))  << "YOUNG_MODULUS_Y not defined in properties"  << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO_XY)) << "POISSON_RATIO_XY not defined in properties" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS_Z))  << "YOUNG_MODULUS_Z not defined in properties"  << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO_XZ)) << "POISSON_RATIO_XZ not defined in properties" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO_YZ)) << "POISSON_RATIO_YZ not defined in properties" << std::endl;
+    } else {
+        KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() != 6) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
     }
 }
 

@@ -351,6 +351,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     // The ratios between the yield strength in the isotropic space and the anisotropic space
     // at each direction in local coordinates ratio_x = ft / ft,x 
     KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(m, ISOTROPIC_ANISOTROPIC_YIELD_RATIO );
+    KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(m, ORTHOTROPIC_ELASTIC_CONSTANTS );
 }
 
 }  // namespace Python.
