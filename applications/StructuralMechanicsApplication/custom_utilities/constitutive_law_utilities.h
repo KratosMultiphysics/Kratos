@@ -22,7 +22,6 @@
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
