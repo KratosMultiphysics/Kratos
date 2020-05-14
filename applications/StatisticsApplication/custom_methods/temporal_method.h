@@ -61,7 +61,11 @@ public:
     virtual void InitializeStatisticsMethod(double IntegrationStartTime)
     {
         mIntegrationStartTime = IntegrationStartTime;
-        this->InitializeStatisticsVariables();
+        const ProcessInfo& r_process_info = this->GetModelPart().GetProcessInfo();
+        if (!r_process_info[IS_RESTARTED])
+        {
+            this->InitializeStatisticsVariables();
+        }
     }
 
     virtual void CalculateStatistics()
@@ -88,7 +92,8 @@ public:
         const double total_time = current_time - mIntegrationStartTime;
 
         KRATOS_ERROR_IF(total_time < 0.0)
-            << "Total integration time should be greater than or equal to zero. [ "
+            << "Total integration time should be greater than or equal to "
+               "zero. [ "
                "total_time  = "
             << total_time << ", TIME = " << current_time << " ].\n";
 
