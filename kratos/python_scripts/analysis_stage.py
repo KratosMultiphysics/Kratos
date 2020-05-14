@@ -222,17 +222,30 @@ class AnalysisStage(object):
     def _ModelersSetupGeometryModel(self):
         # Import or generate geometry models from external input.
         for modeler in self._GetListOfModelers():
-            modeler.SetupGeometryModel(self.model)
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup Geometry Model started.")
+            modeler.SetupGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup Geometry Model finished.")
 
     def _ModelersPrepareGeometryModel(self):
         # Prepare or update the geometry model_part.
         for modeler in self._GetListOfModelers():
-            modeler.PrepareGeometryModel(self.model)
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Prepare Geometry Model started.")
+            modeler.PrepareGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Prepare Geometry Model finished.")
 
     def _ModelersSetupModelPart(self):
         # Convert the geometry model or import analysis suitable models.
         for modeler in self._GetListOfModelers():
-            modeler.SetupModelPart(self.model)
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart started.")
+
+            modeler.SetupModelPart()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart finished.")
 
     ### Modelers
     def _GetListOfModelers(self):
