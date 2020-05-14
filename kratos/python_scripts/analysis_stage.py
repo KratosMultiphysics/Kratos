@@ -74,7 +74,11 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        self._SetupGeometryModelAndModelParts()
+        # Modelers:
+        self._CreateModelers()
+        self._ModelersSetupGeometryModel()
+        self._ModelersPrepareGeometryModel()
+        self._ModelersSetupModelPart()
 
         self._GetSolver().ImportModelPart()
         self._GetSolver().PrepareModelPart()
@@ -215,18 +219,17 @@ class AnalysisStage(object):
         raise Exception("Creation of the solver must be implemented in the derived class.")
 
     ### Modelers
-    def _SetupGeometryModelAndModelParts(self):
-        ## Initialize Modelers
-        self._list_of_modelers = self._CreateModelers(self._GetOrderOfModelers())
-
+    def _ModelersSetupGeometryModel(self):
         # Import or generate geometry models from external input.
         for modeler in self._GetListOfModelers():
             modeler.SetupGeometryModel(self.model)
 
+    def _ModelersPrepareGeometryModel(self):
         # Prepare or update the geometry model_part.
         for modeler in self._GetListOfModelers():
             modeler.PrepareGeometryModel(self.model)
 
+    def _ModelersSetupModelPart(self):
         # Convert the geometry model or import analysis suitable models.
         for modeler in self._GetListOfModelers():
             modeler.SetupModelPart(self.model)
