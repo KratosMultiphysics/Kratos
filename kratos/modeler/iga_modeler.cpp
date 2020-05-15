@@ -216,7 +216,10 @@ namespace Kratos
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_element_list.push_back(
-                rReferenceElement.Create(rIdCounter, typename GeometryType::Pointer(&*it), pProperties));
+                rReferenceElement.Create(rIdCounter, (*it), pProperties));
+            for (SizeType i = 0; i < (*it)->size(); ++i) {
+                rModelPart.AddNode((*it)->pGetPoint(i));
+            }
             rIdCounter++;
         }
 
@@ -242,7 +245,10 @@ namespace Kratos
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_condition_list.push_back(
-                rReferenceCondition.Create(rIdCounter, typename GeometryType::Pointer(&*it), pProperties));
+                rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+            for (SizeType i = 0; i < (*it)->size(); ++i) {
+                rModelPart.AddNode((*it)->pGetPoint(i));
+            }
             rIdCounter++;
         }
 
