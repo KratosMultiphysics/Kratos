@@ -101,6 +101,7 @@ public:
         , mIntegrationPoints(ThisIntegrationPoints)
         , mShapeFunctionsValues( ThisShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
+        , mShapeFunctionsDerivatives({})
     {
     }
 
@@ -111,6 +112,7 @@ public:
         const Matrix& ThisShapeFunctionsValues,
         const Matrix& ThisShapeFunctionsGradients)
         : mDefaultMethod(ThisDefaultMethod)
+        , mShapeFunctionsDerivatives({})
     {
         IntegrationPointsArrayType ips(1);
         ips[0] = ThisIntegrationPoint;

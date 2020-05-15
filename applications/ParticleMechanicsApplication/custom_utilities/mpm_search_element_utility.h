@@ -195,10 +195,11 @@ namespace MPMSearchElementUtility
                     // element_itr->GetGeometry().IntegrationPoints()[0].Weight() instead element_itr->GetValue(MP_VOLUME)
                     // pelem->pGetGeometry()
 
-                    auto p_new_geometry = (is_pqmpm)
-                        ? PartitionMasterMaterialPointsIntoSubPoints(
-                            rBackgroundGridModelPart, xg[0], *element_itr, pelem->pGetGeometry(),Tolerance)
-                        : CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                    if (is_pqmpm) {
+                        PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, xg[0], *element_itr, pelem->pGetGeometry(), Tolerance);
+
+                     }
+                    typename GeometryType::Pointer p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                             pelem->pGetGeometry(), xg[0],
                             element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
@@ -259,7 +260,8 @@ namespace MPMSearchElementUtility
     }
 
 
-    typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
+    //typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
+    void PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
                                                     const array_1d<double, 3>& rCoordinates,
                                                     Element& rMasterMaterialPoint,
                                                     const typename Geometry<Node<3>>::Pointer pGeometry,
@@ -282,9 +284,9 @@ namespace MPMSearchElementUtility
         if (mp_volume <= pGeometry->DomainSize() && CheckAllPointsAreInGeom(master_domain_points, *pGeometry,Tolerance)) // TODO will this break as soon as the first if fails?
         {
             // we reduce to the non-pqmpm case. Add the original quadrature point instead
-            return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                pGeometry, rCoordinates,
-                rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+            //return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+            //    pGeometry, rCoordinates,
+            //    rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
         }
         else
         { // we need to do splitting. Initially determine all grid elements we intersect with
@@ -319,10 +321,10 @@ namespace MPMSearchElementUtility
             // Prepare containers to hold all sub-points
             const SizeType number_of_subpoints = intersected_geometries.size();
             PointerVector<Node<3>> nodes_list;
-            nodes_list.reserve(number_of_subpoints * intersected_geometries[0]->PointsNumber());
+            //(number_of_subpoints * intersected_geometries[0]->PointsNumber());
             IntegrationPointsArrayTypeType ips(number_of_subpoints);
             Matrix N_matrix(number_of_subpoints, intersected_geometries[0]->PointsNumber(), 0.0);
-            DenseVector<Matrix> DN_De_vector(number_of_subpoints, ZeroMatrix(number_of_subpoints, working_dim));
+            DenseVector<Matrix> DN_De_vector(number_of_subpoints);
 
             // Temporary local containers
             Vector N(number_of_subpoints);
@@ -377,7 +379,9 @@ namespace MPMSearchElementUtility
                 shape_function_container,
                 shape_function_derivatives_container);
 
-            return CreateQuadraturePoint( working_dim, pGeometry->LocalSpaceDimension(), data_container, nodes_list);
+            //auto t_geom = CreateQuadraturePoint( working_dim, pGeometry->LocalSpaceDimension(), data_container, nodes_list);
+            //return t_geom;
+            //std::cout << t_geom->Id() << std::endl;
         }
 
         KRATOS_CATCH("");
@@ -404,7 +408,7 @@ namespace MPMSearchElementUtility
                 rShapeFunctionContainer);
         else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
             return Kratos::make_shared<
-            QuadraturePointPartitionedGeometry<Node<3>, 2>>(
+            QuadraturePointGeometry<Node<3>, 2>>(
                 rPoints,
                 rShapeFunctionContainer);
         else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
