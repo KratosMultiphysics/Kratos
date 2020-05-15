@@ -23,11 +23,6 @@ namespace Kratos
 {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
-template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    FindUpwindElement(rCurrentProcessInfo);
-}
 
 template <int TDim, int TNumNodes>
 Element::Pointer TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Create(
@@ -61,6 +56,12 @@ Element::Pointer TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Clo
     return Kratos::make_intrusive<TransonicPerturbationPotentialFlowElement>(
         NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     KRATOS_CATCH("");
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    FindUpwindElement(rCurrentProcessInfo);
 }
 
 template <int TDim, int TNumNodes>
@@ -943,23 +944,24 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
 
+    std::vector<size_t> upwind_element_nodes, neighbor_element_ids;
+
     // find nodes of element which should be the upwind element
-    vector<double> upwind_element_nodes(TDim);
-    FindUpwindNodes(upwind_element_nodes, rCurrentProcessInfo);
-    std::sort(upwind_element_nodes.begin(), upwind_element_nodes.end());
-        
-    std::vector<size_t> neighbor_element_ids;
+    GeometryType upwind_element_boundary;
+    FindUpwindNodes(upwind_element_boundary, rCurrentProcessInfo);
+    PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(upwind_element_nodes, upwind_element_boundary);
 
     // find neighboring elements to nodes of current element
     GlobalPointersVector<Element> upwind_element_candidates;
-    PotentialFlowUtilities::GetNodeNeighborElementCandidates<TDim, TNumNodes>(upwind_element_candidates, r_this);
+    PotentialFlowUtilities::GetNodeNeighborElementCandidates<TDim, TNumNodes>(upwind_element_candidates, upwind_element_boundary);
 
     for (SizeType i = 0; i < upwind_element_candidates.size(); i++)
     {
         // get sorted node ids of neighbording elements
-        PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(neighbor_element_ids, upwind_element_candidates[i]);
+        PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(neighbor_element_ids, upwind_element_candidates[i].GetGeometry());
 
-        // find element which shares the upwind element nodes with current element but is not the current element
+        // find element which shares the upwind element nodes with current element
+        // but is not the current element
         if(std::includes(neighbor_element_ids.begin(), neighbor_element_ids.end(), 
             upwind_element_nodes.begin(), upwind_element_nodes.end()) 
             && upwind_element_candidates[i].Id() != r_this.Id())
@@ -980,15 +982,9 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindNodes(VectorType& rResult,
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindNodes(GeometryType& rResult,
     const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rResult.size() != TDim)
-    {
-        rResult.resize(TDim);
-    }
-    rResult.clear();
-    
+{   
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
 
     // free stream values
@@ -996,7 +992,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindNodes
 
     // current element geometry
     const GeometryType& r_geom = r_this.GetGeometry();
-    // const Point current_element_center = r_geom.Center();
 
     // get element edges or faces depending on dimension of the problem
     Element::GeometryType::GeometriesArrayType element_boundary_geometry;
@@ -1034,12 +1029,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindNodes
     const auto upwind_geometry_iterator = std::distance(
         std::begin(element_boundary_normal_velocity_components), min_normal_v_comp);
 
-    // get node ids of edge of face which is shared between the current and upwind element
-    for(SizeType i = 0; i < rResult.size(); i++)
-    {
-        rResult[i] = element_boundary_geometry[upwind_geometry_iterator][i].Id();
-    }
-
+    rResult = element_boundary_geometry[upwind_geometry_iterator];
 }
 
 template <int TDim, int TNumNodes>

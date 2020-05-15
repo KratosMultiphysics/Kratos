@@ -287,7 +287,7 @@ private:
 
     void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
 
-    void FindUpwindNodes(VectorType& rResult,
+    void FindUpwindNodes(GeometryType& rResult,
                         const ProcessInfo& rCurrentProcessInfo);
 
     ///@}

@@ -595,25 +595,23 @@ double ComputeScalarProductProjection(const Vector& rFirstVector, const Vector& 
 
 template <int Dim,int NumNodes>
 void GetSortedIds(std::vector<size_t>& Ids,
-    const Element& rElement)
+    const GeometryType& rGeom)
 {
-    const auto r_geom = rElement.GetGeometry();
-    Ids.resize(r_geom.PointsNumber());
+    Ids.resize(rGeom.PointsNumber());
     for (unsigned int i = 0; i < Ids.size(); i++)
     {
-        Ids[i] = r_geom[i].Id();
+        Ids[i] = rGeom[i].Id();
     }
     std::sort(Ids.begin(), Ids.end());
 }
 
 template <int Dim, int NumNodes>
-void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const Element& rElement)
+void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom)
 {
-    const auto r_geom = rElement.GetGeometry();
     for (int i = 0; i < Dim; i++)
     {
         const GlobalPointersVector<Element>& rNodeElementCandidates =
-            r_geom[i].GetValue(NEIGHBOUR_ELEMENTS);
+            rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int j = 0; j < rNodeElementCandidates.size(); j++)
         {
             ElementCandidates.push_back(rNodeElementCandidates(j));
@@ -655,8 +653,8 @@ template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template double ComputeScalarProductProjection<2, 3>(const Vector& rFirstVector, const Vector& rSecondVector);
-template void GetSortedIds<2, 3>(std::vector<size_t>& Ids, const Element& rElement);
-template void GetNodeNeighborElementCandidates<2, 3>(GlobalPointersVector<Element>& ElementCandidates, const Element& rElement);
+template void GetSortedIds<2, 3>(std::vector<size_t>& Ids, const GeometryType& rGeom);
+template void GetNodeNeighborElementCandidates<2, 3>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
 template BoundedVector<double, 4> GetPotentialOnNormalElement<3, 4>(const Element& rElement);
@@ -689,7 +687,7 @@ template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template double ComputeScalarProductProjection<3, 4>(const Vector& rFirstVector, const Vector& rSecondVector);
-template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const Element& rElement);
-template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const Element& rElement);
+template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
+template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 } // namespace PotentialFlow
 } // namespace Kratos
