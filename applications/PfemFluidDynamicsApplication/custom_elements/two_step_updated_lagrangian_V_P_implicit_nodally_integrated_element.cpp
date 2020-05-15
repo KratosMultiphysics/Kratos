@@ -784,53 +784,6 @@ int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Check(cons
   KRATOS_CATCH("");
 }
 
-
-// template <unsigned int TDim>
-// void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-//                                                                            VectorType &rRightHandSideVector,
-//                                                                            ProcessInfo &rCurrentProcessInfo)
-// {
-//   KRATOS_TRY;
-
-//   switch (rCurrentProcessInfo[FRACTIONAL_STEP])
-//   {
-//   case 1:
-//   {
-//     this->CalculateLocalMomentumEquations(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-//     // std::cout<<"CalculateLocalMomentumEquations "<<std::endl;
-//     break;
-//   }
-//   case 5:
-//   {
-//     this->CalculateLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-//     // this->CalculateStabilizingTermsContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-//     // std::cout<<"CalculateStabilizingTermsContinuityEqForPressure "<<std::endl;
-//     break;
-//   }
-
-//   default:
-//   {
-//     KRATOS_THROW_ERROR(std::logic_error, "Unexpected value for TWO_STEP_UPDATED_LAGRANGIAN_V_P_ELEMENT index: ", rCurrentProcessInfo[FRACTIONAL_STEP]);
-//   }
-//   }
-//   KRATOS_CATCH("");
-// }
-
-// template <unsigned int TDim>
-// void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-//                                                                                             VectorType &rRightHandSideVector,
-//                                                                                             ProcessInfo &rCurrentProcessInfo)
-// {
-//   KRATOS_TRY;
-
-//   //this->CalculateElementalContinuityEqForPressure(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-//   //this->CalculateElementalLaplacian(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-//   //this->CalculateElementalLaplacianAndTau(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-//   //this->CalculateVolumetricStabilizedTerms(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-//   this->CalculateStabilizingTermsContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-//   KRATOS_CATCH("");
-// }
-
 template <unsigned int TDim>
 void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateElementalLaplacian(MatrixType &rLeftHandSideMatrix,
                                                                                                    VectorType &rRightHandSideVector,
