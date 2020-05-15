@@ -43,37 +43,47 @@ namespace MPMSearchElementUtility
 
     typedef GeometricalObject::GeometryType GeometryType;
 
-    typedef boost::geometry::model::point<double, 2, boost::geometry::cs::cartesian> Boost2DPoint;
+    typedef boost::geometry::model::point<double, 2, boost::geometry::cs::cartesian> Boost2DPointType;
+
+    typedef boost::geometry::model::polygon<Boost2DPointType> Boost2DPolygonType;
+
+    typedef typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType IntegrationPointsArrayTypeType;
 
     void CreateBoundingBoxPoints(std::vector<array_1d<double, 3>>& rPointVector,
         const array_1d<double, 3>& rCenter, const double SideHalfLength, const SizeType WorkingDim);
 
     void Determine3DSubPoint(const GeometryType& rGridElement, 
         const std::vector<array_1d<double, 3>>& rMasterDomainPoints,
-        array_1d<double, 3>& rSubPointCoord, double rSubPointVolume);
+        array_1d<double, 3>& rSubPointCoord, double& rSubPointVolume);
 
     void Determine2DSubPoint(const GeometryType& rGridElement, 
         const std::vector<array_1d<double, 3>>& rMasterDomainPoints,
-        array_1d<double, 3>& rSubPointCoord, double rSubPointVolume);
+        array_1d<double, 3>& rSubPointCoord, double& rSubPointVolume);
 
     void Check3DBackGroundMeshIsCubicAxisAligned(const std::vector<typename GeometryType::Pointer> rIntersectedGeometries);
 
     void Create2DPolygonFromGeometry(const GeometryType& rGeom,
-        std::vector<Boost2DPoint&>& rPolygonPoints,
-        boost::geometry::model::polygon<Boost2DPoint>& rPolygon,
+        std::vector<Boost2DPointType>& rPolygonPoints,
+        Boost2DPolygonType& rPolygon,
         const bool XActive = true, const bool YActive = true, const bool ZActive = false);
 
     void Create2DPolygonBoundingSquareFromPoints(const std::vector<array_1d<double, 3>>& rPoints,
-        std::vector<Boost2DPoint&>& rPolygonPoints,
-        boost::geometry::model::polygon<Boost2DPoint>& rPolygon,
+        std::vector<Boost2DPointType>& rPolygonPoints,
+        Boost2DPolygonType& rPolygon,
         const bool XActive = true, const bool YActive = true, const bool ZActive = false);
 
     IntegrationPoint<3> CreateSubPoint(const array_1d<double, 3>& rGlobalCoords, const double rVolumeFraction,
         const GeometryType& rBackgroundGridElementGeom, Vector& rN, Matrix& rDN_De);
 
-    const bool CheckPointsAreCompletelyWithinGeom(
+    const bool CheckAllPointsAreInGeom(
         const std::vector<array_1d<double, 3>>& rPoints,
-        const GeometryType& rReferenceGeom);
+        const GeometryType& rReferenceGeom,
+        const double Tolerance);
+
+    const bool CheckNoPointsAreInGeom(
+        const std::vector<array_1d<double, 3>>& rPoints,
+        const GeometryType& rReferenceGeom,
+        const double Tolerance);
 
     static typename Geometry<Node<3>>::Pointer CreateQuadraturePoint(
         SizeType WorkingSpaceDimension,
@@ -81,7 +91,7 @@ namespace MPMSearchElementUtility
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
         typename Geometry<Node<3>>::PointsArrayType rPoints);
 
-
+    void Check(const IntegrationPointsArrayTypeType& rIntergrationSubPoints, const double Tolerance);
 
     /**
      * @brief Search element connectivity for each particle
@@ -121,7 +131,7 @@ namespace MPMSearchElementUtility
         Vector N;
         const int max_result = 1000;
 
-        #pragma omp parallel
+        //#pragma omp parallel // TODO re-enable
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
             SearchStructure.UpdateSearchDatabase();
@@ -129,7 +139,7 @@ namespace MPMSearchElementUtility
             typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
 
             // Element search and assign background grid
-            #pragma omp for
+            //#pragma omp for // TODO re-enable
             for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
@@ -143,7 +153,7 @@ namespace MPMSearchElementUtility
                 bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
 
-                if (is_found && is_explicit) {
+                if (is_found && is_explicit && !is_pqmpm) {
                     // check if MP is exactly on the edge of the element, this gives spurious strains in explicit
                     bool isOnEdge = false;
                     for (SizeType i = 0; i < N.size(); ++i) {
@@ -187,7 +197,7 @@ namespace MPMSearchElementUtility
 
                     auto p_new_geometry = (is_pqmpm)
                         ? PartitionMasterMaterialPointsIntoSubPoints(
-                            rBackgroundGridModelPart, xg[0], *element_itr, pelem->pGetGeometry())
+                            rBackgroundGridModelPart, xg[0], *element_itr, pelem->pGetGeometry(),Tolerance)
                         : CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                             pelem->pGetGeometry(), xg[0],
                             element_itr->GetGeometry().IntegrationPoints()[0].Weight());
@@ -249,14 +259,14 @@ namespace MPMSearchElementUtility
     }
 
 
-    typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(ModelPart& rBackgroundGridModelPart,
+    typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
                                                     const array_1d<double, 3>& rCoordinates,
                                                     Element& rMasterMaterialPoint,
-                                                    typename Geometry<Node<3>>::Pointer pGeometry)
+                                                    const typename Geometry<Node<3>>::Pointer pGeometry,
+                                                    const double Tolerance)
     {
         KRATOS_TRY;
 
-        // TODO should we be attaching the each background grid element to each subpoint?
         const SizeType working_dim = pGeometry->WorkingSpaceDimension();
 
         // Get volume and set up master domain bounding points
@@ -269,7 +279,7 @@ namespace MPMSearchElementUtility
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length,working_dim);
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
-        if (mp_volume < pGeometry->DomainSize() && CheckPointsAreCompletelyWithinGeom(master_domain_points, *pGeometry)) // TODO will this break as soon as the first if fails?
+        if (mp_volume <= pGeometry->DomainSize() && CheckAllPointsAreInGeom(master_domain_points, *pGeometry,Tolerance)) // TODO will this break as soon as the first if fails?
         {
             // we reduce to the non-pqmpm case. Add the original quadrature point instead
             return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
@@ -284,11 +294,23 @@ namespace MPMSearchElementUtility
             const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2] - z_mod* side_half_length);
             const Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2] + z_mod* side_half_length);
             const auto element_begin = rBackgroundGridModelPart.ElementsBegin();
+
             for (IndexType i = 0; i < rBackgroundGridModelPart.Elements().size(); ++i) {
                 auto ele_it = element_begin + i;
                 if (ele_it->GetGeometry().HasIntersection(point_low, point_high))
+                {
                     ele_it->Set(ACTIVE);
+                    const bool print_match = false;
+                    if (print_match)
+                    {
+                        std::cout << "Match ele id " << ele_it->GetId() << "with nodes:" << std::endl;
+                        for (size_t i = 0; i < ele_it->GetGeometry().PointsNumber(); i++)
+                        {
+                            std::cout << "\tn" << i + 1 << " = " << ele_it->GetGeometry().GetPoint(i).Coordinates() << std::endl;
+                        }
+                    }
                     intersected_geometries.push_back(ele_it->pGetGeometry());
+                }
             }
 
             // If we are 3D, check background mesh are axis-aligned perfect cubes
@@ -296,15 +318,16 @@ namespace MPMSearchElementUtility
 
             // Prepare containers to hold all sub-points
             const SizeType number_of_subpoints = intersected_geometries.size();
-            PointerVector<Node<3>> nodes_list(number_of_subpoints * intersected_geometries[0]->PointsNumber());
-            typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType ips(number_of_subpoints);
+            PointerVector<Node<3>> nodes_list;
+            nodes_list.reserve(number_of_subpoints * intersected_geometries[0]->PointsNumber());
+            IntegrationPointsArrayTypeType ips(number_of_subpoints);
             Matrix N_matrix(number_of_subpoints, intersected_geometries[0]->PointsNumber(), 0.0);
             DenseVector<Matrix> DN_De_vector(number_of_subpoints, ZeroMatrix(number_of_subpoints, working_dim));
 
             // Temporary local containers
             Vector N(number_of_subpoints);
             Matrix DN_De(number_of_subpoints, working_dim);
-            double sub_point_volume;
+            double sub_point_volume = 0.0;
             array_1d<double, 3> sub_point_position;
 
             IndexType node_index = 0;
@@ -312,17 +335,18 @@ namespace MPMSearchElementUtility
             // Loop over all subpoints
             for (size_t i = 0; i < number_of_subpoints; ++i)
             {
-                // if all are false then it is inside!
-                if (CheckPointsAreCompletelyWithinGeom(master_domain_points, *intersected_geometries[i])) {
+                if (CheckNoPointsAreInGeom(master_domain_points, *intersected_geometries[i],Tolerance)) {
                     // whole element is completely inside bounding box
                     ips[i] = CreateSubPoint(intersected_geometries[i]->Center(),
                         intersected_geometries[i]->DomainSize() / mp_volume,
                         *intersected_geometries[i], N, DN_De);
                 }
-                else {
+                else  {
                     // only some of the background element is within the bounding box - most expensive check
-                    if (working_dim == 2)
+                    if (working_dim == 2) {
                         Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
+                        sub_point_position[2] = rCoordinates[2]; // set z coord of sub point to that of the master
+                    }
                     else
                         Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
                     ips[i] = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume,
@@ -332,11 +356,12 @@ namespace MPMSearchElementUtility
                 // Transfer local data to containers
                 for (size_t j = 0; j < N.size(); ++j) {
                     N_matrix(i, node_index) = N[j];
-                    nodes_list[node_index] = intersected_geometries[i]->Points()[j];
+                    nodes_list.push_back(intersected_geometries[i]->pGetPoint(j));
                     node_index += 1;
                 }
                 DN_De_vector[i] = DN_De;
             }
+            //Check(ips, Tolerance);
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
@@ -403,20 +428,21 @@ namespace MPMSearchElementUtility
     }
 
 
-    const bool CheckPointsAreCompletelyWithinGeom(
+    const bool CheckAllPointsAreInGeom(
         const std::vector<array_1d<double, 3>>& rPoints, 
-        const GeometryType& rReferenceGeom)
+        const GeometryType& rReferenceGeom,
+        const double Tolerance)
     {
         KRATOS_TRY
 
         array_1d<double, 3> dummy_local_coords;
         bool is_coincident;
         for (size_t i = 0; i < rPoints.size(); ++i) {
-            if (!rReferenceGeom.IsInside(rPoints[i], dummy_local_coords)) {
+            if (!rReferenceGeom.IsInside(rPoints[i], dummy_local_coords),Tolerance) {
                 // the test point may directly lie on one of the ref geom nodes - test this
                 is_coincident = false;
                 for (size_t j = 0; j < rReferenceGeom.PointsNumber(); ++j) {
-                    if (norm_2(rPoints[i] - rReferenceGeom.GetPoint(j).Coordinates()) < std::numeric_limits<double>::epsilon())
+                    if (norm_2(rPoints[i] - rReferenceGeom.GetPoint(j).Coordinates()) < Tolerance)
                     {
                         is_coincident = true;
                         break;
@@ -424,6 +450,23 @@ namespace MPMSearchElementUtility
                 }
                 if (!is_coincident) return false;
             }
+        }
+        return true;
+
+        KRATOS_CATCH("")
+    }
+
+    
+    const bool CheckNoPointsAreInGeom(
+        const std::vector<array_1d<double, 3>>& rPoints, 
+        const GeometryType& rReferenceGeom,
+        const double Tolerance)
+    {
+        KRATOS_TRY
+
+        array_1d<double, 3> dummy_local_coords;
+        for (size_t i = 0; i < rPoints.size(); ++i) {
+            if (rReferenceGeom.IsInside(rPoints[i], dummy_local_coords),Tolerance) return false;
         }
         return true;
 
@@ -441,16 +484,16 @@ namespace MPMSearchElementUtility
         rBackgroundGridElementGeom.ShapeFunctionsValues(rN, local_coordinates);
         rBackgroundGridElementGeom.ShapeFunctionsLocalGradients(rDN_De, local_coordinates);
 
-        return IntegrationPoint<3>(local_coordinates, rVolumeFraction);
+        return IntegrationPoint<3> (local_coordinates, rVolumeFraction);
 
         KRATOS_CATCH("")
     }
 
 
     void Create2DPolygonBoundingSquareFromPoints(const std::vector<array_1d<double, 3>>& rPoints,
-        std::vector<Boost2DPoint&>& rPolygonPoints,
-        boost::geometry::model::polygon<Boost2DPoint>& rPolygon, 
-        const bool XActive=true, const bool YActive = true, const bool ZActive = false)
+        std::vector<Boost2DPointType>& rPolygonPoints,
+        Boost2DPolygonType& rPolygon,
+        const bool XActive, const bool YActive, const bool ZActive)
     {
         KRATOS_TRY
 
@@ -458,82 +501,76 @@ namespace MPMSearchElementUtility
         if (!XActive || !YActive || ZActive)  if (rPoints.size() != 8)
             KRATOS_ERROR << "ALL BOUNDING SQUARES SHOULD BE CONSTRUCTED IN XY SPACE EXCEPT FOR HEX BACKGROUND GRID";
 
-        if (rPolygonPoints.size() != 4) rPolygonPoints.resize(4 + 1);
+        if (rPolygonPoints.size() != 4) rPolygonPoints.resize(4);
 
         rPolygon.clear();
 
         if (XActive && YActive && !ZActive)
         {
             for (size_t i = 0; i < rPolygonPoints.size(); ++i) {
-                rPolygonPoints[i] = Boost2DPoint(rPoints[i][0], rPoints[i][1]);
+                rPolygonPoints[i] = Boost2DPointType(rPoints[i][0], rPoints[i][1]);
             }
         }
-        if (!XActive && YActive && ZActive) // 3D case only!
+        else if (!XActive && YActive && ZActive) // 3D case only!
         {
-            rPolygonPoints[0] = Boost2DPoint(rPoints[0][1], rPoints[0][2]);
-            rPolygonPoints[1] = Boost2DPoint(rPoints[4][1], rPoints[4][2]);
-            rPolygonPoints[2] = Boost2DPoint(rPoints[7][1], rPoints[7][2]);
-            rPolygonPoints[3] = Boost2DPoint(rPoints[3][1], rPoints[3][2]); // as per Hexahedra3D8 node ordering
+            rPolygonPoints[0] = Boost2DPointType(rPoints[0][1], rPoints[0][2]);
+            rPolygonPoints[1] = Boost2DPointType(rPoints[4][1], rPoints[4][2]);
+            rPolygonPoints[2] = Boost2DPointType(rPoints[7][1], rPoints[7][2]);
+            rPolygonPoints[3] = Boost2DPointType(rPoints[3][1], rPoints[3][2]); // as per Hexahedra3D8 node ordering
         }
-        if (XActive && !YActive && ZActive)
+        else if (XActive && !YActive && ZActive)
         {
-            rPolygonPoints[0] = Boost2DPoint(rPoints[0][0], rPoints[0][2]);
-            rPolygonPoints[1] = Boost2DPoint(rPoints[1][0], rPoints[1][2]);
-            rPolygonPoints[2] = Boost2DPoint(rPoints[5][0], rPoints[5][2]);
-            rPolygonPoints[3] = Boost2DPoint(rPoints[4][0], rPoints[4][2]);
+            rPolygonPoints[0] = Boost2DPointType(rPoints[0][0], rPoints[0][2]);
+            rPolygonPoints[1] = Boost2DPointType(rPoints[1][0], rPoints[1][2]);
+            rPolygonPoints[2] = Boost2DPointType(rPoints[5][0], rPoints[5][2]);
+            rPolygonPoints[3] = Boost2DPointType(rPoints[4][0], rPoints[4][2]);
         }
         else
         {
             KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
         }
-
-        
-        rPolygonPoints[rPoints.size()] = rPolygonPoints[0]; // to close the polygon
         rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
-        boost::geometry::correct(rPolygon);
+        boost::geometry::correct(rPolygon); // to close the polygon
 
         KRATOS_CATCH("")
     }
 
     void Create2DPolygonFromGeometry(const GeometryType& rGeom,
-        std::vector<Boost2DPoint&>& rPolygonPoints,
-        boost::geometry::model::polygon<Boost2DPoint>& rPolygon, 
-        const bool XActive=true, const bool YActive = true, const bool ZActive = false)
+        std::vector<Boost2DPointType>& rPolygonPoints,
+        Boost2DPolygonType& rPolygon,
+        const bool XActive, const bool YActive, const bool ZActive)
     {
         KRATOS_TRY
 
         // TODO look at using using polygon instead of boost geometry
-        if (rPolygonPoints.size() != rGeom.PointsNumber()) rPolygonPoints.resize(rGeom.PointsNumber()+1);
+        if (rPolygonPoints.size() != rGeom.PointsNumber()) rPolygonPoints.resize(rGeom.PointsNumber());
 
         rPolygon.clear();
 
         if (XActive && YActive && !ZActive)
         {
             for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
-                rPolygonPoints[i] = Boost2DPoint(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Y());
+                rPolygonPoints[i] = Boost2DPointType(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Y());
             }
         }
         else if (XActive && !YActive && ZActive)
         {
             for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
-                rPolygonPoints[i] = Boost2DPoint(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Z());
+                rPolygonPoints[i] = Boost2DPointType(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Z());
             }
         }
         else if (!XActive && YActive && ZActive)
         {
             for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
-                rPolygonPoints[i] = Boost2DPoint(rGeom.GetPoint(i).Y(), rGeom.GetPoint(i).Z());
+                rPolygonPoints[i] = Boost2DPointType(rGeom.GetPoint(i).Y(), rGeom.GetPoint(i).Z());
             }
         }
         else
         {
             KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
         }
-
-        
-        rPolygonPoints[rGeom.PointsNumber()] = rPolygonPoints[0]; // to close the polygon
         rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
-        boost::geometry::correct(rPolygon);
+        boost::geometry::correct(rPolygon); // to close the polygon
 
         KRATOS_CATCH("")
     }
@@ -542,7 +579,7 @@ namespace MPMSearchElementUtility
     void Check3DBackGroundMeshIsCubicAxisAligned(const std::vector<typename GeometryType::Pointer> rIntersectedGeometries)
     {
         KRATOS_TRY
-
+            // TODO this may need a tolerance for the check
         // TODO this is a lazy implementation - only half the checks actually need to be done
         array_1d<double, 3> point_low;
         array_1d<double, 3> point_high;
@@ -567,27 +604,27 @@ namespace MPMSearchElementUtility
 
 
     void Determine2DSubPoint(const GeometryType& rGridElement, const std::vector<array_1d<double,3>>& rMasterDomainPoints,
-        array_1d<double, 3>& rSubPointCoord, double rSubPointVolume)
+        array_1d<double, 3>& rSubPointCoord, double& rSubPointVolume)
     {
         KRATOS_TRY
 
         // make boost polygon of current background element geometry
-        std::vector<Boost2DPoint&> polygon_grid_points(rGridElement.PointsNumber());
-        boost::geometry::model::polygon<Boost2DPoint> polygon_grid;
+        std::vector<Boost2DPointType> polygon_grid_points(rGridElement.PointsNumber());
+        Boost2DPolygonType polygon_grid;
         Create2DPolygonFromGeometry(rGridElement, polygon_grid_points, polygon_grid);
 
         // make boost polygon of bounding box
-        std::vector<Boost2DPoint&> polygon_box_points(4);
-        boost::geometry::model::polygon<Boost2DPoint> polygon_box;
+        std::vector<Boost2DPointType> polygon_box_points(4);
+        Boost2DPolygonType polygon_box;
         Create2DPolygonBoundingSquareFromPoints(rMasterDomainPoints, polygon_box_points, polygon_box);
 
         // make boost polygon result container
-        std::vector<boost::geometry::model::polygon<Boost2DPoint>> polygon_result_container;
+        std::vector<Boost2DPolygonType> polygon_result_container;
 
         // reset accumulated quantities
         rSubPointVolume = 0.0;
         rSubPointCoord.clear();
-        Boost2DPoint centroid_result;
+        Boost2DPointType centroid_result;
 
         // accumulate result over intersected sub-polygons
         if (boost::geometry::intersection(polygon_grid, polygon_box, polygon_result_container)) {
@@ -608,39 +645,39 @@ namespace MPMSearchElementUtility
 
 
     void Determine3DSubPoint(const GeometryType& rGridElement, const std::vector<array_1d<double, 3>>& rMasterDomainPoints,
-        array_1d<double, 3>& rSubPointCoord, double rSubPointVolume)
+        array_1d<double, 3>& rSubPointCoord, double& rSubPointVolume)
     {
         KRATOS_TRY
 
         // make boost xy polygon of current background element geometry
-        std::vector<Boost2DPoint&> polygon_grid_xy_points(rGridElement.PointsNumber());
-        boost::geometry::model::polygon<Boost2DPoint> polygon_grid_xy;
+        std::vector<Boost2DPointType> polygon_grid_xy_points(rGridElement.PointsNumber());
+        Boost2DPolygonType polygon_grid_xy;
         Create2DPolygonFromGeometry(rGridElement, polygon_grid_xy_points, polygon_grid_xy);
 
         // make boost yz polygon of current background element geometry
-        std::vector<Boost2DPoint&> polygon_grid_yz_points(rGridElement.PointsNumber());
-        boost::geometry::model::polygon<Boost2DPoint> polygon_grid_yz;
+        std::vector<Boost2DPointType> polygon_grid_yz_points(rGridElement.PointsNumber());
+        Boost2DPolygonType polygon_grid_yz;
         Create2DPolygonFromGeometry(rGridElement, polygon_grid_yz_points, polygon_grid_yz,false,true,true);
 
         // make boost xy polygon of bounding box
-        std::vector<Boost2DPoint&> polygon_box_xy_points(4);
-        boost::geometry::model::polygon<Boost2DPoint> polygon_box_xy;
+        std::vector<Boost2DPointType> polygon_box_xy_points(4);
+        Boost2DPolygonType polygon_box_xy;
         Create2DPolygonBoundingSquareFromPoints(rMasterDomainPoints, polygon_box_xy_points, polygon_box_xy);
         
         // make boost yz polygon of bounding box
-        std::vector<Boost2DPoint&> polygon_box_yz_points(4);
-        boost::geometry::model::polygon<Boost2DPoint> polygon_box_yz;
+        std::vector<Boost2DPointType> polygon_box_yz_points(4);
+        Boost2DPolygonType polygon_box_yz;
         Create2DPolygonBoundingSquareFromPoints(rMasterDomainPoints, polygon_box_yz_points, polygon_box_yz,false,true,true);
 
         // make boost polygon result container
-        std::vector<boost::geometry::model::polygon<Boost2DPoint>> polygon_xy_result_container;
-        std::vector<boost::geometry::model::polygon<Boost2DPoint>> polygon_yz_result_container;
+        std::vector<Boost2DPolygonType> polygon_xy_result_container;
+        std::vector<Boost2DPolygonType> polygon_yz_result_container;
 
         // reset accumulated quantities
         double sub_volume_area = 0.0;
 
         rSubPointCoord.clear();
-        Boost2DPoint centroid_result;
+        Boost2DPointType centroid_result;
 
         // Determine area and x y coordinates from xy polygons
         if (boost::geometry::intersection(polygon_grid_xy, polygon_box_xy, polygon_xy_result_container)) {
@@ -744,6 +781,16 @@ namespace MPMSearchElementUtility
         }
 
         KRATOS_CATCH("")
+    }
+
+
+    void Check(const IntegrationPointsArrayTypeType& rIntergrationSubPoints, const double Tolerance)
+    {
+        double vol_frac_accum = 0.0;
+        for (size_t i = 0; i < rIntergrationSubPoints.size(); i++) vol_frac_accum += rIntergrationSubPoints[i].Weight();
+        KRATOS_ERROR_IF(std::abs(1.0 - vol_frac_accum) > Tolerance)
+            << "Volume fraction of sub-points does not sum to 1.0."
+            << " This probably means the background grid is not big enough";
     }
 } // end namespace MPMSearchElementUtility
 

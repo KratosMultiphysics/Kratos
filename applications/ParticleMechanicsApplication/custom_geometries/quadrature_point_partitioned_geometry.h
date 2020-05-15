@@ -73,6 +73,7 @@ public:
     ///@{
 
     /// Constructor with points and geometry shape function container
+    /*
     QuadraturePointPartitionedGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
@@ -82,8 +83,16 @@ public:
             ThisGeometryShapeFunctionContainer)
     {
     }
+    */
+    QuadraturePointPartitionedGeometry(
+        const PointsArrayType& ThisPoints,
+        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
+        : QuadraturePointGeometry(ThisPoints, ThisGeometryShapeFunctionContainer)
+    {
+    }
 
     /// Constructor with points, geometry shape function container, parent
+    /*
     QuadraturePointPartitionedGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
@@ -93,6 +102,14 @@ public:
             &msGeometryDimension,
             ThisGeometryShapeFunctionContainer)
         , mpGeometryParent(pGeometryParent)
+    {
+    }
+    */
+    QuadraturePointPartitionedGeometry(
+    const PointsArrayType& ThisPoints,
+    GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+    GeometryType* pGeometryParent)
+    : QuadraturePointGeometry(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
     {
     }
 
@@ -127,18 +144,18 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
+    /*
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         KRATOS_ERROR << "QuadraturePointPartitionedGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
             << "This constructor is not allowed as it would remove the evaluated shape functions as the ShapeFunctionContainer is not being copied."
             << std::endl;
     }
-
+    */
     ///@}
     ///@name Input and output
     ///@{
-
+    /*
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -155,6 +172,7 @@ public:
     void PrintData( std::ostream& rOStream ) const override
     {
     }
+    */
     ///@}
 
 protected:
