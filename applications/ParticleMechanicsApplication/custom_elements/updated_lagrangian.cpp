@@ -482,11 +482,10 @@ void UpdatedLagrangian::CalculateAndAddRHS(
             : false;
 
         if (is_axisymmetric) {
-            Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
             const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(
                 GetGeometry().ShapeFunctionsValues(), GetGeometry());
             MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
-                rVariables.DN_DX, N, mMP.cauchy_stress_vector, mMP.volume,
+                rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
                 mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
         }
         else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
@@ -585,7 +584,7 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     {
         const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
         MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
-            row(r_N, 0), mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
+            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
     }
     else
     {
@@ -1516,14 +1515,12 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<bool>& rVari
     }
     else if (rVariable == EXPLICIT_MAP_GRID_TO_MP)
     {
-        Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
-        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo, *this, N);
+        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo, *this);
         rValues[0] = true;
     }
     else if (rVariable == CALCULATE_MUSL_VELOCITY_FIELD)
     {
-
-        MPMExplicitUtilities::CalculateMUSLGridVelocity(*this, GetGeometry().ShapeFunctionsValues());
+        MPMExplicitUtilities::CalculateMUSLGridVelocity(rCurrentProcessInfo, *this);
         rValues[0] = true;
     }
     else

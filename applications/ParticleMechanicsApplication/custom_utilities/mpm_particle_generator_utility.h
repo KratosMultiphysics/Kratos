@@ -192,24 +192,6 @@ namespace MPMParticleGeneratorUtility
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
 
-                    // TODO temporary for axisym - delete when merged into updated lagrangian
-                    /*
-                    if (IsAxisSymmetry)
-                    {
-                        if (domain_size == 2)
-                        {
-                            if (background_geo_type == GeometryData::Kratos_Triangle2D3)
-                            {
-                                element_type_name = "UpdatedLagrangianAxisymmetry2D3N";
-                            }
-                            else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
-                            {
-                                element_type_name = "UpdatedLagrangianAxisymmetry2D4N";
-                            }
-                            
-                        }
-                    }*/
-
                     // Get new element
                     const Element& new_element = KratosComponents<Element>::Get(element_type_name);
 
@@ -217,6 +199,7 @@ namespace MPMParticleGeneratorUtility
                     const unsigned int integration_point_per_elements = shape_functions_values.size1();
 
                     // Evaluation of element area/volume
+                    // TODO this should be corrected, in the general case the mass is not evenly distributed.
                     const double area = r_geometry.Area();
                     if (domain_size == 2 && i->GetProperties().Has(THICKNESS)) {
                         const double thickness = i->GetProperties()[THICKNESS];
@@ -256,7 +239,7 @@ namespace MPMParticleGeneratorUtility
                         pelem->Set(ACTIVE);
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                             pelem->pGetGeometry(), xg[0],
-                            mp_volume[0]); /////////////////////////////////////////////// so much what the fuck
+                            mp_volume[0]);
 
                         // Create new material point element
                         new_element_id = last_element_id + PointNumber;
