@@ -16,6 +16,8 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
+#include "containers/global_pointers_vector.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -33,6 +35,10 @@ struct ElementalData{
     BoundedMatrix<double, TNumNodes, TDim> DN_DX;
     array_1d<double, TNumNodes> N;
 };
+
+typedef Node < 3 > NodeType;
+
+typedef Geometry<NodeType> GeometryType;
 
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
@@ -119,6 +125,15 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
 
 template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+
+template <int Dim, int NumNodes>
+double ComputeScalarProductProjection(const Vector& rFirstVector, const Vector& rSecondVector);
+
+template <int Dim, int NumNodes>
+void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
+
+template <int Dim, int NumNodes>
+void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 } // namespace PotentialFlow
 } // namespace Kratos
 
