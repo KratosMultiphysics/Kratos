@@ -18,15 +18,14 @@ namespace Kratos
     ///@name Stages
     ///@{
 
-    void IgaModeler::GenerateModelPart(
-        Model& rModel) const
+    void IgaModeler::SetupModelPart() const
     {
         KRATOS_ERROR_IF_NOT(mParameters.Has("cad_model_part_name"))
             << "Missing \"cad_model_part\" section" << std::endl;
-        ModelPart& cad_model_part = rModel.GetModelPart(mParameters["cad_model_part_name"].GetString());
+        ModelPart& cad_model_part = mModel.GetModelPart(mParameters["cad_model_part_name"].GetString());
         KRATOS_ERROR_IF_NOT(mParameters.Has("analysis_model_part_name"))
             << "Missing \"analysis_model_part_name\" section" << std::endl;
-        ModelPart& analysis_model_part = rModel.GetModelPart(mParameters["analysis_model_part_name"].GetString());
+        ModelPart& analysis_model_part = mModel.GetModelPart(mParameters["analysis_model_part_name"].GetString());
 
         const std::string& rDataFileName = mParameters.Has("physics_file_name")
             ? mParameters["physics_file_name"].GetString()

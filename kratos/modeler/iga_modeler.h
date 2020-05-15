@@ -60,12 +60,11 @@ public:
     ///@{
 
     /// Default constructor.
-    IgaModeler(const Parameters ModelerParameters = Parameters())
-        : Modeler(ModelerParameters)
-        , mEchoLevel(
-            ModelerParameters.Has("echo_level")
-            ? ModelerParameters["echo_level"].GetInt()
-            : 0)
+    IgaModeler(
+        Model & rModel,
+        const Parameters ModelerParameters = Parameters())
+        : Modeler(rModel, ModelerParameters)
+        , mModel(rModel)
     {
     }
 
@@ -82,8 +81,7 @@ public:
     ///@name Stages
     ///@{
 
-    void GenerateModelPart(
-        Model& rModel) const override;
+    void SetupModelPart() const override;
 
     ///@}
     ///@name Input and output
@@ -112,7 +110,7 @@ private:
     ///@name Iga functionalities
     ///@{
 
-    SizeType mEchoLevel;
+    Model& mModel;
 
     ///@}
     ///@name Iga functionalities
