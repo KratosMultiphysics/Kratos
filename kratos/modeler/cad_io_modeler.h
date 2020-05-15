@@ -45,15 +45,6 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
-
-    typedef typename Properties::Pointer PropertiesPointerType;
-
-    typedef typename ModelPart::ElementsContainerType ElementsContainerType;
-    typedef typename ModelPart::ConditionsContainerType ConditionsContainerType;
-
     ///@}
     ///@name Life Cycle
     ///@{
