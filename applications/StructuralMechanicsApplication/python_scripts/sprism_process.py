@@ -46,7 +46,7 @@ class SPRISMProcess(KM.Process):
                 "number_of_layers"                     : 1,
                 "export_to_mdpa"                       : false,
                 "output_name"                          : "output",
-                "computing_model_part_name"            : "computing_domain",
+                "computing_model_part_name"            : "",
                 "create_submodelparts_external_layers" : false,
                 "append_submodelparts_external_layers" : false,
                 "initialize_elements"                  : false
@@ -78,8 +78,6 @@ class SPRISMProcess(KM.Process):
         # We preprocess from triangle shells to SPRISM solid-shells
         if self.settings["preprocess_shell_to_solidshell"].GetBool():
             parameters_shell_to_solidshell = KM.Parameters(self.settings["parameters_shell_to_solidshell"])
-            parameters_shell_to_solidshell.AddValue("computing_model_part_name", self.settings["model_part_name"])
-            parameters_shell_to_solidshell["computing_model_part_name"].SetString("")
             parameters_shell_to_solidshell.AddValue("model_part_name", self.settings["model_part_name"])
             parameters_shell_to_solidshell["model_part_name"].SetString(self.solid_shell_model_part.Name)
 
