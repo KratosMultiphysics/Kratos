@@ -15,6 +15,7 @@ def Factory(settings, model):
 class DamBreakBenchmark(BaseBenchmarkProcess):
 
     def __init__(self, model, settings ):
+        # The base class sets the model_part, variables and benchmark_settings
         super(DamBreakBenchmark, self).__init__(model, settings)
 
         benchmark_default_settings = KM.Parameters("""
@@ -25,7 +26,6 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
             }
             """
             )
-
         self.benchmark_settings.ValidateAndAssignDefaults(benchmark_default_settings)
 
         self.dam = self.benchmark_settings["dam_position"].GetDouble()
@@ -39,17 +39,20 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         super(DamBreakBenchmark, self).Check()
         label = "DamBreakBenchmark. "
         if self.g <= 0:
-            msg = label + "Gravity must be a positive value"
+            msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z compontent in the ProcessInfo."
             raise Exception(msg)
         elif self.hr <= 0:
-            msg = label + "Right height must be a positive value"
+            msg = label + "Right height must be a positive value. Please, check the Parameters."
             raise Exception(msg)
         elif self.hl <= 0:
-            msg = label + "Left height must be a positive value"
+            msg = label + "Left height must be a positive value. Please, check the Parameters."
             raise Exception(msg)
         elif self.dam <= 0:
-            msg = label + "The dam position must be a positive value"
+            msg = label + "The dam position must be a positive value. Please, check the Parameters."
             raise Exception(msg)
+
+    def Topography(self, coordinates):
+        return 0.0
 
     def Height(self, coordinates, time):
         x = coordinates.X
@@ -82,9 +85,6 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
             return [2 * (np.sqrt(self.g * self.hl) - self.cm), 0.0, 0.0]
         else:
             return [0.0, 0.0, 0.0]
-
-    def Momentum(self, coordinates, time):
-        return self.Height(coordinates, time) * self.Velocity(coordinates, time)
 
     def __xa(self, t):
         return self.dam - t * np.sqrt(self.g * self.hl)
