@@ -39,6 +39,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.max_amplification_ratio_of_search_radius = 0.0
 
+        self.local_coordination_number_option = DEM_parameters["LocalCoordinationNumberOption"].GetBool()
+        self.global_coordination_number_option = DEM_parameters["GlobalCoordinationNumberOption"].GetBool()
+
         if not "PostPoissonRatio" in DEM_parameters.keys():
             self.poisson_ratio_option = 0
         else:
@@ -62,6 +65,16 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.max_number_of_intact_bonds_to_consider_a_sphere_broken = DEM_parameters["MaxNumberOfIntactBondsToConsiderASphereBroken"].GetDouble()
 
+        if not "AutomaticSkinComputation" in DEM_parameters.keys():
+            self.automatic_skin_computation = False
+        else:
+            self.automatic_skin_computation = DEM_parameters["AutomaticSkinComputation"].GetBool()
+
+        if not "SkinFactorRadius" in DEM_parameters.keys():
+            self.skin_factor_radius = 1.0
+        else:
+            self.skin_factor_radius = DEM_parameters["SkinFactorRadius"].GetDouble()
+
     def CreateCPlusPlusStrategy(self):
 
         self.SetVariablesAndOptions()
@@ -69,6 +82,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # ADDITIONAL VARIABLES AND OPTIONS
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR, self.continuum_search_radius_amplification_factor)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS, self.max_amplification_ratio_of_search_radius)
+        self.spheres_model_part.ProcessInfo.SetValue(LOCAL_COORDINATION_NUMBER_OPTION, self.local_coordination_number_option)
+        self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_COORDINATION_NUMBER_OPTION, self.global_coordination_number_option)
 
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
@@ -78,6 +93,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POISSON_EFFECT_OPTION, self.poisson_effect_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_NUMBER_OF_INTACT_BONDS_TO_CONSIDER_A_SPHERE_BROKEN, self.max_number_of_intact_bonds_to_consider_a_sphere_broken)
+        self.spheres_model_part.ProcessInfo.SetValue(AUTOMATIC_SKIN_COMPUTATION, self.automatic_skin_computation)
+        self.spheres_model_part.ProcessInfo.SetValue(SKIN_FACTOR_RADIUS, self.skin_factor_radius)
 
         for properties in self.spheres_model_part.Properties:
             ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]

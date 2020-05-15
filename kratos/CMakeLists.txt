@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
+include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
 
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
@@ -153,7 +153,9 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_factories_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_process_info_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
@@ -167,6 +169,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_response_functions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constraint_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_communicator_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_data_communicator_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_environment_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_global_pointers_to_python.cpp
@@ -248,7 +251,9 @@ if(USE_COTIRE MATCHES ON)
     ## This soruces in particular take too much ram by their own
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
 
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)

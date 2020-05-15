@@ -126,8 +126,8 @@ void ComputeVelocityProcess::ComputeMassMatrix()
         mMassMatrix(0,1) = 1.0;
         mMassMatrix(0,2) = 1.0;
         mMassMatrix(1,0) = 1.0;
-        mMassMatrix(1,1) = 1.0;
-        mMassMatrix(1,2) = 2.0;
+        mMassMatrix(1,1) = 2.0;
+        mMassMatrix(1,2) = 1.0;
         mMassMatrix(2,0) = 1.0;
         mMassMatrix(2,1) = 1.0;
         mMassMatrix(2,2) = 2.0;

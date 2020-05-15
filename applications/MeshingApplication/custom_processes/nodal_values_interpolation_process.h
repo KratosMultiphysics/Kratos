@@ -278,8 +278,12 @@ public:
     /**
      * @brief We execute the search relative to the old and new model part
      */
-
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access

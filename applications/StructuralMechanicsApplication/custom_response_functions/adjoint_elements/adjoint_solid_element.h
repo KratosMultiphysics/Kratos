@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_ADJOINT_SOLID_ELEMENT_H_INCLUDED )
@@ -92,7 +92,7 @@ public:
                             GeometryType::Pointer pGeom,
                             PropertiesType::Pointer pProperties) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
@@ -111,14 +111,14 @@ public:
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& rCurrentProcessInfo) override;
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
                                     Matrix& rOutput,
@@ -137,7 +137,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-   
+
     ///@}
     ///@name Serialization
     ///@{
@@ -162,4 +162,4 @@ KRATOS_API_EXTERN template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) Ad
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_ADJOINT_SOLID_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_ADJOINT_SOLID_ELEMENT_H_INCLUDED  defined
