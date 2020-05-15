@@ -7,11 +7,8 @@
 #  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 #
 # ==============================================================================
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Import Kratos core and apps
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 
 # Import additional apps
 import SU2
@@ -36,7 +33,7 @@ class InterfaceSU2():
 
     # --------------------------------------------------------------------------
     def __init__(self,interface_parameters ):
-        default_parameters = Parameters("""
+        default_parameters = KM.Parameters("""
         {
             "su2_related":
             {
@@ -90,7 +87,7 @@ class InterfaceSU2():
         if self.interface_parameters["kratos_related"]["write_elements"].GetBool():
             self.__WriteElements()
         if self.interface_parameters["su2_related"]["design_surface_tag"].GetString() != "None":
-            self.__WriteShapeOptimizationConditions()
+            self.__WriteConditionsForOptimization()
             self.__WriteDesignSurfaceAsSubModelPart()
         self.__WriteSubModelPartsWithoutDesignSurface()
 
@@ -596,7 +593,7 @@ class InterfaceSU2():
             self.new_file.write("End Elements\n\n")
 
     # --------------------------------------------------------------------------
-    def __WriteShapeOptimizationConditions(self):
+    def __WriteConditionsForOptimization(self):
         design_surface_tag = self.interface_parameters["su2_related"]["design_surface_tag"].GetString()
 
         # Identify all indices of the specific element types in list of elements on design surface
@@ -615,7 +612,7 @@ class InterfaceSU2():
 
         # write line elements on design surface as line conditions
         if line_entries:
-            self.new_file.write("Begin Conditions ShapeOptimizationCondition2D2N\n")
+            self.new_file.write("Begin Conditions LineCondition2D2N\n")
             for list_index in line_entries:
                 entry = self.su2_mesh_data["MARKS"][design_surface_tag]["ELEM"][list_index]
 
@@ -635,7 +632,7 @@ class InterfaceSU2():
 
         # write triangular elements on design surface as triangle conditions
         if tria_entries:
-            self.new_file.write("Begin Conditions ShapeOptimizationCondition3D3N\n")
+            self.new_file.write("Begin Conditions SurfaceCondition3D3N\n")
             for list_index in tria_entries:
                 entry = self.su2_mesh_data["MARKS"][design_surface_tag]["ELEM"][list_index]
 
@@ -657,7 +654,7 @@ class InterfaceSU2():
 
         # write quad elements on design surface as quad conditions
         if quad_entries:
-            self.new_file.write("Begin Conditions ShapeOptimizationCondition3D4N\n")
+            self.new_file.write("Begin Conditions SurfaceCondition3D4N\n")
             for list_index in quad_entries:
                 entry = self.su2_mesh_data["MARKS"][design_surface_tag]["ELEM"][list_index]
 
