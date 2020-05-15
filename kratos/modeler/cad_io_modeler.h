@@ -59,12 +59,11 @@ public:
     ///@{
 
     /// Default constructor.
-    CadIoModeler(const Parameters ModelerParameters = Parameters())
+    Modeler(
+        Model& rModel,
+        Parameters ModelerParameters = Parameters())
         : Modeler(ModelerParameters)
-        , mEchoLevel(
-            ModelerParameters.Has("echo_level")
-            ? ModelerParameters["echo_level"].GetInt()
-            : 0)
+        , mModel(rModel)
     {
     }
 
@@ -81,8 +80,7 @@ public:
     ///@name Stages
     ///@{
 
-    void ImportGeometryModel(
-        Model& rModel) const override;
+    void SetupGeometryModel() const override;
 
     ///@}
     ///@name Input and output
@@ -111,7 +109,7 @@ private:
     ///@name Iga functionalities
     ///@{
 
-    SizeType mEchoLevel;
+    Model& mModel;
 
     ///@}
 
