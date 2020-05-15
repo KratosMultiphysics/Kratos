@@ -11,20 +11,15 @@
 //
 
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED )
+#define  KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/serializer.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-#include "includes/constitutive_law.h"
+#include "custom_elements/updated_lagrangian.hpp"
 
 namespace Kratos
 {
@@ -50,8 +45,8 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class UpdatedLagrangian
-    : public Element
+class UpdatedLagrangianPQ
+    : public UpdatedLagrangian
 {
 public:
 
@@ -69,142 +64,35 @@ public:
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangian );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianPQ );
     ///@}
 
-protected:
-
-    /**
-     * Flags related to the element computation
-     */
-
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
-
-    struct MaterialPointVariables
-    {
-    public:
-        // Particle Position
-        CoordinatesArrayType xg;
-        // MP_MASS
-        double mass;
-        // MP_DENSITY
-        double density;
-        // MP_VOLUME
-        double volume;
-
-        // MP_DISPLACEMENT
-        array_1d<double, 3> displacement;
-        // MP_VELOCITY
-        array_1d<double, 3> velocity;
-        // MP_ACCELERATION
-        array_1d<double, 3> acceleration;
-
-        // MP_VOLUME_ACCELERATION
-        array_1d<double, 3> volume_acceleration;
-
-        // MP_CAUCHY_STRESS_VECTOR
-        Vector cauchy_stress_vector;
-        // MP_ALMANSI_STRAIN_VECTOR
-        Vector almansi_strain_vector;
-
-        // MP_DELTA_PLASTIC_STRAIN
-        double delta_plastic_strain;
-        // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
-        double delta_plastic_volumetric_strain;
-        // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
-        double delta_plastic_deviatoric_strain;
-        // MP_EQUIVALENT_PLASTIC_STRAIN
-        double equivalent_plastic_strain;
-        // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
-        double accumulated_plastic_volumetric_strain;
-        // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
-        double accumulated_plastic_deviatoric_strain;
-
-        explicit MaterialPointVariables()
-        {
-            // MP_MASS
-            mass = 1.0;
-            // MP_DENSITY
-            density = 1.0;
-            // MP_VOLUME
-            volume = 1.0;
-
-            // MP_DELTA_PLASTIC_STRAIN
-            delta_plastic_strain = 1.0;
-            // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
-            delta_plastic_volumetric_strain = 1.0;
-            // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
-            delta_plastic_deviatoric_strain = 1.0;
-            // MP_EQUIVALENT_PLASTIC_STRAIN
-            equivalent_plastic_strain = 1.0;
-            // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
-            accumulated_plastic_volumetric_strain = 1.0;
-            // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
-            accumulated_plastic_deviatoric_strain = 1.0;
-        }
-    };
-
-    /**
-     * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
-     */
-
-    struct GeneralVariables
-    {
-    public:
-
-        StressMeasureType StressMeasure;
-
-        // For axisymmetric use only
-        double  CurrentRadius;
-        double  ReferenceRadius;
-
-        // General variables for large displacement use
-        double  detF;
-        double  detF0;
-        double  detFT;
-        Vector  StrainVector;
-        Vector  StressVector;
-        Matrix  B;
-        Matrix  F;
-        Matrix  FT;
-        Matrix  F0;
-        Matrix  DN_DX;
-        Matrix  ConstitutiveMatrix;
-
-        // Variables including all integration points
-        Matrix CurrentDisp;
-    };
-
 public:
-
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangian();
+    UpdatedLagrangianPQ();
 
 
     /// Default constructors
-    UpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangianPQ(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangianPQ(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    UpdatedLagrangian(UpdatedLagrangian const& rOther);
+    UpdatedLagrangianPQ(UpdatedLagrangianPQ const& rOther);
 
     /// Destructor.
-    ~UpdatedLagrangian() override;
+    ~UpdatedLagrangianPQ() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    UpdatedLagrangian& operator=(UpdatedLagrangian const& rOther);
+    UpdatedLagrangianPQ& operator=(UpdatedLagrangianPQ const& rOther);
 
     ///@}
     ///@name Operations
@@ -236,27 +124,17 @@ public:
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
     void GetValuesVector(Vector& rValues, int Step = 0) override;
-
-    /**
-     * Sets on rValues the nodal velocities
-     */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
-
-    /**
-     * Sets on rValues the nodal accelerations
-     */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
     //************* STARTING - ENDING  METHODS
 
@@ -269,29 +147,13 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* COMPUTING  METHODS
 
 
-    /**
-     * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand side
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -300,34 +162,8 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side vector only
-     * @param rLeftHandSideVector: the elemental left hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
-                                ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental damping matrix
-      * @param rDampingMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                ProcessInfo& rCurrentProcessInfo) override;
 
 
     void AddExplicitContribution(const VectorType& rRHSVector,
@@ -465,10 +301,10 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-    virtual void CalculateElementalSystem(
+    void CalculateElementalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag);
 
@@ -478,20 +314,10 @@ protected:
 
 
     /**
-     * Calculation and addition of the matrices of the LHS
-     */
-
-    virtual void CalculateAndAddLHS(
-        MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight,
-        const ProcessInfo& rCurrentProcessInfo);
-
-    /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(
+    void CalculateAndAddRHS(
         VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
@@ -499,49 +325,23 @@ protected:
         const ProcessInfo& rCurrentProcessInfo);
 
 
-    /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
-     */
-
-    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     GeneralVariables& rVariables,
-                                     const double& rIntegrationWeight);
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
-     */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     GeneralVariables& rVariables,
-                                     const double& rIntegrationWeight,
-                                     const bool IsAxisymmetric = false);
 
 
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+    void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
             GeneralVariables& rVariables,
             Vector& rVolumeForce,
             const double& rIntegrationWeight);
 
 
-    /**
-      * Calculation of the Internal Forces Vector. Fi = B * sigma
-      */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            const double& rIntegrationWeight);
 
     /// Calculation of the Explicit Stresses from velocity gradient.
-    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+    void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
         GeneralVariables& rVariables);
 
 
-    /**
-     * Set Variables of the Element to the Parameters of the Constitutive Law
-     */
-    virtual void SetGeneralVariables(GeneralVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues, const Vector& rN);
 
 
     /**
@@ -556,87 +356,25 @@ protected:
     void ResetConstitutiveLaw() override;
 
 
-    /**
-     * Clear Nodal Forces
-     */
-    void ClearNodalForces ();
-
-    /**
-     * Calculate Element Kinematics
-     */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
-
 
     /**
      * Calculation of the Current Displacement
      */
     Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Correct Precision Errors (for rigid free movements)
-     */
-    void DecimalCorrection(Vector& rVector);
 
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-
-    /**
-      * Finalize Element Internal Variables
-      */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-      * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
-      */
-
-    virtual void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Get the Historical Deformation Gradient to calculate after finalize the step
-     */
-    virtual void GetHistoricalVariables( GeneralVariables& rVariables);
-
-
-    /**
-     * Calculation of the Green Lagrange Strain Vector
-     */
-    virtual void CalculateGreenLagrangeStrain(const Matrix& rF,
-            Vector& rStrainVector);
-
-    /**
-     * Calculation of the Almansi Strain Vector
-     */
-    virtual void CalculateAlmansiStrain(const Matrix& rF,
-                                        Vector& rStrainVector);
-
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            const Matrix& rDN_DX,
-                                            const Matrix& rN,
-                                            const bool IsAxisymmetric = false);
 
     /**
      * Calculation of the Integration Weight
      */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
+    double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
-
-    /**
-     * Calculation of the Volume Change of the Element
-     */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
-
-    /// Calculation of the Deformation Gradient F
-    void CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDeltaPosition,
-        const bool IsAxisymmetric = false);
 
     ///@name Protected LifeCycle
     ///@{
@@ -685,7 +423,7 @@ private:
     ///@{
     ///@}
 
-}; // Class UpdatedLagrangian
+}; // Class UpdatedLagrangianPQ
 
 ///@}
 ///@name Type Definitions
@@ -696,4 +434,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined
+#endif // KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED  defined

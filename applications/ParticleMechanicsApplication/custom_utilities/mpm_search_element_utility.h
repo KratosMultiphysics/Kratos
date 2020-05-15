@@ -348,7 +348,8 @@ namespace MPMSearchElementUtility
                     node_index += 1;
                 }
             }
-            Check(ips, Tolerance);
+            std::cout << "===== check disabled =====" << std::endl;
+            //Check(ips, Tolerance);
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;

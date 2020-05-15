@@ -261,7 +261,11 @@ namespace Kratos
 
                 if (r_nodal_mass > std::numeric_limits<double>::epsilon())
                 {
-                    r_current_velocity[j] += r_N(0,i) * MP_Mass[0] * MP_Velocity[0][j] / r_nodal_mass;
+                    array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                    for (IndexType j = 0; j < dimension; j++)
+                    {
+                        r_current_velocity[j] += r_N(0, i) * MP_Mass[0] * MP_Velocity[0][j] / r_nodal_mass;
+                    }
                 }
             }
         }

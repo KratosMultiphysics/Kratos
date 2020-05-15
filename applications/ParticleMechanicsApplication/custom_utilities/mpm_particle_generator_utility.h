@@ -191,6 +191,7 @@ namespace MPMParticleGeneratorUtility
                         else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
+                    else if (IsPQMPM) element_type_name = "UpdatedLagrangianPQ";
 
                     // Get new element
                     const Element& new_element = KratosComponents<Element>::Get(element_type_name);
