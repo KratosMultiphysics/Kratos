@@ -298,10 +298,14 @@ public:
 				// myfile << currentTime << "\t" << it << "\n";
 				// myfile.close();
 			}
-			if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 0))
-            {
-                this->UpdateElementalStressStrain();
-            }
+			bool hybridMethod=false;
+			if(hybridMethod==true){
+				if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 0))
+				{
+					this->UpdateElementalStressStrain();
+				}
+			}
+
 			if ((continuityConverged && momentumConverged) && it > 1)
 			{
 				rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
