@@ -74,11 +74,11 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         {
             "Parameters"    : {
                 "control_module_delta_time": 1.0e-5,
-                "velocity_factor" : 1.0,
                 "stress_tolerance": 1.0e-2,
                 "perturbation_period": 10,
+                "velocity_alpha" : 1.0,
                 "stiffness_alpha": 1.0,
-                "stress_averaging_time": 1.0e-5
+                "reaction_alpha" : 1.0
             },
             "list_of_actuators" : []
         }  )" );
@@ -86,12 +86,11 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     // Now validate agains defaults -- this also ensures no type mismatch
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    // mVectorOfLastStresses.resize(0);
-    mVelocityFactor = rParameters["Parameters"]["velocity_factor"].GetDouble();
     mStressTolerance = rParameters["Parameters"]["stress_tolerance"].GetDouble();
     mPerturbationPeriod = rParameters["Parameters"]["perturbation_period"].GetInt();
-    // mStressAveragingTime = rParameters["Parameters"]["stress_averaging_time"].GetDouble();
+    mVelocityAlpha = rParameters["Parameters"]["velocity_alpha"].GetDouble();
     mStiffnessAlpha = rParameters["Parameters"]["stiffness_alpha"].GetDouble();
+    mReactionAlpha = rParameters["Parameters"]["reaction_alpha"].GetDouble();
     mCMDeltaTime = rParameters["Parameters"]["control_module_delta_time"].GetDouble();
     mCMStep = 0;
     mCMTime = 0.0;
@@ -101,6 +100,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     mVelocity.resize(number_of_actuators, false);
     mLimitVelocities.resize(number_of_actuators, false);
     mReactionStress.resize(number_of_actuators, false);
+    mReactionStressOld.resize(number_of_actuators, false);
     mStiffness.resize(number_of_actuators,number_of_actuators,false);
     noalias(mStiffness) = ZeroMatrix(number_of_actuators,number_of_actuators);
     mDeltaDisplacement.resize(number_of_actuators,number_of_actuators,false);
@@ -156,6 +156,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         mLimitVelocities[i] = limit_velocity;
         mStiffness(i,i) = stiffness;
         mReactionStress[i] = 0.0;
+        mReactionStressOld[i] = 0.0;
         mOrderedMapKeys.push_back(actuator_name);
     }
 
@@ -224,11 +225,11 @@ protected:
 
     ModelPart& mrDemModelPart;
     ModelPart& mrFemModelPart;
-    // double mStressAveragingTime; // TODO
-    double mVelocityFactor;
     double mStressTolerance;
     double mCMDeltaTime;
+    double mVelocityAlpha;
     double mStiffnessAlpha;
+    double mReactionAlpha;
     unsigned int mCMStep;
     unsigned int mActuatorCounter;
     double mCMTime;
@@ -245,7 +246,7 @@ protected:
     Matrix mStiffness;
     Matrix mDeltaDisplacement;
     Matrix mDeltaReactionStress;
-    // std::vector<Vector> mVectorOfLastStresses; // TODO
+    Vector mReactionStressOld;
 
 
 ///@}
@@ -267,35 +268,6 @@ virtual Vector MeasureReactionStress();
 Vector GetPerturbations(const Vector& rTargetStress, const double& rTime);
 
 double GetConditionNumber(const Matrix& rInputMatrix, const Matrix& rInvertedMatrix);
-
-// double UpdateVectorOfHistoricalStressesAndComputeNewAverage(const double& last_reaction) {
-//     KRATOS_TRY;
-//     int length_of_vector = mVectorOfLastStresses.size();
-//     if (length_of_vector == 0) { //only the first time
-//         int number_of_steps_for_stress_averaging = (int) (mStressAveragingTime / mrDemModelPart.GetProcessInfo()[DELTA_TIME]);
-//         if(number_of_steps_for_stress_averaging < 1) number_of_steps_for_stress_averaging = 1;
-//         mVectorOfLastStresses.resize(number_of_steps_for_stress_averaging);
-//         KRATOS_INFO("DEM") << " 'number_of_steps_for_stress_averaging' is "<< number_of_steps_for_stress_averaging << std::endl;
-//     }
-
-//     length_of_vector = mVectorOfLastStresses.size();
-
-//     if(length_of_vector > 1) {
-//         for(int i=1; i<length_of_vector; i++) {
-//             mVectorOfLastStresses[i-1] = mVectorOfLastStresses[i];
-//         }
-//     }
-//     mVectorOfLastStresses[length_of_vector-1] = last_reaction;
-
-//     double average = 0.0;
-//     for(int i=0; i<length_of_vector; i++) {
-//         average += mVectorOfLastStresses[i];
-//     }
-//     average /= (double) length_of_vector;
-//     return average;
-
-//     KRATOS_CATCH("");
-// }
 
 ///@}
 ///@name Protected  Access

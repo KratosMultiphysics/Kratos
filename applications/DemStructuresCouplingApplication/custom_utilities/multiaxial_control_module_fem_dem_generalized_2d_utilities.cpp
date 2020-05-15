@@ -113,8 +113,14 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
         const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness, 
                                                         k_inverse, std::numeric_limits<double>::epsilon(),
                                                         false);
-        const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
+        const double k_condition_number = this->GetConditionNumber(mStiffness,k_inverse);
 
+            // KRATOS_WATCH("Begin Updating velocity.........")
+            // KRATOS_WATCH(current_time)
+            // KRATOS_WATCH(mStiffness)
+            // KRATOS_WATCH(k_condition_number)
+            // KRATOS_WATCH(mVelocity)
+            
         Vector delta_velocity(number_of_actuators);
         Vector delta_target_stress(number_of_actuators);
         noalias(delta_target_stress) = next_target_stress-mReactionStress;
@@ -124,7 +130,10 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
         } else {
             noalias(delta_velocity) = prod(k_inverse,delta_target_stress)/mCMDeltaTime - mVelocity;
         }
-        noalias(mVelocity) += mVelocityFactor * delta_velocity;
+        noalias(mVelocity) += mVelocityAlpha * delta_velocity;
+
+            // KRATOS_WATCH("Updating velocity.........")
+            // KRATOS_WATCH(mVelocity)
 
         for (unsigned int i = 0; i < mVelocity.size(); i++) {
             if (std::abs(mVelocity[i]) > std::abs(mLimitVelocities[i])) {
@@ -135,6 +144,8 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
                 }
             }
         }
+            // KRATOS_WATCH("End Updating velocity.........")
+            // KRATOS_WATCH(mVelocity)
     }
 
     // Move Actuators
@@ -215,6 +226,10 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
     const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
 
+    Vector delta_reaction_stress(number_of_actuators);
+    noalias(delta_reaction_stress) = this->MeasureReactionStress() - mReactionStress;
+    noalias(mReactionStress) += mReactionAlpha * delta_reaction_stress;
+
     // Update ReactionStresses and Stiffness matrix
     if (mCMTime < current_time) {
 
@@ -222,16 +237,15 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
         mCMTime += mCMDeltaTime;
         mCMStep += 1;
         
-        Vector delta_reaction_stress(number_of_actuators);
-        noalias(delta_reaction_stress) = this->MeasureReactionStress() - mReactionStress;
-        noalias(mReactionStress) += delta_reaction_stress;
+        noalias(delta_reaction_stress) = mReactionStress - mReactionStressOld;
+        noalias(mReactionStressOld) = mReactionStress;
 
         for (unsigned int i = 0; i < number_of_actuators; i++) {
             mDeltaDisplacement(i,mActuatorCounter) = mVelocity[i]*mCMDeltaTime;
             mDeltaReactionStress(i,mActuatorCounter) = delta_reaction_stress[i];
         }
 
-        if (mCMStep > 2) {
+        if (mCMStep > number_of_actuators-1) {
             // Update K if DeltaDisplacement is invertible
             Matrix delta_displacement_inverse(number_of_actuators,number_of_actuators);
             double delta_displacement_det = 0.0;
@@ -240,7 +254,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
             const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement, 
                                                             delta_displacement_inverse, 1.0e-10, 
                                                             false);
-            const double delta_displacement_condition_number = GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
+            const double delta_displacement_condition_number = this->GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
 
             // KRATOS_WATCH("Begin Updating K.........")
             // KRATOS_WATCH(mDeltaDisplacement)
