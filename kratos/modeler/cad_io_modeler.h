@@ -53,7 +53,7 @@ public:
     Modeler(
         Model& rModel,
         Parameters ModelerParameters = Parameters())
-        : Modeler(ModelerParameters)
+        : Modeler(rModel, ModelerParameters)
         , mModel(rModel)
     {
     }
