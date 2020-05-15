@@ -47,7 +47,7 @@ namespace MPMSearchElementUtility
 
     typedef boost::geometry::model::polygon<Boost2DPointType> Boost2DPolygonType;
 
-    typedef typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType IntegrationPointsArrayTypeType;
+    typedef typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     void CreateBoundingBoxPoints(std::vector<array_1d<double, 3>>& rPointVector,
         const array_1d<double, 3>& rCenter, const double SideHalfLength, const SizeType WorkingDim);
@@ -91,7 +91,7 @@ namespace MPMSearchElementUtility
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
         typename Geometry<Node<3>>::PointsArrayType rPoints);
 
-    void Check(const IntegrationPointsArrayTypeType& rIntergrationSubPoints, const double Tolerance);
+    void Check(const IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance);
 
     /**
      * @brief Search element connectivity for each particle
@@ -191,15 +191,10 @@ namespace MPMSearchElementUtility
                 if (is_found == true) {
                     pelem->Set(ACTIVE);
 
-                    // location: xg[0]
-                    // element_itr->GetGeometry().IntegrationPoints()[0].Weight() instead element_itr->GetValue(MP_VOLUME)
-                    // pelem->pGetGeometry()
-
-                    if (is_pqmpm) {
-                        PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, xg[0], *element_itr, pelem->pGetGeometry(), Tolerance);
-
-                     }
-                    typename GeometryType::Pointer p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                    typename GeometryType::Pointer p_new_geometry = (is_pqmpm)
+                        ? PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart,
+                            xg[0], *element_itr, pelem->pGetGeometry(), Tolerance)
+                        : CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                             pelem->pGetGeometry(), xg[0],
                             element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
@@ -260,8 +255,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    //typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
-    void PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
+    typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
                                                     const array_1d<double, 3>& rCoordinates,
                                                     Element& rMasterMaterialPoint,
                                                     const typename Geometry<Node<3>>::Pointer pGeometry,
@@ -281,13 +275,12 @@ namespace MPMSearchElementUtility
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length,working_dim);
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
-        if (mp_volume <= pGeometry->DomainSize() && CheckAllPointsAreInGeom(master_domain_points, *pGeometry,Tolerance)) // TODO will this break as soon as the first if fails?
-        {
-            // we reduce to the non-pqmpm case. Add the original quadrature point instead
-            //return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-            //    pGeometry, rCoordinates,
-            //    rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
-        }
+        if (mp_volume <= pGeometry->DomainSize()) 
+            return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+        else if (CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance)) 
+            return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
         else
         { // we need to do splitting. Initially determine all grid elements we intersect with
             // TODO try to reduce this search more with initial binning
@@ -295,23 +288,12 @@ namespace MPMSearchElementUtility
             const double z_mod = (working_dim == 3) ? 1.0 : 0.0; 
             const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2] - z_mod* side_half_length);
             const Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2] + z_mod* side_half_length);
-            const auto element_begin = rBackgroundGridModelPart.ElementsBegin();
-
-            for (IndexType i = 0; i < rBackgroundGridModelPart.Elements().size(); ++i) {
-                auto ele_it = element_begin + i;
-                if (ele_it->GetGeometry().HasIntersection(point_low, point_high))
-                {
-                    ele_it->Set(ACTIVE);
-                    const bool print_match = false;
-                    if (print_match)
-                    {
-                        std::cout << "Match ele id " << ele_it->GetId() << "with nodes:" << std::endl;
-                        for (size_t i = 0; i < ele_it->GetGeometry().PointsNumber(); i++)
-                        {
-                            std::cout << "\tn" << i + 1 << " = " << ele_it->GetGeometry().GetPoint(i).Coordinates() << std::endl;
-                        }
-                    }
-                    intersected_geometries.push_back(ele_it->pGetGeometry());
+            SizeType number_of_nodes = 0;
+            for (auto ele_it : rBackgroundGridModelPart.Elements()) {
+                if (ele_it.GetGeometry().HasIntersection(point_low, point_high)){
+                    ele_it.Set(ACTIVE);
+                    number_of_nodes += ele_it.GetGeometry().PointsNumber();
+                    intersected_geometries.push_back(ele_it.pGetGeometry());
                 }
             }
 
@@ -319,32 +301,34 @@ namespace MPMSearchElementUtility
             if (working_dim == 3)  Check3DBackGroundMeshIsCubicAxisAligned(intersected_geometries);
 
             // Prepare containers to hold all sub-points
-            const SizeType number_of_subpoints = intersected_geometries.size();
-            PointerVector<Node<3>> nodes_list;
-            //(number_of_subpoints * intersected_geometries[0]->PointsNumber());
-            IntegrationPointsArrayTypeType ips(number_of_subpoints);
-            Matrix N_matrix(number_of_subpoints, intersected_geometries[0]->PointsNumber(), 0.0);
-            DenseVector<Matrix> DN_De_vector(number_of_subpoints);
+            const SizeType number_of_sub_material_points = intersected_geometries.size();
+            PointerVector<Node<3>> nodes_list(number_of_nodes);
+            IntegrationPointsArrayType ips(number_of_sub_material_points);
+            Matrix N_matrix(number_of_sub_material_points, number_of_nodes, 0.0);
+            DenseVector<Matrix> DN_De_vector(number_of_sub_material_points);
 
             // Temporary local containers
-            Vector N(number_of_subpoints);
-            Matrix DN_De(number_of_subpoints, working_dim);
             double sub_point_volume = 0.0;
             array_1d<double, 3> sub_point_position;
-
             IndexType node_index = 0;
 
-            // Loop over all subpoints
-            for (size_t i = 0; i < number_of_subpoints; ++i)
-            {
-                if (CheckNoPointsAreInGeom(master_domain_points, *intersected_geometries[i],Tolerance)) {
+            // Loop over all intersected grid elements and make subpoints in each
+            for (size_t i = 0; i < number_of_sub_material_points; ++i) {
+                Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
+                Vector N(intersected_geometries[i]->PointsNumber());
+                sub_point_position.clear();
+                sub_point_volume = 0.0;
+
+                if (CheckNoPointsAreInGeom(master_domain_points, *intersected_geometries[i],Tolerance))  {
                     // whole element is completely inside bounding box
+
                     ips[i] = CreateSubPoint(intersected_geometries[i]->Center(),
                         intersected_geometries[i]->DomainSize() / mp_volume,
                         *intersected_geometries[i], N, DN_De);
                 }
                 else  {
                     // only some of the background element is within the bounding box - most expensive check
+
                     if (working_dim == 2) {
                         Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
                         sub_point_position[2] = rCoordinates[2]; // set z coord of sub point to that of the master
@@ -356,14 +340,15 @@ namespace MPMSearchElementUtility
                 }
 
                 // Transfer local data to containers
+                DN_De_vector[i] = DN_De;
                 for (size_t j = 0; j < N.size(); ++j) {
                     N_matrix(i, node_index) = N[j];
-                    nodes_list.push_back(intersected_geometries[i]->pGetPoint(j));
+                    nodes_list(node_index) = intersected_geometries[i]->pGetPoint(j);
+
                     node_index += 1;
                 }
-                DN_De_vector[i] = DN_De;
             }
-            //Check(ips, Tolerance);
+            Check(ips, Tolerance);
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
@@ -379,9 +364,7 @@ namespace MPMSearchElementUtility
                 shape_function_container,
                 shape_function_derivatives_container);
 
-            //auto t_geom = CreateQuadraturePoint( working_dim, pGeometry->LocalSpaceDimension(), data_container, nodes_list);
-            //return t_geom;
-            //std::cout << t_geom->Id() << std::endl;
+            return CreateQuadraturePoint( working_dim, pGeometry->LocalSpaceDimension(), data_container, nodes_list);
         }
 
         KRATOS_CATCH("");
@@ -408,7 +391,7 @@ namespace MPMSearchElementUtility
                 rShapeFunctionContainer);
         else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
             return Kratos::make_shared<
-            QuadraturePointGeometry<Node<3>, 2>>(
+            QuadraturePointPartitionedGeometry<Node<3>, 2>>(
                 rPoints,
                 rShapeFunctionContainer);
         else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
@@ -501,7 +484,6 @@ namespace MPMSearchElementUtility
     {
         KRATOS_TRY
 
-        // TODO look at using using polygon instead of boost geometry
         if (!XActive || !YActive || ZActive)  if (rPoints.size() != 8)
             KRATOS_ERROR << "ALL BOUNDING SQUARES SHOULD BE CONSTRUCTED IN XY SPACE EXCEPT FOR HEX BACKGROUND GRID";
 
@@ -788,13 +770,17 @@ namespace MPMSearchElementUtility
     }
 
 
-    void Check(const IntegrationPointsArrayTypeType& rIntergrationSubPoints, const double Tolerance)
+    void Check(const IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance)
     {
+        KRATOS_TRY
+
         double vol_frac_accum = 0.0;
         for (size_t i = 0; i < rIntergrationSubPoints.size(); i++) vol_frac_accum += rIntergrationSubPoints[i].Weight();
         KRATOS_ERROR_IF(std::abs(1.0 - vol_frac_accum) > Tolerance)
             << "Volume fraction of sub-points does not sum to 1.0."
             << " This probably means the background grid is not big enough";
+
+        KRATOS_CATCH("")
     }
 } // end namespace MPMSearchElementUtility
 

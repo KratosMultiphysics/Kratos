@@ -59,6 +59,10 @@ namespace MPMParticleGeneratorUtility
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
 
+        const bool IsPQMPM = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM)
+            : false;
+
         // Initialize zero the variables needed
         std::vector<array_1d<double, 3>> xg = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_displacement = { ZeroVector(3) };
