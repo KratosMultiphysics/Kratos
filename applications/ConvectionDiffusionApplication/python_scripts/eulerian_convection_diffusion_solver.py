@@ -82,7 +82,7 @@ class EulerianConvectionDiffusionSolver:
         #    self.linear_solver = linear_solver_factory.ConstructSolver(
         #        config.convection_linear_solver_config)
 
-        model_part.ProcessInfo[THETA] = 0.5 #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+        model_part.ProcessInfo[TIME_INTEGRATION_THETA] = 0.5 #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
 
     def Initialize(self):
         # convection diffusion tool

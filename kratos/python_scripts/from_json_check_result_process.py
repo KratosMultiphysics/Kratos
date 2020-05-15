@@ -128,13 +128,13 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                             value = node.GetValue(variable)
 
                         # Scalar variable
-                        if (variable_type == "Double" or variable_type == "Component"):
+                        if (variable_type == "Double"):
                             values_json = self.data[node_identifier][variable_name]
                             value_json = self.__linear_interpolation(time, input_time_list, values_json)
                             self.__check_values(node.Id, "Node", value, value_json, variable_name)
                         # Array variable
                         elif variable_type == "Array":
-                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
+                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
                                 for component_index, component in enumerate(["_X", "_Y", "_Z"]):
                                     values_json = self.data[node_identifier][variable_name+component]
                                     value_json = self.__linear_interpolation(time, input_time_list, values_json)
@@ -166,14 +166,14 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                         gauss_point_number = len(value)
 
                         # Scalar variable
-                        if (variable_type == "Double" or variable_type == "Component"):
+                        if (variable_type == "Double"):
                             for gp in range(gauss_point_number):
                                 values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name][str(gp)]
                                 value_json = self.__linear_interpolation(time, input_time_list, values_json)
                                 self.__check_values(elem.Id, "Element", value[gp], value_json, variable_name)
                         # Array variable
                         elif variable_type == "Array":
-                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
+                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
                                 for gp in range(gauss_point_number):
                                     for component_index, component in enumerate(["_X", "_Y", "_Z"]):
                                         values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name+component][str(gp)]
