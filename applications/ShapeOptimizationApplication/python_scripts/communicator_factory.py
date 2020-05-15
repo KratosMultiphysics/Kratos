@@ -78,10 +78,10 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def reportGradient(self, response_id, gradient):
-        dimension = len(next(iter(gradient.values())))
-        if dimension == 1:
+        dimensions = self.optimization_settings["model_settings"]["domain_size"].GetInt()
+        if dimensions == 1:
             gradient = {key: [value[0], 0.0, 0.0] for key, value in gradient.items()}
-        elif dimension == 2:
+        elif dimensions == 2:
             gradient = {key: [value[0], value[1], 0.0] for key, value in gradient.items()}
 
         standardized_gradient = self.__translateGradientToStandardForm(response_id, gradient)
