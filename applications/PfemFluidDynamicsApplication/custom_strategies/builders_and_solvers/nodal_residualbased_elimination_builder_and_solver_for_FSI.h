@@ -973,9 +973,7 @@ namespace Kratos
 
       // boost::timer m_build_time;
 
-      double hybridCoeff = 0.5; // half nodal - half elemental
-                                //hybridCoeff = 1.0;        //fully nodal
-      // hybridCoeff = 0.0;        // fully elemental
+      double hybridCoeff = 1.0; // 0.5: half nodal - half elemental; 1.0 all nodal; 0.0 all elemental
 
       BuildSolidNodally(pScheme, rModelPart, A, b, hybridCoeff);
 

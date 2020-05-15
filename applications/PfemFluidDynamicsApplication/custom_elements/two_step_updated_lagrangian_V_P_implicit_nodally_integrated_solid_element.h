@@ -204,24 +204,6 @@ namespace Kratos
                                          VectorType &rRightHandSideVector,
                                          ProcessInfo &rCurrentProcessInfo) override;
 
-    void ComputeCompleteTangentTerm(ElementalVariables &rElementalVariables,
-                                    MatrixType &rDampingMatrix,
-                                    const ShapeFunctionDerivativesType &rShapeDeriv,
-                                    const double secondLame,
-                                    const double bulkModulus,
-                                    const double theta,
-                                    const double Weight);
-
-    // void AddInternalForces(Vector &rRHSVector,
-    //                        const ShapeFunctionDerivativesType &rDN_DX,
-    //                        ElementalVariables &rElementalVariables,
-    //                        const double Weight);
-
-    // bool CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
-    //                             const ProcessInfo &rCurrentProcessInfo,
-    //                             const ShapeFunctionDerivativesType &rDN_DX,
-    //                             const double theta);
-
     void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
                                           double TimeStep,
                                           unsigned int g,
