@@ -143,20 +143,24 @@ protected:
 
     struct ElementVariables
     {
-        array_1d<double,TNumNodes> diffusivity;
+        // scalars
+        double diffusivity;
+        double density;
+        double specific_heat;
+        double lumping_factor;
+        double tau;
+        double weight;
+        // arrays
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
+        // matrices
         BoundedMatrix<double,TNumNodes,3> convective_velocity;
-        double tau = 2; // stabilization coefficient, stard tau = {2,4}
-
         // auxiliary containers for the symbolically-generated matrices
         BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
         array_1d<double,TNumNodes*(TDim+1)> rhs;
-
         // auxiliary containers for the symbolically-generated variables for Gauss integration
         array_1d<double,TNumNodes> N;
         BoundedMatrix<double,TNumNodes,TDim> DN;
-        double weight;
     };
 
     ///@}
@@ -176,6 +180,12 @@ protected:
         ElementVariables& rVariables,
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector);
+
+    double ComputeH(
+        BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
+
+    void CalculateTau(
+        ElementVariables& rVariables);
 
     ///@}
     ///@name Protected  Access

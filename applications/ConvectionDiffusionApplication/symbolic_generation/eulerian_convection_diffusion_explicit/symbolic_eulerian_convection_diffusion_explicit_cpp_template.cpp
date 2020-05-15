@@ -111,6 +111,8 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocal
         rVariables.N = row(N_gausspoint,g);
         // Compute weight
         rVariables.weight = integration_points[g].Weight() * DetJ0;
+        // Compute tau
+        this->CalculateTau(rVariables);
 
         // Update rhs and lhs
         this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
@@ -217,9 +219,19 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     const auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
 
+    // initialize scalar variables
+    rVariables.lumping_factor = 1.00 / double(TNumNodes);
+    rVariables.diffusivity = 0.0;
+    rVariables.specific_heat = 0.0;
+    rVariables.density = 0.0;
+
     for(unsigned int node_element = 0; node_element<local_size; node_element++)
 {
-    rVariables.diffusivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
+    // scalars
+    rVariables.diffusivity += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
+    rVariables.specific_heat += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetSpecificHeatVariable());
+    rVariables.density += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDensityVariable());
+    // vectors
     rVariables.unknown[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable());
     rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
     // convective_velocity = velocity - velocity_mesh
@@ -228,6 +240,10 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
     rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2];
 }
+    // divide by number of nodes scalar variables
+    rVariables.diffusivity *= rVariables.lumping_factor;
+    rVariables.density *= rVariables.lumping_factor;
+    rVariables.specific_heat *= rVariables.lumping_factor;
 
     KRATOS_CATCH( "" )
 }
@@ -244,7 +260,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContributi
     // Retrieve element variables
     const auto N = rVariables.N;
     const auto DN = rVariables.DN;
-    const auto k = inner_prod(N,rVariables.diffusivity);
+    const auto k = rVariables.diffusivity;
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
     const auto v = rVariables.convective_velocity;
@@ -271,7 +287,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContributi
     // Retrieve element variables
     const auto N = rVariables.N;
     const auto DN = rVariables.DN;
-    const auto k = inner_prod(N,rVariables.diffusivity);
+    const auto k = rVariables.diffusivity;
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
     const auto v = rVariables.convective_velocity;
@@ -285,6 +301,64 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContributi
 
     noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
     noalias(rRightHandSideVector) += rhs * rVariables.weight;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+double SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
+    BoundedMatrix<double,TNumNodes,TDim >& DN_DX)
+{
+    double h=0.0;
+    for(unsigned int i=0; i<TNumNodes; i++)
+    {
+        double h_inv = 0.0;
+        for(unsigned int k=0; k<TDim; k++)
+        {
+            h_inv += DN_DX(i,k)*DN_DX(i,k);
+        }
+        h += 1.0/h_inv;
+    }
+    h = sqrt(h)/static_cast<double>(TNumNodes);
+    return h;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
+    ElementVariables& rVariables)
+{
+    // Calculate h
+    double h = this->ComputeH(rVariables.DN);
+    // Calculate velocity in the gauss point
+    array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
+    for(unsigned int node_element = 0; node_element<TNumNodes; node_element++)
+    {
+        for(unsigned int dim = 0; dim < TDim; dim++)
+        {
+        noalias(vel_gauss) = prod(rVariables.N,rVariables.convective_velocity);
+        // vel_gauss[k] += N[i]*(rVariables.convective_velocity[i][k]*rVariables.theta + rVariables.vold[i][k]*(1.0-rVariables.theta));
+        }
+    }
+    const double norm_velocity = norm_2(vel_gauss);
+
+    // Estimate tau
+    double inv_tau = 0;
+    // Dynamic part
+    // inv_tau += rVariables.dynamic_tau * rVariables.dt_inv;
+    // Convection
+    inv_tau += 2.0 * norm_velocity / h;
+    // inv_tau += rVariables.beta*rVariables.div_v;
+    // Dynamic and convection terms are multiplyied by density*specific_heat to have consistent dimensions
+    inv_tau *= rVariables.density * rVariables.specific_heat;
+    // Diffusion
+    inv_tau += 4.0 * rVariables.diffusivity / (h*h);
+    // Limiting
+    inv_tau = std::max(inv_tau, 1e-2);
+    rVariables.tau = (rVariables.density*rVariables.specific_heat) / inv_tau;
 }
 
 /***********************************************************************************/

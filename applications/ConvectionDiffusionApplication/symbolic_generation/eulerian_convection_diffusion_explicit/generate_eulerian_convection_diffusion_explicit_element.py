@@ -69,24 +69,29 @@ for dim in dim_vector:
     grad_phi = DfjDxi(DN,phi)
     div_w = div(DN,w)
     div_v = div(DN,v)
+    grad_f = DfjDxi(DN,f)
 
     ## Galerkin functional terms
     rhs_forcing = q_gauss.transpose() * f_gauss
     rhs_diffusion = - k * grad_phi.transpose() * grad_q
     rhs_convective = - q_gauss * (v_gauss.transpose() * grad_phi)
-    rhs_galerkin = rhs_forcing + rhs_diffusion + rhs_convective
+    rhs_convective_divvelocity = - q_gauss * phi_gauss * div_v
+    rhs_galerkin = rhs_forcing + rhs_diffusion + rhs_convective + rhs_convective_divvelocity
 
     ##  Stabilization functional terms
     # Term coming from \int v \cdot \nabla (q_h) phi_s
-    rhs_stab_1_forcing = tau * f_gauss * (v_gauss.transpose() * grad_q)
+    rhs_stab_1_forcing = tau * (v_gauss.transpose() * grad_q) * f_gauss
     rhs_stab_1_mass = 0
     rhs_stab_1_convection = - tau * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
-    rhs_stab_1 = rhs_stab_1_forcing + rhs_stab_1_convection
+    rhs_stab_1_convection_divvelocity = - tau * (v_gauss.transpose() * grad_q) * phi_gauss * div_v
+    rhs_stab_1 = rhs_stab_1_forcing + rhs_stab_1_convection + rhs_stab_1_convection_divvelocity
+
     # Term coming from \int q_h \nabla \cdot v phi_s
-    rhs_stab_2_forcing = tau * f_gauss * q_gauss * div_v
+    rhs_stab_2_forcing = tau * (q_gauss * div_v) * f_gauss
     rhs_stab_2_mass = 0
-    rhs_stab_2_convection = - tau * q_gauss * div_v * (v_gauss.transpose() * grad_phi)
-    rhs_stab_2 = rhs_stab_2_forcing + rhs_stab_2_convection
+    rhs_stab_2_convection = - tau * (q_gauss * div_v) * (v_gauss.transpose() * grad_phi)
+    rhs_stab_2_convection_divvelocity = - tau * (q_gauss * div_v) * phi_gauss * div_v
+    rhs_stab_2 = rhs_stab_2_forcing + rhs_stab_2_convection + rhs_stab_2_convection_divvelocity
 
     # Mass conservation residual
 
