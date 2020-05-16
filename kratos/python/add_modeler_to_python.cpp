@@ -25,6 +25,7 @@
 #include "modeler/edge_swapping_2d_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
 
+#include "modeler/modeler_factory.h"
 
 namespace Kratos
 {
@@ -59,6 +60,9 @@ void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin
 
 void  AddModelerToPython(pybind11::module& m)
 {
+    m.def("CreateModeler", &ModelerFactory::Create);
+    m.def("HasModeler", &ModelerFactory::Has);
+
     py::class_<Modeler, Modeler::Pointer>(m,"Modeler")
     .def(py::init<>())
     .def(py::init<Model&, Parameters>())
