@@ -162,10 +162,10 @@ namespace Kratos
                 
                 // Determine if the subdivision is wether in the negative or the positive side                                                                                                 
                 unsigned int neg = 0, pos = 0;
-                if(i0 <= 3) {nodal_distances(i0) > 0.0 ? pos++ : neg++;} //< 0.0 ? neg++ : pos++;}
-                if(i1 <= 3) {nodal_distances(i1) > 0.0 ? pos++ : neg++;} //< 0.0 ? neg++ : pos++;}
-                if(i2 <= 3) {nodal_distances(i2) > 0.0 ? pos++ : neg++;} //< 0.0 ? neg++ : pos++;}
-                if(i3 <= 3) {nodal_distances(i3) > 0.0 ? pos++ : neg++;} //< 0.0 ? neg++ : pos++;}
+                if(i0 <= 3) {nodal_distances(i0) < 0.0 ? neg++ : pos++;}
+                if(i1 <= 3) {nodal_distances(i1) < 0.0 ? neg++ : pos++;}
+                if(i2 <= 3) {nodal_distances(i2) < 0.0 ? neg++ : pos++;}
+                if(i3 <= 3) {nodal_distances(i3) < 0.0 ? neg++ : pos++;}
 
                 if(neg > 0 && pos > 0)
                     KRATOS_ERROR << "The subgeometry " << i0 << " " << i1 << " " << i2 << " " << i3 << " in tetrahedra has nodes in both positive and negative sides." << std::endl;
