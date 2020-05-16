@@ -70,7 +70,7 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     }
 
     // Create the visualization model part
-    auto &r_visualization_model_part = rModel.CreateModelPart(visualization_mp_name, buffer_size);
+    auto& r_visualization_model_part = rModel.CreateModelPart(visualization_mp_name, buffer_size);
     
     // Set visualization model part ProcessInfo
     // Note that the visualization model part and the origin model part share the ProcessInfo container
@@ -78,8 +78,8 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
     r_visualization_model_part.SetProcessInfo(p_process_info);
 
     // Check and add variables to visualization model part
-    auto &r_origin_variables_list = r_origin_model_part.GetNodalSolutionStepVariablesList();
-    auto &r_visualization_variables_list = r_visualization_model_part.GetNodalSolutionStepVariablesList();
+    auto& r_origin_variables_list = r_origin_model_part.GetNodalSolutionStepVariablesList();
+    auto& r_visualization_variables_list = r_visualization_model_part.GetNodalSolutionStepVariablesList();
     for (auto var_name_param : rParameters["visualization_variables"]) {
         // Check if variable exists in origin model part
         const std::string var_name = var_name_param.GetString();
@@ -789,9 +789,12 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
 template<class TDataType>
 void EmbeddedSkinVisualizationProcess::InitializeNonHistoricalVariables(const std::vector<const Variable<TDataType>*>& rNonHistoricalVariablesVector)
 {
-    for (auto& r_node : mrVisualizationModelPart.Nodes()) {
+    const int n_nodes = mrVisualizationModelPart.NumberOfNodes();
+#pragma omp parallel for
+    for (int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto it_node = mrVisualizationModelPart.NodesBegin() + i_node;
         for (auto& r_var : rNonHistoricalVariablesVector) {
-            r_node.SetValue(*r_var, r_var->Zero());
+            it_node->SetValue(*r_var, r_var->Zero());
         }
     }
 }
