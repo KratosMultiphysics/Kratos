@@ -87,8 +87,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
-        const double beta_in = 1.0e6;
-        const double beta_out = 1.0e6;
+        const double beta_in = 1.0e2;
+        const double beta_out = 1.0e2;
         const double beta_contact = 1.0e-3;
         const double zeta = 0.0e0;
         const double surface_tension_coefficient = 0.1; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
