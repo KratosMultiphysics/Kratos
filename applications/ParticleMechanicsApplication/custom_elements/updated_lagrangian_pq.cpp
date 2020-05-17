@@ -120,6 +120,25 @@ void UpdatedLagrangianPQ::Initialize()
     // Initialize constitutive law and materials
     InitializeMaterial();
 
+    std::cout << "===== element initialize printing geometries and elements =====" << std::endl;
+    auto geom_it = pGetGeometry();
+
+    for (size_t i = 0; i < geom_it->PointsNumber(); i++)
+    {
+        std::cout << "\tpoint " << i + 1 << " ID = " << geom_it->GetPoint(i).Id() << std::endl;
+
+    }
+
+    std::cout << "\n\nshape functions = " << geom_it->ShapeFunctionsValues() << std::endl;
+    std::cout << "\n\nshape function grad 0 = " << geom_it->ShapeFunctionLocalGradient(0) << std::endl;
+    std::cout << "\n\nshape function grad 1 = " << geom_it->ShapeFunctionLocalGradient(1) << std::endl;
+    Matrix jac;
+    geom_it->Jacobian(jac, 0);
+    std::cout << "\n\nshape function jac 0 = " << jac << std::endl;
+    geom_it->Jacobian(jac, 1);
+    std::cout << "\n\nshape function jac 1 = " << jac << std::endl;
+    std::cout << "\n\nintegration points numbers = " << geom_it->IntegrationPointsNumber() << std::endl;
+
     KRATOS_CATCH( "" )
 }
 
