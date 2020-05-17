@@ -61,9 +61,6 @@ public:
     const std::vector<int> mEdgeNodeJ = {1, 2, 3, 2, 3, 3};
     std::vector<int> mSplitEdges = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1};
 
-    const std::vector<int> mEdgeFace1 = {2, 1, 1, 3, 2, 0}; //Face (1) number associated with edges created by mEdgeNodeI and mEdgeNodeJ
-    const std::vector<int> mEdgeFace1 = {3, 3, 2, 0, 0, 1}; //Face (2) number associated with edges created by mEdgeNodeI and mEdgeNodeJ
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -152,13 +149,6 @@ public:
         std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
         const unsigned int FatherFaceId) override;
-
-    /**
-     * Given two edge numbers, the common face (if available) is given
-     * @param edgeIdI Id of the first edge
-     * @param edgeIdJ Id of the second edge
-     */
-    int FindCommonFace(const int edgeIdI, const int edgeIdJ);
 
     ///@}
 

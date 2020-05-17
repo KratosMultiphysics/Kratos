@@ -86,10 +86,8 @@ namespace Kratos
             mAuxPointsContainer.clear();
             mAuxPointsContainer.reserve(10);
 
-            // Store the contact line nodes (IDs), DEPRECATED: only 2 IDs are expected
+            // Store the contact line nodes (IDs), only 2 IDs are expected
             std::vector<int> contact_line_node_ids;
-            // Store the edge number associated with the contact line nodes (IDs)
-            std::vector<int> contact_edge_order;
 
             // Add the original geometry points
             std::vector<int> gl_ids_split_edges(mSplitEdges);
@@ -134,7 +132,6 @@ namespace Kratos
                     if (geometry[edge_node_i].GetValue(IS_STRUCTURE) == 1.0 && geometry[edge_node_j].GetValue(IS_STRUCTURE) == 1.0){
                         //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") << idedge + n_nodes << ", " << aux_node_id << std::endl;
                         contact_line_node_ids.push_back(aux_node_id);
-                        contact_edge_order.push_back(idedge);
                     }
                 }
 
@@ -390,11 +387,6 @@ namespace Kratos
         } else {
             KRATOS_ERROR << "Trying to generate the exterior faces in DivideTetrahedra3D4::GenerateExteriorFaces() for a non-split element.";
         }
-    };
-
-    int DivideTetrahedra3D4::FindCommonFace(const int edgeIdI, const int edgeIdJ)
-    {
-        
     };
         
 };
