@@ -71,6 +71,11 @@ public:
     using BuilderSolverPointerType =
         typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer;
 
+    using VariationalDistanceCalculationProcessType2D =
+        VariationalDistanceCalculationProcess<2, SparseSpaceType, DenseSpaceType, LinearSolverType>;
+    using VariationalDistanceCalculationProcessType3D =
+        VariationalDistanceCalculationProcess<3, SparseSpaceType, DenseSpaceType, LinearSolverType>;
+
     /// Pointer definition of RansWallDistanceCalculationBaseProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansWallDistanceCalculationBaseProcess);
 
@@ -141,10 +146,34 @@ public:
 
     void ExecuteInitialize() override
     {
+        KRATOS_TRY
+
         this->CreateLinearSolver();
         this->CreateBuilderAndSolver();
 
+        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+        const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
+
+        if (domain_size == 2)
+        {
+            mpVariationalDistanceCalculationProcess2D =
+                Kratos::make_shared<VariationalDistanceCalculationProcessType2D>(
+                    r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
+        }
+        else if (domain_size == 3)
+        {
+            mpVariationalDistanceCalculationProcess3D =
+                Kratos::make_shared<VariationalDistanceCalculationProcessType3D>(
+                    r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
+        }
+        else
+        {
+            KRATOS_ERROR << "Unknown domain size = " << domain_size;
+        }
+
         CalculateWallDistances();
+
+        KRATOS_CATCH("");
     }
 
     void ExecuteInitializeSolutionStep() override
@@ -240,6 +269,9 @@ private:
     bool mRecalculateAtEachTimeStep;
     bool mCorrectDistancesUsingNeighbors;
 
+    typename VariationalDistanceCalculationProcessType2D::Pointer mpVariationalDistanceCalculationProcess2D;
+    typename VariationalDistanceCalculationProcessType3D::Pointer mpVariationalDistanceCalculationProcess3D;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -266,26 +298,18 @@ private:
 
         if (domain_size == 2)
         {
-            using distance_calculation_process_type =
-                VariationalDistanceCalculationProcess<2, SparseSpaceType, DenseSpaceType, LinearSolverType>;
-            distance_calculation_process_type distance_calculation_process(
-                r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
-            distance_calculation_process.Execute();
+            mpVariationalDistanceCalculationProcess2D->Execute();
         }
         else if (domain_size == 3)
         {
-            using distance_calculation_process_type =
-                VariationalDistanceCalculationProcess<3, SparseSpaceType, DenseSpaceType, LinearSolverType>;
-            distance_calculation_process_type distance_calculation_process(
-                r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
-            distance_calculation_process.Execute();
+            mpVariationalDistanceCalculationProcess3D->Execute();
         }
         else
         {
             KRATOS_ERROR << "Unknown domain size = " << domain_size;
         }
 
-        // CorrectWallDistances();
+        CorrectWallDistances();
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
             << "Wall distances calculated in " << mModelPartName << ".\n";
@@ -337,7 +361,8 @@ private:
 
                     if (count > 0)
                     {
-                        r_node.SetValue(DISTANCE, average_value / static_cast<double>(count));
+                        r_node.SetValue(
+                            DISTANCE, average_value / static_cast<double>(count));
                         number_of_modified_nodes++;
                     }
                     else
@@ -360,7 +385,6 @@ private:
                     const double avg_distance = r_node.GetValue(DISTANCE);
                     if (r_distance < 0.0)
                     {
-                        KRATOS_WATCH(r_node);
                         r_distance = avg_distance;
                     }
                 }
