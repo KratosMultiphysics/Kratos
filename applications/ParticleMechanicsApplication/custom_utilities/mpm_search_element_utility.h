@@ -350,6 +350,18 @@ namespace MPMSearchElementUtility
             }
             std::cout << "===== check disabled =====" << std::endl;
             //Check(ips, Tolerance);
+            std::cout << "===== printing geometries and elements =====" << std::endl;
+            for (auto geom_it : intersected_geometries)
+            {
+
+                std::cout << " geom" << std::endl;
+                for (size_t i = 0; i < geom_it->PointsNumber(); i++)
+                {
+                std::cout << "\tpoint " << i+1 << " ID = " <<geom_it->GetPoint(i).Id() << std::endl;
+
+                }
+            }
+
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
