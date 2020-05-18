@@ -173,8 +173,6 @@ public:
 
         const double CurrentTime = mrModelPart.GetProcessInfo()[TIME];
         TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mTargetStressTableId);
-        const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
-        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
         mStep += 1;
         if (mStep == 1) {
