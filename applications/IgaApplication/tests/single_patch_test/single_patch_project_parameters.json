@@ -44,43 +44,39 @@
         "auxiliary_dofs_list": [],
         "auxiliary_reaction_list": []
     },
-    "modelers": {
-        "iga_modelers": [
-            {
-                "modeler_name": "CadIoModeler",
-                "Parameters": {
-                    "cad_model_part_name": "IgaModelPart",
-                    "geometry_file_name": "single_patch_test/single_patch_geometry.cad.json"
-                }
-            },
-            {
-                "modeler_name": "IgaModeler",
-                "Parameters": {
-                    "cad_model_part_name": "IgaModelPart",
-                    "analysis_model_part_name": "IgaModelPart",
-                    "physics_file_name": "single_patch_test/single_patch_physics.iga.json"
-                }
+    "modelers": [{
+            "modeler_name": "CadIoModeler",
+            "Parameters": {
+                "cad_model_part_name": "IgaModelPart",
+                "geometry_file_name": "single_patch_test/single_patch_geometry.cad.json"
             }
-        ]
-    },
-    "processes": {
-        "additional_processes": [ ],
-        "dirichlet_process_list": [ ],
-        "neumann_process_list": [
-            {
-                "kratos_module": "KratosMultiphysics",
-                "python_module": "assign_vector_variable_to_conditions_process",
-                "Parameters": {
-                    "mesh_id": 0,
-                    "model_part_name": "IgaModelPart.Load_4",
-                    "variable_name": "LINE_LOAD",
-                    "value": [ 1, 0, 0 ],
-                    "interval": [ 0, "End" ]
-                }
+        },
+        {
+            "modeler_name": "IgaModeler",
+            "Parameters": {
+                "cad_model_part_name": "IgaModelPart",
+                "analysis_model_part_name": "IgaModelPart",
+                "physics_file_name": "single_patch_test/single_patch_physics.iga.json"
             }
-        ]
-    },
-    "output_processes": {
-        "output_process_list": [ ]
+        }],
+        "processes": {
+            "additional_processes": [],
+            "dirichlet_process_list": [],
+            "neumann_process_list": [
+                {
+                    "kratos_module": "KratosMultiphysics",
+                    "python_module": "assign_vector_variable_to_conditions_process",
+                    "Parameters": {
+                        "mesh_id": 0,
+                        "model_part_name": "IgaModelPart.Load_4",
+                        "variable_name": "LINE_LOAD",
+                        "value": [ 1, 0, 0 ],
+                        "interval": [ 0, "End" ]
+                    }
+                }
+            ]
+        },
+        "output_processes": {
+            "output_process_list": []
+        }
     }
-}
