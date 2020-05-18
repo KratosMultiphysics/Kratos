@@ -78,7 +78,8 @@ public:
     virtual ~Modeler() = default;
 
     /// Creates the Modeler Pointer
-    virtual Modeler::Pointer Create(const Parameters ModelParameters) const
+    virtual Modeler::Pointer Create(
+        Model& rModel, const Parameters ModelParameters) const
     {
         KRATOS_ERROR << "Trying to Create Modeler. Please check derived class 'Create' definition." << std::endl;
     }
