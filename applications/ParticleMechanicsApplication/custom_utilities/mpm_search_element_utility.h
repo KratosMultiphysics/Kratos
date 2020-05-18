@@ -131,7 +131,7 @@ namespace MPMSearchElementUtility
         Vector N;
         const int max_result = 1000;
 
-        //#pragma omp parallel // TODO re-enable
+        #pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
             SearchStructure.UpdateSearchDatabase();
@@ -139,7 +139,7 @@ namespace MPMSearchElementUtility
             typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
 
             // Element search and assign background grid
-            //#pragma omp for // TODO re-enable
+            #pragma omp for
             for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
@@ -187,7 +187,6 @@ namespace MPMSearchElementUtility
                     }
                 }
 
-
                 if (is_found == true) {
                     pelem->Set(ACTIVE);
 
@@ -201,9 +200,7 @@ namespace MPMSearchElementUtility
                     // Update geometry of particle element
                     element_itr->SetGeometry(p_new_geometry);
 
-
-                    for (IndexType j = 0; j < p_new_geometry->PointsNumber(); ++j)
-                        (*p_new_geometry)[j].Set(ACTIVE);
+                    for (IndexType j = 0; j < p_new_geometry->PointsNumber(); ++j) (*p_new_geometry)[j].Set(ACTIVE);
                 }
                 else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
@@ -275,10 +272,7 @@ namespace MPMSearchElementUtility
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length,working_dim);
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
-        if (mp_volume <= pGeometry->DomainSize()) 
-            return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
-        else if (CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance)) 
+        if (mp_volume <= pGeometry->DomainSize() && CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance))
             return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                 pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
         else
@@ -348,20 +342,8 @@ namespace MPMSearchElementUtility
                     node_index += 1;
                 }
             }
-            std::cout << "===== check disabled =====" << std::endl;
-            //Check(ips, Tolerance);
-            std::cout << "===== printing geometries and elements =====" << std::endl;
-            for (auto geom_it : intersected_geometries)
-            {
 
-                std::cout << " geom" << std::endl;
-                for (size_t i = 0; i < geom_it->PointsNumber(); i++)
-                {
-                std::cout << "\tpoint " << i+1 << " ID = " <<geom_it->GetPoint(i).Id() << std::endl;
-
-                }
-            }
-
+            Check(ips, Tolerance);
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
