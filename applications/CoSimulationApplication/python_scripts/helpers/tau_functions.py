@@ -12,7 +12,7 @@ echo_level = 1
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
 def GetFluidMesh(working_path, step, para_path_mod):
     interface_file_name = FindInterfaceFile(working_path, step)
-    NodesNr, ElemsNr, X, Y, Z, P, elemTable = readPressure(interface_file_name, 20)
+    NodesNr, ElemsNr, X, Y, Z, P, elemTable = ReadTauOutput(interface_file_name, 20)
     nodal_coords, nodesID, elem_connectivities, element_types = interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z)
     # In vtk format element connectivities start from 0, not from 1
     elem_connectivities -= 1
@@ -22,7 +22,7 @@ def GetFluidMesh(working_path, step, para_path_mod):
 def ComputeFluidForces(working_path, step):
     interface_file_name = FindInterfaceFile(working_path, step)
 
-    NodesNr, ElemsNr, X, Y, Z, P, elemTable = readPressure(interface_file_name, 20)
+    NodesNr, ElemsNr, X, Y, Z, P, elemTable = ReadTauOutput(interface_file_name, 20)
 
     # calculating cp at the center of each interface element
     pCell=calcpCell(ElemsNr,P,X,elemTable)
@@ -40,7 +40,7 @@ def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, sta
     print "deformationstart"
     interface_file_name = FindInterfaceFile(working_path, step)
 
-    NodesNr,ElemsNr,X,Y,Z,P,elemTable=readPressure(interface_file_name, 20)
+    NodesNr,ElemsNr,X,Y,Z,P,elemTable=ReadTauOutput(interface_file_name, 20)
 
     nodes,nodesID,elem_connectivities,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
 
@@ -146,74 +146,88 @@ def WriteTautoplt(working_path, step, para_path_mod, start_step):
     return tautoplt_file_name
 
 
-def CountInterfaceFileLinesNumber(fname):
-    with open(fname, 'r') as f:
-        lines_number = 0
-        for line in f:
-            if 'E+' in line or 'E-' in line:
-                lines_number += 1
-    return lines_number
 
 def PrintBlockHeader(header):
     tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
 
+# Read mesh and data from tau output file
+def ReadTauOutput(interface_file_name, velocity):
+    position_info, mesh_info, nodal_data, elem_connectivities = ReadInterfaceFile(
+        interface_file_name)
 
-# Read Cp from the solution file and calculate 'Pressure' on the nodes of TAU Mesh
-def readPressure(interface_file_name,velocity):
-    interface_file_lines_number = CountInterfaceFileLinesNumber(interface_file_name)
-    if echo_level > 0:
-        print 'interface_file_lines_number =', interface_file_lines_number
-    with open(interface_file_name,'r') as f:
-        header1 = f.readline()
-        header2 = f.readline()
-        if echo_level > 0:
-            print "header2 = ", header2
-        header2_split = header2.split()
-        pos_X = header2_split.index('"x"')
-        pos_Y = header2_split.index('"y"')
-        pos_Z = header2_split.index('"z"')
-        pos_Cp = header2_split.index('"cp"')
-        header3 = f.readline()
-        header4 = f.readline()
-        header5 = f.readline()
+    # Read mesh info
+    NodesNr = mesh_info[0]
+    ElemsNr = mesh_info[1]
 
-        d=[int(s) for s in re.findall(r'\b\d+\b', header4)]
-        NodesNr = d[0]
-        ElemsNr = d[1]
+    X, Y, Z = SaveCoordinatesList(nodal_data, position_info, NodesNr)
+    P = SavePressure(nodal_data, position_info, NodesNr, velocity)
 
-        # write X,Y,Z,CP of the document in a list
-        liste_number = []
-        for i in xrange(interface_file_lines_number):
-            line = f.readline()
-            for elem in line.split():
-                liste_number.append(float(elem))
+    return NodesNr, ElemsNr, X, Y, Z, P, elem_connectivities
 
-        # write ElemTable of the document
-        elemTable_Sol = np.zeros([ElemsNr,4],dtype=int)
-        k = 0
-        line = f.readline()
-        while line:
-            elemTable_Sol[k,0]=int(line.split()[0])
-            elemTable_Sol[k,1]=int(line.split()[1])
-            elemTable_Sol[k,2]=int(line.split()[2])
-            elemTable_Sol[k,3]=int(line.split()[3])
-            k=k+1
-            line = f.readline()
+def ReadInterfaceFile(interface_file_name):
+    with open(interface_file_name, 'r') as interface_file:
+        line = interface_file.readline()
+        position_info, mesh_info, line = ReadHeader(interface_file, line)
+        nodal_data, line = ReadNodalData(interface_file, line)
+        elem_connectivities = ReadElementConnectivities(interface_file, line, ElemsNr=mesh_info[1])
+    return position_info, mesh_info, nodal_data, elem_connectivities
 
-        # reshape content in X, Y, Z, Cp
-        X=liste_number[(pos_X-2)*NodesNr:(pos_X-2+1)*NodesNr]
-        Y=liste_number[(pos_Y-2)*NodesNr:(pos_Y-2+1)*NodesNr]
-        Z=liste_number[(pos_Z-2)*NodesNr:(pos_Z-2+1)*NodesNr]
-        CP=liste_number[(pos_Cp-2)*NodesNr:(pos_Cp-2+1)*NodesNr]
-        X=X[0:NodesNr]
-        Y=Y[0:NodesNr]
-        Z=Z[0:NodesNr]
-        CP=CP[0:NodesNr]
-        P=[x*velocity*velocity*0.5*1.2 for x in CP]
-        P=np.array(P)
+def SaveCoordinatesList(nodal_data, position_info, NodesNr):
+    # Read coordinates positions and save them in a list
+    x_position = position_info.index('"x"') - 2
+    X = nodal_data[(x_position)*NodesNr:(x_position+1)*NodesNr]
+    y_position = position_info.index('"y"') - 2
+    Y = nodal_data[(y_position)*NodesNr:(y_position+1)*NodesNr]
+    z_position = position_info.index('"z"') - 2
+    Z = nodal_data[(z_position)*NodesNr:(z_position+1)*NodesNr]
+    return X, Y, Z
 
-    return NodesNr,ElemsNr,X,Y,Z,P,elemTable_Sol
+def SavePressure(nodal_data, position_info, NodesNr, velocity):
+    # Read pressure coefficient
+    cp_position = position_info.index('"cp"') - 2
+    CP = nodal_data[(cp_position)*NodesNr:(cp_position+1)*NodesNr]
+    # Compute pressure from cp
+    P = [x*velocity*velocity*0.5*1.2 for x in CP]
+    P = np.array(P)
+    return P
 
+def ReadNodalData(interface_file,line):
+    # reading nodal data
+    nodal_data = []
+    while 'E+' in line or 'E-' in line:
+        for elem in line.split():
+            nodal_data.append(float(elem))
+        line = interface_file.readline()
+
+    return nodal_data, line
+
+def ReadElementConnectivities(interface_file,line,ElemsNr):
+    # reading element connectivities
+    elem_connectivities = np.zeros([ElemsNr, 4], dtype=int)
+    k = 0
+    while line:
+        elem_connectivities[k, 0] = int(line.split()[0])
+        elem_connectivities[k, 1] = int(line.split()[1])
+        elem_connectivities[k, 2] = int(line.split()[2])
+        elem_connectivities[k, 3] = int(line.split()[3])
+        k = k+1
+        line = interface_file.readline()
+
+    return elem_connectivities
+
+def ReadHeader(interface_file,line):
+    # reading the five lines of the header
+    for _ in range(5):
+        # reading the position of the coordinates and cp in the list
+        if "\"x\" \"y\" \"z\"" in line:
+            position_info = line.split()
+        # reading the number of nodes and elements
+        elif "N=" in line:
+            mesh_info = [int(integers)
+                         for integers in re.findall(r'\b\d+\b', line)]
+        line = interface_file.readline()
+
+    return position_info, mesh_info, line
 
 def interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z):
     # array to store the coordinates of the nodes in the fluid mesh: x1,y1,z1,x2,y2,z2,...
