@@ -263,8 +263,6 @@ class AnalysisStage(object):
                 // settings for this modeler
             }
         },{ ... }]
-        The order of intialization is specified by the
-        order within this list.
         """
         self._list_of_modelers = []
 
