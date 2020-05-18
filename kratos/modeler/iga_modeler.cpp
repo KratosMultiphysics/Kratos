@@ -18,7 +18,7 @@ namespace Kratos
     ///@name Stages
     ///@{
 
-    void IgaModeler::SetupModelPart() const
+    void IgaModeler::SetupModelPart()
     {
         KRATOS_ERROR_IF_NOT(mParameters.Has("cad_model_part_name"))
             << "Missing \"cad_model_part\" section" << std::endl;

@@ -61,6 +61,12 @@ public:
 
     /// Default constructor.
     IgaModeler(
+        const Parameters ModelerParameters = Parameters())
+        : Modeler(ModelerParameters)
+    {}
+
+    /// Constructor.
+    IgaModeler(
         Model & rModel,
         const Parameters ModelerParameters = Parameters())
         : Modeler(rModel, ModelerParameters)
@@ -81,7 +87,7 @@ public:
     ///@name Stages
     ///@{
 
-    void SetupModelPart() const override;
+    void SetupModelPart() override;
 
     ///@}
     ///@name Input and output
