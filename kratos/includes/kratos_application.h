@@ -470,7 +470,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     // Modeler
     const Modeler mModeler;
-    const CadIoModeler mCadIoModeler;
+    const CadIoModeler mCadIoModeler = CadIoModeler(Model(), Parameters());
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
