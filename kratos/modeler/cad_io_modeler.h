@@ -62,16 +62,17 @@ public:
     virtual ~CadIoModeler() = default;
 
     /// Creates the Modeler Pointer
-    Modeler::Pointer Create(const Parameters ModelParameters) const override
+    Modeler::Pointer Create(
+        Model& rModel, const Parameters ModelParameters) const override
     {
-        return Kratos::make_shared<CadIoModeler>(ModelParameters);
+        return Kratos::make_shared<CadIoModeler>(rModel, ModelParameters);
     }
 
     ///@}
     ///@name Stages
     ///@{
 
-    void SetupGeometryModel() const override;
+    void SetupGeometryModel() override;
 
     ///@}
     ///@name Input and output
@@ -103,7 +104,19 @@ private:
     Model& mModel;
 
     ///@}
+    ///@name Serializer
+    ///@{
 
+    friend class Serializer;
+
+    /// Default constructor.
+    CadIoModeler()
+        : Modeler()
+        , mModel(Model())
+    {
+    }
+
+    ///@}
 }; // Class CadIoModeler
 
 ///@}
