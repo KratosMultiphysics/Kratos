@@ -60,7 +60,7 @@ public:
         Model& rModel,
         Parameters ModelerParameters = Parameters())
         : Modeler(rModel, ModelerParameters)
-        , mModel(rModel)
+        , mpModel(&rModel)
     {
     }
 
@@ -107,7 +107,7 @@ private:
     ///@name Iga functionalities
     ///@{
 
-    Model& mModel = Model();
+    Model* mpModel = nullptr;
 
     ///@}
     ///@name Serializer
