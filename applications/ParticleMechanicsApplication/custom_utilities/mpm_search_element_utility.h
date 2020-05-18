@@ -91,7 +91,7 @@ namespace MPMSearchElementUtility
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
         typename Geometry<Node<3>>::PointsArrayType rPoints);
 
-    void Check(const IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance);
+    void Check(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, const Matrix& rN);
 
     /**
      * @brief Search element connectivity for each particle
@@ -131,7 +131,7 @@ namespace MPMSearchElementUtility
         Vector N;
         const int max_result = 1000;
 
-        #pragma omp parallel
+        //#pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
             SearchStructure.UpdateSearchDatabase();
@@ -139,7 +139,7 @@ namespace MPMSearchElementUtility
             typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
 
             // Element search and assign background grid
-            #pragma omp for
+            //#pragma omp for
             for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
@@ -304,7 +304,8 @@ namespace MPMSearchElementUtility
             // Temporary local containers
             double sub_point_volume = 0.0;
             array_1d<double, 3> sub_point_position;
-            IndexType node_index = 0;
+            IndexType active_node_index = 0;
+            IndexType active_subpoint_index = 0;
 
             // Loop over all intersected grid elements and make subpoints in each
             for (size_t i = 0; i < number_of_sub_material_points; ++i) {
@@ -312,11 +313,12 @@ namespace MPMSearchElementUtility
                 Vector N(intersected_geometries[i]->PointsNumber());
                 sub_point_position.clear();
                 sub_point_volume = 0.0;
+                IntegrationPoint<3> trial_subpoint;
 
                 if (CheckNoPointsAreInGeom(master_domain_points, *intersected_geometries[i],Tolerance))  {
                     // whole element is completely inside bounding box
 
-                    ips[i] = CreateSubPoint(intersected_geometries[i]->Center(),
+                    trial_subpoint = CreateSubPoint(intersected_geometries[i]->Center(),
                         intersected_geometries[i]->DomainSize() / mp_volume,
                         *intersected_geometries[i], N, DN_De);
                 }
@@ -329,25 +331,53 @@ namespace MPMSearchElementUtility
                     }
                     else
                         Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
-                    ips[i] = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume,
+                    trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume,
                         *intersected_geometries[i], N, DN_De);
                 }
 
                 // Transfer local data to containers
-                DN_De_vector[i] = DN_De;
-                for (size_t j = 0; j < N.size(); ++j) {
-                    N_matrix(i, node_index) = N[j];
-                    nodes_list(node_index) = intersected_geometries[i]->pGetPoint(j);
+                if (trial_subpoint.Weight() > Tolerance)
+                {
+                    ips[active_subpoint_index] = trial_subpoint;
+                    std::cout << trial_subpoint.Weight() << std::endl;
+                    std::cout << trial_subpoint.Coordinates() << std::endl;
+                    std::cout << ips[active_subpoint_index].Weight() << std::endl;
+                    std::cout << ips[active_subpoint_index].Coordinates() << std::endl;
+                    DN_De_vector[active_subpoint_index] = DN_De;
+                    for (size_t j = 0; j < N.size(); ++j) {
+                        N_matrix(active_subpoint_index, active_node_index) = N[j];
+                        nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
 
-                    node_index += 1;
+                        active_node_index += 1;
+                    }
+                    active_subpoint_index += 1;
                 }
-            }
 
-            Check(ips, Tolerance);
+            }
+            N_matrix.resize(active_subpoint_index, active_node_index, true);
+            DN_De_vector.resize(active_subpoint_index, true);
+            
+            IntegrationPointsArrayType ips_good(active_subpoint_index);
+            for (size_t i = 0; i < active_subpoint_index; i++) ips_good[i] = ips[i];
+
+            std::cout << ips_good[0].Weight() << std::endl;
+            std::cout << ips_good[0].Coordinates() << std::endl;
+            PointerVector<Node<3>> nodes_list_good(active_node_index);
+            for (size_t i = 0; i < active_node_index; i++) nodes_list_good(i) = nodes_list(i);
+
+
+            double vol_accum = 0.0;
+            for (size_t i = 0; i < ips_good.size(); i++)
+            {
+                vol_accum += ips_good[i].Weight();
+            }
+            std::cout << vol_accum << std::endl;
+
+            Check(ips_good, Tolerance, N_matrix);
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
-            ips_container[ThisDefaultMethod] = ips;
+            ips_container[ThisDefaultMethod] = ips_good;
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType shape_function_container;
             shape_function_container[ThisDefaultMethod] = N_matrix;
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType shape_function_derivatives_container;
@@ -359,7 +389,7 @@ namespace MPMSearchElementUtility
                 shape_function_container,
                 shape_function_derivatives_container);
 
-            return CreateQuadraturePoint( working_dim, pGeometry->LocalSpaceDimension(), data_container, nodes_list);
+            return CreateQuadraturePoint( working_dim, pGeometry->LocalSpaceDimension(), data_container, nodes_list_good);
         }
 
         KRATOS_CATCH("");
@@ -765,15 +795,38 @@ namespace MPMSearchElementUtility
     }
 
 
-    void Check(const IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance)
+    void Check(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, const Matrix& rN)
     {
         KRATOS_TRY
 
-        double vol_frac_accum = 0.0;
-        for (size_t i = 0; i < rIntergrationSubPoints.size(); i++) vol_frac_accum += rIntergrationSubPoints[i].Weight();
+            double vol_frac_accum = 0.0;
+
+        KRATOS_ERROR_IF(rIntergrationSubPoints.size() != rN.size1())
+            << "Shape function rows must equal number of sub-points!";
+
+        for (size_t i = 0; i < rIntergrationSubPoints.size(); i++)
+        {
+            KRATOS_ERROR_IF(rIntergrationSubPoints[i].Weight() < Tolerance)
+                << "Volume fraction of sub-points is too small!";
+
+            vol_frac_accum += rIntergrationSubPoints[i].Weight();
+        }
+
         KRATOS_ERROR_IF(std::abs(1.0 - vol_frac_accum) > Tolerance)
             << "Volume fraction of sub-points does not sum to 1.0."
             << " This probably means the background grid is not big enough";
+
+
+        for (size_t j = 0; j < rN.size2(); j++)
+        {
+            SizeType nonzero_entries = 0;
+            for (size_t i = 0; i < rIntergrationSubPoints.size(); i++)
+            {
+                if (rN(i, j) != 0.0) nonzero_entries += 1;
+            }
+            KRATOS_ERROR_IF(nonzero_entries != 1)
+                << "There must be only one nonzero entry per shape function column!";
+        }
 
         KRATOS_CATCH("")
     }
