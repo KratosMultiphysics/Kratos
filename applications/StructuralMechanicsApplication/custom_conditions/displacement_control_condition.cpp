@@ -104,7 +104,7 @@ Condition::Pointer DisplacementControlCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetDisplacementInDirection() const
+Variable<double>* DisplacementControlCondition::GetDisplacementInDirection() const
 {
     KRATOS_TRY
 
@@ -132,7 +132,7 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
 /***********************************************************************************/
 /***********************************************************************************/
 
-DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetPointLoadInDirection() const
+Variable<double>* DisplacementControlCondition::GetPointLoadInDirection() const
 {
     KRATOS_TRY
 
@@ -162,8 +162,8 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
 
 void DisplacementControlCondition::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -189,8 +189,8 @@ void DisplacementControlCondition::EquationIdVector(
 
 void DisplacementControlCondition::GetDofList(
     DofsVectorType& rConditionlDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -217,7 +217,7 @@ void DisplacementControlCondition::GetDofList(
 void DisplacementControlCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType mat_size = number_of_nodes * GetBlockSize();
@@ -337,7 +337,7 @@ void DisplacementControlCondition::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);

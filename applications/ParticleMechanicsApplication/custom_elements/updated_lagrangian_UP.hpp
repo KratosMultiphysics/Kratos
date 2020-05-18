@@ -169,7 +169,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             ProcessInfo& rCurrentProcessInfo) override;
+                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************************************************************************************
@@ -187,6 +187,15 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -256,7 +265,8 @@ protected:
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                             GeneralVariables& rVariables,
                             Vector& rVolumeForce,
-                            const double& rIntegrationWeight) override;
+                            const double& rIntegrationWeight,
+                            const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -405,6 +415,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    double m_mp_pressure;
 
     ///@}
     ///@name Private Operators

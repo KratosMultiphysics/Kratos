@@ -207,7 +207,7 @@ namespace Kratos
             return *dummy;
         }
 
-        template< typename TSpaceType > 
+        template< typename TSpaceType >
         py::class_< TSpaceType > CreateSpaceInterface(pybind11::module& m, std::string Name)
         {
             py::class_< TSpaceType > binder(m,Name.c_str());
@@ -274,7 +274,7 @@ namespace Kratos
                 .def("Clean", &BaseSchemeType::Clean)
                 .def("Clear",&BaseSchemeType::Clear)
                 .def("MoveMesh", MoveMesh)
-                .def("Check", &BaseSchemeType::Check)
+                .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
                 ;
 
             py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
@@ -428,6 +428,7 @@ namespace Kratos
                 .def("Build", &BuilderAndSolverType::Build)
                 .def("SystemSolve", &BuilderAndSolverType::SystemSolve)
                 .def("BuildAndSolve", &BuilderAndSolverType::BuildAndSolve)
+                .def("BuildAndSolveLinearizedOnPreviousIteration", &BuilderAndSolverType::BuildAndSolveLinearizedOnPreviousIteration)
                 .def("BuildRHSAndSolve", &BuilderAndSolverType::BuildRHSAndSolve)
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
                 .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
@@ -460,6 +461,7 @@ namespace Kratos
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
             .def(py::init< LinearSolverType::Pointer > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
             ;
 
             //********************************************************************
@@ -540,6 +542,10 @@ namespace Kratos
                 .def("GetSystemMatrix", &ResidualBasedNewtonRaphsonStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
                 .def("GetSystemVector", &ResidualBasedNewtonRaphsonStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
                 .def("GetSolutionVector", &ResidualBasedNewtonRaphsonStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
+                .def("SetUseOldStiffnessInFirstIterationFlag",
+                     &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
+                .def("GetUseOldStiffnessInFirstIterationFlag",
+                     &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,

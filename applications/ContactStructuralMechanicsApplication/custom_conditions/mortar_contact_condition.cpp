@@ -84,11 +84,11 @@ MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMas
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::Initialize( )
+void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    BaseType::Initialize();
+    BaseType::Initialize(rCurrentProcessInfo);
 
     // We reset the ISOLATED flag
     this->Set(ISOLATED, false);
@@ -100,7 +100,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -113,7 +113,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -126,7 +126,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -139,7 +139,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -155,7 +155,7 @@ template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TN
 void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -176,7 +176,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
 void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Resizing as needed
@@ -195,7 +195,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
 void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Creating an auxiliar matrix
@@ -214,7 +214,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
 void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -230,7 +230,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
 void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -244,7 +244,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
+void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -261,7 +261,7 @@ template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TN
 void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -276,7 +276,7 @@ template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TN
 void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3> >& rDestinationVariable,
+    const Variable<array_1d<double, 3> >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -317,10 +317,12 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     MortarConditionMatrices mortar_operators;
 
     // We call the exact integration utility
-    const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    const auto& r_properties = this->GetProperties();
+    const IndexType integration_order = r_properties.Has(INTEGRATION_ORDER_CONTACT) ? r_properties.GetValue(INTEGRATION_ORDER_CONTACT) : 2;
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
-    IntegrationUtility integration_utility = IntegrationUtility (integration_order, distance_threshold, 0, zero_tolerance_factor);
+    const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
+    IntegrationUtility integration_utility = IntegrationUtility (integration_order, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
 
     // The master geometry
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
@@ -559,8 +561,8 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
 void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& CurrentProcessInfo
-    )
+    const ProcessInfo& CurrentProcessInfo
+    ) const
 {
     KRATOS_ERROR << "You are calling to the base class method EquationIdVector, check your condition definition" << std::endl;
 }
@@ -571,49 +573,10 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
 void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_ERROR << "You are calling to the base class method GetDofList, check your condition definition" << std::endl;
-}
-
-//******************************* GET DOUBLE VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET ARRAY_1D VALUE *******************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET VECTOR VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -689,7 +652,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::Check( const ProcessInfo& rCurrentProcessInfo )
+int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -697,7 +660,8 @@ int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNode
     int ierr = Condition::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    KRATOS_ERROR_IF(this->GetParentGeometry().NumberOfGeometryParts() == 0) << "YOU HAVE NOT INITIALIZED THE PAIR GEOMETRY IN THE MeshTyingMortarCondition" << std::endl;
+    const GeometryType& r_current_slave = this->GetParentGeometry();
+    KRATOS_ERROR_IF(r_current_slave.NumberOfGeometryParts() == 0) << "YOU HAVE NOT INITIALIZED THE PAIR GEOMETRY IN THE MortarContactCondition" << std::endl;
 
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
@@ -705,15 +669,15 @@ int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNode
     KRATOS_CHECK_VARIABLE_KEY(NORMAL)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( IndexType i = 0; i < TNumNodes; i++ ) {
-        Node<3> &rnode = this->GetParentGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_GAP,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
+    for ( IndexType i = 0; i < TNumNodes; ++i ) {
+        const auto& r_node = r_current_slave[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_GAP,r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
     }
 
     return ierr;

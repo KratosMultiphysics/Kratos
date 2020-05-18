@@ -168,8 +168,6 @@ namespace Kratos
                 IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_2;
 
                 if (is_inside && is_inside0) {
-                    // if (Check == CheckLevel::LEVEL_FULL_DEBUG) IntegrationUtility::MathematicaDebug(SlaveCondition1->Id(), r_slave_geometry_1, MasterCondition1->Id(), r_master_geometry_1, conditions_points_slave);
-
                     // Initialize general variables for the current master element
                     rVariables0.Initialize();
                     rVariables.Initialize();
