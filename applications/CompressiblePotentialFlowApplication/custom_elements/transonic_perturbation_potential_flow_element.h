@@ -60,6 +60,8 @@ public:
 
     typedef Element BaseType;
 
+    typedef PointerVector<GeometryType> GeometriesArrayType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of TransonicPerturbationPotentialFlowElement
@@ -287,8 +289,15 @@ private:
 
     void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
 
-    void FindUpwindNodes(GeometryType& rResult,
+    void FindUpwindEdge(GeometryType& rUpwindEdge,
                         const ProcessInfo& rCurrentProcessInfo);
+
+    void GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary);
+
+    array_1d<double, 3> GetEdgeUnitNormal(const GeometryType& rEdge);
+
+    void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,
+                             GlobalPointersVector<Element>& rUpwindElementCandidates);
 
     ///@}
     ///@name Private Operations

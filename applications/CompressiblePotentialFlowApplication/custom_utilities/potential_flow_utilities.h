@@ -16,14 +16,23 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
-#include "containers/global_pointers_vector.h"
-#include "utilities/geometry_utilities.h"
+// #include "containers/global_pointers_vector.h"
+// #include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
-    class Element; // forward-declaring to not having to include it here
-    class ProcessInfo; // forward-declaring to not having to include it here
-    class ModelPart; // forward-declaring to not having to include it here
+    // forward-declaring
+    class Element;
+    class ProcessInfo;
+    class ModelPart;
+    template< class TDataType >
+    class GlobalPointersVector;
+    template< class TDataType >
+    class Dof;
+    template< std::size_t TDimension, class TDofType >
+    class Node;
+    template< class TPointType >
+    class Geometry;
 
 namespace PotentialFlowUtilities
 {
@@ -36,8 +45,7 @@ struct ElementalData{
     array_1d<double, TNumNodes> N;
 };
 
-typedef Node < 3 > NodeType;
-
+typedef Node < 3, Dof<double> > NodeType;
 typedef Geometry<NodeType> GeometryType;
 
 template <int Dim, int NumNodes>
