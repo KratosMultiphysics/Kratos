@@ -7,7 +7,7 @@ import KratosMultiphysics as KM
 from importlib import import_module
 
 class KratosModelerFactory(object):
-    def ConstructListOfModelers( self, modeler_list ):
+    def ConstructListOfModelers( self, model, modeler_list ):
         constructed_modelers = []
         for modeler_item in modeler_list:
             if modeler_item.Has("modeler_name"):
@@ -29,6 +29,6 @@ class KratosModelerFactory(object):
 
                     python_module = import_module(modeler_name)
                     modeler = python_module.Factory(modeler_item["Parameters"])
-                    constructed_modelers.append( modeler )
+                    constructed_modelers.append( model, modeler )
 
         return constructed_modelers

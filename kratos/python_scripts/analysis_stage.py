@@ -274,7 +274,7 @@ class AnalysisStage(object):
             factory = KratosModelerFactory()
 
             modelers_list = self.project_parameters["modelers"]
-            self.list_of_modelers = factory.ConstructListOfModelers(modelers_list)
+            self.list_of_modelers = factory.ConstructListOfModelers(self.model, modelers_list)
 
     ### Processes
     def _GetListOfProcesses(self):
