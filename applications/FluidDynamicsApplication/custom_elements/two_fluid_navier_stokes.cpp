@@ -128,7 +128,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             Kratos::Vector gauss_pts_curvature;
             std::vector<MatrixType> contact_shape_function_neg;                                  //std::vector for multiple contact lines
             std::vector<GeometryType::ShapeFunctionsGradientsType> contact_shape_derivatives_neg;//std::vector for multiple contact lines
-            std::vector<Kratos::Vector> contact_gauss_pts_weights                                //std::vector for multiple contact lines
+            std::vector<Kratos::Vector> contact_gauss_pts_weights;                                //std::vector for multiple contact lines
             std::vector<Vector> contact_tangential_neg;                                          //std::vector for multiple contact lines
             //std::vector<Vector> contact_vector;                                                  //std::vector for multiple contact lines
 
@@ -2452,11 +2452,11 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
 
     std::vector<unsigned int> contact_line_faces;
     std::vector<unsigned int> contact_line_indices;
-    rHasContactLine = p_modified_sh_func->ComputeNegativeSideContactLineVector(contact_line_faces, rContactTangentialsNeg);
+    /* rHasContactLine = */ p_modified_sh_func->ComputeNegativeSideContactLineVector(contact_line_faces, rContactTangentialsNeg);
     // rContactTangentialsNeg is normalized in ComputeNegativeSideContactLineVector
-    auto& neighbour_elems = this->GetVale(NEIGHBOUR_ELEMENTS);
+    auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
-    for (unsigned int i_cl = 0; i_cl < contact_line_faces.size()){
+    for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
         if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
             contact_line_indices.push_back(i_cl);
         }
@@ -3654,13 +3654,13 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         VectorType vel0_CL = ZeroVector(NumDim);
         double weight_sum = 0.0;
 
-        MathUtils<double>::UnitCrossProduct(contact_vector, rTangential, normal_avg);
+        MathUtils<double>::UnitCrossProduct(contact_vector, rTangential[i_cl], normal_avg);
 
         for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
             weight_sum += (rCLWeights[i_cl])[clgp];
 
             //KRATOS_INFO("Cut Element, has contact line, CLWeight") << rCLWeights(clgp) << std::endl;
-            MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal[clgp], rTangential);
+            MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal[clgp], rTangential[i_cl]);
 
             for (unsigned int i = 0; i < NumNodes; i++){
                 const VectorType Vel0 = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY, 1);
@@ -3704,7 +3704,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         //if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
             //if (HasContactLine){
                 //(*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
-                (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector;
+                //(*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector;
             //}
         //}
     }

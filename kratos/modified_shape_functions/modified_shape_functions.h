@@ -180,7 +180,7 @@ public:
     * @param IntegrationMethod Desired integration quadrature.
     */
     virtual void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
-        std::vector<int>& ContactLineIndices,
+        std::vector<unsigned int>& ContactLineIndices,
         std::vector<Matrix> &rContactLineNegativeSideShapeFunctionsValues,
         std::vector<ShapeFunctionsGradientsType> &rContactLineNegativeSideShapeFunctionsGradientsValues,
         std::vector<Vector> &rContactLineNegativeSideWeightsValues,
@@ -283,7 +283,7 @@ public:
     * @return rNegativeSideContactLineVector: single vector showing the contact line. 
     */
     virtual void ComputeNegativeSideContactLineVector(
-        std::vector<unsigned int> FaceIndices,
+        std::vector<unsigned int>& FaceIndices,
         std::vector<Vector> &rNegativeSideContactLineVector) = 0;
     /* virtual bool ComputeNegativeSideContactLineVector(
         Vector &rNegativeSideContactLineVector) = 0; */

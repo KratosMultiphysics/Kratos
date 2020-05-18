@@ -183,7 +183,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunct
 
 // Returns all the shape function values for the contact line.
 void Tetrahedra3D4ModifiedShapeFunctions::ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
-    std::vector<int>& ContactLineIndices,
+    std::vector<unsigned int>& ContactLineIndices,
     std::vector<Matrix> &rContactLineNegativeSideShapeFunctionsValues,
     std::vector<ShapeFunctionsGradientsType> &rContactLineNegativeSideShapeFunctionsGradientsValues,
     std::vector<Vector> &rContactLineNegativeSideWeightsValues,
@@ -488,10 +488,11 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideContactLineVector(
         for (unsigned int i_cl = 0; i_cl < FaceIndices.size(); i_cl ++){
             IndexedPointGeometryType& edgei =
                 (mpTetrahedraSplitter->mNegativeInterfaces[(contact_interface_ids[i_cl])]->Edges())[(contact_interface_edge_ids[i_cl])];
-            const array_1d<double, 3> aux_vector = 
+            Vector aux_vector = 
             edgei[1].Coordinates() - edgei[0].Coordinates();
 
-            aux_vector /= Kratos::norm_2(aux_vector);
+            const double norm = Kratos::norm_2(aux_vector);
+            aux_vector = 1.0/norm * aux_vector;
 
             rNegativeSideContactLineVector.push_back(aux_vector);
         }

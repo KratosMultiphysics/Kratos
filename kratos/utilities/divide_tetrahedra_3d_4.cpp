@@ -237,8 +237,8 @@ namespace Kratos
         mPositiveInterfacesParentIds.clear();
         mNegativeInterfacesParentIds.clear();
 
-        mContactInterface = -1;
-        mContactEdge = -1;
+        mContactInterface.clear();
+        mContactEdge.clear();
 
         if (mIsSplit) {
 
@@ -300,13 +300,14 @@ namespace Kratos
                         mNegativeInterfacesParentIds.push_back(i_subdivision);
 
                         if (mContactFace.size() > 0){
-                            IndexedGeometriesArrayType edges = p_intersection_tri->Edges();
+                            const IndexedGeometriesArrayType& edges = p_intersection_tri->Edges();
 
                             for (unsigned int i_contact = 0; i_contact < mContactFace.size(); i_contact++){
                                 const unsigned int contact_node_i = ((mContactLine[i_contact])->Points())[0].Id();//mContactLineNodeIds[2*i_contact];
                                 const unsigned int contact_node_j = ((mContactLine[i_contact])->Points())[1].Id();//mContactLineNodeIds[2*i_contact + 1];
 
                                 for (unsigned int i_edge = 0; i_edge < edges.size(); i_edge++){
+                                    const IndexedPointGeometryType& edgei = edges[i_edge];
                                     if ( (edgei[0].Id() == contact_node_i && edgei[1].Id() == contact_node_j) 
                                         || (edgei[0].Id() == contact_node_j && edgei[1].Id() == contact_node_i) ){
 
@@ -445,7 +446,7 @@ namespace Kratos
         const std::vector<int> edge_face_2 = {3, 3, 2, 0, 0, 1}; //Face(2) associated with the edge created by mEdgeNodeI and mEdgeNodeJ
 
         if (edge_face_1[edgeIdI] == edge_face_1[edgeIdJ])
-            return edge_face_[edgeIdI];
+            return edge_face_1[edgeIdI];
         else if (edge_face_1[edgeIdI] == edge_face_2[edgeIdJ])
             return edge_face_1[edgeIdI];
         else if (edge_face_2[edgeIdI] == edge_face_2[edgeIdJ])

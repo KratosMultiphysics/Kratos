@@ -169,19 +169,19 @@ public:
     * @param IntegrationMethod Desired integration quadrature.
     */
     void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
-        std::vector<int>& ContactLineIndices,
+        std::vector<unsigned int>& ContactLineIndices,
         std::vector<Matrix> &rContactLineNegativeSideShapeFunctionsValues,
         std::vector<ShapeFunctionsGradientsType> &rContactLineNegativeSideShapeFunctionsGradientsValues,
         std::vector<Vector> &rContactLineNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override
+    {
+        double dummy = 0.0;
+    }
     /* void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rContactLineNegativeSideShapeFunctionsValues,
         ShapeFunctionsGradientsType &rContactLineNegativeSideShapeFunctionsGradientsValues,
         Vector &rContactLineNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override */
-    {
-        double dummy = 0.0;
-    }
 
     /**
     * Given a face id, returns the shape function values in the positive split element exterior face side for a given quadrature.

@@ -176,19 +176,19 @@ protected:
     * @param IntegrationMethod Desired integration quadrature.
     */
     void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
-        std::vector<int>& ContactLineIndices,
+        std::vector<unsigned int>& ContactLineIndices,
         std::vector<Matrix> &rContactLineNegativeSideShapeFunctionsValues,
         std::vector<ShapeFunctionsGradientsType> &rContactLineNegativeSideShapeFunctionsGradientsValues,
         std::vector<Vector> &rContactLineNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override
+    {
+        double dummy = 0.0;
+    }
     /* void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rContactLineNegativeSideShapeFunctionsValues,
         ShapeFunctionsGradientsType &rContactLineNegativeSideShapeFunctionsGradientsValues,
         Vector &rContactLineNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override */
-    {
-        double dummy = 0.0;
-    }
 
     ///@}
     ///@name Protected  Access
