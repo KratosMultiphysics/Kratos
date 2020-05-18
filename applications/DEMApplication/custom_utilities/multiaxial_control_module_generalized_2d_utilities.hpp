@@ -74,11 +74,12 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         {
             "Parameters"    : {
                 "control_module_delta_time": 1.0e-5,
-                "stress_tolerance": 1.0e-2,
+                "multi_axial": true,
+                "perturbation_tolerance": 1.0e-2,
                 "perturbation_period": 10,
-                "velocity_alpha" : 1.0,
-                "stiffness_alpha": 1.0,
-                "reaction_alpha" : 1.0
+                "velocity_alpha" : 0.0,
+                "stiffness_alpha": 0.0,
+                "reaction_alpha" : 0.0
             },
             "list_of_actuators" : []
         }  )" );
@@ -86,15 +87,17 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     // Now validate agains defaults -- this also ensures no type mismatch
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mStressTolerance = rParameters["Parameters"]["stress_tolerance"].GetDouble();
+    mCMDeltaTime = rParameters["Parameters"]["control_module_delta_time"].GetDouble();
+    mCMStep = 0;
+    mStep = 0;
+    mCMTime = 0.0;
+    mActuatorCounter = 0;
+    mPerturbationTolerance = rParameters["Parameters"]["perturbation_tolerance"].GetDouble();
     mPerturbationPeriod = rParameters["Parameters"]["perturbation_period"].GetInt();
+    mMultiAxial = rParameters["Parameters"]["multi_axial"].GetBool();
     mVelocityAlpha = rParameters["Parameters"]["velocity_alpha"].GetDouble();
     mStiffnessAlpha = rParameters["Parameters"]["stiffness_alpha"].GetDouble();
     mReactionAlpha = rParameters["Parameters"]["reaction_alpha"].GetDouble();
-    mCMDeltaTime = rParameters["Parameters"]["control_module_delta_time"].GetDouble();
-    mCMStep = 0;
-    mCMTime = 0.0;
-    mActuatorCounter = 0;
 
     const unsigned int number_of_actuators = rParameters["list_of_actuators"].size();
     mVelocity.resize(number_of_actuators, false);
@@ -225,15 +228,17 @@ protected:
 
     ModelPart& mrDemModelPart;
     ModelPart& mrFemModelPart;
-    double mStressTolerance;
     double mCMDeltaTime;
+    double mCMTime;
+    unsigned int mCMStep;
+    unsigned int mStep;
+    unsigned int mActuatorCounter;
+    bool mMultiAxial;
+    double mPerturbationTolerance;
+    unsigned int mPerturbationPeriod;
     double mVelocityAlpha;
     double mStiffnessAlpha;
     double mReactionAlpha;
-    unsigned int mCMStep;
-    unsigned int mActuatorCounter;
-    double mCMTime;
-    unsigned int mPerturbationPeriod;
     std::vector<std::string> mOrderedMapKeys; // TODO: we could have std::vectors instead of std::maps
     std::map<std::string, std::vector<ModelPart*>> mFEMBoundariesSubModelParts; /// FEM SubModelParts associated to each boundary of every actuator
     std::map<std::string, std::vector<ModelPart*>> mDEMBoundariesSubModelParts; /// DEM SubModelParts associated to each boundary of every actuator
@@ -268,6 +273,10 @@ virtual Vector MeasureReactionStress();
 Vector GetPerturbations(const Vector& rTargetStress, const double& rTime);
 
 double GetConditionNumber(const Matrix& rInputMatrix, const Matrix& rInvertedMatrix);
+
+void CalculateVelocity(const Vector& r_next_target_stress);
+
+void CalculateStiffness();
 
 ///@}
 ///@name Protected  Access

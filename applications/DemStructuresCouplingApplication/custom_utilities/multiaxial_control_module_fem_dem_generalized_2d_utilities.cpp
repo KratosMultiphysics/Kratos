@@ -82,13 +82,14 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
     KRATOS_TRY;
 
     const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
+    mStep++;
 
     // Update velocities
     if (mCMTime < current_time) {
         
         const double next_cm_time = mCMTime + mCMDeltaTime;
-
         const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
+
         Vector next_target_stress(number_of_actuators);
         noalias(next_target_stress) = ZeroVector(number_of_actuators);
 
@@ -101,51 +102,12 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
             next_target_stress[map_index] = pFEMTargetStressTable->GetValue(next_cm_time);
         }
 
-        
-
         Vector target_stress_perturbation(number_of_actuators);
         noalias(target_stress_perturbation) = this->GetPerturbations(next_target_stress,next_cm_time);
         noalias(next_target_stress) += target_stress_perturbation;
-        Matrix k_inverse(number_of_actuators,number_of_actuators);
-        double k_det = 0.0;
-        MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
-        // TODO: check tolerance in CheckConditionNumber
-        const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness, 
-                                                        k_inverse, std::numeric_limits<double>::epsilon(),
-                                                        false);
-        const double k_condition_number = this->GetConditionNumber(mStiffness,k_inverse);
 
-            // KRATOS_WATCH("Begin Updating velocity.........")
-            // KRATOS_WATCH(current_time)
-            // KRATOS_WATCH(mStiffness)
-            // KRATOS_WATCH(k_condition_number)
-            // KRATOS_WATCH(mVelocity)
-            
-        Vector delta_velocity(number_of_actuators);
-        Vector delta_target_stress(number_of_actuators);
-        noalias(delta_target_stress) = next_target_stress-mReactionStress;
-        if (is_k_invertible == false || std::isnan(k_condition_number)) {
-            noalias(delta_velocity) = ZeroVector(number_of_actuators);
-            std::cout << "Stiffness matrix is not invertible. Keeping loading velocity constant" << std::endl;            
-        } else {
-            noalias(delta_velocity) = prod(k_inverse,delta_target_stress)/mCMDeltaTime - mVelocity;
-        }
-        noalias(mVelocity) += mVelocityAlpha * delta_velocity;
-
-            // KRATOS_WATCH("Updating velocity.........")
-            // KRATOS_WATCH(mVelocity)
-
-        for (unsigned int i = 0; i < mVelocity.size(); i++) {
-            if (std::abs(mVelocity[i]) > std::abs(mLimitVelocities[i])) {
-                if (mVelocity[i] > 0.0) {
-                    mVelocity[i] = std::abs(mLimitVelocities[i]);
-                } else {
-                    mVelocity[i] = - std::abs(mLimitVelocities[i]);
-                }
-            }
-        }
-            // KRATOS_WATCH("End Updating velocity.........")
-            // KRATOS_WATCH(mVelocity)
+        // Calculate velocity
+        this->CalculateVelocity(next_target_stress);
     }
 
     // Move Actuators
@@ -226,9 +188,11 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
     const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
 
-    Vector delta_reaction_stress(number_of_actuators);
-    noalias(delta_reaction_stress) = this->MeasureReactionStress() - mReactionStress;
-    noalias(mReactionStress) += mReactionAlpha * delta_reaction_stress;
+    Vector reaction_stress_estimated(number_of_actuators);
+    noalias(reaction_stress_estimated) = this->MeasureReactionStress();
+    noalias(mReactionStress) = (1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress;
+    // noalias(mReactionStress) = 1.0/(1.0 - std::pow(mReactionAlpha,mStep)) * 
+    //                         ((1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress);
 
     // Update ReactionStresses and Stiffness matrix
     if (mCMTime < current_time) {
@@ -237,6 +201,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
         mCMTime += mCMDeltaTime;
         mCMStep += 1;
         
+        Vector delta_reaction_stress(number_of_actuators);
         noalias(delta_reaction_stress) = mReactionStress - mReactionStressOld;
         noalias(mReactionStressOld) = mReactionStress;
 
@@ -245,34 +210,8 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
             mDeltaReactionStress(i,mActuatorCounter) = delta_reaction_stress[i];
         }
 
-        if (mCMStep > number_of_actuators-1) {
-            // Update K if DeltaDisplacement is invertible
-            Matrix delta_displacement_inverse(number_of_actuators,number_of_actuators);
-            double delta_displacement_det = 0.0;
-            MathUtils<double>::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
-            // TODO: check tolerance in CheckConditionNumber
-            const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement, 
-                                                            delta_displacement_inverse, 1.0e-10, 
-                                                            false);
-            const double delta_displacement_condition_number = this->GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
-
-            // KRATOS_WATCH("Begin Updating K.........")
-            // KRATOS_WATCH(mDeltaDisplacement)
-            // KRATOS_WATCH(delta_displacement_condition_number)
-            // KRATOS_WATCH(mStiffness)
-
-            Matrix k_estimated(number_of_actuators,number_of_actuators);
-            if (is_delta_displacement_invertible == false || std::isnan(delta_displacement_condition_number) ) {
-                noalias(k_estimated) = mStiffness;
-                std::cout << "Delta displacement matrix is not invertible. Keeping stiffness matrix constant" << std::endl;
-            } else {
-                noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
-            }
-            noalias(mStiffness) = mStiffnessAlpha * k_estimated + (1.0 - mStiffnessAlpha) * mStiffness;
-
-            // KRATOS_WATCH("End Updating K........")
-            // KRATOS_WATCH(mStiffness)    
-        }
+        // Update K if DeltaDisplacement is invertible
+        this->CalculateStiffness();
 
         if (mActuatorCounter == number_of_actuators-1) {
             mActuatorCounter = 0;
