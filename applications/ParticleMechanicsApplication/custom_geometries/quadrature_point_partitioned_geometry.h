@@ -175,6 +175,37 @@ public:
     */
     ///@}
 
+    virtual Matrix& Jacobian(Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const override
+    {
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        if (rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize(working_space_dimension, local_space_dimension, false);
+
+        const Matrix& r_shape_functions_gradient_in_integration_point = ShapeFunctionsLocalGradients(ThisMethod)[IntegrationPointIndex];
+        const Matrix& r_N = ShapeFunctionsValues();
+
+        rResult.clear();
+        const SizeType points_number = this->PointsNumber();
+        IndexType active_point_index = 0;
+        for (IndexType i = 0; i < points_number; ++i) {
+            if (r_N(IntegrationPointIndex,i) > std::numeric_limits<double>::epsilon()) { // only use active nodes
+                const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                    const double value = r_coordinates[k];
+                    for (IndexType m = 0; m < local_space_dimension; ++m) {
+                        rResult(k, m) += value * r_shape_functions_gradient_in_integration_point(active_point_index, m);
+                    }
+                }
+                active_point_index += 1; // increment active node counter
+            }
+        }
+
+        return rResult;
+    }
+
+
+
 protected:
 
     ///@name Constructor
