@@ -251,7 +251,6 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     }
 
     // this strain in the real anisotropic space
-    const Vector real_strain_vector         = rValues.GetStrainVector();
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // We create the rValues for the isotropic CL
