@@ -361,10 +361,9 @@ public:
     {
         KRATOS_TRY
 
-        typedef Variable<double> component_type;
-        const component_type& vector_var_x = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_X"));
-        const component_type& vector_var_y = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_Y"));
-        const component_type& vector_var_z = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_Z"));
+        const auto& vector_var_x = KratosComponents<Variable<double>>::Get(m_vector_var1_name+std::string("_X"));
+        const auto& vector_var_y = KratosComponents<Variable<double>>::Get(m_vector_var1_name+std::string("_Y"));
+        const auto& vector_var_z = KratosComponents<Variable<double>>::Get(m_vector_var1_name+std::string("_Z"));
 
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
         std::vector<unsigned int> node_partition;
