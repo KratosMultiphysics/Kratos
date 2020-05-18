@@ -44,7 +44,8 @@ def ComputeFluidForces(working_path, step):
     cells_areas = CalculateCellAreas(ElemsNr, elem_connectivities, X, Y, Z)
 
     # calculating the force vector
-    fluid_forces = calcFluidForceVector(ElemsNr,elem_connectivities,NodesNr,cell_pressure,cells_areas,cells_normals,(step+1))
+    fluid_forces = CalculateNodalFluidForces(
+        ElemsNr, elem_connectivities, NodesNr, cell_pressure, cells_areas, cells_normals)
 
     return fluid_forces
 
@@ -353,32 +354,23 @@ def CalculateDistanceVector(X,Y,Z,start,end):
     distance_vector[2] = Z[end] - Z[start]
     return distance_vector
 
+def CalculateCellForce(pressure,area,normal,cell_id):
+    cell_force = np.zeros(3)
+    cell_force[0] = pressure * area * normal[cell_id, 0]
+    cell_force[1] = pressure * area * normal[cell_id, 1]
+    cell_force[2] = pressure * area * normal[cell_id, 2]
+    return cell_force
+
+
 # Calculate the Vector Force
-def calcFluidForceVector(ElemsNr,elem_connectivities,NodesNr,cell_pressure,area,normal,fIteration):
+def CalculateNodalFluidForces(ElemsNr,elem_connectivities,NodesNr,cell_pressure,area,normal):
     forcesTauNP = np.zeros(NodesNr*3)
-    for i in xrange(0,ElemsNr):
-        #p= cpCell[i] * q
-        p=cell_pressure[i]
-        Fx = p * area[i] * normal[i,0]
-        Fy = p * area[i] * normal[i,1]
-        Fz = p * area[i] * normal[i,2]
-        #print 'test Fx, Fy, Fz', Fx, Fy, Fz
-        forcesTauNP[3*(elem_connectivities[i*4+0]-1)+0] += 0.25 * Fx
-        forcesTauNP[3*(elem_connectivities[i*4+0]-1)+1] += 0.25 * Fy
-        forcesTauNP[3*(elem_connectivities[i*4+0]-1)+2] += 0.25 * Fz
-        forcesTauNP[3*(elem_connectivities[i*4+1]-1)+0] += 0.25 * Fx
-        forcesTauNP[3*(elem_connectivities[i*4+1]-1)+1] += 0.25 * Fy
-        forcesTauNP[3*(elem_connectivities[i*4+1]-1)+2] += 0.25 * Fz
-        forcesTauNP[3*(elem_connectivities[i*4+2]-1)+0] += 0.25 * Fx
-        forcesTauNP[3*(elem_connectivities[i*4+2]-1)+1] += 0.25 * Fy
-        forcesTauNP[3*(elem_connectivities[i*4+2]-1)+2] += 0.25 * Fz
-        forcesTauNP[3*(elem_connectivities[i*4+3]-1)+0] += 0.25 * Fx
-        forcesTauNP[3*(elem_connectivities[i*4+3]-1)+1] += 0.25 * Fy
-        forcesTauNP[3*(elem_connectivities[i*4+3]-1)+2] += 0.25 * Fz
-    f_name = 'Outputs/ForcesTauNP_'+str(fIteration)+'.dat'
-    with open(f_name,'w') as fwrite:
-        for i in xrange(0,len(forcesTauNP[:])):
-            fwrite.write("%f\n" % (forcesTauNP[i]))
+    for i in xrange(0, ElemsNr):
+        cell_force = CalculateCellForce(cell_pressure[i],area[i],normal,i)
+        for k in range(4):
+            for j in range(3):
+                forcesTauNP[3*(elem_connectivities[i*4+k]-1)+j] += 0.25 * cell_force[j]
+
     return forcesTauNP
 
 # Execute the Mesh deformation of TAU
