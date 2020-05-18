@@ -409,7 +409,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler1(
         const double EulerAngle1,
-        BoundedMatrixType &rRotationOperator
+        BoundedMatrix<double, 3, 3> &rRotationOperator
     );
 
     /**
@@ -418,7 +418,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler2(
         const double EulerAngle2,
-        BoundedMatrixType &rRotationOperator
+        BoundedMatrix<double, 3, 3> &rRotationOperator
     );
 
     /**
@@ -427,7 +427,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler3(
         const double EulerAngle3,
-        BoundedMatrixType &rRotationOperator
+        BoundedMatrix<double, 3, 3> &rRotationOperator
     );
 
     /**
@@ -444,7 +444,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const double EulerAngle1, // phi
         const double EulerAngle2, // theta
         const double EulerAngle3, // hi
-        BoundedMatrixType &rRotationOperator
+        BoundedMatrix<double, 3, 3> &rRotationOperator
     );
 
     /**
