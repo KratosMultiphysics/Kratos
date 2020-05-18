@@ -118,31 +118,7 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-
-    //************* GETTING METHODS
-
-    /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
-     * Sets on rValues the nodal displacements
-     */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
-
     //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize() override;
 
     /**
      * Called at the beginning of each solution step
@@ -150,42 +126,13 @@ public:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
-
-    //************* COMPUTING  METHODS
-
-
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector: the elemental right hand side vector
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
-
-
-
-    void AddExplicitContribution(const VectorType& rRHSVector,
-                                 const Variable<VectorType>& rRHSVariable,
-                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
-                                 const ProcessInfo& rCurrentProcessInfo) override;
-
-    //************************************************************************************
-    //************************************************************************************
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-
     ///@}
     ///@name Access
     ///@{
+
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+        std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -213,52 +160,6 @@ public:
         GetGeometry().PrintData(rOStream);
     }
 
-    ///@}
-    ///@name Access Get Values
-    ///@{
-
-    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
-        std::vector<bool>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
-        std::vector<int>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Access Set Values
-    ///@{
-
-    void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-        std::vector<int>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > > rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -266,66 +167,32 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    MaterialPointVariables mMP;
+    //MaterialPointVariables mMP;
 
     /**
      * Container for historical total elastic deformation measure F0 = dx/dX
      */
-    Matrix mDeformationGradientF0;
+    //Matrix mDeformationGradientF0;
     /**
      * Container for the total deformation gradient determinants
      */
-    double mDeterminantF0;
+    //double mDeterminantF0;
 
     /**
      * Container for constitutive law instances on each integration point
      */
-    ConstitutiveLaw::Pointer mConstitutiveLawVector;
+    //ConstitutiveLaw::Pointer mConstitutiveLawVector;
 
 
     /**
      * Finalize and Initialize label
      */
-    bool mFinalizedStep;
+    //bool mFinalizedStep;
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    virtual SizeType GetNumberOfDofs() {
-        return GetGeometry().WorkingSpaceDimension();
-    }
-
-    /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
-     */
-    void CalculateElementalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag);
 
     ///@}
     ///@name Protected Operations
     ///@{
-
-
-    /**
-     * Calculation and addition of the vectors of the RHS
-     */
-
-    void CalculateAndAddRHS(
-        VectorType& rRightHandSideVector,
-        GeneralVariables& rVariables,
-        Vector& rVolumeForce,
-        const double& rIntegrationWeight,
-        const ProcessInfo& rCurrentProcessInfo);
-
-
-
 
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
@@ -333,48 +200,16 @@ protected:
     void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
             GeneralVariables& rVariables,
             Vector& rVolumeForce,
-            const double& rIntegrationWeight);
-
-
+            const double& rIntegrationWeight) override;
 
     /// Calculation of the Explicit Stresses from velocity gradient.
     void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
-        GeneralVariables& rVariables);
-
-
-
+        GeneralVariables& rVariables) override;
 
     /**
      * Initialize Material Properties on the Constitutive Law
      */
-    void InitializeMaterial ();
-
-
-    /**
-     * Reset the Constitutive Law Parameters
-     */
-    void ResetConstitutiveLaw() override;
-
-
-
-    /**
-     * Calculation of the Current Displacement
-     */
-    Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
-
-
-
-    /**
-     * Initialize Element General Variables
-     */
-    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Calculation of the Integration Weight
-     */
-    double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
+    void InitializeMaterial() override;
 
     ///@name Protected LifeCycle
     ///@{
@@ -387,6 +222,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    SizeType mMPSubPoints;
 
 
     ///@}
