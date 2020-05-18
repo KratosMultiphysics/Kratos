@@ -547,7 +547,6 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( CORRECT_RESULT );                 /// This flag is used in order to check that the result is correct
     KRATOS_DEFINE_LOCAL_FLAG( HISTORICAL_VALUE );               /// This flag is used in order to check if the values are historical
-    KRATOS_DEFINE_LOCAL_FLAG( USE_NODE_COORDINATES );           /// This flag is used in order to check if the node coordinates are used
     KRATOS_DEFINE_LOCAL_FLAG( CHECK_ONLY_LOCAL_ENTITIES );      /// This flag is used in order to check only local entities
     KRATOS_DEFINE_LOCAL_FLAG( NODES_CONTAINER_INITIALIZED );    /// This flag is used in order to check that nodes container are initialized
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS_CONTAINER_INITIALIZED ); /// This flag is used in order to check that elements container are initialized

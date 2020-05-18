@@ -23,12 +23,11 @@ namespace Kratos
 /// Local Flags
 KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, CORRECT_RESULT,                 0 );
 KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, HISTORICAL_VALUE,               1 );
-KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, USE_NODE_COORDINATES,           2 );
-KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, CHECK_ONLY_LOCAL_ENTITIES,      3 );
-KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, NODES_CONTAINER_INITIALIZED,    4 );
-KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, ELEMENTS_CONTAINER_INITIALIZED, 5 );
-KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, NODES_DATABASE_INITIALIZED,     6 );
-KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, ELEMENTS_DATABASE_INITIALIZED,  7 );
+KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, CHECK_ONLY_LOCAL_ENTITIES,      2 );
+KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, NODES_CONTAINER_INITIALIZED,    3 );
+KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, ELEMENTS_CONTAINER_INITIALIZED, 4 );
+KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, NODES_DATABASE_INITIALIZED,     5 );
+KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, ELEMENTS_DATABASE_INITIALIZED,  6 );
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -70,8 +69,6 @@ void FromJSONCheckResultProcess::ExecuteInitialize()
 
     // Set some flags
     this->Set(HISTORICAL_VALUE, mThisParameters["historical_value"].GetBool());
-    this->Set(USE_NODE_COORDINATES, mThisParameters["use_node_coordinates"].GetBool());
-    KRATOS_WARNING_IF("FromJSONCheckResultProcess", this->Is(USE_NODE_COORDINATES)) << "use_node_coordinates is deprecated. Please do not use it" << std::endl;
     this->Set(CHECK_ONLY_LOCAL_ENTITIES, mThisParameters["check_only_local_entities"].GetBool());
 
     // We initialize the databases
@@ -649,15 +646,7 @@ void FromJSONCheckResultProcess::FillDatabase(
 
 std::string FromJSONCheckResultProcess::GetNodeIdentifier(NodeType& rNode)
 {
-    if (this->Is(USE_NODE_COORDINATES)) {
-        const SizeType digits = 6;
-        std::stringstream ss;
-        ss.setf( std::ios::fixed );
-        ss << "X_" << std::setprecision( digits ) << rNode.X0() << "_Y_" << std::setprecision( digits ) << rNode.Y0() << "_Z_" << std::setprecision( digits ) << rNode.Z0();
-        return ss.str();
-    } else {
-        return std::to_string(rNode.Id());
-    }
+    return std::to_string(rNode.Id());
 }
 
 /***********************************************************************************/

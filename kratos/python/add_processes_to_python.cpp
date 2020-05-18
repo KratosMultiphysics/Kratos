@@ -612,7 +612,6 @@ void  AddProcessesToPython(pybind11::module& m)
 
     from_json_check_result_process_interface.attr("CORRECT_RESULT")                 = &FromJSONCheckResultProcess::CORRECT_RESULT;
     from_json_check_result_process_interface.attr("HISTORICAL_VALUE")               = &FromJSONCheckResultProcess::HISTORICAL_VALUE;
-    from_json_check_result_process_interface.attr("USE_NODE_COORDINATES")           = &FromJSONCheckResultProcess::USE_NODE_COORDINATES;
     from_json_check_result_process_interface.attr("CHECK_ONLY_LOCAL_ENTITIES")      = &FromJSONCheckResultProcess::CHECK_ONLY_LOCAL_ENTITIES;
 }
 
