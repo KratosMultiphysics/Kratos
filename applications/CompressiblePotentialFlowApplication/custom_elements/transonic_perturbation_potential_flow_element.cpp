@@ -81,10 +81,15 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
+    const int kutta = r_this.GetValue(KUTTA);   
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
     {
         if (this->Is(INLET))
+        {
+            CalculateRightHandSideInletElement(rRightHandSideVector, rCurrentProcessInfo);
+        }
+        else if(kutta == 0)
         {
             CalculateRightHandSideInletElement(rRightHandSideVector, rCurrentProcessInfo);
         }
@@ -107,10 +112,15 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
+    const int kutta = r_this.GetValue(KUTTA);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
     {
         if (this->Is(INLET))
+        {
+            CalculateLeftHandSideInletElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+        }
+        else if (kutta == 0)
         {
             CalculateLeftHandSideInletElement(rLeftHandSideMatrix, rCurrentProcessInfo);
         }
