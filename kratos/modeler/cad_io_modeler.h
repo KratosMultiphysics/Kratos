@@ -56,7 +56,7 @@ public:
     }
 
     /// Constructor.
-    Modeler(
+    CadIoModeler(
         Model& rModel,
         Parameters ModelerParameters = Parameters())
         : Modeler(rModel, ModelerParameters)
