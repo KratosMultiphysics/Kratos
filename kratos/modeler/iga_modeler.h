@@ -70,7 +70,7 @@ public:
         Model & rModel,
         const Parameters ModelerParameters = Parameters())
         : Modeler(rModel, ModelerParameters)
-        , mModel(rModel)
+        , mpModel(&rModel)
     {
     }
 
@@ -116,7 +116,7 @@ private:
     ///@name Iga functionalities
     ///@{
 
-    Model& mModel = Model();
+    Model* mpModel = nullptr;
 
     ///@}
     ///@name Iga functionalities
