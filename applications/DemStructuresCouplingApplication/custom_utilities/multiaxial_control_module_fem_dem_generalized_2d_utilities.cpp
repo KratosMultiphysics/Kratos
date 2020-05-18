@@ -111,7 +111,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
         noalias(next_target_stress) += target_stress_perturbation;
 
         // Calculate velocity
-        this->CalculateVelocity(next_target_stress);
+        this->CalculateVelocity(next_target_stress, current_time);
     }
 
     // Move Actuators
@@ -201,7 +201,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
 
     // Update Stiffness matrix
     if (current_time > (mCMTime - 0.5 * delta_time)) {
-        
+
         // Update K if DeltaDisplacement is invertible
         this->CalculateStiffness();
     }

@@ -274,7 +274,7 @@ Vector GetPerturbations(const Vector& rTargetStress, const double& rTime);
 
 double GetConditionNumber(const Matrix& rInputMatrix, const Matrix& rInvertedMatrix);
 
-void CalculateVelocity(const Vector& r_next_target_stress);
+void CalculateVelocity(const Vector& r_next_target_stress, const double& r_current_time);
 
 void CalculateStiffness();
 

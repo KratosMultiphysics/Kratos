@@ -136,7 +136,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionSte
         noalias(next_target_stress) += target_stress_perturbation;
 
         // Calculate velocity
-        CalculateVelocity(next_target_stress);
+        CalculateVelocity(next_target_stress, current_time);
     }
 
     // Move Actuators
@@ -445,9 +445,8 @@ double MultiaxialControlModuleGeneralized2DUtilities::GetConditionNumber(const M
 
 //***************************************************************************************************************
 
-void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vector& r_next_target_stress) {
+void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vector& r_next_target_stress, const double& r_current_time) {
 
-    const double current_time = mrDemModelPart.GetProcessInfo()[TIME];
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
 
     Vector delta_target_stress(number_of_actuators);
@@ -465,14 +464,14 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
         const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
 
         KRATOS_WATCH("Begin Updating velocity.........")
-        KRATOS_WATCH(current_time)
+        KRATOS_WATCH(r_current_time)
         KRATOS_WATCH(mCMTime)
         KRATOS_WATCH(mStiffness)
         KRATOS_WATCH(k_condition_number)
         KRATOS_WATCH(mVelocity)
 
         Vector velocity_perturbation(number_of_actuators);
-        noalias(velocity_perturbation) = GetPerturbations(mLimitVelocities,current_time);
+        noalias(velocity_perturbation) = GetPerturbations(mLimitVelocities,r_current_time);
         if (is_k_invertible == false || std::isnan(k_condition_number)) {
             noalias(velocity_estimated) = mVelocity + velocity_perturbation;
             std::cout << "Stiffness matrix is not invertible. Keeping loading velocity constant" << std::endl;            
