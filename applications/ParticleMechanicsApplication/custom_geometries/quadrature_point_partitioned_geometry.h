@@ -73,17 +73,6 @@ public:
     ///@{
 
     /// Constructor with points and geometry shape function container
-    /*
-    QuadraturePointPartitionedGeometry(
-        const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            ThisGeometryShapeFunctionContainer)
-    {
-    }
-    */
     QuadraturePointPartitionedGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
@@ -92,19 +81,6 @@ public:
     }
 
     /// Constructor with points, geometry shape function container, parent
-    /*
-    QuadraturePointPartitionedGeometry(
-        const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
-        GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            ThisGeometryShapeFunctionContainer)
-        , mpGeometryParent(pGeometryParent)
-    {
-    }
-    */
     QuadraturePointPartitionedGeometry(
     const PointsArrayType& ThisPoints,
     GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
@@ -141,41 +117,7 @@ public:
         return *this;
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
-    /*
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
-    {
-        KRATOS_ERROR << "QuadraturePointPartitionedGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
-            << "This constructor is not allowed as it would remove the evaluated shape functions as the ShapeFunctionContainer is not being copied."
-            << std::endl;
-    }
-    */
-    ///@}
-    ///@name Input and output
-    ///@{
-    /*
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "Quadrature point templated by local space dimension and working space dimension.";
-    }
-
-    /// Print information about this object.
-    void PrintInfo( std::ostream& rOStream ) const override
-    {
-        rOStream << "Quadrature point templated by local space dimension and working space dimension.";
-    }
-
-    /// Print object's data.
-    void PrintData( std::ostream& rOStream ) const override
-    {
-    }
-    */
-    ///@}
-
-    virtual Matrix& Jacobian(Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const override
+    Matrix& Jacobian(Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const override
     {
         const SizeType working_space_dimension = this->WorkingSpaceDimension();
         const SizeType local_space_dimension = this->LocalSpaceDimension();
@@ -193,14 +135,12 @@ public:
                 const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
                 for (IndexType k = 0; k < working_space_dimension; ++k) {
                     const double value = r_coordinates[k];
-                    for (IndexType m = 0; m < local_space_dimension; ++m) {
+                    for (IndexType m = 0; m < local_space_dimension; ++m)
                         rResult(k, m) += value * r_shape_functions_gradient_in_integration_point(active_point_index, m);
-                    }
                 }
                 active_point_index += 1; // increment active node counter
             }
         }
-
         return rResult;
     }
 
