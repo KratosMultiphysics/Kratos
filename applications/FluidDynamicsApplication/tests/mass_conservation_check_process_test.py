@@ -171,7 +171,7 @@ class MassConservationUtility(KratosUnittest.TestCase):
         self.file_name = "cube_tetrahedra_elements_coarse"
         model_part = self._CreateModelPart()
         for node in model_part.GetCommunicator().LocalMesh().Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.X - 0.5)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.X - 0.75)
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 1.0 - node.X)
 
         self._SetInletAndOutlet(model_part)
@@ -181,7 +181,7 @@ class MassConservationUtility(KratosUnittest.TestCase):
         mass_conservation_process.Initialize()
         mass_conservation_process.ComputeBalancedVolume()
         dt = mass_conservation_process.ComputeDtForConvection()
-        self.assertAlmostEqual(dt, 0.2)
+        self.assertAlmostEqual(dt, 0.4)
 
     def test_ComputeDtForConvectionMaxDt(self):
         self.work_folder = "auxiliary_files"
@@ -237,12 +237,12 @@ class MassConservationUtility(KratosUnittest.TestCase):
         mass_conservation_process.ExecuteInitialize()
         model_part.CloneTimeStep(0.1)
         mass_conservation_process.ExecuteFinalizeSolutionStep()
-        results = {1: -0.5938516359222957,2: -0.09699581511190579,3: 0.4014031390113931,4: -0.5517656205702922,
-            5: -0.05119945641905187, 6: 0.4492730587186531,7: -0.5033021519665317,8: -1e-07,9: 0.4991147948829323,
-            10: -0.5917444339533421,11: -0.09536505385930948,12: 0.4020325332379011,13: -0.5508310379528296,
-            14: -0.05344725574988601,15: 0.4487503962770498,16: -0.5042584883219816,17: -0.00027154466803484535,
-            18: 0.5,19: -0.5867198935872885,20: -0.09537629393576269,21: 0.40337851653918727,22: -0.5466292414006754,
-            23: -0.05774088594966558,24: 0.4494118475239448,25: -0.5256186306939375,26: -1e-07,27: 0.49984147049824706}
+        results = {1: -0.5938515490094666,2: -0.09699619395711377,3: 0.40140301120375166,4: -0.5517655789133667,
+            5: -0.051199842079361124, 6: 0.44927297736419847,7: -0.5033021486670106,8: -5e-07,9: 0.4991147797571505,
+            10: -0.5917443573706135,11: -0.09536542517311021,12: 0.40203241373063053,13: -0.5508310005042678,
+            14: -0.05344762008016252,15: 0.4487502655835266,16: -0.5042584855417436,17: -0.000271931088392015,
+            18: 0.5,19: -0.5867198230113498,20: -0.09537664178326279,21: 0.40337839857437485,22: -0.546629205139377,
+            23: -0.05774121962805403,24: 0.44941171225031157,25: -0.5256186036645334,26: -5e-07,27: 0.4998413776910875}
         for node in model_part.GetCommunicator().LocalMesh().Nodes:
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), results.get(node.Id))
         self.assertAlmostEqual(model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME], 0.1)

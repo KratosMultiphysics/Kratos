@@ -200,7 +200,7 @@ public:
      * @param Settings Parameters object with settings
      */
 
-    void ValidateInput (Parameters Settings);
+    void ValidateInputAndInitialize (Parameters Settings);
 
     // ///@}
     // ///@name Inquiry

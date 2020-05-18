@@ -16,9 +16,7 @@
 // External includes
 
 // Project includes
-// #include "utilities/openmp_utils.h"
-// #include "processes/find_nodal_h_process.h"
-// #include "custom_utilities/fluid_element_utilities.h"
+#include "processes/find_nodal_h_process.h"
 #include "containers/model.h"
 
 // Application includes
@@ -36,7 +34,7 @@ MassConservationUtility::MassConservationUtility(
     Parameters Settings)
     : mrModelPart(rModel.GetModelPart(Settings["model_part_name"].GetString())) {
 
-    this->ValidateInput(Settings);
+    this->ValidateInputAndInitialize(Settings);
 }
 
 
@@ -47,10 +45,10 @@ MassConservationUtility::MassConservationUtility(
     Parameters Settings)
     : mrModelPart(rModelPart) {
 
-    this->ValidateInput(Settings);
+    this->ValidateInputAndInitialize(Settings);
 }
 
-void MassConservationUtility::ValidateInput(
+void MassConservationUtility::ValidateInputAndInitialize(
     Parameters Settings) {
     const Parameters default_parameters = GetDefaultParameters();
     Settings.ValidateAndAssignDefaults(default_parameters);
@@ -59,6 +57,8 @@ void MassConservationUtility::ValidateInput(
     mEchoLevel = Settings["echo_level"].GetInt();
     mMinDt = Settings["dt_lower_limit"].GetDouble();
     mMaxDt = Settings["dt_upper_limit"].GetDouble();
+    FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable> nodal_h_calculator(mrModelPart);
+    nodal_h_calculator.Execute();
 }
 
 
@@ -248,16 +248,16 @@ void MassConservationUtility::ComputeVolumesAndInterface( double& rPositiveVolum
         Matrix shape_functions;
         GeometryType::ShapeFunctionsGradientsType shape_derivatives;
 
-        auto rGeom = it_elem->GetGeometry();
+        auto r_geometry = it_elem->GetGeometry();
         unsigned int pt_count_pos = 0;
         unsigned int pt_count_neg = 0;
-        const bool is_geometry_cut = IsGeometryCut(rGeom, pt_count_neg, pt_count_pos);
+        const bool is_geometry_cut = IsGeometryCut(r_geometry, pt_count_neg, pt_count_pos);
 
-        if ( pt_count_pos == rGeom.PointsNumber() ){
+        if ( pt_count_pos == r_geometry.PointsNumber() ){
             // all nodes are positive (pointer is necessary to maintain polymorphism of DomainSize())
             pos_vol += it_elem->pGetGeometry()->DomainSize();
         }
-        else if ( pt_count_neg == rGeom.PointsNumber() ){
+        else if ( pt_count_neg == r_geometry.PointsNumber() ){
             // all nodes are negative (pointer is necessary to maintain polymorphism of DomainSize())
             neg_vol += it_elem->pGetGeometry()->DomainSize();
         }
@@ -267,13 +267,17 @@ void MassConservationUtility::ComputeVolumesAndInterface( double& rPositiveVolum
             Vector w_gauss_neg_side(3, 0.0);
             Vector w_gauss_interface(3, 0.0);
 
-            Vector nodal_distances( rGeom.PointsNumber(), 0.0 );
-            for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
+            Vector nodal_distances( r_geometry.PointsNumber(), 0.0 );
+            for (unsigned int i = 0; i < r_geometry.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
-                if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
-                    rGeom[i].FastGetSolutionStepValue(DISTANCE) = -1.0e-7;
+                double &dist = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
+                const double min_distance = r_geometry[i].GetValue(NODAL_H)*1e-6;
+                if ( std::abs(dist) < min_distance ){
+                    r_geometry[i].SetLock();
+                    dist = dist > 0 ? min_distance : -min_distance;
+                    r_geometry[i].UnSetLock();
                 }
-                nodal_distances[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
+                nodal_distances[i] = dist;
             }
             const auto p_modified_sh_func = GetModifiedShapeFunctions(it_elem->pGetGeometry(), nodal_distances);
 
@@ -346,10 +350,14 @@ double MassConservationUtility::OrthogonalFlowIntoAir( const double Factor )
             Vector distance( r_geom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < r_geom.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
-                if ( r_geom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
-                    r_geom[i].FastGetSolutionStepValue(DISTANCE) = -1.0e-7;
+                double &dist = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+                const double min_distance = r_geom[i].GetValue(NODAL_H)*1e-6;
+                if ( std::abs(dist) < min_distance ){
+                    r_geom[i].SetLock();
+                    dist = dist > 0 ? min_distance : -min_distance;
+                    r_geom[i].UnSetLock();
                 }
-                distance[i] = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+                distance[i] = dist;
             }
 
             const auto p_modified_sh_func = GetModifiedShapeFunctions(it_elem->pGetGeometry(), distance);
