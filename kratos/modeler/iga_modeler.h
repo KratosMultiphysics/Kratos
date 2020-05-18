@@ -59,6 +59,12 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor.
+    IgaModeler()
+        : Modeler()
+    {
+    }
+
     /// Constructor.
     IgaModeler(
         Model & rModel,
@@ -173,15 +179,12 @@ private:
         const std::string& rDataFileName) const;
 
     ///@}
+    ///@name Serializer
+    ///@{
 
     friend class Serializer;
 
-    /// Default constructor.
-    IgaModeler()
-        : Modeler()
-    {
-    }
-
+    ///@}
 }; // Class CadModeler
 
 ///@}
