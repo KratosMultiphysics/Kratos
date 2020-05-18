@@ -175,13 +175,13 @@ virtual ~MultiaxialControlModuleGeneralized2DUtilities(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-// Before FEM and DEM solution
+// Before DEM solution
 virtual void ExecuteInitialize();
 
-// Before FEM and DEM solution
+// Before DEM solution
 virtual void ExecuteInitializeSolutionStep();
 
-// After FEM and DEM solution
+// After DEM solution
 virtual void ExecuteFinalizeSolutionStep();
 
 //***************************************************************************************************************

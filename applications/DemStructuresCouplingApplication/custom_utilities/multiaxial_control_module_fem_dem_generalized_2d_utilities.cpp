@@ -82,12 +82,16 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
     KRATOS_TRY;
 
     const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
+    const double delta_time = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
     mStep++;
 
     // Update velocities
-    if (mCMTime < current_time) {
-        
-        const double next_cm_time = mCMTime + mCMDeltaTime;
+    if (current_time > (mCMTime + 0.5 * delta_time)) {
+
+        // Advance CM time
+        mCMTime += mCMDeltaTime;
+        mCMStep += 1;
+
         const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
 
         Vector next_target_stress(number_of_actuators);
@@ -99,11 +103,11 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
             std::vector<ModelPart*> FEMSubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
             unsigned int target_stress_table_id = mTargetStressTableIds[actuator_name];
             TableType::Pointer pFEMTargetStressTable = (*(FEMSubModelPartList[0])).pGetTable(target_stress_table_id);
-            next_target_stress[map_index] = pFEMTargetStressTable->GetValue(next_cm_time);
+            next_target_stress[map_index] = pFEMTargetStressTable->GetValue(mCMTime);
         }
 
         Vector target_stress_perturbation(number_of_actuators);
-        noalias(target_stress_perturbation) = this->GetPerturbations(next_target_stress,next_cm_time);
+        noalias(target_stress_perturbation) = this->GetPerturbations(next_target_stress,mCMTime);
         noalias(next_target_stress) += target_stress_perturbation;
 
         // Calculate velocity
@@ -111,7 +115,6 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
     }
 
     // Move Actuators
-    const double delta_time = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
 
     // Iterate through all actuators
     for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
@@ -186,38 +189,21 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolut
 // After FEM and DEM solution
 void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutionStep() {
     const double current_time = mrFemModelPart.GetProcessInfo()[TIME];
+    const double delta_time = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
 
+    // Update ReactionStresses
     Vector reaction_stress_estimated(number_of_actuators);
     noalias(reaction_stress_estimated) = this->MeasureReactionStress();
     noalias(mReactionStress) = (1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress;
     // noalias(mReactionStress) = 1.0/(1.0 - std::pow(mReactionAlpha,mStep)) * 
     //                         ((1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress);
 
-    // Update ReactionStresses and Stiffness matrix
-    if (mCMTime < current_time) {
-
-        // Advance CM time
-        mCMTime += mCMDeltaTime;
-        mCMStep += 1;
+    // Update Stiffness matrix
+    if (current_time > (mCMTime - 0.5 * delta_time)) {
         
-        Vector delta_reaction_stress(number_of_actuators);
-        noalias(delta_reaction_stress) = mReactionStress - mReactionStressOld;
-        noalias(mReactionStressOld) = mReactionStress;
-
-        for (unsigned int i = 0; i < number_of_actuators; i++) {
-            mDeltaDisplacement(i,mActuatorCounter) = mVelocity[i]*mCMDeltaTime;
-            mDeltaReactionStress(i,mActuatorCounter) = delta_reaction_stress[i];
-        }
-
         // Update K if DeltaDisplacement is invertible
         this->CalculateStiffness();
-
-        if (mActuatorCounter == number_of_actuators-1) {
-            mActuatorCounter = 0;
-        } else{
-            mActuatorCounter++;
-        }
     }
 
     // Print results
