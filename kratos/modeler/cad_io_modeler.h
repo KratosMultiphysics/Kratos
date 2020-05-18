@@ -101,7 +101,7 @@ private:
     ///@name Iga functionalities
     ///@{
 
-    Model& mModel;
+    Model& mModel = Model();
 
     ///@}
     ///@name Serializer
@@ -112,7 +112,6 @@ private:
     /// Default constructor.
     CadIoModeler()
         : Modeler()
-        , mModel(Model())
     {
     }
 
