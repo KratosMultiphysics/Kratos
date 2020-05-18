@@ -63,6 +63,7 @@ public:
     IgaModeler(
         const Parameters ModelerParameters = Parameters())
         : Modeler(ModelerParameters)
+        , mModel(Model())
     {}
 
     /// Constructor.
