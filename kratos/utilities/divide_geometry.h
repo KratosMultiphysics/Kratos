@@ -185,17 +185,20 @@ public:
     int mSplitEdgesNumber;  // Number of split edges.
     int mDivisionsNumber;   // Number of generated subdivisions.
 
-    int mContactInterface;  // Zero or One, gives the interface that contacts the solid
-    int mContactEdge;       // Zero, One, or Two, gives the contact edge of the contact interface 
-
     IndexedPointsContainerType mAuxPointsContainer;                         // Indexed points container to store the original plus the intersection points.
     std::vector < IndexedPointGeometryPointerType > mPositiveSubdivisions;  // Array to store the generated positive subdivisions geometries.
     std::vector < IndexedPointGeometryPointerType > mNegativeSubdivisions;  // Array to store the generated negative subdivisions geometries.
     std::vector < IndexedPointGeometryPointerType > mPositiveInterfaces;    // Array to store the generated positive interfaces geometries.
     std::vector < IndexedPointGeometryPointerType > mNegativeInterfaces;    // Array to store the generated negative interfaces geometries.
-    IndexedPointGeometryPointerType mContactLine;                           // Object to store the contact line (intersection of the interface with solid).
     std::vector < unsigned int > mPositiveInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated positive interfaces.
     std::vector < unsigned int > mNegativeInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated negative interfaces.
+
+    std::vector < unsigned int > mContactInterface;     // Zero or One, gives the interface that contacts the solid
+    std::vector < unsigned int > mContactEdge;          // Zero, One, or Two, gives the contact edge of the contact interface 
+    //std::vector < IndexedPointGeometryPointerType > mContactLine; // Object to store the contact line(s) (intersection of the interface with solid).
+    std::vector < unsigned int > mContactLineNodeIds;   // Object to store the contact line(s)' pair of node Ids in order (e.g. 1,2 , 1,3)
+    std::vector < unsigned int > mContactFace;          // Object to store the face (local) number corresponding to mContactLine.
+    
 
     ///@}
     ///@name Life Cycle

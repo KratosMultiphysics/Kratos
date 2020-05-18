@@ -185,9 +185,31 @@ namespace Kratos
             }
 
             //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") << "Contact Line Nodes: " << contact_line_node_ids << std::endl;
-            mContactLine.reset();
+            //mContactLine.erase();//mContactLine.reset();
+            mContactLineNodeIds.erase();
+            mContactFace.erase();
 
-            if (contact_line_node_ids.size() == 2){
+            for (unsigned int i = 0; i < contact_line_node_ids.size(); i ++){
+                const unsigned int edge_i = contact_edge_order[i];
+                for (unsigned int j = i + 1; j < contact_line_node_ids.size(); j ++){
+                    const unsigned int edge_j = contact_edge_order[j];
+                    const int face_id = FindCommonFace(edge_i, edge_j);
+                    if (face_id > -1){
+                        /* IndexedPointGeometryPointerType p_aux_contact_line = Kratos::make_shared<IndexedPointLineType>(
+                            mAuxPointsContainer(contact_line_node_ids[0]),
+                            mAuxPointsContainer(contact_line_node_ids[1]));
+                        mContactLine.push_back(p_aux_contact_line); */
+
+                        mContactLineNodeIds.push_back(contact_line_node_ids[0]);
+                        mContactLineNodeIds.push_back(contact_line_node_ids[1]);
+                        mContactFace.push_back(face_id);
+                    }
+                }
+            }
+
+            ///////////////////////////////////////////////
+            ///////////////////////////////////////////////
+            /* if (contact_line_node_ids.size() == 2){
                 IndexedPointGeometryPointerType p_aux_contact_line = Kratos::make_shared<IndexedPointLineType>(
                     mAuxPointsContainer(contact_line_node_ids[0]),
                     mAuxPointsContainer(contact_line_node_ids[1]));
@@ -195,7 +217,9 @@ namespace Kratos
             }
             else if (contact_line_node_ids.size() > 2){
                 KRATOS_ERROR << "The contact line element has more than two nodes." << std::endl;
-            }
+            } */
+            ///////////////////////////////////////////////
+            ///////////////////////////////////////////////
 
         } else {
             mDivisionsNumber = 1;
@@ -276,8 +300,28 @@ namespace Kratos
                         mNegativeInterfaces.push_back(p_intersection_tri);
                         mNegativeInterfacesParentIds.push_back(i_subdivision);
 
+                        if (mContactFace.size() > 0){
+                            IndexedGeometriesArrayType edges = p_intersection_tri->Edges();
+
+                            for (unsigned int i_contact = 0; i_contact < mContactFace.size(); i_contact++){
+                                const unsigned int contact_node_i = mContactLineNodeIds[2*i_contact];
+                                const unsigned int contact_node_j = mContactLineNodeIds[2*i_contact + 1];
+
+                                for (unsigned int i_edge = 0; i_edge < edges.size(); i_edge++){
+                                    if ( (edgei[0].Id() == contact_node_i && edgei[1].Id() == contact_node_j) 
+                                        || (edgei[0].Id() == contact_node_j && edgei[1].Id() == contact_node_i) ){
+
+                                        mContactInterface.push_back( mNegativeInterfaces.size() - 1 );
+                                        mContactEdge.push_back( i_edge );  
+                                    }
+                                }
+                            } 
+                        }
+
+                        ///////////////////////////////////////////////
+                        ///////////////////////////////////////////////
                         //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") << "Contact Line Nodes: " << contact_line_node_ids << std::endl;
-                        if (mContactLine){
+                        /* if (mContactLine){
                             IndexedGeometriesArrayType edges = p_intersection_tri->Edges();
                             for (int i_edge = 0; i_edge < edges.size(); i_edge++){
                                 IndexedPointGeometryType edgei = edges[i_edge];
@@ -294,7 +338,9 @@ namespace Kratos
                                         mContactEdge = i_edge;
                                 }
                             }
-                        }
+                        } */
+                        ///////////////////////////////////////////////
+                        ///////////////////////////////////////////////
                     }
                 }
             }
@@ -394,7 +440,21 @@ namespace Kratos
 
     int DivideTetrahedra3D4::FindCommonFace(const int edgeIdI, const int edgeIdJ)
     {
-        
+        // mEdgeNodeI = {0, 0, 0, 1, 1, 2};
+        // mEdgeNodeJ = {1, 2, 3, 2, 3, 3};
+        const std::vector<int> edge_face_1 = {2, 1, 1, 3, 2, 0}; //Face(1) associated with the edge created by mEdgeNodeI and mEdgeNodeJ
+        const std::vector<int> edge_face_2 = {3, 3, 2, 0, 0, 1}; //Face(2) associated with the edge created by mEdgeNodeI and mEdgeNodeJ
+
+        if (edge_face_1[edgeIdI] == edge_face_1[edgeIdJ])
+            return edge_face_[edgeIdI];
+        else if (edge_face_1[edgeIdI] == edge_face_2[edgeIdJ])
+            return edge_face_1[edgeIdI];
+        else if (edge_face_2[edgeIdI] == edge_face_2[edgeIdJ])
+            return edge_face_2[edgeIdI];
+        else if (edge_face_2[edgeIdI] == edge_face_1[edgeIdJ])
+            return edge_face_2[edgeIdI];
+        else 
+            return -1;        
     };
         
 };
