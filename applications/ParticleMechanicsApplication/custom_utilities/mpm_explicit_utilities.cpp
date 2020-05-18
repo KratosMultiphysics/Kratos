@@ -17,7 +17,6 @@ namespace Kratos
 {
     void MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(
         Element& rElement,
-        const Matrix& rDN_DX,
         const Vector& rMPStress,
         const double rMPVolume,
         const SizeType StrainSize,
@@ -32,55 +31,68 @@ namespace Kratos
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
         array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3);
-        for (IndexType i = 0; i < number_of_nodes; i++) 
-        {
-            if (dimension == 2 && StrainSize == 3) 
+
+        const Matrix& r_N = rGeom.ShapeFunctionsValues();
+        std::vector<Matrix> DN_DX_vec(rGeom.IntegrationPointsNumber());
+        GetCartesianDerivatives(DN_DX_vec, rGeom);
+
+        for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p) {
+            const double int_p_vol = rMPVolume * rGeom.IntegrationPoints()[int_p].Weight();
+            const Matrix& DN_DX = DN_DX_vec[int_p];
+
+            for (IndexType i = 0; i < number_of_nodes; i++)
             {
-                // StressVec = s00 s11  s01
-                // Index        0   1   2 
-                //f_x = V*(s_xx*dNdX + s_xy*dNdY)
-                nodal_force_internal_normal[0] = rMPVolume *
-                    (rMPStress[0] * rDN_DX(i, 0) +
-                        rMPStress[2] * rDN_DX(i, 1));
-                //f_y = V*(s_yy*dNdY + s_yx*dNdX)
-                nodal_force_internal_normal[1] = rMPVolume *
-                    (rMPStress[1] * rDN_DX(i, 1) +
-                        rMPStress[2] * rDN_DX(i, 0));
-            } 
-            else if (dimension == 2 && StrainSize == 4) 
-            {
-                KRATOS_ERROR 
-                    << "Call CalcuateAndAddAxisymmetricExplicitInternalForce instead of CalcuateAndAddExplicitInternalForce" 
-                    << std::endl;
-            } 
-            else if (dimension == 3 && StrainSize == 6) 
-            {
-                // StressVec = s00 s11 s22   s01   s12   s02
-                // Index        0   1   2     3     4      5
-                //f_x = V*(s_xx*dNdX + s_xy*dNdY + s_xz*dNdZ)
-                nodal_force_internal_normal[0] = rMPVolume *
-                    (rMPStress[0] * rDN_DX(i, 0) +
-                        rMPStress[3] * rDN_DX(i, 1) +
-                        rMPStress[5] * rDN_DX(i, 2));
-                //f_y = V*(s_yy*dNdY + s_yx*dNdX + s_yz*dNdZ)
-                nodal_force_internal_normal[1] = rMPVolume *
-                    (rMPStress[1] * rDN_DX(i, 1) +
-                        rMPStress[3] * rDN_DX(i, 0) +
-                        rMPStress[4] * rDN_DX(i, 2));
-                //f_z = V*(s_zz*dNdZ + s_zx*dNdX + s_zy*dNdY)
-                nodal_force_internal_normal[2] = rMPVolume *
-                    (rMPStress[2] * rDN_DX(i, 2) +
-                        rMPStress[5] * rDN_DX(i, 0) +
-                        rMPStress[4] * rDN_DX(i, 1));
-                rRightHandSideVector[dimension * i + 2] -= nodal_force_internal_normal[2]; //minus sign, internal forces
-            } 
-            else
-            {
-                KRATOS_ERROR << "Dimension = " << dimension << " and strain size = " << StrainSize
-                    << " are invalid for MPM explicit internal force calculation." << std::endl;
+                if (r_N(int_p,i) > std::numeric_limits<double>::epsilon()) // skip inactive nodes
+                {
+                    if (dimension == 2 && StrainSize == 3)
+                    {
+                        // StressVec = s00 s11  s01
+                        // Index        0   1   2 
+                        //f_x = V*(s_xx*dNdX + s_xy*dNdY)
+                        nodal_force_internal_normal[0] = int_p_vol *
+                            (rMPStress[0] * DN_DX(i, 0) +
+                                rMPStress[2] * DN_DX(i, 1));
+                        //f_y = V*(s_yy*dNdY + s_yx*dNdX)
+                        nodal_force_internal_normal[1] = int_p_vol *
+                            (rMPStress[1] * DN_DX(i, 1) +
+                                rMPStress[2] * DN_DX(i, 0));
+                    }
+                    else if (dimension == 2 && StrainSize == 4)
+                    {
+                        KRATOS_ERROR
+                            << "Call CalcuateAndAddAxisymmetricExplicitInternalForce instead of CalcuateAndAddExplicitInternalForce"
+                            << std::endl;
+                    }
+                    else if (dimension == 3 && StrainSize == 6)
+                    {
+                        // StressVec = s00 s11 s22   s01   s12   s02
+                        // Index        0   1   2     3     4      5
+                        //f_x = V*(s_xx*dNdX + s_xy*dNdY + s_xz*dNdZ)
+                        nodal_force_internal_normal[0] = int_p_vol *
+                            (rMPStress[0] * DN_DX(i, 0) +
+                                rMPStress[3] * DN_DX(i, 1) +
+                                rMPStress[5] * DN_DX(i, 2));
+                        //f_y = V*(s_yy*dNdY + s_yx*dNdX + s_yz*dNdZ)
+                        nodal_force_internal_normal[1] = int_p_vol *
+                            (rMPStress[1] * DN_DX(i, 1) +
+                                rMPStress[3] * DN_DX(i, 0) +
+                                rMPStress[4] * DN_DX(i, 2));
+                        //f_z = V*(s_zz*dNdZ + s_zx*dNdX + s_zy*dNdY)
+                        nodal_force_internal_normal[2] = int_p_vol *
+                            (rMPStress[2] * DN_DX(i, 2) +
+                                rMPStress[5] * DN_DX(i, 0) +
+                                rMPStress[4] * DN_DX(i, 1));
+                        rRightHandSideVector[dimension * i + 2] -= nodal_force_internal_normal[2]; //minus sign, internal forces
+                    }
+                    else
+                    {
+                        KRATOS_ERROR << "Dimension = " << dimension << " and strain size = " << StrainSize
+                            << " are invalid for MPM explicit internal force calculation." << std::endl;
+                    }
+                    rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
+                    rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
+                }
             }
-            rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
-            rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
         }
 
         KRATOS_CATCH("")
@@ -91,7 +103,6 @@ namespace Kratos
 
     void MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(
         Element& rElement, 
-        const Matrix& rDN_DX, 
         const Vector& rMPStress, 
         const double rMPVolume, 
         const SizeType StrainSize, 
@@ -112,21 +123,32 @@ namespace Kratos
             << "Call CalcuateAndAddExplicitInternalForce instead of CalcuateAndAddAxisymmetricExplicitInternalForce"
             << std::endl;
 
-        for (IndexType i = 0; i < number_of_nodes; i++) {
-            // StressVec = srr szz  sthetatheta srz
-            // Index        0   1   2           3
+        std::vector<Matrix> DN_DX_vec(rGeom.IntegrationPointsNumber());
+        GetCartesianDerivatives(DN_DX_vec, rGeom);
 
-            nodal_force_internal_normal[0] = rMPVolume *
-                (rMPStress[0] * rDN_DX(i, 0) +
-                    rMPStress[2] * r_N(0,i) / AxisymmetricRadius +
-                    rMPStress[3] * rDN_DX(i, 1));
+        for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p) {
+            const double int_p_vol = rMPVolume * rGeom.IntegrationPoints()[int_p].Weight();
+            const Matrix& DN_DX = DN_DX_vec[int_p];
 
-            nodal_force_internal_normal[1] = rMPVolume *
-                (rMPStress[1] * rDN_DX(i, 1) +
-                    rMPStress[3] * rDN_DX(i, 0));
-            
-            rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
-            rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
+            for (IndexType i = 0; i < number_of_nodes; i++) {
+                if (r_N(int_p, i) > std::numeric_limits<double>::epsilon()) // skip inactive nodes
+                {
+                    // StressVec = srr szz  sthetatheta srz
+                    // Index        0   1   2           3
+
+                    nodal_force_internal_normal[0] = rMPVolume *
+                        (rMPStress[0] * DN_DX(i, 0) +
+                            rMPStress[2] * r_N(int_p, i) / AxisymmetricRadius +
+                            rMPStress[3] * DN_DX(i, 1));
+
+                    nodal_force_internal_normal[1] = rMPVolume *
+                        (rMPStress[1] * DN_DX(i, 1) +
+                            rMPStress[3] * DN_DX(i, 0));
+
+                    rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
+                    rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
+                }
+            }
         }
         KRATOS_CATCH("")
     }
@@ -417,5 +439,23 @@ namespace Kratos
         if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE)) rDeformationGradientIncrement += strainIncrement;
 
         KRATOS_CATCH("")
+    }
+
+
+    void MPMExplicitUtilities::GetCartesianDerivatives(std::vector<Matrix>& rDN_DXVec, GeometryType& rGeom)
+    {
+        if (rDN_DXVec.size() != rGeom.IntegrationPointsNumber()) rDN_DXVec.resize(rGeom.IntegrationPointsNumber());
+        //rDN_DXVec.clear();
+
+        for (IndexType i = 0; i < rGeom.IntegrationPointsNumber(); i++) {
+            Matrix Jacobian;
+            Matrix InvJ;
+            double detJ;
+            rGeom.Jacobian(Jacobian, i);
+            MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+            const Matrix& r_DN_De = rGeom.ShapeFunctionLocalGradient(i);
+            rDN_DXVec[i] = prod(r_DN_De, InvJ); // cartesian gradients
+            std::cout << rDN_DXVec[i] << std::endl;
+        }
     }
 } // namespace Kratos
