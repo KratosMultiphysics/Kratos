@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/process_info.h"
 #include "includes/variables.h"
 
 // Application includes
