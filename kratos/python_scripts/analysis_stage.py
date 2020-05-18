@@ -74,32 +74,14 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
+        # Modelers:
+        self._CreateModelers()
+        self._ModelersSetupGeometryModel()
+        self._ModelersPrepareGeometryModel()
+        self._ModelersSetupModelPart()
 
-        ## Initialize Modelers
-        self._list_of_modelers = self._CreateModelers(self._GetOrderOfModelers())
-
-        # Import geometry models from external input.
-        for modeler in self._GetListOfModelers():
-            modeler.ImportGeometryModel(self.model)
-
-        # Prepare or update the geometry model_part.
-        for modeler in self._GetListOfModelers():
-            modeler.PrepareGeometryModel(self.model)
-
-        # Convert the geometry model to analysis suitable models.
-        for modeler in self._GetListOfModelers():
-            modeler.GenerateModelPart(self.model)
-
-        # Import the model_part from external input.
-        for modeler in self._GetListOfModelers():
-            modeler.ImportModelPart(self.model)
         self._GetSolver().ImportModelPart()
-
-        # Prepare the analysis model_part for the simulation.
-        for modeler in self._GetListOfModelers():
-            modeler.PrepareModelPart(self.model)
         self._GetSolver().PrepareModelPart()
-
         self._GetSolver().AddDofs()
 
         self.ModifyInitialProperties()
@@ -137,10 +119,6 @@ class AnalysisStage(object):
         """This function finalizes the AnalysisStage
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
         """
-        # Finalizes the model, special outputs.
-        for modeler in self._GetListOfModelers():
-            modeler.FinalizeModel(self.model)
-
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
 
@@ -153,10 +131,6 @@ class AnalysisStage(object):
         (for each step) BEFORE solving the solution step.
         """
         self.PrintAnalysisStageProgressInformation()
-
-        # updates, modifies and maps within the models.
-        for modeler in self._GetListOfModelers():
-            modeler.UpdateModelInitializeSolutionStep(self.model)
 
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
@@ -171,10 +145,6 @@ class AnalysisStage(object):
         """This function performs all the required operations that should be executed
         (for each step) AFTER solving the solution step.
         """
-        # updates, modifies and maps within the models.
-        for modeler in self._GetListOfModelers():
-            modeler.UpdateModelFinalizeSolutionStep(self.model)
-
         self._GetSolver().FinalizeSolutionStep()
 
         for process in self._GetListOfProcesses():
@@ -249,6 +219,35 @@ class AnalysisStage(object):
         raise Exception("Creation of the solver must be implemented in the derived class.")
 
     ### Modelers
+    def _ModelersSetupGeometryModel(self):
+        # Import or generate geometry models from external input.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup Geometry Model started.")
+            modeler.SetupGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup Geometry Model finished.")
+
+    def _ModelersPrepareGeometryModel(self):
+        # Prepare or update the geometry model_part.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Prepare Geometry Model started.")
+            modeler.PrepareGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Prepare Geometry Model finished.")
+
+    def _ModelersSetupModelPart(self):
+        # Convert the geometry model or import analysis suitable models.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart started.")
+
+            modeler.SetupModelPart()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart finished.")
+
+    ### Modelers
     def _GetListOfModelers(self):
         """ This function returns the list of modelers
         """
@@ -256,48 +255,26 @@ class AnalysisStage(object):
             raise Exception("The list of modelers was not yet created!")
         return self._list_of_modelers
 
-    def _GetOrderOfModelers(self):
-        """ This function can be overridden in derived classes if the order of
-            the modelers matters
-        """
-        return []
-
-    def _CreateModelers(self, initialization_order):
+    def _CreateModelers(self):
         """ List of modelers in following format:
-        "modelers" : {
-            initialize_modelers : [
-                { modeler_specific_params },
-                ...
-            ],
-            update_modelers : [
-                { modeler_specific_params },
-                ...
-            ]
-        }
-        The order of intialization can be specified by setting it in "initialization_order"
-        if e.g. the "initial_modelers" should be constructed before the "update_modelers", then
-        initialization_order should be a list containing ["initialize_modelers", "update_modelers"]
-        see the functions _GetOrderOfModelerInitialization
+        "modelers" : [{
+            "modeler_name" : "geometry_import":
+            "parameters" : {
+                "echo_level" : 0:
+                // settings for this modeler
+            }
+        },{ ... }]
+        The order of intialization is specified by the
+        order within this list.
         """
-        list_of_modelers = []
+        self._list_of_modelers = []
 
         if self.project_parameters.Has("modelers"):
             from KratosMultiphysics.modeler_factory import KratosModelerFactory
             factory = KratosModelerFactory()
 
-            modelers_params = self.project_parameters["modelers"]
-
-            # first initialize the modelers that depend on the order
-            for modelers_names in initialization_order:
-                if modelers_names.Has(modelers_names):
-                    list_of_modelers += factory.ConstructListOfModelers(modelers_params[modelers_names])
-
-            # then initialize the modelers that don't depend on the order
-            for name, value in modelers_params.items():
-                if not name in initialization_order:
-                    list_of_modelers += factory.ConstructListOfModelers(value) # Does this work? or should it be processes[name]
-
-        return list_of_modelers
+            modelers_list = self.project_parameters["modelers"]
+            self.list_of_modelers = factory.ConstructListOfModelers(modeler_parameters)
 
     ### Processes
     def _GetListOfProcesses(self):
