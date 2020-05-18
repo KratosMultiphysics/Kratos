@@ -175,68 +175,20 @@ proc DEMClusters::call_TreeMedial { } {
     set erFact [GiD_AccessValue get gendata erFact]
     set numSamples [GiD_AccessValue get gendata numSamples]
     set minSamples [GiD_AccessValue get gendata minSamples]
-    # set genericOBJFilename cup_reference.obj
-    set genericOBJFilename [file join $::DEMClusters::ProblemTypePath exec cup_reference.obj]
+    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    #set filename_obj {$::DEMClusters::ProblemName}.obj ## custom names
 
     #TODO: now define the arguments and call the external script sphereTree:
-    W [info tclversion]
-    # set argv {$Algorithm -depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename}
-    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 cup_reference.obj"
-    W $argv
-
-    W "path:"
-    W $::DEMClusters::ProblemTypePath
-
-    #set program [lindex $argv 0]
-    # define  problemtypedir and the tcl environment from the init
-    set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
-    # set arguments [lrange $argv 1 end]
-    # Execute external script
-
-    # exec $program {*}$arguments
-    # eval [list exec $program] [lrange $argv 1 end]
-    #MakeTreeHubbard.exe  -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause cup_reference.obj 
-    set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeHubbard.exe]
-    set argv "-branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause $genericOBJFilename"
+    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
+    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     exec $program {*}$argv
 
-
-    # works with default apps but not with custom exes
-    #exec notepad myfile.txt &
-    #exec {*}[auto_execok notepad.exe]
-    #append ::env(PATH) $::tcl_platform(pathSeparator) [file nativename "G:\Program Files\GiD 14.1.8d\problemtypes\DEMClusters\DEMClusters.gid\exec\MakeTreeOctree"]    
-    #exec {*}[auto_execok MakeTreeHubbard.exe -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause cup.obj]
-    # MakeTreeHubbard.exe  -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause cup.obj 
-              
-
-    # append ::env(PATH) {;G:\Program Files\GiD 14.1.8d\problemtypes\DEMClusters\DEMClusters.gid\exec\MakeTreeOctree}    
-    # exec dir {*}[glob *.tcl]
-
+    # MakeTreeMedial -depth 3 -branch 8 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
+    #set program [lindex $argv 0]
+    # set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
+    # set arguments [lrange $argv 1 end]
     # exec $program {*}$arguments
-
-
-    # When Tcl execs a program, it searches for the program on your PATH (i.e., $::env(PATH)) using the OS's normal rules. Programs not on the PATH (and not in the current directory on Windows) are simply not found.
-
-    # Fix 1
-    # Update your PATH; I believe you can do this through the Control Panel on a per-user basis, or for all users (with appropriate permissions).
-
-    # Fix 2
-    # Update the PATH in your script. Be aware that the Windows path separator is a command separator in Tcl (i.e., needs to be escaped or come from substitution) and the elements in the PATH need to be native directory names.
-
-
-
-
-
-    #  Other References ##################
-    # If $argv is foo bar baz, then
-    # spawn [lindex $argv 0] [lrange $argv 1 end]
-    # will invoke foo with 1 argument: "bar baz"
-    # spawn [lindex $argv 0] {*}[lrange $argv 1 end]
-    # will invoke foo with 2 arguments: "bar" and "baz"
-
-    # set output [exec MakeTreeMedial file_name.obj]
-    # set output_full [exec MakeTreeMedial -branch NS -depth 1 -testerLevels 2 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 file_name.obj]
-
+   
     # TreeMedial ValidArgs:
     # -depth              Depth of the sphere-tree
     # -branch             Branching factor of sphere-tree
@@ -278,15 +230,12 @@ proc DEMClusters::call_makeTreeGrid { } {
     set numCover [GiD_AccessValue get gendata numCover]
     set minCover [GiD_AccessValue get gendata minCover]
     set testerLevels [GiD_AccessValue get gendata testerLevels]
-    set genericOBJFilename  generic_obj.obj
+    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
 
     #TODO: now define the arguments and call the external script sphereTree:
-    set argv {$Algorithm -depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename}
-
-    set program [lindex $argv 0]
-    set arguments [lrange $argv 1 end]
-    # Execute external script
-    exec $program {*}$arguments
+    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
+    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    exec $program {*}$argv
 
     # makeTreeGrid ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -311,15 +260,12 @@ proc DEMClusters::call_makeTreeSpawn { } {
     set numCover [GiD_AccessValue get gendata numCover]
     set minCover [GiD_AccessValue get gendata minCover]
     set testerLevels [GiD_AccessValue get gendata testerLevels]
-    set genericOBJFilename  generic_obj.obj
+    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
 
     #TODO: now define the arguments and call the external script sphereTree:
-    set argv {$Algorithm -depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename}
-
-    set program [lindex $argv 0]
-    set arguments [lrange $argv 1 end]
-    # Execute external script
-    exec $program {*}$arguments
+    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
+    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    exec $program {*}$argv
 
     # makeTreeSpawn ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -340,15 +286,12 @@ proc DEMClusters::call_makeTreeOctree { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set depth [GiD_AccessValue get gendata depth]
-    set genericOBJFilename  generic_obj.obj
+    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
 
     #TODO: now define the arguments and call the external script sphereTree:
-    set argv {$Algorithm -depth $depth -nopause $genericOBJFilename}
-
-    set program [lindex $argv 0]
-    set arguments [lrange $argv 1 end]
-    # Execute external script
-    exec $program {*}$arguments
+    set argv "-depth $depth -nopause $genericOBJFilename"
+    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    exec $program {*}$argv
 
     # makeTreeOctree ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -362,15 +305,12 @@ proc DEMClusters::call_makeTreeHubbard { } {
     set depth [GiD_AccessValue get gendata depth]
     set numSamples [GiD_AccessValue get gendata numSamples]
     set minSamples [GiD_AccessValue get gendata minSamples]
-    set genericOBJFilename  generic_obj.obj
+    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
 
     #TODO: now define the arguments and call the external script sphereTree:
-    set argv {$Algorithm -depth $depth -branch $branch -numSamples $numSamples -minSamples $minSamples $genericOBJFilename}
-
-    set program [lindex $argv 0]
-    set arguments [lrange $argv 1 end]
-    # Execute external script
-    exec $program {*}$arguments
+    set argv "-depth $depth -branch $branch -numSamples $numSamples -minSamples $minSamples -nopause $genericOBJFilename"
+    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    exec $program {*}$argv
 
     # makeTreeHubbard ValidArgs:
     # -depth              Depth of the sphere-tree

@@ -4,7 +4,8 @@ proc ExtractSurfaceTriangles_ext { basename dir problemtypedir } {
     source [file join $problemtypedir OBJFileAuxProcs.tcl]
 
     ## Start OBJ file
-    set filename [file join $dir ${basename}.obj]
+    #set filename [file join $dir ${basename}.obj]
+    set filename [file join $dir generic.obj]
     set FileVar [open $filename w]
 
     # set all_mesh [GiD_EntitiesLayers get Layer0 all_mesh]
