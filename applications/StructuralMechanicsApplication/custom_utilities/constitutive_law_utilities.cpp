@@ -942,10 +942,10 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGr
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
     const double EulerAngle1,
-    BoundedMatrixType& rRotationOperator
+    BoundedMatrix<double, 3, 3>& rRotationOperator
 )
 {
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
@@ -963,10 +963,10 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler2(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
     const double EulerAngle2,
-    BoundedMatrixType& rRotationOperator
+    BoundedMatrix<double, 3, 3>& rRotationOperator
 )
 {
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
@@ -984,10 +984,10 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler2(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler3(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
     const double EulerAngle3,
-    BoundedMatrixType& rRotationOperator
+    BoundedMatrix<double, 3, 3>& rRotationOperator
 )
 {
     ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
@@ -996,12 +996,12 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler3(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperator(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
     const double EulerAngle1, // phi
     const double EulerAngle2, // theta
     const double EulerAngle3, // hi
-    BoundedMatrixType& rRotationOperator // global to local coordinates
+    BoundedMatrix<double, 3, 3>& rRotationOperator // global to local coordinates
 )
 {
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
