@@ -638,8 +638,6 @@ void GenericAnisotropic3DLaw::CalculateCauchyGreenStrain(
 {
     // Compute total deformation gradient
     const BoundedMatrixType& F = rValues.GetDeformationGradientF();
-    KRATOS_DEBUG_ERROR_IF(F.size1()!= Dimension || F.size2() != Dimension)
-        << "expected size of F " << Dimension << "x" << Dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
 
     BoundedMatrixType E_tensor = prod(trans(F), F);
     for(unsigned int i = 0; i < Dimension; ++i)
