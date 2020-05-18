@@ -60,12 +60,17 @@ public:
     ///@{
 
     /// Default constructor.
-    IgaModeler(const Parameters ModelerParameters = Parameters())
-        : Modeler(ModelerParameters)
-        , mEchoLevel(
-            ModelerParameters.Has("echo_level")
-            ? ModelerParameters["echo_level"].GetInt()
-            : 0)
+    IgaModeler()
+        : Modeler()
+    {
+    }
+
+    /// Constructor.
+    IgaModeler(
+        Model & rModel,
+        const Parameters ModelerParameters = Parameters())
+        : Modeler(rModel, ModelerParameters)
+        , mpModel(&rModel)
     {
     }
 
@@ -73,17 +78,16 @@ public:
     virtual ~IgaModeler() = default;
 
     /// Creates the Modeler Pointer
-    Modeler::Pointer Create(const Parameters ModelParameters) const override
+    Modeler::Pointer Create(Model& rModel, const Parameters ModelParameters) const override
     {
-        return Kratos::make_shared<IgaModeler>(ModelParameters);
+        return Kratos::make_shared<IgaModeler>(rModel, ModelParameters);
     }
 
     ///@}
     ///@name Stages
     ///@{
 
-    void GenerateModelPart(
-        Model& rModel) const override;
+    void SetupModelPart() override;
 
     ///@}
     ///@name Input and output
@@ -112,7 +116,7 @@ private:
     ///@name Iga functionalities
     ///@{
 
-    SizeType mEchoLevel;
+    Model* mpModel = nullptr;
 
     ///@}
     ///@name Iga functionalities
@@ -175,7 +179,12 @@ private:
         const std::string& rDataFileName) const;
 
     ///@}
+    ///@name Serializer
+    ///@{
 
+    friend class Serializer;
+
+    ///@}
 }; // Class CadModeler
 
 ///@}
