@@ -54,15 +54,32 @@ public:
     ///@{
 
     /// Default constructor.
-    Modeler(const Parameters ModelerParameters = Parameters())
-        :mParameters(ModelerParameters)
+    Modeler(
+        Parameters ModelerParameters = Parameters())
+        : mParameters(ModelerParameters)
+        , mEchoLevel(
+            ModelerParameters.Has("echo_level")
+            ? ModelerParameters["echo_level"].GetInt()
+            : 0)
+    {}
+   
+    /// Constructor with Model
+    Modeler(
+        Model& rModel,
+        Parameters ModelerParameters = Parameters())
+        : mParameters(ModelerParameters)
+        , mEchoLevel(
+            ModelerParameters.Has("echo_level")
+            ? ModelerParameters["echo_level"].GetInt()
+            : 0)
     {}
 
     /// Destructor.
     virtual ~Modeler() = default;
 
     /// Creates the Modeler Pointer
-    virtual Modeler::Pointer Create(const Parameters ModelParameters) const
+    virtual Modeler::Pointer Create(
+        Model& rModel, const Parameters ModelParameters) const
     {
         KRATOS_ERROR << "Trying to Create Modeler. Please check derived class 'Create' definition." << std::endl;
     }
@@ -71,58 +88,16 @@ public:
     ///@name Modeler Stages at Initialize
     ///@{
 
-    /// Import geometry models from external input.
-    virtual void ImportGeometryModel(
-        Model& rModel) const
+    /// Import or generate geometry models from external input.
+    virtual void SetupGeometryModel()
     {}
 
     /// Prepare or update the geometry model_part.
-    virtual void PrepareGeometryModel(
-        Model& rModel) const
+    virtual void PrepareGeometryModel()
     {}
 
-    /// Convert the geometry model to analysis suitable models.
-    virtual void GenerateModelPart(
-        Model& rModel) const
-    {}
-
-    /// Import the model_part from external input.
-    virtual void ImportModelPart(
-        Model& rModel) const
-    {}
-
-    /// Prepare the analysis model_part for the simulation.
-    virtual void PrepareModelPart(
-        Model& rModel) const
-    {}
-
-    ///@}
-    ///@name Modeler Stages at Solving
-    ///@{
-
-    /* Updates the model, maps information from the analysis model_part
-       to the geometry model_part or updates the geometry model_part at
-       initialize solution step.
-    */
-    virtual void UpdateModelInitializeSolutionStep(
-        Model& rModel) const
-    {}
-
-    /* Updates the model, maps information from the analysis model_part
-       to the geometry model_part or updates the geometry model_part at
-       Finalize solution step.
-    */
-    virtual void UpdateModelFinalizeSolutionStep(
-        Model& rModel) const
-    {}
-
-    ///@}
-    ///@name Modeler Stages at Finalize
-    ///@{
-
-    /// Finalizes the model, special outputs
-    virtual void FinalizeModel(
-        Model& rModel) const
+    /// Convert the geometry model or import analysis suitable models.
+    virtual void SetupModelPart()
     {}
 
     ///@}
@@ -171,7 +146,9 @@ protected:
     ///@name Protected members
     ///@{
 
-    const Parameters mParameters;
+    Parameters mParameters;
+
+    SizeType mEchoLevel;
 
     ///@}
 

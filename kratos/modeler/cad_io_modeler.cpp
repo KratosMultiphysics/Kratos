@@ -18,13 +18,12 @@ namespace Kratos
     ///@name Stages
     ///@{
 
-    void CadIoModeler::ImportGeometryModel(
-        Model& rModel) const
+    void CadIoModeler::SetupGeometryModel()
     {
         KRATOS_ERROR_IF_NOT(mParameters.Has("cad_model_part_name"))
             << "Missing \"cad_model_part_name\" in CadIoModeler Parameters." << std::endl;
         const std::string cad_model_part_name = mParameters["cad_model_part_name"].GetString();
-        ModelPart& cad_model_part = rModel.HasModelPart(cad_model_part_name)
+        ModelPart& cad_model_part = mModel.HasModelPart(cad_model_part_name)
             ? rModel.GetModelPart(cad_model_part_name)
             : rModel.CreateModelPart(cad_model_part_name);
 
