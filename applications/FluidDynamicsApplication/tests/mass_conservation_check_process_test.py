@@ -183,6 +183,44 @@ class MassConservationUtility(KratosUnittest.TestCase):
         dt = mass_conservation_process.ComputeDtForConvection()
         self.assertAlmostEqual(dt, 0.2)
 
+    def test_ComputeDtForConvectionMaxDt(self):
+        self.work_folder = "auxiliary_files"
+        self.file_name = "cube_tetrahedra_elements_coarse"
+        model_part = self._CreateModelPart()
+        for node in model_part.GetCommunicator().LocalMesh().Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.X - 0.5)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 1.0 - node.X)
+
+        self._SetInletAndOutlet(model_part)
+        settings = KratosMultiphysics.Parameters("""{
+            "dt_upper_limit" : 0.19
+        }""")
+        mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
+        model_part.CloneTimeStep(0.1)
+        mass_conservation_process.Initialize()
+        mass_conservation_process.ComputeBalancedVolume()
+        dt = mass_conservation_process.ComputeDtForConvection()
+        self.assertAlmostEqual(dt, 0.19)
+
+    def test_ComputeDtForConvectionMinDt(self):
+        self.work_folder = "auxiliary_files"
+        self.file_name = "cube_tetrahedra_elements_coarse"
+        model_part = self._CreateModelPart()
+        for node in model_part.GetCommunicator().LocalMesh().Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.X - 0.5)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 1.0 - node.X)
+
+        self._SetInletAndOutlet(model_part)
+        settings = KratosMultiphysics.Parameters("""{
+            "dt_lower_limit" : 0.21
+        }""")
+        mass_conservation_process = KratosFluid.MassConservationUtility(model_part, settings)
+        model_part.CloneTimeStep(0.1)
+        mass_conservation_process.Initialize()
+        mass_conservation_process.ComputeBalancedVolume()
+        dt = mass_conservation_process.ComputeDtForConvection()
+        self.assertAlmostEqual(dt, 0.21)
+
     def test_CorrectMass(self):
         self.work_folder = "auxiliary_files"
         self.file_name = "cube_tetrahedra_elements_coarse"

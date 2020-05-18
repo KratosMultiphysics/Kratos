@@ -57,6 +57,8 @@ void MassConservationUtility::ValidateInput(
     mpTimeVariable = &KratosComponents<Variable<double>>::Get(Settings["time_variable"].GetString());
     mCorrectBackwards = Settings["correct_backwards"].GetBool();
     mEchoLevel = Settings["echo_level"].GetInt();
+    mMinDt = Settings["dt_lower_limit"].GetDouble();
+    mMaxDt = Settings["dt_upper_limit"].GetDouble();
 }
 
 
@@ -132,8 +134,7 @@ std::string MassConservationUtility::ComputeBalancedVolume(){
 
 double MassConservationUtility::ComputeDtForConvection(){
 
-    // a small step is set to avoid numerical problems
-    double time_step_for_convection = 1.0e-7;
+    double time_step_for_convection = mMinDt;
     const auto& r_comm = mrModelPart.GetCommunicator();
 
     if ( mWaterVolumeError > 0.0 ){
@@ -165,6 +166,12 @@ double MassConservationUtility::ComputeDtForConvection(){
     else {
         // case: Exactly the correct volume of water is present
         mFluidVolumeConservation = FluidVolumeConservation::EXACT_VOLUME;
+    }
+
+    if (std::abs(time_step_for_convection) > mMaxDt) {
+        time_step_for_convection = time_step_for_convection > 0 ? mMaxDt : -mMaxDt;
+    } else if (std::abs(time_step_for_convection) < mMinDt) {
+        time_step_for_convection = time_step_for_convection > 0 ? mMinDt : -mMinDt;
     }
 
     KRATOS_WARNING_IF("MassConservationUtility", time_step_for_convection < 0.0) << "A time step smaller than 0.0 was computed." << std::endl;
@@ -787,7 +794,9 @@ const Parameters MassConservationUtility::GetDefaultParameters()
         "model_part_name"   : "define_model_part_name",
         "time_variable"     : "TIME",
         "correct_backwards" : true,
-        "echo_level"        : 0
+        "echo_level"        : 0,
+        "dt_lower_limit"    : 1e-6,
+        "dt_upper_limit"    : 1.0
     })" );
     return default_parameters;
 }

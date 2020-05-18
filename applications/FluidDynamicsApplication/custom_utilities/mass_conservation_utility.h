@@ -269,6 +269,10 @@ private:
     // Net inflow into the domain (please consider that inflow at the outlet and outflow at the inlet are possible)
     double mQNet0 = 0.0;      // for the current time step (t)
 
+    // Maximum and minimum values for computed dt
+    double mMinDt;
+    double mMaxDt;
+
 
     ///@}
     ///@name Protected Operators
