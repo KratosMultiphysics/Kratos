@@ -126,10 +126,10 @@ class AnalysisStage(object):
         """
         self.PrintAnalysisStageProgressInformation()
 
-        self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
-
+        
+        self.ApplyBoundaryConditions() #here the processes are called
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
