@@ -59,13 +59,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    IgaModeler(
-        const Parameters ModelerParameters = Parameters())
-        : Modeler(ModelerParameters)
-        , mModel(Model())
-    {}
-
     /// Constructor.
     IgaModeler(
         Model & rModel,
@@ -79,9 +72,9 @@ public:
     virtual ~IgaModeler() = default;
 
     /// Creates the Modeler Pointer
-    Modeler::Pointer Create(const Parameters ModelParameters) const override
+    Modeler::Pointer Create(Model& rModel, const Parameters ModelParameters) const override
     {
-        return Kratos::make_shared<IgaModeler>(ModelParameters);
+        return Kratos::make_shared<IgaModeler>(rModel, ModelParameters);
     }
 
     ///@}
@@ -180,6 +173,15 @@ private:
         const std::string& rDataFileName) const;
 
     ///@}
+
+    friend class Serializer;
+
+    /// Default constructor.
+    IgaModeler()
+        : Modeler()
+        , mModel(Model())
+    {
+    }
 
 }; // Class CadModeler
 

@@ -470,7 +470,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     // Modeler
     const Modeler mModeler;
-    const IgaModeler mIgaModeler;
+    const IgaModeler mIgaModeler = IgaModeler(Model(), Parameters());
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
