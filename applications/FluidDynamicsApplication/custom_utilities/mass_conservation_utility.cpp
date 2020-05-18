@@ -270,14 +270,14 @@ void MassConservationUtility::ComputeVolumesAndInterface( double& rPositiveVolum
             Vector nodal_distances( r_geometry.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < r_geometry.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
-                double &dist = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
+                double &r_dist = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
                 const double min_distance = r_geometry[i].GetValue(NODAL_H)*1e-6;
-                if ( std::abs(dist) < min_distance ){
+                if ( std::abs(r_dist) < min_distance ){
                     r_geometry[i].SetLock();
-                    dist = dist > 0 ? min_distance : -min_distance;
+                    r_dist = r_dist > 0 ? min_distance : -min_distance;
                     r_geometry[i].UnSetLock();
                 }
-                nodal_distances[i] = dist;
+                nodal_distances[i] = r_dist;
             }
             const auto p_modified_sh_func = GetModifiedShapeFunctions(it_elem->pGetGeometry(), nodal_distances);
 
@@ -350,14 +350,14 @@ double MassConservationUtility::OrthogonalFlowIntoAir( const double Factor )
             Vector distance( r_geom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < r_geom.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
-                double &dist = r_geom[i].FastGetSolutionStepValue(DISTANCE);
+                double &r_dist = r_geom[i].FastGetSolutionStepValue(DISTANCE);
                 const double min_distance = r_geom[i].GetValue(NODAL_H)*1e-6;
-                if ( std::abs(dist) < min_distance ){
+                if ( std::abs(r_dist) < min_distance ){
                     r_geom[i].SetLock();
-                    dist = dist > 0 ? min_distance : -min_distance;
+                    r_dist = r_dist > 0 ? min_distance : -min_distance;
                     r_geom[i].UnSetLock();
                 }
-                distance[i] = dist;
+                distance[i] = r_dist;
             }
 
             const auto p_modified_sh_func = GetModifiedShapeFunctions(it_elem->pGetGeometry(), distance);
