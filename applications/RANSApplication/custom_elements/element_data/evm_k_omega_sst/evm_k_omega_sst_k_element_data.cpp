@@ -97,11 +97,10 @@ void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
 
     const GeometryType& r_geometry = this->GetGeometry();
 
-    mTurbulentKineticEnergy = std::max(
-        EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, rShapeFunctions), 1e-12);
-    mTurbulentSpecificEnergyDissipationRate = std::max(
-        EvaluateInPoint(r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rShapeFunctions),
-        1e-12);
+    mTurbulentKineticEnergy =
+        EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, rShapeFunctions);
+    mTurbulentSpecificEnergyDissipationRate = EvaluateInPoint(
+        r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rShapeFunctions);
     mKinematicViscosity = EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, rShapeFunctions);
     mWallDistance = EvaluateInPoint(r_geometry, DISTANCE, rShapeFunctions);
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;

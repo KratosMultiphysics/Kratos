@@ -37,11 +37,6 @@ double CalculateCrossDiffusionTerm(const double SigmaTurbulentSpecificEnergyDiss
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(TurbulentSpecificEnergyDissipationRate <= 0.0)
-        << "TurbulentSpecificEnergyDissipationRate is <= 0 [ "
-           "TurbulentSpecificEnergyDissipationRate = "
-        << TurbulentSpecificEnergyDissipationRate << " ].\n";
-
     double value = inner_prod(rTurbulentKineticEnergyGradient,
                               rTurbulentSpecificEnergyDissipationRate);
     value *= (2.0 * SigmaTurbulentSpecificEnergyDissipationRate2 /
@@ -60,25 +55,18 @@ double CalculateF1(const double TurbulentKineticEnergy,
                    const double SigmaTurbulentSpecificEnergyDissipationRate2)
 {
     KRATOS_TRY
+    const double y = std::max(WallDistance, 1e-12);
+    const double y_2 = std::pow(y, 2);
 
-    KRATOS_DEBUG_ERROR_IF(TurbulentKineticEnergy <= 0.0)
-        << "TurbulentKineticEnergy is <= 0 [ TurbulentKineticEnergy = " << TurbulentKineticEnergy
-        << " ].\n";
+    const double tke = std::max(TurbulentKineticEnergy, 0.0);
+    const double omega = std::max(TurbulentSpecificEnergyDissipationRate, 1e-12);
 
-    KRATOS_DEBUG_ERROR_IF(TurbulentSpecificEnergyDissipationRate <= 0.0)
-        << "TurbulentSpecificEnergyDissipationRate is <= 0 [ "
-           "TurbulentSpecificEnergyDissipationRate = "
-        << TurbulentSpecificEnergyDissipationRate << " ].\n";
+    double arg1 = std::max(std::sqrt(tke) / (BetaStar * omega * y),
+                           500.0 * KinematicViscosity / (y_2 * omega));
 
-    const double y_2 = std::pow(WallDistance, 2);
-
-    double arg1 = std::max(
-        std::sqrt(TurbulentKineticEnergy) /
-            (BetaStar * TurbulentSpecificEnergyDissipationRate * WallDistance),
-        500.0 * KinematicViscosity / (y_2 * TurbulentSpecificEnergyDissipationRate));
-
-    arg1 = std::min(arg1, 4.0 * SigmaTurbulentSpecificEnergyDissipationRate2 * TurbulentKineticEnergy /
-                              (std::max(CrossDiffusion, 1e-12) * y_2));
+    arg1 = std::min(std::min(arg1, 4.0 * SigmaTurbulentSpecificEnergyDissipationRate2 *
+                                       tke / (std::max(CrossDiffusion, 1e-12) * y_2)),
+                    10.0);
 
     return std::tanh(std::pow(arg1, 4));
 
@@ -93,21 +81,16 @@ double CalculateF2(const double TurbulentKineticEnergy,
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(TurbulentKineticEnergy <= 0.0)
-        << "TurbulentKineticEnergy is <= 0 [ TurbulentKineticEnergy = " << TurbulentKineticEnergy
-        << " ].\n";
+    const double y = std::max(WallDistance, 1e-12);
+    const double y_2 = std::pow(y, 2);
 
-    KRATOS_DEBUG_ERROR_IF(TurbulentSpecificEnergyDissipationRate <= 0.0)
-        << "TurbulentSpecificEnergyDissipationRate is <= 0 [ "
-           "TurbulentSpecificEnergyDissipationRate = "
-        << TurbulentSpecificEnergyDissipationRate << " ].\n";
+    const double tke = std::max(TurbulentKineticEnergy, 0.0);
+    const double omega = std::max(TurbulentSpecificEnergyDissipationRate, 1e-12);
 
-    const double y_2 = std::pow(WallDistance, 2);
-
-    const double arg2 = std::max(
-        2.0 * std::sqrt(TurbulentKineticEnergy) /
-            (BetaStar * TurbulentSpecificEnergyDissipationRate * WallDistance),
-        500.0 * KinematicViscosity / (y_2 * TurbulentSpecificEnergyDissipationRate));
+    const double arg2 =
+        std::min(std::max(2.0 * std::sqrt(tke) / (BetaStar * omega * y),
+                          500.0 * KinematicViscosity / (y_2 * omega)),
+                 100.0);
 
     return std::tanh(std::pow(arg2, 2));
 
@@ -118,21 +101,13 @@ double CalculateTurbulentKinematicViscosity(const double TurbulentKineticEnergy,
                                             const double TurbulentSpecificEnergyDissipationRate,
                                             const double VorticityNorm,
                                             const double F2,
-                                            const double A1)
+                                            const double A1,
+                                            const double B1)
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(TurbulentKineticEnergy <= 0.0)
-        << "TurbulentKineticEnergy is <= 0 [ TurbulentKineticEnergy = " << TurbulentKineticEnergy
-        << " ].\n";
-
-    KRATOS_DEBUG_ERROR_IF(TurbulentSpecificEnergyDissipationRate <= 0.0)
-        << "TurbulentSpecificEnergyDissipationRate is <= 0 [ "
-           "TurbulentSpecificEnergyDissipationRate = "
-        << TurbulentSpecificEnergyDissipationRate << " ].\n";
-
     return A1 * TurbulentKineticEnergy /
-           std::max(A1 * TurbulentSpecificEnergyDissipationRate, VorticityNorm * F2);
+           std::max(A1 * TurbulentSpecificEnergyDissipationRate, B1 * VorticityNorm * F2);
 
     KRATOS_CATCH("");
 }

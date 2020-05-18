@@ -173,6 +173,7 @@ private:
     Model& mrModel;
     std::string mModelPartName;
     double mA1;
+    double mB1;
     double mBetaStar;
     double mMinValue;
     int mEchoLevel;

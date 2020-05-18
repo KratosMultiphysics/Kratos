@@ -100,11 +100,10 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
 
     const GeometryType& r_geometry = this->GetGeometry();
 
-    mTurbulentKineticEnergy = std::max(
-        EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, rShapeFunctions), 1e-12);
-    mTurbulentSpecificEnergyDissipationRate = std::max(
-        EvaluateInPoint(r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rShapeFunctions),
-        1e-12);
+    mTurbulentKineticEnergy =
+        EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, rShapeFunctions);
+    mTurbulentSpecificEnergyDissipationRate = EvaluateInPoint(
+        r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rShapeFunctions);
     mKinematicViscosity = EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, rShapeFunctions);
     mWallDistance = EvaluateInPoint(r_geometry, DISTANCE, rShapeFunctions);
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
@@ -169,8 +168,9 @@ template <unsigned int TDim>
 double OmegaElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctions,
                                                      const Matrix& rShapeFunctionDerivatives) const
 {
-    double value = mBlendedBeta * mTurbulentSpecificEnergyDissipationRate;
-    value -= (1.0 - mF1) * mCrossDiffusion / mTurbulentSpecificEnergyDissipationRate;
+    const double omega = std::max(mTurbulentSpecificEnergyDissipationRate, 1e-12);
+    double value = mBlendedBeta * omega;
+    value -= (1.0 - mF1) * mCrossDiffusion / omega;
     value += mBlendedGamma * 2.0 * mVelocityDivergence / 3.0;
     return std::max(value, 0.0);
 }
