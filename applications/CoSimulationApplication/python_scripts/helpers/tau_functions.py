@@ -11,27 +11,39 @@ echo_level = 1
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
 def GetFluidMesh(working_path, step, para_path_mod):
+    # Find the interface file name
     interface_file_name = FindInterfaceFile(working_path, step)
-    NodesNr, ElemsNr, X, Y, Z, P, elemTable = ReadTauOutput(interface_file_name, 20)
-    nodal_coords, nodesID, elem_connectivities, element_types = interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z)
+
+    # Read mesh from interface file
+    NodesNr, ElemsNr, X, Y, Z, P, elem_connectivities = ReadTauOutput(interface_file_name, 20)
+
+    # Transform nodal coordinates to numpy array
+    nodesID, nodal_coords = ReadNodalCoordinates(NodesNr, X, Y, Z)
+
+    # Transform element connectivities to numpy array
+    element_types = ReadElementTypes(ElemsNr)
+
     # In vtk format element connectivities start from 0, not from 1
     elem_connectivities -= 1
+
     return nodal_coords, elem_connectivities, element_types
 
 
 def ComputeFluidForces(working_path, step):
+    # Find the interface file name
     interface_file_name = FindInterfaceFile(working_path, step)
 
-    NodesNr, ElemsNr, X, Y, Z, P, elemTable = ReadTauOutput(interface_file_name, 20)
+    # Read mesh and pressure from interface file
+    NodesNr, ElemsNr, X, Y, Z, P, elem_connectivities = ReadTauOutput(interface_file_name, 20)
 
-    # calculating cp at the center of each interface element
-    pCell=calcpCell(ElemsNr,P,X,elemTable)
+    # Calculate the cell pressure averaging the nodal pressure
+    cell_pressure = CalculateCellPressure(ElemsNr, P, X, elem_connectivities)
 
     # calculating element area and normal vector
-    area,normal = calcAreaNormal(ElemsNr,elemTable,X,Y,Z,(step+1))
+    area,normal = calcAreaNormal(ElemsNr,elem_connectivities,X,Y,Z,(step+1))
 
     # calculating the force vector
-    fluid_forces = calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,(step+1))
+    fluid_forces = calcFluidForceVector(ElemsNr,elem_connectivities,NodesNr,cell_pressure,area,normal,(step+1))
 
     return fluid_forces
 
@@ -42,7 +54,7 @@ def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, sta
 
     NodesNr,ElemsNr,X,Y,Z,P,elemTable=ReadTauOutput(interface_file_name, 20)
 
-    nodes,nodesID,elem_connectivities,element_types=interfaceMeshFluid(NodesNr,ElemsNr,elemTable,X,Y,Z)
+    nodesID, nodes = ReadNodalCoordinates(NodesNr, X, Y, Z)
 
     if(step==start_step):
         dispTauOld=np.zeros(3*NodesNr)
@@ -203,14 +215,14 @@ def ReadNodalData(interface_file,line):
 
 def ReadElementConnectivities(interface_file,line,ElemsNr):
     # reading element connectivities
-    elem_connectivities = np.zeros([ElemsNr, 4], dtype=int)
-    k = 0
+    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)
+    i = 0
     while line:
-        elem_connectivities[k, 0] = int(line.split()[0])
-        elem_connectivities[k, 1] = int(line.split()[1])
-        elem_connectivities[k, 2] = int(line.split()[2])
-        elem_connectivities[k, 3] = int(line.split()[3])
-        k = k+1
+        elem_connectivities[i*4+0] = int(line.split()[0])
+        elem_connectivities[i*4+1] = int(line.split()[1])
+        elem_connectivities[i*4+2] = int(line.split()[2])
+        elem_connectivities[i*4+3] = int(line.split()[3])
+        i = i+1
         line = interface_file.readline()
 
     return elem_connectivities
@@ -229,19 +241,35 @@ def ReadHeader(interface_file,line):
 
     return position_info, mesh_info, line
 
-def interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z):
-    # array to store the coordinates of the nodes in the fluid mesh: x1,y1,z1,x2,y2,z2,...
-    nodes = np.zeros(NodesNr*3)
-    # array to store the IDs of the nodes in the fluid mesh: IDnode1, IDnode2,...
+
+def ReadNodalCoordinates(NodesNr, X, Y, Z):
+    # array to store the IDs of the nodes: IDnode1, IDnode2,...
     nodesID = np.zeros(NodesNr, dtype=int)
-    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)  # array to store the element table
-    element_types = np.zeros(ElemsNr, dtype=int)
+    # array to store the coordinates of the nodes: x1,y1,z1,x2,y2,z2,...
+    nodal_coords = np.zeros(NodesNr*3)
 
     for i in xrange(0, NodesNr):
         nodesID[i] = i+1
-        nodes[3*i+0] = X[i]
-        nodes[3*i+1] = Y[i]
-        nodes[3*i+2] = Z[i]
+        nodal_coords[3*i+0] = X[i]
+        nodal_coords[3*i+1] = Y[i]
+        nodal_coords[3*i+2] = Z[i]
+
+    return nodesID, nodal_coords
+
+
+def ReadElementTypes(ElemsNr):
+    # array to store the element types
+    element_types = np.zeros(ElemsNr, dtype=int)
+
+    for i in xrange(0, ElemsNr):
+        element_types[i] = 9
+
+    return element_types
+
+def ReadElemConnectivities(ElemsNr, elemTable):
+    # array to store the element connectivities
+    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)
+    element_types = np.zeros(ElemsNr, dtype=int)
 
     for i in xrange(0, ElemsNr):
         elem_connectivities[i*4+0] = elemTable[i, 0]
@@ -250,54 +278,53 @@ def interfaceMeshFluid(NodesNr, ElemsNr, elemTable, X, Y, Z):
         elem_connectivities[i*4+3] = elemTable[i, 3]
         element_types[i] = 9
 
-    return nodes, nodesID, elem_connectivities, element_types
+    return elem_connectivities, element_types
 
 
-
-# Calculate the Pressure on the elements from the pressure on the nodes
-def calcpCell(ElemsNr, P, X, elemTable):
-    pCell = np.zeros(ElemsNr)  # cp for interface elements
+# Calculate the cell pressure averaging the nodal pressure
+def CalculateCellPressure(ElemsNr, P, X, elem_connectivities):
+    cell_pressure = np.zeros(ElemsNr)  # cp for interface elements
 
     for i in range(ElemsNr):
         for k in range(4):
-            pCell[i] += 0.25 * P[elemTable[i, k]-1]
+            cell_pressure[i] += 0.25 * P[elem_connectivities[i*4+k]-1]
 
     if echo_level > 0:
         with open('xp', 'w') as f:
             for i in range(ElemsNr):
                 x = 0.0
                 for k in range(4):
-                    x += 0.25 * X[elemTable[i, k]-1]
-                f.write('%d\t%f\t%f\n' % (i, x, pCell[i]))
+                    x += 0.25 * X[elem_connectivities[i*4+k]-1]
+                f.write('%d\t%f\t%f\n' % (i, x, cell_pressure[i]))
 
-    return pCell
+    return cell_pressure
 
 
 # Calculate the area and the normal of the area for each cell - element of TAU Mesh
-def calcAreaNormal(ElemsNr,elemTable,X,Y,Z,fIteration):
+def calcAreaNormal(ElemsNr,elem_connectivities,X,Y,Z,fIteration):
     area = np.zeros(ElemsNr)
     normal = np.zeros([ElemsNr,3])
     A = np.zeros(3)
     B = np.zeros(3)
     for i in xrange(0,ElemsNr):
-        A[0] = X[elemTable[i,2]-1] - X[elemTable[i,0]-1]
-        A[1] = Y[elemTable[i,2]-1] - Y[elemTable[i,0]-1]
-        A[2] = Z[elemTable[i,2]-1] - Z[elemTable[i,0]-1]
-        B[0] = X[elemTable[i,3]-1] - X[elemTable[i,1]-1]
-        B[1] = Y[elemTable[i,3]-1] - Y[elemTable[i,1]-1]
-        B[2] = Z[elemTable[i,3]-1] - Z[elemTable[i,1]-1]
+        A[0] = X[elem_connectivities[i*4+2]-1] - X[elem_connectivities[i*4+0]-1]
+        A[1] = Y[elem_connectivities[i*4+2]-1] - Y[elem_connectivities[i*4+0]-1]
+        A[2] = Z[elem_connectivities[i*4+2]-1] - Z[elem_connectivities[i*4+0]-1]
+        B[0] = X[elem_connectivities[i*4+3]-1] - X[elem_connectivities[i*4+1]-1]
+        B[1] = Y[elem_connectivities[i*4+3]-1] - Y[elem_connectivities[i*4+1]-1]
+        B[2] = Z[elem_connectivities[i*4+3]-1] - Z[elem_connectivities[i*4+1]-1]
         a=np.cross(A,B)
         norm=np.linalg.norm(a)
         a=a/norm
         normal[i,0]=a[0]
         normal[i,1]=a[1]
         normal[i,2]=a[2]
-        A[0] = X[elemTable[i,1]-1] - X[elemTable[i,0]-1]
-        A[1] = Y[elemTable[i,1]-1] - Y[elemTable[i,0]-1]
-        A[2] = Z[elemTable[i,1]-1] - Z[elemTable[i,0]-1]
-        B[0] = X[elemTable[i,3]-1] - X[elemTable[i,0]-1]
-        B[1] = Y[elemTable[i,3]-1] - Y[elemTable[i,0]-1]
-        B[2] = Z[elemTable[i,3]-1] - Z[elemTable[i,0]-1]
+        A[0] = X[elem_connectivities[i*4+1]-1] - X[elem_connectivities[i*4+0]-1]
+        A[1] = Y[elem_connectivities[i*4+1]-1] - Y[elem_connectivities[i*4+0]-1]
+        A[2] = Z[elem_connectivities[i*4+1]-1] - Z[elem_connectivities[i*4+0]-1]
+        B[0] = X[elem_connectivities[i*4+3]-1] - X[elem_connectivities[i*4+0]-1]
+        B[1] = Y[elem_connectivities[i*4+3]-1] - Y[elem_connectivities[i*4+0]-1]
+        B[2] = Z[elem_connectivities[i*4+3]-1] - Z[elem_connectivities[i*4+0]-1]
         a=np.cross(A,B)
         norm=np.linalg.norm(a)
         area[i] =  norm # hold only for 2d case, MUST be modified for 3d interfaces
@@ -308,27 +335,27 @@ def calcAreaNormal(ElemsNr,elemTable,X,Y,Z,fIteration):
     return area, normal
 
 # Calculate the Vector Force
-def calcFluidForceVector(ElemsNr,elemTable,NodesNr,pCell,area,normal,fIteration):
+def calcFluidForceVector(ElemsNr,elem_connectivities,NodesNr,cell_pressure,area,normal,fIteration):
     forcesTauNP = np.zeros(NodesNr*3)
     for i in xrange(0,ElemsNr):
         #p= cpCell[i] * q
-        p=pCell[i]
+        p=cell_pressure[i]
         Fx = p * area[i] * normal[i,0]
         Fy = p * area[i] * normal[i,1]
         Fz = p * area[i] * normal[i,2]
         #print 'test Fx, Fy, Fz', Fx, Fy, Fz
-        forcesTauNP[3*(elemTable[i,0]-1)+0] += 0.25 * Fx
-        forcesTauNP[3*(elemTable[i,0]-1)+1] += 0.25 * Fy
-        forcesTauNP[3*(elemTable[i,0]-1)+2] += 0.25 * Fz
-        forcesTauNP[3*(elemTable[i,1]-1)+0] += 0.25 * Fx
-        forcesTauNP[3*(elemTable[i,1]-1)+1] += 0.25 * Fy
-        forcesTauNP[3*(elemTable[i,1]-1)+2] += 0.25 * Fz
-        forcesTauNP[3*(elemTable[i,2]-1)+0] += 0.25 * Fx
-        forcesTauNP[3*(elemTable[i,2]-1)+1] += 0.25 * Fy
-        forcesTauNP[3*(elemTable[i,2]-1)+2] += 0.25 * Fz
-        forcesTauNP[3*(elemTable[i,3]-1)+0] += 0.25 * Fx
-        forcesTauNP[3*(elemTable[i,3]-1)+1] += 0.25 * Fy
-        forcesTauNP[3*(elemTable[i,3]-1)+2] += 0.25 * Fz
+        forcesTauNP[3*(elem_connectivities[i*4+0]-1)+0] += 0.25 * Fx
+        forcesTauNP[3*(elem_connectivities[i*4+0]-1)+1] += 0.25 * Fy
+        forcesTauNP[3*(elem_connectivities[i*4+0]-1)+2] += 0.25 * Fz
+        forcesTauNP[3*(elem_connectivities[i*4+1]-1)+0] += 0.25 * Fx
+        forcesTauNP[3*(elem_connectivities[i*4+1]-1)+1] += 0.25 * Fy
+        forcesTauNP[3*(elem_connectivities[i*4+1]-1)+2] += 0.25 * Fz
+        forcesTauNP[3*(elem_connectivities[i*4+2]-1)+0] += 0.25 * Fx
+        forcesTauNP[3*(elem_connectivities[i*4+2]-1)+1] += 0.25 * Fy
+        forcesTauNP[3*(elem_connectivities[i*4+2]-1)+2] += 0.25 * Fz
+        forcesTauNP[3*(elem_connectivities[i*4+3]-1)+0] += 0.25 * Fx
+        forcesTauNP[3*(elem_connectivities[i*4+3]-1)+1] += 0.25 * Fy
+        forcesTauNP[3*(elem_connectivities[i*4+3]-1)+2] += 0.25 * Fz
     f_name = 'Outputs/ForcesTauNP_'+str(fIteration)+'.dat'
     with open(f_name,'w') as fwrite:
         for i in xrange(0,len(forcesTauNP[:])):
