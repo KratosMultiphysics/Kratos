@@ -183,12 +183,56 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunct
 
 // Returns all the shape function values for the contact line.
 void Tetrahedra3D4ModifiedShapeFunctions::ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
-    Matrix &rContactLineNegativeSideShapeFunctionsValues,
-    ShapeFunctionsGradientsType &rContactLineNegativeSideShapeFunctionsGradientsValues,
-    Vector &rContactLineNegativeSideWeightsValues,
+    std::vector<int>& ContactLineIndices,
+    std::vector<Matrix> &rContactLineNegativeSideShapeFunctionsValues,
+    std::vector<ShapeFunctionsGradientsType> &rContactLineNegativeSideShapeFunctionsGradientsValues,
+    std::vector<Vector> &rContactLineNegativeSideWeightsValues,
     const IntegrationMethodType IntegrationMethod){
 
-    const int i_contact_face = mpTetrahedraSplitter->mContactInterface;
+    rContactLineNegativeSideShapeFunctionsValues.clear();
+    rContactLineNegativeSideShapeFunctionsGradientsValues.clear();
+    rContactLineNegativeSideWeightsValues.clear();
+
+    if (ContactLineIndices.size() > 0){
+        std::vector < unsigned int >& contact_interface_ids = mpTetrahedraSplitter->mContactInterface;
+
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTetrahedraSplitter->mEdgeNodeI,
+                                    mpTetrahedraSplitter->mEdgeNodeJ,
+                                    mpTetrahedraSplitter->mSplitEdges);
+
+        for (unsigned int i_cl = 0; i_cl < ContactLineIndices.size(); i_cl++){
+            const unsigned int cl_id = ContactLineIndices[i_cl];
+            const unsigned int i_parent = 
+                    mpTetrahedraSplitter->mNegativeInterfacesParentIds[(contact_interface_ids[cl_id])];
+            const auto& r_parent_geom = mpTetrahedraSplitter->mNegativeSubdivisions[i_parent];
+            const auto& r_interface_geom = (mpTetrahedraSplitter->mContactLine)[cl_id];
+
+            Matrix contact_line_negative_side_shape_function_values;
+            ShapeFunctionsGradientsType contact_line_negative_side_shape_function_gradient_values;
+            Vector contact_line_negative_side_weight_values;
+
+            // Compute the positive side interface values
+            this->ComputeFaceValuesOnOneSide(contact_line_negative_side_shape_function_values,
+                                        contact_line_negative_side_shape_function_gradient_values,
+                                        contact_line_negative_side_weight_values,
+                                        r_interface_geom,
+                                        r_parent_geom,
+                                        p_matrix,
+                                        IntegrationMethod);
+
+            rContactLineNegativeSideShapeFunctionsValues.push_back(contact_line_negative_side_shape_function_values);
+            rContactLineNegativeSideShapeFunctionsGradientsValues.push_back(contact_line_negative_side_shape_function_gradient_values);
+            rContactLineNegativeSideWeightsValues.push_back(contact_line_negative_side_weight_values);
+        }
+        
+    } 
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+/*     const int i_contact_face = mpTetrahedraSplitter->mContactInterface;
 
     if (i_contact_face > -1) {
         // Get the interface condensation matrix
@@ -212,7 +256,10 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeContactLineNegativeSideShapeFun
                                         IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues method for a geometry without contact line.";
-    }
+    } */
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
 };
 
 // Given a face id, computes the positive side subdivision shape function values in that face.
@@ -423,10 +470,36 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeInt
     }
 };
 
-bool Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideContactLineVector(
-    Vector &rNegativeSideContactLineVector)
+/* bool Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideContactLineVector(
+    Vector &rNegativeSideContactLineVector) */
+void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideContactLineVector(
+    std::vector<unsigned int>& FaceIndices,
+    std::vector<Vector> &rNegativeSideContactLineVector)
 {
-    const int i_contact_face = mpTetrahedraSplitter->mContactInterface;
+    FaceIndices.clear();
+    rNegativeSideContactLineVector.clear();
+
+    FaceIndices = mpTetrahedraSplitter->mContactFace;
+
+    if (FaceIndices.size() > 0){
+        std::vector < unsigned int >& contact_interface_ids = mpTetrahedraSplitter->mContactInterface;
+        std::vector < unsigned int >& contact_interface_edge_ids = mpTetrahedraSplitter->mContactEdge;
+
+        for (unsigned int i_cl = 0; i_cl < FaceIndices.size(); i_cl ++){
+            IndexedPointGeometryType& edgei =
+                (mpTetrahedraSplitter->mNegativeInterfaces[(contact_interface_ids[i_cl])]->Edges())[(contact_interface_edge_ids[i_cl])];
+            const array_1d<double, 3> aux_vector = 
+            edgei[1].Coordinates() - edgei[0].Coordinates();
+
+            aux_vector /= Kratos::norm_2(aux_vector);
+
+            rNegativeSideContactLineVector.push_back(aux_vector);
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    /* const int i_contact_face = mpTetrahedraSplitter->mContactInterface;
     const int i_contact_edge = mpTetrahedraSplitter->mContactEdge;
 
     if (i_contact_face > -1){
@@ -441,7 +514,9 @@ bool Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideContactLineVector(
     {
         rNegativeSideContactLineVector = ZeroVector(3);
         return false;
-    }
+    } */
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
     
 };
 

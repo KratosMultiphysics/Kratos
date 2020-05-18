@@ -2350,11 +2350,15 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
         GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
         Kratos::Vector& rInterfaceWeightsNeg,
         std::vector<Vector>& rInterfaceNormalsNeg,
-        MatrixType& rContactShapeFunctionNeg,
-        GeometryType::ShapeFunctionsGradientsType& rContactShapeDerivativesNeg,
-        Kratos::Vector& rContactWeightsNeg,
-        Vector& rContactTangentialsNeg,
-        bool& rHasContactLine)
+        std::vector<MatrixType>& rContactShapeFunctionNeg,
+        std::vector<GeometryType::ShapeFunctionsGradientsType>& rContactShapeDerivativesNeg,
+        std::vector<Kratos::Vector>& rContactWeightsNeg,
+        std::vector<Vector>& rContactTangentialsNeg)
+        //MatrixType& rContactShapeFunctionNeg,
+        //GeometryType::ShapeFunctionsGradientsType& rContactShapeDerivativesNeg,
+        //Kratos::Vector& rContactWeightsNeg,
+        //Vector& rContactTangentialsNeg,
+        //bool& rHasContactLine)
 {
         // Set the positive and negative enrichment interpolation matrices
     // Note that the enrichment is constructed using the standard shape functions such that:
@@ -2446,22 +2450,32 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
 
     rData.NumberOfDivisions = (p_modified_sh_func->pGetSplittingUtil())->mDivisionsNumber;
 
-    rHasContactLine = p_modified_sh_func->ComputeNegativeSideContactLineVector(rContactTangentialsNeg);
+    std::vector<unsigned int> contact_line_faces;
+    std::vector<unsigned int> contact_line_indices;
+    rHasContactLine = p_modified_sh_func->ComputeNegativeSideContactLineVector(contact_line_faces, rContactTangentialsNeg);
+    // rContactTangentialsNeg is normalized in ComputeNegativeSideContactLineVector
+    auto& neighbour_elems = this->GetVale(NEIGHBOUR_ELEMENTS);
 
-    double tangent_norm = 0.0;
+    for (unsigned int i_cl = 0; i_cl < contact_line_faces.size()){
+        if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
+            contact_line_indices.push_back(i_cl);
+        }
+    }
+
+    /* double tangent_norm = 0.0;
     for (unsigned int dim = 0; dim < Dim; dim++){
         tangent_norm += rContactTangentialsNeg[dim]*rContactTangentialsNeg[dim];
     }
-
     tangent_norm = std::sqrt(tangent_norm);
-
     for (unsigned int dim = 0; dim < Dim; dim++){
         rContactTangentialsNeg[dim] = rContactTangentialsNeg[dim]/tangent_norm;
-    }
+    } */
 
-    if (rHasContactLine){
+    if (rHasContactLine){ // HERE: HAS CONTACT LINE == contact_line_indices.size() > 0
+                          // ELSEWHERE: HAS CONTACT LINE == rContactWeightsNeg.size() > 0
         // Call the Contact Line negative side shape functions calculator
         p_modified_sh_func->ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+            contact_line_indices, //ADDED
             rContactShapeFunctionNeg,
             rContactShapeDerivativesNeg,
             rContactWeightsNeg,

@@ -162,15 +162,17 @@ public:
 
     /**
     * Returns the shape function values in the negative split element side for a given quadrature on the contact line.
+    * @param ContactLineIndices: indices associated with the outer faces that can be considered as contact lines
     * @return rContactLineNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
     * @return rContactLineNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
     * @return rContactLineNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod Desired integration quadrature.
     */
     void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
-        Matrix &rContactLineNegativeSideShapeFunctionsValues,
-        ShapeFunctionsGradientsType &rContactLineNegativeSideShapeFunctionsGradientsValues,
-        Vector &rContactLineNegativeSideWeightsValues,
+        std::vector<int>& ContactLineIndices,
+        std::vector<Matrix> &rContactLineNegativeSideShapeFunctionsValues,
+        std::vector<ShapeFunctionsGradientsType> &rContactLineNegativeSideShapeFunctionsGradientsValues,
+        std::vector<Vector> &rContactLineNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
@@ -263,10 +265,14 @@ public:
 
     /**
     * Returns the negative side tangential vector (in the direction of contact line).
-    * @return rNegativeSideContactLineVector: single vector showing the contact line.
+    * @param FaceIndices: vector giving the indices of the contact faces from DivideGeometry::mContactFace
+    * @return rNegativeSideContactLineVector: single vector showing the contact line. 
     */
-    bool ComputeNegativeSideContactLineVector(
-        Vector &rNegativeSideContactLineVector) override;
+    void ComputeNegativeSideContactLineVector(
+        std::vector<unsigned int> FaceIndices,
+        std::vector<Vector> &rNegativeSideContactLineVector) override;
+    /* bool ComputeNegativeSideContactLineVector(
+        Vector &rNegativeSideContactLineVector) override; */
 
     /**
     * Returns true if the element is split and false otherwise.

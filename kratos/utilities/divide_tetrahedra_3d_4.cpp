@@ -185,9 +185,9 @@ namespace Kratos
             }
 
             //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") << "Contact Line Nodes: " << contact_line_node_ids << std::endl;
-            //mContactLine.erase();//mContactLine.reset();
-            mContactLineNodeIds.erase();
-            mContactFace.erase();
+            mContactLine.clear();//mContactLine.reset();
+            //mContactLineNodeIds.clear();
+            mContactFace.clear();
 
             for (unsigned int i = 0; i < contact_line_node_ids.size(); i ++){
                 const unsigned int edge_i = contact_edge_order[i];
@@ -195,13 +195,12 @@ namespace Kratos
                     const unsigned int edge_j = contact_edge_order[j];
                     const int face_id = FindCommonFace(edge_i, edge_j);
                     if (face_id > -1){
-                        /* IndexedPointGeometryPointerType p_aux_contact_line = Kratos::make_shared<IndexedPointLineType>(
+                        IndexedPointGeometryPointerType p_aux_contact_line = Kratos::make_shared<IndexedPointLineType>(
                             mAuxPointsContainer(contact_line_node_ids[0]),
                             mAuxPointsContainer(contact_line_node_ids[1]));
-                        mContactLine.push_back(p_aux_contact_line); */
-
-                        mContactLineNodeIds.push_back(contact_line_node_ids[0]);
-                        mContactLineNodeIds.push_back(contact_line_node_ids[1]);
+                        mContactLine.push_back(p_aux_contact_line);
+                        //mContactLineNodeIds.push_back(contact_line_node_ids[0]);
+                        //mContactLineNodeIds.push_back(contact_line_node_ids[1]);
                         mContactFace.push_back(face_id);
                     }
                 }
@@ -304,8 +303,8 @@ namespace Kratos
                             IndexedGeometriesArrayType edges = p_intersection_tri->Edges();
 
                             for (unsigned int i_contact = 0; i_contact < mContactFace.size(); i_contact++){
-                                const unsigned int contact_node_i = mContactLineNodeIds[2*i_contact];
-                                const unsigned int contact_node_j = mContactLineNodeIds[2*i_contact + 1];
+                                const unsigned int contact_node_i = ((mContactLine[i_contact])->Points())[0].Id();//mContactLineNodeIds[2*i_contact];
+                                const unsigned int contact_node_j = ((mContactLine[i_contact])->Points())[1].Id();//mContactLineNodeIds[2*i_contact + 1];
 
                                 for (unsigned int i_edge = 0; i_edge < edges.size(); i_edge++){
                                     if ( (edgei[0].Id() == contact_node_i && edgei[1].Id() == contact_node_j) 

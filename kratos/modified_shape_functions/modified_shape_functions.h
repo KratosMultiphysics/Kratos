@@ -173,16 +173,23 @@ public:
 
     /**
     * Returns the shape function values in the negative split element side for a given quadrature on the contact line.
+    * @param ContactLineIndices: indices associated with the outer faces that can be considered as contact lines
     * @return rContactLineNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
     * @return rContactLineNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
     * @return rContactLineNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
     * @param IntegrationMethod Desired integration quadrature.
     */
     virtual void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+        std::vector<int>& ContactLineIndices,
+        std::vector<Matrix> &rContactLineNegativeSideShapeFunctionsValues,
+        std::vector<ShapeFunctionsGradientsType> &rContactLineNegativeSideShapeFunctionsGradientsValues,
+        std::vector<Vector> &rContactLineNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod) = 0;
+    /* virtual void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
         Matrix &rContactLineNegativeSideShapeFunctionsValues,
         ShapeFunctionsGradientsType &rContactLineNegativeSideShapeFunctionsGradientsValues,
         Vector &rContactLineNegativeSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod) = 0; */
 
     /**
     * Given a face id, returns the shape function values in the positive split element exterior face side for a given quadrature.
@@ -272,10 +279,14 @@ public:
 
     /**
     * Returns the negative side tangential vector (in the direction of contact line).
-    * @return rNegativeSideContactLineVector: single vector showing the contact line.
+    * @param FaceIndices: vector giving the indices of the contact faces from DivideGeometry::mContactFace
+    * @return rNegativeSideContactLineVector: single vector showing the contact line. 
     */
-    virtual bool ComputeNegativeSideContactLineVector(
-        Vector &rNegativeSideContactLineVector) = 0;
+    virtual void ComputeNegativeSideContactLineVector(
+        std::vector<unsigned int> FaceIndices,
+        std::vector<Vector> &rNegativeSideContactLineVector) = 0;
+    /* virtual bool ComputeNegativeSideContactLineVector(
+        Vector &rNegativeSideContactLineVector) = 0; */
 
     /**
     * Returns true if the element is split and false otherwise.

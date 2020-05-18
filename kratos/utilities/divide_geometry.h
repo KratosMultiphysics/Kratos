@@ -195,8 +195,8 @@ public:
 
     std::vector < unsigned int > mContactInterface;     // Zero or One, gives the interface that contacts the solid
     std::vector < unsigned int > mContactEdge;          // Zero, One, or Two, gives the contact edge of the contact interface 
-    //std::vector < IndexedPointGeometryPointerType > mContactLine; // Object to store the contact line(s) (intersection of the interface with solid).
-    std::vector < unsigned int > mContactLineNodeIds;   // Object to store the contact line(s)' pair of node Ids in order (e.g. 1,2 , 1,3)
+    std::vector < IndexedPointGeometryPointerType > mContactLine; // Object to store the contact line(s) (intersection of the interface with solid).
+    //std::vector < unsigned int > mContactLineNodeIds;   // Object to store the contact line(s)' pair of node Ids in order (e.g. 1,2 , 1,3)
     std::vector < unsigned int > mContactFace;          // Object to store the face (local) number corresponding to mContactLine.
     
 

@@ -528,11 +528,11 @@ private:
      * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
      * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
      * @param rInterfaceNormalsNeg Negative side normal vectors for the interface-gauss-points
-     * @param rContactShapeFunctionsNeg Negative side shape functions at the contact-line gauss-points
-     * @param rContactShapeDerivativesNeg Negative side shape functions derivatives at the contact-line gauss-points
-     * @param rContactWeightsNeg Negative side weights for the contact-line gauss-points
-     * @param rContactTangentialsNeg Negative side tangential vectors for the contact-line gauss-points
-     * @param rHasContactLine Boolean
+     * @param rContactShapeFunctionsNeg Negative side shape functions at the contact-line gauss-points: vector type for multiple C.L.
+     * @param rContactShapeDerivativesNeg Negative side shape functions derivatives at the contact-line gauss-: vector type for multiple C.L.
+     * @param rContactWeightsNeg Negative side weights for the contact-line gauss-points: vector type for multiple C.L.
+     * @param rContactTangentialsNeg Negative side tangential vectors for the contact-line gauss-points: vector type for multiple C.L.
+     * @param rHasContactLine Boolean: DEPRECATED
      */
     void ComputeSplitting(
 		TElementData& rData,
@@ -550,11 +550,15 @@ private:
         GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
         Kratos::Vector& rInterfaceWeightsNeg,
         std::vector<Vector>& rInterfaceNormalsNeg,
-        MatrixType& rContactShapeFunctionNeg,
-        GeometryType::ShapeFunctionsGradientsType& rContactShapeDerivativesNeg,
-        Kratos::Vector& rContactWeightsNeg,
-        Vector& rContactTangentialNeg,
-        bool& rHasContactLine);
+        std::vector<MatrixType>& rContactShapeFunctionNeg,
+        std::vector<GeometryType::ShapeFunctionsGradientsType>& rContactShapeDerivativesNeg,
+        std::vector<Kratos::Vector>& rContactWeightsNeg,
+        std::vector<Vector>& rContactTangentialsNeg);
+        //MatrixType& rContactShapeFunctionNeg,
+        //GeometryType::ShapeFunctionsGradientsType& rContactShapeDerivativesNeg,
+        //Kratos::Vector& rContactWeightsNeg,
+        //Vector& rContactTangentialsNeg,
+        //bool& rHasContactLine);
 
     /**
      * @brief Calculates curvature at the gauss points of the interface.
