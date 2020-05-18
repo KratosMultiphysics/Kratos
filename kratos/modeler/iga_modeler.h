@@ -110,7 +110,7 @@ private:
     ///@name Iga functionalities
     ///@{
 
-    Model& mModel;
+    Model& mModel = Model();
 
     ///@}
     ///@name Iga functionalities
@@ -179,7 +179,6 @@ private:
     /// Default constructor.
     IgaModeler()
         : Modeler()
-        , mModel(Model())
     {
     }
 
