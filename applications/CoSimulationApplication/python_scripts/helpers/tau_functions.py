@@ -18,9 +18,9 @@ def GetFluidMesh(working_path, step, para_path_mod):
     NodesNr, ElemsNr, X, Y, Z, P, elem_connectivities = ReadTauOutput(interface_file_name, 20)
 
     # Transform nodal coordinates to numpy array
-    nodesID, nodal_coords = ReadNodalCoordinates(NodesNr, X, Y, Z)
+    nodal_coords = ReadNodalCoordinates(NodesNr, X, Y, Z)
 
-    # Transform element connectivities to numpy array
+    # Save element types in a numpy array
     element_types = ReadElementTypes(ElemsNr)
 
     # In vtk format element connectivities start from 0, not from 1
@@ -39,11 +39,12 @@ def ComputeFluidForces(working_path, step):
     # Calculate the cell pressure averaging the nodal pressure
     cell_pressure = CalculateCellPressure(ElemsNr, P, X, elem_connectivities)
 
-    # calculating element area and normal vector
-    area,normal = calcAreaNormal(ElemsNr,elem_connectivities,X,Y,Z,(step+1))
+    # Calculate cells' normals and areas
+    cells_normals = CalculateCellNormals(ElemsNr, elem_connectivities, X, Y, Z)
+    cells_areas = CalculateCellAreas(ElemsNr, elem_connectivities, X, Y, Z)
 
     # calculating the force vector
-    fluid_forces = calcFluidForceVector(ElemsNr,elem_connectivities,NodesNr,cell_pressure,area,normal,(step+1))
+    fluid_forces = calcFluidForceVector(ElemsNr,elem_connectivities,NodesNr,cell_pressure,cells_areas,cells_normals,(step+1))
 
     return fluid_forces
 
@@ -54,7 +55,7 @@ def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, sta
 
     NodesNr,ElemsNr,X,Y,Z,P,elemTable=ReadTauOutput(interface_file_name, 20)
 
-    nodesID, nodes = ReadNodalCoordinates(NodesNr, X, Y, Z)
+    nodes = ReadNodalCoordinates(NodesNr, X, Y, Z)
 
     if(step==start_step):
         dispTauOld=np.zeros(3*NodesNr)
@@ -243,18 +244,15 @@ def ReadHeader(interface_file,line):
 
 
 def ReadNodalCoordinates(NodesNr, X, Y, Z):
-    # array to store the IDs of the nodes: IDnode1, IDnode2,...
-    nodesID = np.zeros(NodesNr, dtype=int)
     # array to store the coordinates of the nodes: x1,y1,z1,x2,y2,z2,...
     nodal_coords = np.zeros(NodesNr*3)
 
     for i in xrange(0, NodesNr):
-        nodesID[i] = i+1
         nodal_coords[3*i+0] = X[i]
         nodal_coords[3*i+1] = Y[i]
         nodal_coords[3*i+2] = Z[i]
 
-    return nodesID, nodal_coords
+    return nodal_coords
 
 
 def ReadElementTypes(ElemsNr):
@@ -300,39 +298,60 @@ def CalculateCellPressure(ElemsNr, P, X, elem_connectivities):
     return cell_pressure
 
 
-# Calculate the area and the normal of the area for each cell - element of TAU Mesh
-def calcAreaNormal(ElemsNr,elem_connectivities,X,Y,Z,fIteration):
-    area = np.zeros(ElemsNr)
-    normal = np.zeros([ElemsNr,3])
-    A = np.zeros(3)
-    B = np.zeros(3)
-    for i in xrange(0,ElemsNr):
-        A[0] = X[elem_connectivities[i*4+2]-1] - X[elem_connectivities[i*4+0]-1]
-        A[1] = Y[elem_connectivities[i*4+2]-1] - Y[elem_connectivities[i*4+0]-1]
-        A[2] = Z[elem_connectivities[i*4+2]-1] - Z[elem_connectivities[i*4+0]-1]
-        B[0] = X[elem_connectivities[i*4+3]-1] - X[elem_connectivities[i*4+1]-1]
-        B[1] = Y[elem_connectivities[i*4+3]-1] - Y[elem_connectivities[i*4+1]-1]
-        B[2] = Z[elem_connectivities[i*4+3]-1] - Z[elem_connectivities[i*4+1]-1]
-        a=np.cross(A,B)
-        norm=np.linalg.norm(a)
-        a=a/norm
-        normal[i,0]=a[0]
-        normal[i,1]=a[1]
-        normal[i,2]=a[2]
-        A[0] = X[elem_connectivities[i*4+1]-1] - X[elem_connectivities[i*4+0]-1]
-        A[1] = Y[elem_connectivities[i*4+1]-1] - Y[elem_connectivities[i*4+0]-1]
-        A[2] = Z[elem_connectivities[i*4+1]-1] - Z[elem_connectivities[i*4+0]-1]
-        B[0] = X[elem_connectivities[i*4+3]-1] - X[elem_connectivities[i*4+0]-1]
-        B[1] = Y[elem_connectivities[i*4+3]-1] - Y[elem_connectivities[i*4+0]-1]
-        B[2] = Z[elem_connectivities[i*4+3]-1] - Z[elem_connectivities[i*4+0]-1]
-        a=np.cross(A,B)
-        norm=np.linalg.norm(a)
-        area[i] =  norm # hold only for 2d case, MUST be modified for 3d interfaces
-    f_name = 'Outputs/Area_'+str(fIteration)+'.dat'
-    with open(f_name,'w') as fwrite:
-        for i in xrange(0,len(area[:])):
-            fwrite.write("%f\n" % (area[i]))
-    return area, normal
+def CalculateCellNormals(ElemsNr, elem_connectivities, X, Y, Z):
+    cells_normals = np.zeros([ElemsNr, 3])
+
+    # Loop over all cells
+    for i in xrange(0, ElemsNr):
+        node_ids = GetCellNodeIds(elem_connectivities, i)
+        # Calculate cell diagonals
+        cell_diagonal_02 = CalculateDistanceVector(X,Y,Z,node_ids[0],node_ids[2])
+        cell_diagonal_13 = CalculateDistanceVector(X,Y,Z,node_ids[1],node_ids[3])
+
+        # Calculate cell normal
+        cell_normal = np.cross(cell_diagonal_02, cell_diagonal_13)
+        magnitude = np.linalg.norm(cell_normal)
+        unit_cell_normal = cell_normal/magnitude
+        cells_normals[i, 0] = unit_cell_normal[0]
+        cells_normals[i, 1] = unit_cell_normal[1]
+        cells_normals[i, 2] = unit_cell_normal[2]
+
+    return cells_normals
+
+
+def CalculateCellAreas(ElemsNr, elem_connectivities, X, Y, Z):
+    cells_areas = np.zeros(ElemsNr)
+
+    # Loop over all cells
+    for i in xrange(0, ElemsNr):
+        node_ids = GetCellNodeIds(elem_connectivities, i)
+
+        # Calculate cell sides
+        cell_side_01 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[1])
+        cell_side_03 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[3])
+
+        # Calculate cell area
+        cell_area = np.cross(cell_side_01, cell_side_03)
+
+        # hold only for 2d case, MUST be modified for 3d interfaces
+        cells_areas[i] = np.linalg.norm(cell_area)
+
+    return cells_areas
+
+def GetCellNodeIds(elem_connectivities, elem_id):
+    node_ids = np.zeros(4, dtype=int)
+    node_ids[0] = elem_connectivities[elem_id*4+0]-1
+    node_ids[1] = elem_connectivities[elem_id*4+1]-1
+    node_ids[2] = elem_connectivities[elem_id*4+2]-1
+    node_ids[3] = elem_connectivities[elem_id*4+3]-1
+    return node_ids
+
+def CalculateDistanceVector(X,Y,Z,start,end):
+    distance_vector = np.zeros(3)
+    distance_vector[0] = X[end] - X[start]
+    distance_vector[1] = Y[end] - Y[start]
+    distance_vector[2] = Z[end] - Z[start]
+    return distance_vector
 
 # Calculate the Vector Force
 def calcFluidForceVector(ElemsNr,elem_connectivities,NodesNr,cell_pressure,area,normal,fIteration):
