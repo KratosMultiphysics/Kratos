@@ -129,8 +129,8 @@ public:
     :
         mDistancePartIsInitialized(false),
         mMaxIterations(MaxIterations),
-        mrBaseModelPart (rBaseModelPart),
         mrModel( rBaseModelPart.GetModel() ),
+        mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
         mAuxModelPartName( AuxPartName )
     {
@@ -167,8 +167,8 @@ public:
     :
         mDistancePartIsInitialized(false),
         mMaxIterations(MaxIterations),
-        mrBaseModelPart (rBaseModelPart),
         mrModel( rBaseModelPart.GetModel() ),
+        mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
         mAuxModelPartName( AuxPartName )
     {
@@ -187,8 +187,7 @@ public:
     /// Destructor.
     ~VariationalDistanceCalculationProcess() override
     {
-        if(mrModel.HasModelPart( mAuxModelPartName ))
-            mrModel.DeleteModelPart( mAuxModelPartName );
+        Clear();
     };
 
     ///@}
@@ -336,12 +335,12 @@ public:
             }
         }
 
-        mp_solving_strategy->Solve();
+        mpSolvingStrategy->Solve();
 
         // Step2 - minimize the target residual
         r_distance_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
         for(unsigned int it = 0; it<mMaxIterations; it++){
-             mp_solving_strategy->Solve();
+             mpSolvingStrategy->Solve();
         }
 
         // Unfix the distances
@@ -356,14 +355,11 @@ public:
 
     virtual void Clear()
     {
-        ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
-        r_distance_model_part.Nodes().clear();
-        r_distance_model_part.Conditions().clear();
-        r_distance_model_part.Elements().clear();
-        // r_distance_model_part.GetProcessInfo().clear();
+        if(mrModel.HasModelPart( mAuxModelPartName ))
+            mrModel.DeleteModelPart( mAuxModelPartName );
         mDistancePartIsInitialized = false;
 
-        mp_solving_strategy->Clear();
+        mpSolvingStrategy->Clear();
 
     }
 
@@ -418,7 +414,7 @@ protected:
     Flags mOptions;
     std::string mAuxModelPartName;
 
-    typename SolvingStrategyType::UniquePointer mp_solving_strategy;
+    typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
     ///@}
     ///@name Protected Operators
@@ -464,7 +460,7 @@ protected:
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
 
-        mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+        mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part,
             p_scheme,
             pLinearSolver,
@@ -474,7 +470,7 @@ protected:
             CalculateNormDxFlag);
 
         // TODO: check flag DO_EXPENSIVE_CHECKS
-        mp_solving_strategy->Check();
+        mpSolvingStrategy->Check();
     }
 
     virtual void ReGenerateDistanceModelPart(ModelPart& rBaseModelPart)
