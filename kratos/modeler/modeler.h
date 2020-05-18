@@ -57,6 +57,10 @@ public:
     Modeler(
         Parameters ModelerParameters = Parameters())
         : mParameters(ModelerParameters)
+        , mEchoLevel(
+            ModelerParameters.Has("echo_level")
+            ? ModelerParameters["echo_level"].GetInt()
+            : 0)
     {}
    
     /// Constructor with Model
