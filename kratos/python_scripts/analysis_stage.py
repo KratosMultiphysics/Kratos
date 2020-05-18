@@ -242,7 +242,6 @@ class AnalysisStage(object):
         for modeler in self._GetListOfModelers():
             if self.echo_level > 1:
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart started.")
-
             modeler.SetupModelPart()
             if self.echo_level > 1:
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart finished.")
