@@ -91,7 +91,7 @@ namespace MPMSearchElementUtility
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
         typename Geometry<Node<3>>::PointsArrayType rPoints);
 
-    void Check(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, const Matrix& rN);
+    void Check(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, const Matrix& rN, const DenseVector<Matrix>& rDN_De);
 
     /**
      * @brief Search element connectivity for each particle
@@ -339,10 +339,6 @@ namespace MPMSearchElementUtility
                 if (trial_subpoint.Weight() > Tolerance)
                 {
                     ips[active_subpoint_index] = trial_subpoint;
-                    std::cout << trial_subpoint.Weight() << std::endl;
-                    std::cout << trial_subpoint.Coordinates() << std::endl;
-                    std::cout << ips[active_subpoint_index].Weight() << std::endl;
-                    std::cout << ips[active_subpoint_index].Coordinates() << std::endl;
                     DN_De_vector[active_subpoint_index] = DN_De;
                     for (size_t j = 0; j < N.size(); ++j) {
                         N_matrix(active_subpoint_index, active_node_index) = N[j];
@@ -352,28 +348,21 @@ namespace MPMSearchElementUtility
                     }
                     active_subpoint_index += 1;
                 }
-
             }
+
+            if (active_subpoint_index == 1) return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                    pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+
             N_matrix.resize(active_subpoint_index, active_node_index, true);
             DN_De_vector.resize(active_subpoint_index, true);
             
             IntegrationPointsArrayType ips_good(active_subpoint_index);
             for (size_t i = 0; i < active_subpoint_index; i++) ips_good[i] = ips[i];
 
-            std::cout << ips_good[0].Weight() << std::endl;
-            std::cout << ips_good[0].Coordinates() << std::endl;
             PointerVector<Node<3>> nodes_list_good(active_node_index);
             for (size_t i = 0; i < active_node_index; i++) nodes_list_good(i) = nodes_list(i);
 
-
-            double vol_accum = 0.0;
-            for (size_t i = 0; i < ips_good.size(); i++)
-            {
-                vol_accum += ips_good[i].Weight();
-            }
-            std::cout << vol_accum << std::endl;
-
-            Check(ips_good, Tolerance, N_matrix);
+            Check(ips_good, Tolerance, N_matrix, DN_De_vector);
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
@@ -795,7 +784,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    void Check(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, const Matrix& rN)
+    void Check(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, const Matrix& rN, const DenseVector<Matrix>& rDN_De)
     {
         KRATOS_TRY
 
@@ -809,10 +798,22 @@ namespace MPMSearchElementUtility
             KRATOS_ERROR_IF(rIntergrationSubPoints[i].Weight() < Tolerance)
                 << "Volume fraction of sub-points is too small!";
 
+            /*
+            for (size_t j = 0; j < rDN_De[i].size1(); ++j)
+            {
+                for (size_t k = 0; k < rDN_De[i].size2(); ++k)
+                {
+                    if (isnan(rDN_De[i](j,k)))
+                    {
+                        KRATOS_ERROR << "Local gradients contain invalid values";
+                    }
+                }
+            }*/
+
             vol_frac_accum += rIntergrationSubPoints[i].Weight();
         }
 
-        KRATOS_ERROR_IF(std::abs(1.0 - vol_frac_accum) > Tolerance)
+        KRATOS_ERROR_IF(std::abs(1.0 - vol_frac_accum) > rIntergrationSubPoints.size()*Tolerance)
             << "Volume fraction of sub-points does not sum to 1.0."
             << " This probably means the background grid is not big enough";
 

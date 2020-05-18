@@ -544,9 +544,6 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
         ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
         : false;
-    const bool is_pqmpm = (rCurrentProcessInfo.Has(IS_PQMPM))
-        ? rCurrentProcessInfo.GetValue(IS_PQMPM)
-        : false;
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);

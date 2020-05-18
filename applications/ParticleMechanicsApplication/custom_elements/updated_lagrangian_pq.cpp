@@ -124,7 +124,7 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces( // TODO Merge into base
     {
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            if (r_N(int_p, i) > std::numeric_limits<double>::epsilon()) // skip inactive nodes
+            if (r_N(int_p, i) * GetGeometry().IntegrationPoints()[int_p].Weight() > std::numeric_limits<double>::epsilon()) // skip inactive nodes
             {
                 int index = dimension * i;
 
@@ -149,9 +149,6 @@ void UpdatedLagrangianPQ::CalculateExplicitStresses(const ProcessInfo& rCurrentP
 
     const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
         ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-        : false;
-    const bool is_pqmpm = (rCurrentProcessInfo.Has(IS_PQMPM))
-        ? rCurrentProcessInfo.GetValue(IS_PQMPM)
         : false;
 
     // Create constitutive law parameters:
@@ -247,7 +244,7 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
     {
         for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
         {
-            if (r_N(int_p, i) > std::numeric_limits<double>::epsilon())
+            if (r_N(int_p, i)* GetGeometry().IntegrationPoints()[int_p].Weight() > std::numeric_limits<double>::epsilon())
             {
                 for (unsigned int j = 0; j < dimension; j++)
                 {
