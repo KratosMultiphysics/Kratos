@@ -177,6 +177,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
+        self.find_neighbouring_elements_process = self._set_find_neighbouring_elements_process()
+        (self.find_neighbouring_elements_process).Execute()
+
         self.level_set_convection_process = self._set_level_set_convection_process()
 
         #Set IS_STRUCTURE to define contact line
@@ -806,4 +809,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         return mass_conservation_check_process
 
-    
+    def _set_find_neighbouring_elements_process(self):
+        dimensions = 3
+        avg_num_elements = 10
+        find_neighbouring_elements_process = KratosMultiphysics.FindElementalNeighboursProcess(
+                model_partself.main_model_part, dimensions, avg_num_elements)
+        
+        return find_neighbouring_elements_process
+
