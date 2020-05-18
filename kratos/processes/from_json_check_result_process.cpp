@@ -57,20 +57,6 @@ FromJSONCheckResultProcess::FromJSONCheckResultProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void FromJSONCheckResultProcess::Execute()
-{
-    KRATOS_TRY;
-
-    ExecuteInitialize();
-    ExecuteFinalizeSolutionStep();
-    ExecuteFinalize();
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void FromJSONCheckResultProcess::ExecuteInitialize()
 {
     KRATOS_TRY;
