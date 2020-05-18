@@ -129,8 +129,7 @@ def OutputReferenceSolution(model_part, variable, file_name):
         "output_variables"     : [\"""" + variable.Name() + """\"],
         "output_file_name"     : \"""" + file_name + ".json" + """\",
         "model_part_name"      : \"""" + full_model_part_name + """\",
-        "time_frequency"       : 0.00,
-        "use_node_coordinates" : true
+        "time_frequency"       : 0.00
     }""")
 
     output_proc = json_output_process.JsonOutputProcess(model_part.GetModel(), output_parameters)
@@ -151,7 +150,6 @@ def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_refe
             "tolerance"                 : 1e-6,
             "relative_tolerance"        : 1e-9,
             "time_frequency"            : 0.00,
-            "use_node_coordinates"      : true,
             "check_only_local_entities" : true
         }""")
         # TODO check all entities, requires some syncronization though!
