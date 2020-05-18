@@ -1092,6 +1092,31 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
+    const BoundedMatrixType& rEulerOperator,
+    BoundedMatrixVoigtType& rVoigtOperator
+    )
+{
+    const double c = rEulerOperator(0, 0);
+    const double s = rEulerOperator(0, 1);
+
+    rVoigtOperator(0, 0) = std::pow(c, 2);
+    rVoigtOperator(0, 1) = std::pow(s, 2);
+    rVoigtOperator(0, 2) = c * s;
+
+    rVoigtOperator(1, 0) = std::pow(s, 2);
+    rVoigtOperator(1, 1) = std::pow(c, 2);
+    rVoigtOperator(1, 2) = -c * s;
+
+    rVoigtOperator(2, 0) = -2.0 * c * s;
+    rVoigtOperator(2, 1) = 2.0 * c * s;
+    rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 
