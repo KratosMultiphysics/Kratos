@@ -469,14 +469,6 @@ void UpdatedLagrangian::CalculateAndAddRHS(
         : false;
     if (is_explicit)
     {
-        Matrix Jacobian;
-        GetGeometry().Jacobian(Jacobian, 0);
-        Matrix InvJ;
-        double detJ;
-        MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-        rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
-
         const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
             ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
             : false;
@@ -485,11 +477,11 @@ void UpdatedLagrangian::CalculateAndAddRHS(
             const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(
                 GetGeometry().ShapeFunctionsValues(), GetGeometry());
             MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
-                rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
+                mMP.cauchy_stress_vector, mMP.volume,
                 mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
         }
         else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
-            rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
+            mMP.cauchy_stress_vector, mMP.volume,
             mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
     }
     else
@@ -588,12 +580,8 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     }
     else
     {
-        MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+        MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, 
             mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
-        // TODO split the above function into 1) calc vel grad, 2) calc strain increment
-        // CalcVelGrad()
-        // if (is_pqmpm) RecombineSubPointsIntoMasterPoint() This probably needs to be moved outside this utility so 
-        // Calc strain increment and def grad of master particle
     }
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;

@@ -58,7 +58,7 @@ namespace Kratos
             Element& rElement);
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitKinematics(const ProcessInfo& rCurrentProcessInfo,
-            Element& rElement, const Matrix& rDN_DX, Vector& rMPStrain, Matrix& rDeformationGradient,
+            Element& rElement, Vector& rMPStrain, Matrix& rDeformationGradient,
             const SizeType StrainSize);
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitAsymmetricKinematics(const ProcessInfo& rCurrentProcessInfo,
