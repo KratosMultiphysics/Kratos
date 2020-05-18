@@ -50,6 +50,12 @@ public:
     ///@{
 
     /// Default constructor.
+    CadIoModeler()
+        : Modeler()
+    {
+    }
+
+    /// Constructor.
     Modeler(
         Model& rModel,
         Parameters ModelerParameters = Parameters())
@@ -108,12 +114,6 @@ private:
     ///@{
 
     friend class Serializer;
-
-    /// Default constructor.
-    CadIoModeler()
-        : Modeler()
-    {
-    }
 
     ///@}
 }; // Class CadIoModeler
