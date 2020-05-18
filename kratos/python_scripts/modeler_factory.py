@@ -25,7 +25,8 @@ class KratosModelerFactory(object):
 
                         if not kratos_module_name.startswith("KratosMultiphysics"):
                             kratos_module_name = "KratosMultiphysics." + kratos_module_name
-                        modeler_name = kratos_module_name + "." + modeler_name
+                        modeler_name = kratos_module_name + ".modelers." + modeler_name
+
 
                     python_module = import_module(modeler_name)
                     modeler = python_module.Factory(modeler_item["Parameters"])
