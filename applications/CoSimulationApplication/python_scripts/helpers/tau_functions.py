@@ -42,24 +42,18 @@ def ComputeFluidForces(working_path, step):
 
     return fluid_forces
 
-def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, start_step):
-    global dispTauOld
+def ExecuteBeforeMeshDeformation(total_displacements,  step, para_path_mod, start_step):
+    # Compute relative displacements
+    relative_displacements = ComputeRelativeDisplacements(total_displacements, step, start_step)
 
-    interface_file_name = FindInterfaceFile(working_path, step)
+    # Read the parameter file
+    Para = PyPara.Parafile(para_path_mod)
 
-    NodesNr,ElemsNr,X,Y,Z,P,elemTable=ReadTauOutput(interface_file_name, 20)
+    # Read the interface fluid grid
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para)
 
-    nodes = ReadNodalCoordinates(NodesNr, X, Y, Z)
-
-    if(step==start_step):
-        dispTauOld=np.zeros(3*NodesNr)
-
-    [ids,coordinates,globalID,coords]=meshDeformation(NodesNr,nodes,dispTau,dispTauOld,para_path_mod)
-
-    PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
-
-    for i in xrange(0,3*NodesNr):
-        dispTauOld[i]=dispTau[i]
+    # Write membrane's displacments in a file for TAU
+    WriteInterfaceDeformationFile(ids, coordinates, relative_displacements)
 
 
 def FindOutputFile(working_path, step):
@@ -368,65 +362,55 @@ def CalculateDistanceVector(X,Y,Z,start,end):
 
     return distance_vector
 
-# Execute the Mesh deformation of TAU
-def meshDeformation(NodesNr,nodes,dispTau,dispTauOld, para_path_mod):
+def ComputeRelativeDisplacements(total_displacements, step, start_step):
+    global previous_total_displacements
 
-    disp=np.zeros([NodesNr,3])#NodesNr
-    for i in xrange(0,NodesNr):#NodesNr
-        disp[i,0]=1*(dispTau[3*i+0]-dispTauOld[3*i+0])
-        disp[i,1]=1*(dispTau[3*i+1]-dispTauOld[3*i+1])
-        disp[i,2]=1*(dispTau[3*i+2]-dispTauOld[3*i+2])
-    Para = PyPara.Parafile(para_path_mod)
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para)
-    coords=np.zeros([NodesNr,6])#NodesNr
+    if(step == start_step):
+        previous_total_displacements = np.zeros(len(total_displacements))
 
-    for i in xrange(0,NodesNr):
-        coords[i,0]=coordinates[0,i]
-        coords[i,1]=coordinates[1,i]
-        coords[i,2]=coordinates[2,i]
+    # Declaring and initializing relative_displacements vector
+    number_of_nodes = len(total_displacements)/3
+    relative_displacements = np.zeros([number_of_nodes, 3])
 
-    globalID = np.zeros(NodesNr)
-    for i in xrange(0,NodesNr):
-        xi = coords[i,0]
-        yi = coords[i,1]
-        zi = coords[i,2]
-        for k in xrange(0,NodesNr):
-            xk = nodes[3*k+0]
-            yk = nodes[3*k+1]
-            zk = nodes[3*k+2]
-            dist2 = (xi-xk)*(xi-xk) + (yi-yk)*(yi-yk) + (zi-zk)*(zi-zk)
+    # Loop over nodes
+    for node in range(number_of_nodes):
+        # Loop over xyz components
+        for j in range(3):
+            # Compute relative displacement
+            relative_displacements[node, j] = total_displacements[3*node+j]
+            relative_displacements[node, j] -= previous_total_displacements[3*node+j]
 
-            if dist2 < 0.00001:
-                #K=k
-                globalID[i] = k
-            globalID = globalID.astype(int)
-        #print "%d found %d" % (i,K)
-        coords[i, 3] = disp[globalID[i], 0]
-        coords[i, 4] = disp[globalID[i], 1]
-        coords[i, 5] = disp[globalID[i], 2]
+    previous_total_displacements = total_displacements
 
-    fname_new = 'interface_deformfile.nc'
-    ncf = netcdf.netcdf_file(fname_new, 'w')
+    return relative_displacements
+
+
+def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
+    # Open interface_deformfile
+    ncf = netcdf.netcdf_file('interface_deformfile.nc', 'w')
+
     # define dimensions
     nops = 'no_of_points'
     number_of_points = len(ids[:])
     ncf.createDimension(nops, number_of_points)
+
     # define variables
-    gid = ncf.createVariable('global_id', 'i', (nops,))
-    ncx = ncf.createVariable('x', 'd', (nops,))
-    ncy = ncf.createVariable('y', 'd', (nops,))
-    ncz = ncf.createVariable('z', 'd', (nops,))
-    ncdx = ncf.createVariable('dx', 'd', (nops,))
-    ncdy = ncf.createVariable('dy', 'd', (nops,))
-    ncdz = ncf.createVariable('dz', 'd', (nops,))
+    global_node_ids = ncf.createVariable('global_id', 'i', (nops,))
+    nodal_x_coordinates = ncf.createVariable('x', 'd', (nops,))
+    nodal_y_coordinates = ncf.createVariable('y', 'd', (nops,))
+    nodal_z_coordinates = ncf.createVariable('z', 'd', (nops,))
+    nodal_x_displacements = ncf.createVariable('dx', 'd', (nops,))
+    nodal_y_displacements = ncf.createVariable('dy', 'd', (nops,))
+    nodel_z_displacements = ncf.createVariable('dz', 'd', (nops,))
+
     # write data
-    gid[:] = ids
-    ncx[:] = coords[:,0]
-    ncy[:] = coords[:,1]
-    ncz[:] = coords[:,2]
-    ncdx[:] = coords[:,3]
-    ncdy[:] = coords[:,4]
-    ncdz[:] = coords[:,5]
+    global_node_ids[:] = ids
+    nodal_x_coordinates[:] = coordinates[0,:]
+    nodal_y_coordinates[:] = coordinates[1,:]
+    nodal_z_coordinates[:] = coordinates[2,:]
+    nodal_x_displacements[:] = relative_displacements[:,0]
+    nodal_y_displacements[:] = relative_displacements[:,1]
+    nodel_z_displacements[:] = relative_displacements[:,2]
     ncf.close()
 
-    return ids, coordinates, globalID, coords
+

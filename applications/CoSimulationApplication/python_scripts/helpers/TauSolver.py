@@ -78,9 +78,9 @@ def ImportData(conn_name, identifier):
 
     # identifier is the data-name in json
     if identifier == "Interface_disp":
-        # Deform mesh
         if tau_mpi_rank() == 0:
-            TauFunctions.ExecuteBeforeMeshDeformation(displacements, working_path, step, para_path_mod,start_step)
+            TauFunctions.ExecuteBeforeMeshDeformation(displacements, step, para_path_mod, start_step)
+        # Deform mesh
         Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
