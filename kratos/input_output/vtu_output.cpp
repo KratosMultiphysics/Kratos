@@ -52,7 +52,7 @@ void GetNodalCoordinates(const ModelPart& rModelPart, std::vector<double>& rCoor
 }
 
 template <typename TContainerType>
-void GetCellInformation(const TContainerType& rContainer, const std::unordered_map<int, int>& rKratosIdToVtuId, std::vector<std::size_t>& rConnectivities, std::vector<std::size_t>& rOffsets, std::vector<vtu11::VtkCellType>& rTypes)
+void GetCellInformation(const TContainerType& rContainer, const std::unordered_map<int, int>& rKratosIdToVtuId, std::vector<vtu11::VtkIndexType>& rConnectivities, std::vector<vtu11::VtkIndexType>& rOffsets, std::vector<vtu11::VtkCellType>& rTypes)
 {
         // IMPORTANT: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
     // NOTE: See https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
@@ -171,8 +171,8 @@ void VtuOutput::PrintOutput()
 
     CreateMapFromKratosIdToVtuId(mrModelPart, mKratosIdToVtkId);
 
-    std::vector<std::size_t> connectivities;
-    std::vector<std::size_t> offsets;
+    std::vector<vtu11::VtkIndexType> connectivities;
+    std::vector<vtu11::VtkIndexType> offsets;
     std::vector<vtu11::VtkCellType> types;
 
     const auto& r_local_mesh = mrModelPart.GetCommunicator().LocalMesh();
@@ -187,11 +187,11 @@ void VtuOutput::PrintOutput()
     }
 
 
-    // vtu11::Vtu11UnstructuredMesh vtu_mesh{ coordinates, connectivities, offsets, types };
-    // std::vector<vtu11::DataSet> data_dummy;
+    vtu11::Vtu11UnstructuredMesh vtu_mesh{ coordinates, connectivities, offsets, types };
+    std::vector<vtu11::DataSet> data_dummy;
 
 
-    // vtu11::write("vtu_file_test.vtu", vtu_mesh, data_dummy, data_dummy);
+    vtu11::write("vtu_file_test.vtu", vtu_mesh, data_dummy, data_dummy);
     KRATOS_CATCH("VTU PrintOutput");
 }
 
