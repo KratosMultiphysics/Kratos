@@ -318,7 +318,48 @@ Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStres
         std::vector<ModelPart*> DEMSubModelPartList = mDEMBoundariesSubModelParts[actuator_name];
         double face_area = 0.0;
         double face_reaction = 0.0;
-        if (actuator_name == "Z") {
+        if (actuator_name == "Radial") {
+            // Calculate face_area
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < FEMSubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(FEMSubModelPartList[i]);
+                // Iterate through conditions of FEM boundary
+                const int NCons = static_cast<int>(rSubModelPart.Conditions().size());
+                ModelPart::ConditionsContainerType::iterator con_begin = rSubModelPart.ConditionsBegin();
+                #pragma omp parallel for reduction(+:face_area)
+                for(int j = 0; j < NCons; j++) {
+                    ModelPart::ConditionsContainerType::iterator itCond = con_begin + j;
+                    face_area += itCond->GetGeometry().Area();
+                }
+            }
+            // Calculate face_reaction
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < FEMSubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(FEMSubModelPartList[i]);
+                // Iterate through nodes of Fem boundary
+                const int NNodes = static_cast<int>(rSubModelPart.Nodes().size());
+                ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
+                #pragma omp parallel for reduction(+:face_reaction)
+                for(int j = 0; j<NNodes; j++) {
+                    ModelPart::NodesContainerType::iterator it = it_begin + j;
+                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(REACTION);
+                    // Unit normal vector pointing outwards
+                    array_1d<double,3> radial_normal;
+                    radial_normal[0] = it->X();
+                    radial_normal[1] = it->Y();
+                    radial_normal[2] = 0.0;
+                    double inv_norm = 1.0/norm_2(radial_normal);
+                    radial_normal[0] *= inv_norm;
+                    radial_normal[1] *= inv_norm;
+                    face_reaction += inner_prod(r_force,radial_normal);
+                }
+            }
+            if (std::abs(face_area) > 1.0e-12) {
+                reaction_stress[map_index] = face_reaction/face_area;
+            } else {
+                reaction_stress[map_index] = 0.0;
+            }
+        } else if (actuator_name == "Z") {
             // Calculate face_area
             // Iterate through all DEMBoundaries
             for (unsigned int i = 0; i < DEMSubModelPartList.size(); i++) {
