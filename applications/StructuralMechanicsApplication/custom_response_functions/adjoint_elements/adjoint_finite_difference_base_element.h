@@ -120,9 +120,9 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
 
     IntegrationMethod GetIntegrationMethod() const override
@@ -130,11 +130,11 @@ public:
         return mpPrimalElement->GetIntegrationMethod();
     }
 
-    void GetValuesVector(Vector& values, int Step = 0) override;
+    void GetValuesVector(Vector& values, int Step = 0) const override;
 
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->Initialize();
+        mpPrimalElement->Initialize(rCurrentProcessInfo);
     }
 
     void ResetConstitutiveLaw() override
@@ -264,15 +264,15 @@ public:
         mpPrimalElement->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
     }
 
-    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rCurrentProcessInfo);
     }
 
     void AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<double >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<double >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rRHSVector,
                                     rRHSVariable,
@@ -281,9 +281,9 @@ public:
     }
 
     void AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<array_1d<double,3> >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<array_1d<double,3> >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rRHSVector,
                                 rRHSVariable,
@@ -292,9 +292,9 @@ public:
     }
 
     void AddExplicitContribution(const MatrixType& rLHSMatrix,
-                                const Variable<MatrixType>& rLHSVariable,
-                                Variable<Matrix>& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override
+                                 const Variable<MatrixType>& rLHSVariable,
+                                 const Variable<Matrix>& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rLHSMatrix,
                                 rLHSVariable,
@@ -364,22 +364,8 @@ public:
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector< array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     // Sensitivity functions
 
@@ -425,6 +411,10 @@ public:
     {
         return mpPrimalElement;
     }
+    const Element::Pointer pGetPrimalElement() const
+    {
+        return mpPrimalElement;
+    }
     ///@}
 
     ///@name Public specialized Access - Temporary
@@ -462,12 +452,12 @@ protected:
         }
 
         // Build vector of variables containing the DOF-variables of the primal problem
-        std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>*> primal_solution_variable_list;
+        std::vector<Variable<double>*> primal_solution_variable_list;
         (mHasRotationDofs) ? primal_solution_variable_list = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z, &ROTATION_X, &ROTATION_Y, &ROTATION_Z} :
                              primal_solution_variable_list = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
 
         // Build vector of variables containing the DOF-variables of the adjoint problem
-        std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>*> adjoint_solution_variable_list;
+        std::vector<Variable<double>*> adjoint_solution_variable_list;
         (mHasRotationDofs) ? adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z, &ADJOINT_ROTATION_X, &ADJOINT_ROTATION_Y, &ADJOINT_ROTATION_Z} :
                              adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z};
 

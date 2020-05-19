@@ -43,8 +43,8 @@ class GaussPointUtility(KratosMultiphysics.Process):
 
         elems = self.model_part.GetElements(0)
         for elem in elems: 
-            cauchy_vector = elem.GetValuesOnIntegrationPoints( KratosMultiphysics.CAUCHY_STRESS_TENSOR, SomeProcessInfo)
-            epsi_vector = elem.GetValuesOnIntegrationPoints( KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, SomeProcessInfo)
+            cauchy_vector = elem.CalculateOnIntegrationPoints( KratosMultiphysics.CAUCHY_STRESS_TENSOR, SomeProcessInfo)
+            epsi_vector = elem.CalculateOnIntegrationPoints( KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, SomeProcessInfo)
             break
 
         line = str(time) + " , "

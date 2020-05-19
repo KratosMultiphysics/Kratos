@@ -504,6 +504,53 @@ void ModelPartRemoveConditionsFromAllLevels(ModelPart& rModelPart, Flags identif
 }
 
 
+// Geometries
+
+void ModelPartAddGeometry1(ModelPart& rModelPart, ModelPart::GeometryType::Pointer pNewGeometry)
+{
+    rModelPart.AddGeometry(pNewGeometry);
+}
+
+ModelPart::GeometryType::Pointer ModelPartGetGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    return rModelPart.pGetGeometry(GeometryId);
+}
+
+ModelPart::GeometryType::Pointer ModelPartGetGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
+{
+    return rModelPart.pGetGeometry(GeometryName);
+}
+
+bool ModelPartHasGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    return rModelPart.HasGeometry(GeometryId);
+}
+
+bool ModelPartHasGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
+{
+    return rModelPart.HasGeometry(GeometryName);
+}
+
+void ModelPartRemoveGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    rModelPart.RemoveGeometry(GeometryId);
+}
+
+void ModelPartRemoveGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
+{
+    rModelPart.RemoveGeometry(GeometryName);
+}
+
+void ModelPartRemoveGeometryFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    rModelPart.RemoveGeometryFromAllLevels(GeometryId);
+}
+
+void ModelPartRemoveGeometryFromAllLevels2(ModelPart& rModelPart, const std::string& GeometryName)
+{
+    rModelPart.RemoveGeometryFromAllLevels(GeometryName);
+}
+
 // Master slave constraints
 /* // Try with perfect forwarding
 template <typename ... Args>
@@ -598,46 +645,6 @@ void ModelPartRemoveMasterSlaveConstraintFromAllLevels2(ModelPart& rModelPart, M
     rModelPart.RemoveMasterSlaveConstraintFromAllLevels(rMasterSlaveConstraint);
 }
 
-
-
-// Communicator
-
-ModelPart::MeshType& CommunicatorGetLocalMesh(Communicator& rCommunicator)
-{
-    return rCommunicator.LocalMesh();
-}
-
-
-ModelPart::MeshType& CommunicatorGetLocalMeshWithIndex(Communicator& rCommunicator, Communicator::IndexType Index)
-{
-    return rCommunicator.LocalMesh(Index);
-}
-
-ModelPart::MeshType& CommunicatorGetGhostMesh(Communicator& rCommunicator)
-{
-    return rCommunicator.GhostMesh();
-}
-
-ModelPart::MeshType& CommunicatorGetGhostMeshWithIndex(Communicator& rCommunicator, Communicator::IndexType Index)
-{
-    return rCommunicator.GhostMesh(Index);
-}
-
-ModelPart::MeshType& CommunicatorGetInterfaceMesh(Communicator& rCommunicator)
-{
-    return rCommunicator.InterfaceMesh();
-}
-
-ModelPart::MeshType& CommunicatorGetInterfaceMeshWithIndex(Communicator& rCommunicator, Communicator::IndexType Index)
-{
-    return rCommunicator.InterfaceMesh(Index);
-}
-
-Communicator::NeighbourIndicesContainerType const&  NeighbourIndicesConst(Communicator& rCommunicator)
-{
-    return rCommunicator.NeighbourIndices();
-}
-
 Communicator&  ModelPartGetCommunicator(ModelPart& rModelPart)
 {
     return rModelPart.GetCommunicator();
@@ -678,78 +685,6 @@ const ModelPart::SubModelPartIterator GetSubModelPartEnd(ModelPart& rModelPart)
     return rModelPart.SubModelPartsEnd();
 }
 
-template<class TDataType>
-bool CommunicatorSynchronizeVariable(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
-{
-    return rCommunicator.SynchronizeVariable(ThisVariable);
-}
-
-template<class TDataType>
-bool CommunicatorSynchronizeNonHistoricalVariable(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
-{
-    return rCommunicator.SynchronizeNonHistoricalVariable(ThisVariable);
-}
-
-template<class TDataType>
-bool CommunicatorAssembleCurrentData(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
-{
-    return rCommunicator.AssembleCurrentData(ThisVariable);
-}
-
-template<class TDataType>
-bool CommunicatorAssembleNonHistoricalData(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
-{
-    return rCommunicator.AssembleNonHistoricalData(ThisVariable);
-}
-
-template<class TDataType>
-TDataType CommunicatorSumAll(Communicator& rCommunicator, const TDataType& rValue)
-{
-    KRATOS_WARNING("Communicator")
-    << "Using deprecated method Communicator::SumAll " << std::endl
-    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
-    << "and use DataCommunicator::SumAll instead." << std::endl;
-    return rCommunicator.GetDataCommunicator().SumAll(rValue);
-}
-
-template<class TDataType>
-TDataType CommunicatorMinAll(Communicator& rCommunicator, const TDataType& rValue)
-{
-    KRATOS_WARNING("Communicator")
-    << "Using deprecated method Communicator::MinAll " << std::endl
-    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
-    << "and use DataCommunicator::MinAll instead." << std::endl;
-    return rCommunicator.GetDataCommunicator().MinAll(rValue);
-}
-
-template<class TDataType>
-TDataType CommunicatorMaxAll(Communicator& rCommunicator, const TDataType& rValue)
-{
-    KRATOS_WARNING("Communicator")
-    << "Using deprecated method Communicator::MaxAll " << std::endl
-    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
-    << "and use DataCommunicator::MaxAll instead." << std::endl;
-    return rCommunicator.GetDataCommunicator().MaxAll(rValue);
-}
-
-template<class TDataType>
-TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType rSendPartial, TDataType rReceiveAccumulated)
-{
-    KRATOS_WARNING("Communicator")
-    << "Using deprecated method Communicator::ScanSum " << std::endl
-    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
-    << "and use DataCommunicator::ScanSum instead." << std::endl;
-    return rCommunicator.GetDataCommunicator().ScanSum(rSendPartial);
-}
-
-void CommunicatorBarrier(Communicator& rCommunicator)
-{
-    KRATOS_WARNING("Communicator")
-    << "Using deprecated method Communicator::Barrier " << std::endl
-    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
-    << "and use DataCommunicator::Barrier instead." << std::endl;
-    return rCommunicator.GetDataCommunicator().Barrier();
-}
 
 void AddModelPartToPython(pybind11::module& m)
 {
@@ -764,58 +699,11 @@ void AddModelPartToPython(pybind11::module& m)
 
     namespace py = pybind11;
 
-    py::class_<Communicator > (m,"Communicator")
-        .def(py::init<>())
-        .def("MyPID", &Communicator::MyPID)
-        .def("Barrier", CommunicatorBarrier)
-        .def("TotalProcesses", &Communicator::TotalProcesses)
-        .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
-        .def("NeighbourIndices", NeighbourIndicesConst, py::return_value_policy::reference_internal)
-        .def("SynchronizeNodalSolutionStepsData", &Communicator::SynchronizeNodalSolutionStepsData)
-        .def("SynchronizeDofs", &Communicator::SynchronizeDofs)
-        .def("LocalMesh", CommunicatorGetLocalMesh, py::return_value_policy::reference_internal )
-        .def("LocalMesh", CommunicatorGetLocalMeshWithIndex, py::return_value_policy::reference_internal )
-        .def("GhostMesh", CommunicatorGetGhostMesh, py::return_value_policy::reference_internal )
-        .def("GhostMesh", CommunicatorGetGhostMeshWithIndex, py::return_value_policy::reference_internal )
-        .def("InterfaceMesh", CommunicatorGetInterfaceMesh, py::return_value_policy::reference_internal )
-        .def("InterfaceMesh", CommunicatorGetInterfaceMeshWithIndex, py::return_value_policy::reference_internal )
-        .def("GetDataCommunicator", &Communicator::GetDataCommunicator, py::return_value_policy::reference_internal )
-        .def("SumAll", CommunicatorSumAll<int> )
-        .def("SumAll", CommunicatorSumAll<double> )
-        .def("SumAll", CommunicatorSumAll<array_1d<double,3> > )
-        .def("MinAll", CommunicatorMinAll<int> )
-        .def("MinAll", CommunicatorMinAll<double> )
-        .def("MaxAll", CommunicatorMaxAll<int> )
-        .def("MaxAll", CommunicatorMaxAll<double> )
-        .def("ScanSum", CommunicatorScanSum<int> )
-        .def("ScanSum", CommunicatorScanSum<double> )
-        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<int> )
-        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<double> )
-        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<array_1d<double,3> > )
-        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<Vector> )
-        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<Matrix> )
-        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<int> )
-        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<double> )
-        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<array_1d<double,3> > )
-        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<Vector> )
-        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<Matrix> )
-        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
-        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
-        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )
-        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<Vector> )
-        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<Matrix> )
-        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<int> )
-        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<double> )
-        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<array_1d<double,3> > )
-        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Vector> )
-        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Matrix> )
-        .def("__str__", PrintObject<Communicator>);
-        ;
-
-        py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
+    py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
         ;
 
+    MapInterface<ModelPart::GeometriesMapType>().CreateInterface(m,"GeometriesMapType");
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     py::class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
@@ -838,6 +726,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfElements", &ModelPart::NumberOfElements)
         .def("NumberOfConditions", ModelPartNumberOfConditions1)
         .def("NumberOfConditions", &ModelPart::NumberOfConditions)
+        .def("NumberOfGeometries", &ModelPart::NumberOfGeometries)
         .def("NumberOfMasterSlaveConstraints", ModelPartNumberOfMasterSlaveConstraints1)
         .def("NumberOfMasterSlaveConstraints", &ModelPart::NumberOfMasterSlaveConstraints)
         .def("NumberOfMeshes", &ModelPart::NumberOfMeshes)
@@ -929,6 +818,18 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
         .def("RemoveConditionsFromAllLevels", ModelPartRemoveConditionsFromAllLevels)
+        .def("AddGeometry", ModelPartAddGeometry1)
+        .def("GetGeometry", ModelPartGetGeometry1)
+        .def("GetGeometry", ModelPartGetGeometry2)
+        .def("HasGeometry", ModelPartHasGeometry1)
+        .def("HasGeometry", ModelPartHasGeometry2)
+        .def("RemoveGeometry", ModelPartRemoveGeometry1)
+        .def("RemoveGeometry", ModelPartRemoveGeometry2)
+        .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels1)
+        .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels2)
+        .def_property("Geometries", [](ModelPart& self) { return self.Geometries(); },
+            [](ModelPart& self, ModelPart::GeometriesMapType& geometries) {
+                KRATOS_ERROR << "Setting geometries is not allowed! Trying to set value of ModelPart::Geometries."; })
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
         .def("GetSubModelPart", &ModelPart::GetSubModelPart, py::return_value_policy::reference_internal)

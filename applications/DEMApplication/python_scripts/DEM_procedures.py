@@ -442,11 +442,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
-        # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(FACE_NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(FACE_TANGENTIAL_IMPACT_VELOCITY)
@@ -541,8 +536,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
         model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
@@ -578,10 +571,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
         # ****************** Quaternion Integration BEGIN ******************
         model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
@@ -1609,16 +1598,8 @@ class DEMIo(object):
             self.PushPrintVar(1, IMPACT_WEAR, self.fem_boundary_variables)
 
     def AddClusterVariables(self):
-
         if self.PostCharacteristicLength:
             self.PushPrintVar(self.PostCharacteristicLength, CHARACTERISTIC_LENGTH, self.clusters_variables)
-
-        if self.DEM_parameters["PostEulerAngles"].GetBool():
-            # JIG: SHOULD BE REMOVED IN THE FUTURE
-            self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables)
-            # JIG: SHOULD BE REMOVED IN THE FUTURE
-            self.PushPrintVar(self.PostEulerAngles, ORIENTATION_IMAG, self.clusters_variables)
-            #self.PushPrintVar(self.PostEulerAngles, ORIENTATION, self.clusters_variables)
 
     def AddRigidBodyVariables(self):
         pass

@@ -32,6 +32,23 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class KRATOS_API(KRATOS_CORE) EnvironmentManager
+{
+  public:
+    typedef std::unique_ptr<EnvironmentManager> Pointer;
+
+    EnvironmentManager(EnvironmentManager& rOther) = delete;
+
+    virtual ~EnvironmentManager() = default;
+
+    virtual bool IsInitialized() const = 0;
+
+    virtual bool IsFinalized() const = 0;
+
+  protected:
+    EnvironmentManager() = default;
+};
+
 /// Holder for general data related to MPI (or suitable serial equivalents for non-MPI runs).
 /** This class manages a registry of DataCommunicators, which can be used to perform MPI communication.
  *  @see DataCommunicator, MPIDataCommunicator.
@@ -70,6 +87,8 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@name Operations
     ///@{
 
+    static void SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvironmentManager);
+
     /// Add a new DataCommunicator instance to the ParallelEnvironment.
     /** @param rName The name to be used to identify the DataCommunicator within ParallelEnvironment.
      *  @param rPrototype The DataCommunicator instance.
@@ -77,8 +96,14 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
      */
     static void RegisterDataCommunicator(
         const std::string& rName,
-        const DataCommunicator& rPrototype,
+        DataCommunicator::UniquePointer pPrototype,
         const bool Default = DoNotMakeDefault);
+
+    /// Remove a DataCommunicator instance from the ParallelEnvironment.
+    /** @param rName The name used to register the DataCommunicator within ParallelEnvironment.
+     */
+    static void UnregisterDataCommunicator(
+        const std::string& rName);
 
     ///@}
     ///@name Inquiry
@@ -90,6 +115,10 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     /// Get the registered name of the current default.
     /** This is a convenience function to help with temporarily changing the default DataCommunicator. */
     static std::string GetDefaultDataCommunicatorName();
+
+    static bool MPIIsInitialized();
+
+    static bool MPIIsFinalized();
 
     ///@}
     ///@name Input and output
@@ -123,10 +152,14 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     static void Create();
 
+    void SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer pEnvironmentManager);
+
     void RegisterDataCommunicatorDetail(
         const std::string& Name,
-        const DataCommunicator& rPrototype,
+        DataCommunicator::UniquePointer pPrototype,
         const bool Default = DoNotMakeDefault);
+
+    void UnregisterDataCommunicatorDetail(const std::string& Name);
 
     DataCommunicator& GetDataCommunicatorDetail(const std::string& rName) const;
 
@@ -139,6 +172,10 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@{
 
     bool HasDataCommunicatorDetail(const std::string& rName) const;
+
+    bool MPIIsInitializedDetail() const;
+
+    bool MPIIsFinalizedDetail() const;
 
     ///@}
     ///@name Private Access
@@ -171,6 +208,8 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     int mDefaultRank;
     int mDefaultSize;
+
+    EnvironmentManager::Pointer mpEnvironmentManager;
 
     static ParallelEnvironment* mpInstance;
     static bool mDestroyed;

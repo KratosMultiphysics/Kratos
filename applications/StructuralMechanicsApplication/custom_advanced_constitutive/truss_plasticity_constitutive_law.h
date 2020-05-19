@@ -83,10 +83,6 @@ public:
      */
     void GetLawFeatures(Features& rFeatures) override;
 
-    void SetValue(const Variable<bool>& rVariable,
-                          const bool& rValue,
-                          const ProcessInfo& rCurrentProcessInfo) override;
-
     void SetValue(const Variable<double>& rThisVariable,
                           const double& rValue,
                           const ProcessInfo& rCurrentProcessInfo) override;
@@ -94,22 +90,12 @@ public:
     double& GetValue(const Variable<double>& rThisVariable,
                     double& rValue) override;
 
-    bool& GetValue(const Variable<bool>& rThisVariable,bool& rValue) override;
-
     array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
         array_1d<double, 3 > & rValue) override;
 
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                     const Variable<double>& rThisVariable,
                     double& rValue) override;
-
-    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                const Variable<Vector>& rThisVariable,
-                Vector& rValue) override;
-
-    array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 > & rValue) override;
 
     /**
      * @brief This function calculates the yield function for the plastic model
@@ -124,29 +110,17 @@ public:
      * @param rMaterialProperties Material Properties of the problem
      * @param rCurrentStress Current stress value
      */
-    bool CheckIfIsPlasticRegime(Parameters& rValues);
-
-    void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-					    const GeometryType& rElementGeometry,
-					    const Vector& rShapeFunctionsValues,
-					    const ProcessInfo& rCurrentProcessInfo) override;
+    bool CheckIfIsPlasticRegime(Parameters& rValues,const double& rCurrentStress);
 
     void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
-    /**
-     * @brief This function checks if the predicted stress state is in the elastic regime
-     * but was in the plastic regime in the previous non_linear iteration step
-     */
-    bool CheckPlasticIterationHistory() const
+    void CalculateMaterialResponsePK2Custom(Parameters& rValues, double& rCurrentAccumulatedPlasticStrain, double& rCurrentPlasticAlpha);
+
+    bool RequiresInitializeMaterialResponse() override
     {
-        bool check_flag = false;
-        if(this->mPreviousInElasticFlag && !this->mCurrentInElasticFlag)
-        {
-            check_flag = true;
-        }
-        return check_flag;
+        return false;
     }
 
     /**
@@ -198,18 +172,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    double mStressState = 0.0; // The current stress state
-
     //the following members are
-    //mCurrentInElasticFlag is the current non_linear iteration step
-    //mPreviousInElasticFlag is the previous non_linear iteration step
-    bool mPreviousInElasticFlag = false;/// This flags tells if we are in a elastic or ineslastic regime
     bool mCurrentInElasticFlag = false;/// This flags tells if we are in a elastic or ineslastic regime
-
-
-    BoundedVector<double, 2> mPlasticAlphaVector = ZeroVector(2); /// The current plastic increment
-    BoundedVector<double, 2> mAccumulatedPlasticStrainVector = ZeroVector(2); /// The current accumulated plastic strain
-
+    double mPlasticAlpha = 0.0;
+    double mAccumulatedPlasticStrain = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -234,21 +200,17 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
-        rSerializer.save("StressState", this->mStressState);
-        rSerializer.save("PlasticAlpha", this->mPlasticAlphaVector);
-        rSerializer.save("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
-        rSerializer.save("PreviousInelasticFlag", this->mPreviousInElasticFlag);
-        rSerializer.save("CurrentInElasticFlag", this->mCurrentInElasticFlag);
+        rSerializer.save("PlasticAlpha", mPlasticAlpha);
+        rSerializer.save("AccumulatedPlasticStrain", mAccumulatedPlasticStrain);
+        rSerializer.save("CurrentInElasticFlag", mCurrentInElasticFlag);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
-        rSerializer.load("StressState", this->mStressState);
-        rSerializer.load("PlasticAlpha", this->mPlasticAlphaVector);
-        rSerializer.load("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
-        rSerializer.load("PreviousInelasticFlag", this->mPreviousInElasticFlag);
-        rSerializer.load("CurrentInElasticFlag", this->mCurrentInElasticFlag);
+        rSerializer.load("PlasticAlpha", mPlasticAlpha);
+        rSerializer.load("AccumulatedPlasticStrain", mAccumulatedPlasticStrain);
+        rSerializer.load("CurrentInElasticFlag", mCurrentInElasticFlag);
     }
 
 

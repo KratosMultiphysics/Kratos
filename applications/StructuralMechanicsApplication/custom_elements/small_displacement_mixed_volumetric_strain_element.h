@@ -80,7 +80,6 @@ protected:
         Matrix J0;
         Matrix InvJ0;
         Matrix DN_DX;
-        Matrix DevStrainOp;
         Vector Displacements;
         Vector VolumetricNodalStrains;
         Vector EquivalentStrain;
@@ -107,31 +106,7 @@ protected:
             InvJ0 = ZeroMatrix(Dimension, Dimension);
             Displacements = ZeroVector(Dimension * NumberOfNodes);
             VolumetricNodalStrains = ZeroVector(NumberOfNodes);
-            DevStrainOp = SetDeviatoricStrainOperator(StrainSize, Dimension);
             EquivalentStrain = ZeroVector(StrainSize);
-        }
-
-        Matrix SetDeviatoricStrainOperator(
-            const SizeType StrainSize,
-            const SizeType Dimension)
-        {
-            KRATOS_TRY;
-
-            DevStrainOp = IdentityMatrix(StrainSize, StrainSize);
-            const double aux = 1.0/Dimension;
-
-            if (StrainSize == 3) {
-                DevStrainOp(0,0) -= aux; DevStrainOp(0,1) -= aux;
-                DevStrainOp(1,0) -= aux; DevStrainOp(1,1) -= aux;
-            } else if (StrainSize == 6) {
-                DevStrainOp(0,0) -= aux; DevStrainOp(0,1) -= aux; DevStrainOp(0,2) -= aux;
-                DevStrainOp(1,0) -= aux; DevStrainOp(1,1) -= aux; DevStrainOp(1,2) -= aux;
-                DevStrainOp(2,0) -= aux; DevStrainOp(2,1) -= aux; DevStrainOp(2,2) -= aux;
-            }
-
-            return DevStrainOp;
-
-            KRATOS_CATCH( "" );
         }
     };
 
@@ -233,7 +208,7 @@ public:
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief Called at the beginning of each solution step
@@ -289,7 +264,7 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -298,7 +273,7 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief Returns the used integration method
@@ -346,7 +321,18 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo the current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+    /**
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculate a Vector Variable on the Element Constitutive Law
@@ -359,16 +345,6 @@ public:
         std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief Get on rVariable a Vector Value from the Element Constitutive Law
-     * @param rVariable The variable we want to get
-     * @param rValues The results in the integration points
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -471,7 +447,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-        );
+        ) const;
 
     /**
      * @brief This functions updates the constitutive variables
@@ -489,7 +465,7 @@ protected:
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
-        );
+        ) const;
 
     /**
      * @brief This function computes the body force
@@ -497,10 +473,9 @@ protected:
      * @param PointNumber The id of the integration point considered
      * @return The vector of body forces
      */
-    virtual array_1d<double, 3> GetBodyForce(
+    virtual Vector GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-        const IndexType PointNumber
-        ) const;
+        const IndexType PointNumber) const;
 
     ///@}
     ///@name Protected  Access
@@ -521,6 +496,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    Matrix mAnisotropyTensor;
+    Matrix mInverseAnisotropyTensor;
 
     ///@}
     ///@name Private Operators
@@ -566,6 +544,35 @@ private:
     void CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const;
 
     /**
+     * @brief Calculate the anisotropy tensor
+     * This function calculates the anisotropy transformation tensor from the constitutive matrix
+     */
+    void CalculateAnisotropyTensor(const ProcessInfo &rCurrentProcessInfo);
+
+    /**
+     * @brief Calculate the inverse of the anisotropy tensor
+     * This function calculates the inverse of the anisotropy transformation tensor
+     * Note that we take advantage of the fact that the anisotropy tensor is diagonal
+     */
+    void CalculateInverseAnisotropyTensor();
+
+    /**
+     * @brief Calculate the isotropic bulk modulus
+     * Calculates the bulk modulus for the transformation to the closest isotropic tensor
+     * @param rC Input constitutive matrx
+     * @return double Isotropic bulk modulus
+     */
+    double CalculateBulkModulus(const Matrix &rC) const;
+
+    /**
+     * @brief Calculate the isotropic shear modulus
+     * Calculates the shear modulus for the transformation to the closest isotropic tensor
+     * @param rC Input constitutive matrx
+     * @return double Isotropic shear modulus
+     */
+    double CalculateShearModulus(const Matrix &rC) const;
+
+    /**
      * @brief Calculation of the deformation gradient F
      * @param rF The deformation gradient
      * @param rStrainTensor The strain tensor in Voigt notation
@@ -576,52 +583,76 @@ private:
         ) const;
 
     /**
-     * @brief Calculate the element size
-     * This method calculates the element size used in the stabilization terms
-     * @param rThisKinematicVariables Kinematic variables container. Required
-     * in case h is computed using the gradients (triangles and tetrahedas)
-     * @return double The element size
+     * @brief This method gets a value directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @tparam TType The type considered
      */
-    double CalculateElementSize(const KinematicVariables& rThisKinematicVariables) const;
+    template<class TType>
+    void GetValueOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput)
+    {
+        const auto& r_geometry = GetGeometry();
+        const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+
+        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            mConstitutiveLawVector[i_gauss]->GetValue(rVariable, rOutput[i_gauss]);
+        }
+    }
 
     /**
-     * @brief Calculates an approximation of the bulk modulus
-     * This method approximates the bulk modulus for a fake volumetric strain field
-     * It is intended to be only used when the volumetric strain has null value
-     * @param rCurrentProcessInfo Process info
-     * @param PointNumber Integration point index
-     * @param rN Shape function values
-     * @return double Approximated bulk modulus
+     * @brief This method computes directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     * @tparam TType The type considered
      */
-    double CalculateApproximatedBulkModulus(
-        const ProcessInfo& rCurrentProcessInfo,
-        const IndexType PointNumber,
-        const Vector& rN
-        ) const;
+    template<class TType>
+    void CalculateOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        const auto& r_geometry = GetGeometry();
+        const SizeType n_nodes = r_geometry.size();
+        const SizeType dim = r_geometry.WorkingSpaceDimension();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+        const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
-    /**
-     * @brief Calculates the linearised bulk modulus
-     * This method approximates the bulk modulus for the current volumetric strain
-     * @param rKinematicVariables The kinematic variables containing the deviatoric operator
-     * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
-     * @return double Approximated bulk modulus
-     */
-    double CalculateLinearisedBulkModulus(
-        const KinematicVariables& rThisKinematicVariables,
-        const ConstitutiveVariables& rThisConstitutiveVariables
-        ) const;
+        // Create the kinematics container and fill the nodal data
+        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+            for (IndexType d = 0; d < dim; ++d) {
+                kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+            }
+            kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        }
 
-    /**
-     * @brief Calculates the linearised shear modulus
-     * This method approximates the shear modulus for the current deviatoric strain
-     * @param rKinematicVariables The kinematic variables containing the deviatoric operator
-     * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
-     * @return double Approximated shear modulus
-     */
-    double CalculateLinearisedShearModulus(
-        const KinematicVariables& rThisKinematicVariables,
-        const ConstitutiveVariables& rThisConstitutiveVariables
-        ) const;
+        // Create the constitutive variables and values containers
+        ConstitutiveVariables constitutive_variables(strain_size);
+        ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        auto& r_cons_law_options = cons_law_values.GetOptions();
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        // Call the initialize material response
+        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            // Recompute the kinematics
+            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            // Set the constitutive variables
+            SetConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points);
+
+            // Calculate the output value
+            rOutput[i_gauss] = mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, rVariable, rOutput[i_gauss] );
+        }
+    }
 
     ///@}
     ///@name Private  Access

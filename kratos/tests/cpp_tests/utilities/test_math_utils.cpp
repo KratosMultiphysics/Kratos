@@ -446,6 +446,32 @@ namespace Kratos
                     }
                 }
             }
+            
+            BoundedMatrix<double,5,5> b_mat = ZeroMatrix(5, 5);
+            BoundedMatrix<double,5,5> b_inv;
+            b_mat(0,0) =   1.0;
+            b_mat(1,1) =   1.0;
+            b_mat(2,2) =   1.0;
+            b_mat(3,3) =   1.0;
+            b_mat(2,3) = - 1.0;
+            b_mat(3,2) =   1.0;
+            b_mat(4,4) =   2.0;
+
+            MathUtils<double>::InvertMatrix(b_mat,b_inv, det);
+
+            KRATOS_CHECK_NEAR(det, 4.0, tolerance);
+
+            BoundedMatrix<double,5,5> b_I = prod(b_inv, b_mat);
+
+            for (unsigned int i = 0; i < i_dim; i++) {
+                for (unsigned int j = 0; j < i_dim; j++) {
+                    if (i == j) {
+                        KRATOS_CHECK_NEAR(b_I(i,j), 1.0, tolerance);
+                    } else {
+                        KRATOS_CHECK_NEAR(b_I(i,j), 0.0, tolerance);
+                    }
+                }
+            }
         }
 
         /** Checks if it can solve a dense system of equations
@@ -620,6 +646,28 @@ namespace Kratos
             }
 
             KRATOS_CHECK_EQUAL(converged, true);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMatrixSquareRoot, KratosCoreFastSuite)
+        {
+            // Input matrix
+            Matrix mat66(6,6);
+            mat66(0,0) = 6.77; mat66(0,1) = 2.52; mat66(0,2) = 1.98; mat66(0,3) = 0; mat66(0,4) = 0; mat66(0,5) = 4.44;
+            mat66(1,0) = 2.52; mat66(1,1) = 3.92; mat66(1,2) = 1.96; mat66(1,3) = 0; mat66(1,4) = 0; mat66(1,5) =-3.00;
+            mat66(2,0) = 1.98; mat66(2,1) = 1.96; mat66(2,2) = 5.10; mat66(2,3) = 0; mat66(2,4) = 0; mat66(2,5) = 9.90;
+            mat66(3,0) = 0; mat66(3,1) = 0; mat66(3,2) = 0; mat66(3,3) = 1.98; mat66(3,4) = 9.78; mat66(3,5) = 0;
+            mat66(4,0) = 0; mat66(4,1) = 0; mat66(4,2) = 0; mat66(4,3) = 9.78; mat66(4,4) = 2.17; mat66(4,5) = 0;
+            mat66(5,0) = 4.44; mat66(5,1) = -3.00; mat66(5,2) = 9.90; mat66(5,3) = 0; mat66(5,4) = 0; mat66(5,5) = 2.57;
+
+            // Calculate the input matrix square root
+            Matrix mat66sqroot;
+            const double tolerance = 1.0e-12;
+            MathUtils<double>::MatrixSquareRoot(mat66, mat66sqroot, tolerance);
+
+            // Check solution
+            const double test_tolerance = 1.0e-10;
+            const Matrix solution = prod(mat66sqroot, mat66sqroot);
+            KRATOS_CHECK_MATRIX_NEAR(solution, mat66, test_tolerance);
         }
 
         /** Checks if it calculates the dot product

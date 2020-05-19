@@ -115,7 +115,11 @@ protected:
         double lv;
         double lsc;
         double OmegaV;
+        double OmegaVt;
+        double OmegaVBarra;
         double SigmaV;
+        double SigmaVt;
+        double SigmaVBarra;
         double LambdaV;
         double XiV;
         double Residual;

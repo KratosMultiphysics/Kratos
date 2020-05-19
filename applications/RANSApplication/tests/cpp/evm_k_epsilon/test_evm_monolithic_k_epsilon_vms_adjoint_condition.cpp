@@ -346,7 +346,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "Condition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N", VELOCITY,
+        "LineCondition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N", VELOCITY,
         calculate_sensitivity_matrix, 1e-7, 1e-5, derivative_offset, equation_offset);
 }
 
@@ -361,7 +361,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "Condition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N", PRESSURE,
+        "LineCondition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N", PRESSURE,
         calculate_sensitivity_matrix, 1e-7, 1e-5, derivative_offset, equation_offset);
 }
 
@@ -376,7 +376,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "Condition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
+        "LineCondition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
         TURBULENT_KINETIC_ENERGY, calculate_sensitivity_matrix, 1e-7, 1e-5,
         derivative_offset, equation_offset);
 }
@@ -392,7 +392,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "Condition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
+        "LineCondition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
         TURBULENT_ENERGY_DISSIPATION_RATE, calculate_sensitivity_matrix, 1e-7,
         1e-5, derivative_offset, equation_offset);
 }
@@ -466,7 +466,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "Condition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
+        "LineCondition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
         ACCELERATION, calculate_sensitivity_matrix, 1e-7, 1e-5,
         derivative_offset, equation_offset);
 }
@@ -484,7 +484,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "Condition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
+        "LineCondition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
         TURBULENT_KINETIC_ENERGY_RATE, calculate_sensitivity_matrix, 1e-7, 1e-5,
         derivative_offset, equation_offset);
 }
@@ -502,7 +502,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-        "Condition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
+        "LineCondition2D2N", "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N",
         TURBULENT_ENERGY_DISSIPATION_RATE_2, calculate_sensitivity_matrix, 1e-7,
         1e-5, derivative_offset, equation_offset);
 }
@@ -606,7 +606,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-        "Condition2D2N",
+        "LineCondition2D2N",
         "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N", SHAPE_SENSITIVITY,
         calculate_sensitivity_matrix, 1e-8, 1e-5, derivative_offset, equation_offset);
 }

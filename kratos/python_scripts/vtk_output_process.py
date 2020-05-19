@@ -16,7 +16,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
         self.model_part = model[model_part_name]
 
         if settings.Has("write_properties_id"):
-            KratosMultiphysics.Logger.PringWarning("VtkOutputProcess", "The setting `write_properties_id` is deprecated, use `write_ids` instead!")
+            KratosMultiphysics.Logger.PrintWarning("VtkOutputProcess", "The setting `write_properties_id` is deprecated, use `write_ids` instead!")
             if not settings.Has("write_ids"):
                 settings.AddEmptyValue("write_ids").SetBool(settings["write_properties_id"].GetBool())
             settings.RemoveValue("write_properties_id")
@@ -30,7 +30,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
                 if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
                     kratos_utils.DeleteDirectoryIfExisting(folder_name)
                 if not os.path.isdir(folder_name):
-                    os.mkdir(folder_name)
+                    os.makedirs(folder_name)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         self.output_frequency = settings["output_frequency"].GetDouble()

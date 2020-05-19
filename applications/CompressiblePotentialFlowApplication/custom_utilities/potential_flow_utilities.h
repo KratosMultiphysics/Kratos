@@ -16,12 +16,23 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
+// #include "containers/global_pointers_vector.h"
+// #include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
-    class Element; // forward-declaring to not having to include it here
-    class ProcessInfo; // forward-declaring to not having to include it here
-    class ModelPart; // forward-declaring to not having to include it here
+    // forward-declaring
+    class Element;
+    class ProcessInfo;
+    class ModelPart;
+    template< class TDataType >
+    class GlobalPointersVector;
+    template< class TDataType >
+    class Dof;
+    template< std::size_t TDimension, class TDofType >
+    class Node;
+    template< class TPointType >
+    class Geometry;
 
 namespace PotentialFlowUtilities
 {
@@ -33,6 +44,9 @@ struct ElementalData{
     BoundedMatrix<double, TNumNodes, TDim> DN_DX;
     array_1d<double, TNumNodes> N;
 };
+
+typedef Node < 3, Dof<double> > NodeType;
+typedef Geometry<NodeType> GeometryType;
 
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
@@ -65,13 +79,54 @@ template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocity(const Element& rElement);
 
 template <int Dim, int NumNodes>
+double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeClampedVelocitySquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeVelocityMagnitude(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputePerturbationIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 double ComputeCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+double ComputePerturbationCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeLocalSpeedofSoundSquared(const array_1d<double, Dim>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeSquaredSpeedofSoundFactor(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeLocalMachNumberSquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(const array_1d<double, Dim>& rVelocity, const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
+
+bool CheckIfElementIsTrailingEdge(const Element& rElement);
 
 template <int Dim>
 void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
@@ -79,6 +134,11 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
 template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
+template <int Dim, int NumNodes>
+void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
+
+template <int Dim, int NumNodes>
+void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 } // namespace PotentialFlow
 } // namespace Kratos
 

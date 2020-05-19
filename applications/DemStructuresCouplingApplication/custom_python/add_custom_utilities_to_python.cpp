@@ -11,6 +11,7 @@
 #include "custom_utilities/compute_dem_face_load_utility.h"
 #include "custom_utilities/interpolate_structural_solution_for_dem_utility.h"
 #include "custom_utilities/control_module_fem_dem_utilities.hpp"
+#include "custom_utilities/control_module_fem_dem_2d_utilities.hpp"
 #include "custom_utilities/stress_failure_check_utilities.hpp"
 #include "custom_utilities/post_process_utilities.hpp"
 #include "custom_utilities/sand_production_utilities.hpp"
@@ -55,12 +56,19 @@ namespace Kratos {
                 .def("ExecuteFinalizeSolutionStep", &ControlModuleFemDemUtilities::ExecuteFinalizeSolutionStep)
             ;
 
+            class_<ControlModuleFemDem2DUtilities> (m, "ControlModuleFemDem2DUtilities")
+                .def(init<ModelPart&,ModelPart&,Parameters&>())
+                .def("ExecuteInitialize", &ControlModuleFemDem2DUtilities::ExecuteInitialize)
+                .def("ExecuteInitializeSolutionStep", &ControlModuleFemDem2DUtilities::ExecuteInitializeSolutionStep)
+                .def("ExecuteFinalizeSolutionStep", &ControlModuleFemDem2DUtilities::ExecuteFinalizeSolutionStep)
+            ;
+
             class_<StressFailureCheckUtilities> (m, "StressFailureCheckUtilities")
                 .def(init<ModelPart&,Parameters&>())
                 .def("ExecuteFinalizeSolutionStep", &StressFailureCheckUtilities::ExecuteFinalizeSolutionStep)
             ;
 
-            class_<PostProcessUtilities, PostProcessUtilities::Pointer>(m, "PostProcessUtilities")
+            class_<PostProcessUtilities,PostProcessUtilities::Pointer>(m, "PostProcessUtilities", module_local())
                 .def(init<ModelPart&>())
                 .def("GetStickyStatus", &PostProcessUtilities::GetStickyStatus)
                 .def("GetInitialContinuumBonds", &PostProcessUtilities::GetInitialContinuumBonds)
