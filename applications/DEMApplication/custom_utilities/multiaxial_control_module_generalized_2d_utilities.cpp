@@ -211,8 +211,6 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
     //                         ((1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress);
 
     // Update Stiffness matrix
-    // KRATOS_WATCH(current_time)
-    // KRATOS_WATCH(mCMTime)
     if (current_time > (mCMTime - 0.5 * delta_time)) {
 
         // Update K if DeltaDisplacement is invertible
