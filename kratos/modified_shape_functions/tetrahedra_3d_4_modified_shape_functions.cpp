@@ -481,15 +481,29 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideContactLineVector(
 
     FaceIndices = mpTetrahedraSplitter->mContactFace;
 
+    //KRATOS_INFO("ComputeNegativeSideContactLineVector") << (mpTetrahedraSplitter->mContactFace).size() << std::endl;
+
     if (FaceIndices.size() > 0){
+        
         std::vector < unsigned int >& contact_interface_ids = mpTetrahedraSplitter->mContactInterface;
         std::vector < unsigned int >& contact_interface_edge_ids = mpTetrahedraSplitter->mContactEdge;
 
         for (unsigned int i_cl = 0; i_cl < FaceIndices.size(); i_cl ++){
-            IndexedPointGeometryType& edgei =
-                (mpTetrahedraSplitter->mNegativeInterfaces[(contact_interface_ids[i_cl])]->Edges())[(contact_interface_edge_ids[i_cl])];
-            Vector aux_vector = 
-            edgei[1].Coordinates() - edgei[0].Coordinates();
+            const unsigned int i_interface = contact_interface_ids[i_cl];
+            const unsigned int i_edge = contact_interface_edge_ids[i_cl];
+
+            //KRATOS_INFO("(contact_interface_ids[i_cl])") << i_interface << std::endl;
+            //KRATOS_INFO("(contact_interface_edge_ids[i_cl])") << i_edge << std::endl;
+
+            const auto& edges = (mpTetrahedraSplitter->mNegativeInterfaces)[i_interface]->Edges();
+            const auto& edgei = edges[i_edge];
+
+            //KRATOS_INFO("edgei[0].Coordinates()") << edgei[0].Coordinates() << std::endl;
+            //KRATOS_INFO("edgei[1].Coordinates()") << edgei[1].Coordinates() << std::endl;
+
+            Vector aux_vector = edgei[1].Coordinates() - edgei[0].Coordinates();
+
+            //KRATOS_INFO("aux_vector") << aux_vector << std::endl;
 
             const double norm = Kratos::norm_2(aux_vector);
             aux_vector = 1.0/norm * aux_vector;

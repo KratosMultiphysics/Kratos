@@ -135,6 +135,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             //Kratos::Vector surface_tension;
 
             //bool has_contact_line = false; DEPRECATED
+
+            //KRATOS_INFO("ComputeSplitting") << "Started" << std::endl;
             
             ComputeSplitting(
                 data,
@@ -157,6 +159,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 contact_gauss_pts_weights,
                 contact_tangential_neg);//,
                 //has_contact_line);
+
+                //KRATOS_INFO("Size of contact_gauss_pts_weights") << contact_gauss_pts_weights.size() << std::endl;
+                //KRATOS_INFO("ComputeSplitting") << "Ended" << std::endl;
 
             if (data.NumberOfDivisions == 1){
                 // Cases exist when the element is not subdivided due to the characteristics of the provided distance
@@ -2452,8 +2457,15 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
 
     std::vector<unsigned int> contact_line_faces;
     std::vector<unsigned int> contact_line_indices;
+
+    //KRATOS_INFO("Compute splitting") << "Above ComputeNegativeSideContactLineVector" << std::endl;
+
     /* rHasContactLine = */ p_modified_sh_func->ComputeNegativeSideContactLineVector(contact_line_faces, rContactTangentialsNeg);
     // rContactTangentialsNeg is normalized in ComputeNegativeSideContactLineVector
+    
+    //KRATOS_INFO("size of contact_line_faces") << contact_line_faces.size() << std::endl;
+    //KRATOS_INFO("size of rContactTangentialsNeg") << rContactTangentialsNeg.size() << std::endl;
+
     auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
     for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
@@ -2461,6 +2473,8 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
             contact_line_indices.push_back(i_cl);
         }
     }
+
+    //KRATOS_INFO("Size of contact_line_indices") << contact_line_indices.size() << std::endl;
 
     /* double tangent_norm = 0.0;
     for (unsigned int dim = 0; dim < Dim; dim++){

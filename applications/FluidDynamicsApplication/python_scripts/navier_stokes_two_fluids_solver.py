@@ -813,7 +813,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         dimensions = 3
         avg_num_elements = 10
         find_neighbouring_elements_process = KratosMultiphysics.FindElementalNeighboursProcess(
-                model_partself.main_model_part, dimensions, avg_num_elements)
+                self.main_model_part, dimensions, avg_num_elements)
         
         return find_neighbouring_elements_process
 
