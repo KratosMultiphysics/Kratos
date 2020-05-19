@@ -158,7 +158,7 @@ In case one wants to run using this library, Kratos needs to be compiled adding 
 
 The instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs). The current version is able to run several thousands of samples at once exploiting PyCOMPSs and maximizing parallelism.
 
-Finally, wherever required, it is needed to swithch from:
+Finally, wherever required, it is needed to switch from:
 ``` cmake
 # Import PyCOMPSs
 # from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
