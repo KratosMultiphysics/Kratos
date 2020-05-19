@@ -88,7 +88,14 @@ inline std::string base64Encode( Iterator begin, Iterator end )
 
 inline size_t encodedNumberOfBytes( size_t rawNumberOfBytes )
 {
-  return ( rawNumberOfBytes / 3 + 1 ) * 4;
+    if( rawNumberOfBytes != 0 )
+    {
+        return ( ( rawNumberOfBytes - 1 ) / 3 + 1 ) * 4;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 

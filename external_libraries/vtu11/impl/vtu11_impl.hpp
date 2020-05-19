@@ -71,9 +71,7 @@ void write( const std::string& filename,
             const std::vector<DataSet>& cellData,
             Writer writer )
 {
-  std::ofstream output;
-
-  output.open( filename );
+	std::ofstream output(filename, std::ios::binary);
 
   VTU11_CHECK( output.is_open( ), "Failed to open file \"" + filename + "\"" );
 

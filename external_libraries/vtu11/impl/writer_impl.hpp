@@ -32,12 +32,13 @@ inline void AsciiWriter::writeData( std::ostream& output,
 
 template<>
 inline void AsciiWriter::writeData( std::ostream& output,
-                                    const std::vector<std::uint8_t>& data )
+                                    const std::vector<std::int8_t>& data )
 {
   for( auto value : data )
   {
     // will otherwise interpret uint8 as char and output nonsense instead
-      output << static_cast<unsigned int>( value ) << " ";
+  	// changed the datatype from unsigned to int
+      output << static_cast<int>( value ) << " ";
   }
 
   output << "\n";
