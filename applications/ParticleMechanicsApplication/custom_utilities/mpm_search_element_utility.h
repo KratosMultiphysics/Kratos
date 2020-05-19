@@ -131,7 +131,7 @@ namespace MPMSearchElementUtility
         Vector N;
         const int max_result = 1000;
 
-        //#pragma omp parallel
+        #pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
             SearchStructure.UpdateSearchDatabase();
@@ -139,7 +139,7 @@ namespace MPMSearchElementUtility
             typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
 
             // Element search and assign background grid
-            //#pragma omp for
+            #pragma omp for
             for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
@@ -301,6 +301,9 @@ namespace MPMSearchElementUtility
             Matrix N_matrix(number_of_sub_material_points, number_of_nodes, 0.0);
             DenseVector<Matrix> DN_De_vector(number_of_sub_material_points);
 
+            //IntegrationPointsArrayType ips_good;
+            //PointerVector<Node<3>> nodes_list_good;
+
             // Temporary local containers
             double sub_point_volume = 0.0;
             array_1d<double, 3> sub_point_position;
@@ -339,8 +342,10 @@ namespace MPMSearchElementUtility
                 if (trial_subpoint.Weight() > Tolerance)
                 {
                     ips[active_subpoint_index] = trial_subpoint;
+                    //ips_good.push_back(trial_subpoint);
                     DN_De_vector[active_subpoint_index] = DN_De;
                     for (size_t j = 0; j < N.size(); ++j) {
+                        //nodes_list_good.push_back(intersected_geometries[i]->pGetPoint(j));
                         N_matrix(active_subpoint_index, active_node_index) = N[j];
                         nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
 
@@ -362,7 +367,9 @@ namespace MPMSearchElementUtility
             PointerVector<Node<3>> nodes_list_good(active_node_index);
             for (size_t i = 0; i < active_node_index; i++) nodes_list_good(i) = nodes_list(i);
 
+#ifdef KRATOS_DEBUG
             Check(ips_good, Tolerance, N_matrix, DN_De_vector);
+#endif // KRATOS_DEBUG
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
@@ -788,7 +795,7 @@ namespace MPMSearchElementUtility
     {
         KRATOS_TRY
 
-            double vol_frac_accum = 0.0;
+        double vol_frac_accum = 0.0;
 
         KRATOS_ERROR_IF(rIntergrationSubPoints.size() != rN.size1())
             << "Shape function rows must equal number of sub-points!";
@@ -798,25 +805,17 @@ namespace MPMSearchElementUtility
             KRATOS_ERROR_IF(rIntergrationSubPoints[i].Weight() < Tolerance)
                 << "Volume fraction of sub-points is too small!";
 
-            /*
-            for (size_t j = 0; j < rDN_De[i].size1(); ++j)
-            {
-                for (size_t k = 0; k < rDN_De[i].size2(); ++k)
-                {
-                    if (isnan(rDN_De[i](j,k)))
-                    {
-                        KRATOS_ERROR << "Local gradients contain invalid values";
-                    }
-                }
-            }*/
+            KRATOS_ERROR_IF(rIntergrationSubPoints[i].Weight() > 1.0)
+                << "Volume fraction of sub-points is too large!";
 
             vol_frac_accum += rIntergrationSubPoints[i].Weight();
         }
 
-        KRATOS_ERROR_IF(std::abs(1.0 - vol_frac_accum) > rIntergrationSubPoints.size()*Tolerance)
-            << "Volume fraction of sub-points does not sum to 1.0."
-            << " This probably means the background grid is not big enough";
-
+        if (vol_frac_accum < 0.999)
+        {
+            KRATOS_ERROR << "Volume fraction of sub-points does not approximately sum to 1.0."
+                << " This probably means the background grid is not big enough";
+        }
 
         for (size_t j = 0; j < rN.size2(); j++)
         {

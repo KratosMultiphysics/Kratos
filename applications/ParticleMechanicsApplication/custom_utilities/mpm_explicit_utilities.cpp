@@ -290,14 +290,17 @@ namespace Kratos
             const double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
             for (IndexType i = 0; i < number_of_nodes; i++)
             {
-                const double& r_nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
-
-                if (r_nodal_mass > std::numeric_limits<double>::epsilon())
+                if (r_N(int_p, i)*weight > std::numeric_limits<double>::epsilon())
                 {
-                    array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-                    for (IndexType j = 0; j < dimension; j++)
+                    const double& r_nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
+
+                    if (r_nodal_mass > std::numeric_limits<double>::epsilon())
                     {
-                        r_current_velocity[j] += r_N(0, i) * MP_Mass[0]* weight * MP_Velocity[0][j] / r_nodal_mass;
+                        array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                        for (IndexType j = 0; j < dimension; j++)
+                        {
+                            r_current_velocity[j] += r_N(int_p, i) * MP_Mass[0] * weight * MP_Velocity[0][j] / r_nodal_mass;
+                        }
                     }
                 }
             }
