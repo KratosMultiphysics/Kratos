@@ -48,8 +48,8 @@ MassConservationUtility::MassConservationUtility(
     this->ValidateInputAndInitialize(Settings);
 }
 
-void MassConservationUtility::ValidateInputAndInitialize(
-    Parameters Settings) {
+void MassConservationUtility::ValidateInputAndInitialize(Parameters Settings)
+{
     const Parameters default_parameters = GetDefaultParameters();
     Settings.ValidateAndAssignDefaults(default_parameters);
     mpTimeVariable = &KratosComponents<Variable<double>>::Get(Settings["time_variable"].GetString());
