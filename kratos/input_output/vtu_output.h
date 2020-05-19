@@ -101,6 +101,7 @@ protected:
     ModelPart& mrModelPart;                        /// The main model part to post process
     VtuOutput::FileFormat mFileFormat;             /// The file format considered
     std::unordered_map<int, int> mKratosIdToVtkId; /// The map storing the relationship between the Kratos ID and VTK ID
+    unsigned int mDefaultPrecision;                /// The default precision
 
     Parameters mOutputSettings;                    /// The configuration parameters
 
@@ -108,7 +109,7 @@ protected:
     ///@name Operations
     ///@{
 
-    std::string GetOutputFileName(const ModelPart& rModelPart) const;
+    std::string GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename);
 
     ///@}
 };

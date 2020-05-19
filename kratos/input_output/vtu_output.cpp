@@ -187,46 +187,62 @@ void VtuOutput::PrintOutput()
     }
 
 
-    vtu11::Vtu11UnstructuredMesh vtu_mesh{ coordinates, connectivities, offsets, types };
-    std::vector<vtu11::DataSet> data_dummy;
+    // vtu11::Vtu11UnstructuredMesh vtu_mesh{ coordinates, connectivities, offsets, types };
+    // std::vector<vtu11::DataSet> data_dummy;
 
 
-    vtu11::write("vtu_file_test.vtu", vtu_mesh, data_dummy, data_dummy);
+    // vtu11::write("vtu_file_test.vtu", vtu_mesh, data_dummy, data_dummy);
     KRATOS_CATCH("VTU PrintOutput");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string VtuOutput::GetOutputFileName(const ModelPart& rModelPart) const
+std::string VtuOutput::GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename)
 {
-    const int rank = rModelPart.GetCommunicator().MyPID();
-    std::string model_part_name(rModelPart.Name());
-
-    std::string label;
-    std::stringstream ss;
-    const std::string output_control = mOutputSettings["output_control_type"].GetString();
-    if (output_control == "step") {
-        ss << std::fixed << std::setfill('0')
-           << rModelPart.GetProcessInfo()[STEP];
-        label = ss.str();
-    } else if(output_control == "time") {
-        ss << std::fixed << std::setfill('0')
-           << rModelPart.GetProcessInfo()[TIME];
-        label = ss.str();
-    } else {
-        KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
-            <<" not recognised!\nPossible output_control_type options "
-            << "are: \"step\", \"time\"" << std::endl;
-    }
-
     // Putting everything together
-    std::string output_file_name;
+    std::string output_file_name = "";
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        output_file_name += mOutputSettings["folder_name"].GetString() + "/";
+        output_file_name = mOutputSettings["folder_name"].GetString() + "/";
     }
-    const std::string& custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
-    output_file_name += custom_name_prefix + model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
+
+    if (rOutputFilename != "")
+    {
+        output_file_name += rOutputFilename + ".vtk";
+    }
+    else
+    {
+        const int rank = rModelPart.GetCommunicator().MyPID();
+        std::string model_part_name;
+
+        if (IsSubModelPart) {
+            model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
+        } else {
+            model_part_name = rModelPart.Name();
+        }
+
+        std::string label;
+        std::stringstream ss;
+        const std::string output_control = mOutputSettings["output_control_type"].GetString();
+        if (output_control == "step") {
+            ss << std::fixed << std::setprecision(mDefaultPrecision)<< std::setfill('0')
+            << rModelPart.GetProcessInfo()[STEP];
+            label = ss.str();
+        } else if(output_control == "time") {
+            ss << std::fixed << std::setprecision(mDefaultPrecision) << std::setfill('0')
+            << rModelPart.GetProcessInfo()[TIME];
+            label = ss.str();
+        } else {
+            KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
+                <<" not recognised!\nPossible output_control_type options "
+                << "are: \"step\", \"time\"" << std::endl;
+        }
+
+
+        const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
+        const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
+        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtk";
+    }
 
     return output_file_name;
 }
@@ -236,21 +252,27 @@ Parameters VtuOutput::GetDefaultParameters()
     // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
     Parameters default_parameters = Parameters(R"(
     {
-        "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "file_format"                        : "ascii",
-        "output_control_type"                : "step",
-        "output_frequency"                   : 1.0,
-        "folder_name"                        : "VTU_Output",
-        "custom_name_prefix"                 : "",
-        "save_output_files_in_folder"        : true,
-        "write_deformed_configuration"       : false,
-        "nodal_solution_step_data_variables" : [],
-        "nodal_data_value_variables"         : [],
-        "nodal_flags"                        : [],
-        "element_data_value_variables"       : [],
-        "element_flags"                      : [],
-        "condition_data_value_variables"     : [],
-        "condition_flags"                    : []
+        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                                 : "ascii",
+        "output_precision"                            : 7,
+        "output_control_type"                         : "step",
+        "output_frequency"                            : 1.0,
+        "output_sub_model_parts"                      : false,
+        "folder_name"                                 : "VTK_Output",
+        "custom_name_prefix"                          : "",
+        "custom_name_postfix"                         : "",
+        "save_output_files_in_folder"                 : true,
+        "write_deformed_configuration"                : false,
+        "write_ids"                                   : false,
+        "nodal_solution_step_data_variables"          : [],
+        "nodal_data_value_variables"                  : [],
+        "nodal_flags"                                 : [],
+        "element_data_value_variables"                : [],
+        "element_flags"                               : [],
+        "condition_data_value_variables"              : [],
+        "condition_flags"                             : [],
+        "gauss_point_variables_extrapolated_to_nodes" : [],
+        "gauss_point_variables_in_elements"           : []
     })" );
 
     return default_parameters;
