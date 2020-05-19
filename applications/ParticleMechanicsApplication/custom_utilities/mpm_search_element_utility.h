@@ -49,6 +49,8 @@ namespace MPMSearchElementUtility
 
     typedef typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType IntegrationPointsArrayType;
 
+    typedef Node<3> NodeType;
+
     void CreateBoundingBoxPoints(std::vector<array_1d<double, 3>>& rPointVector,
         const array_1d<double, 3>& rCenter, const double SideHalfLength, const SizeType WorkingDim);
 
@@ -277,17 +279,26 @@ namespace MPMSearchElementUtility
                 pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
         else
         { // we need to do splitting. Initially determine all grid elements we intersect with
-            // TODO try to reduce this search more with initial binning
             std::vector<typename GeometryType::Pointer> intersected_geometries;
             const double z_mod = (working_dim == 3) ? 1.0 : 0.0; 
             const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2] - z_mod* side_half_length);
             const Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2] + z_mod* side_half_length);
             SizeType number_of_nodes = 0;
-            for (auto ele_it : rBackgroundGridModelPart.Elements()) {
-                if (ele_it.GetGeometry().HasIntersection(point_low, point_high)){
-                    ele_it.Set(ACTIVE);
-                    number_of_nodes += ele_it.GetGeometry().PointsNumber();
-                    intersected_geometries.push_back(ele_it.pGetGeometry());
+            const double range_factor = (working_dim == 3) ? 2.0 : 1.5; // 45 deg for each dim
+            double center_to_center, maximum_contact_range;
+            NodeType ele_point_low, ele_point_high;
+            for (auto ele_it : rBackgroundGridModelPart.Elements()) 
+            {
+                center_to_center = norm_2(ele_it.GetGeometry().Center() - rCoordinates);
+                ele_it.GetGeometry().BoundingBox(ele_point_low, ele_point_high);
+                maximum_contact_range = range_factor * side_half_length + norm_2(ele_point_high - ele_point_low) / 2.0;
+                if (center_to_center <= maximum_contact_range)
+                {
+                    if (ele_it.GetGeometry().HasIntersection(point_low, point_high)) {
+                        ele_it.Set(ACTIVE);
+                        number_of_nodes += ele_it.GetGeometry().PointsNumber();
+                        intersected_geometries.push_back(ele_it.pGetGeometry());
+                    }
                 }
             }
 
@@ -358,14 +369,23 @@ namespace MPMSearchElementUtility
             if (active_subpoint_index == 1) return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                     pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
 
-            N_matrix.resize(active_subpoint_index, active_node_index, true);
-            DN_De_vector.resize(active_subpoint_index, true);
-            
             IntegrationPointsArrayType ips_good(active_subpoint_index);
-            for (size_t i = 0; i < active_subpoint_index; i++) ips_good[i] = ips[i];
-
             PointerVector<Node<3>> nodes_list_good(active_node_index);
-            for (size_t i = 0; i < active_node_index; i++) nodes_list_good(i) = nodes_list(i);
+            if (ips_good.size() == ips.size())
+            {
+                ips_good = ips;
+                nodes_list_good = nodes_list;
+            }
+            else
+            {
+                N_matrix.resize(active_subpoint_index, active_node_index, true);
+                DN_De_vector.resize(active_subpoint_index, true);
+                for (size_t i = 0; i < active_subpoint_index; i++) ips_good[i] = ips[i];
+                for (size_t i = 0; i < active_node_index; i++) nodes_list_good(i) = nodes_list(i);
+            }
+
+
+
 
 #ifdef KRATOS_DEBUG
             Check(ips_good, Tolerance, N_matrix, DN_De_vector);
@@ -550,31 +570,46 @@ namespace MPMSearchElementUtility
         KRATOS_TRY
 
         // TODO look at using using polygon instead of boost geometry
-        if (rPolygonPoints.size() != rGeom.PointsNumber()) rPolygonPoints.resize(rGeom.PointsNumber());
-
         rPolygon.clear();
 
-        if (XActive && YActive && !ZActive)
+        if (rGeom.WorkingSpaceDimension() == 3)
         {
-            for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
-                rPolygonPoints[i] = Boost2DPointType(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Y());
+            if (rPolygonPoints.size() != 4) rPolygonPoints.resize(4);
+            NodeType point_low, point_high;
+            rGeom.BoundingBox(point_low, point_high);
+
+            if (XActive && YActive && !ZActive)
+            {
+                rPolygonPoints[0] = Boost2DPointType(    point_low[0],  point_low[1]);
+                rPolygonPoints[1] = Boost2DPointType(   point_high[0],  point_low[1]);
+                rPolygonPoints[2] = Boost2DPointType(   point_high[0], point_high[1]);
+                rPolygonPoints[3] = Boost2DPointType(    point_low[0], point_high[1]);
             }
-        }
-        else if (XActive && !YActive && ZActive)
-        {
-            for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
-                rPolygonPoints[i] = Boost2DPointType(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Z());
+            else if (XActive && !YActive && ZActive)
+            {
+                rPolygonPoints[0] = Boost2DPointType(    point_low[0],  point_low[2]);
+                rPolygonPoints[1] = Boost2DPointType(   point_high[0],  point_low[2]);
+                rPolygonPoints[2] = Boost2DPointType(   point_high[0], point_high[2]);
+                rPolygonPoints[3] = Boost2DPointType(    point_low[0], point_high[2]);
             }
-        }
-        else if (!XActive && YActive && ZActive)
-        {
-            for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
-                rPolygonPoints[i] = Boost2DPointType(rGeom.GetPoint(i).Y(), rGeom.GetPoint(i).Z());
+            else if (!XActive && YActive && ZActive)
+            {
+                rPolygonPoints[0] = Boost2DPointType(    point_low[1],  point_low[2]);
+                rPolygonPoints[1] = Boost2DPointType(   point_high[1],  point_low[2]);
+                rPolygonPoints[2] = Boost2DPointType(   point_high[1], point_high[2]);
+                rPolygonPoints[3] = Boost2DPointType(    point_low[1], point_high[2]);
+            }
+            else
+            {
+                KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
             }
         }
         else
         {
-            KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
+            if (rPolygonPoints.size() != rGeom.PointsNumber()) rPolygonPoints.resize(rGeom.PointsNumber());
+            for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
+                rPolygonPoints[i] = Boost2DPointType(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Y());
+            }
         }
         rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
         boost::geometry::correct(rPolygon); // to close the polygon
@@ -586,21 +621,19 @@ namespace MPMSearchElementUtility
     void Check3DBackGroundMeshIsCubicAxisAligned(const std::vector<typename GeometryType::Pointer> rIntersectedGeometries)
     {
         KRATOS_TRY
-            // TODO this may need a tolerance for the check
-        // TODO this is a lazy implementation - only half the checks actually need to be done
-        array_1d<double, 3> point_low;
-        array_1d<double, 3> point_high;
+
+        NodeType point_low, point_high;
         for (size_t i = 0; i < rIntersectedGeometries.size(); ++i) {
             if (rIntersectedGeometries[i]->GetGeometryType() != GeometryData::Kratos_Hexahedra3D8) {
                 KRATOS_ERROR << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED CUBIC BACKGROUND GRIDS";
             }
-            point_low = rIntersectedGeometries[i]->GetPoint(0).Coordinates();
-            point_high = rIntersectedGeometries[i]->GetPoint(6).Coordinates();
+            rIntersectedGeometries[i]->BoundingBox(point_low, point_high);
             for (size_t j = 0; j < rIntersectedGeometries[i]->PointsNumber(); ++j) {
                 for (size_t k = 0; k < 3; ++k) {
-                    if (rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_low[k] &&
-                        rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_high[k]) {
-                        KRATOS_ERROR << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED CUBIC BACKGROUND GRIDS";
+                    if (rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_low[k]){
+                        if (rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_high[k]) {
+                            KRATOS_ERROR << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED CUBIC BACKGROUND GRIDS";
+                        }
                     }
                 }
             }
@@ -656,13 +689,15 @@ namespace MPMSearchElementUtility
     {
         KRATOS_TRY
 
+        // NOTE: THIS FUNCTION ASSUMES THE BACKGROUND GRID ELEMENT IS PERFECTLY CUBIC AND THE RESULTING INTERSECTION VOLUME IS A RECTANGULAR PRISM
+
         // make boost xy polygon of current background element geometry
-        std::vector<Boost2DPointType> polygon_grid_xy_points(rGridElement.PointsNumber());
+        std::vector<Boost2DPointType> polygon_grid_xy_points(4);
         Boost2DPolygonType polygon_grid_xy;
         Create2DPolygonFromGeometry(rGridElement, polygon_grid_xy_points, polygon_grid_xy);
 
         // make boost yz polygon of current background element geometry
-        std::vector<Boost2DPointType> polygon_grid_yz_points(rGridElement.PointsNumber());
+        std::vector<Boost2DPointType> polygon_grid_yz_points(4);
         Boost2DPolygonType polygon_grid_yz;
         Create2DPolygonFromGeometry(rGridElement, polygon_grid_yz_points, polygon_grid_yz,false,true,true);
 
