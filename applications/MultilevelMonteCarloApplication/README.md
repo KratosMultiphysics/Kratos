@@ -176,7 +176,7 @@ to use the distributed computing capabilities.
 
 ### XMC
 
-[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a third part python library with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is the default solver.
+[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a third part python library with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is the default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, needs to add the flag `-DUSING_INTERNAL_XMC=OFF \ ` when compiling Kratos.
 
 ## License
 
@@ -194,6 +194,6 @@ The MultilelvelMonteCarloApplication is OPEN SOURCE. The main code and program s
 ## Contact
 
 * **Riccardo Rossi** - *Group Leader* - [rrossi@cimne.upc.edu](mailto:rrossi@cimne.upc.edu)
-* **Riccardo Tosi**  - *Developer*    - [rtosi@cimne.upc.edu](mailto:rtosi@cimne.upc.edu)
-* **Marc Núñez**     - *Developer*    - [mnunez@cimne.upc.edu](mailto:mnunez@cimne.upc.edu)
-* **Ramon Amela**    - *Developer*    - [ramon.amela@bsc.es](mailto:ramon.amela@bsc.es)
+* **Riccardo Tosi ** - *Developer   * - [rtosi@cimne.upc.edu](mailto:rtosi@cimne.upc.edu)
+* **Marc Núñez    ** - *Developer   * - [mnunez@cimne.upc.edu](mailto:mnunez@cimne.upc.edu)
+* **Ramon Amela   ** - *Developer   * - [ramon.amela@bsc.es](mailto:ramon.amela@bsc.es)
