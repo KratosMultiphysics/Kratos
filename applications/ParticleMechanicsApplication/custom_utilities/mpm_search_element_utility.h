@@ -267,14 +267,13 @@ namespace MPMSearchElementUtility
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
         rMasterMaterialPoint.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume_vec, rBackgroundGridModelPart.GetProcessInfo());
-        const double mp_volume = mp_volume_vec[0];
-        const double side_half_length = std::pow(mp_volume, 1.0 / double(working_dim))/2.0;
+        const double side_half_length = std::pow(mp_volume_vec[0], 1.0 / double(working_dim))/2.0;
         const SizeType n_bounding_box_vertices = std::pow(2.0, working_dim);
         std::vector<array_1d<double, 3>> master_domain_points(n_bounding_box_vertices);
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length,working_dim);
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
-        if (mp_volume <= pGeometry->DomainSize() && CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance))
+        if (mp_volume_vec[0] <= pGeometry->DomainSize() && CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance))
             return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                 pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
         else
@@ -284,7 +283,7 @@ namespace MPMSearchElementUtility
             const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2] - z_mod* side_half_length);
             const Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2] + z_mod* side_half_length);
             SizeType number_of_nodes = 0;
-            const double range_factor = (working_dim == 3) ? 2.0 : 1.5; // 45 deg for each dim
+            const double range_factor = (working_dim == 3) ? 2.0 : 1.414214; // 45 deg for each dim
             double center_to_center, maximum_contact_range;
             NodeType ele_point_low, ele_point_high;
             for (auto ele_it : rBackgroundGridModelPart.Elements()) 
@@ -316,7 +315,7 @@ namespace MPMSearchElementUtility
             //PointerVector<Node<3>> nodes_list_good;
 
             // Temporary local containers
-            double sub_point_volume = 0.0;
+            double sub_point_volume;
             array_1d<double, 3> sub_point_position;
             IndexType active_node_index = 0;
             IndexType active_subpoint_index = 0;
@@ -333,7 +332,7 @@ namespace MPMSearchElementUtility
                     // whole element is completely inside bounding box
 
                     trial_subpoint = CreateSubPoint(intersected_geometries[i]->Center(),
-                        intersected_geometries[i]->DomainSize() / mp_volume,
+                        intersected_geometries[i]->DomainSize() / mp_volume_vec[0],
                         *intersected_geometries[i], N, DN_De);
                 }
                 else  {
@@ -345,7 +344,7 @@ namespace MPMSearchElementUtility
                     }
                     else
                         Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
-                    trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume,
+                    trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
                         *intersected_geometries[i], N, DN_De);
                 }
 
@@ -384,12 +383,7 @@ namespace MPMSearchElementUtility
                 for (size_t i = 0; i < active_node_index; i++) nodes_list_good(i) = nodes_list(i);
             }
 
-
-
-
-#ifdef KRATOS_DEBUG
             Check(ips_good, Tolerance, N_matrix, DN_De_vector);
-#endif // KRATOS_DEBUG
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
@@ -411,7 +405,7 @@ namespace MPMSearchElementUtility
         KRATOS_CATCH("");
     }
 
-    //template<class TPointType>
+
     static typename Geometry<Node<3>>::Pointer CreateQuadraturePoint(
         SizeType WorkingSpaceDimension,
         SizeType LocalSpaceDimension,
@@ -846,19 +840,14 @@ namespace MPMSearchElementUtility
             vol_frac_accum += rIntergrationSubPoints[i].Weight();
         }
 
-        if (vol_frac_accum < 0.999)
-        {
-            KRATOS_ERROR << "Volume fraction of sub-points does not approximately sum to 1.0."
-                << " This probably means the background grid is not big enough";
-        }
+        KRATOS_ERROR_IF (vol_frac_accum < 0.999)  
+            << "Volume fraction of sub-points does not approximately sum to 1.0."
+            << " This probably means the background grid is not big enough";
 
         for (size_t j = 0; j < rN.size2(); j++)
         {
             SizeType nonzero_entries = 0;
-            for (size_t i = 0; i < rIntergrationSubPoints.size(); i++)
-            {
-                if (rN(i, j) != 0.0) nonzero_entries += 1;
-            }
+            for (size_t i = 0; i < rIntergrationSubPoints.size(); i++) if (rN(i, j) != 0.0) nonzero_entries += 1;
             KRATOS_ERROR_IF(nonzero_entries != 1)
                 << "There must be only one nonzero entry per shape function column!";
         }
