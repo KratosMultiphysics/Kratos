@@ -60,6 +60,8 @@ public:
 
     typedef Element BaseType;
 
+    typedef PointerVector<GeometryType> GeometriesArrayType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of TransonicPerturbationPotentialFlowElement
@@ -239,12 +241,12 @@ private:
     void GetDofListKuttaElement(DofsVectorType& rElementalDofList) const;
 
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
-    
+
     void CalculateLeftHandSideInletElement(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSideInletElement(VectorType& rRightHandSideVector,
-                                            const ProcessInfo& rCurrentProcessInfo);                                        
+                                            const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo);
@@ -295,7 +297,15 @@ private:
 
     void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
 
-    void FindUpwindNodes(GeometryType& rResult, const ProcessInfo& rCurrentProcessInfo);
+    void FindUpwindEdge(GeometryType& rUpwindEdge,
+                        const ProcessInfo& rCurrentProcessInfo);
+
+    void GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary);
+
+    array_1d<double, 3> GetEdgeNormal(const GeometryType& rEdge);
+
+    void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,
+                             GlobalPointersVector<Element>& rUpwindElementCandidates);
 
     int GetAdditionalNode() const;
 
