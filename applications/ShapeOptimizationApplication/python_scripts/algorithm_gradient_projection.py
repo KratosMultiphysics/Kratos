@@ -15,6 +15,7 @@ from __future__ import print_function, absolute_import, division
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
+from KratosMultiphysics.EigenSolversApplication import dense_linear_solver_factory # TODO how to use it from core?
 
 # Additional imports
 from .algorithm_base import OptimizationAlgorithm
@@ -24,14 +25,13 @@ from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
 # ==============================================================================
-class AlgorithmPenalizedProjectionOld(OptimizationAlgorithm):
+class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = KM.Parameters("""
         {
             "name"                    : "penalized_projection",
-            "correction_scaling"      : 1.0,
-            "use_adaptive_correction" : true,
+            "max_correction_share"    : 0.75,
             "max_iterations"          : 100,
             "relative_tolerance"      : 1e-3,
             "line_search" : {
@@ -57,6 +57,15 @@ class AlgorithmPenalizedProjectionOld(OptimizationAlgorithm):
 
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
+        self.constraint_gradient_variables = {}
+        for itr, constraint in enumerate(self.constraints):
+            self.constraint_gradient_variables.update({
+                constraint["identifier"].GetString() : {
+                    "gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX"),
+                    "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+                }
+            })
+        self.max_correction_share = self.algorithm_settings["max_correction_share"].GetDouble()
 
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
@@ -64,15 +73,14 @@ class AlgorithmPenalizedProjectionOld(OptimizationAlgorithm):
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
         if self.objectives.size() > 1:
-            raise RuntimeError("Penalized projection algorithm only supports one objective function!")
+            raise RuntimeError("Gradient projection algorithm only supports one objective function!")
         if self.constraints.size() == 0:
-            raise RuntimeError("Penalized projection algorithm requires definition of a constraint!")
-        if self.constraints.size() > 1:
-            raise RuntimeError("Penalized projection algorithm only supports one constraint!")
+            raise RuntimeError("Gradient projection algorithm requires definition of at least one constraint!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
@@ -136,51 +144,140 @@ class AlgorithmPenalizedProjectionOld(OptimizationAlgorithm):
         self.communicator.initializeCommunication()
         self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
         self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
-        self.communicator.requestValueOf(self.constraints[0]["identifier"].GetString())
-        self.communicator.requestGradientOf(self.constraints[0]["identifier"].GetString())
+
+        for constraint in self.constraints:
+            con_id =  constraint["identifier"].GetString()
+            self.communicator.requestValueOf(con_id)
+            self.communicator.requestGradientOf(con_id)
 
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
 
-        objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
-        conGradientDict = self.communicator.getStandardizedGradient(self.constraints[0]["identifier"].GetString())
+        # compute normals only if required
+        surface_normals_required = self.objectives[0]["project_gradient_on_surface_normals"].GetBool()
+        for constraint in self.constraints:
+            if constraint["project_gradient_on_surface_normals"].GetBool():
+                surface_normals_required = True
 
-        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
-        WriteDictionaryDataOnNodalVariable(conGradientDict, self.optimization_model_part, KSO.DC1DX)
-
-        if self.objectives[0]["project_gradient_on_surface_normals"].GetBool() or self.constraints[0]["project_gradient_on_surface_normals"].GetBool():
+        if surface_normals_required:
             self.model_part_controller.ComputeUnitSurfaceNormals()
+
+        # project and damp objective gradients
+        objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
 
-        if self.constraints[0]["project_gradient_on_surface_normals"].GetBool():
-            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DC1DX)
-
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DC1DX)
+
+        # project and damp constraint gradients
+        for constraint in self.constraints:
+            con_id = constraint["identifier"].GetString()
+            conGradientDict = self.communicator.getStandardizedGradient(con_id)
+            gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
+            WriteDictionaryDataOnNodalVariable(conGradientDict, self.optimization_model_part, gradient_variable)
+
+            if constraint["project_gradient_on_surface_normals"].GetBool():
+                self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(gradient_variable)
+
+            self.model_part_controller.DampNodalVariableIfSpecified(gradient_variable)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
-        self.mapper.InverseMap(KSO.DC1DX, KSO.DC1DX_MAPPED)
 
-        constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
-        if self.__isConstraintActive(constraint_value):
-            self.optimization_utilities.ComputeProjectedSearchDirection()
-            self.optimization_utilities.CorrectProjectedSearchDirection(constraint_value)
-        else:
-            self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
-        self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
+        for constraint in self.constraints:
+            con_id = constraint["identifier"].GetString()
+            gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
+            mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
+            self.mapper.InverseMap(gradient_variable, mapped_gradient_variable)
+
+        self.__computeControlPointUpdate()
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
-    def __isConstraintActive(self, constraintValue):
-        if self.constraints[0]["type"].GetString() == "=":
+    def __computeControlPointUpdate(self):
+        """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
+        gp_utilities = self.optimization_utilities
+
+        g_a, g_a_variables = self.__getActiveConstraints()
+
+        if len(g_a) == 0:
+            self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
+            return
+
+        print("AssembleVector")
+        nabla_f = KM.Vector()
+        gp_utilities.AssembleVector(nabla_f, KSO.DF1DX_MAPPED)
+
+        print("AssembleMatrix")
+        print(g_a_variables)
+        N = KM.Matrix()
+        gp_utilities.AssembleMatrix(N, g_a_variables)
+
+        print("Create Solver")
+        settings = KM.Parameters('{ "solver_type" : "EigenSolversApplication.dense_col_piv_householder_qr" }')
+        solver = dense_linear_solver_factory.ConstructSolver(settings)
+
+        print("AssembleVector")
+        s = KM.Vector()
+        c = KM.Vector()
+        gp_utilities.CalculateProjectedSearchDirectionAndCorrection(
+            nabla_f,
+            N,
+            g_a,
+            solver,
+            s,
+            c)
+
+        # update correction scaling
+        print("s.norm_2():", s.norm_2())
+        print("c.norm_2():", c.norm_2())
+
+        print("s.norm_inf():", s.norm_inf())
+        print("c.norm_inf():", c.norm_inf())
+
+        if c.norm_inf() != 0.0:
+            max_correction_share = 1.0
+            if c.norm_inf() <= max_correction_share * self.step_size:
+                delta = self.step_size - c.norm_inf()
+                s *= delta/s.norm_inf()
+            else:
+                c *= max_correction_share * self.step_size / c.norm_inf()
+                s *= (1 - max_correction_share) * self.step_size / s.norm_inf()
+
+        print("s.norm_inf():", s.norm_inf())
+        print("c.norm_inf():", c.norm_inf())
+
+        gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
+        gp_utilities.AssignVectorToVariable(c, KSO.CORRECTION)
+        gp_utilities.AssignVectorToVariable(s+c, KSO.CONTROL_POINT_UPDATE)
+
+    # --------------------------------------------------------------------------
+    def __getActiveConstraints(self):
+        active_constraint_values = []
+        active_constraint_variables = []
+
+        for constraint in self.constraints:
+            if self.__isConstraintActive(constraint):
+                identifier = constraint["identifier"].GetString()
+                constraint_value = self.communicator.getStandardizedValue(identifier)
+                active_constraint_values.append(constraint_value)
+                active_constraint_variables.append(
+                    self.constraint_gradient_variables[identifier]["mapped_gradient"])
+
+        return active_constraint_values, active_constraint_variables
+
+    # --------------------------------------------------------------------------
+    def __isConstraintActive(self, constraint):
+        identifier = constraint["identifier"].GetString()
+        constraint_value = self.communicator.getStandardizedValue(identifier)
+        if constraint["type"].GetString() == "=":
             return True
-        elif constraintValue > 0:
+        elif constraint_value > 0:
             return True
         else:
             return False
@@ -188,7 +285,6 @@ class AlgorithmPenalizedProjectionOld(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
-        additional_values_to_log["correction_scaling"] = self.optimization_utilities.GetCorrectionScaling()
         additional_values_to_log["step_size"] = self.step_size
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)

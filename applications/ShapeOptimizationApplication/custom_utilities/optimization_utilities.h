@@ -110,7 +110,6 @@ public:
         if(mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool())
         {
             const double max_norm_search_dir = ComputeMaxNormOfNodalVariable(SEARCH_DIRECTION);
-
             if(max_norm_search_dir>1e-10)
                 for (auto & node_i : mrDesignSurface.Nodes())
                 {

@@ -14,6 +14,7 @@ from __future__ import print_function, absolute_import, division
 # Additional imports
 from .algorithm_steepest_descent import AlgorithmSteepestDescent
 from .algorithm_penalized_projection import AlgorithmPenalizedProjection
+from .algorithm_gradient_projection import AlgorithmGradientProjection
 from .algorithm_trust_region import AlgorithmTrustRegion
 from .algorithm_bead_optimization import AlgorithmBeadOptimization
 
@@ -26,6 +27,11 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                         analyzer,
                                         communicator,
                                         model_part_controller)
+    elif algorithm_name == "gradient_projection":
+        return AlgorithmGradientProjection(optimization_settings,
+                                            analyzer,
+                                            communicator,
+                                            model_part_controller)
     elif algorithm_name == "penalized_projection":
         return AlgorithmPenalizedProjection(optimization_settings,
                                             analyzer,
