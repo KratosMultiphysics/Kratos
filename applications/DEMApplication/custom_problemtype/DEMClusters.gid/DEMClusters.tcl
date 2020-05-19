@@ -10,19 +10,22 @@
 # current order and links
 # 1AfterMeshGeneration
 # -ExtractSurfaceTriangles - aux run on calculate, folder and file save
+
+# 2OnCalculateExecution
 # -GenerateOBJFile
 
-# 2GenerateSPHFileFromOBJFile
+# 3GenerateSPHFileFromOBJFile
 # -call_SphereTree
 
 
-# 3GenerateClusterFile
+# 4GenerateClusterFile
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
-##  Current Blockers ## 
+##  Current Issues ## 
 
-##- Data extraction and writing into separate files follwing a specific format ExtractSurfaceTriangles
-##- Error with GiD_AccessValue get condition
+##- Are ALL calculated Vertex normals correct? 
+##- Sphere tree paths with spaces 
+##- Dependencies in prb
 ##- Calling external precompiled cpp (already modified)
 
 
@@ -89,39 +92,7 @@ proc AfterMeshGeneration {fail} {
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
     source [file join $problemtypedir OBJFile.tcl]
-    set OBJOutput [ExtractSurfaceTriangles_ext $basename $dir $problemtypedir]
-}
-
-
-proc GenerateOBJFile { } {
-    
-    # TODO: Extract required mesh data and format it into a file:
-    # Analyze the format of the OBJ and generate the file in GID
-    # The format of the OBJ file is as follows:
-
-    # block 1:surface vertex and vertex normal 
-    # block 2: faces (with ordered vertex):
-
-    # v 987.823009 -583.341002 122.360997
-    # vn 0.329248 0.150250 0.932213
-    # v 979.430974 -499.442995 88.674001
-    # vn 0.689488 0.597651 0.409169
-
-
-    # f 18//18 10//10 9//9 
-    # f 18//18 9//9 17//17 
-    # f 19//19 11//11 10//10 
-
-
-    # SUR custom files can also be used with the following format:
-    # The format of the SUR file is as follows:
-    # -The number of vertices
-    # -List of vertices with XYZ for position and XYZ for normal
-    # -The number of triangles
-    # -List of triangles with i0, i1, i2 (indices of the vertices - zero base)
-    #                        n0, n1, n2 (neighbouring triangles, n0 shares edge
-    #                                    from i0 to i1 etc.)
-
+    set OBJOutput [GenerateOBJFile $basename $dir $problemtypedir]
 }
 
 proc GenerateSPHFileFromOBJFile { } {
@@ -176,7 +147,8 @@ proc DEMClusters::call_TreeMedial { } {
     set numSamples [GiD_AccessValue get gendata numSamples]
     set minSamples [GiD_AccessValue get gendata minSamples]
     set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
-    #set filename_obj {$::DEMClusters::ProblemName}.obj ## custom names
+    #set filename_obj $::DEMClusters::ProblemName ## custom names
+    #append filename_obj .obj
 
     #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
@@ -225,7 +197,6 @@ proc DEMClusters::call_TreeMedial { } {
 proc DEMClusters::call_makeTreeGrid { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
-    set branch [GiD_AccessValue get gendata branch]
     set depth [GiD_AccessValue get gendata depth]
     set numCover [GiD_AccessValue get gendata numCover]
     set minCover [GiD_AccessValue get gendata minCover]
@@ -239,7 +210,6 @@ proc DEMClusters::call_makeTreeGrid { } {
 
     # makeTreeGrid ValidArgs:
     # -depth              Depth of the sphere-tree
-    # -branch             Branching factor of sphere-tree
     # -numCover           Number of sample points to cover object with
     # -minCover           Minimum number of sample points per triangle
     # -testerLevels       Controls the number of points to use to represent a
@@ -255,7 +225,6 @@ proc DEMClusters::call_makeTreeGrid { } {
 proc DEMClusters::call_makeTreeSpawn { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
-    set branch [GiD_AccessValue get gendata branch]
     set depth [GiD_AccessValue get gendata depth]
     set numCover [GiD_AccessValue get gendata numCover]
     set minCover [GiD_AccessValue get gendata minCover]
@@ -269,7 +238,6 @@ proc DEMClusters::call_makeTreeSpawn { } {
 
     # makeTreeSpawn ValidArgs:
     # -depth              Depth of the sphere-tree
-    # -branch             Branching factor of sphere-tree
     # -numCover           Number of sample points to cover object with
     # -minCover           Minimum number of sample points per triangle
     # -testerLevels       Controls the number of points to use to represent a
@@ -322,10 +290,6 @@ proc DEMClusters::call_makeTreeHubbard { } {
 }
 
 
-proc CleanSPHFile { sphfilename } {
-    # TODO: Moved inside convert_to_cluster cpp. will Access generic_sph.sph file and execute the partial removal of some lines and columns as specified in the reference.
-}
-
 proc GenerateClusterFile { } {
     # TODO: linked to GenerateClusterFile button. Generate the cluster file from the joint information of generic_sph.sph and generic_msh.msh
 
@@ -344,6 +308,10 @@ proc GenerateClusterFile { } {
 
 
 
+
+
+
+## references ######################
 # proc Dam::write::Triangle2D3Connectivities { ElemId } {
 
 #     set ElementInfo [GiD_Mesh get element $ElemId]
