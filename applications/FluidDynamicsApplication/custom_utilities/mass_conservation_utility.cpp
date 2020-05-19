@@ -109,7 +109,7 @@ std::string MassConservationUtility::ComputeBalancedVolume(){
 
     const auto& r_process_info = mrModelPart.GetProcessInfo();
     const double current_time = r_process_info[*mpTimeVariable];
-    const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
+    const double current_dt = r_process_info[DELTA_TIME];
 
     mQNet0 = net_inflow_inlet + net_inflow_outlet;
     mTheoreticalNegativeVolume += current_dt * mQNet0;
