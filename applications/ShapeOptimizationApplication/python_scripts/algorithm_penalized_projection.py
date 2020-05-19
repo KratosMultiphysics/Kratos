@@ -24,7 +24,7 @@ from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
 # ==============================================================================
-class AlgorithmPenalizedProjectionOld(OptimizationAlgorithm):
+class AlgorithmPenalizedProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = KM.Parameters("""
