@@ -23,6 +23,10 @@ def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step):
     PrintBlockHeader("Stop Writting Solution Data at time %s" % (str(time)))
 
 
+def PrintBlockHeader(header):
+    tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
+
+
 # Write membrane's displacments in a file
 def ExecuteBeforeMeshDeformation(total_displacements, step, para_path_mod, start_step):
     # Compute relative displacements
@@ -147,7 +151,7 @@ def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
 # Read mesh and data from tau output file
 def ReadTauOutput(working_path, step, velocity):
     # Find the interface file name
-    interface_file_name = FindInterfaceFile(working_path, step)
+    interface_file_name = FindInterfaceFilename(working_path, step)
 
     # Read interface file
     position_info, mesh_info, nodal_data, elem_connectivities = ReadInterfaceFile(
@@ -208,6 +212,7 @@ def ReadElementTypes(ElemsNr):
     return element_types
 
 
+# Check if file exist and remove it, otherwise print a warning
 def RemoveFileIfExists(path):
     if os.path.exists(path):
         os.remove(path)
@@ -216,6 +221,7 @@ def RemoveFileIfExists(path):
         warnings.warn(msg)
 
 
+# Check if the path exists
 def CheckIfPathExists(path):
     if not os.path.exists(path):
         raise Exception('Path: "{}" not found'.format(path))
@@ -224,28 +230,30 @@ def CheckIfPathExists(path):
 # Checks if the line is from IO section in tau2plot.cntl and modifies it
 def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step):
     if 'Primary grid filename:' in line:
-        mesh_file_name = FindMeshFile(working_path, step, start_step)
-        line = 'Primary grid filename:' + mesh_file_name + ' \n'
+        primary_grid_filename = FindPrimaryGridFilename(working_path, step, start_step)
+        line = 'Primary grid filename:' + primary_grid_filename + ' \n'
     elif 'Boundary mapping filename:' in line:
-        parameter_file_name = working_path + para_path_mod
-        line = 'Boundary mapping filename:' + parameter_file_name + ' \n'
+        parameter_filename = working_path + para_path_mod
+        line = 'Boundary mapping filename:' + parameter_filename + ' \n'
     elif 'Restart-data prefix:' in line:
-        output_file_name = FindOutputFile(working_path, step)
-        line = 'Restart-data prefix:' + output_file_name + ' \n'
+        output_filename = FindOutputFilename(working_path, step)
+        line = 'Restart-data prefix:' + output_filename + ' \n'
 
     return line
 
 
 # Find the interface file name
-def FindInterfaceFile(working_path, step):
-    output_file_name = FindOutputFile(working_path, step)
-    interface_file_name = output_file_name.replace('pval', 'surface.pval')
-    interface_file_name = interface_file_name.replace('+', '') + '.dat'
-    CheckIfPathExists(interface_file_name)
-    return interface_file_name
+def FindInterfaceFilename(working_path, step):
+    output_filename = FindOutputFilename(working_path, step)
+    interface_filename = output_filename.replace('pval', 'surface.pval')
+    interface_filename = interface_filename.replace('+', '') + '.dat'
+    CheckIfPathExists(interface_filename)
+    return interface_filename
 
-def ReadInterfaceFile(interface_file_name):
-    with open(interface_file_name, 'r') as interface_file:
+
+# Read interface file
+def ReadInterfaceFile(interface_filename):
+    with open(interface_filename, 'r') as interface_file:
         line = interface_file.readline()
         position_info, mesh_info, line = ReadHeader(interface_file, line)
         nodal_data, line = ReadNodalData(interface_file, line)
@@ -253,64 +261,7 @@ def ReadInterfaceFile(interface_file_name):
     return position_info, mesh_info, nodal_data, elem_connectivities
 
 
-def ReadElemConnectivities(ElemsNr, elemTable):
-    # array to store the element connectivities
-    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)
-    element_types = np.zeros(ElemsNr, dtype=int)
-
-    for i in xrange(0, ElemsNr):
-        elem_connectivities[i*4+0] = elemTable[i, 0]
-        elem_connectivities[i*4+1] = elemTable[i, 1]
-        elem_connectivities[i*4+2] = elemTable[i, 2]
-        elem_connectivities[i*4+3] = elemTable[i, 3]
-        element_types[i] = 9
-
-    return elem_connectivities, element_types
-
-
-def FindOutputFile(working_path, step):
-    outputs_path = working_path + "Outputs/"
-    CheckIfPathExists(outputs_path)
-    ouput_file_pattern = "airfoilSol.pval.unsteady_i="
-    return FindFileName(outputs_path, ouput_file_pattern, step + 1)
-
-
-def FindMeshFile(working_path, step, start_step):
-    mesh_path = working_path + "Mesh/"
-    CheckIfPathExists(mesh_path)
-    if step == start_step:
-        pattern = 'airfoil_Structured_scaliert.grid'
-        return FindInitialMeshFileName(mesh_path, pattern)
-    else:
-        pattern = 'airfoil_Structured_scaliert.grid.def.'
-        return FindFileName(mesh_path, pattern, step-start_step)
-
-
-def FindInitialMeshFileName(path, name):
-    files_list = glob.glob(path + "*")
-    for file in files_list:
-        if file.startswith('%s' % path + '%s' % name):
-            return file
-    raise Exception('File: "{}" not found'.format(path + name))
-
-
-def FindFileName(path, name, step):
-    files_list = glob.glob(path + "*")
-    if echo_level > 0:
-        print 'files_list =', files_list
-    for file in files_list:
-        if file.startswith('%s' % path + '%s' % name + '%s' % step):
-            return file
-    raise Exception('File: "{}" not found'.format(path + name + str(step)))
-
-
-
-def PrintBlockHeader(header):
-    tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
-
-
-
-
+# Saves the coordinates into lists
 def SaveCoordinatesList(nodal_data, position_info, NodesNr):
     # Read coordinates positions and save them in a list
     x_position = position_info.index('"x"') - 2
@@ -321,6 +272,7 @@ def SaveCoordinatesList(nodal_data, position_info, NodesNr):
     Z = nodal_data[(z_position)*NodesNr:(z_position+1)*NodesNr]
     return X, Y, Z
 
+# Saves the nodal pressure into a numpy array
 def SavePressure(nodal_data, position_info, NodesNr, velocity):
     # Read pressure coefficient
     cp_position = position_info.index('"cp"') - 2
@@ -329,44 +281,6 @@ def SavePressure(nodal_data, position_info, NodesNr, velocity):
     P = [x*velocity*velocity*0.5*1.2 for x in CP]
     P = np.array(P)
     return P
-
-def ReadNodalData(interface_file,line):
-    # reading nodal data
-    nodal_data = []
-    while 'E+' in line or 'E-' in line:
-        for elem in line.split():
-            nodal_data.append(float(elem))
-        line = interface_file.readline()
-
-    return nodal_data, line
-
-def ReadElementConnectivities(interface_file,line,ElemsNr):
-    # reading element connectivities
-    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)
-    i = 0
-    while line:
-        elem_connectivities[i*4+0] = int(line.split()[0])
-        elem_connectivities[i*4+1] = int(line.split()[1])
-        elem_connectivities[i*4+2] = int(line.split()[2])
-        elem_connectivities[i*4+3] = int(line.split()[3])
-        i = i+1
-        line = interface_file.readline()
-
-    return elem_connectivities
-
-def ReadHeader(interface_file,line):
-    # reading the five lines of the header
-    for _ in range(5):
-        # reading the position of the coordinates and cp in the list
-        if "\"x\" \"y\" \"z\"" in line:
-            position_info = line.split()
-        # reading the number of nodes and elements
-        elif "N=" in line:
-            mesh_info = [int(integers)
-                         for integers in re.findall(r'\b\d+\b', line)]
-        line = interface_file.readline()
-
-    return position_info, mesh_info, line
 
 
 # Get the node ids of the cell
@@ -392,6 +306,70 @@ def CalculateCellForce(node_ids, nodal_pressures, X, Y, Z):
     cell_force = pressure * area * normal
 
     return cell_force
+
+
+# Finds steps' corresponding primary grid filename
+def FindPrimaryGridFilename(working_path, step, start_step):
+    mesh_path = working_path + "Mesh/"
+    CheckIfPathExists(mesh_path)
+    if step == start_step:
+        pattern = 'airfoil_Structured_scaliert.grid'
+        return FindInitialMeshFilename(mesh_path, pattern)
+    else:
+        pattern = 'airfoil_Structured_scaliert.grid.def.'
+        return FindFilename(mesh_path, pattern, step-start_step)
+
+
+# Finds output filename
+def FindOutputFilename(working_path, step):
+    outputs_path = working_path + "Outputs/"
+    CheckIfPathExists(outputs_path)
+    ouput_file_pattern = "airfoilSol.pval.unsteady_i="
+    return FindFilename(outputs_path, ouput_file_pattern, step + 1)
+
+
+# Read header from interface file
+def ReadHeader(interface_file,line):
+    # reading the five lines of the header
+    for _ in range(5):
+        # reading the position of the coordinates and cp in the list
+        if "\"x\" \"y\" \"z\"" in line:
+            position_info = line.split()
+        # reading the number of nodes and elements
+        elif "N=" in line:
+            mesh_info = [int(integers)
+                         for integers in re.findall(r'\b\d+\b', line)]
+        line = interface_file.readline()
+
+    return position_info, mesh_info, line
+
+
+# Read nodal data from interface file
+def ReadNodalData(interface_file,line):
+    # reading nodal data
+    nodal_data = []
+    while 'E+' in line or 'E-' in line:
+        for elem in line.split():
+            nodal_data.append(float(elem))
+        line = interface_file.readline()
+
+    return nodal_data, line
+
+
+# Read element connectivities from interface file
+def ReadElementConnectivities(interface_file,line,ElemsNr):
+    # reading element connectivities
+    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)
+    i = 0
+    while line:
+        elem_connectivities[i*4+0] = int(line.split()[0])
+        elem_connectivities[i*4+1] = int(line.split()[1])
+        elem_connectivities[i*4+2] = int(line.split()[2])
+        elem_connectivities[i*4+3] = int(line.split()[3])
+        i = i+1
+        line = interface_file.readline()
+
+    return elem_connectivities
 
 
 # Calculate cell pressure averaging nodal pressures
@@ -434,6 +412,26 @@ def CalculateCellNormal(X, Y, Z, node_ids):
     unit_cell_normal = cell_normal/magnitude
 
     return unit_cell_normal
+
+
+# Looks for a file matching the given pattern within the given path
+def FindInitialMeshFilename(mesh_path, pattern):
+    files_list = glob.glob(mesh_path + "*")
+    for file in files_list:
+        if file.startswith('%s' % mesh_path + '%s' % pattern):
+            return file
+    raise Exception('File: "{}" not found'.format(mesh_path + pattern))
+
+
+# Looks for a file matching the given pattern within the given path
+def FindFilename(path, pattern, step):
+    files_list = glob.glob(path + "*")
+    if echo_level > 0:
+        print 'files_list =', files_list
+    for file in files_list:
+        if file.startswith('%s' % path + '%s' % pattern + '%s' % step):
+            return file
+    raise Exception('File: "{}" not found'.format(path + pattern + str(step)))
 
 
 # Calculate distance vector between two nodes
