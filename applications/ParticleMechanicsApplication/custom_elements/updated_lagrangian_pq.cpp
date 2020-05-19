@@ -7,7 +7,7 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
+//  Main authors:    Peter Wilson
 //
 
 
@@ -139,83 +139,6 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces( // TODO Merge into base
     KRATOS_CATCH( "" )
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianPQ::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo, // TODO merge into base element
-    GeneralVariables& rVariables)
-{
-    KRATOS_TRY
-
-    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-        : false;
-
-    // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    // Define the stress measure
-    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions = Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-    // use element provided strain incremented from velocity gradient
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-
-    // Compute explicit element kinematics, strain is incremented here.
-
-    if (is_axisymmetric)
-    {
-        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry());
-        MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
-            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
-    }
-    else
-    {
-        MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this,
-            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
-        // TODO split the above function into 1) calc vel grad, 2) calc strain increment
-        // CalcVelGrad()
-        // if (is_pqmpm) RecombineSubPointsIntoMasterPoint() This probably needs to be moved outside this utility so 
-        // Calc strain increment and def grad of master particle
-    }
-    rVariables.StressVector = mMP.cauchy_stress_vector;
-    rVariables.StrainVector = mMP.almansi_strain_vector;
-
-    // Update gradient deformation
-    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment    
-    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment    
-    rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
-    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
-    rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
-    mDeformationGradientF0 = rVariables.FT; // update member internal total grad def
-    mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
-
-    // Update MP volume
-    if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE))
-    {
-        mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
-        mMP.volume = mMP.mass / mMP.density;
-    }
-
-    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-
-    // Set general variables to constitutivelaw parameters
-    const Vector& r_N_vec = row(GetGeometry().ShapeFunctionsValues() , 0);
-    this->SetGeneralVariables(rVariables, Values, r_N_vec);
-
-    // Calculate Material Response
-    /* NOTE:
-    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
-    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
-    mConstitutiveLawVector->CalculateMaterialResponse(Values, rVariables.StressMeasure);
-
-    KRATOS_CATCH("")
-}
-
 //*******************************************************************************************
 //*******************************************************************************************
 void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo ) // TODO merge this into normal element
@@ -228,7 +151,6 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
     mFinalizedStep = false;
-    mMPSubPoints = GetGeometry().IntegrationPointsNumber();
 
     const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
@@ -273,7 +195,7 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
 }
 
 
-void UpdatedLagrangianPQ::InitializeMaterial() // TODO keep
+void UpdatedLagrangianPQ::InitializeMaterial() // TODO keep for clarity and error catching
 {
     KRATOS_TRY
     GeneralVariables Variables;
@@ -308,17 +230,9 @@ void UpdatedLagrangianPQ::CalculateOnIntegrationPoints(const Variable<int>& rVar
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    if (rVariable == MP_SUB_POINTS) {
-        rValues[0] = GetGeometry().IntegrationPointsNumber();
-        //rValues[0] = mMPSubPoints;
-    }
-    else
-    {
-        UpdatedLagrangian::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
+    if (rValues.size() != 1) rValues.resize(1);
+    if (rVariable == MP_SUB_POINTS)   rValues[0] = GetGeometry().IntegrationPointsNumber();
+    else UpdatedLagrangian::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 
@@ -327,7 +241,6 @@ void UpdatedLagrangianPQ::CalculateOnIntegrationPoints(const Variable<int>& rVar
 void UpdatedLagrangianPQ::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
-
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
@@ -340,7 +253,5 @@ void UpdatedLagrangianPQ::load( Serializer& rSerializer )
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
 }
-
-
 } // Namespace Kratos
 

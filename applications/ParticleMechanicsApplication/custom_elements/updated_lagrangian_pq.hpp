@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
+//  Main authors:    Peter Wilson
 //
 
 
@@ -23,25 +23,10 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name  Enum's
-///@{
-///@}
-///@name  Functions
-///@{
-///@}
-///@name Kratos Classes
-///@{
-
-/// Large Displacement Lagrangian Element for 3D and 2D geometries. (base class)
+/// Partitioned Quadrature Large Displacement Lagrangian Element for 3D and 2D geometries. (base class)
 
 /**
- * Implements a Large Displacement Lagrangian definition for structural analysis.
+ * Implements a Partitioned Quadrature Large Displacement Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
@@ -134,112 +119,18 @@ public:
         std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    ///@}
-    ///@name Inquiry
-    ///@{
-    ///@}
-    ///@name Input and output
-    ///@{
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "MPM Element #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "MPM Element #" << Id();
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        GetGeometry().PrintData(rOStream);
-    }
-
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
 
-    //MaterialPointVariables mMP;
-
-    /**
-     * Container for historical total elastic deformation measure F0 = dx/dX
-     */
-    //Matrix mDeformationGradientF0;
-    /**
-     * Container for the total deformation gradient determinants
-     */
-    //double mDeterminantF0;
-
-    /**
-     * Container for constitutive law instances on each integration point
-     */
-    //ConstitutiveLaw::Pointer mConstitutiveLawVector;
-
-
-    /**
-     * Finalize and Initialize label
-     */
-    //bool mFinalizedStep;
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
-     */
+     /// Calculation of the External Forces Vector. Fe = N * t + N * b
     void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
             GeneralVariables& rVariables,
             Vector& rVolumeForce,
             const double& rIntegrationWeight) override;
 
-    /// Calculation of the Explicit Stresses from velocity gradient.
-    void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
-        GeneralVariables& rVariables) override;
-
-    /**
-     * Initialize Material Properties on the Constitutive Law
-     */
+     /// Initialize Material Properties on the Constitutive Law
     void InitializeMaterial() override;
 
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    SizeType mMPSubPoints;
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
 
     ///@}
     ///@name Serialization
@@ -247,28 +138,10 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
 
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    ///@}
-
 }; // Class UpdatedLagrangianPQ
-
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
-///@}
-
 } // namespace Kratos.
 #endif // KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED  defined
