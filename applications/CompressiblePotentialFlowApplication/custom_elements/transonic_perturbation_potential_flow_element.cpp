@@ -88,7 +88,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
         {
             CalculateRightHandSideInletElement(rRightHandSideVector, rCurrentProcessInfo);
         }
-        else if(kutta == 0)
+        else if(kutta != 0)
         {
             CalculateRightHandSideInletElement(rRightHandSideVector, rCurrentProcessInfo);
         }
@@ -119,7 +119,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
         {
             CalculateLeftHandSideInletElement(rLeftHandSideMatrix, rCurrentProcessInfo);
         }
-        else if (kutta == 0)
+        else if (kutta != 0)
         {
             CalculateLeftHandSideInletElement(rLeftHandSideMatrix, rCurrentProcessInfo);
         }
@@ -143,7 +143,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
     const int wake = r_this.GetValue(WAKE);
     const int number_of_nodes = TNumNodes + 1;
 
-    std::cout << "equation id vector\n";
     if (wake == 0) // Normal element
     {
         if (rResult.size() != TNumNodes)
@@ -155,7 +154,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
 
         if (kutta == 0 && this->Is(INLET))
         {
-            std::cout << "GetEquationIdVectorInletElement\n";
             GetEquationIdVectorInletElement(rResult);
         }
         else if (kutta == 0 && this->IsNot(INLET))
@@ -165,12 +163,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
                 rResult.resize(number_of_nodes, false);
             }
 
-            std::cout << "GetEquationIdVectorNormalElement\n";
             GetEquationIdVectorNormalElement(rResult);
         }
         else
         {
-            std::cout << "GetEquationIdVectorKuttaElement\n";
             GetEquationIdVectorKuttaElement(rResult);
         }
     }
@@ -180,7 +176,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
         {
             rResult.resize(2 * TNumNodes, false);
         }
-        std::cout << "GetEquationIdVectorWakeElement\n";
+
         GetEquationIdVectorWakeElement(rResult);
     }
 }
@@ -421,20 +417,13 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
 {
     const int additional_node_id = GetAdditionalNode();
 
-    KRATOS_WATCH(additional_node_id);
-    KRATOS_WATCH(this->Id());
-
     const auto& r_geometry = this->GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         rResult[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
     }
-    std::cout << "after for loop\n";
     const auto& r_upwind_geometry = mpUpwindElement->GetGeometry();
-    KRATOS_WATCH(rResult.size());
-    KRATOS_WATCH(r_upwind_geometry[additional_node_id]);
     rResult[TNumNodes + 1] = r_upwind_geometry[additional_node_id].GetDof(VELOCITY_POTENTIAL).EquationId();
-    std::cout << "after rResult assignment\n";
 }
 
 template <int TDim, int TNumNodes>
@@ -626,12 +615,20 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     {
         velocity[i] += free_stream_velocity[i];
     }
+
     const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
 
-    noalias(rLeftHandSideMatrix) +=
-        data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
-    noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
-    std::cout << "LHS end\n";
+    BoundedMatrix<double, TNumNodes, TNumNodes> current_lhs = data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+    current_lhs += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+
+    for (int i = 0; i < TNumNodes; i++)
+    {
+        for (int j = 0; j < TNumNodes; j++)
+        {
+            rLeftHandSideMatrix(i, j) = current_lhs(i, j);
+        }
+    }
+
 }
 
 template <int TDim, int TNumNodes>
@@ -690,8 +687,13 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
         velocity[i] += free_stream_velocity[i];
     }
 
-    noalias(rRightHandSideVector) = - data.vol * density * prod(data.DN_DX, velocity);
-    std::cout << "end calculate right hand side vector\n";
+    const BoundedVector<double, TNumNodes> current_rhs = - data.vol * density * prod(data.DN_DX, velocity);
+
+    for (int i = 0; i < TNumNodes; i++)
+    {
+        rRightHandSideVector[i] = current_rhs[i];
+    }
+
 }
 
 template <int TDim, int TNumNodes>
@@ -1186,19 +1188,14 @@ int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAdditionalNod
             }
         }
         // get index of non matching node
-        if (non_matching_nodes_counter == 3)
+        if (non_matching_nodes_counter == TNumNodes)
         {
             additional_node = i;
             loop_stop = true;
         }
         non_matching_nodes_counter = 0;
     }
-    // KRATOS_WATCH(r_geom[0].Id());
-    // KRATOS_WATCH(r_geom[1].Id());
-    // KRATOS_WATCH(r_geom[2].Id());
-    // KRATOS_WATCH(r_upwind_geom[0].Id());
-    // KRATOS_WATCH(r_upwind_geom[1].Id());
-    // KRATOS_WATCH(r_upwind_geom[2].Id());
+
     return additional_node;
 }
 
