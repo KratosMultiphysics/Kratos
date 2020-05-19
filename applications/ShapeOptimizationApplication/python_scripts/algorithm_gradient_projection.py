@@ -233,24 +233,16 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             s,
             c)
 
-        # update correction scaling
-        print("s.norm_2():", s.norm_2())
-        print("c.norm_2():", c.norm_2())
-
-        print("s.norm_inf():", s.norm_inf())
-        print("c.norm_inf():", c.norm_inf())
-
         if c.norm_inf() != 0.0:
-            max_correction_share = 1.0
-            if c.norm_inf() <= max_correction_share * self.step_size:
+            self.max_correction_share = 1.0
+            if c.norm_inf() <= self.max_correction_share * self.step_size:
                 delta = self.step_size - c.norm_inf()
                 s *= delta/s.norm_inf()
             else:
-                c *= max_correction_share * self.step_size / c.norm_inf()
-                s *= (1 - max_correction_share) * self.step_size / s.norm_inf()
-
-        print("s.norm_inf():", s.norm_inf())
-        print("c.norm_inf():", c.norm_inf())
+                c *= self.max_correction_share * self.step_size / c.norm_inf()
+                s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+        else:
+            s *= self.step_size / s.norm_inf()
 
         gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
         gp_utilities.AssignVectorToVariable(c, KSO.CORRECTION)
