@@ -15,7 +15,7 @@ from __future__ import print_function, absolute_import, division
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
-from KratosMultiphysics.EigenSolversApplication import dense_linear_solver_factory # TODO how to use it from core?
+from KratosMultiphysics.EigenSolversApplication import dense_linear_solver_factory
 
 # Additional imports
 from .algorithm_base import OptimizationAlgorithm
@@ -234,7 +234,6 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             c)
 
         if c.norm_inf() != 0.0:
-            self.max_correction_share = 1.0
             if c.norm_inf() <= self.max_correction_share * self.step_size:
                 delta = self.step_size - c.norm_inf()
                 s *= delta/s.norm_inf()
