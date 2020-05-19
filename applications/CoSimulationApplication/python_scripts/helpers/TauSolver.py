@@ -57,6 +57,7 @@ def SolveSolutionStep():
     Solver.output()
     tau_plt_init_tecplot_params(para_path_mod)
     tau_solver_write_output_conditional()
+    # Convert tau output to dat file using tau2plt
     TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step)
 
 def FinalizeSolutionStep():
@@ -94,7 +95,6 @@ def ExportData(conn_name, identifier):
     # identifier is the data-name in json
     if identifier == "Interface_force":
         forces = TauFunctions.ComputeFluidForces(working_path, step)
-        #forces *= 1000000
     else:
         raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 

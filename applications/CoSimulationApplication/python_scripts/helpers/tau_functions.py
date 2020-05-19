@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re, glob, subprocess, time, os
+import re, glob, subprocess, time, os, warnings
 import numpy as np
 import tau_python
 from tau_python import tau_msg
@@ -9,19 +9,56 @@ from scipy.io import netcdf
 
 echo_level = 1
 
+
+# Convert tau output to dat file using tau2plt
+def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step):
+    PrintBlockHeader("Start Writting Solution Data at time %s" % (str(time)))
+
+    # Write Tautoplt.cntl file
+    tautoplt_file_name = WriteTautoplt(working_path, step, para_path_mod, start_step)
+
+    # Execute tau2plt to convert output file into dat
+    command = tau_path + 'tau2plt ' + tautoplt_file_name
+    subprocess.call(command, shell=True)
+    PrintBlockHeader("Stop Writting Solution Data at time %s" % (str(time)))
+
+
+# Write membrane's displacments in a file
+def ExecuteBeforeMeshDeformation(total_displacements, step, para_path_mod, start_step):
+    # Compute relative displacements
+    relative_displacements = ComputeRelativeDisplacements(total_displacements, step, start_step)
+
+    # Read tau's parameter file
+    Para = PyPara.Parafile(para_path_mod)
+
+    # Read the interface fluid grid
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para)
+
+    # Write membrane's displacments in a file
+    WriteInterfaceDeformationFile(ids, coordinates, relative_displacements)
+
+
+# Computes fluid forces at the nodes
+def ComputeFluidForces(working_path, step):
+    # Read mesh and pressure from interface file
+    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, 20)
+
+    # calculating the force vector
+    fluid_forces = CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities)
+
+    return fluid_forces
+
+
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
 def GetFluidMesh(working_path, step, para_path_mod):
-    # Find the interface file name
-    interface_file_name = FindInterfaceFile(working_path, step)
-
     # Read mesh from interface file
-    NodesNr, ElemsNr, X, Y, Z, P, elem_connectivities = ReadTauOutput(interface_file_name, 20)
+    X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, 20)
 
     # Transform nodal coordinates to numpy array
-    nodal_coords = ReadNodalCoordinates(NodesNr, X, Y, Z)
+    nodal_coords = ReadNodalCoordinates(X, Y, Z)
 
     # Save element types in a numpy array
-    element_types = ReadElementTypes(ElemsNr)
+    element_types = ReadElementTypes(len(elem_connectivities)/4)
 
     # In vtk format element connectivities start from 0, not from 1
     elem_connectivities -= 1
@@ -29,31 +66,206 @@ def GetFluidMesh(working_path, step, para_path_mod):
     return nodal_coords, elem_connectivities, element_types
 
 
-def ComputeFluidForces(working_path, step):
+# Write Tautoplt.cntl file
+def WriteTautoplt(working_path, step, para_path_mod, start_step):
+    # Define Tautoplt.cntl file name and check if it already exists
+    tautoplt_file_name = working_path + 'Tautoplt.cntl'
+    RemoveFileIfExists(tautoplt_file_name)
+    initial_tautoplt_file_name = working_path + 'Tautoplt_initial.cntl'
+    CheckIfPathExists(initial_tautoplt_file_name)
+
+    # Read and write simultaneously
+    tautoplt_file_writing = open(tautoplt_file_name, 'w')
+    with open(initial_tautoplt_file_name, 'r+') as tautoplt_file_reading:
+        # Loop over lines
+        for line in tautoplt_file_reading:
+            # Check if line is from IO section and modify it
+            line = ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step)
+            tautoplt_file_writing.write(line)
+
+        # Close files
+        tautoplt_file_writing.close()
+        tautoplt_file_reading.close()
+
+    return tautoplt_file_name
+
+
+# Compute relative displacements
+def ComputeRelativeDisplacements(total_displacements, step, start_step):
+    global previous_total_displacements
+
+    if(step == start_step):
+        previous_total_displacements = np.zeros(len(total_displacements))
+
+    # Declaring and initializing relative_displacements vector
+    number_of_nodes = len(total_displacements)/3
+    relative_displacements = np.zeros([number_of_nodes, 3])
+
+    # Loop over nodes
+    for node in range(number_of_nodes):
+        # Loop over xyz components
+        for j in range(3):
+            # Compute relative displacement
+            relative_displacements[node, j] = total_displacements[3*node+j]
+            relative_displacements[node, j] -= previous_total_displacements[3*node+j]
+
+    previous_total_displacements = total_displacements
+
+    return relative_displacements
+
+
+# Write membrane's displacments in a file
+def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
+    # Open interface_deformfile
+    ncf = netcdf.netcdf_file('interface_deformfile.nc', 'w')
+
+    # define dimensions
+    nops = 'no_of_points'
+    number_of_points = len(ids[:])
+    ncf.createDimension(nops, number_of_points)
+
+    # define variables
+    global_node_ids = ncf.createVariable('global_id', 'i', (nops,))
+    nodal_x_coordinates = ncf.createVariable('x', 'd', (nops,))
+    nodal_y_coordinates = ncf.createVariable('y', 'd', (nops,))
+    nodal_z_coordinates = ncf.createVariable('z', 'd', (nops,))
+    nodal_x_displacements = ncf.createVariable('dx', 'd', (nops,))
+    nodal_y_displacements = ncf.createVariable('dy', 'd', (nops,))
+    nodel_z_displacements = ncf.createVariable('dz', 'd', (nops,))
+
+    # write data
+    global_node_ids[:] = ids
+    nodal_x_coordinates[:] = coordinates[0,:]
+    nodal_y_coordinates[:] = coordinates[1,:]
+    nodal_z_coordinates[:] = coordinates[2,:]
+    nodal_x_displacements[:] = relative_displacements[:,0]
+    nodal_y_displacements[:] = relative_displacements[:,1]
+    nodel_z_displacements[:] = relative_displacements[:,2]
+    ncf.close()
+
+
+# Read mesh and data from tau output file
+def ReadTauOutput(working_path, step, velocity):
     # Find the interface file name
     interface_file_name = FindInterfaceFile(working_path, step)
 
-    # Read mesh and pressure from interface file
-    NodesNr, ElemsNr, X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(interface_file_name, 20)
+    # Read interface file
+    position_info, mesh_info, nodal_data, elem_connectivities = ReadInterfaceFile(
+        interface_file_name)
 
-    # calculating the force vector
-    fluid_forces = CalculateNodalFluidForces(
-        ElemsNr, elem_connectivities, NodesNr, nodal_pressures, X, Y, Z)
+    # Read mesh info
+    NodesNr = mesh_info[0]
+    ElemsNr = mesh_info[1]
 
-    return fluid_forces
+    X, Y, Z = SaveCoordinatesList(nodal_data, position_info, NodesNr)
+    P = SavePressure(nodal_data, position_info, NodesNr, velocity)
 
-def ExecuteBeforeMeshDeformation(total_displacements,  step, para_path_mod, start_step):
-    # Compute relative displacements
-    relative_displacements = ComputeRelativeDisplacements(total_displacements, step, start_step)
+    return X, Y, Z, P, elem_connectivities
 
-    # Read the parameter file
-    Para = PyPara.Parafile(para_path_mod)
 
-    # Read the interface fluid grid
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para)
+# Calculate the fluid forces at the nodes
+def CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities):
+    nodal_forces = np.zeros(3*len(X))
+    # Loop over cells
+    for cell in range(len(elem_connectivities)/4):
+        # Get the node ids of the cell
+        node_ids = GetCellNodeIds(elem_connectivities, cell)
 
-    # Write membrane's displacments in a file for TAU
-    WriteInterfaceDeformationFile(ids, coordinates, relative_displacements)
+        # Calculate cell force
+        cell_force = CalculateCellForce(node_ids, nodal_pressures, X, Y, Z)
+
+        # Extrapolating cell force to the nodes
+        for node in range(4):
+            # Loop over xyz components
+            for component in range(3):
+                nodal_forces[3*node_ids[node]+component] += 0.25 * cell_force[component]
+
+    return nodal_forces
+
+
+# Transform nodal coordinates to numpy array
+def ReadNodalCoordinates(X, Y, Z):
+    # array to store the coordinates of the nodes: x1,y1,z1,x2,y2,z2,...
+    nodal_coords = np.zeros(3*len(X))
+
+    # Loop over nodes
+    for node in range(len(X)):
+        nodal_coords[3*node+0] = X[node]
+        nodal_coords[3*node+1] = Y[node]
+        nodal_coords[3*node+2] = Z[node]
+
+    return nodal_coords
+
+
+# Save element types in a numpy array
+def ReadElementTypes(ElemsNr):
+    # array to store the element types
+    element_types = np.zeros(ElemsNr, dtype=int)
+
+    for i in xrange(0, ElemsNr):
+        element_types[i] = 9
+
+    return element_types
+
+
+def RemoveFileIfExists(path):
+    if os.path.exists(path):
+        os.remove(path)
+    else:
+        msg = 'The file ' + path + ' does not exist.'
+        warnings.warn(msg)
+
+
+def CheckIfPathExists(path):
+    if not os.path.exists(path):
+        raise Exception('Path: "{}" not found'.format(path))
+
+
+# Checks if the line is from IO section in tau2plot.cntl and modifies it
+def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step):
+    if 'Primary grid filename:' in line:
+        mesh_file_name = FindMeshFile(working_path, step, start_step)
+        line = 'Primary grid filename:' + mesh_file_name + ' \n'
+    elif 'Boundary mapping filename:' in line:
+        parameter_file_name = working_path + para_path_mod
+        line = 'Boundary mapping filename:' + parameter_file_name + ' \n'
+    elif 'Restart-data prefix:' in line:
+        output_file_name = FindOutputFile(working_path, step)
+        line = 'Restart-data prefix:' + output_file_name + ' \n'
+
+    return line
+
+
+# Find the interface file name
+def FindInterfaceFile(working_path, step):
+    output_file_name = FindOutputFile(working_path, step)
+    interface_file_name = output_file_name.replace('pval', 'surface.pval')
+    interface_file_name = interface_file_name.replace('+', '') + '.dat'
+    CheckIfPathExists(interface_file_name)
+    return interface_file_name
+
+def ReadInterfaceFile(interface_file_name):
+    with open(interface_file_name, 'r') as interface_file:
+        line = interface_file.readline()
+        position_info, mesh_info, line = ReadHeader(interface_file, line)
+        nodal_data, line = ReadNodalData(interface_file, line)
+        elem_connectivities = ReadElementConnectivities(interface_file, line, ElemsNr=mesh_info[1])
+    return position_info, mesh_info, nodal_data, elem_connectivities
+
+
+def ReadElemConnectivities(ElemsNr, elemTable):
+    # array to store the element connectivities
+    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)
+    element_types = np.zeros(ElemsNr, dtype=int)
+
+    for i in xrange(0, ElemsNr):
+        elem_connectivities[i*4+0] = elemTable[i, 0]
+        elem_connectivities[i*4+1] = elemTable[i, 1]
+        elem_connectivities[i*4+2] = elemTable[i, 2]
+        elem_connectivities[i*4+3] = elemTable[i, 3]
+        element_types[i] = 9
+
+    return elem_connectivities, element_types
 
 
 def FindOutputFile(working_path, step):
@@ -74,28 +286,6 @@ def FindMeshFile(working_path, step, start_step):
         return FindFileName(mesh_path, pattern, step-start_step)
 
 
-def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step):
-    PrintBlockHeader("Start Writting Solution Data at time %s" % (str(time)))
-    subprocess.call('rm ' + working_path + '/Tautoplt.cntl', shell=True)
-    tautoplt_file_name = WriteTautoplt(working_path, step, para_path_mod, start_step)
-    command = tau_path + 'tau2plt ' + tautoplt_file_name
-    subprocess.call(command, shell=True)
-    PrintBlockHeader("Stop Writting Solution Data at time %s" % (str(time)))
-
-
-def FindInterfaceFile(working_path, step):
-    output_file_name = FindOutputFile(working_path, step)
-    interface_file_name = output_file_name.replace('pval', 'surface.pval')
-    interface_file_name = interface_file_name.replace('+', '') + '.dat'
-    CheckIfPathExists(interface_file_name)
-    return interface_file_name
-
-
-def CheckIfPathExists(path):
-    if not os.path.exists(path):
-        raise Exception('Path: "{}" not found'.format(path))
-
-
 def FindInitialMeshFileName(path, name):
     files_list = glob.glob(path + "*")
     for file in files_list:
@@ -114,60 +304,12 @@ def FindFileName(path, name, step):
     raise Exception('File: "{}" not found'.format(path + name + str(step)))
 
 
-def WriteTautoplt(working_path, step, para_path_mod, start_step):
-    mesh_file_name = FindMeshFile(working_path, step, start_step)
-    parameter_file_name = working_path + para_path_mod
-    output_file_name = FindOutputFile(working_path, step)
-    tautoplt_file_name = working_path + 'Tautoplt.cntl'
-    tautoplt_file_writing = open(tautoplt_file_name, 'w')
-    tautoplt_file_reading = open(working_path + 'Tautoplt_initial.cntl', 'r+')
-    line = tautoplt_file_reading.readline()
-    while line:
-        if 'Primary grid filename:' in line:
-            line = 'Primary grid filename:' + mesh_file_name + ' \n'
-            tautoplt_file_writing.write(line)
-            line = tautoplt_file_reading.readline()
-        if 'Boundary mapping filename:' in line:
-            line = 'Boundary mapping filename:' + parameter_file_name + ' \n'
-            tautoplt_file_writing.write(line)
-            line = tautoplt_file_reading.readline()
-        if 'Restart-data prefix:' in line:
-            line = 'Restart-data prefix:' + output_file_name + ' \n'
-            tautoplt_file_writing.write(line)
-            line = tautoplt_file_reading.readline()
-        else:
-            line = tautoplt_file_reading.readline()
-            tautoplt_file_writing.write(line)
-    tautoplt_file_writing.close()
-    tautoplt_file_reading.close()
-    return tautoplt_file_name
-
-
 
 def PrintBlockHeader(header):
     tau_python.tau_msg("\n" + 50 * "*" + "\n" + "* %s\n" %header + 50*"*" + "\n")
 
-# Read mesh and data from tau output file
-def ReadTauOutput(interface_file_name, velocity):
-    position_info, mesh_info, nodal_data, elem_connectivities = ReadInterfaceFile(
-        interface_file_name)
 
-    # Read mesh info
-    NodesNr = mesh_info[0]
-    ElemsNr = mesh_info[1]
 
-    X, Y, Z = SaveCoordinatesList(nodal_data, position_info, NodesNr)
-    P = SavePressure(nodal_data, position_info, NodesNr, velocity)
-
-    return NodesNr, ElemsNr, X, Y, Z, P, elem_connectivities
-
-def ReadInterfaceFile(interface_file_name):
-    with open(interface_file_name, 'r') as interface_file:
-        line = interface_file.readline()
-        position_info, mesh_info, line = ReadHeader(interface_file, line)
-        nodal_data, line = ReadNodalData(interface_file, line)
-        elem_connectivities = ReadElementConnectivities(interface_file, line, ElemsNr=mesh_info[1])
-    return position_info, mesh_info, nodal_data, elem_connectivities
 
 def SaveCoordinatesList(nodal_data, position_info, NodesNr):
     # Read coordinates positions and save them in a list
@@ -225,62 +367,6 @@ def ReadHeader(interface_file,line):
         line = interface_file.readline()
 
     return position_info, mesh_info, line
-
-
-def ReadNodalCoordinates(NodesNr, X, Y, Z):
-    # array to store the coordinates of the nodes: x1,y1,z1,x2,y2,z2,...
-    nodal_coords = np.zeros(NodesNr*3)
-
-    for i in xrange(0, NodesNr):
-        nodal_coords[3*i+0] = X[i]
-        nodal_coords[3*i+1] = Y[i]
-        nodal_coords[3*i+2] = Z[i]
-
-    return nodal_coords
-
-
-def ReadElementTypes(ElemsNr):
-    # array to store the element types
-    element_types = np.zeros(ElemsNr, dtype=int)
-
-    for i in xrange(0, ElemsNr):
-        element_types[i] = 9
-
-    return element_types
-
-def ReadElemConnectivities(ElemsNr, elemTable):
-    # array to store the element connectivities
-    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)
-    element_types = np.zeros(ElemsNr, dtype=int)
-
-    for i in xrange(0, ElemsNr):
-        elem_connectivities[i*4+0] = elemTable[i, 0]
-        elem_connectivities[i*4+1] = elemTable[i, 1]
-        elem_connectivities[i*4+2] = elemTable[i, 2]
-        elem_connectivities[i*4+3] = elemTable[i, 3]
-        element_types[i] = 9
-
-    return elem_connectivities, element_types
-
-
-# Calculate the fluid forces at the nodes
-def CalculateNodalFluidForces(ElemsNr,elem_connectivities,NodesNr,nodal_pressures, X, Y, Z):
-    nodal_forces = np.zeros(NodesNr*3)
-    # Loop over cells
-    for cell in xrange(0, ElemsNr):
-        # Get the node ids of the cell
-        node_ids = GetCellNodeIds(elem_connectivities, cell)
-
-        # Calculate cell force
-        cell_force = CalculateCellForce(node_ids, nodal_pressures, X, Y, Z)
-
-        # Extrapolating cell force to the nodes
-        for node in range(4):
-            # Loop over xyz components
-            for component in range(3):
-                nodal_forces[3*node_ids[node]+component] += 0.25 * cell_force[component]
-
-    return nodal_forces
 
 
 # Get the node ids of the cell
@@ -361,56 +447,3 @@ def CalculateDistanceVector(X,Y,Z,start,end):
     distance_vector[2] = Z[end] - Z[start]
 
     return distance_vector
-
-def ComputeRelativeDisplacements(total_displacements, step, start_step):
-    global previous_total_displacements
-
-    if(step == start_step):
-        previous_total_displacements = np.zeros(len(total_displacements))
-
-    # Declaring and initializing relative_displacements vector
-    number_of_nodes = len(total_displacements)/3
-    relative_displacements = np.zeros([number_of_nodes, 3])
-
-    # Loop over nodes
-    for node in range(number_of_nodes):
-        # Loop over xyz components
-        for j in range(3):
-            # Compute relative displacement
-            relative_displacements[node, j] = total_displacements[3*node+j]
-            relative_displacements[node, j] -= previous_total_displacements[3*node+j]
-
-    previous_total_displacements = total_displacements
-
-    return relative_displacements
-
-
-def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
-    # Open interface_deformfile
-    ncf = netcdf.netcdf_file('interface_deformfile.nc', 'w')
-
-    # define dimensions
-    nops = 'no_of_points'
-    number_of_points = len(ids[:])
-    ncf.createDimension(nops, number_of_points)
-
-    # define variables
-    global_node_ids = ncf.createVariable('global_id', 'i', (nops,))
-    nodal_x_coordinates = ncf.createVariable('x', 'd', (nops,))
-    nodal_y_coordinates = ncf.createVariable('y', 'd', (nops,))
-    nodal_z_coordinates = ncf.createVariable('z', 'd', (nops,))
-    nodal_x_displacements = ncf.createVariable('dx', 'd', (nops,))
-    nodal_y_displacements = ncf.createVariable('dy', 'd', (nops,))
-    nodel_z_displacements = ncf.createVariable('dz', 'd', (nops,))
-
-    # write data
-    global_node_ids[:] = ids
-    nodal_x_coordinates[:] = coordinates[0,:]
-    nodal_y_coordinates[:] = coordinates[1,:]
-    nodal_z_coordinates[:] = coordinates[2,:]
-    nodal_x_displacements[:] = relative_displacements[:,0]
-    nodal_y_displacements[:] = relative_displacements[:,1]
-    nodel_z_displacements[:] = relative_displacements[:,2]
-    ncf.close()
-
-
