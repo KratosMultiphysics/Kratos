@@ -112,7 +112,6 @@ public:
 
     /** Multi solve method for solving a set of linear systems with same coefficient matrix.
     Solves the linear system AX=B and puts the result on SystemMatrix& rX.
-    rVectorx is also th initial guess for iterative methods.
     @param rA. System matrix
     @param rX. Solution matrix.
      @param rB. Right hand side matrix.
