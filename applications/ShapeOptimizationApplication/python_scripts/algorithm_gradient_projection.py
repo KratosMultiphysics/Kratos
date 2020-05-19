@@ -31,7 +31,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         default_algorithm_settings = KM.Parameters("""
         {
             "name"                    : "penalized_projection",
-            "max_correction_share"    : 0.75,
+            "max_correction_share"    : 0.5,
             "max_iterations"          : 100,
             "relative_tolerance"      : 1e-3,
             "line_search" : {
