@@ -15,10 +15,10 @@ def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step):
     PrintBlockHeader("Start Writting Solution Data at time %s" % (str(time)))
 
     # Write Tautoplt.cntl file
-    tautoplt_file_name = WriteTautoplt(working_path, step, para_path_mod, start_step)
+    tautoplt_filename = WriteTautoplt(working_path, step, para_path_mod, start_step)
 
     # Execute tau2plt to convert output file into dat
-    command = tau_path + 'tau2plt ' + tautoplt_file_name
+    command = tau_path + 'tau2plt ' + tautoplt_filename
     subprocess.call(command, shell=True)
     PrintBlockHeader("Stop Writting Solution Data at time %s" % (str(time)))
 
@@ -73,14 +73,14 @@ def GetFluidMesh(working_path, step, para_path_mod):
 # Write Tautoplt.cntl file
 def WriteTautoplt(working_path, step, para_path_mod, start_step):
     # Define Tautoplt.cntl file name and check if it already exists
-    tautoplt_file_name = working_path + 'Tautoplt.cntl'
-    RemoveFileIfExists(tautoplt_file_name)
-    initial_tautoplt_file_name = working_path + 'Tautoplt_initial.cntl'
-    CheckIfPathExists(initial_tautoplt_file_name)
+    tautoplt_filename = working_path + 'Tautoplt.cntl'
+    RemoveFileIfExists(tautoplt_filename)
+    initial_tautoplt_filename = working_path + 'Tautoplt_initial.cntl'
+    CheckIfPathExists(initial_tautoplt_filename)
 
     # Read and write simultaneously
-    tautoplt_file_writing = open(tautoplt_file_name, 'w')
-    with open(initial_tautoplt_file_name, 'r+') as tautoplt_file_reading:
+    tautoplt_file_writing = open(tautoplt_filename, 'w')
+    with open(initial_tautoplt_filename, 'r+') as tautoplt_file_reading:
         # Loop over lines
         for line in tautoplt_file_reading:
             # Check if line is from IO section and modify it
@@ -91,7 +91,7 @@ def WriteTautoplt(working_path, step, para_path_mod, start_step):
         tautoplt_file_writing.close()
         tautoplt_file_reading.close()
 
-    return tautoplt_file_name
+    return tautoplt_filename
 
 
 # Compute relative displacements
@@ -151,11 +151,11 @@ def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
 # Read mesh and data from tau output file
 def ReadTauOutput(working_path, step, velocity):
     # Find the interface file name
-    interface_file_name = FindInterfaceFilename(working_path, step)
+    interface_filename = FindInterfaceFilename(working_path, step)
 
     # Read interface file
     position_info, mesh_info, nodal_data, elem_connectivities = ReadInterfaceFile(
-        interface_file_name)
+        interface_filename)
 
     # Read mesh info
     NodesNr = mesh_info[0]
