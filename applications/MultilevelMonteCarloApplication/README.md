@@ -194,6 +194,6 @@ The MultilelvelMonteCarloApplication is OPEN SOURCE. The main code and program s
 ## Contact
 
 * **Riccardo Rossi** - *Group Leader* - [rrossi@cimne.upc.edu](mailto:rrossi@cimne.upc.edu)
-* **Riccardo Tosi ** - *Developer   * - [rtosi@cimne.upc.edu](mailto:rtosi@cimne.upc.edu)
-* **Marc Núñez    ** - *Developer   * - [mnunez@cimne.upc.edu](mailto:mnunez@cimne.upc.edu)
-* **Ramon Amela   ** - *Developer   * - [ramon.amela@bsc.es](mailto:ramon.amela@bsc.es)
+* **Riccardo Tosi** - *Developer* - [rtosi@cimne.upc.edu](mailto:rtosi@cimne.upc.edu)
+* **Marc Núñez** - *Developer* - [mnunez@cimne.upc.edu](mailto:mnunez@cimne.upc.edu)
+* **Ramon Amela** - *Developer* - [ramon.amela@bsc.es](mailto:ramon.amela@bsc.es)
