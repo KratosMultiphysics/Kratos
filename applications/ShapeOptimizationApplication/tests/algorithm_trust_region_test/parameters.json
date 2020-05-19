@@ -64,10 +64,11 @@
         },
         "output" : {
             "design_output_mode" : "WriteDesignSurface",
-            "nodal_results"      : [ "SHAPE_CHANGE" ],
+            "nodal_results"      : [ "SHAPE_CHANGE", "SHAPE_UPDATE" ],
             "output_format" : {
-                "name": "gid"
-            }
+                "name": "vtk"
+            },
+            "write_design_output": false
         }
     }
 }

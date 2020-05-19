@@ -124,7 +124,8 @@
             "nodal_results"      : [ "SHAPE_CHANGE", "DF1DX" ],
             "output_format" : {
                 "name": "gid"
-            }
+            },
+            "write_design_output": false
         }
     }
 }

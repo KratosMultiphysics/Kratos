@@ -80,7 +80,8 @@
                         },
                         "output_frequency"    : 1.0
                     }
-                }
+                },
+                "write_design_output": false
             }
         }
     }

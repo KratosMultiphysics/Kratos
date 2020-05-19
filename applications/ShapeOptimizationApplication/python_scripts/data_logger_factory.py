@@ -46,6 +46,7 @@ class DataLogger():
             "optimization_log_filename" : "optimization_log",
             "design_output_mode"        : "WriteOptimizationModelPart",
             "nodal_results"             : [ "SHAPE_CHANGE" ],
+            "write_design_output"       : true,
             "output_format"             : { "name": "vtk" }
         }""")
 
@@ -74,6 +75,10 @@ class DataLogger():
     # -----------------------------------------------------------------------------
     def __CreateDesignLogger( self ):
         outputFormatName = self.OptimizationSettings["output"]["output_format"]["name"].GetString()
+        if not self.OptimizationSettings["output"]["write_design_output"].GetBool():
+            KM.Logger.Print("")
+            KM.Logger.PrintInfo("ShapeOpt", "No design output will be created because 'write_design_output = false'.")
+            return None
         if outputFormatName == "gid":
             return DesignLoggerGID( self.ModelPartController, self.OptimizationSettings )
         if outputFormatName == "unv":
@@ -109,12 +114,14 @@ class DataLogger():
 
     # --------------------------------------------------------------------------
     def InitializeDataLogging( self ):
-        self.DesignLogger.InitializeLogging()
+        if self.DesignLogger:
+            self.DesignLogger.InitializeLogging()
         self.ValueLogger.InitializeLogging()
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, current_iteration ):
-        self.DesignLogger.LogCurrentDesign( current_iteration )
+        if self.DesignLogger:
+            self.DesignLogger.LogCurrentDesign( current_iteration )
 
     # --------------------------------------------------------------------------
     def LogCurrentValues( self, current_iteration, additional_values ):
@@ -122,7 +129,8 @@ class DataLogger():
 
     # --------------------------------------------------------------------------
     def FinalizeDataLogging( self ):
-        self.DesignLogger.FinalizeLogging()
+        if self.DesignLogger:
+            self.DesignLogger.FinalizeLogging()
         self.ValueLogger.FinalizeLogging()
 
     # --------------------------------------------------------------------------
