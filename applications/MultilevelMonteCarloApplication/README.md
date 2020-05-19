@@ -176,7 +176,7 @@ to use the distributed computing capabilities.
 
 ### XMC
 
-[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a third part python library with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is the default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, needs to add the flag `-DUSING_INTERNAL_XMC=OFF \ ` when compiling Kratos.
+[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a python library, with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is the default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, needs to add the flag `-DUSING_INTERNAL_XMC=OFF \ ` when compiling Kratos.
 
 ## License
 
