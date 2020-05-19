@@ -107,7 +107,8 @@ std::string MassConservationUtility::ComputeBalancedVolume(){
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
     mInterfaceArea = inter_area;
 
-    const double current_time = mrModelPart.GetProcessInfo()[*mpTimeVariable];
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
+    const double current_time = r_process_info[*mpTimeVariable];
     const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
     mQNet0 = net_inflow_inlet + net_inflow_outlet;
