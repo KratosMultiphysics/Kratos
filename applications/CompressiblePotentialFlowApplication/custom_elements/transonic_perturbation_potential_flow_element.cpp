@@ -953,7 +953,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEleme
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEdge(GeometryType& rUpwindEdge,
     const ProcessInfo& rCurrentProcessInfo)
-{   
+{
 
     GeometriesArrayType element_boundary_geometry;
     GetElementGeometryBoundary(element_boundary_geometry);
@@ -961,16 +961,16 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEdge(
     // free stream values
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
-    double minimum_free_stream_projection = 0.0;
+    double minimum_edge_flux = 0.0;
     for (SizeType i = 0; i < element_boundary_geometry.size(); i++)
     {
-        const auto unit_normal = GetEdgeUnitNormal(element_boundary_geometry[i]);
+        const auto edge_normal = GetEdgeNormal(element_boundary_geometry[i]);
 
-        const double free_stream_projection = inner_prod(unit_normal, free_stream_velocity);
+        const double edge_flux = inner_prod(edge_normal, free_stream_velocity);
 
-        if(free_stream_projection < minimum_free_stream_projection)
+        if(edge_flux < minimum_edge_flux)
         {
-            minimum_free_stream_projection = free_stream_projection;
+            minimum_edge_flux = edge_flux;
             rUpwindEdge = element_boundary_geometry[i];
         }
     }
@@ -980,7 +980,7 @@ template<int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary)
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
-    
+
     // current element geometry
     const GeometryType& r_geom = r_this.GetGeometry();
 
@@ -998,15 +998,14 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetElementGeome
 }
 
 template <int TDim, int TNumNodes>
-array_1d<double, 3> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEdgeUnitNormal(const GeometryType& rEdge)
+array_1d<double, 3> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEdgeNormal(const GeometryType& rEdge)
 {
     // get local coordinates of edge center
     array_1d<double, 3> edge_center_coordinates;
     rEdge.PointLocalCoordinates(edge_center_coordinates, rEdge.Center());
 
     // outward pointing normals of each edge
-    const auto normal = rEdge.Normal(edge_center_coordinates);
-    return normal / std::sqrt(inner_prod(normal, normal));
+    return rEdge.Normal(edge_center_coordinates);
 }
 
 template <int TDim, int TNumNodes>
@@ -1022,8 +1021,8 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectUpwindEle
 
         // find element which shares the upwind element nodes with current element
         // but is not the current element
-        if(std::includes(neighbor_element_ids.begin(), neighbor_element_ids.end(), 
-            rUpwindElementNodeIds.begin(), rUpwindElementNodeIds.end()) 
+        if(std::includes(neighbor_element_ids.begin(), neighbor_element_ids.end(),
+            rUpwindElementNodeIds.begin(), rUpwindElementNodeIds.end())
             && rUpwindElementCandidates[i].Id() != this->Id())
         {
             mpUpwindElement = rUpwindElementCandidates(i);

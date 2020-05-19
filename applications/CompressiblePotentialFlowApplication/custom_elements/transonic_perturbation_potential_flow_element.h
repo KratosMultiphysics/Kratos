@@ -294,7 +294,7 @@ private:
 
     void GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary);
 
-    array_1d<double, 3> GetEdgeUnitNormal(const GeometryType& rEdge);
+    array_1d<double, 3> GetEdgeNormal(const GeometryType& rEdge);
 
     void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,
                              GlobalPointersVector<Element>& rUpwindElementCandidates);

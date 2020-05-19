@@ -135,9 +135,6 @@ template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
-double ComputeScalarProductProjection(const Vector& rFirstVector, const Vector& rSecondVector);
-
-template <int Dim, int NumNodes>
 void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
 
 template <int Dim, int NumNodes>
