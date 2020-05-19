@@ -13,9 +13,7 @@
         "buffer_size": 2,
         "analysis_type": "linear",
         "model_import_settings": {
-            "input_type": "cad.json",
-            "input_filename": "single_patch_geometry",
-            "physics_filename": "single_patch_physics.json"
+            "input_type": "use_input_model_part"
         },
         "material_import_settings": { "materials_filename": "single_patch_test/single_patch_materials.json" },
         "time_stepping": { "time_step": 1 },
