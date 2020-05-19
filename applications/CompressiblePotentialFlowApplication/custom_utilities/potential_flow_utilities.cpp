@@ -135,12 +135,12 @@ double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
     // make squares of values
     const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
-    
+
     // calculate velocity
     const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
     const double denominator = (2.0 + (heat_capacity_ratio - 1) * max_local_mach_squared );
     const double factor = free_stream_velocity_squared * max_local_mach_squared / free_stream_mach_squared;
-    
+
     return factor * numerator / denominator;
 }
 
@@ -148,7 +148,7 @@ double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
 // clamping it if it is over the maximum allowed
 template <int Dim, int NumNodes>
 double ComputeClampedVelocitySquared(
-    const array_1d<double, Dim>& rVelocity, 
+    const array_1d<double, Dim>& rVelocity,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // compute max velocity allowed by limit Mach number
@@ -158,7 +158,7 @@ double ComputeClampedVelocitySquared(
     // check if local velocity should be changed
     if (local_velocity_squared > max_velocity_squared)
     {
-        KRATOS_WARNING("Clamped local velocity") << 
+        KRATOS_WARNING("Clamped local velocity") <<
         "SQUARE OF LOCAL VELOCITY ABOVE ALLOWED SQUARE OF VELOCITY"
         << " local_velocity_squared  = " << local_velocity_squared
         << " max_velocity_squared  = " << max_velocity_squared << std::endl;
@@ -171,7 +171,7 @@ double ComputeClampedVelocitySquared(
 
 template <int Dim, int NumNodes>
 double ComputeVelocityMagnitude(
-    const double localMachNumberSquared, 
+    const double localMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -186,12 +186,12 @@ double ComputeVelocityMagnitude(
     // make squares of values
     const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
-    
+
     // calculate velocity
     const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
     const double denominator = (2.0 + (heat_capacity_ratio - 1) * localMachNumberSquared );
     const double factor = free_stream_velocity_squared * localMachNumberSquared / free_stream_mach_squared;
-    
+
     return factor * numerator / denominator;
 }
 
@@ -382,7 +382,7 @@ double ComputeLocalSpeedofSoundSquared(
 
 template <int Dim, int NumNodes>
 double ComputeSquaredSpeedofSoundFactor(
-    const double localVelocitySquared, 
+    const double localVelocitySquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
@@ -445,10 +445,10 @@ double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurre
 
 template <int Dim, int NumNodes>
 double ComputeLocalMachNumberSquared(
-    const array_1d<double, Dim>& rVelocity, 
+    const array_1d<double, Dim>& rVelocity,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // Implemented according to Equation 8.8 of 
+    // Implemented according to Equation 8.8 of
     // Drela, M. (2014) Flight VehicleAerodynamics, The MIT Press, London
 
     const double local_speed_of_sound_squared = ComputeLocalSpeedofSoundSquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
@@ -584,6 +584,31 @@ bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const
     return wake_condition_is_fulfilled;
 }
 
+template <int Dim,int NumNodes>
+void GetSortedIds(std::vector<size_t>& Ids,
+    const GeometryType& rGeom)
+{
+    Ids.resize(rGeom.PointsNumber());
+    for (unsigned int i = 0; i < Ids.size(); i++)
+    {
+        Ids[i] = rGeom[i].Id();
+    }
+    std::sort(Ids.begin(), Ids.end());
+}
+
+template <int Dim, int NumNodes>
+void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom)
+{
+    for (int i = 0; i < Dim; i++)
+    {
+        const GlobalPointersVector<Element>& rNodeElementCandidates =
+            rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+        for (unsigned int j = 0; j < rNodeElementCandidates.size(); j++)
+        {
+            ElementCandidates.push_back(rNodeElementCandidates(j));
+        }
+    }
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -618,7 +643,8 @@ template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
-
+template void GetSortedIds<2, 3>(std::vector<size_t>& Ids, const GeometryType& rGeom);
+template void GetNodeNeighborElementCandidates<2, 3>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
 template BoundedVector<double, 4> GetPotentialOnNormalElement<3, 4>(const Element& rElement);
@@ -650,5 +676,7 @@ template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
+template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 } // namespace PotentialFlow
 } // namespace Kratos
