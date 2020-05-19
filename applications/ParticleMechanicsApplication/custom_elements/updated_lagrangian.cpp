@@ -665,9 +665,9 @@ void UpdatedLagrangian::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
     if (IsAxisymmetric)
     {
         // Axisymmetric geometric matrix
-        double alpha_1 = 0;
-        double alpha_2 = 0;
-        double alpha_3 = 0;
+        double alpha_1;
+        double alpha_2;
+        double alpha_3;
 
         const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
