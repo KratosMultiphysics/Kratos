@@ -193,12 +193,18 @@ void MassConservationUtility::ApplyLocalCorrection( const Variable<double>& rAux
         double& r_original_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
         const double& r_aux_dist = it_node->GetValue( rAuxDistVar );
 
-        if ( mFluidVolumeConservation == FluidVolumeConservation::VOLUME_LOST ){
-            // choosing minimum to extend water domain
-            r_original_dist = std::min( r_original_dist, r_aux_dist );
-        } else if (mFluidVolumeConservation == FluidVolumeConservation::VOLUME_GAINED ){
-            // choosing maximum to reduce water domain
-            r_original_dist = std::max( r_original_dist, r_aux_dist );
+        switch (mFluidVolumeConservation) {
+            case FluidVolumeConservation::VOLUME_LOST:
+                // choosing minimum to extend water domain
+                r_original_dist = std::min( r_original_dist, r_aux_dist );
+                break;
+            case FluidVolumeConservation::VOLUME_GAINED:
+                // choosing maximum to reduce water domain
+                r_original_dist = std::max( r_original_dist, r_aux_dist );
+                break;
+            default:
+                // if exact volume do nothing
+                break;
         }
     }
 }
