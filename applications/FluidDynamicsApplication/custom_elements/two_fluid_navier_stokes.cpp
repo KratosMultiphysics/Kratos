@@ -106,13 +106,13 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = zero_vector;
         }
 
-        ContactSurfaceDissipation(
-            data,
+        /* ContactSurfaceDissipation(  // DEPRECATED
+            data,                      // USING NAVIER_STOKES_WALL_CONDITION INSTEAD
             beta_in,
             beta_out,
             beta_contact,
             rLeftHandSideMatrix,
-            rRightHandSideVector);
+            rRightHandSideVector); */
 
         if (data.IsCut()){
             Matrix shape_functions_pos, shape_functions_neg;
@@ -3585,7 +3585,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
         //if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0 && HasContactLine){
             //if (HasContactLine){
-                //(*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+                (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
                 (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector;
             //}
         //}
@@ -3709,18 +3709,16 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         vel0_CL = 1.0/weight_sum*vel0_CL;
         const double vel_CL = inner_prod(wall_tangent,vel0_CL);
         this->SetValue(CONTACT_VELOCITY, vel_CL);
-    }
 
-    for (unsigned int i=0; i < NumNodes; ++i){
-        
-        (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
-
-        //if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
-            //if (HasContactLine){
-                //(*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
-                //(*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector;
+        for (unsigned int i=0; i < NumNodes; ++i){
+            (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+            //if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
+                //if (HasContactLine){
+                    (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+                    (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector;
+                //}
             //}
-        //}
+        }
     }
 
     noalias(rRHS) += rhs;
@@ -5603,14 +5601,14 @@ void TwoFluidNavierStokes<TElementData>::ContactSurfaceDissipation(
             noalias(rLHS) += lhs_dissipation;
             noalias(rRHS) -= prod(lhs_dissipation,tempU);
 
-            const VectorType temp_force = -prod(lhs_dissipation,tempU0);
+            /* const VectorType temp_force = -prod(lhs_dissipation,tempU0);
             for (unsigned int iii = 0; iii < n_nodes; iii++){
                 VectorType temp_forcei = ZeroVector(3);
                 for (unsigned int dimi = 0; dimi < n_dim; dimi++){
                     temp_forcei[dimi] = temp_force[iii*(n_dim+1) + dimi];
                 }
                 (*p_geom)[iii].FastGetSolutionStepValue(TANGENT_VECTOR) = temp_forcei;
-            }
+            } */
         }
         
         i_face++;

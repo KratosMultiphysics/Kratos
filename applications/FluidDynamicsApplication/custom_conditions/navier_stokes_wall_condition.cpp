@@ -164,6 +164,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
 {
     KRATOS_TRY
 
+    KRATOS_INFO("CalculateRightHandSide") << " is called !!!" << std::endl;
+
     constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
     if (rRightHandSideVector.size() != MatrixSize)

@@ -27,6 +27,7 @@ class ApplySlipProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
+        KratosMultiphysics.Logger.PrintInfo("ApplySlipProcess, avoid_recomputing_normals",self.avoid_recomputing_normals)
 
         # Compute the normal on the nodes of interest -
         # Note that the model part employed here is supposed to only have slip "conditions"
@@ -41,15 +42,17 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             node.SetValue(KratosMultiphysics.Y_WALL,0.0)
 
         if self.navier_slip_active:
+            KratosMultiphysics.Logger.PrintInfo("ApplySlipProcess","Navier slip is active")
             navier_slip_length = settings["uniform_navier_slip_length"].GetDouble()
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
                 KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
                 navier_slip_length,
                 self.model_part.Nodes)
         else:
+            KratosMultiphysics.Logger.PrintInfo("ApplySlipProcess","Navier slip is inactive")
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
                 KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
-                1.0e8,
+                1.0e12,
                 self.model_part.Nodes)
 
     def ExecuteInitializeSolutionStep(self):
