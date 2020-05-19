@@ -34,24 +34,17 @@ def ComputeFluidForces(working_path, step):
     interface_file_name = FindInterfaceFile(working_path, step)
 
     # Read mesh and pressure from interface file
-    NodesNr, ElemsNr, X, Y, Z, P, elem_connectivities = ReadTauOutput(interface_file_name, 20)
-
-    # Calculate the cell pressure averaging the nodal pressure
-    cell_pressure = CalculateCellPressure(ElemsNr, P, X, elem_connectivities)
-
-    # Calculate cells' normals and areas
-    cells_normals = CalculateCellNormals(ElemsNr, elem_connectivities, X, Y, Z)
-    cells_areas = CalculateCellAreas(ElemsNr, elem_connectivities, X, Y, Z)
+    NodesNr, ElemsNr, X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(interface_file_name, 20)
 
     # calculating the force vector
     fluid_forces = CalculateNodalFluidForces(
-        ElemsNr, elem_connectivities, NodesNr, cell_pressure, cells_areas, cells_normals)
+        ElemsNr, elem_connectivities, NodesNr, nodal_pressures, X, Y, Z)
 
     return fluid_forces
 
 def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, start_step):
     global dispTauOld
-    print "deformationstart"
+
     interface_file_name = FindInterfaceFile(working_path, step)
 
     NodesNr,ElemsNr,X,Y,Z,P,elemTable=ReadTauOutput(interface_file_name, 20)
@@ -60,17 +53,13 @@ def ExecuteBeforeMeshDeformation(dispTau, working_path, step, para_path_mod, sta
 
     if(step==start_step):
         dispTauOld=np.zeros(3*NodesNr)
-        dispTau_transpose = np.transpose(dispTau)
-        print 'dispTau =', dispTau_transpose
-    print 'dispTauOld = ', dispTauOld
 
     [ids,coordinates,globalID,coords]=meshDeformation(NodesNr,nodes,dispTau,dispTauOld,para_path_mod)
+
     PySurfDeflect.write_test_surface_file('deformation_file',coords[:,0:2],coords[:,3:5])
-    print "afterPySurfDeflect"
 
     for i in xrange(0,3*NodesNr):
         dispTauOld[i]=dispTau[i]
-    print "afterDeformation"
 
 
 def FindOutputFile(working_path, step):
@@ -280,98 +269,104 @@ def ReadElemConnectivities(ElemsNr, elemTable):
     return elem_connectivities, element_types
 
 
-# Calculate the cell pressure averaging the nodal pressure
-def CalculateCellPressure(ElemsNr, P, X, elem_connectivities):
-    cell_pressure = np.zeros(ElemsNr)  # cp for interface elements
+# Calculate the fluid forces at the nodes
+def CalculateNodalFluidForces(ElemsNr,elem_connectivities,NodesNr,nodal_pressures, X, Y, Z):
+    nodal_forces = np.zeros(NodesNr*3)
+    # Loop over cells
+    for cell in xrange(0, ElemsNr):
+        # Get the node ids of the cell
+        node_ids = GetCellNodeIds(elem_connectivities, cell)
 
-    for i in range(ElemsNr):
-        for k in range(4):
-            cell_pressure[i] += 0.25 * P[elem_connectivities[i*4+k]-1]
+        # Calculate cell force
+        cell_force = CalculateCellForce(node_ids, nodal_pressures, X, Y, Z)
 
-    if echo_level > 0:
-        with open('xp', 'w') as f:
-            for i in range(ElemsNr):
-                x = 0.0
-                for k in range(4):
-                    x += 0.25 * X[elem_connectivities[i*4+k]-1]
-                f.write('%d\t%f\t%f\n' % (i, x, cell_pressure[i]))
+        # Extrapolating cell force to the nodes
+        for node in range(4):
+            # Loop over xyz components
+            for component in range(3):
+                nodal_forces[3*node_ids[node]+component] += 0.25 * cell_force[component]
+
+    return nodal_forces
+
+
+# Get the node ids of the cell
+def GetCellNodeIds(elem_connectivities, cell):
+    node_ids = np.zeros(4, dtype=int)
+    # Loop over cell nodes
+    for node in range(4):
+        node_ids[node] = elem_connectivities[cell*4+node]-1
+
+    return node_ids
+
+
+# Calculate cell force
+def CalculateCellForce(node_ids, nodal_pressures, X, Y, Z):
+    # Calculate cell pressure
+    pressure = CalculateCellPressure(nodal_pressures, node_ids)
+
+    # Calculate cell area and normal
+    area = CalculateCellArea(X, Y, Z, node_ids)
+    normal = CalculateCellNormal(X, Y, Z, node_ids)
+
+    # Calculate cell force
+    cell_force = pressure * area * normal
+
+    return cell_force
+
+
+# Calculate cell pressure averaging nodal pressures
+def CalculateCellPressure(nodal_pressures, node_ids):
+    cell_pressure = 0.0
+
+    # Interpolating nodal pressures
+    for node in range(4):
+        cell_pressure += 0.25 * nodal_pressures[node_ids[node]]
 
     return cell_pressure
 
 
-def CalculateCellNormals(ElemsNr, elem_connectivities, X, Y, Z):
-    cells_normals = np.zeros([ElemsNr, 3])
+# Calculate cell area
+def CalculateCellArea(X, Y, Z, node_ids):
+    # Calculate cell sides
+    cell_side_01 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[1])
+    cell_side_03 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[3])
 
-    # Loop over all cells
-    for i in xrange(0, ElemsNr):
-        node_ids = GetCellNodeIds(elem_connectivities, i)
-        # Calculate cell diagonals
-        cell_diagonal_02 = CalculateDistanceVector(X,Y,Z,node_ids[0],node_ids[2])
-        cell_diagonal_13 = CalculateDistanceVector(X,Y,Z,node_ids[1],node_ids[3])
+    # Calculate cell area
+    cell_area = np.cross(cell_side_01, cell_side_03)
 
-        # Calculate cell normal
-        cell_normal = np.cross(cell_diagonal_02, cell_diagonal_13)
-        magnitude = np.linalg.norm(cell_normal)
-        unit_cell_normal = cell_normal/magnitude
-        cells_normals[i, 0] = unit_cell_normal[0]
-        cells_normals[i, 1] = unit_cell_normal[1]
-        cells_normals[i, 2] = unit_cell_normal[2]
+    # hold only for 2d case, MUST be modified for 3d interfaces
+    cell_area = np.linalg.norm(cell_area)
 
-    return cells_normals
+    return cell_area
 
 
-def CalculateCellAreas(ElemsNr, elem_connectivities, X, Y, Z):
-    cells_areas = np.zeros(ElemsNr)
+# Calculate cell normal
+def CalculateCellNormal(X, Y, Z, node_ids):
+    # Calculate cell diagonals
+    cell_diagonal_02 = CalculateDistanceVector(X,Y,Z,node_ids[0],node_ids[2])
+    cell_diagonal_13 = CalculateDistanceVector(X,Y,Z,node_ids[1],node_ids[3])
 
-    # Loop over all cells
-    for i in xrange(0, ElemsNr):
-        node_ids = GetCellNodeIds(elem_connectivities, i)
+    # Calculate cell normal
+    cell_normal = np.cross(cell_diagonal_02, cell_diagonal_13)
 
-        # Calculate cell sides
-        cell_side_01 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[1])
-        cell_side_03 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[3])
+    # Normalize to make unit normal
+    magnitude = np.linalg.norm(cell_normal)
+    unit_cell_normal = cell_normal/magnitude
 
-        # Calculate cell area
-        cell_area = np.cross(cell_side_01, cell_side_03)
+    return unit_cell_normal
 
-        # hold only for 2d case, MUST be modified for 3d interfaces
-        cells_areas[i] = np.linalg.norm(cell_area)
 
-    return cells_areas
-
-def GetCellNodeIds(elem_connectivities, elem_id):
-    node_ids = np.zeros(4, dtype=int)
-    node_ids[0] = elem_connectivities[elem_id*4+0]-1
-    node_ids[1] = elem_connectivities[elem_id*4+1]-1
-    node_ids[2] = elem_connectivities[elem_id*4+2]-1
-    node_ids[3] = elem_connectivities[elem_id*4+3]-1
-    return node_ids
-
+# Calculate distance vector between two nodes
 def CalculateDistanceVector(X,Y,Z,start,end):
+    # Declaring and initializing distance vector
     distance_vector = np.zeros(3)
+
+    # Computing distance
     distance_vector[0] = X[end] - X[start]
     distance_vector[1] = Y[end] - Y[start]
     distance_vector[2] = Z[end] - Z[start]
+
     return distance_vector
-
-def CalculateCellForce(pressure,area,normal,cell_id):
-    cell_force = np.zeros(3)
-    cell_force[0] = pressure * area * normal[cell_id, 0]
-    cell_force[1] = pressure * area * normal[cell_id, 1]
-    cell_force[2] = pressure * area * normal[cell_id, 2]
-    return cell_force
-
-
-# Calculate the Vector Force
-def CalculateNodalFluidForces(ElemsNr,elem_connectivities,NodesNr,cell_pressure,area,normal):
-    forcesTauNP = np.zeros(NodesNr*3)
-    for i in xrange(0, ElemsNr):
-        cell_force = CalculateCellForce(cell_pressure[i],area[i],normal,i)
-        for k in range(4):
-            for j in range(3):
-                forcesTauNP[3*(elem_connectivities[i*4+k]-1)+j] += 0.25 * cell_force[j]
-
-    return forcesTauNP
 
 # Execute the Mesh deformation of TAU
 def meshDeformation(NodesNr,nodes,dispTau,dispTauOld, para_path_mod):
