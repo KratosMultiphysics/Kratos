@@ -378,8 +378,7 @@ else()
     message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
 endif()
 
-add_subdirectory(external_libraries/vtu11)
-include_directories(${VTU11_INCLUDE_DIRECTORIES})
+include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/vtu11 )
 
 ##echo user options
 message( " ")
