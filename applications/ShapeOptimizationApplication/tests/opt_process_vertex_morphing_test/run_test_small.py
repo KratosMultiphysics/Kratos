@@ -33,6 +33,10 @@ from .tent_analyzer import CustomAnalyzer
 with open("parameters.json",'r') as parameter_file:
     parameters = KM.Parameters(parameter_file.read())
 
+# reduce number of iterations to conform to the maximum execution time in CI
+parameters["optimization_settings"]["optimization_algorithm"]["max_iterations"].SetInt(5)
+parameters["optimization_settings"]["optimization_algorithm"]["line_search"]["step_size"].SetDouble(0.1)
+
 model = KM.Model()
 
 optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
@@ -58,7 +62,7 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
     resulting_improvement = float(last_line[2].strip())
 
     # Check against specifications
-    TestCase().assertEqual(resulting_optimization_iterations, 124)
-    TestCase().assertAlmostEqual(resulting_improvement, -90.2284, 4)
+    TestCase().assertEqual(resulting_optimization_iterations, 5)
+    TestCase().assertAlmostEqual(resulting_improvement, -26.2433, 4)
 
 # =======================================================================================================

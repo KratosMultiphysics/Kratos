@@ -36,6 +36,10 @@ class opt_process_vertex_morphing_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_vertex_morphing_test"
     execution_file = "run_test"
 
+class opt_process_vertex_morphing_small_test(ShapeOptimizationTestFactory):
+    execution_directory = "opt_process_vertex_morphing_test"
+    execution_file = "run_test_small"
+
 class mapper_test(ShapeOptimizationTestFactory):
     execution_directory = "mapper_test"
     execution_file = "run_test"
