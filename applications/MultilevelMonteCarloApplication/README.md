@@ -190,6 +190,7 @@ The MultilelvelMonteCarloApplication is OPEN SOURCE. The main code and program s
 - C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stopping criteria in Monte Carlo simulations; *SIAM Journal on Scientific Computing*, 2014, Vol. 36, No. 2 : pp. A869-A885
 - P. Pébay, T. B. Terriberry, H. Kolla, J. Bennett; Stable, Scalable Formulas for Parallel and Online Computation of Higher-order Multivariate Central Moments with Arbitrary Weights; *Computational Statistics*, 2016, 31:1305-1325
 - Dapogny, C., Dobrzynski, C., & Frey, P. (2014). Three-dimensional adaptive domain remeshing, implicit domain meshing, and applications to free and moving boundary problems. *Journal of Computational Physics*, 262, 358–378.
+- Amela, R., Ayoul-Guilmard, Q., Badia, R. M., Ganesh, S., Nobile, F., Rossi, R., & Tosi, R. (2019). ExaQUte XMC. https://doi.org/10.5281/zenodo.3235833
 
 ## Contact
 
