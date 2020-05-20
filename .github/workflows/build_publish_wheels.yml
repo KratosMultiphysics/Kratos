@@ -24,4 +24,4 @@ jobs:
       shell: pwsh
       run: |
         mkdir wheels
-        docker run --rm --memory=4 --cpus=2 -v <local-output-dir>:c:\out kratosmultiphysics/kratos-wheelbuilder-windows master
+        docker run --rm --memory=4 --cpus=2 -v ${GITHUB_WORKSPACE}/wheels:c:\out kratosmultiphysics/kratos-wheelbuilder-windows master
