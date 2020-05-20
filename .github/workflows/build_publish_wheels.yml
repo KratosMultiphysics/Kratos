@@ -7,7 +7,7 @@ name: Build and Publish the Kratos Wheels for PiPy
 on: push
 
 jobs:
-  build:
+  linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,7 +16,7 @@ jobs:
         mkdir wheels
         sudo docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/workspace/out kratosmultiphysics/kratos-wheelbuilder-linux master 2
 
-  build:
+  windows:
     runs-on: windows-latest
 
     steps:
