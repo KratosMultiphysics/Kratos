@@ -264,6 +264,10 @@ namespace MPMSearchElementUtility
 
         const SizeType working_dim = pGeometry->WorkingSpaceDimension();
 
+        const bool is_axisymmetric = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
+            : false;
+
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
         rMasterMaterialPoint.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume_vec, rBackgroundGridModelPart.GetProcessInfo());
@@ -271,6 +275,13 @@ namespace MPMSearchElementUtility
         const SizeType n_bounding_box_vertices = std::pow(2.0, working_dim);
         std::vector<array_1d<double, 3>> master_domain_points(n_bounding_box_vertices);
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length,working_dim);
+
+        // If axisymmetric, we can't make a sub-point with x<0.
+        if (is_axisymmetric) { if ((rCoordinates[0] - side_half_length) < std::numeric_limits<double>::epsilon()) {
+            return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+            }
+        }
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
         if (mp_volume_vec[0] <= pGeometry->DomainSize() && CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance))
