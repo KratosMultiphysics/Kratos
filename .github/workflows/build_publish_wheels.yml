@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Pull docker image
-      run: docker pull kratosmultiphysics/kratos-wheelbuilder-windows
+      run: docker pull hubertus248/kratoswheelbuilder-win
 
     - name: Build wheels
       shell: pwsh
