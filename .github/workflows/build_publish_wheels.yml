@@ -11,6 +11,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
     - name: Build the wheels
-    - run: sudo docker run --rm -v <local-output-dir>:${GITHUB_WORKSPACE}/wheels kratosmultiphysics/kratos-wheelbuilder-linux master 2
+      run: sudo docker run --rm -v <local-output-dir>:${GITHUB_WORKSPACE}/wheels kratosmultiphysics/kratos-wheelbuilder-linux master 2
