@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import shutil, sys, os, time, json
+import numpy as np
 import CoSimIO
-import PyPara, PyPrep, PySolv, PyDeform, PyCopyCluster
+import PyPara, PyPrep, PySolv, PyDeform, PyCopyCluster, PyMotionExternalDelegate
 from tau_python import tau_solver_unsteady_get_physical_time
 
 with open('tau_settings.json') as json_file:
@@ -13,6 +14,17 @@ sys.path.append(tau_settings["kratos_path"])
 sys.path.append(tau_path + "py_turb1eq/")
 working_path = os.getcwd() + '/'
 
+# --- Prepare parameters for unsteady simulation ---
+nodeNames        = ["MEMBRANE"]
+#RestartTime = 1.5
+nStepsMAX = 1000 # maximal timesteps 
+deltaT           = 0.005 # unsteady physical time step size
+nTimestepsperRUN       = 5 # number of unsteady time steps per supermuc run
+nTimesteps = 203 # updating number of maximum stepnumber for run -> nTimestepsperRUN + nStepsStart
+nInnerIters      = 5 # inner iterations for dual time stepping
+outputPeriod     = 1 # external output period (needed if output period in para_path not working properly)
+pitchDeg = 0 # mean pitch angle
+
 # tau_functions can only be imported after appending kratos' path
 import tau_functions as TauFunctions
 
@@ -21,21 +33,56 @@ para_path='airfoil_Structured.cntl'
 para_path_mod = para_path + ".mod"
 shutil.copy(para_path, para_path_mod)
 
+# --- Load external excitation files ---
+# --- thetaDeg -> pitch angle per timestep in deg
+# --- thetaRate -> pitch rate per timestep in deg/s
+thetaDeg=np.loadtxt(working_path + '/signal/APRBSDeg_membrane.dat')
+thetaRate=np.loadtxt(working_path + '/signal/APRBSRate_membrane.dat')
+
+#--- Instanciate required modules ---
+MyTauMotionDelegate = PyMotionExternalDelegate.MotionExternalDelegate(nodeNames)
+
+MyMotionStringGenerator = \
+			TauFunctions.MotionStringGenerator(deltaT, pitchDeg, thetaDeg, thetaRate)
+
 # Initialize Tau python classes and auxiliary variable step
 Para = PyPara.Parafile(para_path_mod)
 Prep = PyPrep.Preprocessing(para_path_mod)
-Solver = PySolv.Solver(para_path_mod)
+Solver = PySolv.Solver(para_path_mod, delegate=MyTauMotionDelegate)
 Deform = PyDeform.Deformation(para_path_mod)
 step = start_step
 
+# --- Prepare parameters for unsteady simulation ---
+Para.update({"Unsteady physical time step size" : deltaT,
+	     "Unsteady physical time steps": 1,
+	     "Unsteady inner iterations per time step": nInnerIters,
+	     "Unsteady allow external control over progress in time (0/1)": 1,
+             "Unsteady show pseudo time steps (0/1)": 1,
+	     "Unsteady enable external control over progress in time (0/1)": 1})
+
+deltaT = float(Para.get_para_value("Unsteady physical time step size"))
+nStepsStart = int(float(Para.get_para_value('Finished time steps','single_key')))
+TauFunctions.PrintBlockHeader("Restart from stepnumber: %d" %(nStepsStart))
+
+# --- Init motion stack ---
+motionString = MyMotionStringGenerator(0)
+MyTauMotionDelegate.UpdateMotion("MEMBRANE", motionString)
+MyTauMotionDelegate.PushMotion()
+TauFunctions.PrintBlockHeader("Inital Motionstring: %s" %(motionString))
+
 
 def AdvanceInTime(current_time):
+
     # Preprocessing needs to be done before getting the time and time step
     TauFunctions.PrintBlockHeader("Start Preprocessing at time %s" %(str(time)))
     Prep.run(write_dualgrid=False,free_primgrid=False)
     TauFunctions.PrintBlockHeader("Stop Preprocessing at time %s" %(str(time)))
     TauFunctions.PrintBlockHeader("Initialize Solver at time %s" %(str(time)))
     Solver.init(verbose = 1, reset_steps = True, n_time_steps = 1)
+
+    motionString = MyMotionStringGenerator(step - start_step)
+    MyTauMotionDelegate.UpdateMotion("MEMBRANE", motionString)
+    MyTauMotionDelegate.InitExchange()
 
     # Get current time and time step from tau
     tau_current_time = float(tau_solver_unsteady_get_physical_time())
