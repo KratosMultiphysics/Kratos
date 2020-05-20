@@ -40,7 +40,7 @@ void UpdatePressureValuePfemConditionsProcess<TDim>::Execute()
 
             const double nodal_pressure     = r_node.FastGetSolutionStepValue(PRESSURE);
             const double nodal_pressure_old = r_node.FastGetSolutionStepValue(PRESSURE, 1);
-            const double alpha = 0.8;
+            const double alpha = 0.6;
             average_pressure += alpha * nodal_pressure + (1.0 - alpha) * nodal_pressure_old;
         }
         average_pressure /= r_geometry.PointsNumber();
