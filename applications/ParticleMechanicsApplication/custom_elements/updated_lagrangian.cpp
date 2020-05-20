@@ -1495,6 +1495,8 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<bool>& rVari
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
         this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
+        this->DecimalCorrection(Variables.StrainVector);
+        this->DecimalCorrection(Variables.StressVector);
         this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
         rValues[0] = true;
     }

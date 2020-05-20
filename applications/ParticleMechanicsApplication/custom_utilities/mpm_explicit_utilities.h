@@ -66,6 +66,10 @@ namespace Kratos
             const SizeType StrainSize, const double AxisymmetricRadius);
 
         void GetCartesianDerivatives(std::vector<Matrix>& rDN_DXVec, GeometryType& rGeom);
+
+        void DecimalCorrection(Vector& rVector, const double ToleranceNorm = 1e-24);
+
+        void DecimalCorrection(array_1d<double,3>& rArray, const double ToleranceNorm = 1e-24);
     }; // namespace ExplicitIntegrationUtilities
 }  // namespace Kratos
 #endif /* KRATOS_MPM_EXPLICIT_UTILITIES defined */

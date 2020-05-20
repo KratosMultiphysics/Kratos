@@ -100,6 +100,7 @@ namespace Kratos
                 }
             }
         }
+        DecimalCorrection(rRightHandSideVector);
 
         KRATOS_CATCH("")
     }
@@ -234,6 +235,7 @@ namespace Kratos
         }
 
         // Update the MP Acceleration
+        DecimalCorrection(MP_Acceleration);
         rElement.SetValuesOnIntegrationPoints(MP_ACCELERATION, { MP_Acceleration }, rProcessInfo);
 
         // Update the MP Velocity corrector
@@ -251,6 +253,7 @@ namespace Kratos
                 delta_xg[j] = rDeltaTime * MP_Velocity[j];
             }
         }
+        DecimalCorrection(delta_xg);
         std::vector<array_1d<double, 3 > > xg;
         rElement.CalculateOnIntegrationPoints(MP_COORD, xg, rProcessInfo);
         const array_1d<double, 3>& new_xg = xg[0] + delta_xg;
@@ -301,6 +304,7 @@ namespace Kratos
                         {
                             r_current_velocity[j] += r_N(int_p, i) * MP_Mass[0] * weight * MP_Velocity[0][j] / r_nodal_mass;
                         }
+                        DecimalCorrection(r_current_velocity);
                     }
                 }
             }
@@ -365,7 +369,12 @@ namespace Kratos
         const Matrix jaumannRate = rateOfDeformation -
             (prod(spinTensor, rateOfDeformation)) * deltaTime +
             prod((rateOfDeformation * deltaTime), spinTensor);
-        const Matrix strainIncrement = deltaTime * jaumannRate;
+        Matrix strainIncrement = deltaTime * jaumannRate;
+        for (size_t i = 0; i < strainIncrement.size1(); ++i) {
+            for (size_t j = 0; j < strainIncrement.size2(); ++j) {
+                if (strainIncrement(i, j) * strainIncrement(i, j) < 1e-24) strainIncrement(i, j) = 0.0;
+            }
+        }
 
         // Apply strain increment to strain vector
         rMPStrain(0) += strainIncrement(0, 0); //e_xx
@@ -470,6 +479,7 @@ namespace Kratos
 
     void MPMExplicitUtilities::GetCartesianDerivatives(std::vector<Matrix>& rDN_DXVec, GeometryType& rGeom)
     {
+        KRATOS_TRY
         if (rDN_DXVec.size() != rGeom.IntegrationPointsNumber()) rDN_DXVec.resize(rGeom.IntegrationPointsNumber());
 
         for (IndexType i = 0; i < rGeom.IntegrationPointsNumber(); i++) {
@@ -481,5 +491,24 @@ namespace Kratos
             const Matrix& r_DN_De = rGeom.ShapeFunctionLocalGradient(i);
             rDN_DXVec[i] = prod(r_DN_De, InvJ); // cartesian gradients
         }
+        KRATOS_CATCH("")
+    }
+
+    void MPMExplicitUtilities::DecimalCorrection(Vector& rVector, const double ToleranceNorm)
+    {
+        KRATOS_TRY
+
+        for (size_t i = 0; i < rVector.size(); ++i) if (rVector[i] * rVector[i] < ToleranceNorm) rVector[i] = 0.0;
+
+        KRATOS_CATCH("")
+    }
+
+    void MPMExplicitUtilities::DecimalCorrection(array_1d<double, 3>& rArray, const double ToleranceNorm)
+    {
+        KRATOS_TRY
+
+        for (size_t i = 0; i < 3; ++i) if (rArray[i] * rArray[i] < ToleranceNorm) rArray[i] = 0.0;
+
+        KRATOS_CATCH("")
     }
 } // namespace Kratos
