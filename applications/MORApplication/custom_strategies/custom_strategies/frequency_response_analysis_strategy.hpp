@@ -118,7 +118,7 @@ class FrequencyResponseAnalysisStrategy
     typedef ComplexSparseSpaceType TSolutionSpace;
 
     typedef std::complex<double> ComplexType;
-    
+
     typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
 
     ///@}
@@ -165,7 +165,7 @@ class FrequencyResponseAnalysisStrategy
 
         // By default the matrices are never rebuilt
         this->SetRebuildLevel(0);
-        
+
         mpA = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpK = TSparseSpace::CreateEmptyMatrixPointer();
         mpKi = TSparseSpace::CreateEmptyMatrixPointer();
@@ -303,8 +303,6 @@ class FrequencyResponseAnalysisStrategy
             mInitializeWasPerformed = true;
         }
 
-        
-
         KRATOS_CATCH("");
     }
 
@@ -366,6 +364,7 @@ class FrequencyResponseAnalysisStrategy
             TSystemMatrixType& r_Ki  = *mpKi;
             TSystemMatrixType& r_M = *mpM;
             TSystemMatrixType& r_C  = *mpC;
+            TSolutionMatrixType& r_A  = *mpA;
             TSolutionVectorType& r_RHS  = *mpRHS;
 
             BuiltinTimer system_construction_time;
@@ -435,7 +434,9 @@ class FrequencyResponseAnalysisStrategy
 
                 //copy the rhs to the complex space
                 r_RHS = TSolutionVectorType(r_tmp_RHS);
-                // mpComplexLinearSolver->Initialize( rA, rDx, rRHS);
+
+                //resize working matrix
+                r_A.resize(r_K.size1(), r_K.size2(), false);
             }
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
@@ -491,6 +492,7 @@ class FrequencyResponseAnalysisStrategy
 
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
         TSolutionMatrixType& r_A = *mpA;
         TSystemMatrixType& r_K = *mpK;
@@ -504,26 +506,43 @@ class FrequencyResponseAnalysisStrategy
         const double excitation_frequency = r_process_info[FREQUENCY];
 
         //Build imaginary part
-        r_A = r_C;
-        r_A *= excitation_frequency;
-        if( mUseModalDamping )
-            r_A += r_Ki;
-        r_A *= complex(0,1);
+        BuiltinTimer build_imag;
+        TSolutionMatrixType tmp_i(r_K.size1(), r_K.size2());
+        if( mUseModalDamping ) {
+            noalias(tmp_i) = r_Ki + excitation_frequency * r_C;
+        } else {
+            noalias(tmp_i) = excitation_frequency * r_C;
+        }
+        KRATOS_INFO_IF("Build Imag Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << build_imag.ElapsedSeconds() << std::endl;
 
         //Build real part
-        r_A += r_K;
-        r_A -= std::pow(excitation_frequency, 2.0) * r_M;
+        BuiltinTimer build_real;
+        TSolutionMatrixType tmp_r(r_K.size1(), r_K.size2());
+        noalias(tmp_r) = r_K - std::pow(excitation_frequency, 2.0) * r_M;
+        KRATOS_INFO_IF("Build Real Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << build_real.ElapsedSeconds() << std::endl;
+
+        //Set up complex matrix
+        BuiltinTimer build_system;
+        noalias(r_A) = tmp_r + complex(0,1)*tmp_i;
+        KRATOS_INFO_IF("Build System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << build_system.ElapsedSeconds() << std::endl;
 
         //Solve the system
+        BuiltinTimer solve_time;
         mpComplexLinearSolver->Solve( r_A, r_Dx, r_RHS);
+        KRATOS_INFO_IF("Linear Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << solve_time.ElapsedSeconds() << std::endl;
 
         //Assign the computed values
+        BuiltinTimer assign_dofs_time;
         ComplexDofUpdater::AssignDofs<TSolutionVectorType>(BaseType::GetModelPart(), r_Dx);
-
+        KRATOS_INFO_IF("Assign Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << assign_dofs_time.ElapsedSeconds() << std::endl;
 		return true;
 
         KRATOS_CATCH("");
-        
     }
 
     /**
@@ -671,9 +690,10 @@ class FrequencyResponseAnalysisStrategy
      * @brief This method returns the components of the system of equations depending of the echo level
      * @param IterationNumber The non linear iteration in the solution loop
      */
-    virtual void EchoInfo(const unsigned int IterationNumber)
+    virtual void EchoInfo()
     {
         TSystemMatrixType& rK  = *mpK;
+        TSystemMatrixType& rKi = *mpKi;
         TSystemMatrixType& rM = *mpM;
         TSolutionVectorType& rRHS  = *mpRHS;
         TSystemMatrixType& rC  = *mpC;
@@ -690,16 +710,20 @@ class FrequencyResponseAnalysisStrategy
             KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
         }
         std::stringstream matrix_market_name;
-        matrix_market_name << "K_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        matrix_market_name << "K_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rK, false);
 
+        std::stringstream matrix_market_ki_name;
+        matrix_market_name << "Ki_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rKi, false);
+
         std::stringstream matrix_market_mass_name;
-        matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);   
+        matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
 
         std::stringstream matrix_market_damping_name;
-        matrix_market_name << "C_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        ComplexSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rC, false);        
+        matrix_market_name << "C_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+        ComplexSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rC, false);
 
         // std::stringstream matrix_market_vectname;
         // matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
