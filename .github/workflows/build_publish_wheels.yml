@@ -12,4 +12,4 @@ jobs:
 
     steps:
     - name: Build the wheels
-        sudo docker run --rm -v <local-output-dir>:${GITHUB_WORKSPACE}/wheels kratosmultiphysics/kratos-wheelbuilder-linux master [number-of-cores]
+    - run: sudo docker run --rm -v <local-output-dir>:${GITHUB_WORKSPACE}/wheels kratosmultiphysics/kratos-wheelbuilder-linux master [number-of-cores]
