@@ -1,0 +1,15 @@
+name: Build and Publish the Kratos Wheels for PiPy
+
+# on: # build the corresponding release branch
+#     release:
+#       types: [created]
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Build the wheels
+        sudo docker run --rm -v <local-output-dir>:${GITHUB_WORKSPACE}/wheels kratosmultiphysics/kratos-wheelbuilder-linux master [number-of-cores]
