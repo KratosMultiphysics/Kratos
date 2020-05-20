@@ -943,72 +943,11 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGr
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateAnisotropicStressMapperMatrix(
-    const Properties& rProperties,
-    BoundedMatrixVoigtType& rAs,
-    BoundedMatrixVoigtType& rAsInv
-)
-{
-    if (rAs.size1() != VoigtSize || rAs.size2() != VoigtSize) {
-        rAs.resize(VoigtSize, VoigtSize, false);
-    }
-    noalias(rAs) = ZeroMatrix(VoigtSize, VoigtSize);
-    if (rAsInv.size1() != VoigtSize || rAsInv.size2() != VoigtSize) {
-        rAsInv.resize(VoigtSize, VoigtSize, false);
-    }
-    noalias(rAsInv) = ZeroMatrix(VoigtSize, VoigtSize);
-    const Vector &r_iso_aniso_yield_ratios = rProperties[ISOTROPIC_ANISOTROPIC_YIELD_RATIO];
-    KRATOS_ERROR_IF_NOT(r_iso_aniso_yield_ratios.size() == VoigtSize) << "The length of the ISOTROPIC_ANISOTROPIC_YIELD_RATIO is not correct" << std::endl;
-
-    if (VoigtSize == 6) {
-        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
-        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
-        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
-        rAs(3, 3) = r_iso_aniso_yield_ratios(3);
-        rAs(4, 4) = r_iso_aniso_yield_ratios(4);
-        rAs(5, 5) = r_iso_aniso_yield_ratios(5);
-    } else {
-        rAs(0, 0) = r_iso_aniso_yield_ratios(0);
-        rAs(1, 1) = r_iso_aniso_yield_ratios(1);
-        rAs(2, 2) = r_iso_aniso_yield_ratios(2);
-    }
-    for (IndexType i = 0; i < VoigtSize; ++i)
-        rAsInv(i, i) = 1.0 / rAs(i, i);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>:: CalculateAnisotropicStrainMapperMatrix(
-    const BoundedMatrixVoigtType& rAnisotropicElasticMatrix,
-    const BoundedMatrixVoigtType& rIsotropicElasticMatrix,
-    const BoundedMatrixVoigtType &rAs,
-    BoundedMatrixVoigtType& rAe
-)
-{
-    if (rAe.size1() != VoigtSize || rAe.size2() != VoigtSize)
-        rAe.resize(VoigtSize, VoigtSize, false);
-    noalias(rAe) = ZeroMatrix(VoigtSize, VoigtSize);
-
-    Matrix inv_isotropic_elastic_matrix(VoigtSize, VoigtSize);
-    noalias(inv_isotropic_elastic_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
-    double aux_det;
-    MathUtils<double>::InvertMatrix(rIsotropicElasticMatrix, inv_isotropic_elastic_matrix, aux_det);
-    noalias(rAe) = prod(inv_isotropic_elastic_matrix, Matrix(prod(rAs, rAnisotropicElasticMatrix)));
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
     const double EulerAngle1,
-    BoundedMatrixType& rRotationOperator
+    BoundedMatrix<double, 3, 3>& rRotationOperator
 )
 {
-    if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
-        rRotationOperator.resize(Dimension, Dimension, false);
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
 
     const double cos_angle = std::cos(EulerAngle1 * Globals::Pi / 180.0);
@@ -1027,11 +966,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
     const double EulerAngle2,
-    BoundedMatrixType& rRotationOperator
+    BoundedMatrix<double, 3, 3>& rRotationOperator
 )
 {
-    if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
-        rRotationOperator.resize(Dimension, Dimension, false);
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
 
     const double cos_angle = std::cos(EulerAngle2 * Globals::Pi / 180.0);
@@ -1050,7 +987,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
     const double EulerAngle3,
-    BoundedMatrixType& rRotationOperator
+    BoundedMatrix<double, 3, 3>& rRotationOperator
 )
 {
     ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
@@ -1064,11 +1001,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
     const double EulerAngle1, // phi
     const double EulerAngle2, // theta
     const double EulerAngle3, // hi
-    BoundedMatrixType& rRotationOperator // global to local coordinates
+    BoundedMatrix<double, 3, 3>& rRotationOperator // global to local coordinates
 )
 {
-    if (rRotationOperator.size1() != Dimension || rRotationOperator.size2() != Dimension)
-        rRotationOperator.resize(Dimension, Dimension, false);
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
 
     const double pi_over_180 = Globals::Pi / 180.0;
@@ -1099,8 +1034,6 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
     BoundedMatrixVoigtType& rVoigtOperator
     )
 {
-    if (rVoigtOperator.size1() != VoigtSize || rVoigtOperator.size2() != VoigtSize)
-        rVoigtOperator.resize(VoigtSize, VoigtSize, false);
     rVoigtOperator.clear();
 
     const double l1 = rEulerOperator(0, 0);
