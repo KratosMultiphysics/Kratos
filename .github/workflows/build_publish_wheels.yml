@@ -21,6 +21,7 @@ jobs:
 
     steps:
     - name: Build the wheels
+      shell: pwsh
       run: |
         mkdir wheels
         docker run --rm --memory=4 --cpus=2 -v <local-output-dir>:c:\out kratosmultiphysics/kratos-wheelbuilder-windows master
