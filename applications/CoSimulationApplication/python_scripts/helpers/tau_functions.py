@@ -3,7 +3,7 @@ import re, glob, subprocess, time, os, warnings
 import numpy as np
 import tau_python
 from tau_python import tau_msg
-# import tau_python.tau_msg as tau_msg
+from tau_python import tau_solver_unsteady_get_physical_time
 import PyPara, PySurfDeflect
 from scipy.io import netcdf
 
@@ -445,3 +445,39 @@ def CalculateDistanceVector(X,Y,Z,start,end):
     distance_vector[2] = Z[end] - Z[start]
 
     return distance_vector
+
+class MotionStringGenerator(object):
+	"""Auxiliary class to generate TAU motion strings for a translatory x-motion
+	and/or a pitching oscillation.
+	"""
+
+	def __init__(self, deltaT, pitchDeg, thetaDeg, thetaRate):
+		self.deltaT       = deltaT
+		self.pitchDeg = pitchDeg
+		self.thetaDeg = thetaDeg
+		self.thetaRate = thetaRate
+		
+
+	def GetMotionString(self,step):
+		self.time = step*self.deltaT
+		self.thetaInstant     = self.thetaDeg[step]
+		self.pitchFreq    = self.thetaRate[step]
+
+		p     = 0.
+		q     = np.deg2rad(self.pitchFreq)
+		r     = 0.
+		phi   = 0.
+		theta = np.deg2rad(self.pitchDeg) + np.deg2rad(self.thetaInstant)
+		psi   = 0.
+		u     = 0
+		v     = 0.
+		w     = 0.
+		dx    = 0.
+		dy    = 0.
+		dz    = 0.
+		motionString=" ".join(map(str, [p,q,r,phi,theta,psi,u,v,w,dx,dy,dz]))
+
+		return motionString
+
+	def __call__(self, step):
+		return self.GetMotionString(step)
