@@ -46,7 +46,6 @@ class DataLogger():
             "optimization_log_filename" : "optimization_log",
             "design_output_mode"        : "WriteOptimizationModelPart",
             "nodal_results"             : [ "SHAPE_CHANGE" ],
-            "write_design_output"       : true,
             "output_format"             : { "name": "vtk" }
         }""")
 
@@ -74,11 +73,18 @@ class DataLogger():
 
     # -----------------------------------------------------------------------------
     def __CreateDesignLogger( self ):
-        outputFormatName = self.OptimizationSettings["output"]["output_format"]["name"].GetString()
-        if not self.OptimizationSettings["output"]["write_design_output"].GetBool():
+        valid_output_modes = ["WriteDesignSurface", "WriteOptimizationModelPart", "None"]
+        output_mode = self.OptimizationSettings["output"]["design_output_mode"].GetString()
+
+        if output_mode not in valid_output_modes:
+            raise RuntimeError("Invalid 'design_output_mode', available options are: {}".format(valid_output_modes))
+
+        if output_mode == "None":
             KM.Logger.Print("")
-            KM.Logger.PrintInfo("ShapeOpt", "No design output will be created because 'write_design_output = false'.")
+            KM.Logger.PrintInfo("ShapeOpt", "No design output will be created because 'design_output_mode' = 'None'.")
             return None
+
+        outputFormatName = self.OptimizationSettings["output"]["output_format"]["name"].GetString()
         if outputFormatName == "gid":
             return DesignLoggerGID( self.ModelPartController, self.OptimizationSettings )
         if outputFormatName == "unv":

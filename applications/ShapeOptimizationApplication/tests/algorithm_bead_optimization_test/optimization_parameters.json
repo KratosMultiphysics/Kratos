@@ -66,8 +66,7 @@
                                           "SHAPE_CHANGE" ],
             "output_format" : {
                 "name" : "gid"
-            },
-            "write_design_output": false
+            }
         }
     }
 }

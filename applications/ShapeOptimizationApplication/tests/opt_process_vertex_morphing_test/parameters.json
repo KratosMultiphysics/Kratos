@@ -41,13 +41,12 @@
             }
         },
         "output" : {
-            "design_output_mode" : "WriteDesignSurface",
+            "design_output_mode" : "None",
             "nodal_results"      : [ "SHAPE_UPDATE",
                                      "SHAPE_CHANGE" ],
             "output_format" : {
                 "name": "gid"
-            },
-            "write_design_output": false
+            }
         }
     }
 }

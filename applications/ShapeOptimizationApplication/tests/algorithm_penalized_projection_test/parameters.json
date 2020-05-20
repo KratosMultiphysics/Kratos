@@ -63,19 +63,10 @@
         },
         "output" : {
             "design_output_mode" : "WriteDesignSurface",
-            "nodal_results"      : [
-                "SHAPE_CHANGE",
-                "DF1DX",
-                "DF1DX_MAPPED",
-                "DC1DX",
-                "DC1DX_MAPPED",
-                "SEARCH_DIRECTION",
-                "SHAPE_UPDATE"
-            ],
+            "nodal_results"      : [ "SHAPE_CHANGE" ],
             "output_format" : {
                 "name": "vtk"
-            },
-            "write_design_output": false
+            }
         }
     }
 }
