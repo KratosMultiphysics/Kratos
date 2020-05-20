@@ -1,4 +1,4 @@
-name: Build and Publish the Kratos Wheels for PiPy
+name: Build and Publish the Kratos Wheels
 
 # on: # build the corresponding release branch
 #     release:
@@ -11,7 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Build the wheels
+    - name: Pull docker image
+      run: sudo docker pull kratosmultiphysics/kratos-wheelbuilder-linux
+
+    - name: Build wheels
       run: |
         mkdir wheels
         sudo docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/workspace/out kratosmultiphysics/kratos-wheelbuilder-linux master 2
@@ -20,7 +23,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Build the wheels
+    - name: Pull docker image
+      run: docker pull kratosmultiphysics/kratos-wheelbuilder-windows
+
+    - name: Build wheels
       shell: pwsh
       run: |
         mkdir wheels
