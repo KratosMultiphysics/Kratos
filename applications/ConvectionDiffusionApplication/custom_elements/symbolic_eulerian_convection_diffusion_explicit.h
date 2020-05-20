@@ -112,6 +112,13 @@ public:
         DofsVectorType& ElementalDofList,
         ProcessInfo& CurrentProcessInfo) override;
 
+    void AddExplicitContribution(
+        ProcessInfo &rCurrentProcessInfo) override;
+
+    virtual void CalculateMassMatrix(
+        MatrixType &rMassMatrix,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{

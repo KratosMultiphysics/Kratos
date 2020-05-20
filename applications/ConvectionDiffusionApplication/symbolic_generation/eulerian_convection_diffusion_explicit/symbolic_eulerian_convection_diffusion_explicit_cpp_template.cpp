@@ -139,7 +139,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLeftH
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
-    Vector RightHandSide;
+    VectorType RightHandSide;
     this->CalculateLocalSystem(rLeftHandSideMatrix,RightHandSide,rCurrentProcessInfo);
 }
 
@@ -183,6 +183,70 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
     }
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
+    ProcessInfo &rCurrentProcessInfo)
+{
+    auto& r_geometry = GetGeometry();
+    const unsigned int local_size = r_geometry.size();
+    // Calculate the explicit residual vector
+    VectorType rhs;
+    this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
+    // Add the residual contribution
+    // Note that the reaction is indeed the formulation residual
+    for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+        #pragma omp atomic
+        r_geometry[i_node].FastGetSolutionStepValue(REACTION_FLUX) += rhs[i_node];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void SymbolicEulerianConvectionDiffusionExplicit<2>::CalculateMassMatrix(
+    MatrixType &rMassMatrix,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    const unsigned int local_size = 3;
+    // Resize, intialize and fill the mass matrix for linear triangular elements
+    if (rMassMatrix.size1() != local_size)
+        rMassMatrix.resize(local_size, local_size, false);
+    noalias(rMassMatrix) = ZeroMatrix(local_size, local_size);
+    const double one_six = 1.0 / 6.0;
+    const double one_twelve = 1.0 / 12.0;
+    rMassMatrix(0,0) = one_six; rMassMatrix(0,1) = one_twelve; rMassMatrix(0,2) = one_twelve;
+    rMassMatrix(1,0) = one_twelve; rMassMatrix(1,1) = one_six; rMassMatrix(1,2) = one_twelve;
+    rMassMatrix(2,0) = one_twelve; rMassMatrix(2,1) = one_twelve; rMassMatrix(2,2) = one_six;
+    // Assumption all the Gauss points have the same weight, so we multiply by the volume
+    rMassMatrix *= GetGeometry().Area();
+}
+
+/***********************************************************************************/
+
+template <>
+void SymbolicEulerianConvectionDiffusionExplicit<3>::CalculateMassMatrix(
+    MatrixType &rMassMatrix,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    const unsigned int local_size = 4;
+    // Resize, intialize and fill the mass matrix for linear tetrahedral elements
+    if (rMassMatrix.size1() != local_size)
+        rMassMatrix.resize(local_size, local_size, false);
+    noalias(rMassMatrix) = ZeroMatrix(local_size, local_size);
+    const double one_ten = 0.1;
+    const double one_twenty = 0.05;
+    rMassMatrix(0,0) = one_ten; rMassMatrix(0,1) = one_twenty; rMassMatrix(0,2) = one_twenty; rMassMatrix(0,3) = one_twenty;
+    rMassMatrix(1,0) = one_twenty; rMassMatrix(1,1) = one_ten; rMassMatrix(1,2) = one_twenty; rMassMatrix(1,3) = one_twenty;
+    rMassMatrix(2,0) = one_twenty; rMassMatrix(2,1) = one_twenty; rMassMatrix(2,2) = one_ten; rMassMatrix(2,3) = one_twenty;
+    rMassMatrix(3,0) = one_twenty; rMassMatrix(3,1) = one_twenty; rMassMatrix(3,2) = one_twenty; rMassMatrix(3,3) = one_ten;
+    // Assumption all the Gauss points have the same weight, so we multiply by the volume
+    rMassMatrix *= GetGeometry().Volume();
 }
 
 /***********************************************************************************/
