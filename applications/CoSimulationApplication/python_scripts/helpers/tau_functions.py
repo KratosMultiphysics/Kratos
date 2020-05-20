@@ -246,7 +246,8 @@ def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step):
 def FindInterfaceFilename(working_path, step):
     output_filename = FindOutputFilename(working_path, step)
     interface_filename = output_filename.replace('pval', 'surface.pval')
-    interface_filename = interface_filename.replace('+', '') + '.dat'
+    if '.dat' not in interface_filename:
+        interface_filename = interface_filename.replace('+', '') + '.dat'
     CheckIfPathExists(interface_filename)
     return interface_filename
 
@@ -456,7 +457,7 @@ class MotionStringGenerator(object):
 		self.pitchDeg = pitchDeg
 		self.thetaDeg = thetaDeg
 		self.thetaRate = thetaRate
-		
+
 
 	def GetMotionString(self,step):
 		self.time = step*self.deltaT
