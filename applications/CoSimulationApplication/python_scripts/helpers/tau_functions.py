@@ -237,6 +237,8 @@ def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step):
         line = 'Boundary mapping filename:' + parameter_filename + ' \n'
     elif 'Restart-data prefix:' in line:
         output_filename = FindOutputFilename(working_path, step)
+        print 'output_filename = ', output_filename
+        CheckIfPathExists(output_filename)
         line = 'Restart-data prefix:' + output_filename + ' \n'
 
     return line
@@ -325,7 +327,7 @@ def FindPrimaryGridFilename(working_path, step, start_step):
 def FindOutputFilename(working_path, step):
     outputs_path = working_path + "Outputs/"
     CheckIfPathExists(outputs_path)
-    ouput_file_pattern = "airfoilSol.pval.unsteady_i="
+    ouput_file_pattern = "airfoilSol.pval.deform_i="
     return FindFilename(outputs_path, ouput_file_pattern, step + 1)
 
 
