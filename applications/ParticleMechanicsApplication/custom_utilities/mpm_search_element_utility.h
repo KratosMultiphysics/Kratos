@@ -279,6 +279,7 @@ namespace MPMSearchElementUtility
         else
         { // we need to do splitting. Initially determine all grid elements we intersect with
             std::vector<typename GeometryType::Pointer> intersected_geometries;
+            std::vector<Element::Pointer> intersected_elements;
             const double z_mod = (working_dim == 3) ? 1.0 : 0.0; 
             const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2] - z_mod* side_half_length);
             const Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2] + z_mod* side_half_length);
@@ -294,9 +295,10 @@ namespace MPMSearchElementUtility
                 if (center_to_center <= maximum_contact_range)
                 {
                     if (ele_it.GetGeometry().HasIntersection(point_low, point_high)) {
-                        ele_it.Set(ACTIVE);
+                        //ele_it.Set(ACTIVE);
                         number_of_nodes += ele_it.GetGeometry().PointsNumber();
                         intersected_geometries.push_back(ele_it.pGetGeometry());
+                        intersected_elements.push_back(&ele_it);
                     }
                 }
             }
@@ -349,8 +351,9 @@ namespace MPMSearchElementUtility
                 }
 
                 // Transfer local data to containers
-                if (trial_subpoint.Weight() > Tolerance)
+                if (trial_subpoint.Weight() > std::numeric_limits<double>::epsilon())
                 {
+                    intersected_elements[i]->Set(ACTIVE);
                     ips[active_subpoint_index] = trial_subpoint;
                     //ips_good.push_back(trial_subpoint);
                     DN_De_vector[active_subpoint_index] = DN_De;
@@ -383,7 +386,7 @@ namespace MPMSearchElementUtility
                 for (size_t i = 0; i < active_node_index; i++) nodes_list_good(i) = nodes_list(i);
             }
 
-            Check(ips_good, Tolerance, N_matrix, DN_De_vector);
+            Check(ips_good, std::numeric_limits<double>::epsilon(), N_matrix, DN_De_vector);
 
             GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
             typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
@@ -840,7 +843,7 @@ namespace MPMSearchElementUtility
             vol_frac_accum += rIntergrationSubPoints[i].Weight();
         }
 
-        KRATOS_ERROR_IF (vol_frac_accum < 0.999)  
+        KRATOS_ERROR_IF (vol_frac_accum < (1.0- rIntergrationSubPoints.size()*Tolerance))
             << "Volume fraction of sub-points does not approximately sum to 1.0."
             << " This probably means the background grid is not big enough";
 
