@@ -228,9 +228,9 @@ private:
     void GetWakeDistances(array_1d<double,
                          TNumNodes>& distances) const;
 
-    void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
+    void GetEquationIdVectorExtendedElement(EquationIdVectorType& rResult) const;
 
-    void GetEquationIdVectorInletElement(EquationIdVectorType& rResult) const;
+    void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
 
     void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;
 
@@ -242,16 +242,16 @@ private:
 
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
 
-    void CalculateLeftHandSideInletElement(MatrixType& rLeftHandSideMatrix,
-                                            const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateRightHandSideInletElement(VectorType& rRightHandSideVector,
-                                            const ProcessInfo& rCurrentProcessInfo);
-
     void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateLeftHandSideExtendedElement(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSideExtendedElement(VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,

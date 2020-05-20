@@ -86,15 +86,15 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     {
         if (this->Is(INLET))
         {
-            CalculateRightHandSideInletElement(rRightHandSideVector, rCurrentProcessInfo);
+            CalculateRightHandSideNormalElement(rRightHandSideVector, rCurrentProcessInfo);
         }
         else if(kutta != 0)
         {
-            CalculateRightHandSideInletElement(rRightHandSideVector, rCurrentProcessInfo);
+            CalculateRightHandSideNormalElement(rRightHandSideVector, rCurrentProcessInfo);
         }
         else
         {
-            CalculateRightHandSideNormalElement(rRightHandSideVector, rCurrentProcessInfo);
+            CalculateRightHandSideExtendedElement(rRightHandSideVector, rCurrentProcessInfo);
         }
     }
     else // Wake element
@@ -117,15 +117,15 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     {
         if (this->Is(INLET))
         {
-            CalculateLeftHandSideInletElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+            CalculateLeftHandSideNormalElement(rLeftHandSideMatrix, rCurrentProcessInfo);
         }
         else if (kutta != 0)
         {
-            CalculateLeftHandSideInletElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+            CalculateLeftHandSideNormalElement(rLeftHandSideMatrix, rCurrentProcessInfo);
         }
         else
         {
-            CalculateLeftHandSideNormalElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+            CalculateLeftHandSideExtendedElement(rLeftHandSideMatrix, rCurrentProcessInfo);
         }
     }
     else // Wake element
@@ -154,7 +154,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
 
         if (kutta == 0 && this->Is(INLET))
         {
-            GetEquationIdVectorInletElement(rResult);
+            GetEquationIdVectorNormalElement(rResult);
         }
         else if (kutta == 0 && this->IsNot(INLET))
         {
@@ -163,7 +163,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
                 rResult.resize(number_of_nodes, false);
             }
 
-            GetEquationIdVectorNormalElement(rResult);
+            GetEquationIdVectorExtendedElement(rResult);
         }
         else
         {
@@ -412,7 +412,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetWakeDistance
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorNormalElement(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorExtendedElement(
     EquationIdVectorType& rResult) const
 {
     const int additional_node_id = GetAdditionalNode();
@@ -427,7 +427,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorInletElement(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorNormalElement(
     EquationIdVectorType& rResult) const
 {
     for (unsigned int i = 0; i < TNumNodes; i++)
@@ -555,7 +555,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetDofListWakeE
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHandSideInletElement(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHandSideNormalElement(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -590,7 +590,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHandSideNormalElement(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHandSideExtendedElement(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -632,7 +632,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideInletElement(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideNormalElement(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -662,7 +662,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideNormalElement(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideExtendedElement(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1174,7 +1174,7 @@ int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAdditionalNod
     const GeometryType& r_upwind_geom = mpUpwindElement->GetGeometry();
 
     int non_matching_nodes_counter = 0;
-    int additional_node = 0;
+    int additional_node = -1;
     bool loop_stop = false;
 
     for (unsigned int i = 0; i < TNumNodes && !loop_stop; i++)
@@ -1196,6 +1196,11 @@ int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAdditionalNod
         non_matching_nodes_counter = 0;
     }
 
+    if(additional_node == -1)
+    {
+        KRATOS_WARNING("GetAdditionalNode") << " did not find additional node for element # " << r_this.Id() << std::endl;
+    }
+    
     return additional_node;
 }
 
