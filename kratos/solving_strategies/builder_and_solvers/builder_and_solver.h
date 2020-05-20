@@ -807,4 +807,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_BUILDER_AND_SOLVER  defined */
-
