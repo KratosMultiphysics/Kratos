@@ -481,12 +481,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
     {
         if (distances[i] < 0.0)
         {
-            rResult[TNumNodes + i + 1] =
+            rResult[TNumNodes + i] =
                 GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         }
         else
         {
-            rResult[TNumNodes + i + 1] =
+            rResult[TNumNodes + i] =
                 GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
         }
     }
@@ -1200,7 +1200,7 @@ int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAdditionalNod
     {
         KRATOS_WARNING("GetAdditionalNode") << " did not find additional node for element # " << r_this.Id() << std::endl;
     }
-    
+
     return additional_node;
 }
 
