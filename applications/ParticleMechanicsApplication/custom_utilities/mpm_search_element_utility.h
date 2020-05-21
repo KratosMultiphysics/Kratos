@@ -139,7 +139,7 @@ namespace MPMSearchElementUtility
         // Search background grid and make element active
         Vector N;
         const int max_result = 1000;
-        /*
+
         #pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
@@ -257,7 +257,7 @@ namespace MPMSearchElementUtility
                     }
                 }
             }
-        }*/
+        }
     }
 
 
