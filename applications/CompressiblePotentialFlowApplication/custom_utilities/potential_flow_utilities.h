@@ -125,7 +125,10 @@ template <int Dim, int NumNodes>
 double ComputeUpwindFactor(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double UpwindFactorSwitch(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+double ComputeMaxUpwindFactor(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+size_t ComputeUpwindFactorCase(const array_1d<double, 3>& rUpwindFactorOptions);
 
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);

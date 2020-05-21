@@ -260,7 +260,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactor, CompressiblePotentialApplicationF
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.705466666666667, 1e-15);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UpwindFactorSwitch, CompressiblePotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(ComputeMaxUpwindFactor, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -283,7 +283,7 @@ KRATOS_TEST_CASE_IN_SUITE(UpwindFactorSwitch, CompressiblePotentialApplicationFa
     upwind_velocity[0] = std::sqrt(upwind_velocity_squared);
 
     // find max of current element upwind factor, upwind element upwind factor, and 0
-    const double upwind_factor = PotentialFlowUtilities::UpwindFactorSwitch<2, 3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
+    const double upwind_factor = PotentialFlowUtilities::ComputeMaxUpwindFactor<2, 3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
 
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.705466666666667, 1e-15);
 }
