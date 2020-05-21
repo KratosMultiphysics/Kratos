@@ -6,7 +6,6 @@ from KratosMultiphysics import GiDPostMode
 from KratosMultiphysics import Logger
 from KratosMultiphysics import DEMApplication
 from KratosMultiphysics import DemStructuresCouplingApplication
-from KratosMultiphysics import StructuralMechanicsApplication
 from KratosMultiphysics import gid_output # this is deprecated
 
 class FemDemCoupledGiDOutput(gid_output.GiDOutput):
@@ -48,7 +47,6 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
         self.balls_model_part                   = balls_model_part
         self.clusters_model_part                = clusters_model_part
         self.rigid_faces_model_part             = rigid_faces_model_part
-        self.mixed_model_part                   = mixed_model_part
 
         self.mixed_solid_fluid_model_part       = mixed_solid_fluid_model_part
         self.mixed_solid_balls_model_part       = mixed_solid_balls_model_part
@@ -104,9 +102,7 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
             self.io.WriteMesh(self.mixed_solid_balls_model_part.GetMesh())
             self.io.WriteMesh(self.mixed_solid_balls_fluid_model_part.GetMesh())
             self.io.FinalizeMesh()
-            self.io.InitializeResults(mesh_name, self.mixed_solid_fluid_model_part.GetMesh())
             self.io.InitializeResults(mesh_name, self.mixed_solid_balls_model_part.GetMesh())
-            self.io.InitializeResults(mesh_name, self.mixed_solid_balls_fluid_model_part.GetMesh())
 
         # Initialize list file
         with open(self.listfilename, "w") as listfile:
@@ -174,19 +170,17 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
             self.mixed_solid_balls_fluid_model_part.Nodes.clear()
 
             # Now we fill the mixed MDPA in order to print
-
             DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_fluid_model_part, self.solid_model_part)
             DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_fluid_model_part, self.fluid_model_part)
+
+            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_model_part, self.balls_model_part)
+            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_model_part, self.rigid_faces_model_part)
+            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_model_part, self.solid_model_part)
 
             DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.balls_model_part)
             DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.rigid_faces_model_part)
             DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.solid_model_part)
-
-
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_nodal_results, self.balls_model_part)
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_nodal_results, self.rigid_faces_model_part)
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_nodal_results, self.solid_model_part)
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_nodal_results, self.fluid_model_part)
+            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.fluid_model_part)
 
         self.write_dem_fem_results(time)
 
@@ -257,3 +251,5 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
                 self.write_step_to_list(label)
 
             self.write_step_to_outer_list(label)
+
+
