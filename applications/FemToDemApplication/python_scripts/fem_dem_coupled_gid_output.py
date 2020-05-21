@@ -159,7 +159,7 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
         # We reorder the Id of the model parts
         reorder_util = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part, self.balls_model_part)
         reorder_util.Renumber()
-        reorder_util_elem = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part)
+        reorder_util_elem = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part, self.balls_model_part)
         reorder_util_elem.RenumberElements()
 
         Logger.PrintInfo("","")

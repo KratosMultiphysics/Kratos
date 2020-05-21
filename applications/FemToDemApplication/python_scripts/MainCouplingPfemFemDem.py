@@ -119,6 +119,7 @@ class MainCouplingPfemFemDem_Solution:
         self.PFEM_Solution.FinalizeSolutionStep()
         self.PFEM_Solution.OutputSolutionStep()
         self.FEMDEM_Solution.FinalizeSolutionStep()
+        KM.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.PFEM_Solution.post_process_model_part, self.PFEM_Solution.main_model_part)
         self.PrintResults()
 
 #============================================================================================================================
