@@ -788,10 +788,11 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
     //}    
 
-    double beta = 1.0e3;
-    //if (sum_of_squares_v > 1.0e-12)
-        //beta = 1.0/sum_of_squares_v * Kratos::inner_prod(traction,vGauss);
-    //("Navier slip condition, beta") << beta << std::endl;
+    double beta = 0.0e3;
+    if (sum_of_squares_v > 1.0e-8)
+        beta = abs(1.0/sum_of_squares_v * Kratos::inner_prod(traction,vGauss));
+
+    //KRATOS_INFO("Navier slip condition, beta") << beta << std::endl;
 
     for(unsigned int inode = 0; inode < TNumNodes; inode++){  
         for(unsigned int jnode = 0; jnode < TNumNodes; jnode++){
@@ -857,9 +858,9 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
     //}    
 
-    double beta = 1.0e3;
-    //if (sum_of_squares_v > 1.0e-12)
-    //    beta = 1.0/sum_of_squares_v * Kratos::inner_prod(traction,vGauss);
+    double beta = 0.0e3;
+    if (sum_of_squares_v > 1.0e-8)
+        beta = abs(1.0/sum_of_squares_v * Kratos::inner_prod(traction,vGauss));
 
     for(unsigned int inode = 0; inode < TNumNodes; inode++){  
         for(unsigned int jnode = 0; jnode < TNumNodes; jnode++){
