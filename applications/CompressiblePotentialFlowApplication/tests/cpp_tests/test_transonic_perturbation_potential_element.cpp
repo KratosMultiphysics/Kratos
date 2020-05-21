@@ -70,11 +70,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS, Compress
     AssignPotentialsToNormalTransonicPerturbationElement(pElement);
 
     // Compute RHS
-    Vector RHS = ZeroVector(3);
+    Vector RHS = ZeroVector(4);
 
     pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
-    std::vector<double> reference{146.2643261263345,-122.1426284341492,-24.12169769218525};
+    std::vector<double> reference{146.2643261263345,-122.1426284341492,-24.12169769218525, 0.0};
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
@@ -92,17 +92,18 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, Compress
     AssignPotentialsToNormalTransonicPerturbationElement(pElement);
 
     // Compute LHS
-    Matrix LHS = ZeroMatrix(3, 3);
+    Matrix LHS = ZeroMatrix(4, 4);
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
-    std::array<double, 9> reference{ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037,
-                                     -0.1306215050744058, 0.6710758508914103,-0.5404543458170046,
-                                      0.06947872042999037,-0.5404543458170046,0.4709756253870142};
+    std::array<double, 16> reference{ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037, 0.0,
+                                     -0.1306215050744058, 0.6710758508914103,-0.5404543458170046, 0.0,
+                                      0.06947872042999037,-0.5404543458170046,0.4709756253870142, 0.0,
+                                      0.0, 0.0, 0.0, 0.0};                                 
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 3 + j], 1e-16);
+            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 4 + j], 1e-16);
         }
     }
 }
