@@ -33,6 +33,7 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
             self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
         self.InitializePlotsFiles()
         self.echo_level = 0
+        self.is_slave = False
         self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
 #============================================================================================================================
@@ -143,3 +144,7 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
             self.CreateInitialSkin = False
         else:
             self.CreateInitialSkin = self.FEM_Solution.ProjectParameters["create_initial_skin"].GetBool()
+
+        # Initialize the coupled post process
+        if not self.is_slave:
+            self.InitializePostProcess()
