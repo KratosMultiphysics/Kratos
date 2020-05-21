@@ -52,7 +52,7 @@ namespace MPMSearchElementUtility
 
     typedef Node<3> NodeType;
 
-    void CreateBoundingBoxPoints(std::vector<array_1d<double, 3>>& rPointVector,
+    inline void CreateBoundingBoxPoints(std::vector<array_1d<double, 3>>& rPointVector,
         const array_1d<double, 3>& rCenter, const double SideHalfLength, const SizeType WorkingDim)
     {
         KRATOS_TRY
@@ -113,7 +113,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    void Check(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, const Matrix& rN, const DenseVector<Matrix>& rDN_De)
+    inline void Check(IntegrationPointsArrayType& rIntergrationSubPoints, const double Tolerance, const Matrix& rN, const DenseVector<Matrix>& rDN_De)
     {
         KRATOS_TRY
 
@@ -149,7 +149,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    bool CheckAllPointsAreInGeom(
+    inline bool CheckAllPointsAreInGeom(
         const std::vector<array_1d<double, 3>>& rPoints,
         const GeometryType& rReferenceGeom,
         const double Tolerance)
@@ -178,7 +178,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    void Check3DBackGroundMeshIsCubicAxisAligned(const std::vector<typename GeometryType::Pointer> rIntersectedGeometries)
+    inline void Check3DBackGroundMeshIsCubicAxisAligned(const std::vector<typename GeometryType::Pointer> rIntersectedGeometries)
     {
         KRATOS_TRY
 
@@ -203,7 +203,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    bool CheckNoPointsAreInGeom(
+    inline bool CheckNoPointsAreInGeom(
         const std::vector<array_1d<double, 3>>& rPoints,
         const GeometryType& rReferenceGeom,
         const double Tolerance)
@@ -220,7 +220,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    void Create2DPolygonBoundingSquareFromPoints(const std::vector<array_1d<double, 3>>& rPoints,
+    inline void Create2DPolygonBoundingSquareFromPoints(const std::vector<array_1d<double, 3>>& rPoints,
         std::vector<Boost2DPointType>& rPolygonPoints,
         Boost2DPolygonType& rPolygon,
         const bool XActive = true, const bool YActive = true, const bool ZActive= false)
@@ -264,7 +264,7 @@ namespace MPMSearchElementUtility
         KRATOS_CATCH("")
     }
 
-    void Create2DPolygonFromGeometry(const GeometryType& rGeom,
+    inline void Create2DPolygonFromGeometry(const GeometryType& rGeom,
         std::vector<Boost2DPointType>& rPolygonPoints,
         Boost2DPolygonType& rPolygon,
         const bool XActive = true, const bool YActive = true, const bool ZActive = false)
@@ -319,7 +319,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    IntegrationPoint<3> CreateSubPoint(const array_1d<double, 3>& rGlobalCoords, const double rVolumeFraction,
+    inline IntegrationPoint<3> CreateSubPoint(const array_1d<double, 3>& rGlobalCoords, const double rVolumeFraction,
         const GeometryType& rBackgroundGridElementGeom, Vector& rN, Matrix& rDN_De)
     {
         KRATOS_TRY
@@ -335,7 +335,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    void Determine2DSubPoint(const GeometryType& rGridElement, const std::vector<array_1d<double, 3>>& rMasterDomainPoints,
+    inline void Determine2DSubPoint(const GeometryType& rGridElement, const std::vector<array_1d<double, 3>>& rMasterDomainPoints,
         array_1d<double, 3>& rSubPointCoord, double& rSubPointVolume)
     {
         KRATOS_TRY
@@ -376,7 +376,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    void Determine3DSubPoint(const GeometryType& rGridElement, const std::vector<array_1d<double, 3>>& rMasterDomainPoints,
+    inline void Determine3DSubPoint(const GeometryType& rGridElement, const std::vector<array_1d<double, 3>>& rMasterDomainPoints,
         array_1d<double, 3>& rSubPointCoord, double& rSubPointVolume)
     {
         KRATOS_TRY
@@ -457,7 +457,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    typename Geometry<Node<3>>::Pointer CreateCustomQuadraturePoint(
+    inline typename Geometry<Node<3>>::Pointer CreateCustomQuadraturePoint(
         SizeType WorkingSpaceDimension,
         SizeType LocalSpaceDimension,
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
@@ -495,7 +495,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
+    inline typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
         const array_1d<double, 3>& rCoordinates,
         Element& rMasterMaterialPoint,
         const typename Geometry<Node<3>>::Pointer pGeometry,
