@@ -92,12 +92,6 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
 
         self.solid_gauss_points_results = solid_gauss_points_results
 
-
-        # We reorder the Id of the model parts
-        self.reorder_util = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part, self.balls_model_part)
-        self.reorder_util.Renumber()
-
-
         if self.multi_file == MultiFileFlag.SingleFile:
             print("Singlefile option is not available for the DEM-Structures Coupling application!")
             mesh_name = 0.0
@@ -162,6 +156,10 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
     """
     def Writeresults(self, time):
 
+        # We reorder the Id of the model parts
+        self.reorder_util = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part, self.balls_model_part)
+        self.reorder_util.Renumber()
+        
         Logger.PrintInfo("","")
         Logger.PrintInfo("","*****************  PRINTING RESULTS FOR GID  *************************")
         Logger.Flush()

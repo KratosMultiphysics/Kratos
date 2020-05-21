@@ -274,9 +274,6 @@ class MainCoupledFemDem_Solution:
 
         self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 
-        # Update Coupled Postprocess file for Gid (post.lst)
-        self.WritePostListFile()
-
         # Print required info
         self.PrintPlotsFiles()
         
@@ -298,7 +295,7 @@ class MainCoupledFemDem_Solution:
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
         
-        self.gid_output.Writeresults(self.FEM_Solution.time)
+        self.PrintResults()
 
 #============================================================================================================================
     def Finalize(self):
@@ -835,6 +832,25 @@ class MainCoupledFemDem_Solution:
             if self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.solver.dt:
                 self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
                 self.DEM_Solution.time_old_print = self.DEM_Solution.time
+
+#PrintResults============================================================================================================================
+    def PrintResults(self):
+        print_parameters = self.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]
+        if self.FEM_Solution.step == 1: # always print the 1st step
+            self.gid_output.Writeresults(self.FEM_Solution.time)
+            self.FEM_Solution.time_old_print = self.FEM_Solution.time
+            self.FEM_Solution.step_old_print = self.FEM_Solution.step
+        else:
+            time_to_print = 0
+            if print_parameters["output_control_type"].GetString() == "step":
+                time_to_print = self.FEM_Solution.step - self.FEM_Solution.step_old_print
+            else:
+                time_to_print = self.FEM_Solution.time - self.FEM_Solution.time_old_print
+
+            if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEM_Solution.delta_time:
+                self.gid_output.Writeresults(self.FEM_Solution.time)
+                self.FEM_Solution.time_old_print = self.FEM_Solution.time
+                self.FEM_Solution.step_old_print = self.FEM_Solution.step
 
 #CheckIfHasRemeshed============================================================================================================================
     def CheckIfHasRemeshed(self):
