@@ -409,8 +409,6 @@ private:
     void ComputeGaussPointBehrSlipRHSContribution(  array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
                                                     const ConditionDataStruct& rDataStruct );
 
-
-
     /**
      * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
      * The (Navier) slip length is read as a nodal variable.
@@ -422,7 +420,6 @@ private:
      */
     void ComputeGaussPointNavierSlipRHSContribution(    array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
                                                         const ConditionDataStruct& rDataStruct );
-
 
     /**
      * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
@@ -436,6 +433,18 @@ private:
     void ComputeGaussPointNavierSlipLHSContribution(    BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
                                                         const ConditionDataStruct& rDataStruct );
 
+    /**
+     * @brief Computes the Navier slip dissipative force contribution to the left-hand side and right-hand side
+     * Since only tangential velocities should appear, a tangetial projection is not introduced.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rDataStruct reference to a struct to hand over data
+     */
+    void ComputeGaussPointSimpleNavierSlipContribution( 
+                BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
+                array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
+                const ConditionDataStruct& rDataStruct );
+    
     ///@}
     ///@name Private  Access
     ///@{

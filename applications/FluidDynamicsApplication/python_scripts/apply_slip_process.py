@@ -16,11 +16,16 @@ class ApplySlipProcess(KratosMultiphysics.Process):
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "avoid_recomputing_normals": false,
+                "simplified_navier_slip": false,
                 "uniform_navier_slip_length" : 0.01
             }  """ )
 
+        self.simple_navier_slip = False
+        if settings.Has("simplified_navier_slip"):
+            self.simple_navier_slip = settings["simplified_navier_slip"].GetBool()
+
         self.navier_slip_active = False
-        if settings.Has("uniform_navier_slip_length"):
+        if settings.Has("uniform_navier_slip_length") and not(self.simple_navier_slip):
             self.navier_slip_active = True
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -36,6 +41,8 @@ class ApplySlipProcess(KratosMultiphysics.Process):
         # Mark the nodes and conditions with the appropriate slip flag
         for condition in self.model_part.Conditions:
             condition.Set(KratosMultiphysics.SLIP, True)
+            if self.simple_navier_slip:
+                condition.SetValue(KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH, -1.0)
 
         for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.SLIP, True)
