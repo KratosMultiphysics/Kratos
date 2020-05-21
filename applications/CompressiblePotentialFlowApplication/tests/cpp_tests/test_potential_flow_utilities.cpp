@@ -268,13 +268,13 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeMaxUpwindFactor, CompressiblePotentialApplicati
 
     const double local_mach_number_squared = 3.0;
 
-    // velocity corresponding to mach number 3.0
+    // velocity corresponding to mach number sqrt(3.0)
     const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
 
     array_1d<double, 2> current_velocity(2, 0.0);
     current_velocity[0] = std::sqrt(local_velocity_squared);
 
-    const double upwind_mach_number_squared = 0.7;
+    const double upwind_mach_number_squared = 0.7 * 0.7;
 
     // velocity corresponding to mach number 0.7
     const double upwind_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(upwind_mach_number_squared, model_part.GetProcessInfo());
