@@ -38,6 +38,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("AddExplicitImpulses",&FEMDEMCouplingUtilities::AddExplicitImpulses)
         .def("ComputeAndTranferAveragedContactTotalForces",&FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces)
         .def("ResetContactImpulses",&FEMDEMCouplingUtilities::ResetContactImpulses)
+        .def("RemoveDuplicates",&FEMDEMCouplingUtilities::RemoveDuplicates)
         ;
 
     py::class_<AitkenRelaxationFEMDEMUtility>(m, "AitkenRelaxationFEMDEMUtility")
