@@ -49,7 +49,7 @@
 //---element
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
-#include "custom_elements/updated_lagrangian_PQ.hpp"
+#include "custom_elements/updated_lagrangian_pq.hpp"
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
