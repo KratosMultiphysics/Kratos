@@ -58,12 +58,13 @@ virtual ~RenumberingNodesUtility(){}
 
 void Renumber() {
     int id = 1;
-    for (int i=0; i<(int)mListOfModelParts.size(); i++){
+    for (int i = 0; i < (int)mListOfModelParts.size(); ++i){
         ModelPart& mp = *mListOfModelParts[i];
         std::map<int,int>& new_to_old = mListOfMapsOfIdsNewToOld[i];
 
+        auto it_node_begin = mp.NodesBegin();
         for (int j = 0; j < (int)mp.Nodes().size(); j++){
-            auto it = mp.NodesBegin() + j;
+            auto it = it_node_begin + j;
             new_to_old[id] = it->Id();
             it->SetId(id);
             id++;
@@ -72,12 +73,13 @@ void Renumber() {
 }
 
 void UndoRenumber() {
-    for (int i=0; i<(int)mListOfModelParts.size(); i++){
-        ModelPart& mp = *mListOfModelParts[i];
-        std::map<int,int>& new_to_old = mListOfMapsOfIdsNewToOld[i];
+    for (int i = 0; i < (int)mListOfModelParts.size(); ++i){
+        ModelPart& r_mp = *mListOfModelParts[i];
+        std::map<int, int>& new_to_old = mListOfMapsOfIdsNewToOld[i];
 
-        for (int j = 0; j < (int)mp.Nodes().size(); j++){
-            auto it = mp.NodesBegin() + j;
+        auto it_node_begin = r_mp.NodesBegin();
+        for (int j = 0; j < (int)r_mp.Nodes().size(); ++j){
+            auto it = it_node_begin + j;
             it->SetId(new_to_old[it->Id()]);
         }
     }
@@ -85,12 +87,13 @@ void UndoRenumber() {
 
 void RenumberElements() {
     int id = 1;
-    for (int i=0; i<(int)mListOfModelParts.size(); i++){
-        ModelPart& mp = *mListOfModelParts[i];
-        std::map<int,int>& new_to_old = mListOfMapsOfIdsNewToOld[i];
+    for (int i = 0; i < (int)mListOfModelParts.size(); ++i){
+        ModelPart& r_mp = *mListOfModelParts[i];
+        std::map<int, int>& new_to_old = mListOfMapsOfIdsNewToOld[i];
 
-        for (int j = 0; j < (int)mp.Elements().size(); j++){
-            auto it = mp.ElementsBegin() + j;
+        auto it_elem_begin = r_mp.ElementsBegin();
+        for (int j = 0; j < (int)r_mp.Elements().size(); ++j){
+            auto it = it_elem_begin + j;
             new_to_old[id] = it->Id();
             it->SetId(id);
             id++;
@@ -99,12 +102,13 @@ void RenumberElements() {
 }
 
 void UndoRenumberElements() {
-    for (int i=0; i<(int)mListOfModelParts.size(); i++){
-        ModelPart& mp = *mListOfModelParts[i];
-        std::map<int,int>& new_to_old = mListOfMapsOfIdsNewToOld[i];
+    for (int i = 0; i < (int)mListOfModelParts.size(); ++i){
+        ModelPart& r_mp = *mListOfModelParts[i];
+        std::map<int, int>& new_to_old = mListOfMapsOfIdsNewToOld[i];
 
-        for (int j = 0; j < (int)mp.Elements().size(); j++){
-            auto it = mp.ElementsBegin() + j;
+        auto it_elem_begin = r_mp.ElementsBegin();
+        for (int j = 0; j < (int)r_mp.Elements().size(); ++j){
+            auto it = it_elem_begin + j;
             it->SetId(new_to_old[it->Id()]);
         }
     }
@@ -114,7 +118,7 @@ void UndoRenumberElements() {
 private:
 
 std::vector<ModelPart*> mListOfModelParts;
-std::vector<std::map<int,int> > mListOfMapsOfIdsNewToOld;
+std::vector<std::map<int, int>> mListOfMapsOfIdsNewToOld;
 
 }; // Class RenumberingNodesUtility
 

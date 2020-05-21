@@ -93,6 +93,10 @@ class FEMDEMCouplingUtilities
     void ComputeAndTranferAveragedContactTotalForces(ModelPart &rStructureModelPart, const double FEMtimeStep);
 
     void ResetContactImpulses(ModelPart &rStructureModelPart);
+
+    void RemoveDuplicates(
+    ModelPart& rModelPart
+    );
     
 
 
