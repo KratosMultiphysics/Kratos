@@ -59,14 +59,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ResetPFEMkinematicValues", &AitkenRelaxationFEMDEMUtility::ResetPFEMkinematicValues)
         ;
 
-    py::class_<RenumberingNodesUtility>(m,"FEMDEMCouplingUtilities")
+    py::class_<RenumberingNodesUtility>(m,"RenumberingNodesUtility")
         .def(py::init<ModelPart &>())
         .def(py::init<ModelPart &,ModelPart &>())
         .def(py::init<ModelPart &,ModelPart &,ModelPart &>())
         .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
         .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
         .def("Renumber",&RenumberingNodesUtility::Renumber)
-        .def("UndoRenumber",&UndoRenumber::InterpolateStructuralSolution)
+        .def("UndoRenumber",&RenumberingNodesUtility::UndoRenumber)
         ;
 }
 
