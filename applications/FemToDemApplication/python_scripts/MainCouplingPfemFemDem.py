@@ -196,7 +196,7 @@ class MainCouplingPfemFemDem_Solution:
         self.gid_output = gid_output.FemDemCoupledGiDOutput(
                             filename,
                             True,
-                            "Binary",
+                            "Ascii",
                             "Multiples",
                             True,
                             True,
@@ -209,13 +209,13 @@ class MainCouplingPfemFemDem_Solution:
                             mixed_solid_balls_mp,
                             mixed_fluid_solid_balls_mp)
 
-        solid_nodal_results = ["ACCELERATION"]
+        solid_nodal_results = ["DISPLACEMENT", "ACCELERATION"]
         dem_nodal_results = ["TOTAL_FORCES", "RADIUS"]
-        fluid_nodal_results = []
+        fluid_nodal_results = ["PRESSURE"]
         clusters_nodal_results = []
         rigid_faces_nodal_results = []
-        mixed_solid_fluid_nodal_results = ["PRESSURE"]
-        mixed_solid_balls_nodal_results = ["DISPLACEMENT"]
+        mixed_solid_fluid_nodal_results = []
+        mixed_solid_balls_nodal_results = []
         mixed_solid_balls_fluid_nodal_results = ["VELOCITY"]
 
         gauss_points_results = ["CAUCHY_STRESS_VECTOR", "DAMAGE_ELEMENT", "STRESS_VECTOR_INTEGRATED", "GREEN_LAGRANGE_STRAIN_VECTOR"]
@@ -245,7 +245,11 @@ class MainCouplingPfemFemDem_Solution:
             else:
                 time_to_print = self.FEMDEM_Solution.FEM_Solution.time - self.FEMDEM_Solution.FEM_Solution.time_old_print
 
-            if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEMDEM_Solution.FEM_Solution.delta_time:
-                self.gid_output.Writeresults(self.FEMDEM_Solution.FEM_Solution.time)
-                self.FEMDEM_Solution.FEM_Solution.time_old_print = self.FEMDEM_Solution.FEM_Solution.time
-                self.FEMDEM_Solution.FEM_Solution.step_old_print = self.FEMDEM_Solution.FEM_Solution.step
+            if print_parameters["output_control_type"].GetString() == "step":
+                if print_parameters["output_frequency"].GetInt() - time_to_print == 0:
+                    self.gid_output.Writeresults(self.FEMDEM_Solution.FEM_Solution.time)
+                    self.FEMDEM_Solution.FEM_Solution.step_old_print = self.FEMDEM_Solution.FEM_Solution.step
+            else:
+                if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEMDEM_Solution.FEM_Solution.delta_time:
+                    self.gid_output.Writeresults(self.FEMDEM_Solution.FEM_Solution.time)
+                    self.FEMDEM_Solution.FEM_Solution.time_old_print = self.FEMDEM_Solution.FEM_Solution.time

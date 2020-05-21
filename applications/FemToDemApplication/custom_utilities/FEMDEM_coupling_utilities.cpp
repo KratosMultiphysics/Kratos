@@ -231,9 +231,9 @@ void FEMDEMCouplingUtilities::RemoveDuplicates(
     ModelPart& rModelPart
     )
 {
-    rModelPart.Conditions().Unique();
+    // rModelPart.Conditions().Unique();
     rModelPart.Nodes().Unique();
-    rModelPart.Elements().Unique();
+    // rModelPart.Elements().Unique();
 }
 
 } // namespace Kratos

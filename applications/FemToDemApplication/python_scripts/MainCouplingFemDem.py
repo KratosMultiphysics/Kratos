@@ -798,6 +798,7 @@ class MainCoupledFemDem_Solution:
 
 #PrintResults============================================================================================================================
     def PrintResults(self):
+
         print_parameters = self.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]
         if self.FEM_Solution.step == 1: # always print the 1st step
             self.gid_output.Writeresults(self.FEM_Solution.time)
@@ -810,10 +811,14 @@ class MainCoupledFemDem_Solution:
             else:
                 time_to_print = self.FEM_Solution.time - self.FEM_Solution.time_old_print
 
-            if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEM_Solution.delta_time:
-                self.gid_output.Writeresults(self.FEM_Solution.time)
-                self.FEM_Solution.time_old_print = self.FEM_Solution.time
-                self.FEM_Solution.step_old_print = self.FEM_Solution.step
+            if print_parameters["output_control_type"].GetString() == "step":
+                if print_parameters["output_frequency"].GetInt() - time_to_print == 0:
+                    self.gid_output.Writeresults(self.FEM_Solution.time)
+                    self.FEM_Solution.step_old_print = self.FEMDEMolution.FEM_Solution.step
+            else:
+                if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEM_Solution.delta_time:
+                    self.gid_output.Writeresults(self.FEM_Solution.time)
+                    self.FEM_Solution.time_old_print = self.FEM_Solution.time
 
 #CheckIfHasRemeshed============================================================================================================================
     def CheckIfHasRemeshed(self):
