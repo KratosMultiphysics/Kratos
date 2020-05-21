@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.FemToDemApplication as FEMDEM
 from KratosMultiphysics import MultiFileFlag
 from KratosMultiphysics import GiDPostMode
 from KratosMultiphysics import Logger
@@ -90,6 +91,12 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
         self.mixed_solid_balls_fluid_nodal_results = mixed_solid_balls_fluid_nodal_results
 
         self.solid_gauss_points_results = solid_gauss_points_results
+
+
+        # We reorder the Id of the model parts
+        self.reorder_util = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part, self.balls_model_part)
+        self.reorder_util.Renumber()
+
 
         if self.multi_file == MultiFileFlag.SingleFile:
             print("Singlefile option is not available for the DEM-Structures Coupling application!")
@@ -184,6 +191,9 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
 
         self.write_dem_fem_results(time)
 
+        # We undo the reordering
+        self.reorder_util.UndoRenumber()
+
 
     """ write_dem_fem_results
     """
@@ -204,9 +214,7 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
             self.io.WriteMesh(self.mixed_solid_fluid_model_part.GetMesh())
             self.io.WriteMesh(self.rigid_faces_model_part.GetMesh())
             self.io.FinalizeMesh()
-            self.io.InitializeResults(label, self.mixed_solid_balls_fluid_model_part.GetMesh())
             self.io.InitializeResults(label, self.mixed_solid_balls_model_part.GetMesh())
-            self.io.InitializeResults(label, self.mixed_solid_fluid_model_part.GetMesh())
 
         for var in  self.solid_nodal_results:
             kratos_variable = Kratos.KratosGlobals.GetVariable(var)
