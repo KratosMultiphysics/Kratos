@@ -189,3 +189,71 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
             DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_nodal_results, self.fluid_model_part)
 
         self.write_dem_fem_results(time)
+
+
+    """ write_dem_fem_results
+    """
+    def write_dem_fem_results(self, label):
+        # label = str(label) #it should be a C double
+        # update cut data if necessary
+        out_model_part = self.get_out_model_part(self.solid_model_part)
+
+        # update cut data if necessary
+        if not self.volume_output:
+            self.cut_app.UpdateCutData(out_model_part, self.solid_model_part)
+
+        if self.multi_file == MultiFileFlag.MultipleFiles:
+            self.io.InitializeMesh(label)
+            self.io.WriteSphereMesh(self.balls_model_part.GetMesh())
+            self.io.WriteMesh(self.mixed_solid_balls_fluid_model_part.GetMesh())
+            self.io.WriteMesh(self.mixed_solid_balls_model_part.GetMesh())
+            self.io.WriteMesh(self.mixed_solid_fluid_model_part.GetMesh())
+            self.io.WriteMesh(self.rigid_faces_model_part.GetMesh())
+            self.io.FinalizeMesh()
+            self.io.InitializeResults(label, self.mixed_solid_balls_fluid_model_part.GetMesh())
+            self.io.InitializeResults(label, self.mixed_solid_balls_model_part.GetMesh())
+            self.io.InitializeResults(label, self.mixed_solid_fluid_model_part.GetMesh())
+
+        for var in  self.solid_nodal_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_nodal_results(label, self.solid_model_part, kratos_variable)
+
+        for var in  self.fluid_nodal_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_nodal_results(label, self.fluid_model_part, kratos_variable)
+
+        for var in self.dem_nodal_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_nodal_results(label, self.balls_model_part, kratos_variable)
+
+        for var in self.clusters_nodal_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_nodal_results(label, self.clusters_model_part, kratos_variable)
+
+        for var in self.rigid_faces_nodal_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_nodal_results(label, self.rigid_faces_model_part, kratos_variable)
+
+        for var in self.mixed_solid_balls_fluid_nodal_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_nodal_results(label, self.mixed_solid_balls_fluid_model_part, kratos_variable)
+
+        for var in self.mixed_solid_balls_nodal_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_nodal_results(label, self.mixed_solid_balls_model_part, kratos_variable)
+
+        for var in self.mixed_solid_fluid_nodal_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_nodal_results(label, self.mixed_solid_fluid_model_part, kratos_variable)
+
+        for var in self.solid_gauss_points_results:
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
+            self._write_gp_results(label, self.solid_model_part, kratos_variable)
+
+        if self.multi_file == MultiFileFlag.MultipleFiles:
+            self._finalize_results()
+
+            with open(self.listfilename, "a") as listfile:
+                self.write_step_to_list(label)
+
+            self.write_step_to_outer_list(label)
