@@ -16,10 +16,7 @@
 
 // Project includes
 #include "custom_utilities/mpm_particle_generator_utility.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "particle_mechanics_application_variables.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
+
 
 
 namespace Kratos

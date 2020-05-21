@@ -65,8 +65,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianUP );
     ///@}
 
-    using BaseType::CalculateAndAddKuug;
-
 
 
 public:

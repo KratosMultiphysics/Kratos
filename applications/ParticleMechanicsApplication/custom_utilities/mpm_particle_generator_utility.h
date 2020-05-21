@@ -22,6 +22,13 @@
 #include "includes/define.h"
 #include "particle_mechanics_application_variables.h"
 
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "particle_mechanics_application_variables.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
+
+#include "utilities/variable_utils.h"
+
 
 namespace Kratos
 {
