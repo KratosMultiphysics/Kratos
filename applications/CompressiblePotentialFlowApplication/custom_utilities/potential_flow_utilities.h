@@ -16,8 +16,6 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
-// #include "containers/global_pointers_vector.h"
-// #include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -122,6 +120,12 @@ double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(const array_1d<double
 
 template <int Dim, int NumNodes>
 double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindFactor(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double UpwindFactorSwitch(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
