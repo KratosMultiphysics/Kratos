@@ -76,7 +76,7 @@ public:
     QuadraturePointPartitionedGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
-        : QuadraturePointGeometry(ThisPoints, ThisGeometryShapeFunctionContainer)
+        : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer)
     {
     }
 
@@ -85,7 +85,7 @@ public:
     const PointsArrayType& ThisPoints,
     GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
     GeometryType* pGeometryParent)
-    : QuadraturePointGeometry(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
+    : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
     {
     }
 
@@ -96,8 +96,6 @@ public:
     QuadraturePointPartitionedGeometry(
         QuadraturePointPartitionedGeometry const& rOther )
         : BaseType( rOther )
-        , mGeometryData(rOther.mGeometryData)
-        , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
 
@@ -111,13 +109,10 @@ public:
     {
         BaseType::operator=( rOther );
 
-        mGeometryData = rOther.mGeometryData;
-        mpGeometryParent = rOther.mpGeometryParent;
-
         return *this;
     }
 
-    Matrix& Jacobian(Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const override
+    Matrix& Jacobian(Matrix& rResult, IndexType IntegrationPointIndex, GeometryData::IntegrationMethod ThisMethod) const override
     {
         const SizeType working_space_dimension = this->WorkingSpaceDimension();
         const SizeType local_space_dimension = this->LocalSpaceDimension();
@@ -153,13 +148,7 @@ protected:
 
     /// Standard Constructor
     QuadraturePointPartitionedGeometry()
-        : BaseType(
-            PointsArrayType(),
-            &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            {}, {}, {})
+        : BaseType()
     {
     }
 

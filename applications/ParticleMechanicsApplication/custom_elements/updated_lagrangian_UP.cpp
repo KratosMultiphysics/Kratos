@@ -718,7 +718,8 @@ void UpdatedLagrangianUP::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
 
 void UpdatedLagrangianUP::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
+        const double& rIntegrationWeight,
+        const bool IsAxisymmetric)
 
 {
     KRATOS_TRY

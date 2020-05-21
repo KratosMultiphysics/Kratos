@@ -288,7 +288,8 @@ protected:
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                              GeneralVariables& rVariables,
-                             const double& rIntegrationWeight);
+                             const double& rIntegrationWeight,
+                             const bool IsAxisymmetric = false) override;
 
     /**
      * Calculation of the Kup matrix
