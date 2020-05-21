@@ -196,7 +196,7 @@ class MainCouplingPfemFemDem_Solution:
         self.gid_output = gid_output.FemDemCoupledGiDOutput(
                             filename,
                             True,
-                            "Ascii",
+                            "Binary",
                             "Multiples",
                             True,
                             True,
