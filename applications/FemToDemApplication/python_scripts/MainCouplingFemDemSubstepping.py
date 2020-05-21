@@ -53,7 +53,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
                 self.UpdateDEMVariables()
 
                 # DEM GiD print output
-                self.PrintDEMResults()
+                # self.PrintDEMResults()
 
                 # Advancing in DEM explicit scheme
                 pseudo_substepping_time += self.DEM_Solution.solver.dt
@@ -78,9 +78,6 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
         self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 
-        # Update Coupled Postprocess file for Gid (post.lst)
-        self.WritePostListFile()
-
         # Print required info
         self.PrintPlotsFiles()
         
@@ -94,11 +91,14 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
 
         # write output results GiD: (frequency writing is controlled internally)
-        self.FEM_Solution.GraphicalOutputPrintOutput()
+        # self.FEM_Solution.GraphicalOutputPrintOutput()
 
         # processes to be executed after writting the output
         self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
 
+        if not self.is_slave:
+            self.PrintResults()
+            
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
 

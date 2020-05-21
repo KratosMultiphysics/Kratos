@@ -37,6 +37,7 @@ class MainCoupledFemDem_Solution:
         self.InitializePlotsFiles()
         self.echo_level = 0
         self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.is_slave = False
 
 #============================================================================================================================
     def Run(self):
@@ -158,49 +159,10 @@ class MainCoupledFemDem_Solution:
             if self.DEMFEM_contact:
                 self.TransferFEMSkinToDEM()
             KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
-        
 
         # Initialize the coupled post process
-        mixed_fluid_solid_mp       = self.model.CreateModelPart('mixed_fluid_solid_mp')
-        mixed_fluid_solid_balls_mp = self.model.CreateModelPart('mixed_fluid_solid_balls_mp')
-        mixed_solid_balls_mp       = self.model.CreateModelPart('mixed_solid_balls_mp')
-        dummy_fluid_part           = self.model.CreateModelPart('dummy_fluid_part')
-
-        filename = os.path.join(self.DEM_Solution.post_path, self.DEM_Solution.DEM_parameters["problem_name"].GetString())
-        self.gid_output = gid_output.FemDemCoupledGiDOutput(
-                            filename,
-                            True,
-                            "Binary",
-                            "Multiples",
-                            True,
-                            True,
-                            self.FEM_Solution.main_model_part,
-                            dummy_fluid_part,
-                            self.DEM_Solution.spheres_model_part,
-                            self.DEM_Solution.cluster_model_part,
-                            self.DEM_Solution.rigid_face_model_part,
-                            mixed_fluid_solid_mp,
-                            mixed_solid_balls_mp,
-                            mixed_fluid_solid_balls_mp)
-
-        solid_nodal_results = ["ACCELERATION"]
-        dem_nodal_results = ["TOTAL_FORCES", "RADIUS"]
-        fluid_nodal_results = []
-        clusters_nodal_results = []
-        rigid_faces_nodal_results = []
-        mixed_solid_fluid_nodal_results = []
-        mixed_solid_balls_nodal_results = ["DISPLACEMENT", "VELOCITY"]
-        mixed_solid_balls_fluid_nodal_results = []
-        gauss_points_results = ["CAUCHY_STRESS_VECTOR", "GREEN_LAGRANGE_STRAIN_VECTOR", "DAMAGE_ELEMENT", "STRESS_VECTOR_INTEGRATED"]
-        self.gid_output.initialize_dem_fem_results(solid_nodal_results,
-                                                   fluid_nodal_results,
-                                                   dem_nodal_results,
-                                                   clusters_nodal_results,
-                                                   rigid_faces_nodal_results,
-                                                   mixed_solid_fluid_nodal_results,
-                                                   mixed_solid_balls_nodal_results,
-                                                   mixed_solid_balls_fluid_nodal_results,
-                                                   gauss_points_results)
+        if not self.is_slave:
+            self.InitializePostProcess()
 
 
 #============================================================================================================================
@@ -295,7 +257,8 @@ class MainCoupledFemDem_Solution:
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
         
-        self.PrintResults()
+        if not self.is_slave:
+            self.PrintResults()
 
 #============================================================================================================================
     def Finalize(self):
@@ -978,3 +941,50 @@ class MainCoupledFemDem_Solution:
         return props
 
 #============================================================================================================================
+
+    def InitializePostProcess(self):
+        mixed_fluid_solid_mp       = self.model.CreateModelPart('mixed_fluid_solid_mp')
+        mixed_fluid_solid_balls_mp = self.model.CreateModelPart('mixed_fluid_solid_balls_mp')
+        mixed_solid_balls_mp       = self.model.CreateModelPart('mixed_solid_balls_mp')
+        dummy_fluid_part           = self.model.CreateModelPart('dummy_fluid_part')
+
+        filename = os.path.join(self.DEM_Solution.post_path, self.DEM_Solution.DEM_parameters["problem_name"].GetString())
+        self.gid_output = gid_output.FemDemCoupledGiDOutput(
+                            filename,
+                            True,
+                            "Binary",
+                            "Multiples",
+                            True,
+                            True,
+                            self.FEM_Solution.main_model_part,
+                            dummy_fluid_part,
+                            self.DEM_Solution.spheres_model_part,
+                            self.DEM_Solution.cluster_model_part,
+                            self.DEM_Solution.rigid_face_model_part,
+                            mixed_fluid_solid_mp,
+                            mixed_solid_balls_mp,
+                            mixed_fluid_solid_balls_mp)
+
+        solid_nodal_results = ["ACCELERATION"]
+        dem_nodal_results = ["TOTAL_FORCES", "RADIUS"]
+        fluid_nodal_results = []
+        clusters_nodal_results = []
+        rigid_faces_nodal_results = []
+        mixed_solid_fluid_nodal_results = []
+        mixed_solid_balls_nodal_results = ["DISPLACEMENT", "VELOCITY"]
+        mixed_solid_balls_fluid_nodal_results = []
+
+        gp_list = self.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]["gauss_point_results"]
+        gauss_points_results = []
+        for i in gp_list:
+            gauss_points_results.append(i.GetString())
+
+        self.gid_output.initialize_dem_fem_results(solid_nodal_results,
+                                                   fluid_nodal_results,
+                                                   dem_nodal_results,
+                                                   clusters_nodal_results,
+                                                   rigid_faces_nodal_results,
+                                                   mixed_solid_fluid_nodal_results,
+                                                   mixed_solid_balls_nodal_results,
+                                                   mixed_solid_balls_fluid_nodal_results,
+                                                   gauss_points_results)
