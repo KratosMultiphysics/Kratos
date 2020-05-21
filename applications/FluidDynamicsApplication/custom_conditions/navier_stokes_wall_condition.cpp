@@ -336,7 +336,10 @@ const ConditionDataStruct& data)
 
         ComputeGaussPointBehrSlipLHSContribution( lhs_gauss, data );
 
-        ComputeGaussPointNavierSlipLHSContribution( lhs_gauss, data );
+        if (this->GetValue(SLIP_LENGTH) == -1)
+            ComputeGaussPointSimpleNavierSlipLHSContribution( lhs_gauss, data );
+        else
+            ComputeGaussPointNavierSlipLHSContribution( lhs_gauss, data );
     }
 }
 
@@ -365,7 +368,11 @@ const ConditionDataStruct& data)
 
         ComputeGaussPointBehrSlipRHSContribution( rhs_gauss, data );
 
-        ComputeGaussPointNavierSlipRHSContribution( rhs_gauss, data );
+        if (this->GetValue(SLIP_LENGTH) == -1)
+            ComputeGaussPointSimpleNavierSlipRHSContribution( rhs_gauss, data );
+        else
+            ComputeGaussPointNavierSlipRHSContribution( rhs_gauss, data );
+        
     }
 }
 
@@ -769,7 +776,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
     nGauss /= sqrt(sum_of_squares_n);
 
     // Computing the full stress for the nodes (still in Voigt notation)
-    Vector viscous_stress( voigtSize, 0.0);
+    Vector viscous_stress( 3 * (TDim-1), 0.0);
     viscous_stress = rDataStruct.ViscousStress;
 
     Vector traction = ZeroVector(TDim);
@@ -781,6 +788,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
     //}    
 
     const double beta = 1.0/sum_of_squares_v * Kratos::inner_prod(traction,vGauss);
+    KRATOS_INFO("Navier slip condition, beta") << beta << std::endl;
 
     for(unsigned int inode = 0; inode < TNumNodes; inode++){  
         for(unsigned int jnode = 0; jnode < TNumNodes; jnode++){
@@ -835,7 +843,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
     nGauss /= sqrt(sum_of_squares_n);
 
     // Computing the full stress for the nodes (still in Voigt notation)
-    Vector viscous_stress( voigtSize, 0.0);
+    Vector viscous_stress( 3 * (TDim-1), 0.0);
     viscous_stress = rDataStruct.ViscousStress;
 
     Vector traction = ZeroVector(TDim);
