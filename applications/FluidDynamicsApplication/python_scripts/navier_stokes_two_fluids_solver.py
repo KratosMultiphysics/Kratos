@@ -182,14 +182,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.level_set_convection_process = self._set_level_set_convection_process()
 
-        #Set IS_STRUCTURE to define contact line
-        for node in self.main_model_part.Nodes:
-            node.SetValue(KratosMultiphysics.IS_STRUCTURE, 0.0)
+        #Set IS_STRUCTURE to define contact line: 0.0: not needed, and 1.0: moved to apply_slip_condition
+        #for node in self.main_model_part.Nodes:
+        #    node.SetValue(KratosMultiphysics.IS_STRUCTURE, 0.0)
             
-        for node in (self.main_model_part.GetSubModelPart("Slip3D")).Nodes: #(self.main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
-            node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
-            NodeId = node.Id
-            KratosMultiphysics.Logger.PrintInfo("Wall", NodeId)
+        #for node in (self.main_model_part.GetSubModelPart("Slip3D")).Nodes: #(self.main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
+        #    node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
+        #    NodeId = node.Id
+        #    KratosMultiphysics.Logger.PrintInfo("Wall", NodeId)
 
         #self.distance_modification_process = self._set_distance_modification_process()
         #(self.distance_modification_process).Execute()

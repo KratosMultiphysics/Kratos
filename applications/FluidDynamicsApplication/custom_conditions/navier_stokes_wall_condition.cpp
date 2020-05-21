@@ -744,38 +744,55 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
     array_1d<double, TNumNodes> N = rDataStruct.N;
     const double wGauss = rDataStruct.wGauss;
 
+    Vector tempU = ZeroVector(TNumNodes*(TDim+1));
+    Vector vGauss = ZeroVector(TDim);
+    Vector nGauss = ZeroVector(TDim);
+
     for(unsigned int inode = 0; inode < TNumNodes; inode++){
 
-        // finding the nodal projection matrix nodal_projection_matrix = ( [I] - (na)(na) )
-        BoundedMatrix<double, TNumNodes, TNumNodes> nodal_projection_matrix;
-        array_1d<double,3> nodal_normal = rGeom[inode].FastGetSolutionStepValue(NORMAL);
-        double sum_of_squares = 0.0;
-        for (unsigned int j = 0; j < 3; j++){
-            sum_of_squares += nodal_normal[j] * nodal_normal[j];
+        for (unsigned int i = 0; i < TDim; i++){
+            tempU[inode*(TDim + 1) + i] = rGeom[inode].FastGetSolutionStepValue(VELOCITY)[i];
         }
-        nodal_normal /= sqrt(sum_of_squares);
-        FluidElementUtilities<3>::SetTangentialProjectionMatrix( nodal_normal, nodal_projection_matrix );
 
-        // finding the coefficent to relate velocity to drag
-        const double viscosity = rGeom[inode].GetSolutionStepValue(DYNAMIC_VISCOSITY);
-        const double navier_slip_length = rGeom[inode].GetValue(SLIP_LENGTH);
-        KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
-        const double nodal_beta = viscosity / navier_slip_length;
+        vGauss += N[inode] * rGeom[inode].FastGetSolutionStepValue(VELOCITY);
+        nGauss += N[inode] * rGeom[inode].FastGetSolutionStepValue(NORMAL);
+    }
 
+    double sum_of_squares_v = 0.0;
+    double sum_of_squares_n = 0.0;
+    for (unsigned int i = 0; i < TDim; i++){
+        sum_of_squares_v += vGauss[i] * vGauss[i];
+        sum_of_squares_n += nGauss[i] * nGauss[i];
+    }
+    nGauss /= sqrt(sum_of_squares_n);
+
+    // Computing the full stress for the nodes (still in Voigt notation)
+    Vector viscous_stress( voigtSize, 0.0);
+    viscous_stress = rDataStruct.ViscousStress;
+
+    Vector traction = ZeroVector(TDim);
+    KRATOS_ERROR_IF( TDim != 3 ) << "For 2D, complete the code in navier_stokes_wall_condition." << std::endl;
+    //if (TDim == 3){
+        traction[0] = viscous_stress[0]*nGauss[0] + viscous_stress[3]*nGauss[1] + viscous_stress[5]*nGauss[2];
+        traction[1] = viscous_stress[1]*nGauss[1] + viscous_stress[3]*nGauss[0] + viscous_stress[4]*nGauss[2];
+        traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
+    //}    
+
+    const double beta = 1.0/sum_of_squares_v * Kratos::inner_prod(traction,vGauss);
+
+    for(unsigned int inode = 0; inode < TNumNodes; inode++){  
         for(unsigned int jnode = 0; jnode < TNumNodes; jnode++){
-
-            const BoundedMatrix<double, TNumNodes, TNumNodes> nodal_lhs_contribution = wGauss * nodal_beta * N[inode] * N[jnode] * nodal_projection_matrix;
-
-            for( unsigned int i = 0; i < TNumNodes; i++){
-                for( unsigned int j = 0; j < TNumNodes; j++){
-
-                    const unsigned int istart = inode * (TNumNodes+1);
-                    const unsigned int jstart = jnode * (TNumNodes+1);
-                    rLeftHandSideMatrix(istart + i, jstart + j) += nodal_lhs_contribution(i,j);
-                }
+            for( unsigned int i = 0; i < TDim; i++){
+                //{ Careful: no need to loop over dimension_j
+                    const unsigned int istart = inode * (TDim + 1);
+                    const unsigned int jstart = jnode * (TDim + 1);
+                    rLeftHandSideMatrix(istart + i, jstart + i) += wGauss * beta * N[inode] * N[jnode];
+                //}
             }
         }
     }
+
+    rRightHandSideVector -= prod(rLeftHandSideMatrix,tempU);
 
     KRATOS_CATCH("")
 }

@@ -87,9 +87,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
-        const double beta_in = 1.0e2;
-        const double beta_out = 1.0e2;
-        const double beta_contact = 1.0e-3;
+        //const double beta_in = 1.0e2;
+        //const double beta_out = 1.0e2;
+        //const double beta_contact = 1.0e-3;
         const double zeta = 0.0e0;
         const double surface_tension_coefficient = 0.1; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
         const double contact_line_coefficient = -0.5*surface_tension_coefficient;
@@ -5480,7 +5480,7 @@ void TwoFluidNavierStokes<TElementData>::ContactSurfaceDissipation(
     const unsigned int n_dim = n_nodes - 1;
     unsigned int i_face = 0;
 
-    while (i_face < n_faces && not_found_contact) {
+    while (i_face < n_faces && not_found_contact) { // allows ONLY ONE face to be solid (slip) surface
         GeometryType& r_face = faces[i_face];
         //KRATOS_INFO("ContactSurfaceDissipation, i_face") << i_face << std::endl;
         unsigned int contact_node = 0;

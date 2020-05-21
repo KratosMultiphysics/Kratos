@@ -46,7 +46,9 @@ class ApplySlipProcess(KratosMultiphysics.Process):
 
         for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.SLIP, True)
-            node.SetValue(KratosMultiphysics.Y_WALL,0.0)
+            node.SetValue(KratosMultiphysics.Y_WALL, 0.0)
+            if self.simple_navier_slip:
+                node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
 
         if self.navier_slip_active:
             KratosMultiphysics.Logger.PrintInfo("ApplySlipProcess","Navier slip is active")
