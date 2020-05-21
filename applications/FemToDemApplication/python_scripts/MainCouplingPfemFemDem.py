@@ -218,12 +218,7 @@ class MainCouplingPfemFemDem_Solution:
         mixed_solid_balls_nodal_results = ["DISPLACEMENT"]
         mixed_solid_balls_fluid_nodal_results = ["VELOCITY"]
 
-        gp_list = self.FEMDEM_Solution.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]["gauss_point_results"]
-        gauss_points_results = []
-        for i in gp_list:
-            gauss_points_results.append(i.GetString())
-
-        gauss_points_results = ["CAUCHY_STRESS_VECTOR", "DAMAGE_ELEMENT", "STRESS_VECTOR_INTEGRATED"]
+        gauss_points_results = ["CAUCHY_STRESS_VECTOR", "DAMAGE_ELEMENT", "STRESS_VECTOR_INTEGRATED", "GREEN_LAGRANGE_STRAIN_VECTOR"]
 
         self.gid_output.initialize_dem_fem_results(solid_nodal_results,
                                                    fluid_nodal_results,
