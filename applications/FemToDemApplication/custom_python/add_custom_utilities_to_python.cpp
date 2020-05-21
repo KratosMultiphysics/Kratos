@@ -66,7 +66,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
         .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
         .def("Renumber",&RenumberingNodesUtility::Renumber)
+        .def("RenumberElements",&RenumberingNodesUtility::RenumberElements)
         .def("UndoRenumber",&RenumberingNodesUtility::UndoRenumber)
+        .def("UndoRenumberElements",&RenumberingNodesUtility::UndoRenumberElements)
         ;
 }
 

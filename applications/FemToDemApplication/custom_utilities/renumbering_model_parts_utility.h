@@ -83,6 +83,32 @@ void UndoRenumber() {
     }
 }
 
+void RenumberElements() {
+    int id = 1;
+    for (int i=0; i<(int)mListOfModelParts.size(); i++){
+        ModelPart& mp = *mListOfModelParts[i];
+        std::map<int,int>& new_to_old = mListOfMapsOfIdsNewToOld[i];
+
+        for (int j = 0; j < (int)mp.Elements().size(); j++){
+            auto it = mp.ElementsBegin() + j;
+            new_to_old[id] = it->Id();
+            it->SetId(id);
+            id++;
+        }
+    }
+}
+
+void UndoRenumberElements() {
+    for (int i=0; i<(int)mListOfModelParts.size(); i++){
+        ModelPart& mp = *mListOfModelParts[i];
+        std::map<int,int>& new_to_old = mListOfMapsOfIdsNewToOld[i];
+
+        for (int j = 0; j < (int)mp.Elements().size(); j++){
+            auto it = mp.ElementsBegin() + j;
+            it->SetId(new_to_old[it->Id()]);
+        }
+    }
+}
 
 
 private:

@@ -157,9 +157,11 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
     def Writeresults(self, time):
 
         # We reorder the Id of the model parts
-        self.reorder_util = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part, self.balls_model_part)
-        self.reorder_util.Renumber()
-        
+        reorder_util = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part, self.balls_model_part)
+        reorder_util.Renumber()
+        reorder_util_elem = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part)
+        reorder_util_elem.RenumberElements()
+
         Logger.PrintInfo("","")
         Logger.PrintInfo("","*****************  PRINTING RESULTS FOR GID  *************************")
         Logger.Flush()
@@ -175,22 +177,24 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
             self.mixed_solid_balls_fluid_model_part.Nodes.clear()
 
             # Now we fill the mixed MDPA in order to print
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_fluid_model_part, self.solid_model_part)
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_fluid_model_part, self.fluid_model_part)
+            post_utils = DEMApplication.PostUtilities()
+            post_utils.AddModelPartToModelPart(self.mixed_solid_fluid_model_part, self.solid_model_part)
+            post_utils.AddModelPartToModelPart(self.mixed_solid_fluid_model_part, self.fluid_model_part)
 
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_model_part, self.balls_model_part)
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_model_part, self.rigid_faces_model_part)
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_model_part, self.solid_model_part)
+            post_utils.AddModelPartToModelPart(self.mixed_solid_balls_model_part, self.balls_model_part)
+            post_utils.AddModelPartToModelPart(self.mixed_solid_balls_model_part, self.rigid_faces_model_part)
+            post_utils.AddModelPartToModelPart(self.mixed_solid_balls_model_part, self.solid_model_part)
 
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.balls_model_part)
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.rigid_faces_model_part)
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.solid_model_part)
-            DEMApplication.PostUtilities().AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.fluid_model_part)
+            post_utils.AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.balls_model_part)
+            post_utils.AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.rigid_faces_model_part)
+            post_utils.AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.solid_model_part)
+            post_utils.AddModelPartToModelPart(self.mixed_solid_balls_fluid_model_part, self.fluid_model_part)
 
         self.write_dem_fem_results(time)
 
         # We undo the reordering
-        self.reorder_util.UndoRenumber()
+        reorder_util.UndoRenumber()
+        reorder_util_elem.UndoRenumberElements()
 
 
     """ write_dem_fem_results
