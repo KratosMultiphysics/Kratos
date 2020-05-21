@@ -20,6 +20,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/FEMDEM_coupling_utilities.h"
 #include "custom_utilities/aitken_relaxation_femdem_utility.hpp"
+#include "custom_utilities/renumbering_model_parts_utility.h"
 
 namespace Kratos
 {
@@ -56,6 +57,16 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeInterfaceResidualVector", &AitkenRelaxationFEMDEMUtility::ComputeInterfaceResidualVector)
         .def("UpdateInterfaceValues", &AitkenRelaxationFEMDEMUtility::UpdateInterfaceValues)
         .def("ResetPFEMkinematicValues", &AitkenRelaxationFEMDEMUtility::ResetPFEMkinematicValues)
+        ;
+
+    py::class_<RenumberingNodesUtility>(m,"FEMDEMCouplingUtilities")
+        .def(py::init<ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &,ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
+        .def("Renumber",&RenumberingNodesUtility::Renumber)
+        .def("UndoRenumber",&UndoRenumber::InterpolateStructuralSolution)
         ;
 }
 
