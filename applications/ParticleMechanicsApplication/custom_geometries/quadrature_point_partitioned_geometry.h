@@ -68,6 +68,10 @@ public:
     typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
     typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
 
+    using BaseType::ShapeFunctionsValues;
+    using BaseType::ShapeFunctionsLocalGradients;
+    using BaseType::Jacobian;
+
     ///@}
     ///@name Life Cycle
     ///@{

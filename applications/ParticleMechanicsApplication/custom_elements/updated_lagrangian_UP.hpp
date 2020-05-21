@@ -65,6 +65,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianUP );
     ///@}
 
+    using BaseType::CalculateAndAddKuug;
 
 
 
@@ -283,13 +284,13 @@ protected:
                              GeneralVariables& rVariables,
                              const double& rIntegrationWeight) override;
 
+
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                              GeneralVariables& rVariables,
-                             const double& rIntegrationWeight,
-                             const bool IsAxisymmetric = false) override;
+                             const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kup matrix

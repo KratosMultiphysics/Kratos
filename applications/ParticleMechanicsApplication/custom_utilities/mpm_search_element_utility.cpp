@@ -126,7 +126,7 @@ namespace Kratos
             array_1d<double, 3> dummy_local_coords;
         bool is_coincident;
         for (size_t i = 0; i < rPoints.size(); ++i) {
-            if (!rReferenceGeom.IsInside(rPoints[i], dummy_local_coords), Tolerance) {
+            if (!rReferenceGeom.IsInside(rPoints[i], dummy_local_coords, Tolerance)) {
                 // the test point may directly lie on one of the ref geom nodes - test this
                 is_coincident = false;
                 for (size_t j = 0; j < rReferenceGeom.PointsNumber(); ++j) {
