@@ -124,7 +124,7 @@ jobs:
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
           -DBOOST_ROOT="%BOOST_ROOT_1_72_0%"                 ^
           -DINSTALL_RUNKRATOS=OFF                            ^
-          -DCMAKE_CXX_FLAGS="/Od"                            ^
+          -DCMAKE_CXX_FLAGS="/Od /we4661"                            ^
           -DUSE_COTIRE=ON                                    || goto :error
 
         cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
