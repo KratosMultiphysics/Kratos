@@ -434,15 +434,26 @@ private:
                                                         const ConditionDataStruct& rDataStruct );
 
     /**
-     * @brief Computes the Navier slip dissipative force contribution to the left-hand side and right-hand side
+     * @brief Computes the Navier slip dissipative force contribution to the right-hand side
+     * Since only tangential velocities should appear, a tangetial projection is not introduced.
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rDataStruct reference to a struct to hand over data
+     */
+    void ComputeGaussPointSimpleNavierSlipRHSContribution( 
+                /* BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix, */
+                array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
+                const ConditionDataStruct& rDataStruct );
+    
+    /**
+     * @brief Computes the Navier slip dissipative force contribution to the left-hand side
      * Since only tangential velocities should appear, a tangetial projection is not introduced.
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rRightHandSideVector reference to the RHS vector
      * @param rDataStruct reference to a struct to hand over data
      */
-    void ComputeGaussPointSimpleNavierSlipContribution( 
+    void ComputeGaussPointSimpleNavierSlipLHSContribution( 
                 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
-                array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
+                /* array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector, */
                 const ConditionDataStruct& rDataStruct );
     
     ///@}
