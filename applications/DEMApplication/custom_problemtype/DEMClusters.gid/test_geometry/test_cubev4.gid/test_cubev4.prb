@@ -1,0 +1,38 @@
+PROBLEM DATA
+TITLE: Sphere_Tree_Algorithm_Settings
+QUESTION: Algorithm#CB#(MakeTreeMedial,MakeTreeSpawn,MakeTreeGrid,MakeTreeHubbard,MakeTreeOctree)
+VALUE: MakeTreeHubbard
+DEPENDENCIES: (MakeTreeMedial,RESTORE,branch,#CURRENT#)(MakeTreeGrid,HIDE,branch,8)(MakeTreeSpawn,HIDE,branch,8)(MakeTreeOctree,HIDE,branch,8)(MakeTreeOctree,HIDE,testerLevels,2)(MakeTreeOctree,HIDE,numCover,10000)(MakeTreeOctree,HIDE,minCover,5)
+QUESTION: branch
+VALUE: 8
+HELP: Only valid for Medial and Hubbard algorithms
+QUESTION: depth
+VALUE: 3
+HELP: Valid for all algorithms
+QUESTION: testerLevels
+VALUE: 2
+HELP: Only valid for Medial, Spawn and Grid algorithms
+QUESTION: numCover
+VALUE: 10000
+HELP: Only valid for Medial, Spawn and Grid algorithms
+QUESTION: minCover
+VALUE: 5
+HELP: Only valid for Medial, Spawn and Grid algorithms
+QUESTION: initSpheres
+VALUE: 1000
+HELP: Only valid for Medial algorithm
+QUESTION: minSpheres
+VALUE: 200
+HELP: Only valid for Medial algorithm
+QUESTION: erFact
+VALUE: 2
+HELP: Only valid for Medial algorithm
+QUESTION: numSamples
+VALUE: 500
+HELP: Only valid for Hubbard algorithm
+QUESTION: minSamples
+VALUE: 1
+HELP: Only valid for Hubbard algorithm
+END PROBLEM DATA
+INTERVAL DATA
+END INTERVAL DATA

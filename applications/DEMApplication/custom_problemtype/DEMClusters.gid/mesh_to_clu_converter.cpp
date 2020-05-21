@@ -10,8 +10,8 @@
 void Diagonalize(const double (&A)[3][3], double (&Q)[3][3], double (&D)[3][3]);
 
 int main() {
-    std::ifstream infile("generic_msh.msh");
-    std::ifstream infilesph("generic_sph.sph");
+    std::ifstream infile("generic.msh");
+    std::ifstream infilesph("generic-hubbard.sph");
     std::string line, linesph;
     infile.ignore(80,'\n'); infile.ignore(80,'\n');
 
@@ -393,7 +393,6 @@ int main() {
     }
     outputfile << "End centers_and_radii\n\n";
     outputfile << "Particle_center_and_diameter\n" << CenterX << " " << CenterY << " " << CenterZ << " " << diameter << "\n\n";
-//     outputfile << "Size\n" << characteristic_size << "\n\n" << "Volume\n" << total_volume << "\n\n";
     outputfile << "Size\n" << diameter << "\n\n" << "Volume\n" << total_volume << "\n\n";
     outputfile << "Inertia per unit mass\n" << D[0][0] << '\n' << D[1][1] << '\n' << D[2][2] << '\n';
 

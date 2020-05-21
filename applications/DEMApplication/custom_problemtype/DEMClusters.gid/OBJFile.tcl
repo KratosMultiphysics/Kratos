@@ -42,9 +42,15 @@ proc GenerateOBJFile { basename dir problemtypedir } {
         lappend triangle_nodes {*}$nodes ;                              # add those nodes to the nodes_to_delete list
     }
 
+    
+
 
     ## Nodes only if belong to any triangle
     set Nodes [GiD_Info Mesh Nodes]
+    W $Nodes
+    W $triangle_nodes
+    W "________________________________________"
+
     #puts $FileVar "Ordered vertex list only if associated with any face triangle"
     for {set i 0} {$i < [llength $Nodes]} {incr i 4} {
         if {[lindex $Nodes $i] in $triangle_nodes} {
@@ -76,9 +82,11 @@ proc GenerateOBJFile { basename dir problemtypedir } {
     dict set node_db_counter $aux 0
     dict unset node_db_counter $aux
 
-    foreach element_id $triangles { ;
-        W "___________next element of the list"
+    foreach element_id $triangles { ;       
+        W "___________next element of the list"   
+        W $element_id 
         set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
+        W $nodes
         set ElementNormal_x [lrange [GiD_Mesh get element $element_id normal] 0 0] ; 
         set ElementNormal_y [lrange [GiD_Mesh get element $element_id normal] 1 1] ; 
         set ElementNormal_z [lrange [GiD_Mesh get element $element_id normal] 2 2] ; 
@@ -167,19 +175,18 @@ proc GenerateOBJFile { basename dir problemtypedir } {
     W $normals_y
     W $normals_z
 
-    # foreach component1 $normals_x component2 $normals_y component3 $normals_z {
-    #     lappend normals $component1 $component2 $component3 ;
-    # }
-    # # W $normals
-
-    # normalization is required.
+    # normalization is not required according to documentation. 
+    # List of vertex normals in (x,y,z) form; normals might not be unit vectors.
+    # verify that your geometry have all the normals pointing inside the volume.
     foreach component1 $normals_x component2 $normals_y component3 $normals_z {
         set magnitude [expr { sqrt( $component1 * $component1 + $component2 * $component2 + $component3 * $component3) }]
         set component1_normalized [expr { $component1/$magnitude }]
         set component2_normalized [expr { $component2/$magnitude }]
         set component3_normalized [expr { $component3/$magnitude }]
-        lappend normals $component1_normalized $component2_normalized $component3_normalized ;
+        #lappend normals $component1_normalized $component2_normalized $component3_normalized ;
+        lappend normals $component1 $component2 $component3 ;
     }
+    W "vector con todas las normales x y z,..."
     W $normals
 
     puts $FileVar " "

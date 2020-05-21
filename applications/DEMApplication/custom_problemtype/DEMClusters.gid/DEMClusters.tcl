@@ -23,10 +23,17 @@
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ## 
 
-##- Are ALL calculated Vertex normals correct? 
+##- Are ALL calculated Vertex normals correct? verified manually with testcubev4
 ##- Sphere tree paths with spaces 
 ##- Dependencies in prb
+##- verify that your geometry have all the normals coherent.
+##- spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples 
+##- even if spheretree works as expected, it throw an error when finalizing.
+##- add export gidmesh as generic.msh
 ##- Calling external precompiled cpp (already modified)
+##- when executing mesh to clu, if we delete only the first line, it generates an invalid cluster with 
+##  considering all the 0.000000 0.000000 0.000000 -0.000500 as valid spheres
+## only deleting first line + 0.000000 0.000000 0.000000 lines is required
 
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -96,8 +103,7 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 }
 
 proc GenerateSPHFileFromOBJFile { } {
-
-    # TODO: linked to GenerateSPHFileFromOBJFile button. On pressing Button, execute GenerateSPHFileFromOBJFile.
+    # TODO: On pressing Button, execute GenerateSPHFileFromOBJFile.
     call_SphereTree
 }
 
@@ -285,8 +291,7 @@ proc DEMClusters::call_makeTreeHubbard { } {
     # -branch             Branching factor of sphere-tree
     # -numSamples         Number of sample points to cover object with
     # -minSamples         Minimum number of sample points per triangle
-    # makeTreeHubbard  -branch 8 -depth 3 -numSamples 500 -minSamples 1
-    #                  -nopause  bunny-1500.obj
+    # makeTreeHubbard  -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause generic.obj
 }
 
 
