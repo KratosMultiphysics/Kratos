@@ -214,9 +214,9 @@ class MainCouplingPfemFemDem_Solution:
         fluid_nodal_results = ["PRESSURE"]
         clusters_nodal_results = []
         rigid_faces_nodal_results = []
-        mixed_solid_fluid_nodal_results = []
+        mixed_solid_fluid_nodal_results = ["VELOCITY"]
         mixed_solid_balls_nodal_results = []
-        mixed_solid_balls_fluid_nodal_results = ["VELOCITY"]
+        mixed_solid_balls_fluid_nodal_results = []
 
         gauss_points_results = ["CAUCHY_STRESS_VECTOR", "DAMAGE_ELEMENT", "STRESS_VECTOR_INTEGRATED", "GREEN_LAGRANGE_STRAIN_VECTOR"]
 

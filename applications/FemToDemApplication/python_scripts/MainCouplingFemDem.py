@@ -814,7 +814,7 @@ class MainCoupledFemDem_Solution:
             if print_parameters["output_control_type"].GetString() == "step":
                 if print_parameters["output_frequency"].GetInt() - time_to_print == 0:
                     self.gid_output.Writeresults(self.FEM_Solution.time)
-                    self.FEM_Solution.step_old_print = self.FEMDEMolution.FEM_Solution.step
+                    self.FEM_Solution.step_old_print = self.FEM_Solution.step
             else:
                 if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEM_Solution.delta_time:
                     self.gid_output.Writeresults(self.FEM_Solution.time)
@@ -970,13 +970,13 @@ class MainCoupledFemDem_Solution:
                             mixed_solid_balls_mp,
                             mixed_fluid_solid_balls_mp)
 
-        solid_nodal_results = ["ACCELERATION"]
+        solid_nodal_results = ["DISPLACEMENT", "ACCELERATION", "VELOCITY"]
         dem_nodal_results = ["TOTAL_FORCES", "RADIUS"]
         fluid_nodal_results = []
         clusters_nodal_results = []
         rigid_faces_nodal_results = []
         mixed_solid_fluid_nodal_results = []
-        mixed_solid_balls_nodal_results = ["DISPLACEMENT", "VELOCITY"]
+        mixed_solid_balls_nodal_results = []
         mixed_solid_balls_fluid_nodal_results = []
 
         gp_list = self.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]["gauss_point_results"]

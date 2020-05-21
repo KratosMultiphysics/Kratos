@@ -227,7 +227,7 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
             # self.io.WriteMesh(self.solid_model_part.GetMesh())
             self.io.WriteMesh(self.mixed_solid_balls_fluid_model_part.GetMesh())
             self.io.FinalizeMesh()
-            self.io.InitializeResults(label, self.mixed_solid_balls_model_part.GetMesh())
+            self.io.InitializeResults(label, self.mixed_solid_balls_fluid_model_part.GetMesh())
 
         for var in  self.solid_nodal_results:
             kratos_variable = Kratos.KratosGlobals.GetVariable(var)
