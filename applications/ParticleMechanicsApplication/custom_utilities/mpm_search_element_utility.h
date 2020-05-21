@@ -149,7 +149,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    const bool CheckAllPointsAreInGeom(
+    bool CheckAllPointsAreInGeom(
         const std::vector<array_1d<double, 3>>& rPoints,
         const GeometryType& rReferenceGeom,
         const double Tolerance)
@@ -203,7 +203,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    const bool CheckNoPointsAreInGeom(
+    bool CheckNoPointsAreInGeom(
         const std::vector<array_1d<double, 3>>& rPoints,
         const GeometryType& rReferenceGeom,
         const double Tolerance)
