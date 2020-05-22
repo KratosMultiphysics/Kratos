@@ -18,7 +18,7 @@ def plainFlag(self,values):
         elementary_flags.append(new_elementary_flag)
     return self._interpreter(elementary_flags)
 
-# @ExaquteTask(returns=1)
+@ExaquteTask(returns=1)
 def plainFlag_Task(*args):
     """
     This method is identical to plainFlag but for the task decorator.

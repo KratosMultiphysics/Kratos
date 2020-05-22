@@ -6,11 +6,6 @@ from xmc.tools import unpackedList
 # import python libraries
 from math import *
 
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
-
 class MomentEstimator(se.StatisticalEstimator):
     """
     This class estimates raw and central moments up to a given order (including
@@ -50,7 +45,7 @@ class MomentEstimator(se.StatisticalEstimator):
         self._rawMomentErrorComputer = dynamicImport(keywordArgs.get('rawMomentErrorComputer',None))
         # updatedPowerSums method (conditional default value)
         default_power_sums_update='xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder'\
-            +str(self.powerSumsOrder())+'Dimension'+str(indexSetDimension)
+            +str(self.powerSumsOrder())+'Dimension'+str(indexSetDimension)+'_Task'
         self._updatedPowerSums = dynamicImport(keywordArgs.get('updatedPowerSums', default_power_sums_update))
 
     def update(self,samples):
@@ -193,7 +188,7 @@ class CombinedMomentEstimator(MomentEstimator):
         self._rawMomentErrorComputer = dynamicImport(keywordArgs.get('rawMomentErrorComputer',None))
 
         # updatedPowerSums method (conditional default value)
-        default_power_sums_update='xmc.methodDefs_momentEstimator.updateCombinedPowerSums.updatePowerSumsOrder'+str(self.powerSumsOrder())+'Dimension'+str(self.indexSetDimension)
+        default_power_sums_update='xmc.methodDefs_momentEstimator.updateCombinedPowerSums.updatePowerSumsOrder2Dimension'+str(self.indexSetDimension)+'_Task'
         self._updatedPowerSums = dynamicImport(keywordArgs.get('updatedTimePowerSums', default_power_sums_update))
 
     def update(self,samples):

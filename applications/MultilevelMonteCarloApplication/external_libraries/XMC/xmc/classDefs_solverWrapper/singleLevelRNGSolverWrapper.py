@@ -10,31 +10,33 @@ import xmc.solverWrapper as sw
 class SingleLevelRNGSolverWrapper(sw.SolverWrapper):
     """
     solveWrapper type whose solve method accepts a random number
-    and returns it in a list of size self.ouptutDimension
+    and returns it in a list of size the number of QoI
 
-    Constructor arguments - 
+    Constructor arguements - 
     solverWrapperIndex - Index-space position of the solverWrapper instance
     """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if self.outputDimension is None:
-            self.outputDimension = 1
 
     # TODO - this is a temporary solution for changing futures list
     # to list of futures
     @ExaquteTask(returns=2)
-    def _drawSample_Task(self,randomInput):
+    def solveForOneQoI_Task(self,randomInput):
+        qoi = None
         start_time = time.time()
         if all([component>=0 for component in self.solverWrapperIndex]):
-            sample = randomInput[0]
+            qoi = randomInput[0]
         else:
-            sample = 0
+            qoi = 0
         end_time = time.time()
-        return sample, (end_time-start_time)
+        return qoi, (end_time-start_time)
 
     def solve(self, randomInput):
-        # TODO is it necessary to call a task here?
-        sample,totalTime = self._drawSample_Task(randomInput)
-        sample = [sample]*self.outputDimension
-        return sample,totalTime
+        # TODO Change hard coding
+        number_of_qoi = 1
+        # TODO Everything will work if the solve method returns a list of QoI-futures
+        # and an associated time-future that it took to compute the list
+        qoi,time_for_all_qoi = self.solveForOneQoI_Task(randomInput)
+        list_of_qoi = [qoi]*number_of_qoi
+        return list_of_qoi,time_for_all_qoi

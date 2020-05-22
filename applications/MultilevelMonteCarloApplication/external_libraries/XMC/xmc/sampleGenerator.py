@@ -6,6 +6,8 @@ from exaqute.ExaquteTaskLocal import *      # to execute with python3
 # Import XMC methods
 from xmc.tools import dynamicImport
 from xmc.tools import instantiateObject
+from xmc.tools import sum_Task
+from xmc.tools import unpackedList
 
 class SampleGenerator():
     """
@@ -14,14 +16,14 @@ class SampleGenerator():
 
     def __init__(self, **keywordArgs):
         # Attributes
-        self.randomGenerator = instantiateObject(keywordArgs.get('randomGenerator'),**keywordArgs.get('randomGeneratorInputDictionary'))
+        self.randomGenerator = instantiateObject(keywordArgs.get('randomGenerator'),**keywordArgs.get('randomGeneratorInputDict'))
         self.qoiProcessor = dynamicImport(keywordArgs.get('qoiProcessor', 'xmc.tools.returnInput'))
 
         solver_wrapper_indices = keywordArgs.get('solverWrapperIndices')
         self.solvers = []
         for sw_index in solver_wrapper_indices:
-            keywordArgs['solverWrapperInputDictionary']['index'] = sw_index
-            self.solvers.append(instantiateObject(keywordArgs.get('solverWrapper'),**keywordArgs.get('solverWrapperInputDictionary')))
+            keywordArgs['solverWrapperInputDict']['index'] = sw_index
+            self.solvers.append(instantiateObject(keywordArgs.get('solverWrapper'),**keywordArgs.get('solverWrapperInputDict')))
 
     def qoiFromRaw(self, rawSolutions):
         """
@@ -46,12 +48,10 @@ class SampleGenerator():
             raw_solution,time_for_qoi = self.solvers[i].solve(randomInputs[i])
             raw_solutions.append(raw_solution)
             times_for_qoi.append(time_for_qoi)
-        # raw_solutions: [[future, future, .. ], [future, future, .. ]] =
-        # = [ [ [QoI_1^l,...,QoI_outputBatchSize^l],[QoI_outputBatchSize+1^l,...,QoI_2*outputBatchSize^l], .. ],
-        #     [ [QoI_1^l-1,...,QoI_outputBatchSize^l-1],[QoI_outputBatchSize+1^l-1,...,QoI_2*outputBatchSize^l-1],
-        #   .. ] ]
-
         return raw_solutions, times_for_qoi
+
+    def rearrangeListOfQoI(self,listOfQoI):
+        return list(map(list, zip(*listOfQoI)))
 
     def generate(self, indexValue):
         """
@@ -61,14 +61,22 @@ class SampleGenerator():
         random_inputs = self.randomInput()
 
         # Generate the list [[QoI_1^l,...,QoI_N^l],[QoI_1^(l-1),...,QoI_N^(l-1)],...]
-        raw_solutions, list_of_time = self.rawSolutions(random_inputs)
+        raw_solutions, times_for_qoi = self.rawSolutions(random_inputs)
+
         # Do additional processing
         list_of_qoi = self.qoiFromRaw(raw_solutions)
 
-        return list_of_qoi, list_of_time
+        # Rearrange list to generate [[QoI_1^l, QoI_1^(l-1), ...],...,[QoI_N^l, QoI_N^(l-1), ...]]
+        list_of_qoi = self.rearrangeListOfQoI(list_of_qoi)
+
+        # Add together times
+        total_time = sum_Task(*unpackedList(times_for_qoi))
+
+        return list_of_qoi, total_time
 
     def numberOfOutputs(self,solverChoice=0):
-        return self.solvers[solverChoice].outputDimension
+        #TODO Should be named numberOfOutputs instead of number_qoi
+        return self.solvers[solverChoice].number_qoi
 
-    def sizeOfQoiLists(self,solverChoice=0):
-        return self.solvers[solverChoice].outputBatchSize
+    def numberOfCombinedOutputs(self,solverChoice=0):
+        return self.solvers[solverChoice].number_combined_qoi

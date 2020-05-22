@@ -4,12 +4,7 @@ from xmc.tools import getUnionAndMap
 from xmc.tools import splitOneListIntoTwo
 from xmc.tools import mergeTwoListsIntoOne
 from xmc.tools import unpackedList
-import xmc.methodDefs_monteCarloSampler.asynchronousUpdateGlobalEstimators as mda
-
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+import xmc.methodDefs_monteCarloSampler.asynchronousUpdate as mcsua
 
 class MonteCarloSampler():
     """
@@ -37,6 +32,8 @@ class MonteCarloSampler():
         # asynchronous framework settings
         self.numberBatches = keywordArgs.get('initialNumberBatches',None)
         self.batchIndices = None
+
+
         # Method Objects
         # TODO Define these below
         self.indexSet = None
@@ -90,8 +87,6 @@ class MonteCarloSampler():
         estimations = []
         for i in range(len(assemblerCoordinates)):
             estimations.append(self.assemblers[assemblerCoordinates[i]].assembleEstimation( extracted_hierarchy,*unpackedList(index_estimation_lists[i])))
-        for i in range(len(assemblerCoordinates)):
-            delete_object(extracted_hierarchy,*unpackedList(index_estimation_lists[i]))
         return estimations
 
     def errorEstimation(self, errorEstimatorCoordinates=None):
@@ -145,8 +140,6 @@ class MonteCarloSampler():
         # Delete the positions in self.indices that are not
         # present in newHierarchy
         for i in range(len(list_of_positions_to_remove)):
-            delete_object(*self.indices[list_of_positions_to_remove[i]].qoiEstimator)
-            delete_object(self.indices[list_of_positions_to_remove[i]].costEstimator)
             del self.indices[list_of_positions_to_remove[i]]
 
         # Collect the entries in newHierarchy that are not
@@ -181,6 +174,7 @@ class MonteCarloSampler():
         listOfIndicesToAdd.
         """
         assert(self.indexConstructor is not None),"Index constructor is not defined."
+        new_indices = []
         for i in listOfIndicesToAdd:
             self.indexConstructorDictionary['indexValue']=i
             self.indices.append(self.indexConstructor(**self.indexConstructorDictionary))
@@ -261,16 +255,11 @@ class MonteCarloSampler():
         self.updateIndexSet(newHierarchy)
 
         for i in range(len(self.indices)):
-            self.indices[i].update(newHierarchy[i])
+                self.indices[i].update(newHierarchy[i])
 
         # Update model coefficients for cost, bias, variance with new
         # observations
         self.updatePredictors()
-
-        for level in range (len(self.indices)):
-            # synchronize estimator needed for checking convergence and updating hierarchy
-            self.indices[level].qoiEstimator = get_value_from_remote(self.indices[level].qoiEstimator)
-            self.indices[level].costEstimator = get_value_from_remote(self.indices[level].costEstimator)
 
 
     ####################################################################################################
@@ -332,7 +321,7 @@ class MonteCarloSampler():
         else:
             new_number_batches = 1
         self.numberBatches = self.numberBatches + new_number_batches
-        for _ in range (new_number_batches):
+        for new_batch in range (new_number_batches):
             self.batchIndices.append([])
             self.batchesLaunched.append(False)
             self.batchesExecutionFinished.append(False)
@@ -358,17 +347,98 @@ class MonteCarloSampler():
     def asynchronousFinalize(self,batch):
         # Postprocess on finished batches
         for level in range (len(self.batchIndices[batch])):
-            # update global estimators
-            mda.updateGlobalMomentEstimator_Task(self.indices[level].qoiEstimator,self.batchIndices[batch][level].qoiEstimator,self.indices[level].costEstimator,self.batchIndices[batch][level].costEstimator,batch)
-            # delete COMPSs future objects no longer needed
-            delete_object(*self.batchIndices[batch][level].qoiEstimator,self.batchIndices[batch][level].costEstimator)
+            # Update global qoi estimators
+            for qoi_index in range (self.batchIndices[batch][level].numberOfSamplerOutputs()):
+                if (batch == 0):
+                    self.indices[level].qoiEstimator[qoi_index].powerSums = self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums
+                    self.indices[level].qoiEstimator[qoi_index]._sampleCounter = self.batchIndices[batch][level].qoiEstimator[qoi_index]._sampleCounter
+                else:
+                    # asynchronous MC
+                    if (self.indices[level].qoiEstimator[qoi_index].order == 1 and self.indices[level].qoiEstimator[qoi_index].indexSetDimension == 0):
+                        globalIndexPowerSum1,globalIndexPowerSum2 = mcsua.updateGlobalMonteCarloIndexOrder2Dimension0_Task(\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][0],\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][0],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][0],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][0])
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][0] = globalIndexPowerSum1
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][0] = globalIndexPowerSum2
+                        del(globalIndexPowerSum1,globalIndexPowerSum2)
+                    # asynchronous MLMC
+                    elif (self.indices[level].qoiEstimator[qoi_index].order == 1 and self.indices[level].qoiEstimator[qoi_index].indexSetDimension == 1):
+                        globalIndexPowerSum10,globalIndexPowerSum01,globalIndexPowerSum20,globalIndexPowerSum11,globalIndexPowerSum02 = mcsua.updateGlobalMonteCarloIndexOrder2Dimension1_Task(\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][0],\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][1],\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][0],\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][1],\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][2],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][0],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][1],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][0],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][1],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][2])
+                        # update
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][0] = globalIndexPowerSum10
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][1] = globalIndexPowerSum01
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][0] = globalIndexPowerSum20
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][1] = globalIndexPowerSum11
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][2] = globalIndexPowerSum02
+                        del(globalIndexPowerSum10,globalIndexPowerSum01,globalIndexPowerSum20,globalIndexPowerSum11,globalIndexPowerSum02)
+                    else:
+                        raise Exception ("Order or dimension not supported. Add the required task into xmc/methodDefs_monteCarloSampler/asynchronousUpdate.py")
+                    self.indices[level].qoiEstimator[qoi_index]._sampleCounter = self.indices[level].qoiEstimator[qoi_index]._sampleCounter + self.batchIndices[batch][level].qoiEstimator[qoi_index]._sampleCounter
+
+            # Update global cost estimator
+            if (batch == 0):
+                self.indices[level].costEstimator.powerSums = self.batchIndices[batch][level].costEstimator.powerSums
+                self.indices[level].costEstimator._sampleCounter = self.batchIndices[batch][level].costEstimator._sampleCounter
+            else:
+                for order in range (len(self.indices[level].costEstimator.powerSums)):
+                        if (len(self.indices[level].costEstimator.powerSums[order]) == 2): # order power sum is two
+                            globalIndexPowerSum1,globalIndexPowerSum2 = mcsua.updateGlobalMonteCarloIndexOrder2Dimension0_Task(self.indices[level].costEstimator.powerSums[order][0],self.indices[level].costEstimator.powerSums[order][1],self.batchIndices[batch][level].costEstimator.powerSums[order][0],self.batchIndices[batch][level].costEstimator.powerSums[order][1])
+                            self.indices[level].costEstimator.powerSums[order][0] = globalIndexPowerSum1
+                            self.indices[level].costEstimator.powerSums[order][1] = globalIndexPowerSum2
+                            del(globalIndexPowerSum1,globalIndexPowerSum2)
+                self.indices[level].costEstimator._sampleCounter = self.indices[level].costEstimator._sampleCounter + self.batchIndices[batch][level].costEstimator._sampleCounter
             # Update model coefficients for cost, bias, variance with new observations
             self.updatePredictors()
 
-        for level in range (len(self.indices)):
-            # synchronize estimator needed for checking convergence and updating hierarchy
-            self.indices[level].qoiEstimator = get_value_from_remote(self.indices[level].qoiEstimator)
-            self.indices[level].costEstimator = get_value_from_remote(self.indices[level].costEstimator)
+            # Update global combined power sums
+            for qoi_index in range (self.batchIndices[batch][level].numberOfSamplerOutputs(),self.batchIndices[batch][level].numberOfSamplerOutputs()+self.batchIndices[batch][level].numberOfSamplerCombinedOutputs()):
+                if (batch == 0):
+                    self.indices[level].qoiEstimator[qoi_index].powerSums = self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums
+                    self.indices[level].qoiEstimator[qoi_index]._sampleCounter = [self.batchIndices[batch][level].qoiEstimator[qoi_index]._sampleCounter]
+                else:
+                    # asynchronous MC
+                    if (self.indices[level].qoiEstimator[qoi_index].order == 1 and self.indices[level].qoiEstimator[qoi_index].indexSetDimension == 0 and self.indices[level].qoiEstimator[qoi_index]):
+                        globalIndexPowerSum1,globalIndexPowerSum2 = mcsua.updateGlobalMonteCarloIndexTimePowerSumsOrder2Dimension0_Task(\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][0],\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][0],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][0],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][0])
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][0] = globalIndexPowerSum1
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][0] = globalIndexPowerSum2
+                        del(globalIndexPowerSum1,globalIndexPowerSum2)
+                    # asynchronous MLMC
+                    elif (self.indices[level].qoiEstimator[qoi_index].order == 1 and self.indices[level].qoiEstimator[qoi_index].indexSetDimension == 1 and self.indices[level].qoiEstimator[qoi_index]):
+                        globalIndexPowerSumUpper1,globalIndexPowerSumLower1,globalIndexPowerSumUpper2,globalIndexPowerSumLower2 = mcsua.updateGlobalMonteCarloIndexTimePowerSumsOrder2Dimension1_Task(\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][0],\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][1],\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][0],\
+                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][1],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][0],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][1],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][0],\
+                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][1])
+                        # update
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][0] = globalIndexPowerSumUpper1
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][1] = globalIndexPowerSumLower1
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][0] = globalIndexPowerSumUpper2
+                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][1] = globalIndexPowerSumLower2
+                        del(globalIndexPowerSumUpper1,globalIndexPowerSumLower1,globalIndexPowerSumUpper2,globalIndexPowerSumLower2)
+                    else:
+                        raise Exception ("Order or dimension not supported. Add the required task into xmc/methodDefs_monteCarloSampler/asynchronousUpdate.py")
+                    # append number of samples, since it is a future object and is neeeded only for post processing
+                    self.indices[level].qoiEstimator[qoi_index]._sampleCounter.append(self.batchIndices[batch][level].qoiEstimator[qoi_index]._sampleCounter)
 
     def asynchronousUpdate(self,newHierarchy):
         self.asynchronousInitialize(newHierarchy)

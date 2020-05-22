@@ -6,6 +6,10 @@ import math
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
+@ExaquteTask(returns=1)
+def convertObjectToFuture(inputObject):
+    return inputObject
+
 def dynamicImport(fullName):
     """
     This function returns the requested attribute of a module; it manages the necessary imports.
@@ -43,8 +47,6 @@ def returnInput(*args):
     This is a function that returns exactly what is passed to it. Useful to hold a place in the dataflow without modifying the data.
     """
     return args
-
-convertObjectToFuture = ExaquteTask(returns=1)(returnInput)
 
 def getUnionAndMap(listOfLists):
     """
@@ -108,10 +110,9 @@ def strictlyPositiveBoundaryBooleans(indexSet):
         is_index_in_bias[i] = any(is_index_max) and all(is_index_nonzero)
     return is_index_in_bias
 
-def summation(*args):
+@ExaquteTask(returns=1)
+def sum_Task(*args):
     return sum(packedList(args))
-
-sum_Task = ExaquteTask(returns=1)(summation)
 
 def packedList(obj):
     """
@@ -139,15 +140,6 @@ def unpackedList(obj):
         new_vector.append("##")
         new_vector.extend(obj[i])
     return new_vector
-
-def splitList(list, num_sublists=1):
-    """
-    Function that splits a list into a given number of sublists
-    Reference: https://stackoverflow.com/questions/752308/split-list-into-smaller-lists-split-in-half
-    """
-    length = len(list)
-    return [ list[i*length // num_sublists: (i+1)*length // num_sublists]
-             for i in range(num_sublists) ]
 
 def normalInverseCDF(y0):
     """

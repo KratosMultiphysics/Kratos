@@ -41,10 +41,3 @@ def returnRayleighAndUniform(*args):
     rayleigh_rv = np.random.rayleigh(args[0],size=1)[0]
     uniform_rv = np.random.uniform(args[1], args[2], 1)
     return [rayleigh_rv, uniform_rv]
-
-def returnUniformAndTwoNormal(*args):
-    """
-    Return one integer uniformly distributed random variable and
-    two normal random variables
-    """
-    return [int(np.random.uniform(args[0],args[1])),np.random.normal(args[2], args[3], 1),np.random.normal(args[4], args[5], 1)]

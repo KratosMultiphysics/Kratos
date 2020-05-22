@@ -17,30 +17,37 @@ if __name__ == "__main__":
             parameters = json.load(parameter_file)
 
     # add path of the problem folder to python path
-    problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
+    problem_id = parameters["solverWrapperInputDict"]["problemId"]
     sys.path.append(os.path.join("..","xmc","classDefs_solverWrapper","problemDefs_KratosMultiphysics",problem_id))
 
-    # SampleGenerator
-    samplerInputDictionary = parameters["samplerInputDictionary"]
-    samplerInputDictionary['randomGeneratorInputDictionary'] = parameters["randomGeneratorInputDictionary"]
-    samplerInputDictionary['solverWrapperInputDictionary'] = parameters["solverWrapperInputDictionary"]
+    # RandomGeneratorWrapper
+    randomGeneratorInputDict = parameters["randomGeneratorInputDict"]
 
-    # MonteCarloIndex
-    monteCarloIndexInputDictionary = parameters["monteCarloIndexInputDictionary"]
-    monteCarloIndexInputDictionary["samplerInputDictionary"] = samplerInputDictionary
+    solverWrapperInputDict = parameters["solverWrapperInputDict"]
+
+    # SampleGenerator
+    samplerInputDict = parameters["samplerInputDict"]
+    samplerInputDict['randomGeneratorInputDict'] = randomGeneratorInputDict
+    samplerInputDict['solverWrapperInputDict'] = solverWrapperInputDict
 
     # Moment Estimators
-    qoiEstimatorInputDictionary = parameters["qoiEstimatorInputDictionary"]
-    combinedEstimatorInputDictionary = parameters["combinedEstimatorInputDictionary"]
-    costEstimatorInputDictionary = parameters["costEstimatorInputDictionary"]
+    qoiEstimatorInputDict = parameters["qoiEstimatorInputDict"]
+    combinedEstimatorInputDict = parameters["combinedEstimatorInputDict"]
+    costEstimatorInputDict = parameters["costEstimatorInputDict"]
+
+    # MonteCarloIndex Constructor
+    monteCarloIndexInputDict = parameters["monteCarloIndexInputDict"]
+    monteCarloIndexInputDict["samplerInputDict"] = samplerInputDict
     # qoi estimators
-    monteCarloIndexInputDictionary["qoiEstimator"] = [monteCarloIndexInputDictionary["qoiEstimator"][0] for _ in range (0,parameters["solverWrapperInputDictionary"]["numberQoI"])]
-    monteCarloIndexInputDictionary["qoiEstimatorInputDictionary"] = [qoiEstimatorInputDictionary]*parameters["solverWrapperInputDictionary"]["numberQoI"]
+    monteCarloIndexInputDict["qoiEstimator"] = [monteCarloIndexInputDict["qoiEstimator"][0] for _ in range (0,parameters["solverWrapperInputDict"]["numberQoI"])]
+    monteCarloIndexInputDict["qoiEstimatorInputDict"] = [qoiEstimatorInputDict]*parameters["solverWrapperInputDict"]["numberQoI"]
     # combined estimators
-    monteCarloIndexInputDictionary["combinedEstimator"] = [monteCarloIndexInputDictionary["combinedEstimator"][0] for _ in range (0,parameters["solverWrapperInputDictionary"]["numberCombinedQoi"])]
-    monteCarloIndexInputDictionary["combinedEstimatorInputDictionary"] = [combinedEstimatorInputDictionary]*parameters["solverWrapperInputDictionary"]["numberCombinedQoi"]
+    monteCarloIndexInputDict["combinedEstimator"] = [monteCarloIndexInputDict["combinedEstimator"][0] for _ in range (0,parameters["solverWrapperInputDict"]["numberCombinedQoi"])]
+    monteCarloIndexInputDict["combinedEstimatorInputDict"] = [combinedEstimatorInputDict]*parameters["solverWrapperInputDict"]["numberCombinedQoi"]
     # cost estimator
-    monteCarloIndexInputDictionary["costEstimatorInputDictionary"] = costEstimatorInputDictionary
+    monteCarloIndexInputDict["costEstimatorInputDict"] = costEstimatorInputDict
+
+    #################### RUN TIME GENERATED ENTITIES END HERE ####################
 
     # MonoCriterion
     criteriaArray = []
@@ -52,39 +59,44 @@ if __name__ == "__main__":
         criteriaInputs.append([parameters["monoCriteriaInpuctDict"][monoCriterion]["input"]])
 
     # MultiCriterion
-    multiCriterionInputDictionary=parameters["multiCriterionInputDictionary"]
-    multiCriterionInputDictionary["criteria"] = criteriaArray
-    multiCriterionInputDictionary["inputsForCriterion"] = criteriaInputs
-    criterion = xmc.multiCriterion.MultiCriterion(**multiCriterionInputDictionary)
+    criterion = xmc.multiCriterion.MultiCriterion(criteria=criteriaArray,
+                                                  inputsForCriterion=criteriaInputs,
+                                                  interpreter='xmc.methodDefs_multiCriterion.interpreter.interpretAsConvergenceAndIterationBounds',
+                                                  flag='xmc.methodDefs_multiCriterion.flag.plainFlag')
+
 
     # ErrorEstimator
-    statErrorEstimator = xmc.errorEstimator.ErrorEstimator(**parameters["errorEstimatorInputDictionary"])
+    # TODO we should define xmc.methodDefs_errorEstimator.errorEstimation.Variance+BiasError_Task
+    statErrorEstimator = xmc.errorEstimator.ErrorEstimator(
+        error='xmc.methodDefs_errorEstimator.errorEstimation.errorEstimationStatError_Task',
+        parameters=[0.95])
 
     # HierarchyOptimiser
-    hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(**parameters["hierarchyOptimiserInputDictionary"])
+    hierarchyOptimiserInputDict = parameters["hierarchyOptimiserInputDict"]
+    hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(**hierarchyOptimiserInputDict)
 
     # EstimationAssembler
-    if "expectationAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
-        expectationAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["expectationAssembler"])
-    if "varianceAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
-        varianceAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["varianceAssembler"])
+    expectationAssembler = xmc.estimationAssembler.EstimationAssembler(
+        assembleEstimation='xmc.methodDefs_estimationAssembler.assembleEstimation.assembleValue_Task')
+    varianceAssembler = xmc.estimationAssembler.EstimationAssembler(
+        assembleEstimation='xmc.methodDefs_estimationAssembler.assembleEstimation.assembleStatisticalError_Task')
 
     # MonteCarloSampler
-    monteCarloSamplerInputDictionary = parameters["monteCarloSamplerInputDictionary"]
-    monteCarloSamplerInputDictionary["indexConstructorDictionary"] = monteCarloIndexInputDictionary
-    monteCarloSamplerInputDictionary["assemblers"] =  [expectationAssembler,varianceAssembler]
-    monteCarloSamplerInputDictionary["errorEstimators"] = [statErrorEstimator]
-    mcSampler = xmc.monteCarloSampler.MonteCarloSampler(**monteCarloSamplerInputDictionary)
+    monteCarloSamplerInputDict = parameters["monteCarloSamplerInputDict"]
+    monteCarloSamplerInputDict["indexConstructorDictionary"] = monteCarloIndexInputDict
+    monteCarloSamplerInputDict["assemblers"] =  [expectationAssembler,varianceAssembler]
+    monteCarloSamplerInputDict["errorEstimators"] = [statErrorEstimator]
+    mcSampler = xmc.monteCarloSampler.MonteCarloSampler(**monteCarloSamplerInputDict)
 
     # XMCAlgorithm
-    XMCAlgorithmInputDictionary = parameters["XMCAlgorithmInputDictionary"]
-    XMCAlgorithmInputDictionary["monteCarloSampler"] = mcSampler
-    XMCAlgorithmInputDictionary["hierarchyOptimiser"] = hierarchyCostOptimiser
-    XMCAlgorithmInputDictionary["stoppingCriterion"] = criterion
+    XMCAlgorithmInputDict = parameters["XMCAlgorithmInputDict"]
+    XMCAlgorithmInputDict["monteCarloSampler"] = mcSampler
+    XMCAlgorithmInputDict["hierarchyOptimiser"] = hierarchyCostOptimiser
+    XMCAlgorithmInputDict["stoppingCriterion"] = criterion
 
-    algo = xmc.XMCAlgorithm(**XMCAlgorithmInputDictionary)
+    algo = xmc.XMCAlgorithm(**XMCAlgorithmInputDict)
 
-    if (parameters["solverWrapperInputDictionary"]["asynchronous"] is True):
+    if (parameters["solverWrapperInputDict"]["asynchronous"] is True):
         algo.runAsynchronousXMC()
     else:
         algo.runXMC()
@@ -98,26 +110,28 @@ if __name__ == "__main__":
 
     # # writing to file a dictionary
     # qoi_dict = {}
-    # for qoi_counter in range (parameters["solverWrapperInputDictionary"]["numberQoI"]):
+    # for qoi_counter in range (parameters["solverWrapperInputDict"]["numberQoI"]):
     #     qoi_dict[qoi_counter] = {index: {} for index in range (len(algo.monteCarloSampler.indices))}
     #     for index in range (len(algo.monteCarloSampler.indices)):
-    #         algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
     #         sample_counter = algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter
     #         S1 = get_value_from_remote(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].powerSums[0][0])
     #         S2 = get_value_from_remote(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].powerSums[1][0])
     #         h1 = get_value_from_remote(mdccm.computeCentralMomentsOrderOneDimensionZero_Task(S1,sample_counter))
     #         h2 = get_value_from_remote(mdccm.computeCentralMomentsOrderTwoDimensionZero_Task(S1,S2,sample_counter))
     #         qoi_dict[qoi_counter][index] = {"qoi_id":qoi_counter, "index": index, "instances": sample_counter, "S1": S1, "S2": S2, "h1": h1, "h2": h2}
-    # for qoi_counter in range (parameters["solverWrapperInputDictionary"]["numberQoI"],parameters["solverWrapperInputDictionary"]["numberQoI"]+parameters["solverWrapperInputDictionary"]["numberCombinedQoi"]):
+    # for qoi_counter in range (parameters["solverWrapperInputDict"]["numberQoI"],parameters["solverWrapperInputDict"]["numberQoI"]+parameters["solverWrapperInputDict"]["numberCombinedQoi"]):
     #         qoi_dict[qoi_counter] = {index: {} for index in range (len(algo.monteCarloSampler.indices))}
     #         for index in range (len(algo.monteCarloSampler.indices)):
-    #             algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
-    #             sample_counter = algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter
+    #             if (type(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter) is list):
+    #                 sample_counter = 0
+    #                 for i in range (len(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter)):
+    #                     sample_counter = sample_counter + get_value_from_remote(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter[i])
+    #             else:
+    #                 sample_counter = get_value_from_remote(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter)
     #             S1 = get_value_from_remote(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].powerSums[0][0])
     #             S2 = get_value_from_remote(algo.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].powerSums[1][0])
     #             h1 = get_value_from_remote(mdccm.computeCentralMomentsOrderOneDimensionZero_Task(S1,sample_counter))
     #             h2 = get_value_from_remote(mdccm.computeCentralMomentsOrderTwoDimensionZeroBiased_Task(S1,S2,sample_counter))
     #             qoi_dict[qoi_counter][index] = {"qoi_id":qoi_counter, "index": index, "instances": sample_counter, "S1": S1, "S2": S2, "h1": h1, "h2": h2}
-
     # with open('MC_asynchronous_power_sums.json', 'w') as f:
     #     json.dump(qoi_dict, f, indent=2)

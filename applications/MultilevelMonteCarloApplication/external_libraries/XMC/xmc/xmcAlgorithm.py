@@ -1,8 +1,11 @@
 import pickle
+import sys
 import pathlib as pl
+import os
 
 # XMC imports
 from xmc.tools import dynamicImport
+from xmc.tools import instantiateObject
 from xmc.tools import splitOneListIntoTwo
 
 # TODO: remove PyCOMPSs import from here
@@ -118,12 +121,18 @@ class XMCAlgorithm():
             input_dict['newSampleNumber'] = 25
             input_dict['tolerances'] = self.tolerances(self.tolerancesForHierarchy)
             input_dict['models'] = model_list
+            input_dict['parametersForModel'] = get_value_from_remote(parameter_list)
+            input_dict['parametersForModelOld'] = get_value_from_remote(old_parameter_list)
+            input_dict['estimations'] = get_value_from_remote(estimation_list)
             if cost_predictor is None:
                 input_dict['costModel'] = None
                 input_dict['costParameters'] = None
                 input_dict['costParametersOld'] = None
             else:
                 input_dict['costModel'] = cost_predictor._valueForParameters
+                input_dict['costParameters'] = get_value_from_remote(cost_predictor.parameters)
+                input_dict['costParametersOld'] = get_value_from_remote(cost_predictor.oldParameters)
+            input_dict['costEstimations'] = get_value_from_remote(cost_estimations)
             input_dict['defaultHierarchy'] = self.hierarchyOptimiser.defaultHierarchy
 
             newHierarchy = self.hierarchyOptimiser.optimalHierarchy(input_dict)
@@ -165,7 +174,7 @@ class XMCAlgorithm():
         Output argument: criterion flag structure as define in the MultiCriterion class.
         """
         # Get errors required for stopping criterion
-        errors = self.errorEstimation(self.errorsForStoppingCriterion)
+        errors = get_value_from_remote(self.errorEstimation(self.errorsForStoppingCriterion))
 
         # Set up dictionary required for stoppingCriterion.flag
         input_dictionary = {}
@@ -185,7 +194,7 @@ class XMCAlgorithm():
         not fit even this generic algorithm.
         """
 
-        self.checkInitialisation(solverWrapperDictionary=self.monteCarloSampler.indexConstructorDictionary["samplerInputDictionary"]["solverWrapperInputDictionary"])
+        self.checkInitialisation()
 
         # Iteration Loop will start here
         flag = self.stoppingCriterion.flagStructure()
@@ -206,7 +215,7 @@ class XMCAlgorithm():
 
             # TODO Print selection is mostly guesswork here (very fragile)
             print("Iteration ",self.iterationCounter, "\tTolerance - ", ['%.3e' % tol for tol in self.tolerances(self.tolerancesForHierarchy) ],
-                    "\tError - ", ['%.3e' % err for err in self.errorEstimation(self.errorsForStoppingCriterion)],
+                    "\tError - ", ['%.3e' % err for err in get_value_from_remote(self.errorEstimation(self.errorsForStoppingCriterion))],
                 "\tHierarchy - ", self.hierarchy())
 
             if flag['updateTolerance']:
@@ -230,27 +239,27 @@ class XMCAlgorithm():
                 if(len(self.predictorsForHierarchy)!=0):
                     qoip = self.qoiPrediction()
                     costp = self.costPrediction()
-                    output_dict['biasParameters']=qoip[0].parameters
-                    output_dict['varParameters']=qoip[1].parameters
-                    output_dict['costParameters']=costp.parameters
+                    output_dict['biasParameters']=get_value_from_remote(qoip[0].parameters)
+                    output_dict['varParameters']=get_value_from_remote(qoip[1].parameters)
+                    output_dict['costParameters']=get_value_from_remote(costp.parameters)
 
-                output_dict['indexwiseBias']=self.indexEstimation(0,[1,True,False])
-                errs = self.indexEstimation(0,[1,True,True])
+                output_dict['indexwiseBias']=get_value_from_remote(self.indexEstimation(0,[1,True,False]))
+                errs = get_value_from_remote(self.indexEstimation(0,[1,True,True]))
                 levels,samples = splitOneListIntoTwo(hier)
                 output_dict['indexwiseVar']=[errs[i]*samples[i] for i in range(len(errs))]
-                output_dict['indexwiseCost']=self.indexCostEstimation([1,True,False])
+                output_dict['indexwiseCost']=get_value_from_remote(self.indexCostEstimation([1,True,False]))
 
                 hier = newHierarchy
                 levels,samples = splitOneListIntoTwo(hier)
-                costs = self.indexCostEstimation([1,True,False])
+                costs = get_value_from_remote(self.indexCostEstimation([1,True,False]))
                 total_times = [sample*cost for sample,cost in zip(samples,costs)]
                 output_dict['totalTime']=sum(total_times)
                 pickle.dump(output_dict,output_file)
 
         # TODO - Debug statement. Remove for PYCOMPSS tests
-        print("Estimation - ",self.estimation(),
-            "\nFinal Error - ",self.errorEstimation(self.errorsForStoppingCriterion),
-            "\nLevelwise Mean Times - ",self.indexCostEstimation([1,True,False]))
+        print("Estimation - ",get_value_from_remote(self.estimation()),
+            "\nFinal Error - ",get_value_from_remote(self.errorEstimation(self.errorsForStoppingCriterion)),
+            "\nLevelwise Mean Times - ",get_value_from_remote(self.indexCostEstimation([1,True,False])))
 
 
     ####################################################################################################
@@ -269,7 +278,7 @@ class XMCAlgorithm():
                 break
         # screen iteration informations
         print("Iteration ",self.iterationCounter, "\tTolerance - ", ['%.3e' % tol for tol in self.tolerances(self.tolerancesForHierarchy) ],
-                "\tError - ", ['%.3e' % err for err in self.errorEstimation(self.errorsForStoppingCriterion)],
+                "\tError - ", ['%.3e' % err for err in get_value_from_remote(self.errorEstimation(self.errorsForStoppingCriterion))],
             "\tHierarchy - ", self.hierarchy())
         # update tolerance and hierarchy space if required
         if flag['updateTolerance']:
@@ -284,11 +293,18 @@ class XMCAlgorithm():
         """
         Run specified algorithm with asynchronous framework.
         """
-        self.checkInitialisation(solverWrapperDictionary=self.monteCarloSampler.indexConstructorDictionary["samplerInputDictionary"]["solverWrapperInputDictionary"],\
-            positionMaxNumberIterationsCriterion=self.positionMaxNumberIterationsCriterion,
-            tolerances=self.stoppingCriterion.tolerances())
+
+        self.checkInitialisation()
         # set maximum number of iteration variable
-        self.monteCarloSampler.maximumNumberIterations = self.stoppingCriterion.tolerances([self.positionMaxNumberIterationsCriterion])[0]
+        if (self.stoppingCriterion.tolerances([self.positionMaxNumberIterationsCriterion])[0] is not None):
+            if (type(self.stoppingCriterion.tolerances([self.positionMaxNumberIterationsCriterion])[0]) is int):
+                if (self.stoppingCriterion.tolerances([self.positionMaxNumberIterationsCriterion])[0] != self.stoppingCriterion.tolerances([-1])[0]):
+                    raise Exception ("Set the correct positionMaxNumberIterationsCriterion in XMC algorithm inpuct dictionary. It should be the last entry of monoCriteriaInpuctDict.")
+                self.monteCarloSampler.maximumNumberIterations = self.stoppingCriterion.tolerances([self.positionMaxNumberIterationsCriterion])[0]
+            else:
+                raise Exception ("positionMaxNumberIterationsCriterion not set in XMC algorithm settings. Please set it in order to run the asynchronous framework.")
+        else:
+            raise Exception ("positionMaxNumberIterationsCriterion not set in XMC algorithm settings. Please set it in order to run the asynchronous framework.")
         # Iteration loop will start here
         flag = self.stoppingCriterion.flagStructure()
         self.iterationCounter = 0
@@ -302,8 +318,6 @@ class XMCAlgorithm():
             flag = self.asynchronousFinalizeIteration()
 
         # screen results
-        for index in range (0,len(self.monteCarloSampler.indices)):
-            self.monteCarloSampler.indices[index].costEstimator = self.monteCarloSampler.indices[index].costEstimator
-        print("Estimation - ",self.estimation(),
-            "\nFinal Error - ",self.errorEstimation(self.errorsForStoppingCriterion),
-            "\nLevelwise Mean Times - ",self.indexCostEstimation([1,True,False]))
+        print("Estimation - ",get_value_from_remote(self.estimation()),
+            "\nFinal Error - ",get_value_from_remote(self.errorEstimation(self.errorsForStoppingCriterion)),
+            "\nLevelwise Mean Times - ",get_value_from_remote(self.indexCostEstimation([1,True,False])))

@@ -1,16 +1,15 @@
 # XMC imports
+import xmc
+from xmc.tools import dynamicImport
 from xmc.tools import instantiateObject
+from xmc.tools import convertObjectToFuture
 
 # Import external libraries
 import itertools as it
+import numpy as np
+import time
+import sys
 from math import ceil
-
-import xmc.methodDefs_monteCarloIndex.updateEstimators as mdu
-
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 class MonteCarloIndex():
     """
@@ -23,23 +22,23 @@ class MonteCarloIndex():
     def __init__(self,**keywordArgs):
         # Attributes
         self.indexValue = keywordArgs.get('indexValue')
-        self.costEstimator = instantiateObject(keywordArgs.get('costEstimator'),**keywordArgs.get('costEstimatorInputDictionary'))
+        self.costEstimator = instantiateObject(keywordArgs.get('costEstimator'),**keywordArgs.get('costEstimatorInputDict'))
         # TODO 'qoiEstimator' should be replaced with 'qoiEstimators'.
         # It should also become a list of lists also but this will break
         # things elsewhere in the code and should be done separately later
         self.qoiEstimator = []
         # qoi estimators
         qoi_estimator_module = keywordArgs.get('qoiEstimator')
-        qoi_estimator_module_args = keywordArgs.get('qoiEstimatorInputDictionary')
+        qoi_estimator_module_args = keywordArgs.get('qoiEstimatorInputDict')
         for i in range(len(qoi_estimator_module)):
             self.qoiEstimator.append(instantiateObject(qoi_estimator_module[i],**qoi_estimator_module_args[i]))
         # combined estimators
         combined_estimator_module = keywordArgs.get('combinedEstimator')
-        combined_estimator_module_args = keywordArgs.get('combinedEstimatorInputDictionary')
+        combined_estimator_module_args = keywordArgs.get('combinedEstimatorInputDict')
         for i in range(len(combined_estimator_module)):
             self.qoiEstimator.append(instantiateObject(combined_estimator_module[i],**combined_estimator_module_args[i]))
 
-        sampler_input_dict = keywordArgs.get('samplerInputDictionary')
+        sampler_input_dict = keywordArgs.get('samplerInputDict')
         sampler_input_dict['solverWrapperIndices'] = self.solverIndices()
         self.sampler = instantiateObject(keywordArgs.get('sampler'),**sampler_input_dict)
         self.samples = keywordArgs.get('samples',None)
@@ -51,7 +50,7 @@ class MonteCarloIndex():
         if self.areSamplesStored:
             return len(self.samples)
         else:
-            return self.qoiEstimator[0].sampleNumber() # necessary for minimizing synchronization points
+            return self.costEstimator.sampleNumber()
 
     # TODO - potentially better name here
     def indexwiseContribution(self, qoiEstimatorCoordinate, qoiEstimatorValueArguements):
@@ -116,54 +115,27 @@ class MonteCarloIndex():
 
         # Generate the required number of correlated samples
         # and estimate cost
-        samples = []
+        samples = [[] for _ in range (self.numberOfSamplerOutputs()+self.numberOfSamplerCombinedOutputs())]
         time = []
         for _ in range(number_new_samples):
             # Generate a new sample (list of solver outputs for one random event)
             new_sample, new_time = self.newSample()
-            # append to corresponding list
-            samples.append(new_sample)
+            # Add each solver output to the correct sublist
+            for output_counter in range (self.numberOfSamplerOutputs()+self.numberOfSamplerCombinedOutputs()):
+                samples[output_counter].append(new_sample[output_counter])
             time.append([new_time])
-        # samples = [sample_1, sample_2, .. ]
-        # where
-        # sample_i = [ [ [QoI_1^l,...,QoI_outputBatchSize^l],[QoI_outputBatchSize+1^l,...,QoI_2*outputBatchSize^l], .. ],
-        #            [ [QoI_1^l-1,...,QoI_outputBatchSize^l-1],[QoI_outputBatchSize+1^l-1,...,QoI_2*outputBatchSize^l-1],
-        #            .. ] ]
 
-        #Create qoi_groups
-        qoi_group=[]
-        for mini_qoi_counter in range(ceil(len(self.qoiEstimator)/self.sizeOfSamplerQoiLists())):
-            qoi_group.append(self.qoiEstimator[mini_qoi_counter*self.sizeOfSamplerQoiLists():(mini_qoi_counter+1)*self.sizeOfSamplerQoiLists()])
+        # Pass new samples to relevant estimator
+        for output_counter in range(self.numberOfSamplerOutputs()+self.numberOfSamplerCombinedOutputs()):
+            # Update estimators for a single solver output
+            for mini_batch_counter in range(ceil(len(samples[output_counter])/self.estimatorBatchSize)):
+                # Update by estimatorBatchSize
+                self.qoiEstimator[output_counter].update(samples[output_counter][mini_batch_counter*self.estimatorBatchSize:(mini_batch_counter+1)*self.estimatorBatchSize])
 
-        # Update qoiEstimators groups
-        for mini_batch_counter in range(ceil(len(samples)/self.estimatorBatchSize)): # loop samples according to estimatorBatchSize (ebs)
-            samples_ebs = samples[mini_batch_counter*self.estimatorBatchSize:(mini_batch_counter+1)*self.estimatorBatchSize]
-            for mini_qoi_counter in range(ceil(len(self.qoiEstimator)/self.sizeOfSamplerQoiLists())): # loop qoiEstimators according to outputBatchSize (sql)
-                samples_sql = [ [] for _ in range (0,len(samples_ebs))] # obs: len(samples_ebs) = estimatorBatchSize
-                count = 0
-                for sample_ebs in samples_ebs: # loop over estimatorBatchSize samples
-                    for smpls in sample_ebs: # loop over levels of each sample_ebs
-                        smpl = smpls[mini_qoi_counter] # corresponding future per level per sample_ebs
-                        samples_sql[count].append(smpl)
-                    count = count + 1
-                mdu.updatePartialQoiEstimators_Task(samples_sql,qoi_group[mini_qoi_counter])
-                # delete COMPSs future objects no longer needed
-                for smpl in samples_sql:
-                    delete_object(*smpl)
-
-        #merge and delete partial updates
-        for mini_qoi_counter in range(ceil(len(self.qoiEstimator)/self.sizeOfSamplerQoiLists())):
-            mdu.mergeQoiEstimators_Task(qoi_group[mini_qoi_counter], self.qoiEstimator, mini_qoi_counter, self.sizeOfSamplerQoiLists())
-            delete_object(qoi_group[mini_qoi_counter])
-
-        # Update costEstimator
-        for mini_batch_counter in range(ceil(len(samples)/self.estimatorBatchSize)): # according to estimatorBatchSize (ebs)
-            time_ebs = time[mini_batch_counter*self.estimatorBatchSize:(mini_batch_counter+1)*self.estimatorBatchSize]
-            mdu.updateCostEstimator_Task(time_ebs,self.costEstimator)
-
-        # delete COMPSs future objects no longer needed
-        for t in time:
-            delete_object(*t)
+        # Pass new samples to relevant estimator
+        for mini_batch_counter in range(ceil(len(time)/self.estimatorBatchSize)):
+            # Update by estimatorBatchSize
+            self.costEstimator.update(time[mini_batch_counter*self.estimatorBatchSize:(mini_batch_counter+1)*self.estimatorBatchSize])
 
     def numberOfSamplerOutputs(self):
         """
@@ -171,8 +143,8 @@ class MonteCarloIndex():
         """
         return self.sampler.numberOfOutputs()
 
-    def sizeOfSamplerQoiLists(self):
+    def numberOfSamplerCombinedOutputs(self):
         """
         Retrieve the number of outputs from the sampler
         """
-        return self.sampler.sizeOfQoiLists()
+        return self.sampler.numberOfCombinedOutputs()

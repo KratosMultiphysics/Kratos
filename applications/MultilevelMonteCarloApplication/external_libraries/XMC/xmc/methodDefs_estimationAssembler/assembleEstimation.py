@@ -51,7 +51,7 @@ def assembleStatisticalError(hierarchy,*indexEstimationsList):
     """
     indexEstimationsList = xmc.tools.packedList(indexEstimationsList)
     # TODO Quentin: I don't understand that check below, and it throws an error
-    # even when indexEstimationsList is as expected. Is it a mistake?
+    # even when indexEstimationsList is as expected. Is it a mistake? 
     # assert(len(indexEstimationsList)==1),"length of indexEstimationsList is not equal to 1"
     return sum( indexEstimationsList )
 
