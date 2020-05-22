@@ -220,7 +220,7 @@ namespace MPMSearchElementUtility
         KRATOS_CATCH("")
     }
 
-
+    /*
     inline void Create2DPolygonBoundingSquareFromPoints(const std::vector<array_1d<double, 3>>& rPoints,
         std::vector<Boost2DPointType>& rPolygonPoints,
         Boost2DPolygonType& rPolygon,
@@ -263,8 +263,55 @@ namespace MPMSearchElementUtility
         boost::geometry::correct(rPolygon); // to close the polygon
 
         KRATOS_CATCH("")
+    }*/
+
+
+    inline Boost2DPolygonType Create2DPolygonBoundingSquareFromPointsFast(const std::vector<array_1d<double, 3>>& rPoints, 
+        const bool XActive = true, const bool YActive = true, const bool ZActive = false)
+    {
+        KRATOS_TRY
+
+        Boost2DPolygonType rPolygon;
+        std::vector<Boost2DPointType> rPolygonPoints(5);
+
+        if (!XActive || !YActive || ZActive)  if (rPoints.size() != 8)
+            KRATOS_ERROR << "ALL BOUNDING SQUARES SHOULD BE CONSTRUCTED IN XY SPACE EXCEPT FOR HEX BACKGROUND GRID";
+
+        if (XActive && YActive && !ZActive)
+        {
+            for (size_t i = 0; i < rPolygonPoints.size(); ++i) {
+                rPolygonPoints[i] = Boost2DPointType(rPoints[i][0], rPoints[i][1]);
+            }
+        }
+        else if (!XActive && YActive && ZActive) // 3D case only!
+        {
+            rPolygonPoints[0] = Boost2DPointType(rPoints[0][1], rPoints[0][2]);
+            rPolygonPoints[1] = Boost2DPointType(rPoints[4][1], rPoints[4][2]);
+            rPolygonPoints[2] = Boost2DPointType(rPoints[7][1], rPoints[7][2]);
+            rPolygonPoints[3] = Boost2DPointType(rPoints[3][1], rPoints[3][2]); // as per Hexahedra3D8 node ordering
+        }
+        else if (XActive && !YActive && ZActive)
+        {
+            rPolygonPoints[0] = Boost2DPointType(rPoints[0][0], rPoints[0][2]);
+            rPolygonPoints[1] = Boost2DPointType(rPoints[1][0], rPoints[1][2]);
+            rPolygonPoints[2] = Boost2DPointType(rPoints[5][0], rPoints[5][2]);
+            rPolygonPoints[3] = Boost2DPointType(rPoints[4][0], rPoints[4][2]);
+        }
+        else
+        {
+            KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
+        }
+        rPolygonPoints[4] = rPolygonPoints[0];
+        rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
+        boost::geometry::correct(rPolygon); // to close the polygon
+
+        return rPolygon;
+
+        KRATOS_CATCH("")
     }
 
+
+    /*
     inline void Create2DPolygonFromGeometry(const GeometryType& rGeom,
         std::vector<Boost2DPointType>& rPolygonPoints,
         Boost2DPolygonType& rPolygon,
@@ -317,6 +364,63 @@ namespace MPMSearchElementUtility
         boost::geometry::correct(rPolygon); // to close the polygon
 
         KRATOS_CATCH("")
+    }*/
+
+
+    inline Boost2DPolygonType Create2DPolygonFromGeometryFast(const GeometryType& rGeom,
+        const bool XActive = true, const bool YActive = true, const bool ZActive = false)
+    {
+        KRATOS_TRY
+
+        Boost2DPolygonType rPolygon;
+
+        if (rGeom.WorkingSpaceDimension() == 3)
+        {
+            std::vector<Boost2DPointType> rPolygonPoints(5);
+            NodeType point_low, point_high;
+            rGeom.BoundingBox(point_low, point_high);
+
+            if (XActive && YActive && !ZActive)
+            {
+                rPolygonPoints[0] = Boost2DPointType(point_low[0], point_low[1]);
+                rPolygonPoints[1] = Boost2DPointType(point_high[0], point_low[1]);
+                rPolygonPoints[2] = Boost2DPointType(point_high[0], point_high[1]);
+                rPolygonPoints[3] = Boost2DPointType(point_low[0], point_high[1]);
+            }
+            else if (XActive && !YActive && ZActive)
+            {
+                rPolygonPoints[0] = Boost2DPointType(point_low[0], point_low[2]);
+                rPolygonPoints[1] = Boost2DPointType(point_high[0], point_low[2]);
+                rPolygonPoints[2] = Boost2DPointType(point_high[0], point_high[2]);
+                rPolygonPoints[3] = Boost2DPointType(point_low[0], point_high[2]);
+            }
+            else if (!XActive && YActive && ZActive)
+            {
+                rPolygonPoints[0] = Boost2DPointType(point_low[1], point_low[2]);
+                rPolygonPoints[1] = Boost2DPointType(point_high[1], point_low[2]);
+                rPolygonPoints[2] = Boost2DPointType(point_high[1], point_high[2]);
+                rPolygonPoints[3] = Boost2DPointType(point_low[1], point_high[2]);
+            }
+            else
+            {
+                KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
+            }
+            rPolygonPoints[4] = rPolygonPoints[0];
+            rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
+        }
+        else
+        {
+            std::vector<Boost2DPointType> rPolygonPoints(rGeom.PointsNumber() + 1);
+            for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
+                rPolygonPoints[i] = Boost2DPointType(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Y());
+            }
+            rPolygonPoints[rGeom.PointsNumber()] = rPolygonPoints[0];
+            rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
+        }
+        boost::geometry::correct(rPolygon); // to close the polygon
+        return rPolygon;
+
+        KRATOS_CATCH("")
     }
 
 
@@ -341,15 +445,15 @@ namespace MPMSearchElementUtility
     {
         KRATOS_TRY
 
-            // make boost polygon of current background element geometry
-            std::vector<Boost2DPointType> polygon_grid_points(rGridElement.PointsNumber());
-        Boost2DPolygonType polygon_grid;
-        Create2DPolygonFromGeometry(rGridElement, polygon_grid_points, polygon_grid);
+        // make boost polygon of current background element geometry
+        Boost2DPolygonType polygon_grid = Create2DPolygonFromGeometryFast(rGridElement);
 
         // make boost polygon of bounding box
-        std::vector<Boost2DPointType> polygon_box_points(4);
-        Boost2DPolygonType polygon_box;
-        Create2DPolygonBoundingSquareFromPoints(rMasterDomainPoints, polygon_box_points, polygon_box);
+        //std::vector<Boost2DPointType> polygon_box_points(4);
+        //Boost2DPolygonType polygon_box;
+        //Create2DPolygonBoundingSquareFromPoints(rMasterDomainPoints, polygon_box_points, polygon_box);
+        Boost2DPolygonType polygon_box = Create2DPolygonBoundingSquareFromPointsFast(rMasterDomainPoints);
+
 
         // make boost polygon result container
         std::vector<Boost2DPolygonType> polygon_result_container;
@@ -385,24 +489,20 @@ namespace MPMSearchElementUtility
             // NOTE: THIS FUNCTION ASSUMES THE BACKGROUND GRID ELEMENT IS PERFECTLY CUBIC AND THE RESULTING INTERSECTION VOLUME IS A RECTANGULAR PRISM
 
             // make boost xy polygon of current background element geometry
-            std::vector<Boost2DPointType> polygon_grid_xy_points(4);
-        Boost2DPolygonType polygon_grid_xy;
-        Create2DPolygonFromGeometry(rGridElement, polygon_grid_xy_points, polygon_grid_xy);
+            //std::vector<Boost2DPointType> polygon_grid_xy_points(4);
+        Boost2DPolygonType polygon_grid_xy = Create2DPolygonFromGeometryFast(rGridElement);
 
         // make boost yz polygon of current background element geometry
-        std::vector<Boost2DPointType> polygon_grid_yz_points(4);
-        Boost2DPolygonType polygon_grid_yz;
-        Create2DPolygonFromGeometry(rGridElement, polygon_grid_yz_points, polygon_grid_yz, false, true, true);
+        //std::vector<Boost2DPointType> polygon_grid_yz_points(4);
+        Boost2DPolygonType polygon_grid_yz = Create2DPolygonFromGeometryFast(rGridElement, false, true, true);
 
         // make boost xy polygon of bounding box
-        std::vector<Boost2DPointType> polygon_box_xy_points(4);
-        Boost2DPolygonType polygon_box_xy;
-        Create2DPolygonBoundingSquareFromPoints(rMasterDomainPoints, polygon_box_xy_points, polygon_box_xy);
+        //std::vector<Boost2DPointType> polygon_box_xy_points(4);
+        Boost2DPolygonType polygon_box_xy = Create2DPolygonBoundingSquareFromPointsFast(rMasterDomainPoints);
 
         // make boost yz polygon of bounding box
-        std::vector<Boost2DPointType> polygon_box_yz_points(4);
-        Boost2DPolygonType polygon_box_yz;
-        Create2DPolygonBoundingSquareFromPoints(rMasterDomainPoints, polygon_box_yz_points, polygon_box_yz, false, true, true);
+        //std::vector<Boost2DPointType> polygon_box_yz_points(4);
+        Boost2DPolygonType polygon_box_yz = Create2DPolygonBoundingSquareFromPointsFast(rMasterDomainPoints, false, true, true);
 
         // make boost polygon result container
         std::vector<Boost2DPolygonType> polygon_xy_result_container;
