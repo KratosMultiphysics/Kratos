@@ -56,7 +56,7 @@ class MPMExplicitSolver(MPMSolver):
         # Check whether compressibility is considered
         is_compressible = self.settings["compressible"].GetBool()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_COMPRESSIBLE, is_compressible)
-        
+
         # Check whether the partitioned quadrature mpm (PQMPM) is used
         is_pqmpm = self.settings["is_pqmpm"].GetBool()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM, is_pqmpm)

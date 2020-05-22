@@ -734,7 +734,7 @@ namespace MPMSearchElementUtility
         Vector N;
         const int max_result = 1000;
         
-        //#pragma omp parallel
+        #pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
             SearchStructure.UpdateSearchDatabase();
@@ -742,7 +742,7 @@ namespace MPMSearchElementUtility
             typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
 
             // Element search and assign background grid
-            //#pragma omp for
+            #pragma omp for
             for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
