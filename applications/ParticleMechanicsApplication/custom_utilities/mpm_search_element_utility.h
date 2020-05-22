@@ -496,17 +496,6 @@ namespace MPMSearchElementUtility
     }
 
 
-    inline void FindIntersectedElements(const ModelPart& rBackgroundGridModelPart, const double side_half_length, array_1d<double, 3>& rCoordinates,
-        std::vector<typename GeometryType::Pointer>& intersected_geometries, std::vector<Element::Pointer>& intersected_elements)
-    {
-        KRATOS_TRY
-
-
-
-        KRATOS_CATCH("")
-    }
-
-
     inline typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
         const array_1d<double, 3>& rCoordinates,
         Element& rMasterMaterialPoint,
@@ -518,11 +507,13 @@ namespace MPMSearchElementUtility
         const SizeType working_dim = pGeometry->WorkingSpaceDimension();
         const bool is_preserve_bc = true; // prevent split occuring over a boundary condition
         const bool is_axisymmetric = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
-            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
-            : false;
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC) : false;
         const double pqmpm_search_factor = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_SEARCH_FACTOR))
-            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(PQMPM_SEARCH_FACTOR)
-            : 0.0;
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(PQMPM_SEARCH_FACTOR) : 0.0;
+        KRATOS_ERROR_IF(pqmpm_search_factor < 0.0)
+            << "The PQMPM search factor enables fast filtering of background grid intersections and must be positive."
+            << " It should be 2-5x larger the maximum aspect ratio of the most distorted background grid element."
+            << " If problems presist, disable the fast filtering by setting pqmpm_search_factor = 0.0";
 
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
@@ -547,48 +538,45 @@ namespace MPMSearchElementUtility
                     pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
             }
         }
-
  
         // we need to do splitting. Initially determine all grid elements we intersect with
-        std::vector<typename GeometryType::Pointer> intersected_geometries;
-        std::vector<Element::Pointer> intersected_elements;
         const double z_mod = (working_dim == 3) ? 1.0 : 0.0;
         const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2] - z_mod * side_half_length);
         const Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2] + z_mod * side_half_length);
-        SizeType number_of_nodes = 0;
         const double range_factor = (working_dim == 3) ? 2.0 : 1.414214; // 45 deg for each dim
-        double center_to_center, maximum_contact_range;
+        const bool is_skip_fast_filter = (pqmpm_search_factor == 0.0) ? true : false;
+        double center_to_center, maximum_contact_range, char_length;
         NodeType ele_point_low, ele_point_high;
-        const double fudge_factor = 5.0;
-        double char_length;
+
+        SizeType number_of_nodes = 0;
+        std::vector<typename GeometryType::Pointer> intersected_geometries;
+        std::vector<typename Element::Pointer> intersected_elements;
+
         for (auto ele_it : rBackgroundGridModelPart.Elements())
         {
-            char_length = std::pow(ele_it.GetGeometry().DomainSize(), 1.0 / double(working_dim))* fudge_factor + side_half_length;
-            if (std::abs(ele_it.GetGeometry().Center().X()- rCoordinates[0]) < char_length)
+            char_length = std::pow(ele_it.GetGeometry().DomainSize(), 1.0 / double(working_dim)) * pqmpm_search_factor + side_half_length;
+            if (is_skip_fast_filter || std::abs(ele_it.GetGeometry().Center().X() - rCoordinates[0]) < char_length)
             {
-                if (std::abs(ele_it.GetGeometry().Center().Y() - rCoordinates[1]) < char_length)
+                if (is_skip_fast_filter || std::abs(ele_it.GetGeometry().Center().Y() - rCoordinates[1]) < char_length)
                 {
-                    if (working_dim == 2 || std::abs(ele_it.GetGeometry().Center().Z() - rCoordinates[2]) < char_length)
+                    if (is_skip_fast_filter || working_dim == 2 || std::abs(ele_it.GetGeometry().Center().Z() - rCoordinates[2]) < char_length)
                     {
-                        //if (std::abs(ele_it.GetGeometry().Center().Z() - rCoordinates[2]) < char_length)
-                        //{
-                            center_to_center = norm_2(ele_it.GetGeometry().Center() - rCoordinates);
-                            ele_it.GetGeometry().BoundingBox(ele_point_low, ele_point_high);
-                            maximum_contact_range = range_factor * side_half_length + norm_2(ele_point_high - ele_point_low) / 2.0;
-                            if (center_to_center <= maximum_contact_range)
-                            {
-                                if (ele_it.GetGeometry().HasIntersection(point_low, point_high)) {
-                                    number_of_nodes += ele_it.GetGeometry().PointsNumber();
-                                    intersected_geometries.push_back(ele_it.pGetGeometry());
-                                    intersected_elements.push_back(&ele_it);
-                                }
+                        center_to_center = norm_2(ele_it.GetGeometry().Center() - rCoordinates);
+                        ele_it.GetGeometry().BoundingBox(ele_point_low, ele_point_high);
+                        maximum_contact_range = range_factor * side_half_length + norm_2(ele_point_high - ele_point_low) / 2.0;
+                        if (center_to_center <= maximum_contact_range)
+                        {
+                            if (ele_it.GetGeometry().HasIntersection(point_low, point_high)) {
+                                number_of_nodes += ele_it.GetGeometry().PointsNumber();
+                                intersected_geometries.push_back(ele_it.pGetGeometry());
+                                intersected_elements.push_back(&ele_it);
                             }
-                        //}
+                        }
                     }
                 }
             }
-            
         }
+
 
         // If we are 3D, check background mesh are axis-aligned perfect cubes
         if (working_dim == 3)  Check3DBackGroundMeshIsCubicAxisAligned(intersected_geometries);
@@ -658,10 +646,8 @@ namespace MPMSearchElementUtility
             {
                 intersected_elements[i]->Set(ACTIVE);
                 ips[active_subpoint_index] = trial_subpoint;
-                //ips_good.push_back(trial_subpoint);
                 DN_De_vector[active_subpoint_index] = DN_De;
                 for (size_t j = 0; j < N.size(); ++j) {
-                    //nodes_list_good.push_back(intersected_geometries[i]->pGetPoint(j));
                     N_matrix(active_subpoint_index, active_node_index) = N[j];
                     nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
 
@@ -748,7 +734,7 @@ namespace MPMSearchElementUtility
         Vector N;
         const int max_result = 1000;
         
-        #pragma omp parallel
+        //#pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
             SearchStructure.UpdateSearchDatabase();
@@ -756,7 +742,7 @@ namespace MPMSearchElementUtility
             typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
 
             // Element search and assign background grid
-            #pragma omp for
+            //#pragma omp for
             for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
