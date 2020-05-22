@@ -353,9 +353,9 @@ protected:
     /**
      * this computes the average vector on the edge for a certain variable
      */
-    void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
-    void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
-    void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge(const Element* pCurrentElement,   const Variable<Vector>& rThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector>& rThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector>& rThisVariable, Vector& rAverageStress, const int edge);
 
     /**
      * this evaluates the constitutive law

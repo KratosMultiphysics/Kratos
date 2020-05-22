@@ -15,7 +15,7 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
 
         # Set the element and condition names for the replace settings
         self.element_name = "PFEM2ConservativeSWE"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
 
         # Pfem2 settings

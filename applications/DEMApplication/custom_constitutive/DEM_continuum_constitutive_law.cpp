@@ -28,33 +28,49 @@ namespace Kratos {
     }
 
     void DEMContinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {
-        if(!pProp->Has(FRICTION)) {
-            KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
-            KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(FRICTION) = 0.0;
+        if(!pProp->Has(STATIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable STATIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(STATIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(STATIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
+        }
+        if(!pProp->Has(DYNAMIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable DYNAMIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(DYNAMIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
         }
         if(!pProp->Has(YOUNG_MODULUS)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable YOUNG_MODULUS should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable YOUNG_MODULUS should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(YOUNG_MODULUS) = 0.0;
         }
         if(!pProp->Has(POISSON_RATIO)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable POISSON_RATIO should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable POISSON_RATIO should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(POISSON_RATIO) = 0.0;
         }
         if(!pProp->Has(DAMPING_GAMMA)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable DAMPING_GAMMA should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable DAMPING_GAMMA should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(DAMPING_GAMMA) = 0.0;
         }
         if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(COEFFICIENT_OF_RESTITUTION) = 0.0;
         }

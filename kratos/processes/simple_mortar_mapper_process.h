@@ -218,8 +218,9 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG(DISCONTINOUS_INTERFACE);              /// If interface is discontinous
     KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_IS_HISTORICAL);                /// If the origin variables is historical
     KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_IS_HISTORICAL);           /// If the destination variables is historical
-    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_SKIN_IS_CONDITION_BASED);      /// If  the entities to take into account on the origin model part are the conditions, otherwise we will take elements into consideration
-    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_SKIN_IS_CONDITION_BASED); /// If  the entities to take into account on the destination model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_SKIN_IS_CONDITION_BASED);      /// If the entities to take into account on the origin model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_SKIN_IS_CONDITION_BASED); /// If the entities to take into account on the destination model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(CONSIDER_TESELLATION);                /// If we consider the tesellation in the mortar integration
 
     /// Pointer definition of SimpleMortarMapperProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcess);
@@ -390,6 +391,11 @@ public:
         // Execute the process
         Execute();
     }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -943,11 +949,6 @@ private:
      * @note Note that this needs to be done if such modelpart has changed its number of nodes or geometrical objects. This needs to be done even though the mapping instance is deleted since such information is saved in the destination nodes and geometrical objects.
      */
     void UpdateInterface();
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Private  Access

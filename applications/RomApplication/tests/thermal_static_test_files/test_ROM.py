@@ -14,7 +14,7 @@ class ROMStationaryConvDiff(KratosUnittest.TestCase):
     def test_ConvDiff_Stationary_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
-            with open("ProjectParametersROM.json",'r') as parameter_file:
+            with open("ProjectParameters.json",'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             model = KratosMultiphysics.Model()
