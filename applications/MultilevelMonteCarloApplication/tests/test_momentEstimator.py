@@ -15,29 +15,26 @@ class TestMomentEstimator(unittest.TestCase):
         # dimension = 0
         dimension = 0 # len(samples) = 2**dimension
         list_values = [[1.0],[2.0],[3.0],[4.0],[5.0],[6.0]]
-        true_power_sums = [[21.0],[91.0],[441.0],[2275.0],[12201.0],[67171.0],[376761.0],[2142595.0],[12313161.0],[71340451.0]]
+        true_power_sums = [[21.0], [91.0], [441.0], [2275.0]]
 
         # read parameters
         parametersPath = "parameters/parameters_test_momentEstimator.json"
         with open(parametersPath,'r') as parameter_file:
             parameters = json.load(parameter_file)
 
-        for order in [1,2,5]:
-            parameters["momentEstimatorInpuctDict"]["order"] = order
+        # build momentEstimator class
+        test_me = me.MomentEstimator(**parameters["momentEstimatorInpuctDict"])
 
-            # build momentEstimator class
-            test_me = me.MomentEstimator(**parameters["momentEstimatorInpuctDict"])
+        # update power sums
+        for i in range (len(list_values)):
+            test_me.update([list_values[i]])
 
-            # update power sums
-            for i in range (len(list_values)):
-                test_me.update([list_values[i]])
+        # test update sample number
+        self.assertEqual(test_me._sampleCounter, len(list_values))
 
-            # test update sample number
-            self.assertEqual(test_me._sampleCounter, len(list_values))
-
-            # test update power sums
-            for i in range (2*test_me.order):
-                self.assertEqual(test_me.powerSums[i], true_power_sums[i])
+        # test update power sums
+        for i in range (2*test_me.order):
+            self.assertEqual(test_me.powerSums, true_power_sums)
 
     def test_value(self):
         # dimension = 0
@@ -78,38 +75,36 @@ class TestCombinedMomentEstimator(unittest.TestCase):
         # dimension = 0
         dimension = 0 # len(samples) = 2**dimension
         Q=2.0
-        list_values = [[[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],[10*Q],[10*Q*Q],10]]
+        list_values = [[[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],10],[[10*Q],[10*Q*Q],10]]
 
-        true_power_sums = [[120.0],[240.0],[120.0],[240.0],[120.0],[240.0],[120.0],[240.0],[120.0],[240.0]]
+        true_power_sums = [[120.0], [240.0]]
 
         # read parameters
         parametersPath = "parameters/parameters_test_combinedMomentEstimator.json"
         with open(parametersPath,'r') as parameter_file:
             parameters = json.load(parameter_file)
 
-        for order in [1,5]:
-            parameters["momentEstimatorInpuctDict"]["order"] = order
-            # build momentEstimator class
-            test_me = me.CombinedMomentEstimator(**parameters["momentEstimatorInpuctDict"])
+        # build momentEstimator class
+        test_me = me.CombinedMomentEstimator(**parameters["momentEstimatorInpuctDict"])
 
-            # update power sums
-            for i in range (len(list_values)):
-                test_me.update([[list_values[i]]])
+        # update power sums
+        for i in range (len(list_values)):
+            test_me.update([[list_values[i]]])
 
-            # test update sample number
-            self.assertEqual(test_me._sampleCounter,60)
+        # test update sample number
+        self.assertEqual(test_me._sampleCounter,60)
 
-            # test update power sums
-            for i in range (2*test_me.order):
-                self.assertEqual(test_me.powerSums[i], true_power_sums[i])
+        # test update power sums
+        for i in range (2*test_me.order):
+            self.assertEqual(test_me.powerSums, true_power_sums)
 
-            S1 = test_me.powerSums[0][0]
-            S2 = test_me.powerSums[1][0]
-            h1 = mdccm.computeCentralMomentsOrderOneDimensionZero_Task(S1,test_me._sampleCounter)
-            h2 = mdccm.computeCentralMomentsOrderTwoDimensionZeroBiased_Task(S1,S2,test_me._sampleCounter)
+        S1 = test_me.powerSums[0][0]
+        S2 = test_me.powerSums[1][0]
+        h1 = mdccm.computeCentralMomentsOrderOneDimensionZero_Task(S1,test_me._sampleCounter)
+        h2 = mdccm.computeCentralMomentsOrderTwoDimensionZeroBiased_Task(S1,S2,test_me._sampleCounter)
 
-            self.assertEqual(h1,2.0)
-            self.assertEqual(h2,0.0)
+        self.assertEqual(h1,2.0)
+        self.assertEqual(h2,0.0)
 
     def test_value(self):
         # dimension = 0
