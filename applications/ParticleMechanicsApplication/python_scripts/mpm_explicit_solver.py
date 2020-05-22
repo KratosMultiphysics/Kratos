@@ -26,7 +26,8 @@ class MPMExplicitSolver(MPMSolver):
             "time_integration_method"   : "explicit",
             "scheme_type"   : "central_difference",
             "stress_update" : "usf",
-            "is_pqmpm"      : false
+            "is_pqmpm"      : false,
+            "pqmpm_search_factor"  : 0.0
         }""")
         this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultSettings())
         return this_defaults
@@ -59,6 +60,8 @@ class MPMExplicitSolver(MPMSolver):
         # Check whether the partitioned quadrature mpm (PQMPM) is used
         is_pqmpm = self.settings["is_pqmpm"].GetBool()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM, is_pqmpm)
+        pqmpm_search_factor = self.settings["pqmpm_search_factor"].GetDouble()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_SEARCH_FACTOR, pqmpm_search_factor)
 
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()

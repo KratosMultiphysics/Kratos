@@ -496,6 +496,17 @@ namespace MPMSearchElementUtility
     }
 
 
+    inline void FindIntersectedElements(const ModelPart& rBackgroundGridModelPart, const double side_half_length, array_1d<double, 3>& rCoordinates,
+        std::vector<typename GeometryType::Pointer>& intersected_geometries, std::vector<Element::Pointer>& intersected_elements)
+    {
+        KRATOS_TRY
+
+
+
+        KRATOS_CATCH("")
+    }
+
+
     inline typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
         const array_1d<double, 3>& rCoordinates,
         Element& rMasterMaterialPoint,
@@ -509,6 +520,9 @@ namespace MPMSearchElementUtility
         const bool is_axisymmetric = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
+        const double pqmpm_search_factor = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_SEARCH_FACTOR))
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(PQMPM_SEARCH_FACTOR)
+            : 0.0;
 
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
@@ -527,152 +541,172 @@ namespace MPMSearchElementUtility
         }
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
-        if (mp_volume_vec[0] <= pGeometry->DomainSize() && CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance))
-            return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
-        else
-        { // we need to do splitting. Initially determine all grid elements we intersect with
-            std::vector<typename GeometryType::Pointer> intersected_geometries;
-            std::vector<Element::Pointer> intersected_elements;
-            const double z_mod = (working_dim == 3) ? 1.0 : 0.0;
-            const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2] - z_mod * side_half_length);
-            const Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2] + z_mod * side_half_length);
-            SizeType number_of_nodes = 0;
-            const double range_factor = (working_dim == 3) ? 2.0 : 1.414214; // 45 deg for each dim
-            double center_to_center, maximum_contact_range;
-            NodeType ele_point_low, ele_point_high;
-            for (auto ele_it : rBackgroundGridModelPart.Elements())
-            {
-                center_to_center = norm_2(ele_it.GetGeometry().Center() - rCoordinates);
-                ele_it.GetGeometry().BoundingBox(ele_point_low, ele_point_high);
-                maximum_contact_range = range_factor * side_half_length + norm_2(ele_point_high - ele_point_low) / 2.0;
-                if (center_to_center <= maximum_contact_range)
-                {
-                    if (ele_it.GetGeometry().HasIntersection(point_low, point_high)) {
-                        number_of_nodes += ele_it.GetGeometry().PointsNumber();
-                        intersected_geometries.push_back(ele_it.pGetGeometry());
-                        intersected_elements.push_back(&ele_it);
-                    }
-                }
+        if (mp_volume_vec[0] <= pGeometry->DomainSize()) {
+            if (CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance)) {
+                return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                    pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
             }
-
-            // If we are 3D, check background mesh are axis-aligned perfect cubes
-            if (working_dim == 3)  Check3DBackGroundMeshIsCubicAxisAligned(intersected_geometries);
-
-            // Prepare containers to hold all sub-points
-            const SizeType number_of_sub_material_points = intersected_geometries.size();
-            PointerVector<Node<3>> nodes_list(number_of_nodes);
-            IntegrationPointsArrayType ips(number_of_sub_material_points);
-            Matrix N_matrix(number_of_sub_material_points, number_of_nodes, 0.0);
-            DenseVector<Matrix> DN_De_vector(number_of_sub_material_points);
-
-            // Temporary local containers
-            double sub_point_volume;
-            array_1d<double, 3> sub_point_position;
-            IndexType active_node_index = 0;
-            IndexType active_subpoint_index = 0;
-
-            // Loop over all intersected grid elements and make subpoints in each
-            for (size_t i = 0; i < number_of_sub_material_points; ++i) {
-                Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
-                Vector N(intersected_geometries[i]->PointsNumber());
-                sub_point_position.clear();
-                sub_point_volume = 0.0;
-                IntegrationPoint<3> trial_subpoint;
-
-                if (is_preserve_bc) {
-                    for (size_t j = 0; j < intersected_geometries[i]->PointsNumber(); ++j) {
-                        auto node_it = intersected_geometries[i]->pGetPoint(i);
-                        bool is_fixed = false;
-                        if (node_it->IsFixed(DISPLACEMENT_X)) is_fixed = true;
-                        else if (node_it->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
-                        else if (node_it->HasDofFor(DISPLACEMENT_Z)) { 
-                            if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true; 
-                        }
-                        if (is_fixed) {
-                            const double fix_point_to_cog = norm_2(node_it->Coordinates() - rCoordinates);
-                            if (fix_point_to_cog < range_factor * side_half_length) {
-                                return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                                    pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
-                            }
-                        }
-                    }
-                }
-
-                if (CheckNoPointsAreInGeom(master_domain_points, *intersected_geometries[i], Tolerance)) {
-                    // whole element is completely inside bounding box
-
-                    trial_subpoint = CreateSubPoint(intersected_geometries[i]->Center(),
-                        intersected_geometries[i]->DomainSize() / mp_volume_vec[0],
-                        *intersected_geometries[i], N, DN_De);
-                }
-                else {
-                    // only some of the background element is within the bounding box - most expensive check
-
-                    if (working_dim == 2) {
-                        Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
-                        sub_point_position[2] = rCoordinates[2]; // set z coord of sub point to that of the master
-                    }
-                    else
-                        Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
-                    trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
-                        *intersected_geometries[i], N, DN_De);
-                }
-
-                // Transfer local data to containers
-                if (trial_subpoint.Weight() > std::numeric_limits<double>::epsilon())
-                {
-                    intersected_elements[i]->Set(ACTIVE);
-                    ips[active_subpoint_index] = trial_subpoint;
-                    //ips_good.push_back(trial_subpoint);
-                    DN_De_vector[active_subpoint_index] = DN_De;
-                    for (size_t j = 0; j < N.size(); ++j) {
-                        //nodes_list_good.push_back(intersected_geometries[i]->pGetPoint(j));
-                        N_matrix(active_subpoint_index, active_node_index) = N[j];
-                        nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
-
-                        active_node_index += 1;
-                    }
-                    active_subpoint_index += 1;
-                }
-            }
-
-            if (active_subpoint_index == 1) return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
-
-            IntegrationPointsArrayType ips_good(active_subpoint_index);
-            PointerVector<Node<3>> nodes_list_good(active_node_index);
-            if (ips_good.size() == ips.size())
-            {
-                ips_good = ips;
-                nodes_list_good = nodes_list;
-            }
-            else
-            {
-                N_matrix.resize(active_subpoint_index, active_node_index, true);
-                DN_De_vector.resize(active_subpoint_index, true);
-                for (size_t i = 0; i < active_subpoint_index; i++) ips_good[i] = ips[i];
-                for (size_t i = 0; i < active_node_index; i++) nodes_list_good(i) = nodes_list(i);
-            }
-
-            Check(ips_good, std::numeric_limits<double>::epsilon(), N_matrix, DN_De_vector);
-
-            GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
-            typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
-            ips_container[ThisDefaultMethod] = ips_good;
-            typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType shape_function_container;
-            shape_function_container[ThisDefaultMethod] = N_matrix;
-            typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType shape_function_derivatives_container;
-            shape_function_derivatives_container[ThisDefaultMethod] = DN_De_vector;
-
-            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                ThisDefaultMethod,
-                ips_container,
-                shape_function_container,
-                shape_function_derivatives_container);
-
-            return CreateCustomQuadraturePoint(working_dim, pGeometry->LocalSpaceDimension(), data_container, nodes_list_good);
         }
+
+ 
+        // we need to do splitting. Initially determine all grid elements we intersect with
+        std::vector<typename GeometryType::Pointer> intersected_geometries;
+        std::vector<Element::Pointer> intersected_elements;
+        const double z_mod = (working_dim == 3) ? 1.0 : 0.0;
+        const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2] - z_mod * side_half_length);
+        const Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2] + z_mod * side_half_length);
+        SizeType number_of_nodes = 0;
+        const double range_factor = (working_dim == 3) ? 2.0 : 1.414214; // 45 deg for each dim
+        double center_to_center, maximum_contact_range;
+        NodeType ele_point_low, ele_point_high;
+        const double fudge_factor = 5.0;
+        double char_length;
+        for (auto ele_it : rBackgroundGridModelPart.Elements())
+        {
+            char_length = std::pow(ele_it.GetGeometry().DomainSize(), 1.0 / double(working_dim))* fudge_factor + side_half_length;
+            if (std::abs(ele_it.GetGeometry().Center().X()- rCoordinates[0]) < char_length)
+            {
+                if (std::abs(ele_it.GetGeometry().Center().Y() - rCoordinates[1]) < char_length)
+                {
+                    if (working_dim == 2 || std::abs(ele_it.GetGeometry().Center().Z() - rCoordinates[2]) < char_length)
+                    {
+                        //if (std::abs(ele_it.GetGeometry().Center().Z() - rCoordinates[2]) < char_length)
+                        //{
+                            center_to_center = norm_2(ele_it.GetGeometry().Center() - rCoordinates);
+                            ele_it.GetGeometry().BoundingBox(ele_point_low, ele_point_high);
+                            maximum_contact_range = range_factor * side_half_length + norm_2(ele_point_high - ele_point_low) / 2.0;
+                            if (center_to_center <= maximum_contact_range)
+                            {
+                                if (ele_it.GetGeometry().HasIntersection(point_low, point_high)) {
+                                    number_of_nodes += ele_it.GetGeometry().PointsNumber();
+                                    intersected_geometries.push_back(ele_it.pGetGeometry());
+                                    intersected_elements.push_back(&ele_it);
+                                }
+                            }
+                        //}
+                    }
+                }
+            }
+            
+        }
+
+        // If we are 3D, check background mesh are axis-aligned perfect cubes
+        if (working_dim == 3)  Check3DBackGroundMeshIsCubicAxisAligned(intersected_geometries);
+
+        // Prepare containers to hold all sub-points
+        const SizeType number_of_sub_material_points = intersected_geometries.size();
+        PointerVector<Node<3>> nodes_list(number_of_nodes);
+        IntegrationPointsArrayType ips(number_of_sub_material_points);
+        Matrix N_matrix(number_of_sub_material_points, number_of_nodes, 0.0);
+        DenseVector<Matrix> DN_De_vector(number_of_sub_material_points);
+
+        // Temporary local containers
+        double sub_point_volume;
+        array_1d<double, 3> sub_point_position;
+        IndexType active_node_index = 0;
+        IndexType active_subpoint_index = 0;
+
+        // Loop over all intersected grid elements and make subpoints in each
+        for (size_t i = 0; i < number_of_sub_material_points; ++i) {
+            Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
+            Vector N(intersected_geometries[i]->PointsNumber());
+            sub_point_position.clear();
+            sub_point_volume = 0.0;
+            IntegrationPoint<3> trial_subpoint;
+
+            if (is_preserve_bc) {
+                for (size_t j = 0; j < intersected_geometries[i]->PointsNumber(); ++j) {
+                    auto node_it = intersected_geometries[i]->pGetPoint(i);
+                    bool is_fixed = false;
+                    if (node_it->IsFixed(DISPLACEMENT_X)) is_fixed = true;
+                    else if (node_it->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
+                    else if (node_it->HasDofFor(DISPLACEMENT_Z)) { 
+                        if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true; 
+                    }
+                    if (is_fixed) {
+                        const double fix_point_to_cog = norm_2(node_it->Coordinates() - rCoordinates);
+                        if (fix_point_to_cog < range_factor * side_half_length) {
+                            return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                                pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+                        }
+                    }
+                }
+            }
+
+            if (CheckNoPointsAreInGeom(master_domain_points, *intersected_geometries[i], Tolerance)) {
+                // whole element is completely inside bounding box
+
+                trial_subpoint = CreateSubPoint(intersected_geometries[i]->Center(),
+                    intersected_geometries[i]->DomainSize() / mp_volume_vec[0],
+                    *intersected_geometries[i], N, DN_De);
+            }
+            else {
+                // only some of the background element is within the bounding box - most expensive check
+
+                if (working_dim == 2) {
+                    Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
+                    sub_point_position[2] = rCoordinates[2]; // set z coord of sub point to that of the master
+                }
+                else
+                    Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
+                trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
+                    *intersected_geometries[i], N, DN_De);
+            }
+
+            // Transfer local data to containers
+            if (trial_subpoint.Weight() > std::numeric_limits<double>::epsilon())
+            {
+                intersected_elements[i]->Set(ACTIVE);
+                ips[active_subpoint_index] = trial_subpoint;
+                //ips_good.push_back(trial_subpoint);
+                DN_De_vector[active_subpoint_index] = DN_De;
+                for (size_t j = 0; j < N.size(); ++j) {
+                    //nodes_list_good.push_back(intersected_geometries[i]->pGetPoint(j));
+                    N_matrix(active_subpoint_index, active_node_index) = N[j];
+                    nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
+
+                    active_node_index += 1;
+                }
+                active_subpoint_index += 1;
+            }
+        }
+
+        if (active_subpoint_index == 1) return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+            pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+
+        IntegrationPointsArrayType ips_good(active_subpoint_index);
+        PointerVector<Node<3>> nodes_list_good(active_node_index);
+        if (ips_good.size() == ips.size())
+        {
+            ips_good = ips;
+            nodes_list_good = nodes_list;
+        }
+        else
+        {
+            N_matrix.resize(active_subpoint_index, active_node_index, true);
+            DN_De_vector.resize(active_subpoint_index, true);
+            for (size_t i = 0; i < active_subpoint_index; i++) ips_good[i] = ips[i];
+            for (size_t i = 0; i < active_node_index; i++) nodes_list_good(i) = nodes_list(i);
+        }
+
+        Check(ips_good, std::numeric_limits<double>::epsilon(), N_matrix, DN_De_vector);
+
+        GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
+        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
+        ips_container[ThisDefaultMethod] = ips_good;
+        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType shape_function_container;
+        shape_function_container[ThisDefaultMethod] = N_matrix;
+        typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType shape_function_derivatives_container;
+        shape_function_derivatives_container[ThisDefaultMethod] = DN_De_vector;
+
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+            ThisDefaultMethod,
+            ips_container,
+            shape_function_container,
+            shape_function_derivatives_container);
+
+        return CreateCustomQuadraturePoint(working_dim, pGeometry->LocalSpaceDimension(), data_container, nodes_list_good);
+
         KRATOS_CATCH("");
     }
 
