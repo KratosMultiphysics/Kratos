@@ -504,7 +504,7 @@ namespace MPMSearchElementUtility
         KRATOS_TRY;
 
         const SizeType working_dim = pGeometry->WorkingSpaceDimension();
-
+        const bool is_preserve_bc = false; // prevent split occuring over a boundary condition
         const bool is_axisymmetric = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
@@ -578,6 +578,26 @@ namespace MPMSearchElementUtility
                 sub_point_position.clear();
                 sub_point_volume = 0.0;
                 IntegrationPoint<3> trial_subpoint;
+
+                if (is_preserve_bc) {
+                    for (size_t j = 0; j < intersected_geometries[i]->PointsNumber(); ++j) {
+                        auto node_it = intersected_geometries[i]->pGetPoint(i);
+                        bool is_fixed = false;
+                        if (node_it->IsFixed(DISPLACEMENT_X)) is_fixed = true;
+                        else if (node_it->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
+                        else if (node_it->HasDofFor(DISPLACEMENT_Z)) { 
+                            if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true; 
+                        }
+                        if (is_fixed) {
+                            const double fix_point_to_cog = norm_2(node_it->Coordinates() - rCoordinates);
+                            if (fix_point_to_cog < range_factor * side_half_length) {
+                                std::cout << "bc\n";
+                                return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                                    pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+                            }
+                        }
+                    }
+                }
 
                 if (CheckNoPointsAreInGeom(master_domain_points, *intersected_geometries[i], Tolerance)) {
                     // whole element is completely inside bounding box
