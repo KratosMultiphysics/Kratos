@@ -449,9 +449,6 @@ namespace MPMSearchElementUtility
         Boost2DPolygonType polygon_grid = Create2DPolygonFromGeometryFast(rGridElement);
 
         // make boost polygon of bounding box
-        //std::vector<Boost2DPointType> polygon_box_points(4);
-        //Boost2DPolygonType polygon_box;
-        //Create2DPolygonBoundingSquareFromPoints(rMasterDomainPoints, polygon_box_points, polygon_box);
         Boost2DPolygonType polygon_box = Create2DPolygonBoundingSquareFromPointsFast(rMasterDomainPoints);
 
 
@@ -488,20 +485,16 @@ namespace MPMSearchElementUtility
 
             // NOTE: THIS FUNCTION ASSUMES THE BACKGROUND GRID ELEMENT IS PERFECTLY CUBIC AND THE RESULTING INTERSECTION VOLUME IS A RECTANGULAR PRISM
 
-            // make boost xy polygon of current background element geometry
-            //std::vector<Boost2DPointType> polygon_grid_xy_points(4);
+        // make boost xy polygon of current background element geometry
         Boost2DPolygonType polygon_grid_xy = Create2DPolygonFromGeometryFast(rGridElement);
 
         // make boost yz polygon of current background element geometry
-        //std::vector<Boost2DPointType> polygon_grid_yz_points(4);
         Boost2DPolygonType polygon_grid_yz = Create2DPolygonFromGeometryFast(rGridElement, false, true, true);
 
         // make boost xy polygon of bounding box
-        //std::vector<Boost2DPointType> polygon_box_xy_points(4);
         Boost2DPolygonType polygon_box_xy = Create2DPolygonBoundingSquareFromPointsFast(rMasterDomainPoints);
 
         // make boost yz polygon of bounding box
-        //std::vector<Boost2DPointType> polygon_box_yz_points(4);
         Boost2DPolygonType polygon_box_yz = Create2DPolygonBoundingSquareFromPointsFast(rMasterDomainPoints, false, true, true);
 
         // make boost polygon result container
