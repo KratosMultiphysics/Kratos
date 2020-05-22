@@ -592,7 +592,6 @@ namespace MPMSearchElementUtility
                         if (is_fixed) {
                             const double fix_point_to_cog = norm_2(node_it->Coordinates() - rCoordinates);
                             if (fix_point_to_cog < range_factor * side_half_length) {
-                                std::cout << "bc\n";
                                 return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                                     pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
                             }
