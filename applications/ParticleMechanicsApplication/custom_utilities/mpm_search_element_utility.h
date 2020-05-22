@@ -133,9 +133,10 @@ namespace MPMSearchElementUtility
             vol_frac_accum += rIntergrationSubPoints[i].Weight();
         }
 
-        KRATOS_ERROR_IF(vol_frac_accum < (1.0 - rIntergrationSubPoints.size() * Tolerance))
+        KRATOS_ERROR_IF(std::abs(vol_frac_accum - 1.0) < rIntergrationSubPoints.size() * Tolerance)
             << "Volume fraction of sub-points does not approximately sum to 1.0."
             << " This probably means the background grid is not big enough";
+        
 
         for (size_t j = 0; j < rN.size2(); j++)
         {
@@ -504,7 +505,7 @@ namespace MPMSearchElementUtility
         KRATOS_TRY;
 
         const SizeType working_dim = pGeometry->WorkingSpaceDimension();
-        const bool is_preserve_bc = false; // prevent split occuring over a boundary condition
+        const bool is_preserve_bc = true; // prevent split occuring over a boundary condition
         const bool is_axisymmetric = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
