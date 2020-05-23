@@ -46,7 +46,7 @@ namespace NurbsUtilities
     * @brief the index of the upper limit of the span in which the ParameterT lays.
     * From Piegl and Tiller, The NURBS Book, Algorithm A2.1
     */
-    static IndexType GetUpperSpan(
+    inline IndexType GetUpperSpan(
         const SizeType PolynomialDegree,
         const Vector& rKnots,
         const double ParameterT)
@@ -60,7 +60,7 @@ namespace NurbsUtilities
     * @brief the index of the lower limit of the span in which the ParameterT lays.
     * From Piegl and Tiller, The NURBS Book, Algorithm A2.1
     */
-    static IndexType GetLowerSpan(
+    inline IndexType GetLowerSpan(
         const SizeType PolynomialDegree,
         const Vector& rKnots,
         const double ParameterT)
@@ -75,7 +75,7 @@ namespace NurbsUtilities
     * @param NumberOfKnots and
     * @param NumberOfControlPoints
     */
-    static SizeType GetPolynomialDegree(const SizeType NumberOfKnots, const SizeType NumberOfControlPoints)
+    inline SizeType GetPolynomialDegree(const SizeType NumberOfKnots, const SizeType NumberOfControlPoints)
     {
         return NumberOfKnots - NumberOfControlPoints + 1;
     }
@@ -85,7 +85,7 @@ namespace NurbsUtilities
     * @param PolynomialDegree and
     * @param NumberOfControlPoints
     */
-    static SizeType GetNumberOfKnots(const SizeType PolynomialDegree, const SizeType NumberOfControlPoints)
+    inline SizeType GetNumberOfKnots(const SizeType PolynomialDegree, const SizeType NumberOfControlPoints)
     {
         return NumberOfControlPoints + PolynomialDegree - 1;
     }
@@ -95,7 +95,7 @@ namespace NurbsUtilities
     * @param PolynomialDegree and
     * @param NumberOfKnots
     */
-    static SizeType GetNumberOfControlPoints(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
+    inline SizeType GetNumberOfControlPoints(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
     {
         return NumberOfKnots - PolynomialDegree + 1;
     }
@@ -105,7 +105,7 @@ namespace NurbsUtilities
     * @param PolynomialDegree and
     * @param NumberOfKnots
     */
-    static SizeType GetNumberOfSpans(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
+    inline SizeType GetNumberOfSpans(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
     {
         return NumberOfKnots - 2 * PolynomialDegree + 1;
     }
@@ -115,7 +115,6 @@ namespace NurbsUtilities
     */
     static constexpr inline SizeType GetBinomCoefficient(const SizeType N, const SizeType K) noexcept
     {
-        // clang-format off
         return
             (K > N) ? 0 :  // out of range
             (K == 0 || K == N) ? 1 :  // edge
@@ -123,7 +122,6 @@ namespace NurbsUtilities
             (K + K < N) ?                // recursive:
             (GetBinomCoefficient(N - 1, K - 1) * N) / K :  //   path to K = 1     faster
             (GetBinomCoefficient(N - 1, K) * N) / (N - K);  //   path to K = n - 1 faster
-        // clang-format on
     }
 
 
@@ -157,4 +155,4 @@ namespace NurbsUtilities
 ///@}
 } // namespace Kratos
 
-#endif // KRATOS_NURBS_UTILITY_H_INCLUDED defined 
+#endif // KRATOS_NURBS_UTILITY_H_INCLUDED defined

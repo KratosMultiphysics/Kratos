@@ -3,16 +3,21 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
-def CreateTurbulenceModel(model, settings, is_distributed = False):
-    if not CheckIfApplicationsAvailable("RANSModellingApplication"):
-        msg = "Using a turbulence model requires the RANSModellingApplication. "
-        msg += "Please re-install/re-compile with RANSModellingApplication."
+def CreateTurbulenceModel(model_part, settings):
+    if not CheckIfApplicationsAvailable("RANSApplication"):
+        msg = "Using a turbulence model requires the RANSApplication. "
+        msg += "Please re-install/re-compile with RANSApplication."
         raise Exception(msg)
 
-    from KratosMultiphysics.RANSModellingApplication.turbulence_model_factory import Factory
-    return Factory(settings, model, is_distributed)
+    from KratosMultiphysics.RANSApplication.turbulence_model_factory import Factory
+    return Factory(model_part, settings)
 
 class TurbulenceModelSolver(PythonSolver):
+    def __init__(self, model_part, settings):
+        self.fluid_model_part = model_part
+        self.model = model_part.GetModel()
+        super(TurbulenceModelSolver, self).__init__(self.model, settings)
+
     def AddVariables(self):
         msg = "Calling the base TurbulenceModelSolver class AddVariables method."
         msg += " Please override it in the derrived class."
@@ -61,6 +66,11 @@ class TurbulenceModelSolver(PythonSolver):
     def SetCommunicator(self, epetra_communicator):
         msg = "Calling the base TurbulenceModelSolver class SetCommunicator method."
         msg += " Please override it in the derrived class to set the epetra_communicator for RANS model parts"
+        raise Exception(msg)
+
+    def SetParentSolvingStrategy(self, parent_solving_strategy):
+        msg = "Calling the base TurbulenceModelSolver class SetParentSolvingStrategy method."
+        msg += " Please override it in the derrived class to set the parent_solving_strategy for RANS solving strategy"
         raise Exception(msg)
 
     def Finalize(self):

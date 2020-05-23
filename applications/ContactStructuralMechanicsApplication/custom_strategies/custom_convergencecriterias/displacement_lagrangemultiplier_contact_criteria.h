@@ -213,26 +213,32 @@ public:
             std::size_t dof_id = 0;
             TDataType dof_value = 0.0, dof_incr = 0.0;
 
+            // The number of active dofs
+            const std::size_t number_active_dofs = rb.size();
+
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_solution_norm,lm_solution_norm,disp_increase_norm,lm_increase_norm,disp_dof_num,lm_dof_num,dof_id,dof_value,dof_incr)
+            #pragma omp parallel for firstprivate(dof_id, dof_value ,dof_incr) reduction(+:disp_solution_norm, lm_solution_norm, disp_increase_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
                 dof_id = it_dof->EquationId();
 
-                if (mActiveDofs[dof_id]) {
-                    dof_value = it_dof->GetSolutionStepValue(0);
-                    dof_incr = rDx[dof_id];
+                // Check dof id is solved
+                if (dof_id < number_active_dofs) {
+                    if (mActiveDofs[dof_id] == 1) {
+                        dof_value = it_dof->GetSolutionStepValue(0);
+                        dof_incr = rDx[dof_id];
 
-                    const auto curr_var = it_dof->GetVariable();
-                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
-                        lm_solution_norm += dof_value * dof_value;
-                        lm_increase_norm += dof_incr * dof_incr;
-                        lm_dof_num++;
-                    } else {
-                        disp_solution_norm += dof_value * dof_value;
-                        disp_increase_norm += dof_incr * dof_incr;
-                        disp_dof_num++;
+                        const auto& r_curr_var = it_dof->GetVariable();
+                        if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                            lm_solution_norm += dof_value * dof_value;
+                            lm_increase_norm += dof_incr * dof_incr;
+                            lm_dof_num++;
+                        } else {
+                            disp_solution_norm += dof_value * dof_value;
+                            disp_increase_norm += dof_incr * dof_incr;
+                            disp_dof_num++;
+                        }
                     }
                 }
             }
@@ -424,7 +430,7 @@ private:
     TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
     TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
 
-    std::vector<bool> mActiveDofs; /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs; /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
@@ -459,16 +465,9 @@ private:
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::ENSURE_CONTACT(Kratos::Flags::Create(0));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::NOT_ENSURE_CONTACT(Kratos::Flags::Create(0, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(1, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags DisplacementLagrangeMultiplierContactCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(2, false));
 }
 
 #endif	/* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_CONTACT_CRITERIA_H */
-

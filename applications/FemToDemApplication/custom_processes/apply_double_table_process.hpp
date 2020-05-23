@@ -46,20 +46,19 @@ public:
     {
         KRATOS_TRY;
                 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        
-        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int number_nodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if(nnodes != 0) {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+        if(number_nodes != 0) {
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
             #pragma omp parallel for
-            for(int i = 0; i < nnodes; i++) {
+            for(int i = 0; i < number_nodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                if(mis_fixed) {
+                if(mIsFixed) {
                     it->Fix(var);
                 }
-                it->FastGetSolutionStepValue(var) = minitial_value;
+                it->FastGetSolutionStepValue(var) = mInitialValue;
             }
         }
         KRATOS_CATCH("");
@@ -70,25 +69,29 @@ public:
     {
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
         
         double time;
         if (mTimeUnitConverter != 0) {
-            time = mr_model_part.GetProcessInfo()[TIME] / mTimeUnitConverter;
+            time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
         } else {
-            time = mr_model_part.GetProcessInfo()[TIME];
+            time = mrModelPart.GetProcessInfo()[TIME];
         }
-        double value = mpTable->GetValue(time);
+        const double value = mpTable->GetValue(time);
         
-        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
+        const int number_nodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if(nnodes != 0) {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
-
+        if (number_nodes != 0) {
+            const auto& it_begin = mrModelPart.NodesBegin();
             #pragma omp parallel for
-            for(int i = 0; i < nnodes; i++) {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(var) = value;
+            for (int i = 0; i < number_nodes; i++) {
+                auto it_node = it_begin + i;
+
+                double reduction_factor_pressure = 1.0;
+                if (it_node->GetValue(PRESSURE_INITIAL_VOLUME) != 0.0) {
+                    reduction_factor_pressure = it_node->GetValue(PRESSURE_INITIAL_VOLUME) / it_node->GetValue(PRESSURE_VOLUME);
+                }
+                it_node->FastGetSolutionStepValue(var) = reduction_factor_pressure * value;
             }
         }
         KRATOS_CATCH("");

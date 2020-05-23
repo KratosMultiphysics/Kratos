@@ -1,0 +1,54 @@
+////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////  The  FEAST Eigenvalue Solver     ///////////////////////////
+//////////// ///////////////////////////////////////////////////////////////////////////////
+web   : http://www.feast-solver.org  
+E-mail: feastsolver@gmail.com              
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+Compilation of the FEAST library source code:
+----------------------------------------------
+
+- a simple 'make' will print out all possible options
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+- This directory $FEASTROOT/src contains the following directories and associated files:
+
+
+Makefile                   ! Generic Makefile (multiple options possible using command line)
+LICENSE                    ! FEAST BSD License file
+README                     ! this file
+kernel                     ! FEAST-RCI    interfaces (FEAST-kernel)
+dense                      ! FEAST-DENSE  interfaces
+banded                     ! FEAST-BANDED interfaces
+sparse                     ! FEAST-SPARSE interfaces
+
+
+******./kernel ***********
+dzfeast.f90                ! FEAST_RCI interfaces (FEAST-kernel)- double precision  
+feast_tool.f90             ! Various FEAST utility routines (documented)
+feast_aux.f90              ! Various FEAST auxiliary routines (undocumented)
+libnum.f90                 ! Various Fortran numerical routines from E. Polizzi lab. (undocumented)
+
+******./dense ************
+dzfeast_dense.f90          ! FEAST_DENSE interfaces- double precision
+dzfeast_pev_dense.f90      ! FEAST_DENSE interfaces por polynomial eigenvalue problems
+
+****./banded ************
+dzfeast_banded.f90         ! FEAST_BANDED interfaces- double precision
+
+*****./sparse ************
+dzfeast_sparse.f90         ! FEAST_SPARSE interfaces- double precision
+dzifeast_sparse.f90        ! IFEAST_SPARSE interfaces- double precision
+dzfeast_pev_sparse.f90     ! FEAST_SPARSE interfaces- double precision- polynomial eigenvalue problems
+dzifeast_pev_sparse.f90    ! IFEAST_SPARSE interfaces- double precision- polynomial eigenvalue problems
+
+pdzfeast_sparse.f90        ! PFEAST_SPARSE interfaces- double precision
+pdzifeast_sparse.f90       ! PIFEAST_SPARSE interfaces- double precision
+pdzfeast_pev_sparse.f90    ! PFEAST_SPARSE interfaces- double precision- polynomial eigenvalue problems
+pdzifeast_pev_sparse.f90   ! PIFEAST_SPARSE interfaces- double precision- polynomial eigenvalue problems
+
+dzlsprim.f90               ! sparse primitives used by FEAST_SPARSE- double precision
+sclsprim.f90               ! sparse primitives used by FEAST_SPARSE- single precision
+
+

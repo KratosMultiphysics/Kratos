@@ -31,10 +31,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"],
-        "rotation_dofs"                      : false
+        "max_iteration"                      : 10
     },
     "processes"        : {
         "constraints_process_list" : [{
@@ -64,6 +61,7 @@
             "Parameters"    : {
                 "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,0.0,-1.0],
                 "interval"        : [0.0,"End"]

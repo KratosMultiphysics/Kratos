@@ -31,7 +31,7 @@ class TestRedistance(KratosUnittest.TestCase):
         model_part.SetBufferSize(2)
 
         #IMPORTANT! must compute the neighbours first!!
-        KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10).Execute()
+        KratosMultiphysics.FindNodalNeighboursProcess(model_part).Execute()
         
         original_vol = self._ComputeVolume(model_part.Elements)
         #original_surface = self._ComputeSurfaceArea(model_part.Conditions)
@@ -70,7 +70,7 @@ class TestRedistance(KratosUnittest.TestCase):
                 elem.SetValue(KratosMultiphysics.SPLIT_ELEMENT,True)
             
         #IMPORTANT! must compute the neighbours first!!
-        KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10).Execute()
+        KratosMultiphysics.FindNodalNeighboursProcess(model_part).Execute()
         
         refiner = KratosMultiphysics.MeshingApplication.LocalRefineTetrahedraMesh(model_part)
         
@@ -103,7 +103,7 @@ class TestRedistance(KratosUnittest.TestCase):
                 elem.SetValue(KratosMultiphysics.SPLIT_ELEMENT,True)
             
         #IMPORTANT! must compute the neighbours first!!
-        KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10).Execute()
+        KratosMultiphysics.FindNodalNeighboursProcess(model_part).Execute()
         
         refiner = KratosMultiphysics.MeshingApplication.LocalRefineTetrahedraMesh(model_part)
         
@@ -111,7 +111,7 @@ class TestRedistance(KratosUnittest.TestCase):
         interpolate_internal_variables = True
         refiner.LocalRefineMesh( refine_on_reference, interpolate_internal_variables)
 
-        KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10).Execute()
+        KratosMultiphysics.FindNodalNeighboursProcess(model_part).Execute()
         
         reconnector = KratosMultiphysics.MeshingApplication.TetrahedraReconnectUtility(model_part)
         simIter = 2

@@ -12,7 +12,7 @@
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
-            "time_step" : 0.5
+            "time_step" : 0.4
         },
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
@@ -26,7 +26,7 @@
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 1e-6,
+        "residual_relative_tolerance"        : 1e-9,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 40,
         "rotation_dofs"                      : false,
@@ -40,7 +40,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_dirichletXYZ",
+            "model_part_name" : "Structure.DISPLACEMENT_dirichletXYZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"	  : [true,true,true],
             "value"           : [0.0,0.0,0.0]
@@ -52,7 +52,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_dirichletXZ",
+            "model_part_name" : "Structure.DISPLACEMENT_dirichletXZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"	  : [true,false,true],
             "value"           : [0.0,0.0,0.0]
@@ -63,8 +63,9 @@
         "kratos_module" : "KratosMultiphysics",
         "check"         : "DirectorVectorNonZero direction",
         "Parameters"    : {
-            "model_part_name" : "PointLoad3D_neumann",
+            "model_part_name" : "Structure.PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
+            "constrained"     : false,
             "modulus"         : "t",
             "direction"       : [0,-1.0,0.0],
             "interval"        : [0.0,30]
@@ -74,8 +75,9 @@
         "kratos_module" : "KratosMultiphysics",
         "check"         : "DirectorVectorNonZero direction",
         "Parameters"    : {
-            "model_part_name" : "PointLoad3D_neumann",
+            "model_part_name" : "Structure.PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
+            "constrained"     : false,
             "modulus"         : "60-t",
             "direction"       : [0,-1.0,0.0],
             "interval"        : [30,100]
@@ -85,8 +87,9 @@
         "kratos_module" : "KratosMultiphysics",
         "check"         : "DirectorVectorNonZero direction",
         "Parameters"    : {
-            "model_part_name" : "PointLoad3D_neumann",
+            "model_part_name" : "Structure.PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
+            "constrained"     : false,
             "modulus"         : "-140+t",
             "direction"       : [0,-1.0,0.0],
             "interval"        : [100,195]
@@ -96,8 +99,9 @@
         "kratos_module" : "KratosMultiphysics",
         "check"         : "DirectorVectorNonZero direction",
         "Parameters"    : {
-            "model_part_name" : "PointLoad3D_neumann",
+            "model_part_name" : "Structure.PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
+            "constrained"     : false,
             "modulus"         : "0",
             "direction"       : [0,-1.0,0.0],
             "interval"        : [195,"End"]

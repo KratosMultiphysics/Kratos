@@ -25,7 +25,7 @@ class TestEmbeddedSkinMapping(KratosUnittest.TestCase):
         parameters = KratosMultiphysics.Parameters("{}")
         parameters.AddEmptyValue("number_of_divisions").SetInt(100)
         parameters.AddEmptyValue("element_name").SetString("Element2D3N")
-        parameters.AddEmptyValue("condition_name").SetString("Condition2D2N")
+        parameters.AddEmptyValue("condition_name").SetString("LineCondition2D2N")
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
 
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, model_part, parameters).Execute()
@@ -38,7 +38,7 @@ class TestEmbeddedSkinMapping(KratosUnittest.TestCase):
         skin_model_part = model.CreateModelPart("SkinModelPart")
         skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_calculate_distance_to_skin_naca_0012")).ReadModelPart(skin_model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_calculate_distance_to_skin_naca_0012")).ReadModelPart(skin_model_part)
 
         # Set a random field to be mapped from the skin model part to the (embedded) model part
         # Call the CalculateDistanceToSkinProcess()

@@ -205,21 +205,22 @@ protected:
         double manning2;
         double porosity;
         double height_units;
+        double permeability;
+        double discharge_penalty;
 
         // Element variables
         array_1d<double, 2> projected_momentum; // It is used to compute friction terms
-        BoundedMatrix<double, 2, 2> momentum_grad;
         double momentum_div; // It is used to compute shock capturing
+        double velocity_div; // It is used to compute the convective term
         double height;
+        double wave_vel_2;
         array_1d<double, 2> surface_grad; // Is used to compute shock capturing
         array_1d<double, 2> velocity; // It is used to compute the convective stabilization
-        double wave_vel_2;
 
         // Unknowns and nodal values
         LocalVectorType rain;
         LocalVectorType unknown;
         LocalVectorType prev_unk;
-        LocalVectorType proj_unk;
 
         // Shape functions and derivatives
         BoundedMatrix<double, 2, LocalSize> N_q;

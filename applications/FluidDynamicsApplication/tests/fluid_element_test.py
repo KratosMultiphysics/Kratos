@@ -93,7 +93,8 @@ class FluidElementTest(UnitTest.TestCase):
         self.fluid_solver.PrepareModelPart()
         self.fluid_solver.AddDofs()
 
-        self.fluid_model_part = self.model.GetModelPart("Fluid")
+        fluid_model_part_name = settings["solver_settings"]["model_part_name"].GetString() + "." + settings["solver_settings"]["volume_model_part_name"].GetString()
+        self.fluid_model_part = self.model.GetModelPart(fluid_model_part_name)
 
     def setUpModelTimeIntegrated(self):
         self.model = Model()
@@ -122,7 +123,8 @@ class FluidElementTest(UnitTest.TestCase):
         self.fluid_solver.PrepareModelPart()
         self.fluid_solver.AddDofs()
 
-        self.fluid_model_part = self.model.GetModelPart("Fluid")
+        fluid_model_part_name = settings["solver_settings"]["model_part_name"].GetString() + "." + settings["solver_settings"]["volume_model_part_name"].GetString()
+        self.fluid_model_part = self.model.GetModelPart(fluid_model_part_name)
 
     def setUpProblem(self):
         xmin = 0.0
@@ -141,8 +143,9 @@ class FluidElementTest(UnitTest.TestCase):
             constitutive_law = Newtonian2DLaw()
             self.fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,constitutive_law)
 
+        process_info = self.fluid_model_part.ProcessInfo
         for element in self.fluid_model_part.Elements:
-            element.Initialize()
+            element.Initialize(process_info)
 
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:

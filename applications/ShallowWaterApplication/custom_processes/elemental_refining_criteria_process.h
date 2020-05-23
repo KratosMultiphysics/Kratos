@@ -69,11 +69,11 @@ public:
     /// Constructor
     ElementalRefiningCriteriaProcess(
         ModelPart& rThisModelPart,
-        Variable<double> ThisVariable,
+        const Variable<double>& rThisVariable,
         double Threshold,
         bool OnlyRefineWetDomain
     ) : mrModelPart(rThisModelPart)
-      , mVariable(ThisVariable)
+      , mpVariable(&rThisVariable)
       , mThreshold(Threshold)
       , mOnlyRefineWetDomain(OnlyRefineWetDomain)
     {}
@@ -93,7 +93,7 @@ public:
     })");
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mVariable = KratosComponents< Variable<double> >::Get(ThisParameters["error_variable"].GetString());
+    mpVariable = &KratosComponents< Variable<double> >::Get(ThisParameters["error_variable"].GetString());
     mThreshold = ThisParameters["variable_threshold"].GetDouble();
     mOnlyRefineWetDomain = ThisParameters["only_refine_wet_domain"].GetBool();
 
@@ -194,7 +194,7 @@ protected:
         for(int i = 0; i < num_elements; i++)
         {
             auto elem = elements_begin + i;
-            if (elem->GetValue(RESIDUAL_NORM) > mThreshold)
+            if (elem->GetValue(*mpVariable) > mThreshold)
             {
                 bool active_elem = true;
                 if (mOnlyRefineWetDomain)
@@ -247,7 +247,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    Variable<double> mVariable = RESIDUAL_NORM;
+    const Variable<double>* mpVariable;
     double mThreshold;
     bool mOnlyRefineWetDomain;
 

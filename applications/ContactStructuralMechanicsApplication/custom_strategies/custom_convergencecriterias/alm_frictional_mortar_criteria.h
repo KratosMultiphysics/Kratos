@@ -307,8 +307,8 @@ protected:
 
         // We reset the weighted values
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
-        VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
+        VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
+        VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, nodes_array);
     }
 
     ///@}
@@ -365,13 +365,8 @@ private:
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(3));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(3, false));
-template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(4));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(4, false));
 
 }  // namespace Kratos
 
 #endif /* KRATOS_ALM_FRICTIONAL_MORTAR_CRITERIA_H  defined */
-

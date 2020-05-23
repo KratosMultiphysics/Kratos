@@ -7,7 +7,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def CreateSolver(model, custom_settings):
     return UPwSolver(model, custom_settings)
@@ -50,6 +50,9 @@ class UPwSolver(PythonSolver):
             "model_import_settings":{
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
+            },
+            "material_import_settings" :{
+                "materials_filename": ""
             },
             "buffer_size": 2,
             "echo_level": 0,
@@ -315,8 +318,23 @@ class UPwSolver(PythonSolver):
         check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
-        from KratosMultiphysics.PoromechanicsApplication import poromechanics_constitutivelaw_utility
-        poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
+        materials_imported = self.import_constitutive_laws()
+        if materials_imported:
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was successfully imported via json.")
+        else:
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was not successfully imported.")
+
+    def import_constitutive_laws(self):
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            # Add constitutive laws and material properties from json file to model parts.
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported
 
     def _SetBufferSize(self):
         required_buffer_size = self.settings["buffer_size"].GetInt()
@@ -370,8 +388,8 @@ class UPwSolver(PythonSolver):
             theta = self.settings["newmark_theta"].GetDouble()
             rayleigh_m = self.settings["rayleigh_m"].GetDouble()
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
-            self.main_model_part.ProcessInfo.SetValue(KratosSolid.RAYLEIGH_ALPHA,rayleigh_m)
-            self.main_model_part.ProcessInfo.SetValue(KratosSolid.RAYLEIGH_BETA,rayleigh_k)
+            self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_ALPHA,rayleigh_m)
+            self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_BETA,rayleigh_k)
             if(solution_type == "quasi_static"):
                 if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
                     scheme = KratosPoro.NewmarkQuasistaticUPwScheme(beta,gamma,theta)

@@ -123,14 +123,7 @@ public:
     void UpdateInternalForces(
         BoundedVector<double,msLocalSize>& rInternalForces) override;
 
-    /**
-     * @brief This function calls the constitutive law to get stresses
-     * @param rCurrentProcessInfo Current process info
-     * @param rSaveInternalVariables Boolean to save internal constit. law variables
-     */
-    BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-        const ProcessInfo& rCurrentProcessInfo) override;
-
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 private:
 

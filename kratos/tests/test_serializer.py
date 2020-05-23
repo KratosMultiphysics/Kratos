@@ -16,10 +16,10 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestSerializer(KratosUnittest.TestCase):
-    def _prepare_test(self):
+    def _prepare_fluid_test(self):
         # Define a model and load the parameters
         self.pre_serialized_model = KratosMultiphysics.Model()
-        with open(GetFilePath("auxiliar_files_for_python_unnitest/parameters_files/test_serializer.json"),'r') as parameter_file:
+        with open(GetFilePath("auxiliar_files_for_python_unittest/parameters_files/test_serializer.json"),'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         file_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(GetFilePath(file_name))
@@ -30,17 +30,17 @@ class TestSerializer(KratosUnittest.TestCase):
         # Before serializing the model, main model part is set to RESTARTED
         self.main_model_part_name = parameters["solver_settings"]["model_part_name"].GetString()
         self.pre_serialized_model.GetModelPart(self.main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
-        serialized_model = KratosMultiphysics.StreamSerializer()
-        serialized_model.Save("ModelSerialization",self.pre_serialized_model)
+        self.serialized_model = KratosMultiphysics.StreamSerializer()
+        self.serialized_model.Save("ModelSerialization",self.pre_serialized_model)
 
-        with open(GetFilePath("auxiliar_files_for_python_unnitest/parameters_files/test_serializer.json"),'r') as parameter_file:
+        with open(GetFilePath("auxiliar_files_for_python_unittest/parameters_files/test_serializer.json"),'r') as parameter_file:
             self.project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
         # Parameters are read again and input type set to use_input_model_part since the serialized model already has the mdpa loaded
         self.project_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")
 
         # Deserialize and store the new model
         self.current_model = KratosMultiphysics.Model()
-        serialized_model.Load("ModelSerialization",self.current_model)
+        self.serialized_model.Load("ModelSerialization",self.current_model)
 
     def _check_results(self):
         pre_serialized_model_part = self.pre_serialized_model.GetModelPart(self.main_model_part_name)
@@ -60,7 +60,7 @@ class TestSerializer(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(dependencies_are_available,"FluidDynamicsApplication is not available")
     def test_serializer_fluid_analysis(self):
-        self._prepare_test()
+        self._prepare_fluid_test()
         # Solving simulation before serializing to later check the results
         self.pre_serialized_simulation.RunSolutionLoop()
         self.pre_serialized_simulation.Finalize()
@@ -68,6 +68,37 @@ class TestSerializer(KratosUnittest.TestCase):
         self.serialized_simulation = FluidDynamicsAnalysis(self.current_model, self.project_parameters)
         self.serialized_simulation.Run()
         self._check_results()
+
+    def test_serializer_loading(self):
+        # Creating a model with nodes and variables
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        model_part.CreateSubModelPart("Inlets")
+        model_part.CreateSubModelPart("Temp")
+        model_part.CreateNewNode(1,0.0,0.0,0.0)
+        other = current_model.CreateModelPart("Other")
+        other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        other.CreateNewNode(1,0.0,0.0,0.0)
+
+        # Serializing model
+        serialized_model = KratosMultiphysics.StreamSerializer()
+        serialized_model.Save("ModelSerialization", current_model)
+
+        # Loading model several times
+        first_model = KratosMultiphysics.Model()
+        serialized_model.Load("ModelSerialization", first_model)
+        second_model = KratosMultiphysics.Model()
+        serialized_model.LoadFromBeginning("ModelSerialization", second_model)
+        third_model = KratosMultiphysics.Model()
+        serialized_model.LoadFromBeginning("ModelSerialization", third_model)
+
+        self.assertTrue(third_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertTrue(third_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
+        self.assertTrue(third_model.HasModelPart("Main.Inlets"))
+        self.assertTrue(third_model.HasModelPart("Main.Temp"))
+        self.assertTrue(1 in third_model["Main"].Nodes)
+        self.assertTrue(1 in third_model["Other"].Nodes)
 
 if __name__ == '__main__':
     KratosUnittest.main()

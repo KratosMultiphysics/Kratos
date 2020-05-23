@@ -238,6 +238,8 @@ public:
 
 		/* boost::timer solve_step_time; */
 		// std::cout<<" InitializeSolutionStep().... "<<std::endl;
+		this->UnactiveSliverElements();
+
 		InitializeSolutionStep(); // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
 		for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
 		{
@@ -608,6 +610,51 @@ public:
 		//currFirstLame=deltaT*firstLame
 		itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT) = currFirstLame;
 		itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoeff;
+	}
+
+	void UnactiveSliverElements()
+	{
+		KRATOS_TRY;
+
+		ModelPart &rModelPart = BaseType::GetModelPart();
+		const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+		MesherUtilities MesherUtils;
+		double ModelPartVolume = MesherUtils.ComputeModelPartVolume(rModelPart);
+		double CriticalVolume = 0.001 * ModelPartVolume / double(rModelPart.Elements().size());
+		double ElementalVolume = 0;
+
+#pragma omp parallel
+		{
+			ModelPart::ElementIterator ElemBegin;
+			ModelPart::ElementIterator ElemEnd;
+			OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
+			for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+			{
+				unsigned int numNodes = itElem->GetGeometry().size();
+				if (numNodes == (dimension + 1))
+				{
+					if (dimension == 2)
+					{
+						ElementalVolume = (itElem)->GetGeometry().Area();
+					}
+					else if (dimension == 3)
+					{
+						ElementalVolume = (itElem)->GetGeometry().Volume();
+					}
+
+					if (ElementalVolume < CriticalVolume)
+					{
+						// std::cout << "sliver element: it has Volume: " << ElementalVolume << " vs CriticalVolume(meanVol/1000): " << CriticalVolume<< std::endl;
+						(itElem)->Set(ACTIVE, false);
+					}
+					else
+					{
+						(itElem)->Set(ACTIVE, true);
+					}
+				}
+			}
+		}
+		KRATOS_CATCH("");
 	}
 
 	void ComputeNodalVolume()
@@ -1077,7 +1124,7 @@ public:
 					noalias(solidInterfaceFgrad) = ZeroMatrix(dimension, dimension);
 					noalias(solidInterfaceFgradVel) = ZeroMatrix(dimension, dimension);
 
-					// theta=1.0;
+					theta = 1.0;
 					// Matrix solidInterfaceFgrad=ZeroMatrix(dimension,dimension);
 					// Matrix solidInterfaceFgradVel=ZeroMatrix(dimension,dimension);
 					ComputeAndStoreNodalDeformationGradientForInterfaceNode(itNode, solidNodalSFDneighboursId, rSolidNodalSFDneigh, theta, solidInterfaceFgrad, solidInterfaceFgradVel);
@@ -1090,20 +1137,20 @@ public:
 			{
 				if (itNode->Is(SOLID) && solidNodalVolume > 0)
 				{
-					// theta=1.0;
+					theta = 1.0;
 					ComputeAndStoreNodalDeformationGradientForSolidNode(itNode, theta);
 					CalcNodalStrainsAndStressesForSolidNode(itNode);
 				}
 				else if (nodalVolume > 0)
 				{
-					// theta=0.5;
+					theta = 0.5;
 					this->ComputeAndStoreNodalDeformationGradient(itNode, theta);
 					this->CalcNodalStrainsAndStressesForNode(itNode);
 				}
 			}
 			if (nodalVolume == 0 && solidNodalVolume == 0)
 			{ // if nodalVolume==0
-				//theta=0.5;
+				theta = 0.5;
 				this->InitializeNodalVariablesForRemeshedDomain(itNode);
 				InitializeNodalVariablesForSolidRemeshedDomain(itNode);
 			}

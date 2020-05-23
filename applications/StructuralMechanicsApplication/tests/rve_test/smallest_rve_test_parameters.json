@@ -8,7 +8,7 @@
     },
     "rve_settings"     : {
         "boundary_mp_name"  : "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2",
-        "averaging_mp_name" : "Structure.computing_domain",
+        "averaging_mp_name" : "Structure",
         "print_rve_post"    : false,
         "perturbation"      : 1e-6
     },
@@ -29,9 +29,7 @@
         },
         "time_stepping"                      : {
             "time_step" : 1.1
-        },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["SurfacePressure3D_Pressure_on_surfaces_Auto2"]
+        }
     },
     "output_processes" : { }
 }

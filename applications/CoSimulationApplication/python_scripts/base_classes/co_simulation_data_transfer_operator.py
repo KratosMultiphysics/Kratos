@@ -11,14 +11,32 @@ class CoSimulationDataTransferOperator(object):
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
         self.echo_level = self.settings["echo_level"].GetInt()
+        self.__checked_combinations = []
 
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
+        # 1. Check if specified transfer options are available
+        self._CheckAvailabilityTransferOptions(transfer_options)
+
+        # 2. Perform check (only if it has not been done before in this combination)
+        identifier_from_solver_data = from_solver_data.solver_name + "." + from_solver_data.model_part_name
+        identifier_to_solver_data   = to_solver_data.solver_name   + "." + to_solver_data.model_part_name
+
+        identifier_tuple = (identifier_from_solver_data, identifier_to_solver_data)
+        if not identifier_tuple in self.__checked_combinations:
+            self.__checked_combinations.append(identifier_tuple)
+            self._Check(from_solver_data, to_solver_data)
+
+        # 3. Perform data transfer
+        self._ExecuteTransferData(from_solver_data, to_solver_data, transfer_options)
+
+    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         raise NotImplementedError("This function has to be implemented in the derived class!")
 
-    def PrintInfo(self):
-        pass
-
-    def Check(self):
+    def _Check(self, from_solver_data, to_solver_data):
+        # this can be implemented in derived classes if necessary
+        # the purpose is to check only once each combination of data
+        # this mechanism is necessary since the data-transfer operators can be used for different
+        # combinations of data on the fly, i.e. they cannot be checked after the Initialization
         pass
 
     @classmethod

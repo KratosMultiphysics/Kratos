@@ -35,8 +35,6 @@
             "solver_type" : "amgcl",
             "provide_coordinates" : false
         },
-        "problem_domain_sub_model_part_list" : ["Parts_surface"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_edge","DISPLACEMENT_sample","ROTATION_edge","SelfWeight3D_surface"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -47,7 +45,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_edge",
+            "model_part_name" : "Structure.DISPLACEMENT_edge",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0]
         }
@@ -58,7 +56,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sample",
+            "model_part_name" : "Structure.DISPLACEMENT_sample",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,false],
             "value"           : [0.0,0.0,0.0]
@@ -70,7 +68,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_edge",
+            "model_part_name" : "Structure.ROTATION_edge",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0]
@@ -84,8 +82,9 @@
         "process_name"  : "ApplyConstantVectorValueProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight3D_surface",
+            "model_part_name" : "Structure.SelfWeight3D_surface",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"          : 9.8,
             "direction"       : [0.0,0.0,-1.0]
         }
@@ -99,7 +98,7 @@
         "Parameters"    : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "shell_test/Shell_Q4_Thin_nonlinear_dynamic_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_sample",
+            "model_part_name"  : "Structure.DISPLACEMENT_sample",
             "time_frequency"   : 0.001
         }
     }

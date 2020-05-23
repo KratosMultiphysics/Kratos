@@ -35,19 +35,13 @@
                 "build_mode": "static"
             },
         "echo_level"                   : 0,
-        "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN","Structure"],
-        "computing_model_part_name" : "computing_domain",
-        "rotation_dofs"                      : false,
-        "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
-        },
+        "rotation_dofs"                : false,
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "linear_truss_structure"
+            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/linear_truss_structure"
         },
         "material_import_settings" :{
-            "materials_filename": "StructuralMaterials.json"
+            "materials_filename": "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/StructuralMaterials.json"
         }
     },
     "processes" : {
@@ -116,7 +110,7 @@
             "Parameters"            : {
                 "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
                 "gauss_points_check_variables" : [],
-                "input_file_name"  : "linear_truss_test_local_stress_results.json",
+                "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/linear_truss_test_local_stress_results.json",
                 "model_part_name"  : "Structure",
                 "tolerance"            : 1e-4,
                 "time_frequency"   : -2.0

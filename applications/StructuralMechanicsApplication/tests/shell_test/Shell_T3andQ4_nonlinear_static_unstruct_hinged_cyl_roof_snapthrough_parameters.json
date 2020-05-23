@@ -29,12 +29,6 @@
         "residual_relative_tolerance"        : 1e-9,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 50,
-        "linear_solver_settings"             : {
-            "solver_type" : "ExternalSolversApplication.super_lu",
-            "scaling"     : false
-        },
-        "problem_domain_sub_model_part_list" : ["Parts_Surface_T3_thin","Parts_Surface_Q4_thin","Parts_Surface_Q4_thick","Parts_Surface_T3_thick"],
-        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_hinged_edge","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_point_load"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -45,7 +39,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_hinged_edge",
+            "model_part_name" : "Structure.DISPLACEMENT_hinged_edge",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -58,7 +52,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sym_XZ",
+            "model_part_name" : "Structure.DISPLACEMENT_sym_XZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0],
@@ -71,7 +65,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sym_YZ",
+            "model_part_name" : "Structure.DISPLACEMENT_sym_YZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0],
@@ -84,7 +78,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_sym_XZ",
+            "model_part_name" : "Structure.ROTATION_sym_XZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -97,7 +91,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_sym_YZ",
+            "model_part_name" : "Structure.ROTATION_sym_YZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -113,7 +107,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_point_load",
+            "model_part_name" : "Structure.PointLoad3D_point_load",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : "750*t",
             "direction"       : [0.0,0.0,-1],
@@ -129,7 +123,7 @@
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
             "time_frequency"   : 0.1
         }
     }]
@@ -163,7 +157,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Z"],
             "output_file_name" : "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
             "time_frequency"   : 0.1
         }
     }]

@@ -133,7 +133,7 @@ std::shared_ptr<Matrix> tentative_prolongation(
     if (nullspace.cols > 0) {
         // Sort fine points by aggregate number.
         // Put points not belonging to any aggregate to the end of the list.
-        std::vector<ptrdiff_t> order(0);
+        std::vector<ptrdiff_t> order(n);
         for(size_t i = 0; i < n; ++i) order[i] = i;
         std::stable_sort(order.begin(), order.end(), detail::skip_negative(aggr, block_size));
 

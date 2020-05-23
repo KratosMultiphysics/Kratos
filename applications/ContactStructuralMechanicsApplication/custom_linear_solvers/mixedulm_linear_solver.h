@@ -79,6 +79,12 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The flag that indicates if the blocks are allocated
+    KRATOS_DEFINE_LOCAL_FLAG( BLOCKS_ARE_ALLOCATED );
+
+    /// The flag that indicates if the solution is initialized
+    KRATOS_DEFINE_LOCAL_FLAG( IS_INITIALIZED );
+
     /// Pointer definition of MixedULMLinearSolver
     KRATOS_CLASS_POINTER_DEFINITION (MixedULMLinearSolver);
 
@@ -150,8 +156,8 @@ public:
             mpSolverDispBlock(pSolverDispBlock)
     {
         // Initializing the remaining variables
-        mBlocksAreAllocated = false;
-        mIsInitialized = false;
+        mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
+        mOptions.Set(IS_INITIALIZED, false);
     }
 
     /**
@@ -177,8 +183,8 @@ public:
         this->SetTolerance( ThisParameters["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( ThisParameters["max_iteration_number"].GetInt() );
         mEchoLevel = ThisParameters["echo_level"].GetInt();
-        mBlocksAreAllocated = false;
-        mIsInitialized = false;
+        mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
+        mOptions.Set(IS_INITIALIZED, false);
 
         KRATOS_CATCH("")
     }
@@ -188,8 +194,7 @@ public:
     MixedULMLinearSolver (const MixedULMLinearSolver& rOther)
         : BaseType(rOther),
           mpSolverDispBlock(rOther.mpSolverDispBlock),
-          mBlocksAreAllocated(rOther.mBlocksAreAllocated),
-          mIsInitialized(rOther.mIsInitialized),
+          mOptions(rOther.mOptions),
           mMasterIndices(rOther.mMasterIndices),
           mSlaveInactiveIndices(rOther.mSlaveInactiveIndices),
           mSlaveActiveIndices(rOther.mSlaveActiveIndices),
@@ -250,9 +255,9 @@ public:
         VectorType& rB
         ) override
     {
-        if (mBlocksAreAllocated == true) {
+        if (mOptions.Is(BLOCKS_ARE_ALLOCATED)) {
             mpSolverDispBlock->Initialize(mKDispModified, mDisp, mResidualDisp);
-            mIsInitialized = true;
+            mOptions.Set(IS_INITIALIZED, true);
         } else
             KRATOS_DETAIL("MixedULM Initialize") << "Linear solver intialization is deferred to the moment at which blocks are available" << std::endl;
     }
@@ -273,15 +278,15 @@ public:
         ) override
     {
         // Copy to local matrices
-        if (mBlocksAreAllocated == false) {
+        if (mOptions.IsNot(BLOCKS_ARE_ALLOCATED)) {
             FillBlockMatrices (true, rA, rX, rB);
-            mBlocksAreAllocated = true;
+            mOptions.Set(BLOCKS_ARE_ALLOCATED, true);
         } else {
             FillBlockMatrices (false, rA, rX, rB);
-            mBlocksAreAllocated = true;
+            mOptions.Set(BLOCKS_ARE_ALLOCATED, true);
         }
 
-        if(mIsInitialized == false)
+        if(mOptions.IsNot(IS_INITIALIZED))
             this->Initialize(rA,rX,rB);
 
         mpSolverDispBlock->InitializeSolutionStep(mKDispModified, mDisp, mResidualDisp);
@@ -366,7 +371,7 @@ public:
      */
     void Clear() override
     {
-        mBlocksAreAllocated = false;
+        mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
         mpSolverDispBlock->Clear();
 
         // We clear the matrixes and vectors
@@ -390,7 +395,7 @@ public:
         mLMInactive.clear(); /// The solution of the inactive LM
         mDisp.clear();       /// The solution of the displacement
 
-        mIsInitialized = false;
+        mOptions.Set(IS_INITIALIZED, false);
     }
 
     /**
@@ -420,7 +425,7 @@ public:
             TSparseSpaceType::WriteMatrixMarketVector(matrix_market_vectname.c_str(), rB);
         }
 
-        if (mIsInitialized == false)
+        if (mOptions.IsNot(IS_INITIALIZED))
             this->Initialize (rA,rX,rB);
 
         this->InitializeSolutionStep (rA,rX,rB);
@@ -1150,22 +1155,22 @@ protected:
 
                 // Get access to master_auxKSAN data
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSAN, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSAN, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to master_auxKSAM data
                 if (master_auxKSAM.nnz() > 0) {
-                    ComputeNonZeroBlocks(master_auxKSAM, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSAM, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to master_auxKSASI data
                 if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSASI, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSASI, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to master_auxKSASA data
                 if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSASA, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSASA, i, K_disp_modified_cols_aux2);
                 }
 
                 K_disp_modified_ptr_aux2[master_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
@@ -1178,22 +1183,22 @@ protected:
 
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAN, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSAN, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to aslave_auxKSAM data
                 if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAM, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSAM, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to aslave_auxKSASI data
                 if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASI, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSASI, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to aslave_auxKSASA data
                 if (aslave_auxKSASA.nnz() > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASA, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSASA, i, K_disp_modified_cols_aux2);
                 }
 
                 K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
@@ -1215,22 +1220,22 @@ protected:
 
                 // Get access to master_auxKSAN data
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
                 }
 
                 // Get access to master_auxKSAM data
                 if (master_auxKSAM.nnz() > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
                 }
 
                 // Get access to master_auxKSASI data
                 if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
                 }
 
                 // Get access to master_auxKSASA data
                 if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
                 }
             }
 
@@ -1241,22 +1246,22 @@ protected:
 
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSAM data
                 if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSASI data
                 if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSASA data
                 if (aslave_auxKSASA.nnz() > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
                 }
             }
         }
@@ -1266,7 +1271,7 @@ protected:
         CreateMatrix(K_disp_modified_aux2, nrows, ncols, K_disp_modified_ptr_aux2, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2);
 
         // We sum the auxiliar matrices
-        SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(mKDispModified, K_disp_modified_aux2, 1.0);
+        SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(mKDispModified, K_disp_modified_aux2, - 1.0);
 
         // Finally we ensure that the matrix is structurally symmetric
         EnsureStructuralSymmetryMatrix(mKDispModified);
@@ -1301,8 +1306,7 @@ private:
 
     LinearSolverPointerType mpSolverDispBlock; /// The pointer to the displacement linear solver
 
-    bool mBlocksAreAllocated; /// The flag that indicates if the blocks are allocated
-    bool mIsInitialized;      /// The flag that indicates if the solution is mIsInitialized
+    Flags mOptions; /// This stores the flags
 
     IndexVectorType mMasterIndices;         /// The vector storing the indices of the master nodes in contact
     IndexVectorType mSlaveInactiveIndices;  /// The vector storing the indices of the slave nodes in contact (Inactive)
@@ -1546,63 +1550,6 @@ private:
                 AuxVals[row_end] = value;
                 ++row_end;
             }
-        }
-    }
-
-    /**
-     * @brief This is a method to check the block containing nonzero values
-     * @param AuxK The auxiliar block
-     * @param CurrentRow The current row computed
-     * @param KDispModifiedColsAux2 The nonzero rows array
-     */
-    inline void ComputeNonZeroBlocks(
-        const SparseMatrixType& AuxK,
-        const int CurrentRow,
-        IndexType& KDispModifiedColsAux2
-        )
-    {
-        // Get access to aux_K data
-        const IndexType* aux_K_index1 = AuxK.index1_data().begin();
-
-        const IndexType row_begin = aux_K_index1[CurrentRow];
-        const IndexType row_end   = aux_K_index1[CurrentRow + 1];
-
-        for (IndexType j=row_begin; j<row_end; j++) {
-            ++KDispModifiedColsAux2;
-        }
-    }
-
-    /**
-     * @brief This is a method to compute the contribution of the auxiliar blocks
-     * @param AuxK The auxiliar block
-     * @param AuxIndex2 The indexes of the non zero columns
-     * @param AuxVals The values of the final matrix
-     * @param CurrentRow The current row computed
-     * @param RowEnd The last column computed
-     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
-     */
-    inline void ComputeAuxiliarValuesBlocks(
-        const SparseMatrixType& AuxK,
-        IndexType* AuxIndex2,
-        double* AuxVals,
-        const int CurrentRow,
-        IndexType& RowEnd,
-        const SizeType InitialIndexColumn
-        )
-    {
-        // Get access to aux_K data
-        const double* aux_values = AuxK.value_data().begin();
-        const IndexType* aux_K_index1 = AuxK.index1_data().begin();
-        const IndexType* aux_K_index2 = AuxK.index2_data().begin();
-
-        const IndexType aux_K_row_begin = aux_K_index1[CurrentRow];
-        const IndexType aux_K_row_end   = aux_K_index1[CurrentRow + 1];
-
-        for (IndexType j=aux_K_row_begin; j<aux_K_row_end; j++) {
-            const IndexType col_index = InitialIndexColumn + aux_K_index2[j];
-            AuxIndex2[RowEnd] = col_index;
-            AuxVals[RowEnd] = -aux_values[j];
-            ++RowEnd;
         }
     }
 
@@ -2076,6 +2023,13 @@ private:
 ///@}
 ///@name Type Definitions
 ///@{
+
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType, class TReordererType>
+const Kratos::Flags MixedULMLinearSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>::BLOCKS_ARE_ALLOCATED(Kratos::Flags::Create(0));
+template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType, class TReordererType>
+const Kratos::Flags MixedULMLinearSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>::IS_INITIALIZED(Kratos::Flags::Create(1));
+
 ///@}
 ///@name Input and output
 ///@{

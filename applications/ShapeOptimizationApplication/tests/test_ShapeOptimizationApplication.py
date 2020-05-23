@@ -31,6 +31,10 @@ from shape_optimization_test_factory import opt_process_stress_test
 from shape_optimization_test_factory import sensitivity_verification_semi_analytic_process_test
 from shape_optimization_test_factory import sensitivity_verification_in_design_space_process_test
 from shape_optimization_test_factory import sensitivity_verification_in_geometry_space_process_test
+from shape_optimization_test_factory import in_plane_opt_test
+from shape_optimization_test_factory import packaging_mesh_based_test
+from shape_optimization_test_factory import packaging_plane_based_test
+from wrl_io_test.test_wrl_io import WrlIOTest
 
 # Niglty tests
 
@@ -56,22 +60,26 @@ def AssembleTestSuites():
     # Adding small tests (tests that take < 1s)
     smallSuite = suites['small']
     smallSuite.addTest(mapper_test('test_execution'))
-    smallSuite.addTest(opt_process_vertex_morphing_test('test_execution'))
-    smallSuite.addTest(opt_process_shell_test('test_execution'))
-    smallSuite.addTest(opt_process_solid_test('test_execution'))
-    smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
-    smallSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
-    smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
-    smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))
-    smallSuite.addTest(algorithm_trust_region_test('test_execution'))
-    smallSuite.addTest(trust_region_projector_test('test_execution'))
-    smallSuite.addTest(algorithm_bead_optimization_test('test_execution'))
-    smallSuite.addTest(opt_process_step_adaption_test('test_execution'))
-    smallSuite.addTest(opt_process_multiobjective_test('test_execution'))
-    smallSuite.addTest(opt_process_stress_test('test_execution'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([WrlIOTest]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
+    nightSuite.addTest(opt_process_shell_test('test_execution'))
+    nightSuite.addTest(opt_process_solid_test('test_execution'))
+    nightSuite.addTest(algorithm_bead_optimization_test('test_execution'))
+    nightSuite.addTest(opt_process_step_adaption_test('test_execution'))
+    nightSuite.addTest(in_plane_opt_test('test_execution'))
+    nightSuite.addTest(packaging_mesh_based_test('test_execution'))
+    nightSuite.addTest(packaging_plane_based_test('test_execution'))
+    nightSuite.addTest(opt_process_vertex_morphing_test('test_execution'))
+    nightSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
+    nightSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
+    nightSuite.addTest(algorithm_steepest_descent_test('test_execution'))
+    nightSuite.addTest(algorithm_penalized_projection_test('test_execution'))
+    nightSuite.addTest(algorithm_trust_region_test('test_execution'))
+    nightSuite.addTest(trust_region_projector_test('test_execution'))
+    nightSuite.addTest(opt_process_multiobjective_test('test_execution'))
+    nightSuite.addTest(opt_process_stress_test('test_execution'))
     nightSuite.addTest(sensitivity_verification_semi_analytic_process_test('test_execution'))
     nightSuite.addTest(sensitivity_verification_in_design_space_process_test('test_execution'))
     nightSuite.addTest(sensitivity_verification_in_geometry_space_process_test('test_execution'))

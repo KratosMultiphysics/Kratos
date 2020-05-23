@@ -18,6 +18,9 @@
             "input_type":       "mdpa",
             "input_filename":   "element_tests/arc_length_test/arc_length_test"
         },
+        "material_import_settings" :{
+            "materials_filename": "element_tests/arc_length_test/PoroMaterials.json"
+        },
         "buffer_size":                        2,
         "echo_level":                         0,
         "clear_storage":                      false,

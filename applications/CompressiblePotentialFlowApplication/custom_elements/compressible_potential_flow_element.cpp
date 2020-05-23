@@ -12,7 +12,9 @@
 
 #include "compressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
@@ -196,9 +198,17 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
     {
         rValues[0] = PotentialFlowUtilities::ComputeCompressiblePressureCoefficient<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
-    if (rVariable == DENSITY)
+    else if (rVariable == DENSITY)
     {
         rValues[0] = ComputeDensity(rCurrentProcessInfo);
+    }
+    else if (rVariable == MACH)
+    {
+        rValues[0] = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
+    }
+    else if (rVariable == SOUND_VELOCITY)
+    {
+        rValues[0] = PotentialFlowUtilities::ComputeLocalSpeedOfSound<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
     else if (rVariable == WAKE)
     {
@@ -241,6 +251,15 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
         array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
+        rValues[0] = v;
+    }
+    else if (rVariable == PERTURBATION_VELOCITY)
+    {
+        const array_1d<double, Dim>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k] - free_stream_velocity[k];
         rValues[0] = v;
     }
 }
@@ -659,31 +678,29 @@ template <int Dim, int NumNodes>
 double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Reading free stream conditions
-    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-    const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
-
-    // Computing local velocity
-    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
-
-    // Computing squares
-    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
-    const double M_inf_2 = M_inf * M_inf;
-    double v_2 = inner_prod(v, v);
+    const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
 
     // Computing local mach number
-    const double u = sqrt(v_2);
-    const double M = u / a_inf;
+    double local_mach_number = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
 
-    if (M > 0.94)
-    { // Clamping the mach number to 0.94
-        KRATOS_WARNING("ComputeDensity") << "Clamping the mach number to 0.94" << std::endl;
-        v_2 = 0.94 * 0.94 * a_inf * a_inf;
+    if (local_mach_number > mach_number_limit)
+    { // Clamping the mach number to mach_number_limit
+        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
+        local_mach_number = mach_number_limit;
     }
 
-    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
+    // Computing squares
+    const double M_inf_2 = M_inf * M_inf;
+    const double M_2 = local_mach_number * local_mach_number;
+
+    // Computing density according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+    const double numerator = 1 + (heat_capacity_ratio - 1) * M_inf_2 / 2;
+    const double denominator = 1 + (heat_capacity_ratio - 1) * M_2 / 2;
+    const double base = numerator / denominator;
 
     if (base > 0.0)
     {

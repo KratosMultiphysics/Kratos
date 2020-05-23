@@ -11,6 +11,9 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
+# importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Import additional libraries
 import math
 
@@ -288,7 +291,7 @@ def QuadProg(A, b, max_itr, tolerance):
 
         # Drop and error if divergence is detected
         if Norm2(deltaXYLAff)>1e20:
-            print("custom_math::quadprodg: deltaXYLAff is NAN. The reason is, that feasible domain might be empty. This happens e.g. when the dJdX is parallel to dCdX (like at convergence with a single constraint)")
+            KM.Logger.PrintWarning("ShapeOpt::custom_math::quadprodg", "deltaXYLAff is NAN. The reason is, that feasible domain might be empty. This happens e.g. when the dJdX is parallel to dCdX (like at convergence with a single constraint)")
             exit_code = 2
             return
 
@@ -370,12 +373,12 @@ def PerformBisectioning(func, a, b, target, tolerance, max_itr):
         error = abs(fb_value_0-target)
 
     elif abs(fa_value_0-fb_value_0) < 1e-13:
-        print("Bisectioning intervall yiels to identical function values!")
+        KM.Logger.PrintWarning("ShapeOpt::PerformBisectioning", "Bisectioning intervall yiels to identical function values!")
         res_function_argument = a
         error = abs(fb_value_0-target)
 
     elif (fa_value_0-target)*(fb_value_0-target)>0:
-        print("Bisectioning on function, that has no root in specified intervall!! Returning the argument which yiels a closer value to the target.")
+        KM.Logger.PrintWarning("ShapeOpt::PerformBisectioning", "Bisectioning on function, that has no root in specified intervall!! Returning the argument which yiels a closer value to the target.")
 
         if abs(fa_value_0-target) < abs(fb_value_0-target):
             res_function_argument = a
@@ -407,7 +410,7 @@ def PerformBisectioning(func, a, b, target, tolerance, max_itr):
 
             if itr == max_itr:
                 res_function_argument = last_allowed_function_argument
-                print("Bisectioning did not converge in the specified maximum number of iterations!")
+                KM.Logger.PrintWarning("ShapeOpt::PerformBisectioning", "Bisectioning did not converge in the specified maximum number of iterations!")
                 break
 
             elif error < tolerance:
@@ -434,7 +437,7 @@ def PerformGramSchmidtOrthogonalization(vector_space):
         if norm2_v>1e-10:
             B.append( ScalarVectorProduct(1/norm2_v,v) )
         else:
-            print("Zero basis vector after Gram-Schmidt orthogonalization!")
+            KM.Logger.PrintWarning("ShapeOpt::PerformGramSchmidtOrthogonalization", "Zero basis vector after Gram-Schmidt orthogonalization!")
             B.append(v)
 
     return B

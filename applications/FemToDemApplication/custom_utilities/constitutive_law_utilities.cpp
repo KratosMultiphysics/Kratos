@@ -408,6 +408,133 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
+    const MatrixType& rCauchyTensor,
+    Vector& rStrainVector
+    )
+{
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize, false);
+
+    // Declare the different matrix
+    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
+
+    // Decompose matrix
+    MathUtils<double>::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+
+    // Calculate the eigenvalues of the E matrix
+    for (IndexType i = 0; i < Dimension; ++i) {
+        eigen_values_matrix(i, i) = 0.5 * std::log(eigen_values_matrix(i, i));
+    }
+
+    // Calculate E matrix
+    BoundedMatrixType E_matrix;
+    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
+
+    // Hencky Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
+    const MatrixType& rCauchyTensor,
+    Vector& rStrainVector
+    )
+{
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize, false);
+
+    // Declare the different matrix
+    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
+
+    // Decompose matrix
+    MathUtils<double>::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+
+    // Calculate the eigenvalues of the E matrix
+    for (IndexType i = 0; i < Dimension; ++i) {
+        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
+    }
+
+    // Calculate E matrix
+    BoundedMatrixType E_matrix;
+    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
+
+    // Biot Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
+    const MatrixType& rLeftCauchyTensor,
+    Vector& rStrainVector
+    )
+{
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize, false);
+
+    // Identity matrix
+    MatrixType identity_matrix(Dimension, Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+        for (IndexType j = 0; j < Dimension; ++j) {
+            if (i == j) identity_matrix(i, j) = 1.0;
+            else identity_matrix(i, j) = 0.0;
+        }
+    }
+
+    // Calculating the inverse of the left Cauchy tensor
+    MatrixType inverse_B_tensor ( Dimension, Dimension );
+    double aux_det_b = 0;
+    MathUtils<double>::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
+
+    // Calculate E matrix
+    const BoundedMatrixType E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
+
+    // Almansi Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
+    const MatrixType& rCauchyTensor,
+    Vector& rStrainVector
+    )
+{
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize, false);
+
+    // Identity matrix
+    MatrixType identity_matrix(Dimension, Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+        for (IndexType j = 0; j < Dimension; ++j) {
+            if (i == j) identity_matrix(i, j) = 1.0;
+            else identity_matrix(i, j) = 0.0;
+        }
+    }
+
+    // Calculate E matrix
+    const BoundedMatrixType E_matrix = 0.5 * (rCauchyTensor - identity_matrix);
+
+    // Green-Lagrangian Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 

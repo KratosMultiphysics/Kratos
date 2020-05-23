@@ -71,6 +71,7 @@ namespace Kratos
 
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, SELECT_TESSELLATION_ELEMENTS,         6 );
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, KEEP_ISOLATED_NODES,                  7 );
+  KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, REFINE_WALL_CORNER,                   8 );
 
   //execution options (tessellation)
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, NEIGHBOURS_SEARCH,                    8 );
@@ -1759,7 +1760,7 @@ namespace Kratos
 
         if(condition_found)
         {
-          pCondition->Set(NOT_SELECTED); //meaning that is a element that shares faces
+          pCondition->Set(SELECTED.AsFalse()); //meaning that is a element that shares faces
           face_elements++;
           break;
         }

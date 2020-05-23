@@ -810,7 +810,7 @@ template <std::size_t TDim>
 void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
 {
     // Finding elements concurrent to each node. The nodes of these elements will form the initial cloud of points
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(r_model_part);
+    FindNodalNeighboursProcess neighbour_finder(r_model_part);
     neighbour_finder.Execute();
     const unsigned int n_max_iterations = 100;
 
@@ -842,7 +842,7 @@ template <std::size_t TDim>
 void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart& r_model_part)
 {
     // Finding elements concurrent to each node. The nodes of these elements will form the initial cloud of points
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(r_model_part);
+    FindNodalNeighboursProcess neighbour_finder(r_model_part);
     neighbour_finder.Execute();
     const unsigned int n_max_iterations = 100;
 

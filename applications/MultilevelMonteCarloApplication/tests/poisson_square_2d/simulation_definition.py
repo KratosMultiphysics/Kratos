@@ -8,7 +8,7 @@ import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 
 # Importing the problem analysis stage class
-from  KratosMultiphysics.analysis_stage import AnalysisStage
+from  KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
@@ -25,14 +25,14 @@ f2= -432*(x**2+y**2-x-y)
 the QoI is
 QoI = \int_(\Omega) u(x,y)dxdy
 """
-class SimulationScenario(AnalysisStage):
+class SimulationScenario(ConvectionDiffusionAnalysis):
     def __init__(self,input_model,input_parameters,sample):
         self.sample = sample
         super(SimulationScenario,self).__init__(input_model,input_parameters)
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _CreateSolver(self):
-        import convection_diffusion_stationary_solver
+        from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_stationary_solver
         return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
 
     """

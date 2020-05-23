@@ -31,6 +31,8 @@
 //#include "custom_elements/zaratipito_element.hpp"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "custom_elements/generic_total_lagrangian_femdem_element.h"
@@ -133,10 +135,12 @@ private:
     const GenericTotalLagrangianFemDemElement<2,6> mTotalLagrangianMohrCoulombFemDemElement2D;
     const GenericTotalLagrangianFemDemElement<3,6> mTotalLagrangianMohrCoulombFemDemElement3D;
 
-    //elastic laws
+    //Hiperelastic and elastic laws
    const LinearPlaneStrain mLinearPlaneStrain;
    const LinearPlaneStress mLinearPlaneStress;
    const ElasticIsotropic3D mElasticIsotropic3D;
+   const HyperElasticIsotropicNeoHookeanPlaneStrain2D mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
+   const HyperElasticIsotropicNeoHookean3D mHyperElasticIsotropicNeoHookean3D;
     
 
     /// Assignment operator.

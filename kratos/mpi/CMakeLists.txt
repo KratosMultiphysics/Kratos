@@ -3,15 +3,16 @@ set(CMAKE_INCLUDE_CURRENT_DIR OFF)
 
 message("**** configuring Kratos to be compiled with MPI-Support ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Kratos MPI extension sources
 set( KRATOS_MPI_SOURCES
-   mpi_environment.cpp
    sources/mpi_data_communicator.cpp
-   utilities/parallel_fill_communicator.cpp
+   sources/mpi_manager.cpp
+   utilities/data_communicator_factory.cpp
    utilities/gather_modelpart_utility.cpp
    utilities/mpi_normal_calculation_utilities.cpp;
+   utilities/parallel_fill_communicator.cpp
 )
 
 ## Kratos MPI extension Python interface
@@ -52,12 +53,9 @@ install(TARGETS KratosMPI DESTINATION libs)
 # Install python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/mpi_module_init.py" DESTINATION "KratosMultiphysics/mpi" RENAME "__init__.py" )
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/mpi
-    FILES_MATCHING PATTERN "*.py"
-    PATTERN "mpi_module_init.py" EXCLUDE
-  )
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 if(${INSTALL_TESTING_FILES} MATCHES ON )
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION kratos/mpi

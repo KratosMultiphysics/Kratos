@@ -247,7 +247,6 @@
     "MaxTimeStep" : 5e-5,
     "FinalTime" : 1.0,
     "NeighbourSearchFrequency" : 1,
-    "TestType" : "None",
     "ElementType" : "SwimmingDEMElement",
     "problem_name" : "cube",
     "GraphExportFreq" : 1e-3,

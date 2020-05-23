@@ -74,7 +74,7 @@
             "input_filename" : "AdjointVMSSensitivity2DTest/steady_cylinder_test"
         },
         "material_import_settings": {
-            "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
+            "materials_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test_materials.json"
         },
         "time_stepping"               : {
             "automatic_time_step" : false,
@@ -88,8 +88,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Inlet2D_Inlet",
+                "model_part_name" : "MainModelPart.Inlet2D_Inlet",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -98,8 +97,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet2D_Outlet",
+                "model_part_name" : "MainModelPart.Outlet2D_Outlet",
                 "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
                 "value"           : 0
             }
@@ -108,8 +106,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "NoSlip2D_Cylinder",
+                "model_part_name" : "MainModelPart.NoSlip2D_Cylinder",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -118,8 +115,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "NoSlip2D_Wall",
+                "model_part_name" : "MainModelPart.NoSlip2D_Wall",
                 "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -129,8 +125,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 0.0,
                 "constrained"     : false,

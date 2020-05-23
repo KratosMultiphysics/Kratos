@@ -104,11 +104,11 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
 
             if self.value_is_numeric:
-                self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
+                self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
             else:
                 if self.aux_function.DependsOnSpace() == False: #depends on time only
                     self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
-                    self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
+                    self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
 

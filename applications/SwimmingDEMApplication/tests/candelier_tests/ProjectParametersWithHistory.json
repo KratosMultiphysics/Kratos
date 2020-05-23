@@ -240,7 +240,6 @@
     "MaxTimeStep" : 0.005,
     "FinalTime" : 1.0,
     "NeighbourSearchFrequency" : 1,
-    "TestType" : "None",
     "ElementType" : "SwimmingDEMElement",
     "problem_name" : "Candelier",
     "GraphExportFreq" : 1e-3,

@@ -8,7 +8,7 @@
 #include "includes/kratos_components.h"
 #include "testing/testing.h"
 #include "custom_io/hdf5_file_serial.h"
-#include "custom_utilities/registered_variable_lookup.h"
+#include "custom_utilities/registered_component_lookup.h"
 
 namespace Kratos
 {
@@ -66,7 +66,7 @@ class AddNodalVariableFunctor;
 void TestModelPartFactory::AddNodalVariables(std::vector<std::string> const& rNodalVariables)
 {
     for (const auto& r_name : rNodalVariables)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
+        RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
             .Execute<AddNodalVariableFunctor>(mrTestModelPart);
 }
 
@@ -109,7 +109,7 @@ void TestModelPartFactory::AssignNodalTestData(std::vector<std::string> const& r
 
     for (auto& r_name : rNodalVariables)
     {
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
+        RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
             .Execute<AssignNodalSolutionStepValueFunctor>(mrTestModelPart.Nodes());
     }
 }
@@ -155,7 +155,7 @@ void TestModelPartFactory::AssignNonHistoricalNodalTestData(ModelPart& rTestMode
         return;
 
     for (auto& r_node : rTestModelPart.Nodes())
-        AssignDataValueContainer(r_node.Data(), rNodalVariables);
+        AssignDataValueContainer(r_node.Data(), r_node, rNodalVariables);
 }
 
 namespace {
@@ -163,12 +163,12 @@ template <typename TVariable>
 class AssignDataValueContainerFunctor;
 }
 
-void TestModelPartFactory::AssignDataValueContainer(DataValueContainer& rData, std::vector<std::string> const& rVariables)
+void TestModelPartFactory::AssignDataValueContainer(DataValueContainer& rData, Flags& rFlags, std::vector<std::string> const& rVariables)
 {
     for (auto& r_name : rVariables)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+        RegisteredComponentLookup<Flags, Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
                                  Variable<HDF5::Vector<double>>, Variable<HDF5::Matrix<double>>>(r_name)
-            .Execute<AssignDataValueContainerFunctor>(rData);
+            .Execute<AssignDataValueContainerFunctor>(rData, rFlags);
 }
 
 namespace {
@@ -180,10 +180,25 @@ class AssignDataValueContainerFunctor
 {
 public:
     void operator()(TVariable const& rVariable,
-                    DataValueContainer& rData)
+                    DataValueContainer& rData,
+                    Flags&)
     {
         AssignValue(rData[rVariable]);
     }
+};
+
+template <>
+class AssignDataValueContainerFunctor<Flags>
+{
+public:
+    void operator()(Flags const& rVariable,
+                    DataValueContainer& rData,
+                    Flags& rFlags)
+    {
+        rFlags.Set(rVariable, static_cast<bool>((counter++) % 2));
+    }
+private:
+    int counter = 0;
 };
 
 void AssignValue(HDF5::Vector<double>& v)
@@ -367,7 +382,7 @@ void CompareNonHistoricalNodalData(HDF5::NodesContainerType& rNodes1,
     for (auto& r_node1 : rNodes1)
     {
         auto& r_node2 = rNodes2[r_node1.Id()];
-        CompareDataValueContainers(r_node1.Data(), r_node2.Data());
+        CompareDataValueContainers(r_node1.Data(), r_node1, r_node2.Data(), r_node2);
     }
 }
 
@@ -376,13 +391,13 @@ template <typename TVariable>
 class CompareVariableFunctor;
 }
 
-void CompareDataValueContainers(DataValueContainer const& rData1, DataValueContainer const& rData2)
+void CompareDataValueContainers(DataValueContainer const& rData1, Flags const& rFlags1, DataValueContainer const& rData2, Flags const& rFlags2)
 {
     for (const auto& r_value1 : rData1)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+        RegisteredComponentLookup<Flags, Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
                                  Variable<HDF5::Vector<double>>, Variable<HDF5::Matrix<double>>>(
             r_value1.first->Name())
-            .Execute<CompareVariableFunctor>(rData1, rData2);
+            .Execute<CompareVariableFunctor>(rData1, rFlags1, rData2, rFlags2);
 }
 
 namespace {
@@ -397,10 +412,26 @@ class CompareVariableFunctor
 public:
     void operator()(TVariable const& rVariable,
                     DataValueContainer const& rData1,
-                    DataValueContainer const& rData2)
+                    Flags const&,
+                    DataValueContainer const& rData2,
+                    Flags const&)
     {
         KRATOS_CHECK(rData1.Has(rVariable) && rData2.Has(rVariable));
         CompareValues(rData1[rVariable], rData2[rVariable]);
+    }
+};
+
+template <>
+class CompareVariableFunctor<Flags>
+{
+public:
+    void operator()(Flags const& rVariable,
+                    DataValueContainer const&,
+                    Flags const& rFlags1,
+                    DataValueContainer const&,
+                    Flags const& rFlags2)
+    {
+        KRATOS_CHECK(rFlags1.Is(rVariable) == rFlags2.Is(rVariable));
     }
 };
 

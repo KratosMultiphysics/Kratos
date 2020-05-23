@@ -33,6 +33,8 @@ class VisualizationMeshProcess(KM.Process):
 
         # Creating the utility for the topographic model part management
         self.use_topographic_model_part = settings["create_topographic_model_part"].GetBool()
+        self.update_topography = False
+        self.update_free_surface = False
         if self.use_topographic_model_part:
             self.topographic_model_part = Model.CreateModelPart(settings["topographic_model_part_name"].GetString())
             self.topography_utility = SW.ReplicateModelPartUtility(self.computing_model_part, self.topographic_model_part)

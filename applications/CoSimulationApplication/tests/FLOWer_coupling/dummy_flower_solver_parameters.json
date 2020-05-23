@@ -34,9 +34,10 @@
     ],
     "mdpa_file_name"      : "generic_mdpa_files/Mok_CFD",
     "debugging_settings" : {
-        "dry_run"      : false,
-        "print_colors" : true,
-        "echo_level"   : 0,
-        "solving_time" : 0.0
+        "dry_run"            : false,
+        "print_colors"       : true,
+        "echo_level"         : 0,
+        "api_print_timing"   : false,
+        "solving_time"       : 0.0
     }
 }

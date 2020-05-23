@@ -485,7 +485,7 @@ private:
     int mIndex : 6;
 
     /** Equation identificator of the degree of freedom */
-#ifdef ENV32BIT // Required to avoid overflow on 32 bit systems
+#ifdef KRATOS_ENV32BIT // Required to avoid overflow on 32 bit systems
     EquationIdType mEquationId : 32;
 #else
     EquationIdType mEquationId : 48;
