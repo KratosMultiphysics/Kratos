@@ -354,6 +354,9 @@ private:
     *  to the curvilinear system in voigt notation. */
     std::vector<Matrix> m_T_hat_vector;
 
+    /* */
+    std::vector<array_1d< array_1d<double, 3>,2>> m_reference_contravariant_base;
+
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
@@ -380,7 +383,7 @@ private:
     // Computes transformation
     void CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
-        Matrix& rT, Matrix& rT_hat);
+        Matrix& rT, Matrix& rT_hat, array_1d<array_1d<double, 3>,2>& rReferenceContraVariantBase);
 
     void CalculateBMembrane(
         IndexType IntegrationPointIndex,
