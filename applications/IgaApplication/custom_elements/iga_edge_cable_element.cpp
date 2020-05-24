@@ -150,7 +150,7 @@ namespace Kratos
                     + r_DN_De(kr, 1) * t[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                 if (CalculateStiffnessMatrixFlag) {
-                    for (IndexType s = 0; s <= r; s++)
+                    for (IndexType s = 0; s < mat_size; s++)
                     {
                         // local node number ks and dof direction dirs
                         IndexType ks = s / 3;
@@ -164,7 +164,7 @@ namespace Kratos
 
                         rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s;
 
-                        if (kr == ks) {
+                        if (dirr == dirs) {
                             const double epsilon_var_rs =
                             (r_DN_De(kr, 0) * t[0] + r_DN_De(kr, 1) * t[1]) *
                             (r_DN_De(ks, 0) * t[0] + r_DN_De(ks, 1) * t[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
