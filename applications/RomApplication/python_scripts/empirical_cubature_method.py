@@ -172,7 +172,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         ElementsAndWeights["Elements"] = {}
         ElementsAndWeights["Conditions"] = {}
         #Only one element found !
-        if type(self.z)==np.int64:
+        if type(self.z)==np.int64 or type(self.z)==np.int32:
             if self.z <= self.OriginalNumberOfElements-1:
                 ElementsAndWeights["Elements"][int(self.z)] = (float(w))
             else:

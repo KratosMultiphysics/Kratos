@@ -26,10 +26,11 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             UP=0
             DOWN=0
             for i in range (len(ObtainedOutput)):
-                UP += (NodalArea[i]*(    (ExpectedOutput[i] - ObtainedOutput[i]   )**2)  )
-                DOWN +=  NodalArea[i]
-            L2 = np.sqrt(UP/DOWN)
-            self.assertLess(L2, 1.0e-4)
+                if ExpectedOutput[i] != 0:
+                    UP += (NodalArea[i]*(   (1  - (ObtainedOutput[i] / ExpectedOutput[i] )    )**2)  )
+                    DOWN +=  NodalArea[i]
+            L2 = (np.sqrt(UP/DOWN)) *100
+            self.assertLess(L2, 0.1)#percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 
@@ -49,11 +50,12 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             DOWN=0
             for node in computing_model_part.Nodes:
                 NodalArea = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-                UP += NodalArea*(    (ExpectedOutput[(2*node.Id)-2] - node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)  )**2)
-                UP += NodalArea*(    (ExpectedOutput[(2*node.Id)-1] - node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)  )**2)
-                DOWN +=  2*NodalArea
-            L2 = np.sqrt(UP/DOWN)
-            self.assertLess(L2, 1.0e-4)
+                if (ExpectedOutput[(2*node.Id)-1] != 0) and (ExpectedOutput[(2*node.Id)-2] != 0):
+                    UP += NodalArea*(    (ExpectedOutput[(2*node.Id)-2] - node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)  )**2)
+                    UP += NodalArea*(    (ExpectedOutput[(2*node.Id)-1] - node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)  )**2)
+                    DOWN +=  2*NodalArea
+            L2 = (np.sqrt(UP/DOWN))*100
+            self.assertLess(L2, 0.1) #percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
             kratos_utilities.DeleteDirectoryIfExisting("vtk_output")
