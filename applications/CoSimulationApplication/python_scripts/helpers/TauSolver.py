@@ -21,7 +21,7 @@ nStepsMAX = 1000 # maximal timesteps
 deltaT           = 0.005 # unsteady physical time step size
 nTimestepsperRUN       = 5 # number of unsteady time steps per supermuc run
 nTimesteps = 203 # updating number of maximum stepnumber for run -> nTimestepsperRUN + nStepsStart
-nInnerIters      = 5 # inner iterations for dual time stepping
+nInnerIters      = 100 # inner iterations for dual time stepping
 outputPeriod     = 1 # external output period (needed if output period in para_path not working properly)
 pitchDeg = 0 # mean pitch angle
 
