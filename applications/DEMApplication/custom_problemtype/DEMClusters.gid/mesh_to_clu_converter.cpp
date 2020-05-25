@@ -9,9 +9,16 @@
 
 void Diagonalize(const double (&A)[3][3], double (&Q)[3][3], double (&D)[3][3]);
 
-int main() {
-    std::ifstream infile("generic.msh");
-    std::ifstream infilesph("generic-hubbard.sph");
+int main(int argc, char * argv[]){
+    int i;
+    for(i = 2; i < argc; i++){
+        std::cout << "Argument "<< i << " = " << argv[i] << std::endl;
+    }
+
+    std::ifstream infile(argv[2]);
+    std::ifstream infilesph(argv[3]);
+    //std::ifstream infile("generic.msh");
+    //std::ifstream infilesph("generic-hubbard.sph");
     std::string line, linesph;
     infile.ignore(80,'\n'); infile.ignore(80,'\n');
 
@@ -27,6 +34,7 @@ int main() {
 
     int node_counter = 0;
     while (std::getline(infile, line)) {
+        std::cout << "infile "<< node_counter << std::endl;
         std::istringstream iss(line);
         int a;
         double b, c, d, e;
@@ -49,15 +57,8 @@ int main() {
     }
     std::cout << "Number of elements: " << element_counter << '\n';
 
-    int spheres_counter = 0;
-    while (std::getline(infilesph, linesph)) {
-        std::istringstream iss(linesph);
-        double Xcoord, Ycoord, Zcoord, Rad;
-        if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad) {
-            spheres_counter++;
-        } else break;
-    }
-    std::cout << "Number of spheres: " << spheres_counter << '\n';
+
+
 
     infile.seekg(0, std::ios::beg);
     infile.ignore(80,'\n'); infile.ignore(80,'\n');
@@ -108,24 +109,28 @@ int main() {
     infilesph.clear();
     infilesph.seekg(0, std::ios::beg);
 
-    const int NUM_OF_SPHERES = spheres_counter;
+ 
 
-    double sphcoord[3][NUM_OF_SPHERES];
-    double sphrad[NUM_OF_SPHERES];
+    // change to std vector i utilitzar un pushback
+    std::vector<double> xcoords;
+    std::vector<double> ycoords;
+    std::vector<double> zcoords;
+    std::vector<double> radii;
 
-    spheres_counter = 0;
+    std::getline(infilesph, linesph);
     while (std::getline(infilesph, linesph)) {
         std::istringstream iss(linesph);
         double Xcoord, Ycoord, Zcoord, Rad;
-        if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad) {
-            sphcoord[0][spheres_counter] = Xcoord;
-            sphcoord[1][spheres_counter] = Ycoord;
-            sphcoord[2][spheres_counter] = Zcoord;
-            sphrad[spheres_counter]      = Rad;
-            spheres_counter++;
+        if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad && Rad>=0) {
+            xcoords.push_back(Xcoord);
+            ycoords.push_back(Ycoord);
+            zcoords.push_back(Zcoord);
+            radii.push_back(Rad);
         } else break;
     }
 
+    std::cout << "Number of spheres: " <<  xcoords.size() << '\n';
+    const int NUM_OF_SPHERES = xcoords.size();
     double total_volume = 0.0;
 
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
@@ -191,9 +196,9 @@ int main() {
 
     // Movemos las esferas y las dejamos colocadas tal que su centroide coincida con el origen:
     for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
-        sphcoord[0][spheres_counter] -= Xcdgrav;
-        sphcoord[1][spheres_counter] -= Ycdgrav;
-        sphcoord[2][spheres_counter] -= Zcdgrav;
+        xcoords[spheres_counter] -= Xcdgrav;
+        ycoords[spheres_counter] -= Ycdgrav;
+        zcoords[spheres_counter] -= Zcdgrav;
     }
 
     // Calculo del tensor de inercias de cada elemento con respecto al CDG de cada piedra o cluster
@@ -272,12 +277,12 @@ int main() {
     for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
 
         double temporal_array_sph[3][1];
-        temporal_array_sph[0][0] = Q[0][0] * sphcoord[0][spheres_counter] + Q[1][0] * sphcoord[1][spheres_counter] + Q[2][0] * sphcoord[2][spheres_counter];
-        temporal_array_sph[1][0] = Q[0][1] * sphcoord[0][spheres_counter] + Q[1][1] * sphcoord[1][spheres_counter] + Q[2][1] * sphcoord[2][spheres_counter];
-        temporal_array_sph[2][0] = Q[0][2] * sphcoord[0][spheres_counter] + Q[1][2] * sphcoord[1][spheres_counter] + Q[2][2] * sphcoord[2][spheres_counter];
-        sphcoord[0][spheres_counter] = temporal_array_sph[0][0];
-        sphcoord[1][spheres_counter] = temporal_array_sph[1][0];
-        sphcoord[2][spheres_counter] = temporal_array_sph[2][0];
+        temporal_array_sph[0][0] = Q[0][0] * xcoords[spheres_counter] + Q[1][0] * ycoords[spheres_counter] + Q[2][0] * zcoords[spheres_counter];
+        temporal_array_sph[1][0] = Q[0][1] * xcoords[spheres_counter] + Q[1][1] * ycoords[spheres_counter] + Q[2][1] * zcoords[spheres_counter];
+        temporal_array_sph[2][0] = Q[0][2] * xcoords[spheres_counter] + Q[1][2] * ycoords[spheres_counter] + Q[2][2] * zcoords[spheres_counter];
+        xcoords[spheres_counter] = temporal_array_sph[0][0];
+        ycoords[spheres_counter] = temporal_array_sph[1][0];
+        zcoords[spheres_counter] = temporal_array_sph[2][0];
     }
 
     double Distance, CenterX, CenterY, CenterZ, Radius = 0.0;
@@ -286,7 +291,7 @@ int main() {
     for (int spheres_counter_1 = 0; spheres_counter_1 < NUM_OF_SPHERES; spheres_counter_1++) {
         for (int spheres_counter_2 = 0; spheres_counter_2 < NUM_OF_SPHERES; spheres_counter_2++) {
             if (spheres_counter_2 < spheres_counter_1) {
-                Distance  = sqrt((sphcoord[0][spheres_counter_2] - sphcoord[0][spheres_counter_1]) * (sphcoord[0][spheres_counter_2] - sphcoord[0][spheres_counter_1]) + (sphcoord[1][spheres_counter_2] - sphcoord[1][spheres_counter_1]) * (sphcoord[1][spheres_counter_2] - sphcoord[1][spheres_counter_1]) + (sphcoord[2][spheres_counter_2] - sphcoord[2][spheres_counter_1]) * (sphcoord[2][spheres_counter_2] - sphcoord[2][spheres_counter_1])) + sphrad[spheres_counter_2] + sphrad[spheres_counter_1];
+                Distance  = sqrt((xcoords[spheres_counter_2] - xcoords[spheres_counter_1]) * (xcoords[spheres_counter_2] - xcoords[spheres_counter_1]) + (ycoords[spheres_counter_2] - ycoords[spheres_counter_1]) * (ycoords[spheres_counter_2] - ycoords[spheres_counter_1]) + (zcoords[spheres_counter_2] - zcoords[spheres_counter_1]) * (zcoords[spheres_counter_2] - zcoords[spheres_counter_1])) + radii[spheres_counter_2] + radii[spheres_counter_1];
                 if (Distance > 2 * Radius) {
                     Radius = 0.5 * Distance;
                     extreme_sphere_1 = spheres_counter_1;
@@ -300,9 +305,9 @@ int main() {
     extreme_sphere.push_back(extreme_sphere_2);
 
     double SphDistance[3];
-    SphDistance[0] = sphcoord[0][extreme_sphere[1]] - sphcoord[0][extreme_sphere[0]];
-    SphDistance[1] = sphcoord[1][extreme_sphere[1]] - sphcoord[1][extreme_sphere[0]];
-    SphDistance[2] = sphcoord[2][extreme_sphere[1]] - sphcoord[2][extreme_sphere[0]];
+    SphDistance[0] = xcoords[extreme_sphere[1]] - xcoords[extreme_sphere[0]];
+    SphDistance[1] = ycoords[extreme_sphere[1]] - ycoords[extreme_sphere[0]];
+    SphDistance[2] = zcoords[extreme_sphere[1]] - zcoords[extreme_sphere[0]];
 
     double SphDistanceNorm = sqrt(SphDistance[0] * SphDistance[0] + SphDistance[1] * SphDistance[1] + SphDistance[2] * SphDistance[2]);
 
@@ -311,9 +316,9 @@ int main() {
     SphDistanceUnitVect[1] = SphDistance[1] / SphDistanceNorm;
     SphDistanceUnitVect[2] = SphDistance[2] / SphDistanceNorm;
 
-    CenterX = 0.5 * (sphcoord[0][extreme_sphere[0]] - sphrad[extreme_sphere[0]] * SphDistanceUnitVect[0] + sphcoord[0][extreme_sphere[1]] + sphrad[extreme_sphere[1]] * SphDistanceUnitVect[0]);
-    CenterY = 0.5 * (sphcoord[1][extreme_sphere[0]] - sphrad[extreme_sphere[0]] * SphDistanceUnitVect[1] + sphcoord[1][extreme_sphere[1]] + sphrad[extreme_sphere[1]] * SphDistanceUnitVect[1]);
-    CenterZ = 0.5 * (sphcoord[2][extreme_sphere[0]] - sphrad[extreme_sphere[0]] * SphDistanceUnitVect[2] + sphcoord[2][extreme_sphere[1]] + sphrad[extreme_sphere[1]] * SphDistanceUnitVect[2]);
+    CenterX = 0.5 * (xcoords[extreme_sphere[0]] - radii[extreme_sphere[0]] * SphDistanceUnitVect[0] + xcoords[extreme_sphere[1]] + radii[extreme_sphere[1]] * SphDistanceUnitVect[0]);
+    CenterY = 0.5 * (ycoords[extreme_sphere[0]] - radii[extreme_sphere[0]] * SphDistanceUnitVect[1] + ycoords[extreme_sphere[1]] + radii[extreme_sphere[1]] * SphDistanceUnitVect[1]);
+    CenterZ = 0.5 * (zcoords[extreme_sphere[0]] - radii[extreme_sphere[0]] * SphDistanceUnitVect[2] + zcoords[extreme_sphere[1]] + radii[extreme_sphere[1]] * SphDistanceUnitVect[2]);
 
     double CheckX, CheckY, CheckZ, TempRad;
     std::vector<double> extreme_radius;
@@ -326,9 +331,9 @@ int main() {
     double CheckRadiusUnitVect[3];
 
     while (sphere_counter_check < (NUM_OF_SPHERES)) {  //CHECK that all nodes are inside the big sphere
-        CheckDistance[0] = sphcoord[0][sphere_counter_check] - CenterX;
-        CheckDistance[1] = sphcoord[1][sphere_counter_check] - CenterY;
-        CheckDistance[2] = sphcoord[2][sphere_counter_check] - CenterZ;
+        CheckDistance[0] = xcoords[sphere_counter_check] - CenterX;
+        CheckDistance[1] = ycoords[sphere_counter_check] - CenterY;
+        CheckDistance[2] = zcoords[sphere_counter_check] - CenterZ;
 
         CheckDistanceNorm = sqrt(CheckDistance[0] * CheckDistance[0] + CheckDistance[1] * CheckDistance[1] + CheckDistance[2] * CheckDistance[2]);
 
@@ -336,9 +341,9 @@ int main() {
         CheckDistanceUnitVect[1] = CheckDistance[1] / CheckDistanceNorm;
         CheckDistanceUnitVect[2] = CheckDistance[2] / CheckDistanceNorm;
 
-        CheckX = sphcoord[0][sphere_counter_check] + sphrad[sphere_counter_check] * CheckDistanceUnitVect[0] - CenterX;
-        CheckY = sphcoord[1][sphere_counter_check] + sphrad[sphere_counter_check] * CheckDistanceUnitVect[1] - CenterY;
-        CheckZ = sphcoord[2][sphere_counter_check] + sphrad[sphere_counter_check] * CheckDistanceUnitVect[2] - CenterZ;
+        CheckX = xcoords[sphere_counter_check] + radii[sphere_counter_check] * CheckDistanceUnitVect[0] - CenterX;
+        CheckY = ycoords[sphere_counter_check] + radii[sphere_counter_check] * CheckDistanceUnitVect[1] - CenterY;
+        CheckZ = zcoords[sphere_counter_check] + radii[sphere_counter_check] * CheckDistanceUnitVect[2] - CenterZ;
         TempRad  = sqrt(CheckX * CheckX + CheckY * CheckY + CheckZ * CheckZ);
 
         if (TempRad - Radius > 1.0e-15) {
@@ -350,9 +355,9 @@ int main() {
             extreme_radius.clear();
 
             for(int i = 0; i < extreme_sphere.size(); i++) {
-                CheckRadius[0] = sphcoord[0][sphere_counter_check] - CenterX;
-                CheckRadius[1] = sphcoord[1][sphere_counter_check] - CenterY;
-                CheckRadius[2] = sphcoord[2][sphere_counter_check] - CenterZ;
+                CheckRadius[0] = xcoords[sphere_counter_check] - CenterX;
+                CheckRadius[1] = ycoords[sphere_counter_check] - CenterY;
+                CheckRadius[2] = zcoords[sphere_counter_check] - CenterZ;
 
                 CheckRadiusNorm = sqrt(CheckRadius[0] * CheckRadius[0] + CheckRadius[1] * CheckRadius[1] + CheckRadius[2] * CheckRadius[2]);
 
@@ -360,7 +365,7 @@ int main() {
                 CheckRadiusUnitVect[1] = CheckRadius[1] / CheckRadiusNorm;
                 CheckRadiusUnitVect[2] = CheckRadius[2] / CheckRadiusNorm;
 
-                extreme_radius.push_back(sqrt((sphcoord[0][extreme_sphere[i]] + sphrad[extreme_sphere[i]] * CheckRadiusUnitVect[0] - CenterX) * (sphcoord[0][extreme_sphere[i]] + sphrad[extreme_sphere[i]] * CheckRadiusUnitVect[0] - CenterX) + (sphcoord[1][extreme_sphere[i]] + sphrad[extreme_sphere[i]] * CheckRadiusUnitVect[1] - CenterX) * (sphcoord[1][extreme_sphere[i]] + sphrad[extreme_sphere[i]] * CheckRadiusUnitVect[1] - CenterX) + (sphcoord[2][extreme_sphere[i]] + sphrad[extreme_sphere[i]] * CheckRadiusUnitVect[2] - CenterX) * (sphcoord[2][extreme_sphere[i]] + sphrad[extreme_sphere[i]] * CheckRadiusUnitVect[2] - CenterX)));
+                extreme_radius.push_back(sqrt((xcoords[extreme_sphere[i]] + radii[extreme_sphere[i]] * CheckRadiusUnitVect[0] - CenterX) * (xcoords[extreme_sphere[i]] + radii[extreme_sphere[i]] * CheckRadiusUnitVect[0] - CenterX) + (ycoords[extreme_sphere[i]] + radii[extreme_sphere[i]] * CheckRadiusUnitVect[1] - CenterX) * (ycoords[extreme_sphere[i]] + radii[extreme_sphere[i]] * CheckRadiusUnitVect[1] - CenterX) + (zcoords[extreme_sphere[i]] + radii[extreme_sphere[i]] * CheckRadiusUnitVect[2] - CenterX) * (zcoords[extreme_sphere[i]] + radii[extreme_sphere[i]] * CheckRadiusUnitVect[2] - CenterX)));
             }
 
             for(int i = 0; i < extreme_radius.size(); i++) {
@@ -389,7 +394,7 @@ int main() {
 
     outputfile << "Name\nCluster\n\nBegin centers_and_radii\n";
     for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
-        outputfile << sphcoord[0][spheres_counter] << " " << sphcoord[1][spheres_counter] << " " << sphcoord[2][spheres_counter] << " " << sphrad[spheres_counter] << '\n';
+        outputfile << xcoords[spheres_counter] << " " << ycoords[spheres_counter] << " " << zcoords[spheres_counter] << " " << radii[spheres_counter] << '\n';
     }
     outputfile << "End centers_and_radii\n\n";
     outputfile << "Particle_center_and_diameter\n" << CenterX << " " << CenterY << " " << CenterZ << " " << diameter << "\n\n";
