@@ -717,6 +717,13 @@ namespace MPMParticleGeneratorUtility
         return MP_shape_functions;
     }
 
+    void GetIntegrationPointWeights(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntWeights)
+    {
+        auto int_points = rGeom.IntegrationPoints(IntegrationMethod);
+        if (rIntWeights.size() != int_points.size()) rIntWeights.resize(int_points.size());
+        for (size_t i = 0; i < int_points.size(); ++i) rIntWeights[i] = int_points[i].Weight();
+    }
+
 } // end namespace MPMParticleGeneratorUtility
 } // end namespace Kratos
 
