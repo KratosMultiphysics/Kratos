@@ -60,7 +60,7 @@ public:
     typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
     typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
 
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentVariableType;
+    typedef Variable<double> ComponentVariableType;
 
     ///@}
     ///@name Life Cycle

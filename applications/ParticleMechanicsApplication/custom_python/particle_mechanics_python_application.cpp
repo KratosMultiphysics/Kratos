@@ -25,61 +25,12 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
-#include "custom_elements/updated_lagrangian.hpp"
-#include "custom_elements/updated_lagrangian_UP.hpp"
-#include "custom_elements/updated_lagrangian_quadrilateral.hpp"
-#include "custom_elements/updated_lagrangian_axisymmetry.hpp"
-
-#include "geometries/triangle_3d_3.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/hexahedra_3d_8.h"
-
 #include "particle_mechanics_application.h"
 
 namespace Kratos{
 namespace Python{
 
     namespace py = pybind11;
-
-    // Triangular and Tetrahedral 2D and 3D
-    Element::Pointer CreateUpdatedLagragian2D3N()
-    {
-        return Kratos::make_intrusive<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
-    }
-
-    Element::Pointer CreateUpdatedLagragianUP2D3N()
-    {
-        return Kratos::make_intrusive<UpdatedLagrangianUP>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
-    }
-
-    Element::Pointer CreateUpdatedLagragian3D4N()
-    {
-        return Kratos::make_intrusive<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
-    }
-
-    // Quadrilateral and Hexahedral 2D and 3D
-    Element::Pointer CreateUpdatedLagragian2D4N()
-    {
-        return Kratos::make_intrusive<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
-
-    }
-    Element::Pointer CreateUpdatedLagragian3D8N()
-    {
-        return Kratos::make_intrusive<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) );
-    }
-
-    // Axis Symmetry Element 2D (Triangular and Quadrilateral)
-    Element::Pointer CreateUpdatedLagragianAxis2D3N()
-    {
-        return Kratos::make_intrusive<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
-    }
-
-    Element::Pointer CreateUpdatedLagragianAxis2D4N()
-    {
-        return Kratos::make_intrusive<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
-    }
 
     PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
     {
@@ -93,14 +44,6 @@ namespace Python{
         AddCustomUtilitiesToPython(m);
         AddCustomConstitutiveLawsToPython(m);
         AddCustomProcessesToPython(m);
-
-        m.def("CreateUpdatedLagragian2D3N", &CreateUpdatedLagragian2D3N);
-        m.def("CreateUpdatedLagragianUP2D3N", &CreateUpdatedLagragianUP2D3N);
-        m.def("CreateUpdatedLagragian3D4N", &CreateUpdatedLagragian3D4N);
-        m.def("CreateUpdatedLagragian2D4N", &CreateUpdatedLagragian2D4N);
-        m.def("CreateUpdatedLagragian3D8N", &CreateUpdatedLagragian3D8N);
-        m.def("CreateUpdatedLagragianAxis2D3N", &CreateUpdatedLagragianAxis2D3N);
-	    m.def("CreateUpdatedLagragianAxis2D4N", &CreateUpdatedLagragianAxis2D4N);
 
         // Registering variables in python
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_COORD);
@@ -121,6 +64,8 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_MATERIAL_ID);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLES_PER_ELEMENT);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IGNORE_GEOMETRIC_STIFFNESS);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_AXISYMMETRIC);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_COMPRESSIBLE);
 
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_COORD);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_CONDITION_ID);
@@ -155,6 +100,14 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, POINT_LOAD )
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LINE_LOAD )
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SURFACE_LOAD )
+
+        // Explicit time integration variables
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CALCULATE_MUSL_VELOCITY_FIELD);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_EXPLICIT);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_EXPLICIT_CENTRAL_DIFFERENCE);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EXPLICIT_STRESS_UPDATE_OPTION);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CALCULATE_EXPLICIT_MP_STRESS);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EXPLICIT_MAP_GRID_TO_MP);
     }
 
 }  // namespace Python.
