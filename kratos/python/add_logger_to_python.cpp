@@ -35,6 +35,16 @@ const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
     }
 }
 
+namespace Internals{
+    Logger::Severity GetSeverity(pybind11::kwargs kwargs, Logger::Severity DefaultSeverity){
+        if(kwargs.contains("severity")) {
+            DefaultSeverity = py::cast<Logger::Severity>(kwargs["severity"]);
+        }
+
+        return DefaultSeverity;
+    }
+}
+
 /**
  * Prints the arguments from the python script using the Kratos Logger class. Implementation
  * @args tuple  representing the arguments of the function The first argument is the label
@@ -49,7 +59,6 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
         std::cout << "ERROR" << std::endl;
 
     std::stringstream buffer;
-    Logger::Severity severityOption = severity;
     Flags categoryOption = LoggerMessage::STATUS;
 
     std::string label;
@@ -80,12 +89,6 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
         counter++;
     }
 
-    // Extract the options
-    if(kwargs.contains("severity")) {
-//         severityOption = extract<Logger::Severity>(kwargs["severity"]);
-        severityOption = py::cast<Logger::Severity>(kwargs["severity"]);
-    }
-
     if(kwargs.contains("category")) {
 //         categoryOption = extract<Flags>(kwargs["category"]);
         categoryOption = py::cast<Flags>(kwargs["category"]);
@@ -93,7 +96,7 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
 
     // Send the message and options to the logger
     Logger logger(label);
-    logger << buffer.str() << severityOption << categoryOption << std::endl;
+    logger << buffer.str() << Internals::GetSeverity(kwargs, severity) << categoryOption << std::endl;
     logger << filterOption << getDataCommunicator(kwargs);
 }
 
