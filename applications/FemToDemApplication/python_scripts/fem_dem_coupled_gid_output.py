@@ -165,6 +165,7 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
 
         Logger.PrintInfo("","")
         Logger.PrintInfo("","*****************  PRINTING RESULTS FOR GID  *************************")
+        Logger.PrintInfo("","")
         Logger.Flush()
 
         if self.GiDMultiFileFlag == "Multiples":
