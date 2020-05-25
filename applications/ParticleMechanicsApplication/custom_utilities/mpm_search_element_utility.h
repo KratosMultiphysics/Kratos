@@ -220,51 +220,6 @@ namespace MPMSearchElementUtility
         KRATOS_CATCH("")
     }
 
-    /*
-    inline void Create2DPolygonBoundingSquareFromPoints(const std::vector<array_1d<double, 3>>& rPoints,
-        std::vector<Boost2DPointType>& rPolygonPoints,
-        Boost2DPolygonType& rPolygon,
-        const bool XActive = true, const bool YActive = true, const bool ZActive= false)
-    {
-        KRATOS_TRY
-
-            if (!XActive || !YActive || ZActive)  if (rPoints.size() != 8)
-                KRATOS_ERROR << "ALL BOUNDING SQUARES SHOULD BE CONSTRUCTED IN XY SPACE EXCEPT FOR HEX BACKGROUND GRID";
-
-        if (rPolygonPoints.size() != 4) rPolygonPoints.resize(4);
-
-        rPolygon.clear();
-
-        if (XActive && YActive && !ZActive)
-        {
-            for (size_t i = 0; i < rPolygonPoints.size(); ++i) {
-                rPolygonPoints[i] = Boost2DPointType(rPoints[i][0], rPoints[i][1]);
-            }
-        }
-        else if (!XActive && YActive && ZActive) // 3D case only!
-        {
-            rPolygonPoints[0] = Boost2DPointType(rPoints[0][1], rPoints[0][2]);
-            rPolygonPoints[1] = Boost2DPointType(rPoints[4][1], rPoints[4][2]);
-            rPolygonPoints[2] = Boost2DPointType(rPoints[7][1], rPoints[7][2]);
-            rPolygonPoints[3] = Boost2DPointType(rPoints[3][1], rPoints[3][2]); // as per Hexahedra3D8 node ordering
-        }
-        else if (XActive && !YActive && ZActive)
-        {
-            rPolygonPoints[0] = Boost2DPointType(rPoints[0][0], rPoints[0][2]);
-            rPolygonPoints[1] = Boost2DPointType(rPoints[1][0], rPoints[1][2]);
-            rPolygonPoints[2] = Boost2DPointType(rPoints[5][0], rPoints[5][2]);
-            rPolygonPoints[3] = Boost2DPointType(rPoints[4][0], rPoints[4][2]);
-        }
-        else
-        {
-            KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
-        }
-        rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
-        boost::geometry::correct(rPolygon); // to close the polygon
-
-        KRATOS_CATCH("")
-    }*/
-
 
     inline Boost2DPolygonType Create2DPolygonBoundingSquareFromPointsFast(const std::vector<array_1d<double, 3>>& rPoints, 
         const bool XActive = true, const bool YActive = true, const bool ZActive = false)
@@ -309,62 +264,6 @@ namespace MPMSearchElementUtility
 
         KRATOS_CATCH("")
     }
-
-
-    /*
-    inline void Create2DPolygonFromGeometry(const GeometryType& rGeom,
-        std::vector<Boost2DPointType>& rPolygonPoints,
-        Boost2DPolygonType& rPolygon,
-        const bool XActive = true, const bool YActive = true, const bool ZActive = false)
-    {
-        KRATOS_TRY
-
-            rPolygon.clear();
-
-        if (rGeom.WorkingSpaceDimension() == 3)
-        {
-            if (rPolygonPoints.size() != 4) rPolygonPoints.resize(4);
-            NodeType point_low, point_high;
-            rGeom.BoundingBox(point_low, point_high);
-
-            if (XActive && YActive && !ZActive)
-            {
-                rPolygonPoints[0] = Boost2DPointType(point_low[0], point_low[1]);
-                rPolygonPoints[1] = Boost2DPointType(point_high[0], point_low[1]);
-                rPolygonPoints[2] = Boost2DPointType(point_high[0], point_high[1]);
-                rPolygonPoints[3] = Boost2DPointType(point_low[0], point_high[1]);
-            }
-            else if (XActive && !YActive && ZActive)
-            {
-                rPolygonPoints[0] = Boost2DPointType(point_low[0], point_low[2]);
-                rPolygonPoints[1] = Boost2DPointType(point_high[0], point_low[2]);
-                rPolygonPoints[2] = Boost2DPointType(point_high[0], point_high[2]);
-                rPolygonPoints[3] = Boost2DPointType(point_low[0], point_high[2]);
-            }
-            else if (!XActive && YActive && ZActive)
-            {
-                rPolygonPoints[0] = Boost2DPointType(point_low[1], point_low[2]);
-                rPolygonPoints[1] = Boost2DPointType(point_high[1], point_low[2]);
-                rPolygonPoints[2] = Boost2DPointType(point_high[1], point_high[2]);
-                rPolygonPoints[3] = Boost2DPointType(point_low[1], point_high[2]);
-            }
-            else
-            {
-                KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
-            }
-        }
-        else
-        {
-            if (rPolygonPoints.size() != rGeom.PointsNumber()) rPolygonPoints.resize(rGeom.PointsNumber());
-            for (size_t i = 0; i < rGeom.PointsNumber(); ++i) {
-                rPolygonPoints[i] = Boost2DPointType(rGeom.GetPoint(i).X(), rGeom.GetPoint(i).Y());
-            }
-        }
-        rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
-        boost::geometry::correct(rPolygon); // to close the polygon
-
-        KRATOS_CATCH("")
-    }*/
 
 
     inline Boost2DPolygonType Create2DPolygonFromGeometryFast(const GeometryType& rGeom,
