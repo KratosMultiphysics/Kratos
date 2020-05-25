@@ -36,16 +36,16 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.multiaxial_control_module = MultiaxialControlModuleGeneralized2DUtility(self.spheres_model_part, self.rigid_face_model_part)
         self.multiaxial_control_module.ExecuteInitialize()
 
-        # self.times = []
-        # self.reaction_x = []
-        # self.reaction_y = []
-        # self.reaction_z = []
-        # self.target_x = []
-        # self.target_y = []
-        # self.target_z = []
-        # self.velocity_x = []
-        # self.velocity_y = []
-        # self.velocity_z = []
+        self.times = []
+        self.reaction_x = []
+        self.reaction_y = []
+        self.reaction_z = []
+        self.target_x = []
+        self.target_y = []
+        self.target_z = []
+        self.velocity_x = []
+        self.velocity_y = []
+        self.velocity_z = []
 
     def InitializeSolutionStep(self):
         super(DEMAnalysisStage2DSpRigidFem, self).InitializeSolutionStep()
@@ -122,7 +122,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         super(DEMAnalysisStage2DSpRigidFem, self).FinalizeSolutionStep()
         self.multiaxial_control_module.ExecuteFinalizeSolutionStep()
 
-        # self.times.append(self.time)
+        self.times.append(self.time)
         # self.reaction_x.append(self.rigid_face_model_part.Nodes[11].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))
         # self.reaction_y.append(self.rigid_face_model_part.Nodes[12].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))
         # self.reaction_z.append(self.spheres_model_part.Nodes[9].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Z))
@@ -132,64 +132,64 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         # self.velocity_x.append(self.rigid_face_model_part.Nodes[11].GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X))
         # self.velocity_y.append(self.rigid_face_model_part.Nodes[12].GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y))
         # self.velocity_z.append(self.spheres_model_part.Nodes[9].GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Z))
-        # self.reaction_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))
-        # self.reaction_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))
-        # self.reaction_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Z))
-        # self.target_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X))
-        # self.target_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y))
-        # self.target_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Z))
-        # self.velocity_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X))
-        # self.velocity_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y))
-        # self.velocity_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Z))
+        self.reaction_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))
+        self.reaction_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))
+        self.reaction_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Z))
+        self.target_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X))
+        self.target_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y))
+        self.target_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Z))
+        self.velocity_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X))
+        self.velocity_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y))
+        self.velocity_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Z))
 
     def PrintResultsForGid(self, time):
         super(DEMAnalysisStage2DSpRigidFem, self).PrintResultsForGid(time)
 
         ## TODO
-        # import matplotlib.pyplot as plt 
+        import matplotlib.pyplot as plt 
 
-        # f = plt.figure()
+        f = plt.figure()
 
-        # plt.plot(self.times, self.reaction_x, label='reaction_x')
-        # plt.plot(self.times, self.reaction_y, label='reaction_y')
-        # plt.plot(self.times, self.reaction_z, label='reaction_z')
-        # plt.plot(self.times, self.target_x, '--', label='target_x')
-        # plt.plot(self.times, self.target_y, '--', label='target_y')
-        # plt.plot(self.times, self.target_z, '--', label='target_z')
+        plt.plot(self.times, self.reaction_x, label='reaction_x')
+        plt.plot(self.times, self.reaction_y, label='reaction_y')
+        plt.plot(self.times, self.reaction_z, label='reaction_z')
+        plt.plot(self.times, self.target_x, '--', label='target_x')
+        plt.plot(self.times, self.target_y, '--', label='target_y')
+        plt.plot(self.times, self.target_z, '--', label='target_z')
 
-        # plt.legend()
-        # max_stress = max(abs(min(self.target_x)),max(self.target_x),
-        #                  abs(min(self.target_y)),max(self.target_y),
-        #                  abs(min(self.target_z)),max(self.target_z))
-        # plt.ylim(-2*max_stress,2*max_stress)
+        plt.legend()
+        max_stress = max(abs(min(self.target_x)),max(self.target_x),
+                         abs(min(self.target_y)),max(self.target_y),
+                         abs(min(self.target_z)),max(self.target_z))
+        plt.ylim(-2*max_stress,2*max_stress)
 
-        # # naming the x axis 
-        # plt.xlabel('Time (s)') 
-        # # naming the y axis 
-        # plt.ylabel('Stress (Pa)') 
-        # # giving a title to my graph 
-        # plt.title('Reaction vs target stresses') 
+        # naming the x axis 
+        plt.xlabel('Time (s)') 
+        # naming the y axis 
+        plt.ylabel('Stress (Pa)') 
+        # giving a title to my graph 
+        plt.title('Reaction vs target stresses') 
 
-        # f.savefig("forces.pdf", bbox_inches='tight')
-        # plt.close()
+        f.savefig("forces.pdf", bbox_inches='tight')
+        plt.close()
 
-        # f = plt.figure()
+        f = plt.figure()
 
-        # plt.plot(self.times, self.velocity_x, label='velocity_x')
-        # plt.plot(self.times, self.velocity_y, label='velocity_y')
-        # plt.plot(self.times, self.velocity_z, label='velocity_z')
+        plt.plot(self.times, self.velocity_x, label='velocity_x')
+        plt.plot(self.times, self.velocity_y, label='velocity_y')
+        plt.plot(self.times, self.velocity_z, label='velocity_z')
 
-        # plt.legend()
+        plt.legend()
 
-        # # naming the x axis 
-        # plt.xlabel('Time (s)') 
-        # # naming the y axis 
-        # plt.ylabel('Velocity (m/s)') 
-        # # giving a title to my graph 
-        # plt.title('Loading velocity') 
+        # naming the x axis 
+        plt.xlabel('Time (s)') 
+        # naming the y axis 
+        plt.ylabel('Velocity (m/s)') 
+        # giving a title to my graph 
+        plt.title('Loading velocity') 
 
-        # f.savefig("velocities.pdf", bbox_inches='tight')
-        # plt.close()
+        f.savefig("velocities.pdf", bbox_inches='tight')
+        plt.close()
         ## TODO
 
         # DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.ring_submodelpart)

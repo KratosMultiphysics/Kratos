@@ -504,7 +504,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
     noalias(delta_target_stress) = r_next_target_stress-mReactionStress;
     Vector velocity_estimated(number_of_actuators);
 
-    if (mMultiAxial == true && false) {
+    if (mMultiAxial == true) {
         Matrix k_inverse(number_of_actuators,number_of_actuators);
         double k_det = 0.0;
         MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
@@ -567,7 +567,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
 
         KRATOS_WATCH("End Updating velocity.........")
         KRATOS_WATCH(mVelocity)
-    } else if (false) {
+    } else {
         KRATOS_WATCH("Begin Updating velocity.........")
         KRATOS_WATCH(mVelocity)
 
@@ -598,9 +598,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
         KRATOS_WATCH(mVelocity)
     }
 
-    Vector velocity_perturbation(number_of_actuators);
-    noalias(velocity_perturbation) = GetPerturbations(mLimitVelocities,r_current_time);
-    mVelocity = mLimitVelocities + velocity_perturbation;
+    // Vector velocity_perturbation(number_of_actuators);
+    // noalias(velocity_perturbation) = GetPerturbations(mLimitVelocities,r_current_time);
+    // mVelocity = mLimitVelocities + velocity_perturbation;
 
 }
 
@@ -689,9 +689,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
     } else{
         mActuatorCounter++;
     }
-    Vector force_estimation(number_of_actuators);
-    noalias(force_estimation) = prod(mStiffness,mVelocity)*mCMDeltaTime + mReactionStress;
-    KRATOS_WATCH(force_estimation)
+    // Vector force_estimation(number_of_actuators);
+    // noalias(force_estimation) = prod(mStiffness,mVelocity)*mCMDeltaTime + mReactionStress;
+    // KRATOS_WATCH(force_estimation)
 
 }
 
