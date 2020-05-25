@@ -261,9 +261,7 @@ set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
 set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 
 # check version of Python, needs to be done after including pybind
-if(${PYTHON_VERSION_MAJOR} LESS 3)
-    message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
-elseif(${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5)
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
     message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
 endif()
 
