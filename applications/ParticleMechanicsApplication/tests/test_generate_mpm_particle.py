@@ -35,7 +35,7 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
         self._create_elements(sub_mp,dimension, geometry_element)
 
         # Generate MP Elements
-        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
         # Check total number of element
         particle_counter = material_point_model_part.NumberOfElements()
@@ -62,14 +62,14 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
     def _create_elements(self, initial_mp, dimension, geometry_element):
         if geometry_element == "Triangle":
             if (dimension == 2):
-                initial_mp.CreateNewElement("UpdatedLagrangian2D3N", 1, [1,2,3], initial_mp.GetProperties()[1])
+                initial_mp.CreateNewElement("Element2D3N", 1, [1,2,3], initial_mp.GetProperties()[1])
             if (dimension == 3):
-                initial_mp.CreateNewElement("UpdatedLagrangian3D4N", 1, [1,2,3,4], initial_mp.GetProperties()[1])
+                initial_mp.CreateNewElement("Element3D4N", 1, [1,2,3,4], initial_mp.GetProperties()[1])
         elif geometry_element == "Quadrilateral":
             if (dimension == 2):
-                initial_mp.CreateNewElement("UpdatedLagrangian2D4N", 1, [1,2,3,4], initial_mp.GetProperties()[1])
+                initial_mp.CreateNewElement("Element2D4N", 1, [1,2,3,4], initial_mp.GetProperties()[1])
             if (dimension == 3):
-                initial_mp.CreateNewElement("UpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
+                initial_mp.CreateNewElement("Element3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mp.Elements)
 
