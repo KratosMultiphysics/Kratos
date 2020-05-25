@@ -160,7 +160,7 @@ public:
 
         #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
-            auto &r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We cleate the temporal set and we reserve some space on them
             set_type dofs_tmp_set;
@@ -176,7 +176,7 @@ public:
                 else
                     it_elem->SetValue(HROM_WEIGHT, 1.0);
                 // Gets list of Dof involved on every element
-                pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
+                pScheme->GetDofList(*it_elem, dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
 
@@ -197,7 +197,7 @@ public:
                 else
                     (*it_cond)->SetValue(HROM_WEIGHT, 1.0);
                 // Gets list of Dof involved on every element
-                pScheme->GetConditionDofList(*it_cond, dof_list, r_current_process_info);
+                pScheme->GetDofList(*(*it_cond), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
             #pragma omp critical
@@ -393,7 +393,7 @@ public:
         const int nelements = static_cast<int>(rModelPart.Elements().size());
         const auto el_begin = rModelPart.ElementsBegin();
 
-        auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         auto help_cond_begin = rModelPart.ConditionsBegin();
         auto help_nconditions = static_cast<int>(rModelPart.Conditions().size());
@@ -438,7 +438,7 @@ public:
 
                 if (element_is_active){
                     //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                     Element::DofsVectorType dofs;
                     it_el->GetDofList(dofs, CurrentProcessInfo);
                     const auto &geom = it_el->GetGeometry();
@@ -451,7 +451,7 @@ public:
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
 
                     // clean local elemental memory
-                    pScheme->CleanMemory(*(it_el.base()));
+                    pScheme->CleanMemory(*it_el);
                 }
             }
 
@@ -468,7 +468,7 @@ public:
                     Condition::DofsVectorType dofs;
                     it->GetDofList(dofs, CurrentProcessInfo);
                     //calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                     const auto &geom = it->GetGeometry();
                     if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
@@ -479,7 +479,7 @@ public:
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
 
                     // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
+                    pScheme->CleanMemory(*it);
                 }
             }
 
