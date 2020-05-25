@@ -21,10 +21,14 @@ class TestFileLogger(KratosUnittest.TestCase):
         warning_logger.SetSeverity(KM.Logger.Severity.WARNING)
         KM.Logger.AddOutput(warning_logger)
 
+        KM.Logger.Start("Level1", "This is printed by 'Start'.")
         KM.Logger.Print("TestFileLogger", "This is printed by 'Print'.")
+        KM.Logger.Start("Level2", "This is printed by 'Start'.")
         KM.Logger.PrintInfo("TestFileLogger", "This is printed by 'PrintInfo'.")
         KM.Logger.PrintWarning("TestFileLogger", "This is printed by 'PrintWarning'.")
+        KM.Logger.Stop("Level2", "This is printed by 'Stop'.")
         KM.Logger.PrintOnAllRanks("TestFileLogger", "This is printed by 'PrintOnAllRanks'.")
+        KM.Logger.Stop("Level1", "This is printed by 'Stop'.")
         KM.Logger.PrintInfoOnAllRanks("TestFileLogger", "This is printed by 'PrintInfoOnAllRanks'.")
         KM.Logger.PrintWarningOnAllRanks("TestFileLogger", "This is printed by 'PrintWarningOnAllRanks'.")
         KM.Logger.Flush()
@@ -33,10 +37,14 @@ class TestFileLogger(KratosUnittest.TestCase):
         with open("Kratos.log", "r") as f:
             file_output = f.read()
 
-        expected_output = "TestFileLogger This is printed by 'Print'. \n"
-        expected_output += "TestFileLogger: This is printed by 'PrintInfo'. \n"
-        expected_output += "[WARNING] TestFileLogger: This is printed by 'PrintWarning'. \n"
-        expected_output += "Rank 0: TestFileLogger This is printed by 'PrintOnAllRanks'. \n"
+        expected_output = "Level1: This is printed by 'Start'. \n"
+        expected_output += "  TestFileLogger This is printed by 'Print'. \n"
+        expected_output += "  Level2: This is printed by 'Start'. \n"
+        expected_output += "    TestFileLogger: This is printed by 'PrintInfo'. \n"
+        expected_output += "[WARNING]     TestFileLogger: This is printed by 'PrintWarning'. \n"
+        expected_output += "  Level2: This is printed by 'Stop'. \n"
+        expected_output += "Rank 0:   TestFileLogger This is printed by 'PrintOnAllRanks'. \n"
+        expected_output += "Level1: This is printed by 'Stop'. \n"
         expected_output += "Rank 0: TestFileLogger: This is printed by 'PrintInfoOnAllRanks'. \n"
         expected_output += "[WARNING] Rank 0: TestFileLogger: This is printed by 'PrintWarningOnAllRanks'. \n"
 
@@ -46,7 +54,7 @@ class TestFileLogger(KratosUnittest.TestCase):
         with open("KratosWarning.log", "r") as f:
             file_output = f.read()
 
-        expected_output = "[WARNING] TestFileLogger: This is printed by 'PrintWarning'. \n"
+        expected_output = "[WARNING]     TestFileLogger: This is printed by 'PrintWarning'. \n"
         expected_output += "[WARNING] Rank 0: TestFileLogger: This is printed by 'PrintWarningOnAllRanks'. \n"
 
         self.assertMultiLineEqual(file_output, expected_output)
