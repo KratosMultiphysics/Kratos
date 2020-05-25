@@ -101,7 +101,7 @@ public:
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -111,15 +111,9 @@ public:
         if (rRightHandSideVector.size() != TNumNodes)
             rRightHandSideVector.resize(TNumNodes, false); //false says not to preserve existing storage!!
 
-
-//         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
-//         noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
-
-//         //Crank-Nicholson factor
-//         const double cr_nk = 0.5;
-
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
         const double dt_inv = 1.0 / delta_t;
+        const double theta = rCurrentProcessInfo.Has(TIME_INTEGRATION_THETA) ? rCurrentProcessInfo[TIME_INTEGRATION_THETA] : 0.5;
 
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
@@ -216,12 +210,12 @@ public:
         }
 
         //adding the second and third term in the formulation
-        noalias(rLeftHandSideMatrix)  = (dt_inv + 0.5*beta*div_v)*aux1; //the 0.5 comes from the use of Crank Nichlson
-        noalias(rRightHandSideVector) = (dt_inv - 0.5*beta*div_v)*prod(aux1,phi_old); //the 0.5 comes from the use of Crank Nichlson
+        noalias(rLeftHandSideMatrix)  = (dt_inv + theta*beta*div_v)*aux1;
+        noalias(rRightHandSideVector) = (dt_inv - (1.0 - theta)*beta*div_v)*prod(aux1,phi_old);
 
         //terms in aux2
-        noalias(rLeftHandSideMatrix) += 0.5*aux2; //the 0.5 comes from the use of Crank Nichlson
-        noalias(rRightHandSideVector) -= 0.5*prod(aux2,phi_old); //the 0.5 comes from the use of Crank Nichlson
+        noalias(rLeftHandSideMatrix) += theta*aux2;
+        noalias(rRightHandSideVector) -= (1.0 - theta)*prod(aux2,phi_old);
 
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
@@ -236,7 +230,7 @@ public:
 
 
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
     }
@@ -245,7 +239,7 @@ public:
 
 
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -267,7 +261,7 @@ public:
 
 
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -351,9 +345,9 @@ protected:
             {
                 h_inv += DN_DX(i,k)*DN_DX(i,k);
             }
-            h += 1.0/h_inv;
+            h = std::max(h, 1.0 / h_inv);
         }
-        h = sqrt(h)/static_cast<double>(TNumNodes);
+        h = std::sqrt(h);
         return h;
     }
 

@@ -722,31 +722,41 @@ public:
      */
     virtual int Check(const ModelPart& rModelPart) const
     {
-        return const_cast<Scheme&>(*this).Check(const_cast<ModelPart&>(rModelPart)); // TODO remove this after the transition period and move the implementation from the non-const version of this function here
-    }
-
-    virtual int Check(ModelPart& rModelPart)
-    {
         KRATOS_TRY
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Checks for all of the elements
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
+        for(int i=0; i<static_cast<int>(rModelPart.NumberOfElements()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
             it_elem->Check(r_current_process_info);
         }
 
         // Checks for all of the conditions
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
+        for(int i=0; i<static_cast<int>(rModelPart.NumberOfConditions()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
             it_cond->Check(r_current_process_info);
         }
 
+        // Checks for all of the constraints
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.NumberOfMasterSlaveConstraints()); i++) {
+            auto it_constraint = rModelPart.MasterSlaveConstraintsBegin() + i;
+            it_constraint->Check(r_current_process_info);
+        }
+
         return 0;
         KRATOS_CATCH("");
+    }
+
+    virtual int Check(ModelPart& rModelPart)
+    {
+        // calling the const version for backward compatibility
+        const Scheme& r_const_this = *this;
+        const ModelPart& r_const_model_part = rModelPart;
+        return r_const_this.Check(r_const_model_part);
     }
 
     /**
@@ -831,7 +841,7 @@ public:
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_RHS_Contribution(
+    virtual void CalculateRHSContribution(
         Element& rElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -864,7 +874,7 @@ public:
      * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_RHS_Contribution(
+    virtual void CalculateRHSContribution(
         Condition& rCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -897,7 +907,7 @@ public:
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_LHS_Contribution(
+    virtual void CalculateLHSContribution(
         Element& rElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -930,7 +940,7 @@ public:
      * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void Calculate_LHS_Contribution(
+    virtual void CalculateLHSContribution(
         Condition& rCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& rEquationIdVector,
@@ -958,10 +968,19 @@ public:
 
     /**
      * @brief This method gets the eqaution id corresponding to the current element
-     * @param pCurrentElement The element to compute
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rElement The element to compute
+     * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
+    virtual void EquationId(
+        const Element& rElement,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
     virtual void EquationId(
         Element::Pointer pCurrentElement,
         Element::EquationIdVectorType& EquationId,
@@ -973,10 +992,19 @@ public:
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rCondition The condition to compute
+     * @param rEquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
+    virtual void EquationId(
+        const Condition& rCondition,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
     virtual void Condition_EquationId(
         Condition::Pointer pCurrentCondition,
         Element::EquationIdVectorType& EquationId,
@@ -996,14 +1024,9 @@ public:
         const Element& rElement,
         Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        ) const
+        )
     {
-        const_cast<Scheme&>(*this).GetElementalDofList(
-            Element::Pointer(&const_cast<Element&>(rElement)),
-            rDofList,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rElement.GetDofList(rDofList, rCurrentProcessInfo);
+        rElement.GetDofList(rDofList, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
     virtual void GetElementalDofList(
@@ -1025,13 +1048,8 @@ public:
         const Condition& rCondition,
         Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        ) const
+        )
     {
-        const_cast<Scheme&>(*this).GetConditionDofList(
-            Condition::Pointer(&const_cast<Condition&>(rCondition)),
-            rDofList,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
         rCondition.GetDofList(rDofList, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")

@@ -71,8 +71,7 @@ Element::Pointer MembraneElement::Create(
 
 void MembraneElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
-
+    const ProcessInfo& rCurrentProcessInfo) const
 {
   KRATOS_TRY;
 
@@ -102,8 +101,7 @@ void MembraneElement::EquationIdVector(
 
 void MembraneElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
-
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     SizeType num_nodes, local_size;
     num_nodes = GetGeometry().size();
@@ -125,7 +123,7 @@ void MembraneElement::GetDofList(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::Initialize()
+void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -201,8 +199,7 @@ void MembraneElement::CalculateLocalSystem(
 
 void MembraneElement::GetValuesVector(
     Vector& rValues,
-    int Step)
-
+    int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -226,8 +223,7 @@ void MembraneElement::GetValuesVector(
 
 void MembraneElement::GetFirstDerivativesVector(
     Vector& rValues,
-    int Step)
-
+    int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType mat_size = number_of_nodes * 3;
@@ -251,8 +247,7 @@ void MembraneElement::GetFirstDerivativesVector(
 
 void MembraneElement::GetSecondDerivativesVector(
     Vector& rValues,
-    int Step)
-
+    int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType mat_size = number_of_nodes * 3;
@@ -975,25 +970,6 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
     }
 }
 
-void MembraneElement::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
-void MembraneElement::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                        std::vector<Vector>& rValues,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
 void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -1060,7 +1036,7 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
 void MembraneElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -1098,7 +1074,7 @@ void MembraneElement::CalculateDampingMatrix(
 
 void MembraneElement::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -1185,7 +1161,7 @@ void MembraneElement::PrincipalVector(Vector& rPrincipalVector, const Vector& rN
 
 //***********************************************************************************
 //***********************************************************************************
-int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     const double numerical_limit = std::numeric_limits<double>::epsilon();

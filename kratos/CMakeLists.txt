@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
+include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
 
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
@@ -44,6 +44,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/data_value_container.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/integration/integration_point_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_neighbours_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/fast_transfer_between_model_parts_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
@@ -72,6 +73,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_ray_casting_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_elemental_neighbours_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/time_averaging_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/from_json_check_result_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -151,7 +153,9 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_factories_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_process_info_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
@@ -165,6 +169,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_response_functions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constraint_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_communicator_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_data_communicator_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_environment_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_global_pointers_to_python.cpp
@@ -246,7 +251,9 @@ if(USE_COTIRE MATCHES ON)
     ## This soruces in particular take too much ram by their own
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
 
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)
