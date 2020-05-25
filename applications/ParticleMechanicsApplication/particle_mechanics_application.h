@@ -78,6 +78,8 @@
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/non_linear_associative_plastic_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/non_linear_rate_dependent_plastic_flow_rule.hpp"
 
 //---yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"

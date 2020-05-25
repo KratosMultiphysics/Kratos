@@ -64,8 +64,24 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
 	  //Set Parameters
 	  void SetStressNorm  (const double& rStressNorm)  { mpStressNorm = &rStressNorm; };
 
+      void SetDeltaGamma(const double& rDeltaGamma) { HardeningParameters.SetDeltaGamma(rDeltaGamma); };
+      void SetLameMu_bar(const double& rLameMu_bar) { HardeningParameters.SetLameMu_bar(rLameMu_bar); };
+      void SetTemperature(const double& rTemperature) { HardeningParameters.SetTemperature(rTemperature); };
+
+      void SetEquivalentPlasticStrain(const double& rEquivalentPlasticStrain) { HardeningParameters.SetEquivalentPlasticStrain(rEquivalentPlasticStrain); };
+      void SetEquivalentPlasticStrainOld(const double& rEquivalentPlasticStrainOld) { HardeningParameters.SetEquivalentPlasticStrainOld(rEquivalentPlasticStrainOld); };
+
+
 	  //Get Parameters
 	  const double& GetStressNorm  () const { return *mpStressNorm;  };
+
+      const double& GetDeltaGamma() const { return HardeningParameters.GetDeltaGamma(); };
+      const double& GetLameMu_bar() const { return HardeningParameters.GetLameMu_bar(); };
+      const double& GetTemperature() const { return HardeningParameters.GetTemperature(); };
+
+      const double& GetEquivalentPlasticStrain() const { return HardeningParameters.GetEquivalentPlasticStrain(); };
+      const double& GetEquivalentPlasticStrainOld() const { return HardeningParameters.GetEquivalentPlasticStrainOld(); };
+
 	  const ParticleHardeningLaw::Parameters& GetHardeningParameters  () const { return HardeningParameters; };
 
 	  //Set Hardening Parameters
@@ -221,6 +237,51 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         virtual void CalculateYieldFunctionSecondDerivative(const Vector& rPrincipalStress, Vector& rSecondDerivative)
 	{
 		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
+        };
+
+        virtual double& CalculateDeltaStateFunction(double& rDeltaStateFunction, const Parameters& rVariables)
+        {
+            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
+
+                return rDeltaStateFunction;
+        };
+
+        virtual double& CalculateStateFunction(double& rStateFunction, const Parameters& rVariables)
+        {
+            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
+
+                return rStateFunction;
+        };
+
+        virtual double& CalculatePlasticDissipation(double& rPlasticDissipation, const Parameters& rVariables)
+        {
+            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
+
+                return rPlasticDissipation;
+        };
+
+
+        virtual double& CalculateDeltaPlasticDissipation(double& rDeltaPlasticDissipation, const Parameters& rVariables)
+        {
+            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
+
+                return rDeltaPlasticDissipation;
+        };
+
+
+        virtual double& CalculateImplexPlasticDissipation(double& rPlasticDissipation, const Parameters& rVariables)
+        {
+            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
+
+                return rPlasticDissipation;
+        };
+
+
+        virtual double& CalculateImplexDeltaPlasticDissipation(double& rDeltaPlasticDissipation, const Parameters& rVariables)
+        {
+            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
+
+                return rDeltaPlasticDissipation;
         };
 
 

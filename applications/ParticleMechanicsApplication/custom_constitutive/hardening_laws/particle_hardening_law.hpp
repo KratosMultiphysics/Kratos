@@ -63,8 +63,14 @@ public:
     private:
 
           double        mRateFactor;
-
           const double* mpDeltaTime;
+
+          const double* mpDeltaGamma;
+          const double* mpLameMu_bar;
+          const double* mpTemperature;
+
+          const double* mpEquivalentPlasticStrain;
+          const double* mpEquivalentPlasticStrainOld;
 
     public:
 
@@ -72,9 +78,25 @@ public:
           void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;     };
           void SetDeltaTime   (const double& rDeltaTime)   { mpDeltaTime = &rDeltaTime;     };
 
+          void SetDeltaGamma(const double& rDeltaGamma) { mpDeltaGamma = &rDeltaGamma; };
+          void SetLameMu_bar(const double& rLameMu_bar) { mpLameMu_bar = &rLameMu_bar; };
+          void SetTemperature(const double& rTemperature) { mpTemperature = &rTemperature; };
+
+          void SetEquivalentPlasticStrain(const double& rEquivalentPlasticStrain) { mpEquivalentPlasticStrain = &rEquivalentPlasticStrain; };
+          void SetEquivalentPlasticStrainOld(const double& rEquivalentPlasticStrainOld) { mpEquivalentPlasticStrainOld = &rEquivalentPlasticStrainOld; };
+
+
           //Get Parameters
           const double& GetRateFactor  () const { return  mRateFactor;   };
           const double& GetDeltaTime   () const { return *mpDeltaTime;   };
+
+          const double& GetDeltaGamma() const { return *mpDeltaGamma; };
+          const double& GetLameMu_bar() const { return *mpLameMu_bar; };
+          const double& GetTemperature() const { return *mpTemperature; };
+
+          const double& GetEquivalentPlasticStrain() const { return *mpEquivalentPlasticStrain; };
+          const double& GetEquivalentPlasticStrainOld() const { return *mpEquivalentPlasticStrainOld; };
+
 
           void print() const
           {
@@ -164,6 +186,8 @@ public:
     virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double& rBeta) {return rHardening; };
 
     virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const Variable<double>& rThisVariable) {return rHardening;};
+
+    virtual double& CalculateDeltaHardening(double& rDeltaHardening, const Parameters& rValues) { return rDeltaHardening; };
 
     ///@}
     ///@name Access
