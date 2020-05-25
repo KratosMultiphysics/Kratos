@@ -7,7 +7,8 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/checks.h"
-#include "utilities/os_utilities.h"
+#include "includes/kratos_filesystem.h"
+#include "utilities/cpp_tests_utilities.h"
 #include "includes/kratos_flags.h"
 #include "containers/model.h"
 #include "meshing_application_variables.h"
@@ -86,7 +87,8 @@ namespace Kratos
 
             // Compute read/write
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-            ParMmgIO<PMMGLibrary::PMMG3D> parmmg_io(OSUtilities::GetCurrentWorkingDir() + "/pmmg_output_3d");
+
+            ParMmgIO<PMMGLibrary::PMMG3D> parmmg_io(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "pmmg_output_3d"}));
             parmmg_io.WriteModelPart(r_model_part);
 
             Model this_aux_model;
@@ -101,11 +103,11 @@ namespace Kratos
                 KRATOS_CHECK(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
             }
 
-            remove((OSUtilities::GetCurrentWorkingDir() + "/pmmg_output_3d.mesh").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/pmmg_output_3d.sol").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/pmmg_output_3d.json").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/pmmg_output_3d.cond.ref.json").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/pmmg_output_3d.elem.ref.json").c_str());
+            remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(),"pmmg_output_3d.mesh"})).c_str());
+            remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(),"pmmg_output_3d.sol"})).c_str());
+            remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(),"pmmg_output_3d.json"})).c_str());
+            remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(),"pmmg_output_3d.cond.ref.json"})).c_str());
+            remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(),"pmmg_output_3d.elem.ref.json"})).c_str());
         }
     } // namespace Testing
 }  // namespace Kratos.
