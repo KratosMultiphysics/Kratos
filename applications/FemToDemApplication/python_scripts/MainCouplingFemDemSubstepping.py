@@ -73,7 +73,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
 
         # ######################################### ######################################### remove elements
-        if self.FEM_Solution.step == 60:
+        if self.FEM_Solution.step == 100:
             for elem in self.FEM_Solution.main_model_part.GetSubModelPart("Body_Part-auto-3").Elements:
                 elem.Set(KratosMultiphysics.TO_ERASE, True)
             element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
