@@ -191,6 +191,14 @@ public:
 
     virtual double& CalculateDeltaThermalHardening(double& rDeltaThermalHardening, const Parameters& rValues) { return rDeltaThermalHardening; };
 
+    virtual double& CalculateIsotropicHardening(double& rIsotropicHardening, const Parameters& rValues) { return rIsotropicHardening; };
+
+    virtual double& CalculateKinematicHardening(double& rKinematicHardening, const Parameters& rValues) { return rKinematicHardening; };
+
+    virtual double& CalculateDeltaIsotropicHardening(double& rDeltaIsotropicHardening, const Parameters& rValues) { return rDeltaIsotropicHardening; };
+
+    virtual double& CalculateDeltaKinematicHardening(double& rDeltaKinematicHardening, const Parameters& rValues) { return rDeltaKinematicHardening; };
+
     ///@}
     ///@name Access
     ///@{

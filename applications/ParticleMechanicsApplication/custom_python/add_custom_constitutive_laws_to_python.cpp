@@ -37,6 +37,7 @@
 //---hardening laws
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
 
 //---flow rules
 #include "custom_constitutive/flow_rules/particle_flow_rule.hpp"
