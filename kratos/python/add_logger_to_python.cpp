@@ -36,12 +36,34 @@ const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
 }
 
 namespace Internals{
-    Logger::Severity GetSeverity(pybind11::kwargs kwargs, Logger::Severity DefaultSeverity){
-        if(kwargs.contains("severity")) {
-            DefaultSeverity = py::cast<Logger::Severity>(kwargs["severity"]);
+    std::string GetLabel(pybind11::args Args){
+        if(len(Args) == 0) {
+            return ""; 
+        }
+        return py::str(Args[0]); // Consider the first entry of the args as the label
+    }
+
+    std::string GetLabel(pybind11::kwargs KWargs){
+        if(KWargs.contains("label")) {
+            return py::str(KWargs["label"]);
+        } 
+        return ""; 
+    }
+
+    Logger::Severity GetSeverity(pybind11::kwargs KWargs, Logger::Severity DefaultSeverity){
+        if(KWargs.contains("severity")) {
+            DefaultSeverity = py::cast<Logger::Severity>(KWargs["severity"]);
         }
 
         return DefaultSeverity;
+    }
+
+    Flags GetCategory(pybind11::kwargs KWargs, Flags DefaultCategory){
+        if(KWargs.contains("category")) {
+            DefaultCategory = py::cast<Flags>(KWargs["category"]);
+        }
+
+        return DefaultCategory;
     }
 }
 
@@ -59,7 +81,6 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
         std::cout << "ERROR" << std::endl;
 
     std::stringstream buffer;
-    Flags categoryOption = LoggerMessage::STATUS;
 
     std::string label;
 //     const char* label;
@@ -67,13 +88,9 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
     // Get the label
     unsigned int to_skip = 0; //if the kwargs label is false, consider the first entry of the args as the label
     if(useKwargLabel) {
-        if(kwargs.contains("label")) {
-            label = py::str(kwargs["label"]);
-        } else {
-            label = "";
-        }
+        label = Internals::GetLabel(kwargs);
     } else {
-        label = py::str(args[0]); //if the kwargs label is false, consider the first entry of the args as the label
+        label = Internals::GetLabel(args);
         to_skip = 1;
     }
 
@@ -89,14 +106,9 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
         counter++;
     }
 
-    if(kwargs.contains("category")) {
-//         categoryOption = extract<Flags>(kwargs["category"]);
-        categoryOption = py::cast<Flags>(kwargs["category"]);
-    }
-
     // Send the message and options to the logger
     Logger logger(label);
-    logger << buffer.str() << Internals::GetSeverity(kwargs, severity) << categoryOption << std::endl;
+    logger << buffer.str() << Internals::GetSeverity(kwargs, severity) << Internals::GetCategory(kwargs, LoggerMessage::STATUS) << std::endl;
     logger << filterOption << getDataCommunicator(kwargs);
 }
 
