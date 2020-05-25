@@ -23,30 +23,25 @@
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ## 
 
+## llegir el spheretree i mosstrar el cluster dintre gid en PRE
+
 ##- spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples 
 ##- even if spheretree works as expected, it throw an error when finalizing. kike: child process exited abnormally
 ##- add export gidmesh as generic.msh
 
-##- Calling external precompiled cpp (already modified). add criteria for negative radius when deleting line in sph
-##- when executing mesh to clu, if we delete only the first line, it generates an invalid cluster with 
-##  considering all the 0.000000 0.000000 0.000000 -0.000500 as valid spheres
-## only deleting first line + 0.000000 0.000000 0.000000 lines is required
-##- plan on msh to clu functionaly design of precompiled executable. args, paths and location, 
-##-     define arguments path and call exe from inside exec folder.
-##- add dummy .bat to avoid error showing both unix.bat and win.bat
-## llegir el spheretree i mosstrar el cluster dintre gid en PRE
-
-
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Fixed Issues ## 
-
 
 ##- Are ALL calculated Vertex normals correct? verified manually with testcubev4
 ##- Sphere tree paths with spaces
 ##- Dependencies in prb.  each line for an algorithm, one parenthesis
 ##- verify that your geometry have all the normals coherent. (should be as align normals has been added before meshing)
 ##- add some info on the help based on the manual
+##- Calling external precompiled cpp, add criteria for negative radius when deleting line in sph
+##- plan on msh to clu functionaly design of precompiled executable. args, paths and location, 
+##-     define arguments path and call exe from inside exec folder.
+##- add dummy .bat to avoid error showing both unix.bat and win.bat
 
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
