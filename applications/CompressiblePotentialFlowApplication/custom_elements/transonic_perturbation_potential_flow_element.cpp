@@ -58,6 +58,12 @@ Element::Pointer TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Clo
 }
 
 template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    FindUpwindElement(rCurrentProcessInfo);
+}
+
+template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -324,6 +330,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
         }
         rValues[0] = v;
     }
+    else if (rVariable == VECTOR_TO_UPWIND_ELEMENT)
+    {
+        rValues[0] = pGetUpwindElement()->GetGeometry().Center() - this->GetGeometry().Center();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,6 +362,14 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::PrintData(std::
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <int TDim, int TNumNodes>
+inline GlobalPointer<Element> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::pGetUpwindElement() const
+{
+    KRATOS_ERROR_IF(mpUpwindElement.get() == nullptr)
+        << "No upwind element found for element #" << this->Id() << std::endl;
+    return mpUpwindElement;
+}
 
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetWakeDistances(
@@ -916,6 +934,108 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputePotentia
         {
             GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / v_infinity_norm * (potential_jump));
         }
+    }
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindElement(const ProcessInfo& rCurrentProcessInfo)
+{
+    GeometryType upwind_element_boundary;
+    FindUpwindEdge(upwind_element_boundary, rCurrentProcessInfo);
+    std::vector<size_t> upwind_element_nodes;
+    PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(upwind_element_nodes, upwind_element_boundary);
+
+    GlobalPointersVector<Element> upwind_element_candidates;
+    PotentialFlowUtilities::GetNodeNeighborElementCandidates<TDim, TNumNodes>(upwind_element_candidates, upwind_element_boundary);
+    SelectUpwindElement(upwind_element_nodes, upwind_element_candidates);
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEdge(GeometryType& rUpwindEdge,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+
+    GeometriesArrayType element_boundary_geometry;
+    GetElementGeometryBoundary(element_boundary_geometry);
+
+    // free stream values
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    double minimum_edge_flux = 0.0;
+    for (SizeType i = 0; i < element_boundary_geometry.size(); i++)
+    {
+        const auto edge_normal = GetEdgeNormal(element_boundary_geometry[i]);
+
+        const double edge_flux = inner_prod(edge_normal, free_stream_velocity);
+
+        if(edge_flux < minimum_edge_flux)
+        {
+            minimum_edge_flux = edge_flux;
+            rUpwindEdge = element_boundary_geometry[i];
+        }
+    }
+}
+
+template<int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary)
+{
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+
+    // current element geometry
+    const GeometryType& r_geom = r_this.GetGeometry();
+
+    // get element edges or faces depending on dimension of the problem
+    if(TDim == 2)
+    {
+        // current element edges
+        rElementGeometryBoundary = r_geom.GenerateEdges();
+    }
+    else if(TDim == 3)
+    {
+        // current element faces
+        rElementGeometryBoundary = r_geom.GenerateFaces();
+    }
+}
+
+template <int TDim, int TNumNodes>
+array_1d<double, 3> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEdgeNormal(const GeometryType& rEdge)
+{
+    // get local coordinates of edge center
+    array_1d<double, 3> edge_center_coordinates;
+    rEdge.PointLocalCoordinates(edge_center_coordinates, rEdge.Center());
+
+    // outward pointing normals of each edge
+    return rEdge.Normal(edge_center_coordinates);
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectUpwindElement(
+    std::vector<IndexType>& rUpwindElementNodeIds,
+    GlobalPointersVector<Element>& rUpwindElementCandidates)
+{
+    for (SizeType i = 0; i < rUpwindElementCandidates.size(); i++)
+    {
+        // get sorted node ids of neighbording elements
+        std::vector<size_t> neighbor_element_ids;
+        PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(neighbor_element_ids, rUpwindElementCandidates[i].GetGeometry());
+
+        // find element which shares the upwind element nodes with current element
+        // but is not the current element
+        if(std::includes(neighbor_element_ids.begin(), neighbor_element_ids.end(),
+            rUpwindElementNodeIds.begin(), rUpwindElementNodeIds.end())
+            && rUpwindElementCandidates[i].Id() != this->Id())
+        {
+            mpUpwindElement = rUpwindElementCandidates(i);
+            break;
+        }
+    }
+
+    // If no upwind element is found, the element is an INLET element and the
+    // upwind element pointer points to itself
+    if (mpUpwindElement.get() == nullptr)
+    {
+        mpUpwindElement = this;
+        this->SetFlags(INLET);
     }
 }
 
