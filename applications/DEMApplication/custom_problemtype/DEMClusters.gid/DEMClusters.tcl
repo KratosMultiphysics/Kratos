@@ -12,7 +12,7 @@
 # -ExtractSurfaceTriangles - aux run on calculate, folder and file save
 
 # 2OnCalculateExecution
-# -GenerateOBJFile
+# -Generate_OBJFile
 
 # 3GenerateSPHFileFromOBJFile
 # -call_SphereTree
@@ -23,17 +23,30 @@
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ## 
 
-##- Are ALL calculated Vertex normals correct? verified manually with testcubev4
-##- Sphere tree paths with spaces 
-##- Dependencies in prb
-##- verify that your geometry have all the normals coherent.
 ##- spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples 
-##- even if spheretree works as expected, it throw an error when finalizing.
+##- even if spheretree works as expected, it throw an error when finalizing. kike: child process exited abnormally
 ##- add export gidmesh as generic.msh
-##- Calling external precompiled cpp (already modified)
+
+##- Calling external precompiled cpp (already modified). add criteria for negative radius when deleting line in sph
 ##- when executing mesh to clu, if we delete only the first line, it generates an invalid cluster with 
 ##  considering all the 0.000000 0.000000 0.000000 -0.000500 as valid spheres
 ## only deleting first line + 0.000000 0.000000 0.000000 lines is required
+##- plan on msh to clu functionaly design of precompiled executable. args, paths and location, 
+##-     define arguments path and call exe from inside exec folder.
+##- add dummy .bat to avoid error showing both unix.bat and win.bat
+## llegir el spheretree i mosstrar el cluster dintre gid en PRE
+
+
+
+##  --------------------------------------------------------------------------------------------------------------------------------------------------
+##  Fixed Issues ## 
+
+
+##- Are ALL calculated Vertex normals correct? verified manually with testcubev4
+##- Sphere tree paths with spaces
+##- Dependencies in prb.  each line for an algorithm, one parenthesis
+##- verify that your geometry have all the normals coherent. (should be as align normals has been added before meshing)
+##- add some info on the help based on the manual
 
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -89,10 +102,20 @@ proc AfterReadGIDProject { filename } {
 
 proc BeforeMeshGeneration {elementsize} {
 
+    # Align the normal
+    #TODO: check priority of AlignSurfNormals vs Mesh process
+    AlignSurfNormals Outwards
+
+    foreach surf [GiD_Geometry list surface 1:end] {
+        lappend surf_list $surf 
+    }
+    GiD_MeshData mesh_criteria to_be_meshed 2 surfaces $surf_list
+
+    
 }
 
 proc AfterMeshGeneration {fail} {
-
+    #Mescape Files WriteMesh
 }
 
 
@@ -153,6 +176,8 @@ proc DEMClusters::call_TreeMedial { } {
     set numSamples [GiD_AccessValue get gendata numSamples]
     set minSamples [GiD_AccessValue get gendata minSamples]
     set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    set genericOBJFilename "\"$genericOBJFilename\""
+
     #set filename_obj $::DEMClusters::ProblemName ## custom names
     #append filename_obj .obj
 
@@ -208,6 +233,7 @@ proc DEMClusters::call_makeTreeGrid { } {
     set minCover [GiD_AccessValue get gendata minCover]
     set testerLevels [GiD_AccessValue get gendata testerLevels]
     set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    set genericOBJFilename "\"$genericOBJFilename\""
 
     #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
@@ -236,6 +262,7 @@ proc DEMClusters::call_makeTreeSpawn { } {
     set minCover [GiD_AccessValue get gendata minCover]
     set testerLevels [GiD_AccessValue get gendata testerLevels]
     set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    set genericOBJFilename "\"$genericOBJFilename\""
 
     #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
@@ -256,21 +283,7 @@ proc DEMClusters::call_makeTreeSpawn { } {
     #                         to the end of the output file.
 }
 
-proc DEMClusters::call_makeTreeOctree { } {
 
-    set Algorithm [GiD_AccessValue get gendata Algorithm]
-    set depth [GiD_AccessValue get gendata depth]
-    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
-
-    #TODO: now define the arguments and call the external script sphereTree:
-    set argv "-depth $depth -nopause $genericOBJFilename"
-    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
-    exec $program {*}$argv
-
-    # makeTreeOctree ValidArgs:
-    # -depth              Depth of the sphere-tree
-    # -nopause            Don't pause when processing, i.e. batch mode
-}
 
 proc DEMClusters::call_makeTreeHubbard { } {
 
@@ -280,6 +293,7 @@ proc DEMClusters::call_makeTreeHubbard { } {
     set numSamples [GiD_AccessValue get gendata numSamples]
     set minSamples [GiD_AccessValue get gendata minSamples]
     set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    set genericOBJFilename "\"$genericOBJFilename\""
 
     #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -branch $branch -numSamples $numSamples -minSamples $minSamples -nopause $genericOBJFilename"
@@ -294,6 +308,22 @@ proc DEMClusters::call_makeTreeHubbard { } {
     # makeTreeHubbard  -branch 8 -depth 3 -numSamples 500 -minSamples 1 -nopause generic.obj
 }
 
+proc DEMClusters::call_makeTreeOctree { } {
+
+    set Algorithm [GiD_AccessValue get gendata Algorithm]
+    set depth [GiD_AccessValue get gendata depth]
+    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    set genericOBJFilename "\"$genericOBJFilename\""
+
+    #TODO: now define the arguments and call the external script sphereTree:
+    set argv "-depth $depth -nopause $genericOBJFilename"
+    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    exec $program {*}$argv
+
+    # makeTreeOctree ValidArgs:
+    # -depth              Depth of the sphere-tree
+    # -nopause            Don't pause when processing, i.e. batch mode
+}
 
 proc GenerateClusterFile { } {
     # TODO: linked to GenerateClusterFile button. Generate the cluster file from the joint information of generic_sph.sph and generic_msh.msh
@@ -307,6 +337,58 @@ proc GenerateClusterFile { } {
     exec $program
 
 }
+
+
+
+
+
+
+
+proc AlignSurfNormals {direction} {
+    W "AlignSurfNormals"
+    # ABSTRACT: Makes all of boundary surfaces' normals point inwards or outwards
+    # Arguments
+    # direction => Direction option ["Inwards"|"Outwards"]
+    # Note: This procedure in the same used in the fluid_only problem type
+
+    switch $direction {
+        Inwards {
+            set wrong_way "DIFF1ST"
+        }
+        Outwards {
+            set wrong_way "SAME1ST"
+        }
+        default {puts "Unknown Direction, surface normals not aligned"}
+    }
+    set volumelist [GiD_Geometry list volume 1:]
+    set surfacelist [list]
+
+    # For each volume, we look for face surfaces with oriented in the wrong direction
+    foreach volume $volumelist {
+        set volumeinfo [GiD_Info list_entities volumes $volume]
+        set numpos [lsearch $volumeinfo "NumSurfaces:"]
+        set numsurf [lindex $volumeinfo [expr {$numpos +1 }]]
+        for {set i 0} {$i < $numsurf} {incr i} {
+            set orient [lindex $volumeinfo [expr {$numpos+5+4*$i}]]
+            if {[string compare $orient $wrong_way]==0} {
+                # If the normal is pointing in the wrong direction,
+                # Check if it's a contour surface
+                set surfnum [lindex $volumeinfo [expr {$numpos+3+4*$i}]]
+                set surfinfo [GiD_Info list_entities surfaces $surfnum]
+                set higherentities [lindex $surfinfo 4]
+                if {$higherentities==1} {
+                    lappend surfacelist $surfnum
+                }
+            }
+        }
+    }
+
+    if {[llength $surfacelist]} {
+        # If its in the contour, switch its normal
+        eval GiD_Process Mescape Utilities SwapNormals Surfaces Select $surfacelist
+    }
+}
+
 
 
 
