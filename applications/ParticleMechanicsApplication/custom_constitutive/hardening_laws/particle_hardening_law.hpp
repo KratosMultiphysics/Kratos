@@ -189,6 +189,8 @@ public:
 
     virtual double& CalculateDeltaHardening(double& rDeltaHardening, const Parameters& rValues) { return rDeltaHardening; };
 
+    virtual double& CalculateDeltaThermalHardening(double& rDeltaThermalHardening, const Parameters& rValues) { return rDeltaThermalHardening; };
+
     ///@}
     ///@name Access
     ///@{

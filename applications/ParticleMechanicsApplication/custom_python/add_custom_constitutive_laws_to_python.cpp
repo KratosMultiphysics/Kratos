@@ -31,6 +31,8 @@
 //---yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 #include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/mises_huber_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
 
 //---hardening laws
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
