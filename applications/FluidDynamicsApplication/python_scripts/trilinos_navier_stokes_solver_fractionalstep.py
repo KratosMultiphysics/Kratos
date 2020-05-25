@@ -195,15 +195,17 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
 
         # Create the fractional step strategy
         if self.settings["consider_periodic_conditions"].GetBool():
-            solution_strategy = TrilinosFluid.TrilinosFSStrategy(
+            solution_strategy = TrilinosFluid.TrilinosFractionalStepStrategy(
                 computing_model_part,
                 fractional_step_settings,
                 self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool(),
                 KratosCFD.PATCH_INDEX)
         else:
-            solution_strategy = TrilinosFluid.TrilinosFSStrategy(
+            solution_strategy = TrilinosFluid.TrilinosFractionalStepStrategy(
                 computing_model_part,
                 fractional_step_settings,
-                self.settings["predictor_corrector"].GetBool())
+                self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool())
 
         return solution_strategy

@@ -60,7 +60,7 @@ void AssignPotentialsToNormalTransonicPerturbationElement(Element::Pointer pElem
 /** Checks the TransonicPerturbationPotentialFlowElement.
  * Checks the RHS computation.
  */
-KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS, TransonicPotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS, Transoni
 /** Checks the TransonicPerturbationPotentialFlowElement.
  * Checks the LHS computation.
  */
-KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, TransonicPotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, Transoni
 /** Checks the TransonicPerturbationPotentialFlowElement.
  * Tests the LHS computation.
  */
-KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS, TransonicPotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -183,7 +183,7 @@ void AssignPotentialsToWakeTransonicPerturbationElement(Element::Pointer pElemen
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS, TransonicPotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -207,7 +207,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS, Tran
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, TransonicPotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
