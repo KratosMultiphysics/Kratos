@@ -18,7 +18,7 @@
 # -call_SphereTree
 
 
-# 4GenerateClusterFile
+# 4Generate.ClusterFile
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ## 
@@ -326,22 +326,30 @@ proc DEMClusters::call_makeTreeOctree { } {
 }
 
 proc GenerateClusterFile { } {
-    # TODO: linked to GenerateClusterFile button. Generate the cluster file from the joint information of generic_sph.sph and generic_msh.msh
 
-    # Look for a way to edit, compile and execute mesh_to_clu_converter.cpp with the specified filenames
-    # Create cpp executable able to generate cluster file directly from inputs.
-    # Or pass always the same generic sph and msh names. Generate generic cluster filename.
+    W "executing GenerateClusterFile"
+    set Algorithm [GiD_AccessValue get gendata Algorithm]
+    if {$Algorithm == "MakeTreeMedial"} {
+        set genericSPHFilename generic-medial.sph
+    } elseif {$Algorithm == "MakeTreeGrid"} {
+        set genericSPHFilename generic-grid.sph
+    } elseif {$Algorithm == "MakeTreeSpawn"} {
+        set genericSPHFilename generic-spawn.sph
+    } elseif {$Algorithm == "MakeTreeOctree"} {
+        set genericSPHFilename generic-octree.sph   
+    } elseif {$Algorithm == "MakeTreeHubbard"} {
+        set genericSPHFilename generic-hubbard.sph
+    } else {
+        W "Select a valid algorithm"
+    }
+     
+    set cluster_exec create_cluster
+    set genericMSHFilename generic.msh
 
-    # Execute external compiled exe
-    set program mesh_to_clu_converter
-    exec $program
-
+    set argv " 2 $genericMSHFilename $genericSPHFilename"
+    set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
+    exec $program {*}$argv
 }
-
-
-
-
-
 
 
 proc AlignSurfNormals {direction} {
