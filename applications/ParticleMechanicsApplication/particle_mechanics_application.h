@@ -295,14 +295,19 @@ private:
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
     const MCStrainSofteningPlasticFlowRule          mMCStrainSofteningPlasticFlowRule;
     const BorjaCamClayPlasticFlowRule               mBorjaCamClayPlasticFlowRule;
+    const NonLinearAssociativePlasticFlowRule       mNonLinearAssociativePlasticFlowRule;
+    const NonLinearRateDependentPlasticFlowRule     mNonLinearRateDependentPlasticFlowRule;
 
     // Yield Criteria
     const MCYieldCriterion                          mMCYieldCriterion;
     const ModifiedCamClayYieldCriterion             mModifiedCamClayYieldCriterion;
+    const MisesHuberYieldCriterion                  mMisesHuberYieldCriterion;
+    const MisesHuberThermalYieldCriterion           mMisesHuberThermalYieldCriterion;
 
     // Hardening Laws
     const ExponentialStrainSofteningLaw             mExponentialStrainSofteningLaw;
     const CamClayHardeningLaw                       mCamClayHardeningLaw;
+    const JohnsonCookThermalHardeningLaw            mJohnsonCookThermalHardeningLaw;
 
     ///@}
     ///@name Private Operators
