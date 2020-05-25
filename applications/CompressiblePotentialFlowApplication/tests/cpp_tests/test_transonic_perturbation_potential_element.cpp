@@ -238,9 +238,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId, C
     Element::DofsVectorType CurrentElementalDofList;
     pCurrentElement->GetDofList(CurrentElementalDofList, model_part.GetProcessInfo());
 
-    std::vector<int> reference{23, 74, 55, 67};
+    std::vector<int> ids{23, 74, 55};
     for (int i = 0; i < 3; i++) {
-        CurrentElementalDofList[i]->SetEquationId(reference[i]);
+        CurrentElementalDofList[i]->SetEquationId(ids[i]);
     }
 
     // upwind element equation id
@@ -251,12 +251,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId, C
     Element::DofsVectorType UpwindElementalDofList;
     pUpwindElement->GetDofList(UpwindElementalDofList, model_part.GetProcessInfo());
     
-    UpwindElementalDofList[2]->SetEquationId(reference[3]);
+    UpwindElementalDofList[2]->SetEquationId(67);
 
     // make and check equation ids
     Element::EquationIdVectorType EquationIdVector;
     pCurrentElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
 
+    std::vector<double> reference{23.0, 74.0, 55.0, 67.0};
     KRATOS_CHECK_VECTOR_NEAR(EquationIdVector, reference, 1e-15);
 }
 
