@@ -320,7 +320,7 @@ void  AddIOToPython(pybind11::module& m)
     py::class_<VtuOutput, VtuOutput::Pointer, IO>(m, "VtuOutput")
         .def(py::init< ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
-        .def("PrintOutput", &VtuOutput::PrintOutput)
+        .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_filename")="")
         .def_static("GetDefaultParameters", &VtuOutput::GetDefaultParameters)
         ;
 

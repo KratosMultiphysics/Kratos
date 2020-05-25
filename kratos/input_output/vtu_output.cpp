@@ -121,6 +121,46 @@ void CreateMapFromKratosIdToVtuId(const ModelPart& rModelPart, std::unordered_ma
     }
 }
 
+void GetData(
+    const ModelPart& rModelPart,
+    std::vector<vtu11::DataSet>& rDataSetContainer,
+    const std::string& rVariableName)
+{
+    KRATOS_TRY;
+
+    // TODO sync vars in MPI
+    if (KratosComponents<Variable<double>>::Has(rVariableName)){
+        const auto& r_var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
+        std::vector<double> results(rModelPart.NumberOfNodes());
+        std::size_t counter = 0;
+        for (const auto& r_node : rModelPart.Nodes()) {
+            results[counter++] = r_node.FastGetSolutionStepValue(r_var_to_write);
+        }
+
+        rDataSetContainer.push_back(vtu11::DataSet(rVariableName, 1, results));
+
+    } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
+        const auto& r_var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
+        std::vector<double> results(rModelPart.NumberOfNodes()*3);
+        std::size_t counter = 0;
+        for (const auto& r_node : rModelPart.Nodes()) {
+            const auto& r_vals = r_node.FastGetSolutionStepValue(r_var_to_write);
+            results[counter++] = r_vals[0];
+            results[counter++] = r_vals[1];
+            results[counter++] = r_vals[2];
+        }
+
+        rDataSetContainer.push_back(vtu11::DataSet(rVariableName, 3, results));
+
+
+    } else {
+        KRATOS_WARNING_ONCE(rVariableName) << rModelPart.GetCommunicator().GetDataCommunicator() << "Variable \"" << rVariableName << "\" is "
+            << "not suitable for VtkOutput, skipping it" << std::endl;
+    }
+
+    KRATOS_CATCH("VTU GetData");
+}
+
 } // helpers namespace
 
 
@@ -162,9 +202,10 @@ VtuOutput::VtuOutput(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VtuOutput::PrintOutput()
+void VtuOutput::PrintOutput(const std::string& rOutputFilename)
 {
     KRATOS_TRY;
+
     std::vector<double> coordinates;
 
     GetNodalCoordinates(mrModelPart, coordinates, mOutputSettings["write_deformed_configuration"].GetBool());
@@ -188,10 +229,32 @@ void VtuOutput::PrintOutput()
 
 
     vtu11::Vtu11UnstructuredMesh vtu_mesh{ coordinates, connectivities, offsets, types };
-    std::vector<vtu11::DataSet> data_dummy;
+    std::vector<vtu11::DataSet> point_data;
+    std::vector<vtu11::DataSet> cell_data; // unused for now
 
+    for (const std::string var_name :  mOutputSettings["nodal_solution_step_data_variables"].GetStringArray()) {
+        GetData(mrModelPart, point_data, var_name);
+    }
 
-    vtu11::write("vtu_file_test.vtu", vtu_mesh, data_dummy, data_dummy);
+    const std::string output_file_name = GetOutputFileName(mrModelPart, false, rOutputFilename);
+
+    if (mFileFormat == VtuOutput::FileFormat::VTU_ASCII) {
+        auto writer = vtu11::AsciiWriter();
+        vtu11::write(output_file_name, vtu_mesh, point_data, cell_data, writer);
+    } else if (mFileFormat == VtuOutput::FileFormat::VTU_BINARY_RAW) {
+        auto writer = vtu11::RawBinaryAppendedWriter();
+        vtu11::write(output_file_name, vtu_mesh, point_data, cell_data, writer);
+    } else if (mFileFormat == VtuOutput::FileFormat::VTU_BINARY_RAW_COMPRESSED) {
+        auto writer = vtu11::CompressedRawBinaryAppendedWriter();
+        vtu11::write(output_file_name, vtu_mesh, point_data, cell_data, writer);
+    } else if (mFileFormat == VtuOutput::FileFormat::VTU_BINARY_BASE64) {
+        auto writer = vtu11::Base64BinaryWriter();
+        vtu11::write(output_file_name, vtu_mesh, point_data, cell_data, writer);
+    } else if (mFileFormat == VtuOutput::FileFormat::VTU_BINARY_BASE64_APPENDED) {
+        auto writer = vtu11::Base64BinaryAppendedWriter();
+        vtu11::write(output_file_name, vtu_mesh, point_data, cell_data, writer);
+    }
+
     KRATOS_CATCH("VTU PrintOutput");
 }
 
@@ -208,7 +271,7 @@ std::string VtuOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
 
     if (rOutputFilename != "")
     {
-        output_file_name += rOutputFilename + ".vtk";
+        output_file_name += rOutputFilename + ".vtu";
     }
     else
     {
@@ -241,7 +304,7 @@ std::string VtuOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
 
         const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
         const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
-        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtk";
+        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtu";
     }
 
     return output_file_name;
@@ -258,7 +321,7 @@ Parameters VtuOutput::GetDefaultParameters()
         "output_control_type"                         : "step",
         "output_frequency"                            : 1.0,
         "output_sub_model_parts"                      : false,
-        "folder_name"                                 : "VTK_Output",
+        "folder_name"                                 : "VTU_Output",
         "custom_name_prefix"                          : "",
         "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,

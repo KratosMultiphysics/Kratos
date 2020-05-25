@@ -62,7 +62,7 @@ public:
     /**
      * @brief Prints mrModelPart in VTU format together with the results
      */
-    void PrintOutput();
+    void PrintOutput(const std::string& rOutputFilename = "");
 
     ///@}
 
