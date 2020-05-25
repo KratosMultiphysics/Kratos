@@ -1084,7 +1084,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectUpwindEle
     {
         mpUpwindElement = this;
         this->SetFlags(INLET);
-        KRATOS_WARNING("SelectUpwindElement") << "No upwind element found for element #" << this->Id() << std::endl;
     }
 }
 

@@ -17,6 +17,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "fluid_dynamics_application_variables.h"
 #include "custom_elements/transonic_perturbation_potential_flow_element.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 namespace Kratos {
 namespace Testing {
@@ -50,25 +51,8 @@ void GenerateTransonicPerturbationElement(ModelPart& rModelPart) {
 }
 
 void GenerateTransonicPerturbationUpwindElement(ModelPart& rModelPart) {
-    // Variables addition
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
-    rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
-
-    // Set the element properties
     Properties::Pointer pElemProp = rModelPart.CreateNewProperties(1);
-    rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
-    rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
-    rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
-    rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.3;
-    rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.99;
-
-    BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
-    free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) * rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
-    rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
-
     // Geometry creation
-    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
     rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
     std::vector<ModelPart::IndexType> elemNodes{1, 3, 4};
     rModelPart.CreateNewElement("TransonicPerturbationPotentialFlowElement2D3N", 2, elemNodes, pElemProp);
@@ -147,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, Compress
     std::array<double, 16> reference{ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037, 0.0,
                                      -0.1306215050744058, 0.6710758508914103,-0.5404543458170046, 0.0,
                                       0.06947872042999037,-0.5404543458170046,0.4709756253870142, 0.0,
-                                      0.0, 0.0, 0.0, 0.0};                                 
+                                      0.0, 0.0, 0.0, 0.0};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
@@ -176,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowInletElementLHS, Com
 
     std::array<double, 9> reference{ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037,
                                      -0.1306215050744058, 0.6710758508914103,-0.5404543458170046,
-                                      0.06947872042999037,-0.5404543458170046,0.4709756253870142};                                 
+                                      0.06947872042999037,-0.5404543458170046,0.4709756253870142};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
@@ -241,18 +225,22 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId, C
     GenerateTransonicPerturbationElement(model_part);
     GenerateTransonicPerturbationUpwindElement(model_part);
 
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
+
     Element::Pointer pCurrentElement = model_part.pGetElement(1);
     pCurrentElement->Initialize(model_part.GetProcessInfo());
 
-    for (unsigned int i = 0; i < 3; i++) {
-        pCurrentElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
+    for (auto& r_node : model_part.Nodes()){
+        r_node.AddDof(VELOCITY_POTENTIAL);
     }
 
     Element::DofsVectorType CurrentElementalDofList;
     pCurrentElement->GetDofList(CurrentElementalDofList, model_part.GetProcessInfo());
 
+    std::vector<int> reference{23, 74, 55, 67};
     for (int i = 0; i < 3; i++) {
-        CurrentElementalDofList[i]->SetEquationId(i);
+        CurrentElementalDofList[i]->SetEquationId(reference[i]);
     }
 
     // upwind element equation id
@@ -263,14 +251,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId, C
     Element::DofsVectorType UpwindElementalDofList;
     pUpwindElement->GetDofList(UpwindElementalDofList, model_part.GetProcessInfo());
     
-    UpwindElementalDofList[2]->SetEquationId(4);
+    UpwindElementalDofList[2]->SetEquationId(reference[3]);
 
     // make and check equation ids
     Element::EquationIdVectorType EquationIdVector;
     pCurrentElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
-    for (unsigned int i = 0; i < EquationIdVector.size(); i++){
-        KRATOS_CHECK(EquationIdVector[i] == i);
-    }
+
+    KRATOS_CHECK_VECTOR_NEAR(EquationIdVector, reference, 1e-15);
 }
 
 BoundedVector<double,3> AssignDistancesToPerturbationTransonicElement()
