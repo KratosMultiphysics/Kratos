@@ -49,7 +49,7 @@ void GenerateTransonicPerturbationElement(ModelPart& rModelPart) {
     rModelPart.CreateNewElement("TransonicPerturbationPotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 }
 
-void GenerateTransonicPerturbationInletElement(ModelPart& rModelPart) {
+void GenerateTransonicPerturbationUpwindElement(ModelPart& rModelPart) {
     // Variables addition
     rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
     rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
@@ -239,7 +239,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId, C
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTransonicPerturbationElement(model_part);
-    GenerateTransonicPerturbationInletElement(model_part);
+    GenerateTransonicPerturbationUpwindElement(model_part);
 
     Element::Pointer pCurrentElement = model_part.pGetElement(1);
     pCurrentElement->Initialize(model_part.GetProcessInfo());
@@ -269,7 +269,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId, C
     Element::EquationIdVectorType EquationIdVector;
     pCurrentElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
     for (unsigned int i = 0; i < EquationIdVector.size(); i++){
-        KRATOS_CHECK_RELATIVE_NEAR(EquationIdVector[i], i, 1e-15);
+        KRATOS_CHECK(EquationIdVector[i] == i);
     }
 }
 
