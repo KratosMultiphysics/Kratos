@@ -38,8 +38,10 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_nodal_data_value_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_nodal_flag_value_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_condition_data_value_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_condition_flag_value_io.cpp  
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_condition_flag_value_io.cpp
 )
+
+add_definitions(-DH5_USE_110_API)
 
 set(HDF5_USE_STATIC_LIBRARIES OFF)
 if(USE_MPI)

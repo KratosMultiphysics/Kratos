@@ -27,6 +27,8 @@
 // Application includes
 #include "custom_strategies/relaxed_dof_updater.h"
 
+#include "input_output/vtk_output.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -178,6 +180,39 @@ public:
                                                rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
+    }
+
+    void FinalizeNonLinIteration(ModelPart& rModelPart,
+                                 TSystemMatrixType& A,
+                                 TSystemVectorType& Dx,
+                                 TSystemVectorType& b) override
+    {
+        Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"                             : "FluidModelPart",
+        "file_format"                                 : "ascii",
+        "output_precision"                            : 7,
+        "output_control_type"                         : "step",
+        "output_frequency"                            : 1.0,
+        "output_sub_model_parts"                      : false,
+        "folder_name"                                 : "vtk_aux_output",
+        "custom_name_prefix"                          : "",
+        "custom_name_postfix"                         : "",
+        "save_output_files_in_folder"                 : true,
+        "write_deformed_configuration"                : false,
+        "write_ids"                                   : false,
+        "nodal_solution_step_data_variables"          : ["TURBULENT_KIENTIC_ENERGY", "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"],
+        "nodal_data_value_variables"                  : [],
+        "nodal_flags"                                 : [],
+        "element_data_value_variables"                : [],
+        "element_flags"                               : [],
+        "condition_data_value_variables"              : [],
+        "condition_flags"                             : [],
+        "gauss_point_variables_extrapolated_to_nodes" : [],
+        "gauss_point_variables_in_elements"           : []
+    })");
+        // VtkOutput vtk(rModelPart, default_parameters);
+        // vtk.PrintOutput("test_" + std::to_string(rModelPart.GetProcessInfo()[STEP]) + "_" + std::to_string(rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]));
     }
 
     ///@}

@@ -318,6 +318,7 @@ public:
 
     bool SolveSolutionStep() override
     {
+        mIsConverged = true;
         double norm_dp = this->Solve();
         /* If not doing predictor corrector iterations, norm_dp will
          * typically be "large" since we are not iterating on pressure.
@@ -415,6 +416,12 @@ public:
         int StrategyLevel = Level > 0 ? Level - 1 : 0;
         mpMomentumStrategy->SetEchoLevel(StrategyLevel);
         mpPressureStrategy->SetEchoLevel(StrategyLevel);
+    }
+
+    bool IsConverged() override
+    {
+        KRATOS_INFO(this->Info()) << "Fractional step convergence : " << (mIsConverged ? "Converged" : "Not converged" ) << std::endl;
+        return mIsConverged;
     }
 
 
@@ -584,6 +591,8 @@ protected:
 
             // Check convergence
             Converged = this->CheckFractionalStepConvergence(NormDv);
+
+            mIsConverged = mIsConverged && Converged;
 
             if (Converged)
             {
@@ -1078,6 +1087,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    bool mIsConverged;
 
     ///@}
     ///@name Private Operators

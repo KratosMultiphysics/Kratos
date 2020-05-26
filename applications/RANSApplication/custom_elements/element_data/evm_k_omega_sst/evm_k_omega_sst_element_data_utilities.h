@@ -65,8 +65,7 @@ double CalculateTurbulentKinematicViscosity(const double TurbulentKineticEnergy,
                                             const double TurbulentSpecificEnergyDissipationRate,
                                             const double VorticityNorm,
                                             const double F2,
-                                            const double A1,
-                                            const double B1);
+                                            const double A1);
 
 template <unsigned int TDim>
 array_1d<double, 3> CalculateVorticity(const BoundedMatrix<double, TDim, TDim>& rVelocityGradient);

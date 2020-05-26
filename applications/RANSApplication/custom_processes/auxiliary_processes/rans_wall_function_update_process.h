@@ -161,6 +161,7 @@ private:
     std::string mModelPartName;
     double mVonKarman;
     double mBeta;
+    double mCmu;
     int mEchoLevel;
     bool mIsInitialized = false;
 

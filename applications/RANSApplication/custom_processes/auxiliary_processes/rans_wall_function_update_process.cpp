@@ -39,7 +39,8 @@ RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(Model& rModel, Para
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
             "von_karman"      : 0.41,
-            "beta"            : 5.2
+            "beta"            : 5.2,
+            "c_mu"            : 0.09
         })");
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -48,6 +49,7 @@ RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(Model& rModel, Para
     mModelPartName = rParameters["model_part_name"].GetString();
     mVonKarman = rParameters["von_karman"].GetDouble();
     mBeta = rParameters["beta"].GetDouble();
+    mCmu = rParameters["c_mu"].GetDouble();
 
     KRATOS_CATCH("");
 }
@@ -132,6 +134,8 @@ void RansWallFunctionUpdateProcess::Execute()
 
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
+    const double c_mu_25 = std::pow(mCmu, 0.25);
+
     ModelPart::ConditionsContainerType& r_conditions = r_model_part.Conditions();
     const int number_of_conditions = r_conditions.size();
 
@@ -163,10 +167,16 @@ void RansWallFunctionUpdateProcess::Execute()
             const double wall_velocity_magnitude = norm_2(r_wall_velocity);
             const double nu = RansCalculationUtilities::EvaluateInPoint(
                 r_condition.GetGeometry(), KINEMATIC_VISCOSITY, gauss_shape_functions);
+            const double tke = RansCalculationUtilities::EvaluateInPoint(
+                r_condition.GetGeometry(), TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
 
             double y_plus{0.0}, u_tau{0.0};
             RansCalculationUtilities::CalculateYPlusAndUtau(
                 y_plus, u_tau, wall_velocity_magnitude, wall_height, nu, mVonKarman, mBeta);
+
+            u_tau = RansCalculationUtilities::SoftMax(
+                c_mu_25 * std::sqrt(std::max(tke, 0.0)),
+                wall_velocity_magnitude / (std::log(y_plus) / mVonKarman + mBeta));
 
             condition_y_plus += y_plus;
 

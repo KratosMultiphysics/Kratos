@@ -224,6 +224,7 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(const Element& rElemen
 
     for (int g = 0; g < num_gauss_points; ++g)
     {
+        const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& r_gauss_shape_functions = row(shape_functions, g);
 
         const double tke = EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY,
@@ -234,16 +235,21 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(const Element& rElemen
             EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, r_gauss_shape_functions);
         const double y = EvaluateInPoint(r_geometry, DISTANCE, r_gauss_shape_functions);
 
+        CalculateGradient<TDim>(velocity_gradient, r_geometry, VELOCITY, r_shape_derivatives);
+        const array_1d<double, 3>& r_vorticity =
+            EvmKOmegaSSTElementDataUtilities::CalculateVorticity<TDim>(velocity_gradient);
+        const double vorticity_norm = norm_2(r_vorticity);
+
         const double f_2 = EvmKOmegaSSTElementDataUtilities::CalculateF2(
             tke, omega, nu, y, mBetaStar);
 
         const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
             (velocity_gradient + trans(velocity_gradient)) * 0.5;
 
-        const double mag_s = norm_frobenius(symmetric_velocity_gradient) * 1.414;
+        const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
 
         nut += EvmKOmegaSSTElementDataUtilities::CalculateTurbulentKinematicViscosity(
-            tke, omega, mag_s, f_2, mA1, mB1);
+            tke, omega, t, f_2, mA1);
     }
 
     nut /= static_cast<double>(num_gauss_points);
