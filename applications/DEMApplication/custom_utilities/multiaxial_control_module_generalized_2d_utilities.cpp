@@ -647,6 +647,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
             } else {
                 noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
             }
+            KRATOS_WATCH(k_estimated)
+            KRATOS_WATCH(mStiffnessAlpha)
             // noalias(k_estimated) = ZeroMatrix(number_of_actuators,number_of_actuators);
             // for (unsigned int i = 0; i < number_of_actuators; i++) {
             //     if (std::abs(mDeltaDisplacement(i,mActuatorCounter)) < 1.0e-10) {
