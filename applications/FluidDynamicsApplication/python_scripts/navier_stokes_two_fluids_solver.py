@@ -120,6 +120,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.DISTANCE_AUX2)                  # Auxiliary distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.DISTANCE_GRADIENT_AUX)          # Auxiliary Distance gradient nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTIVE_VELOCITY)            # Store conctive velocity for level-set process
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CURVATURE)                      # Store curvature as a nodal variable
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.AREA_VARIABLE_AUX)              # Auxiliary area_variable for parallel distance calculator    
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.NORMAL_VECTOR)                  # Auxiliary normal vector at interface
@@ -251,6 +252,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         for node in self.main_model_part.Nodes:
             smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            #nodal_size = node.GetValue(KratosMultiphysics.NODAL_H)
+            #KratosMultiphysics.Logger.PrintInfo("NODAL_H", nodal_size)
+
         #it_number=self.linear_solver.GetIterationsNumber()
         #KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, smoothing", it_number)
 
@@ -338,6 +342,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.VELOCITY,
                     self.settings["bfecc_number_substeps"].GetInt())
             else:
+                for node in self.main_model_part.Nodes:
+                    velocityOld = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+                    node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1, velocityOld)
+                    velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                    node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 
+                        0.5 * (3.0 * velocity - velocityOld) )
                 (self.level_set_convection_process).Execute()
 
             #for elem in self.main_model_part.Elements:
@@ -526,6 +536,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 distLogFile.write( str(TimeStep*DT) + "\t" + str(VMax) + "\n" )
 
     def FinalizeSolutionStep(self):
+        if not(self._bfecc_convection):
+            for node in self.main_model_part.Nodes:
+                velocityOld = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+                node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1, velocityOld)
+                velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 
+                    0.5 * (3.0 * velocity - velocityOld) )
+            (self.level_set_convection_process).Execute()
+
         #it_number=self.linear_solver.GetIterationsNumber()
         #KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, NS", it_number)
         TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
@@ -662,8 +681,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess3D(
                     KratosMultiphysics.DISTANCE,
+                    KratosCFD.CONVECTIVE_VELOCITY,
                     self.main_model_part,
-                    self.linear_solver)
+                    self.linear_solver,
+                    0.5,    #dt_factor = 1.0
+                    1.0,    #max_cfl = 1.0
+                    0.7,    #cross_wind_stabilization_factor = 0.7
+                    0)    #max_substeps = 0: diabled
 
         return level_set_convection_process
 
