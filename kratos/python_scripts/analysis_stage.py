@@ -423,6 +423,30 @@ class AnalysisStage(object):
         """
         return "Analysis"
 
+    def __CreateListOfProcesses(self):
+        """This function creates the processes and the output-processes
+        """
+        order_processes_initialization = self._GetOrderOfProcessesInitialization()
+        self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
+        self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+        self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+
+    def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
+        """In case the solver does not return the state of convergence
+        (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
+        """
+        if is_converged is None:
+            if not hasattr(self, '_map_ret_val_depr_warnings'):
+                self._map_ret_val_depr_warnings = []
+            solver_class_name = self._GetSolver().__class__.__name__
+            # used to only print the deprecation-warning once
+            if not solver_class_name in self._map_ret_val_depr_warnings:
+                self._map_ret_val_depr_warnings.append(solver_class_name)
+                warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
+                warn_msg += 'the state of convergence from "SolveSolutionStep"'
+                IssueDeprecationWarning("AnalysisStage", warn_msg)
+
     def _CheckIfModelIsModified(self):
         """ This checks the flag MODIFIED in all the modelparts belonging to the analysis model. Returns true if at least one of the model parts is modified
             Keyword arguments:
@@ -457,27 +481,3 @@ class AnalysisStage(object):
             model_part_names = self.model.GetModelPartNames()
             for model_part_name in model_part_names:
                 self.model.GetModelPart(model_part_name).Reset(KratosMultiphysics.MODIFIED)
-
-    def __CreateListOfProcesses(self):
-        """This function creates the processes and the output-processes
-        """
-        order_processes_initialization = self._GetOrderOfProcessesInitialization()
-        self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
-        order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
-        self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
-        self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
-
-    def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
-        """In case the solver does not return the state of convergence
-        (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
-        """
-        if is_converged is None:
-            if not hasattr(self, '_map_ret_val_depr_warnings'):
-                self._map_ret_val_depr_warnings = []
-            solver_class_name = self._GetSolver().__class__.__name__
-            # used to only print the deprecation-warning once
-            if not solver_class_name in self._map_ret_val_depr_warnings:
-                self._map_ret_val_depr_warnings.append(solver_class_name)
-                warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
-                warn_msg += 'the state of convergence from "SolveSolutionStep"'
-                IssueDeprecationWarning("AnalysisStage", warn_msg)
