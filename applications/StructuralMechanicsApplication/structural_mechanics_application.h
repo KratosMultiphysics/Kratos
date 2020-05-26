@@ -137,6 +137,7 @@
 #include "custom_advanced_constitutive/generic_small_strain_plastic_damage_model.h"
 #include "custom_advanced_constitutive/generic_small_strain_orthotropic_damage.h"
 #include "custom_advanced_constitutive/serial_parallel_rule_of_mixtures_law.h"
+#include "custom_advanced_constitutive/generic_anisotropic_3d_law.h"
 
 // Integrators
 #include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -919,6 +920,10 @@ private:
 
     // Rules of mixtures
     const RuleOfMixturesLaw mRuleOfMixturesLaw;
+
+    // Anisotropic law
+    
+    const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
 #endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 
     ///@}

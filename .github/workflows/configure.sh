@@ -43,6 +43,7 @@ add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/IgaApplication;
 add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;
+add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 
 # Clean
 clear
@@ -63,14 +64,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 -DUSE_COTIRE=ON \
 -DINCLUDE_MMG=ON                                    \
--DMMG_INCLUDE_DIR="/usr/local/include/mmg/"         \
--DMMG2D_INCLUDE_DIR="/usr/local/include/mmg/mmg2d/" \
--DMMG3D_INCLUDE_DIR="/usr/local/include/mmg/mmg3d/" \
--DMMGS_INCLUDE_DIR="/usr/local/include/mmg/mmgs/"   \
--DMMG_LIBRARY="/usr/local/lib/libmmg.so"            \
--DMMG2D_LIBRARY="/usr/local/lib/libmmg2d.so"        \
--DMMG3D_LIBRARY="/usr/local/lib/libmmg3d.so"        \
--DMMGS_LIBRARY="/usr/local/lib/libmmgs.so"
+-DMMG_ROOT="/usr/local/"                            \
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1 && \

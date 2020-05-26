@@ -29,7 +29,10 @@
 namespace Kratos{
 namespace Python{
 
-    void SearchElementAccordingToDimension(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
+    void SearchElementAccordingToDimension(
+        ModelPart& rBackgroundGridModelPart,
+        ModelPart& rMPMModelPart,
+        const std::size_t MaxNumberOfResults,
         const double Tolerance)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -37,10 +40,23 @@ namespace Python{
         else if (dimension == 3) MPMSearchElementUtility::SearchElement<3>(rBackgroundGridModelPart, rMPMModelPart, MaxNumberOfResults, Tolerance);
     }
 
+    void GenerateMaterialPointElementAccordingToDimension(
+        ModelPart& rBackgroundGridModelPart,
+        ModelPart& rInitialModelPart,
+        ModelPart& rMPMModelPart,
+        bool IsMixedFormulation)
+    {
+        const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        if (dimension == 2) MPMParticleGeneratorUtility::GenerateMaterialPointElement<2>(
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation);
+        else if (dimension == 3) MPMParticleGeneratorUtility::GenerateMaterialPointElement<3>(
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation);
+    }
+
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         m.def("SearchElement", SearchElementAccordingToDimension);
-        m.def("GenerateMaterialPointElement", &MPMParticleGeneratorUtility::GenerateMaterialPointElement);
+        m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", &MPMParticleGeneratorUtility::GenerateMaterialPointCondition);
     }
 

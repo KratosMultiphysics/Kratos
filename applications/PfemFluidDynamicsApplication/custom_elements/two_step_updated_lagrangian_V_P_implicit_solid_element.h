@@ -100,6 +100,12 @@ public:
 
   typedef typename BaseType::ElementalVariables ElementalVariables;
 
+  ///Reference type definition for constitutive laws
+  typedef ConstitutiveLaw ConstitutiveLawType;
+
+  ///Pointer type for constitutive laws
+  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -283,6 +289,8 @@ protected:
   std::vector<Vector> mCurrentDeviatoricCauchyStress;
   std::vector<Vector> mUpdatedTotalCauchyStress;
   std::vector<Vector> mUpdatedDeviatoricCauchyStress;
+  ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -290,12 +298,6 @@ protected:
   ///@}
   ///@name Protected Operations
   ///@{
-
-  void ComputeMaterialParameters(double &Density,
-                                 double &DeviatoricCoeff,
-                                 double &VolumetricCoeff,
-                                 ProcessInfo &rCurrentProcessInfo,
-                                 ElementalVariables &rElementalVariables) override;
 
   /// Add integration point contribution to the mass matrix.
   /**
@@ -341,9 +343,9 @@ protected:
                              const double BoundRHSCoeffAcc,
                              const double BoundRHSCoeffDev) override{};
 
-  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
-                                        double TimeStep,
-                                        unsigned int g) override;
+  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
+                                        const ProcessInfo &rCurrentProcessInfo, double &Density,
+                                        double &DeviatoricCoeff, double &VolumetricCoeff) override;
 
   void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                              VectorType &rRightHandSideVector,
