@@ -50,7 +50,7 @@ namespace MPMParticleGeneratorUtility
     Matrix MP33ShapeFunctions();
 
     /// Get integration weights of the geometry for the given integration method
-    void GetIntegrationPointWeights(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntWeights);
+    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
 
     /**
      * @brief Construct material points or particles from given initial mesh
@@ -126,7 +126,7 @@ namespace MPMParticleGeneratorUtility
                     const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
                     auto int_method = GeometryData::GI_GAUSS_2;
                     Matrix shape_functions_values;
-                    bool is_equal_int_weights = false;
+                    bool is_equal_int_volumes = false;
                     if (geo_type == GeometryData::Kratos_Tetrahedra3D4 || geo_type == GeometryData::Kratos_Triangle2D3)
                     {
                         switch (particles_per_element)
@@ -145,7 +145,7 @@ namespace MPMParticleGeneratorUtility
                             break;
                         case 16:
                             if (domain_size == 2) {
-                                is_equal_int_weights = true;
+                                is_equal_int_volumes = true;
                                 KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " 
                                     << "16 particles per triangle element is only valid for undistorted triangles." << std::endl;
                                 shape_functions_values = MP16ShapeFunctions();
@@ -153,7 +153,7 @@ namespace MPMParticleGeneratorUtility
                             }
                         case 33:
                             if (domain_size == 2) {
-                                is_equal_int_weights = true;
+                                is_equal_int_volumes = true;
                                 KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: "
                                     << "33 particles per triangle element is only valid for undistorted triangles." << std::endl;
                                 shape_functions_values = MP33ShapeFunctions();
@@ -194,11 +194,17 @@ namespace MPMParticleGeneratorUtility
                         }
                     }
 
-                    // Get shape functions and create integration points
-                    if(!is_equal_int_weights) shape_functions_values = r_geometry.ShapeFunctionsValues(int_method);
+                    // Get shape functions and integration point volumes
+                    if(!is_equal_int_volumes) shape_functions_values = r_geometry.ShapeFunctionsValues(int_method);
                     const unsigned int integration_point_per_elements = shape_functions_values.size1();
-                    Vector int_weights (integration_point_per_elements);
-                    if(!is_equal_int_weights) GetIntegrationPointWeights(r_geometry, int_method, int_weights);
+                    Vector int_volumes (integration_point_per_elements);
+                    if (is_equal_int_volumes) {
+                        for (size_t j = 0; j < integration_point_per_elements; ++j)  int_volumes[j] = r_geometry.DomainSize() / integration_point_per_elements;
+                    }
+                    else  GetIntegrationPointVolumes(r_geometry, int_method, int_volumes);
+                    if (domain_size == 2 && i->GetProperties().Has(THICKNESS)) {
+                        for (size_t j = 0; j < integration_point_per_elements; ++j) int_volumes[j] *= i->GetProperties()[THICKNESS];
+                    }
 
                     // Set element type
                     std::string element_type_name = "UpdatedLagrangian";
@@ -211,19 +217,12 @@ namespace MPMParticleGeneratorUtility
                     // Get new element
                     const Element& new_element = KratosComponents<Element>::Get(element_type_name);
 
-                    // Evaluation of element area/volume
-                    const double domain_volume = (domain_size == 2 && i->GetProperties().Has(THICKNESS))
-                        ? r_geometry.DomainSize() * i->GetProperties()[THICKNESS]
-                        : r_geometry.DomainSize();
-                    const double domain_mass = domain_volume * density;
-
                     // Loop over the material points that fall in each grid element
                     unsigned int new_element_id = 0;
                     for (unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++)
                     {
-                        const double int_weight = (is_equal_int_weights) ? 1.0 / integration_point_per_elements : int_weights[PointNumber];
-                        mp_volume[0] = domain_volume * int_weight;
-                        mp_mass[0] = domain_mass * int_weight;
+                        mp_volume[0] = int_volumes[PointNumber];
+                        mp_mass[0] = int_volumes[PointNumber]*density;
 
                         std::vector<double> MP_density = { density };
 

@@ -717,11 +717,15 @@ namespace MPMParticleGeneratorUtility
         return MP_shape_functions;
     }
 
-    void GetIntegrationPointWeights(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntWeights)
+    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes)
     {
         auto int_points = rGeom.IntegrationPoints(IntegrationMethod);
-        if (rIntWeights.size() != int_points.size()) rIntWeights.resize(int_points.size());
-        for (size_t i = 0; i < int_points.size(); ++i) rIntWeights[i] = int_points[i].Weight();
+        if (rIntVolumes.size() != int_points.size()) rIntVolumes.resize(int_points.size(),false);
+        DenseVector<Matrix> jac_vec(int_points.size());
+        rGeom.Jacobian(jac_vec, IntegrationMethod);
+        for (size_t i = 0; i < int_points.size(); ++i) {
+            rIntVolumes[i] = MathUtils<double>::DetMat(jac_vec[i]) * int_points[i].Weight();
+        }
     }
 
 } // end namespace MPMParticleGeneratorUtility
