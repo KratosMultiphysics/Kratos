@@ -4,8 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Peter Wilson
 //
 
 // System includes
@@ -116,9 +118,9 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
 }
 
 bool IntersectionUtilities::FindOverlapExtents1DGeometries2D(
-    const GeometryType& rMasterLine, 
-    const GeometryType& rSlaveLine, 
-    std::vector<array_1d<double, 3>>& rOverlapExtents, 
+    const GeometryType& rMasterLine,
+    const GeometryType& rSlaveLine,
+    std::vector<array_1d<double, 3>>& rOverlapExtents,
     const double tolerance)
 {
     // This finds the overlap extents, in global cartesian space
@@ -201,7 +203,7 @@ bool IntersectionUtilities::FindOverlapExtents1DGeometries2D(
                         rOverlapExtents[1] = (master_length < slave_length)
                             ? second_point
                             : first_point_other;
-                        return true; 
+                        return true;
                     } else return false;
                 } else if (std::abs(inner_prod(AB, AD) - inner_prod(AB, AB)) < tolerance) { // p4 coincides with p2. Check if the lines are in the same direction
                     if (inner_prod(-1.0 * AB, -1.0 * CD) > tolerance) {
@@ -224,7 +226,7 @@ bool IntersectionUtilities::FindOverlapExtents1DGeometries2D(
                             ? second_point
                             : first_point_other;
                     }
-                    return true; 
+                    return true;
                 }
             }
             else if (inner_prod(CD, CA) > tolerance && inner_prod(-1.0 * CD, (second_point - second_point_other)) > tolerance) {// check if the line lies entirely within the other line
@@ -233,7 +235,7 @@ bool IntersectionUtilities::FindOverlapExtents1DGeometries2D(
                 return true; // the line lies entirely within the other line
             } else return false; // Lines are colinear, but do not overlap at all
         } else return false; // Lines are parallel but not colinear
-    }    
+    }
 }
 
 } // namespace Kratos.

@@ -4,12 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Peter Wilson
 //
 
-#if !defined(KRATOS_PROJECTION_UTILITIES_H_INCLUDED)
-#define  KRATOS_PROJECTION_UTILITIES_H_INCLUDED
+#if !defined(KRATOS_INTERSECTION_UTILITIES_H_INCLUDED)
+#define  KRATOS_INTERSECTION_UTILITIES_H_INCLUDED
 
 // System includes
 
@@ -60,4 +62,4 @@ namespace IntersectionUtilities
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PROJECTION_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_INTERSECTION_UTILITIES_H_INCLUDED  defined
