@@ -124,6 +124,51 @@ public:
     /**
      * Operations needed by the base class:
      */
+    void GetLawFeatures(Features& rFeatures) override; //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.cpp
+
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+    Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+
+
+    void SetValue(const Variable<double>& rVariable,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+        const double& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValue(const Variable<Vector>& rThisVariable,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+        const Vector& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValue(const Variable<Matrix>& rThisVariable,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+        const Matrix& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override; 
+
+    bool Has(const Variable<double>& rThisVariable) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+    bool Has(const Variable<Vector>& rThisVariable) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+    bool Has(const Variable<Matrix>& rThisVariable) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+
+    /**
+     * Material parameters are inizialized
+     */
+    void InitializeMaterial(const Properties& rMaterialProperties, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues) override;
+
+    /**
+     * Computes the material response:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK2(Parameters& rValues) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+
+    /**
+     * Computes the material response:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
 
 
     /**
@@ -135,27 +180,7 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    //int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
-
-    bool Has( const Variable<double>& rThisVariable ) override;
-
-    double & GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
-
-    /**
-     * Input and output
-     */
-    /**
-     * Turn back information as a string.
-     */
-    //virtual String Info() const;
-    /**
-     * Print information about this object.
-     */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
 
 protected:
 
@@ -176,11 +201,100 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
-    ///@}
+
+    /**
+     * Constitutive volumetric component
+     */
+
+    double& PlasticConstitutiveComponent(double& rCabcd, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+        const MaterialResponseVariables& rElasticVariables,
+        const Matrix& rIsoStressMatrix,
+        const ParticleFlowRule::PlasticFactors& rScalingFactors,
+        const unsigned int& a, const unsigned int& b,
+        const unsigned int& c, const unsigned int& d);
+
+
+    /**
+     * Calculates the isochoric stress vector
+     * @param rElasticVariables
+     * matrix is to be generated for
+     * @param rStressMeasure measure of stress to be calculated
+     * @param rIsoStressMatrix matrix where the stress result is stored
+     * @param rIsoStressVector vector where the stress result is stored
+     */
+    virtual void CalculatePlasticIsochoricStress(MaterialResponseVariables& rElasticVariables, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+        ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
+        StressMeasure rStressMeasure,
+        Matrix& rIsoStressMatrix,
+        Vector& rIsoStressVector);
+
+
+
+
+
+    /**
+     * Calculates the GreenLagrange strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    void CalculateGreenLagrangeStrain(const Matrix& rRightCauchyGreen, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
+        Vector& rStrainVector) override;
+
+
+    /**
+     * Calculates the Almansi strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    void CalculateAlmansiStrain(const Matrix& rLeftCauchyGreen, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
+        Vector& rStrainVector) override;
+
+
+    /**
+     * Calculates the isochoric constitutive matrix
+     * @param rElasticVariables
+     * @param rIsoStressVector the isochoric stress vector
+     * matrix is to be generated for
+     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
+     */
+    void CalculateIsochoricConstitutiveMatrix(const MaterialResponseVariables& rElasticVariables,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
+        const Matrix& rIsoStressMatrix,
+        Matrix& rConstitutiveMatrix) override;
+
+
+
+
+    /**
+     * Calculates the volumetric constitutive matrix
+     * @param rElasticVariables
+     * matrix is to be generated for
+     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
+     */
+    void CalculateVolumetricConstitutiveMatrix(const MaterialResponseVariables& rElasticVariables,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
+        Matrix& rConstitutiveMatrix) override;
+
+
+
+    /**
+     * Calculates the plastic constitutive matrix
+     * @param rElasticVariables
+     * @param rReturnMappingVariables, plastic variables
+     * matrix is to be generated for
+     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
+     */
+    void CalculatePlasticConstitutiveMatrix(const MaterialResponseVariables& rElasticVariables,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
+        ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
+        Matrix& rConstitutiveMatrix) ;
+
+
+    /**
+     * This function is designed to be called when before the material response
+     * to check if all needed parameters for the constitutive are initialized
+     * @param Parameters
+     * @return
+     */
+    bool CheckParameters(Parameters& rValues) override; //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
 
 private:
 

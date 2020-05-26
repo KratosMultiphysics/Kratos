@@ -50,6 +50,7 @@ protected:
         double ReferenceTemperature;
 
         // kinematic properties
+        double J_pow13;
         double DeterminantF;
         double traceCG;               // LeftCauchyGreen or RightCauchyGreen
         Matrix CauchyGreenMatrix;     // LeftCauchyGreen or InverseRightCauchyGreen
