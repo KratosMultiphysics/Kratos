@@ -604,7 +604,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
         KRATOS_WATCH(mVelocity)
 
         for (unsigned int i = 0; i < mVelocity.size(); i++) {
-            const double max_force_correction_fraction = 0.01;
+            // const double max_force_correction_fraction = 0.01;
+            // const double max_force_correction_fraction = 0.1;
+            const double max_force_correction_fraction = 0.25; // TODO: set as an input parameter
             const double max_allowed_velocity = max_force_correction_fraction * std::abs(r_next_target_stress[i]) / (std::abs(mStiffness(i,i)) * mCMDeltaTime);
             if (std::abs(mVelocity[i]) > max_allowed_velocity) {
                 mVelocity[i] = max_allowed_velocity/std::abs(mVelocity[i]) * mVelocity[i];
