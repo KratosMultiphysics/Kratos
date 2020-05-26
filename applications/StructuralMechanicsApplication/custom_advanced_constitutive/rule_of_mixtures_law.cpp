@@ -1432,7 +1432,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
         const double euler_angle_theta   = layers_euler_angles(3*Layer + 1);
         const double euler_angle_hi      = layers_euler_angles(3*Layer + 2);
 
-        BoundedMatrix<double, Dimension, Dimension>  rotation_matrix;
+        BoundedMatrix<double, 3, 3>  rotation_matrix;
 
         if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
             ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, 
