@@ -82,6 +82,8 @@ public:
         mYCounter = 2;
         mZCounter = 3;
 
+        mApplyCM = false;
+
         KRATOS_CATCH("");
     }
 
@@ -286,6 +288,7 @@ public:
         KRATOS_CATCH("");
     }
 
+
     /**
      * @brief This function will be executed at every time step AFTER performing the solve phase
      */
@@ -474,7 +477,7 @@ private:
         } else {
             ReactionStress = 0.0;
         }
-        
+
         return ReactionStress;
     }
 

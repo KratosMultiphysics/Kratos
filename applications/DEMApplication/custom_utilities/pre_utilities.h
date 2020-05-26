@@ -156,7 +156,7 @@ class PreUtilities
         }
     }
 
-    void SetSkinParticlesInnerBoundary(ModelPart& r_model_part, const double inner_radius, const double detection_radius) {
+    void SetSkinParticlesInnerCircularBoundary(ModelPart& r_model_part, const double inner_radius, const double detection_radius) {
         auto& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
 
         #pragma omp parallel for
@@ -172,7 +172,7 @@ class PreUtilities
         }
     }
 
-    void SetSkinParticlesOuterBoundary(ModelPart& r_model_part, const double outer_radius, const double detection_radius) {
+    void SetSkinParticlesOuterCircularBoundary(ModelPart& r_model_part, const double outer_radius, const double detection_radius) {
         auto& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
 
         #pragma omp parallel for
@@ -189,7 +189,7 @@ class PreUtilities
         }
     }
 
-    void SetSkinParticlesOuterBoundaryBlind(ModelPart& r_model_part, const double outer_radius, const array_1d<double, 3>& center, const double detection_radius) {
+    void SetSkinParticlesOuterSquaredBoundary(ModelPart& r_model_part, const double outer_radius, const array_1d<double, 3>& center, const double detection_radius) {
 
         auto& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
 

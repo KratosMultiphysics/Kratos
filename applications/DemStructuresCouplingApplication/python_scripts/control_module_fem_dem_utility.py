@@ -18,7 +18,7 @@ class ControlModuleFemDemUtility(object):
             # face_area = 0.008062
             alternate_axis_loading = False
             limit_velocity = -50.0
-        elif test_number == 2: # CTW10            
+        elif test_number == 2: # CTW10
             compression_length = 0.00381
             # face_area = 0.007601
             alternate_axis_loading = False

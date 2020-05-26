@@ -2,6 +2,7 @@ import KratosMultiphysics
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 from KratosMultiphysics.DEMApplication import mesh_creator_sphere
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
+import math
 
 class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
@@ -21,7 +22,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         # The two values that follow may depend on the GiD mesh used. The higher the value, the more skin particles
         self.inner_skin_factor = sp_project_parameters["inner_skin_factor"].GetDouble() # 2.4
         self.outer_skin_factor = sp_project_parameters["outer_skin_factor"].GetDouble() # 0.8
-        self.use_gid_skin_mesh = sp_project_parameters["use_gid_skin_mesh"].GetBool()
+        self.respect_preprocessor_marked_skin = sp_project_parameters["respect_preprocessor_marked_skin"].GetBool()
 
         self.automatic_skin_computation = project_parameters["AutomaticSkinComputation"].GetBool()
 
@@ -30,7 +31,14 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
         # self.SettingGeometricalSPValues()
         # self.CreateSPMeasuringRingSubmodelpart(self.spheres_model_part)
-        # self.RebuildSkinElements()
+        # self.SetSkinManually()
+
+        # sandstone_target_porosity, actual_porosity, sp_porosity_multiplier = self.ComputePorosityParameters(self.spheres_model_part)
+        # porosity_message = "\nPorosity in sandstones should be around %.2f and the obtained value is %.2f" % (sandstone_target_porosity, actual_porosity) + \
+        # "\nSand production results should therefore be multiplied by a factor of %.2f\n" % sp_porosity_multiplier
+        # print(porosity_message)
+        # with open('sp_porosity.txt', 'w') as poro_file:
+        #     poro_file.write(porosity_message)
 
         from KratosMultiphysics.DEMApplication.multiaxial_control_module_generalized_2d_utility import MultiaxialControlModuleGeneralized2DUtility
         self.multiaxial_control_module = MultiaxialControlModuleGeneralized2DUtility(self.spheres_model_part, self.rigid_face_model_part)
@@ -60,6 +68,32 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         super(DEMAnalysisStage2DSpRigidFem, self).InitializeSolutionStep()
 
         self.multiaxial_control_module.ExecuteInitializeSolutionStep()
+
+    def ComputePorosityParameters(self, spheres_model_part):
+
+        total_cylinders_volume = 0.0 # Remember we are here in 2D with 1m depth
+        self.unit_depth = 1.0
+        for node in spheres_model_part.Nodes:
+            radius = node.GetSolutionStepValue(KratosMultiphysics.RADIUS)
+            total_cylinders_volume +=  math.pi * radius * radius * self.unit_depth
+
+        total_spheres_volume = (2.0/3.0) * total_cylinders_volume
+        actual_solid_fraction = total_spheres_volume / self.ComputeSpecimenFullVolume()
+        actual_porosity = 1.0 - actual_solid_fraction
+
+        sandstone_target_porosity = 0.25 # Porosity values in sandstones are in the range of 25%
+        target_solid_fraction = 1.0 - sandstone_target_porosity
+
+        sp_porosity_multiplier = target_solid_fraction / actual_solid_fraction
+
+        return sandstone_target_porosity, actual_porosity, sp_porosity_multiplier
+
+    def ComputeSpecimenFullVolume(self):
+
+        if self.test_number < 5:
+            return math.pi * (self.outer_radius * self.outer_radius - self.inner_radius * self.inner_radius) * self.unit_depth
+        else:
+            return (4.0 * self.outer_radius * self.outer_radius - math.pi * self.inner_radius * self.inner_radius) * self.unit_depth
 
     def SettingGeometricalSPValues(self):
 
@@ -95,16 +129,15 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
             self.radius_to_delete_sp = 0.015
             self.outer_radius = 0.1524
 
-    def RebuildSkinElements(self):
+    def SetSkinManually(self):
 
-        self.PreUtilities.ResetSkinParticles(self.spheres_model_part)
-
-        if not self.automatic_skin_computation and not self.use_gid_skin_mesh:
-            self.PreUtilities.SetSkinParticlesInnerBoundary(self.spheres_model_part, self.inner_radius, self.inner_skin_factor * 0.5 * self.inner_mesh_diameter)
+        if not self.automatic_skin_computation and not self.respect_preprocessor_marked_skin:
+            self.PreUtilities.ResetSkinParticles(self.spheres_model_part)
+            self.PreUtilities.SetSkinParticlesInnerCircularBoundary(self.spheres_model_part, self.inner_radius, self.inner_skin_factor * 0.5 * self.inner_mesh_diameter)
             if self.test_number < 5: # CTWs
-                self.PreUtilities.SetSkinParticlesOuterBoundary(self.spheres_model_part, self.outer_radius, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
+                self.PreUtilities.SetSkinParticlesOuterCircularBoundary(self.spheres_model_part, self.outer_radius, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
             else: # Blind
-                self.PreUtilities.SetSkinParticlesOuterBoundaryBlind(self.spheres_model_part, self.outer_radius, self.center, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
+                self.PreUtilities.SetSkinParticlesOuterSquaredBoundary(self.spheres_model_part, self.outer_radius, self.center, self.outer_skin_factor * 0.5 * self.outer_mesh_diameter)
 
     def CreateSPMeasuringRingSubmodelpart(self, spheres_model_part):
 

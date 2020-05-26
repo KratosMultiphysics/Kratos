@@ -116,6 +116,8 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
 
     mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
 
+    mApplyCM = false;
+
     KRATOS_CATCH("");
 }
 
@@ -588,6 +590,5 @@ ControlModuleFemDemUtilities & operator=(ControlModuleFemDemUtilities const& rOt
 
 }; // Class ControlModuleFemDemUtilities
 
-}  // namespace Python.
-
+} // namespace Kratos
 #endif // KRATOS_CONTROL_MODULE_FEM_DEM_UTILITIES

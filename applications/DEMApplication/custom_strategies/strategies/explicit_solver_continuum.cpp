@@ -64,13 +64,13 @@ namespace Kratos {
 
         if (automatic_skin_computation) {
             ResetSkinParticles(r_model_part);
-            ComputeSkinIncludingInnerVoids(r_model_part, factor_radius);
+            ComputeSkin(r_model_part, factor_radius);
         }
 
         if (GetDeltaOption() == 2) {
             SetCoordinationNumber(r_model_part);
             if (automatic_skin_computation) {
-                ComputeSkinIncludingInnerVoids(r_model_part, factor_radius);
+                ComputeSkin(r_model_part, factor_radius);
                 SetCoordinationNumber(r_model_part);
             }
         }
@@ -277,9 +277,17 @@ namespace Kratos {
         }
     }
 
-    void ContinuumExplicitSolverStrategy::ComputeSkinIncludingInnerVoids(ModelPart& rSpheresModelPart, const double factor_radius) {
+    void ContinuumExplicitSolverStrategy::ComputeSkin(ModelPart& rSpheresModelPart, const double factor_radius) {
 
         ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+        ProcessInfo& r_process_info = rSpheresModelPart.GetProcessInfo();
+        const unsigned int problem_dimension = r_process_info[DOMAIN_SIZE];
+        unsigned int minimum_bonds_to_check_if_a_particle_is_skin;
+
+        if (problem_dimension == 2) {
+            minimum_bonds_to_check_if_a_particle_is_skin = 4;
+        } else return; // TODO: IMPLEMENT THIS ALSO IN 3D
+
         #pragma omp parallel for
         for (int k = 0; k < (int)pElements.size(); k++) {
 
@@ -291,7 +299,6 @@ namespace Kratos {
             const double element_radius              = p_sphere->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
             array_1d<double, 3> vector_from_element_to_neighbour = ZeroVector(3);
             array_1d<double, 3> sum_of_vectors_from_element_to_neighbours = ZeroVector(3);
-            //unsigned const int number_of_neighbors = p_sphere->mContinuumInitialNeighborsSize;
             unsigned const int number_of_neighbors = p_sphere->mNeighbourElements.size();
             double modulus_of_vector_from_element_to_neighbour = 0.0;
 
@@ -304,8 +311,9 @@ namespace Kratos {
                 DEM_MULTIPLY_BY_SCALAR_3(vector_from_element_to_neighbour, element_radius / modulus_of_vector_from_element_to_neighbour);
                 sum_of_vectors_from_element_to_neighbours += vector_from_element_to_neighbour;
             }
+            const double sum_modulus = DEM_MODULUS_3(sum_of_vectors_from_element_to_neighbours);
 
-            if (DEM_MODULUS_3(sum_of_vectors_from_element_to_neighbours) > factor_radius * element_radius) {
+            if ((number_of_neighbors < minimum_bonds_to_check_if_a_particle_is_skin) || (sum_modulus > factor_radius * element_radius)) {
                 p_sphere->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
             }
         }
@@ -462,7 +470,6 @@ namespace Kratos {
         const bool local_coordination_option = r_process_info[LOCAL_COORDINATION_NUMBER_OPTION];
         const bool global_coordination_option = r_process_info[GLOBAL_COORDINATION_NUMBER_OPTION];
         added_search_distance = 0.0;
-        double amplification = 1.0;
 
         KRATOS_INFO("DEM") << "Setting up Coordination Number (input = "<<desired_coordination_number<<") by increasing or decreasing the search radius. ";
         KRATOS_INFO_IF("", local_coordination_option) << "Local extension activated. ";
@@ -529,6 +536,7 @@ namespace Kratos {
             //STAGE 2, Global Coordination Number
             tolerance = 1e-4;
             max_factor_between_iterations = 1.1;
+            double amplification = 1.0;
             double old_old_amplification = 1.0;
             double old_amplification = 1.0;
 

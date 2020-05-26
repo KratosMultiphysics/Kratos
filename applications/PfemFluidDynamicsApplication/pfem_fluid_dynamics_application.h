@@ -3,7 +3,7 @@
 //  KRATOS| _ \/ _|___ _ __ | __| |_  _(_)__| |
 //        |  _/  _/ -_) '  \| _|| | || | / _` |
 //        |_| |_| \___|_|_|_|_| |_|\_,_|_\__,_|DYNAMICS
-//                                            
+//
 //  License:(BSD)    PfemFluidDynamicsApplication/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
@@ -57,7 +57,27 @@
 
 //hardening laws
 
-//constitutive laws
+// Fluid constitutive laws
+#include "custom_constitutive/fluid_laws/bingham_2D_law.h"
+#include "custom_constitutive/fluid_laws/bingham_3D_law.h"
+#include "custom_constitutive/fluid_laws/bingham_temperature_dependent_2D_law.h"
+#include "custom_constitutive/fluid_laws/bingham_temperature_dependent_3D_law.h"
+#include "custom_constitutive/fluid_laws/newtonian_2D_law.h"
+#include "custom_constitutive/fluid_laws/newtonian_3D_law.h"
+#include "custom_constitutive/fluid_laws/newtonian_temperature_dependent_2D_law.h"
+#include "custom_constitutive/fluid_laws/newtonian_temperature_dependent_3D_law.h"
+#include "custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_2D_law.h"
+#include "custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_3D_law.h"
+#include "custom_constitutive/fluid_laws/jop_mu_I_rheology_3D_law.h"
+#include "custom_constitutive/fluid_laws/barker_mu_I_rheology_3D_law.h"
+#include "custom_constitutive/fluid_laws/bercovier_mu_I_rheology_3D_law.h"
+#include "custom_constitutive/fluid_laws/barker_bercovier_mu_I_rheology_3D_law.h"
+
+// Solid constitutive laws
+#include "custom_constitutive/solid_laws/hypoelastic_2D_law.h"
+#include "custom_constitutive/solid_laws/hypoelastic_3D_law.h"
+#include "custom_constitutive/solid_laws/hypoelastic_temperature_dependent_2D_law.h"
+#include "custom_constitutive/solid_laws/hypoelastic_temperature_dependent_3D_law.h"
 
 #include "pfem_fluid_dynamics_application_variables.h"
 
@@ -273,6 +293,29 @@ private:
   /// 3D two step v-p  element
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3D;
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3Dquadratic;
+
+  // Fluid constitutive laws
+  const Bingham2DLaw mBingham2DLaw;
+  const Bingham3DLaw mBingham3DLaw;
+  const BinghamTemperatureDependent2DLaw mBinghamTemperatureDependent2DLaw;
+  const BinghamTemperatureDependent3DLaw mBinghamTemperatureDependent3DLaw;
+  const Newtonian2DLaw mNewtonian2DLaw;
+  const Newtonian3DLaw mNewtonian3DLaw;
+  const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
+  const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
+  const PapanastasiouMuIRheology2DLaw mPapanastasiouMuIRheology2DLaw;
+  const PapanastasiouMuIRheology3DLaw mPapanastasiouMuIRheology3DLaw;
+  const JopMuIRheology3DLaw mJopMuIRheology3DLaw;
+  const BarkerMuIRheology3DLaw mBarkerMuIRheology3DLaw;
+  const BarkerBercovierMuIRheology3DLaw mBarkerBercovierMuIRheology3DLaw;
+  const BercovierMuIRheology3DLaw mBercovierMuIRheology3DLaw;
+
+  // Solid constitutive laws
+  const Hypoelastic3DLaw mHypoelastic3DLaw;
+  const Hypoelastic2DLaw mHypoelastic2DLaw;
+  const HypoelasticTemperatureDependent2DLaw mHypoelasticTemperatureDependent2DLaw;
+  const HypoelasticTemperatureDependent3DLaw mHypoelasticTemperatureDependent3DLaw;
+
   ///@}
   ///@name Private Operators
   ///@{
