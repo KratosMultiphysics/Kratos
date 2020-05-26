@@ -95,7 +95,7 @@ public:
 
     typedef typename BaseType::TDofType TDofType;
 
-    typedef typename BaseType::TDofsArrayType DofsArrayType;
+    typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::DofIteratorType DofIteratorType;
 
@@ -143,16 +143,16 @@ public:
         // default rebuild level (build at each solution step)
         this->SetRebuildLevel(1);
 
-        SparseMatrixType* AuxMassMatrix = new SparseMatrixType;
-        mpMassMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxMassMatrix);
-        SparseMatrixType* AuxStiffnessMatrix = new SparseMatrixType;
-        mpStiffnessMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
+        TSystemMatrixType* AuxMassMatrix = new TSystemMatrixType;
+        mpMassMatrix = Kratos::shared_ptr<TSystemMatrixType>(AuxMassMatrix);
+        TSystemMatrixType* AuxStiffnessMatrix = new TSystemMatrixType;
+        mpStiffnessMatrix = Kratos::shared_ptr<TSystemMatrixType>(AuxStiffnessMatrix);
 
         KRATOS_CATCH("")
     }
 
-    /// Deleted copy constructor.
-    ModalDerivativeStrategy(const ModalDerivativeStrategy& Other) = delete;
+    // /// Deleted copy constructor.
+    // ModalDerivativeStrategy(const ModalDerivativeStrategy& Other) = delete;
 
     /// Destructor.
     ~ModalDerivativeStrategy() override
@@ -196,6 +196,8 @@ public:
 
             if (p_scheme->ConditionsAreInitialized() == false)
                 p_scheme->InitializeConditions(r_model_part);
+
+            mInitializeWasPerformed = true;
         }
 
         KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
@@ -213,26 +215,26 @@ public:
 
         // if the preconditioner is saved between solves, it
         // should be cleared here.
-        GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
+        this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
 
         if (mpA != nullptr){
-            SparseSpaceType::Clear(mpA);
+            TSparseSpace::Clear(mpA);
             mpA = nullptr;
         }
         if (mpDx != nullptr)
         {
-            SparseSpaceType::Clear(mpDx);
+            TSparseSpace::Clear(mpDx);
             mpDx = nullptr;
         }
         if (mpb != nullptr)
         {
-            SparseSpaceType::Clear(mpb);
+            TSparseSpace::Clear(mpb);
             mpb = nullptr;
         }
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
-        GetBuilderAndSolver()->Clear();
-        GetScheme()->Clear();
+        this->pGetBuilderAndSolver()->Clear();
+        this->pGetScheme()->Clear();
 
         mInitializeWasPerformed = false;
         mSolutionStepIsInitialized = false;
@@ -251,16 +253,17 @@ public:
         if (mSolutionStepIsInitialized == false)
         {
             //pointers needed in the solution
-            typename TSchemePointerType p_scheme = GetScheme();
-            typename TBuilderAndSolverPointerType p_builder_and_solver = GetBuilderAndSolver();
+            TSchemePointerType p_scheme = this->pGetScheme();
+            TBuilderAndSolverPointerType p_builder_and_solver = this->pGetBuilderAndSolver();
 
             const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
             BuiltinTimer system_construction_time;
-            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
-                    mReformDofSetAtEachStep == true)
+            // if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
+            //         mReformDofSetAtEachStep == true)
+            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false)
             {
                 //setting up the list of the DOFs to be solved
                 BuiltinTimer setup_dofs_time;
@@ -319,8 +322,8 @@ public:
         KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             <<  "Entering FinalizeSolutionStep" << std::endl;
 
-        TSchemePointerType p_scheme = GetScheme();
-        TBuilderAndSolverPointerType p_builder_and_solver = GetBuilderAndSolver();
+        TSchemePointerType p_scheme = this->pGetScheme();
+        TBuilderAndSolverPointerType p_builder_and_solver = this->pGetBuilderAndSolver();
 
         TSystemMatrixType &rA  = *mpA;
         TSystemVectorType &rDx = *mpDx;
@@ -451,7 +454,7 @@ public:
     void StoreVariables()
     {
         KRATOS_TRY
-        DofsArrayType& r_dof_set = this->GetBuilderAndSolver()->GetDofSet();
+        DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
         for (auto dof : r_dof_set)
         {
             (*mpInitialVariables)(dof.EquationId()) = dof.GetSolutionStepValue();
@@ -470,7 +473,7 @@ public:
     void ResetVariables()
     {
         KRATOS_TRY
-        DofsArrayType& r_dof_set = this->GetBuilderAndSolver()->GetDofSet();
+        DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
         for (auto dof : r_dof_set)
         {
             dof.GetSolutionStepValue() = (*mpInitialVariables)(dof.EquationId());
@@ -478,9 +481,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    void AssignVariables()
+    void AssignVariables(TSystemVectorType& rDx)
     {
         KRATOS_TRY
+        KRATOS_ERROR <<"This function is not implemented yet" << std::endl;
         KRATOS_CATCH("")
     }
 
@@ -500,6 +504,16 @@ public:
         BaseType::SetEchoLevel(Level);
         this->pGetBuilderAndSolver()->SetEchoLevel(Level);
     }
+
+    TBuilderAndSolverPointerType& pGetBuilderAndSolver()
+    {
+        return mpBuilderAndSolver;
+    };
+
+    TSchemePointerType& pGetScheme()
+    {
+        return mpScheme;
+    };
 
     /**
      * @brief Function to perform expensive checks.
@@ -599,9 +613,15 @@ private:
     
     TSystemVectorPointerType mpb;
 
+    TSystemMatrixPointerType mpMassMatrix;
+
+    TSystemMatrixPointerType mpStiffnessMatrix;
+
     TSystemVectorPointerType mpInitialVariables;
 
     bool mSolutionStepIsInitialized;
+
+    bool mInitializeWasPerformed;
 
     ///@}
     ///@name Private Operators

@@ -20,6 +20,7 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "includes/dof.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
@@ -73,29 +74,29 @@ public:
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
     /// Data type definition
-    typedef BaseType::TDataType TDataType;
+    typedef typename BaseType::TDataType TDataType;
     /// Matrix type definition
-    typedef BaseType::TSystemMatrixType TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     /// Vector type definition
-    typedef BaseType::TSystemVectorType TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
     /// Local system matrix type definition
-    typedef BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
     /// Local system vector type definition
-    typedef BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
     /// DoF type definition
     typedef Dof<double> TDofType;
     /// DoF array type definition
-    typedef BaseType::DofsArrayType DofsArrayType;
+    typedef typename BaseType::DofsArrayType DofsArrayType;
     /// DoF iterator type definition
-    typedef BaseType::DofIterator DofIterator;
+    typedef typename BaseType::DofIterator DofIterator;
     /// DoF constant iterator type definition
-    typedef BaseType::DofConstantIterator DofConstantIterator;
+    typedef typename BaseType::DofConstantIterator DofConstantIterator;
 
     /// Elements containers definition
-    typedef BaseType::ElementsArrayType ElementsArrayType;
+    typedef typename BaseType::ElementsArrayType ElementsArrayType;
     /// Conditions containers definition
-    typedef BaseType::ConditionsArrayType ConditionsArrayType;
+    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -149,21 +150,54 @@ public:
         ) override
     {
         KRATOS_TRY
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Definition of the first element iterator
+        const auto it_elem_begin = rModelPart.ElementsBegin();
+
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
+            auto it_elem = it_elem_begin + i;
+            it_elem->InitializeNonLinearIteration(r_current_process_info);
+        }
+
+        // Definition of the first condition iterator
+        const auto it_cond_begin = rModelPart.ConditionsBegin();
+
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
+            auto it_cond = it_cond_begin + i;
+            it_cond->InitializeNonLinearIteration(r_current_process_info);
+        }
+
+        // Definition of the first constraint iterator
+        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
+
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
+            auto it_const = it_const_begin + i;
+            it_const->InitializeNonLinearIteration(r_current_process_info);
+        }
+
         KRATOS_CATCH("")
     }
 
     /**
      * @brief It initializes a non-linear iteration (for an individual condition)
      * @warning Must be defined in derived classes
-     * @param rCurrentElement The element to compute
+     * @param pCurrentElement The element to compute
      * @param rCurrentProcessInfo The current process info instance
      */
     void InitializeNonLinearIteration(
-        Element::Pointer rCurrentElement,
+        Element::Pointer pCurrentElement,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
+
+        (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
+
         KRATOS_CATCH("")
     }
 
@@ -174,11 +208,14 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void InitializeNonLinearIteration(
-        Condition::Pointer rCurrentCondition,
+        Condition::Pointer pCurrentCondition,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
+
+        (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
+
         KRATOS_CATCH("")
     }
 
@@ -318,8 +355,7 @@ public:
             KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
         }
 
-
-        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -336,7 +372,7 @@ public:
         Matrix element_LHS_derivative;
         int eigenvalue_i = rCurrentProcessInfo[EIGENVALUE_I];
         int eigenvalue_j = rCurrentProcessInfo[EIGENVALUE_J];
-        const double eigenvalue = rCurrentProcessInfo[EIGENVALUE_VECTOR](eigenvalue_i);
+        //const double eigenvalue = rCurrentProcessInfo[EIGENVALUE_VECTOR](eigenvalue_i); // This will be used for dynamic derivatives
 
         // Get PhiElemental
         Vector PhiElemental;
@@ -354,10 +390,6 @@ public:
             dof_ctr += node_i_dofs.size();
         }
 
-        Matrix LHS_mass;
-        LocalSystemMatrixType::Resize(LHS_mass, LHS_Contribution.size1(), LHS_Contribution.size1());
-        LocalSystemMatrixType::SetToZero(LHS_mass);
-        
         // Build RHS contributions
         if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
         {   
@@ -490,6 +522,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    bool mSchemeIsInitialized;
 
     ///@}
     ///@name Private Operators
