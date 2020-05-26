@@ -21,7 +21,7 @@
 // External includes
 
 // Project includes
-#include "interface_communicator.h"
+#include "custom_searching/interface_communicator.h"
 
 
 namespace Kratos
