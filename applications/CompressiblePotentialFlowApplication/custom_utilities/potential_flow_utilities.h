@@ -125,7 +125,7 @@ template <int Dim, int NumNodes>
 double ComputeUpwindFactor(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeMaxUpwindFactor(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+double SelectMaxUpwindFactor(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 size_t ComputeUpwindFactorCase(const array_1d<double, 3>& rUpwindFactorOptions);

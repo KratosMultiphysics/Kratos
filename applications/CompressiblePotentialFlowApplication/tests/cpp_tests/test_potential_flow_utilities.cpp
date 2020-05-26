@@ -58,7 +58,7 @@ void AssignFreeStreamValues(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
     rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
     rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
-    rModelPart.GetProcessInfo()[UPWIND_MACH_FACTOR] = 1.0;
+    rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
 
     BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
     free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
@@ -283,7 +283,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeMaxUpwindFactor, CompressiblePotentialApplicati
     upwind_velocity[0] = std::sqrt(upwind_velocity_squared);
 
     // find max of current element upwind factor, upwind element upwind factor, and 0
-    const double upwind_factor = PotentialFlowUtilities::ComputeMaxUpwindFactor<2, 3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
+    const double upwind_factor = PotentialFlowUtilities::SelectMaxUpwindFactor<2, 3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
 
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.705466666666667, 1e-15);
 }

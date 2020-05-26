@@ -516,15 +516,15 @@ double ComputeUpwindFactor(
     //           by Brian Nishida (1996), Equation 2.13
 
     // read free stream values
-    // default MACH_LIMIT - 0.94 and default UPWIND_MACH_FACTOR - 1.0
+    // default MACH_LIMIT - 0.94 and default UPWIND_FACTOR_CONSTANT - 1.0
     const double critical_mach = rCurrentProcessInfo[MACH_LIMIT];
-    const double upwind_mach_factor = rCurrentProcessInfo[UPWIND_MACH_FACTOR];
+    const double upwind_factor_constant = rCurrentProcessInfo[UPWIND_FACTOR_CONSTANT];
 
-    return upwind_mach_factor * (1.0 - std::pow(critical_mach, 2.0) / localMachNumberSquared);
+    return upwind_factor_constant * (1.0 - std::pow(critical_mach, 2.0) / localMachNumberSquared);
 }
 
 template <int Dim, int NumNodes>
-double ComputeMaxUpwindFactor(
+double SelectMaxUpwindFactor(
         const array_1d<double, Dim>& rCurrentVelocity, 
         const array_1d<double, Dim>& rUpwindVelocity, 
         const ProcessInfo& rCurrentProcessInfo)
@@ -687,7 +687,7 @@ template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const Proc
 template double ComputeLocalMachNumberSquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindFactor<2,3>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
-template double ComputeMaxUpwindFactor<2, 3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double SelectMaxUpwindFactor<2, 3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template size_t ComputeUpwindFactorCase<2, 3>(const array_1d<double, 3>& rUpwindFactorOptions);
 template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
@@ -722,8 +722,8 @@ template double ComputePerturbationLocalSpeedOfSound<3, 4>(const Element& rEleme
 template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeLocalMachNumberSquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeMaxUpwindFactor<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindFactor<3, 4>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+template double SelectMaxUpwindFactor<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template size_t ComputeUpwindFactorCase<3, 4>(const array_1d<double, 3>& rUpwindFactorOptions);
 template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
