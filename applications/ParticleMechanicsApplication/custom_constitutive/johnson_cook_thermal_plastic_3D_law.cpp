@@ -18,6 +18,7 @@
 // Project includes
 
 #include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
+
 #include "particle_mechanics_application_variables.h"
 
 namespace Kratos
@@ -27,7 +28,7 @@ namespace Kratos
   //************************************************************************************
 
     JohnsonCookThermalPlastic3DLaw::JohnsonCookThermalPlastic3DLaw()
-  : HyperElasticPlastic3DLaw()
+  : HyperElastic3DLaw()
   {
     mpHardeningLaw   = ParticleHardeningLaw::Pointer( new JohnsonCookThermalHardeningLaw() );
     mpYieldCriterion = ParticleYieldCriterion::Pointer( new MisesHuberThermalYieldCriterion(mpHardeningLaw) );
@@ -49,7 +50,7 @@ namespace Kratos
   //************************************************************************************
 
     JohnsonCookThermalPlastic3DLaw::JohnsonCookThermalPlastic3DLaw(const JohnsonCookThermalPlastic3DLaw& rOther)
-  : HyperElasticPlastic3DLaw(rOther)
+  : HyperElastic3DLaw(rOther)
   {
 
   }
