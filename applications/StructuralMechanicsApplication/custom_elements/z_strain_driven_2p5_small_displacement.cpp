@@ -149,7 +149,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetValuesOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

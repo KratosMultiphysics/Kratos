@@ -91,19 +91,19 @@ public:
     constexpr static unsigned int TCoordLocalSize = TDim * TNumNodes;
 
     // variable definitions
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef Condition::NodeType NodeType;
+    using NodeType = Condition::NodeType;
 
-    typedef Condition::NodesArrayType NodesArrayType;
+    using NodesArrayType = Condition::NodesArrayType;
 
-    typedef Condition::GeometryType GeometryType;
+    using GeometryType = Condition::GeometryType;
 
-    typedef Condition::PropertiesType PropertiesType;
+    using PropertiesType = Condition::PropertiesType;
 
-    typedef Condition::VectorType VectorType;
+    using VectorType = Condition::VectorType;
 
-    typedef Condition::MatrixType MatrixType;
+    using MatrixType = Condition::MatrixType;
 
     ///@name Pointer Definitions
     /// Pointer definition of RansEvmMonolithicKEpsilonVMSAdjointWallCondition
@@ -587,32 +587,32 @@ private:
         std::size_t NumBlocks;
     };
 
-    constexpr SubBlockLayout CoordBlock()
+    constexpr SubBlockLayout CoordBlock() const
     {
         return {0, TDim, TDim, TNumNodes};
     }
 
-    constexpr SubBlockLayout VelBlock()
+    constexpr SubBlockLayout VelBlock() const
     {
         return {0, TDim, TDim + 3, TNumNodes};
     }
 
-    constexpr SubBlockLayout VelPresBlock()
+    constexpr SubBlockLayout VelPresBlock() const
     {
         return {0, TDim + 1, TDim + 3, TNumNodes};
     }
 
-    constexpr SubBlockLayout KBlock()
+    constexpr SubBlockLayout KBlock() const
     {
         return {TDim + 1, 1, TDim + 3, TNumNodes};
     }
 
-    constexpr SubBlockLayout EpsilonBlock()
+    constexpr SubBlockLayout EpsilonBlock() const
     {
         return {TDim + 2, 1, TDim + 3, TNumNodes};
     }
 
-    constexpr std::size_t MonolithicIndex(SubBlockLayout L, std::size_t SubIndex)
+    constexpr std::size_t MonolithicIndex(SubBlockLayout L, std::size_t SubIndex) const
     {
         return SubIndex + (SubIndex / L.SubBlockSize) * (L.BlockSize - L.SubBlockSize) +
                L.SubBlockOffset;

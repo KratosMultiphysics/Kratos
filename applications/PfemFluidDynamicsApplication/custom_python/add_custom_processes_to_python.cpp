@@ -52,6 +52,11 @@
 #include "custom_processes/assign_vector_variable_to_pfem_conditions_process.hpp"
 #include "custom_processes/assign_vector_field_to_pfem_entities_process.hpp"
 #include "custom_processes/assign_scalar_field_to_pfem_entities_process.hpp"
+#include "custom_processes/update_conditions_on_free_surface_process.hpp"
+
+// Coupling with ConvectionDiffusionApplication processes
+#include "custom_processes/update_thermal_model_part_process.hpp"
+#include "custom_processes/set_mesh_velocity_for_thermal_coupling_process.hpp"
 
 //Processes
 
@@ -142,7 +147,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<FixScalarPfemDofProcess, FixScalarPfemDofProcess::Pointer, Process>(m, "FixScalarPfemDofProcess")
         .def(py::init<ModelPart &, Parameters>())
         .def(py::init<ModelPart &, Parameters &>())
-        .def(py::init<ModelPart &, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> &>())
         .def(py::init<ModelPart &, const Variable<double> &>())
         .def(py::init<ModelPart &, const Variable<int> &>())
         .def(py::init<ModelPart &, const Variable<bool> &>())
@@ -153,7 +157,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<FreeScalarPfemDofProcess, FreeScalarPfemDofProcess::Pointer, Process>(m, "FreeScalarPfemDofProcess")
         .def(py::init<ModelPart &, Parameters>())
         .def(py::init<ModelPart &, Parameters &>())
-        .def(py::init<ModelPart &, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> &>())
         .def(py::init<ModelPart &, const Variable<double> &>())
         .def(py::init<ModelPart &, const Variable<int> &>())
         .def(py::init<ModelPart &, const Variable<bool> &>())
@@ -183,6 +186,23 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(py::init<ModelPart &, Parameters &>())
         .def(py::init<ModelPart &, const Variable<array_1d<double, 3>> &, array_1d<double, 3> &>())
         .def("Execute", &AssignVectorVariableToPfemConditionsProcess::Execute);
+
+    //**********COUPLING WITH CONVECTION DIFFUSION APPLICATION PROCESSES*********//
+    py::class_<UpdateThermalModelPartProcess, UpdateThermalModelPartProcess::Pointer, ProcessBaseType>
+    (m, "UpdateThermalModelPartProcess")
+        .def(py::init< ModelPart&, ModelPart&, ModelPart&, unsigned int>())
+        .def("Execute", &UpdateThermalModelPartProcess::Execute);//.def(py::init< ModelPart&, ModelPart&, Parameters &>())
+
+    py::class_<SetMeshVelocityForThermalCouplingProcess, SetMeshVelocityForThermalCouplingProcess::Pointer, ProcessBaseType>
+    (m, "SetMeshVelocityForThermalCouplingProcess")
+        .def(py::init< ModelPart &>())
+        .def("Execute", &SetMeshVelocityForThermalCouplingProcess::Execute);
+        ;
+
+	py::class_<UpdateConditionsOnFreeSurfaceProcess, UpdateConditionsOnFreeSurfaceProcess::Pointer, ProcessBaseType>(m, "UpdateConditionsOnFreeSurfaceProcess")
+	    .def(py::init<ModelPart &, Parameters>())
+	    .def("Execute", &UpdateConditionsOnFreeSurfaceProcess::Execute);
+	;
     ;
 }
 
