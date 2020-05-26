@@ -175,18 +175,9 @@ private:
                                              Parameters InterfaceParameters,
                                              const std::string& InterfaceSide);
 
-    // template<class TSparseSpace, class TDenseSpace>
-    // static std::unordered_map<std::string, typename Mapper<TSparseSpace,
-    //     TDenseSpace>::Pointer>& GetRegisteredMappersList();
-
     template<class TSparseSpace, class TDenseSpace>
     static std::unordered_map<std::string, typename Mapper<TSparseSpace,
-        TDenseSpace>::Pointer>& GetRegisteredMappersList()
-    {
-        static std::unordered_map<std::string, typename Mapper<TSparseSpace, TDenseSpace>::Pointer> registered_mappers;
-
-        return registered_mappers;
-    }
+        TDenseSpace>::Pointer>& GetRegisteredMappersList();
 
     ///@}
 

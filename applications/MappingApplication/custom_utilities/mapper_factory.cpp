@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "spaces/ublas_space.h"
+#include "custom_utilities/mapper_typedefs.h"
 
 #include "mapper_factory.h"
 // #include "custom_utilities/mapper_utilities.h"
@@ -26,6 +26,31 @@
 
 namespace Kratos
 {
+
+template<>
+std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceType,
+    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::SparseSpaceType,
+    MapperDefinitions::DenseSpaceType>()
+{
+    static std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::Pointer> registered_mappers;
+
+    return registered_mappers;
+}
+
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+template<>
+std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType,
+    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::MPISparseSpaceType,
+    MapperDefinitions::DenseSpaceType>()
+{
+    static std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::Pointer> registered_mappers;
+
+    return registered_mappers;
+}
+#endif
+
+
+
 //     namespace MapperTypedefs
 //     {
 //         typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
