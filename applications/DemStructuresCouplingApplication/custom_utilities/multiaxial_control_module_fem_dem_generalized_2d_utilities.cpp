@@ -194,7 +194,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
 
     // Update ReactionStresses
     Vector reaction_stress_estimated(number_of_actuators);
-    noalias(reaction_stress_estimated) = this->MeasureReactionStress();
+    noalias(reaction_stress_estimated) = this->MeasureReactionStress(REACTION);
     noalias(mReactionStress) = (1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress;
     // noalias(mReactionStress) = 1.0/(1.0 - std::pow(mReactionAlpha,mStep)) * 
     //                         ((1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress);
@@ -311,7 +311,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
 
 //***************************************************************************************************************
 
-Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStress() {
+Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStress(const Variable<array_1d<double,3>>& rVariable) {
 
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
     Vector reaction_stress(number_of_actuators);
@@ -348,7 +348,7 @@ Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStres
                 #pragma omp parallel for reduction(+:face_reaction)
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(REACTION);
+                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(rVariable);
                     // Unit normal vector pointing outwards
                     array_1d<double,3> radial_normal;
                     radial_normal[0] = it->X();
@@ -466,7 +466,7 @@ Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStres
                 #pragma omp parallel for reduction(+:face_reaction)
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(REACTION);
+                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(rVariable);
                     face_reaction += inner_prod(r_force,mFEMOuterNormals[actuator_name][i]);
                 }
             }

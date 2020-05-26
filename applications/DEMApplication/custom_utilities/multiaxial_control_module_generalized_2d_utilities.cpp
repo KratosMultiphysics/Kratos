@@ -205,10 +205,13 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
 
     // Update ReactionStresses
     Vector reaction_stress_estimated(number_of_actuators);
-    noalias(reaction_stress_estimated) = MeasureReactionStress();
+    noalias(reaction_stress_estimated) = MeasureReactionStress(CONTACT_FORCES); // Total forces
     noalias(mReactionStress) = (1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress;
     // noalias(mReactionStress) = 1.0/(1.0 - std::pow(mReactionAlpha,mStep)) * 
     //                         ((1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress);
+    Vector elastic_reaction_stress_estimated(number_of_actuators);
+    noalias(elastic_reaction_stress_estimated) = MeasureReactionStress(ELASTIC_FORCES); // Total forces - viscous forces
+    noalias(mElasticReactionStress) = (1.0 - mReactionAlpha) * elastic_reaction_stress_estimated + mReactionAlpha * mElasticReactionStress;
 
     // Update Stiffness matrix
     if (current_time > (mCMTime - 0.5 * delta_time)) {
@@ -241,9 +244,15 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
                     array_1d<double,3>& r_target_stress = it->FastGetSolutionStepValue(TARGET_STRESS);
                     array_1d<double,3>& r_reaction_stress = it->FastGetSolutionStepValue(REACTION_STRESS);
+                    array_1d<double,3>& r_smoothed_reaction_stress = it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS);
+                    array_1d<double,3>& r_elastic_reaction_stress = it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS);
+                    array_1d<double,3>& r_smoothed_elastic_reaction_stress = it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS);
                     array_1d<double,3>& r_loading_velocity = it->FastGetSolutionStepValue(LOADING_VELOCITY);
                     noalias(r_target_stress) = ZeroVector(3);
                     noalias(r_reaction_stress) = ZeroVector(3);
+                    noalias(r_smoothed_reaction_stress) = ZeroVector(3);
+                    noalias(r_elastic_reaction_stress) = ZeroVector(3);
+                    noalias(r_smoothed_elastic_reaction_stress) = ZeroVector(3);
                     noalias(r_loading_velocity) = ZeroVector(3);
                 }
             }
@@ -272,8 +281,14 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
                 const double sin_theta = it->Y()/external_radius;
                 it->FastGetSolutionStepValue(TARGET_STRESS_X) = current_target_stress * cos_theta;
                 it->FastGetSolutionStepValue(TARGET_STRESS_Y) = current_target_stress * sin_theta;
-                it->FastGetSolutionStepValue(REACTION_STRESS_X) = mReactionStress[map_index] * cos_theta;
-                it->FastGetSolutionStepValue(REACTION_STRESS_Y) = mReactionStress[map_index] * sin_theta;
+                it->FastGetSolutionStepValue(REACTION_STRESS_X) = reaction_stress_estimated[map_index] * cos_theta;
+                it->FastGetSolutionStepValue(REACTION_STRESS_Y) = reaction_stress_estimated[map_index] * sin_theta;
+                it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS_X) = mReactionStress[map_index] * cos_theta;
+                it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS_Y) = mReactionStress[map_index] * sin_theta;
+                it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS_X) = elastic_reaction_stress_estimated[map_index] * cos_theta;
+                it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS_Y) = elastic_reaction_stress_estimated[map_index] * sin_theta;
+                it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS_X) = mElasticReactionStress[map_index] * cos_theta;
+                it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS_Y) = mElasticReactionStress[map_index] * sin_theta;
                 it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = mVelocity[map_index] * cos_theta;
                 it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = mVelocity[map_index] * sin_theta;
             }
@@ -290,7 +305,10 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
                     it->FastGetSolutionStepValue(TARGET_STRESS_Z) = current_target_stress;
-                    it->FastGetSolutionStepValue(REACTION_STRESS_Z) = mReactionStress[map_index];
+                    it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress_estimated[map_index];
+                    it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS_Z) = mReactionStress[map_index];
+                    it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS_Z) = elastic_reaction_stress_estimated[map_index];
+                    it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS_Z) = mElasticReactionStress[map_index];
                     it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity[map_index];
                 }
                 mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(current_target_stress);
@@ -309,9 +327,15 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
                     array_1d<double,3>& r_target_stress = it->FastGetSolutionStepValue(TARGET_STRESS);
                     array_1d<double,3>& r_reaction_stress = it->FastGetSolutionStepValue(REACTION_STRESS);
+                    array_1d<double,3>& r_smoothed_reaction_stress = it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS);
+                    array_1d<double,3>& r_elastic_reaction_stress = it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS);
+                    array_1d<double,3>& r_smoothed_elastic_reaction_stress = it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS);
                     array_1d<double,3>& r_loading_velocity = it->FastGetSolutionStepValue(LOADING_VELOCITY);
                     noalias(r_target_stress) += current_target_stress * mFEMOuterNormals[actuator_name][i];
-                    noalias(r_reaction_stress) += mReactionStress[map_index] * mFEMOuterNormals[actuator_name][i];
+                    noalias(r_reaction_stress) += reaction_stress_estimated[map_index] * mFEMOuterNormals[actuator_name][i];
+                    noalias(r_smoothed_reaction_stress) += mReactionStress[map_index] * mFEMOuterNormals[actuator_name][i];
+                    noalias(r_elastic_reaction_stress) += elastic_reaction_stress_estimated[map_index] * mFEMOuterNormals[actuator_name][i];
+                    noalias(r_smoothed_elastic_reaction_stress) += mElasticReactionStress[map_index] * mFEMOuterNormals[actuator_name][i];
                     noalias(r_loading_velocity) += mVelocity[map_index] * mFEMOuterNormals[actuator_name][i];
                 }
             }
@@ -321,7 +345,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
 
 //***************************************************************************************************************
 
-Vector MultiaxialControlModuleGeneralized2DUtilities::MeasureReactionStress() {
+Vector MultiaxialControlModuleGeneralized2DUtilities::MeasureReactionStress(const Variable<array_1d<double,3>>& rVariable) {
 
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
     Vector reaction_stress(number_of_actuators);
@@ -358,7 +382,7 @@ Vector MultiaxialControlModuleGeneralized2DUtilities::MeasureReactionStress() {
                 #pragma omp parallel for reduction(+:face_reaction)
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(CONTACT_FORCES);
+                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(rVariable);
                     // Unit normal vector pointing outwards
                     array_1d<double,3> radial_normal;
                     radial_normal[0] = it->X();
@@ -440,7 +464,7 @@ Vector MultiaxialControlModuleGeneralized2DUtilities::MeasureReactionStress() {
                 #pragma omp parallel for reduction(+:face_reaction)
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(CONTACT_FORCES);
+                    array_1d<double,3>& r_force = it->FastGetSolutionStepValue(rVariable);
                     face_reaction += -inner_prod(r_force,mFEMOuterNormals[actuator_name][i]);
                 }
             }

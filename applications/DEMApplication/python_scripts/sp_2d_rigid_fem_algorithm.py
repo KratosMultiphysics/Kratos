@@ -40,6 +40,15 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.reaction_x = []
         self.reaction_y = []
         self.reaction_z = []
+        self.smoothed_reaction_x = []
+        self.smoothed_reaction_y = []
+        self.smoothed_reaction_z = []
+        self.elastic_reaction_x = []
+        self.elastic_reaction_y = []
+        self.elastic_reaction_z = []
+        self.smoothed_elastic_reaction_x = []
+        self.smoothed_elastic_reaction_y = []
+        self.smoothed_elastic_reaction_z = []
         self.target_x = []
         self.target_y = []
         self.target_z = []
@@ -135,6 +144,15 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.reaction_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))
         self.reaction_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))
         self.reaction_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Z))
+        self.smoothed_reaction_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_X))
+        self.smoothed_reaction_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Y))
+        self.smoothed_reaction_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Z))
+        self.elastic_reaction_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_X))
+        self.elastic_reaction_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Y))
+        self.elastic_reaction_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Z))
+        self.smoothed_elastic_reaction_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_X))
+        self.smoothed_elastic_reaction_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Y))
+        self.smoothed_elastic_reaction_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Z))
         self.target_x.append(self.rigid_face_model_part.Nodes[3525].GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X))
         self.target_y.append(self.rigid_face_model_part.Nodes[3514].GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y))
         self.target_z.append(self.spheres_model_part.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Z))
@@ -150,14 +168,24 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
         f = plt.figure()
 
-        plt.plot(self.times, self.reaction_x, label='reaction_x')
-        plt.plot(self.times, self.reaction_y, label='reaction_y')
-        plt.plot(self.times, self.reaction_z, label='reaction_z')
-        plt.plot(self.times, self.target_x, '--', label='target_x')
-        plt.plot(self.times, self.target_y, '--', label='target_y')
-        plt.plot(self.times, self.target_z, '--', label='target_z')
+        plt.plot(self.times, self.reaction_x, color='b', label='reaction_x')
+        plt.plot(self.times, self.reaction_y, color='r', label='reaction_y')
+        plt.plot(self.times, self.reaction_z, color='g', label='reaction_z')
+        plt.plot(self.times, self.smoothed_reaction_x, linewidth='2', color='b', label='smoothed_reaction_x')
+        plt.plot(self.times, self.smoothed_reaction_y, linewidth='2', color='r', label='smoothed_reaction_y')
+        plt.plot(self.times, self.smoothed_reaction_z, linewidth='2', color='g', label='smoothed_reaction_z')
+        plt.plot(self.times, self.elastic_reaction_x, linestyle='dotted', color='b', label='elastic_reaction_x')
+        plt.plot(self.times, self.elastic_reaction_y, linestyle='dotted', color='r', label='elastic_reaction_y')
+        plt.plot(self.times, self.elastic_reaction_z, linestyle='dotted', color='g', label='elastic_reaction_z')
+        plt.plot(self.times, self.smoothed_elastic_reaction_x, linestyle='dotted', linewidth='2', color='b', label='smoothed_elastic_reaction_x')
+        plt.plot(self.times, self.smoothed_elastic_reaction_y, linestyle='dotted', linewidth='2', color='r', label='smoothed_elastic_reaction_y')
+        plt.plot(self.times, self.smoothed_elastic_reaction_z, linestyle='dotted', linewidth='2', color='g', label='smoothed_elastic_reaction_z')
+        plt.plot(self.times, self.target_x, '--', linewidth='3', color='b', label='target_x')
+        plt.plot(self.times, self.target_y, '--', linewidth='3', color='r', label='target_y')
+        plt.plot(self.times, self.target_z, '--', linewidth='3', color='g', label='target_z')
 
-        plt.legend()
+        plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+        # plt.legend()
         max_stress = max(abs(min(self.target_x)),max(self.target_x),
                          abs(min(self.target_y)),max(self.target_y),
                          abs(min(self.target_z)),max(self.target_z))

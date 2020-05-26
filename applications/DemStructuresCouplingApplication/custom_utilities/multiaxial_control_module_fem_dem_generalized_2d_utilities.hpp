@@ -102,7 +102,7 @@ protected:
 ///@name Protected Operations
 ///@{
 
-Vector MeasureReactionStress() override;
+Vector MeasureReactionStress(const Variable<array_1d<double,3>>& rVariable) override;
 
 ///@}
 ///@name Protected  Access

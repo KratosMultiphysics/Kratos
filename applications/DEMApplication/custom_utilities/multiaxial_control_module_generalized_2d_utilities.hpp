@@ -104,6 +104,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     mLimitVelocities.resize(number_of_actuators, false);
     mReactionStress.resize(number_of_actuators, false);
     mReactionStressOld.resize(number_of_actuators, false);
+    mElasticReactionStress.resize(number_of_actuators, false);
     mStiffness.resize(number_of_actuators,number_of_actuators,false);
     noalias(mStiffness) = ZeroMatrix(number_of_actuators,number_of_actuators);
     mDeltaDisplacement.resize(number_of_actuators,number_of_actuators,false);
@@ -160,6 +161,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         mStiffness(i,i) = stiffness;
         mReactionStress[i] = 0.0;
         mReactionStressOld[i] = 0.0;
+        mElasticReactionStress[i] = 0.0;
         mOrderedMapKeys.push_back(actuator_name);
     }
 
@@ -248,6 +250,7 @@ protected:
     Vector mLimitVelocities;
     Vector mVelocity;
     Vector mReactionStress;
+    Vector mElasticReactionStress;
     Matrix mStiffness;
     Matrix mDeltaDisplacement;
     Matrix mDeltaReactionStress;
@@ -268,7 +271,7 @@ protected:
 ///@name Protected Operations
 ///@{
 
-virtual Vector MeasureReactionStress();
+virtual Vector MeasureReactionStress(const Variable<array_1d<double,3>>& rVariable);
 
 Vector GetPerturbations(const Vector& rTargetStress, const double& rTime);
 

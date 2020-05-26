@@ -518,6 +518,9 @@ class Procedures(object):
         if self.DEM_parameters["PostControlModule"].GetBool():
             model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
             model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(SMOOTHED_REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(ELASTIC_REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(SMOOTHED_ELASTIC_REACTION_STRESS)
             model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
 
     @classmethod
@@ -557,6 +560,9 @@ class Procedures(object):
         if DEM_parameters["PostControlModule"].GetBool():
             model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
             model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(SMOOTHED_REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(ELASTIC_REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(SMOOTHED_ELASTIC_REACTION_STRESS)
             model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
 
     def AddElasticFaceVariables(self, model_part, DEM_parameters): #Only used in CSM coupling
@@ -602,6 +608,9 @@ class Procedures(object):
         if DEM_parameters["PostControlModule"].GetBool():
             model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
             model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(SMOOTHED_REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(ELASTIC_REACTION_STRESS)
+            model_part.AddNodalSolutionStepVariable(SMOOTHED_ELASTIC_REACTION_STRESS)
             model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
 
     def AddMpiVariables(self, model_part):
@@ -1524,6 +1533,9 @@ class DEMIo(object):
             self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
         self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_variables)
         self.PushPrintVar(self.PostControlModule, REACTION_STRESS, self.global_variables)
+        self.PushPrintVar(self.PostControlModule, SMOOTHED_REACTION_STRESS, self.global_variables)
+        self.PushPrintVar(self.PostControlModule, ELASTIC_REACTION_STRESS, self.global_variables)
+        self.PushPrintVar(self.PostControlModule, SMOOTHED_ELASTIC_REACTION_STRESS, self.global_variables)
         self.PushPrintVar(self.PostControlModule, LOADING_VELOCITY, self.global_variables)
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
