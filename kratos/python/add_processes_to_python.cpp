@@ -48,6 +48,7 @@
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "processes/assign_scalar_variable_to_entities_process.h"
+#include "processes/assign_scalar_input_to_entities_process.h"
 #include "processes/assign_scalar_field_to_entities_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
@@ -401,6 +402,22 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarInputToEntitiesProcess<NodeType>, AssignScalarInputToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarInputToNodesProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarInputToEntitiesProcess<Condition>, AssignScalarInputToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarInputToConditionsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarInputToEntitiesProcess<Element>, AssignScalarInputToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarInputToElementsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarInputToEntitiesProcess<MasterSlaveConstraint>, AssignScalarInputToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarInputToMasterSlaveConstraintsProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
 
