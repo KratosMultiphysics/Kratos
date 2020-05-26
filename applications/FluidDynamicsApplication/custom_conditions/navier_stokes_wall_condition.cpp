@@ -758,6 +758,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
     Vector vGauss = ZeroVector(TDim);
     Vector nGauss = ZeroVector(TDim);
 
+    double mean_h = 0.0;
+
     for(unsigned int inode = 0; inode < TNumNodes; inode++){
 
         for (unsigned int i = 0; i < TDim; i++){
@@ -766,6 +768,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
 
         vGauss += N[inode] * rGeom[inode].FastGetSolutionStepValue(VELOCITY);
         nGauss += N[inode] * rGeom[inode].FastGetSolutionStepValue(NORMAL);
+
+        mean_h += N[inode] * rGeom[inode].GetValue(NODAL_H);
     }
 
     double sum_of_squares_v = 0.0;
@@ -788,7 +792,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
     //}    
 
-    double beta = 1.0e2;
+    double beta = 1.0e-2/mean_h;
     if (sum_of_squares_v > 1.0e-12){
         vGauss /= sqrt(sum_of_squares_v);
         beta = std::max( beta ,
@@ -831,6 +835,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
     Vector vGauss = ZeroVector(TDim);
     Vector nGauss = ZeroVector(TDim);
 
+    double mean_h = 0.0;
+
     for(unsigned int inode = 0; inode < TNumNodes; inode++){
 
         for (unsigned int i = 0; i < TDim; i++){
@@ -839,6 +845,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
 
         vGauss += N[inode] * rGeom[inode].FastGetSolutionStepValue(VELOCITY);
         nGauss += N[inode] * rGeom[inode].FastGetSolutionStepValue(NORMAL);
+
+        mean_h += N[inode] * rGeom[inode].GetValue(NODAL_H);
     }
 
     double sum_of_squares_v = 0.0;
@@ -861,10 +869,10 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
     //}    
 
-    double beta = 1.0e2;
+    double beta = 1.0e-2/mean_h;
     if (sum_of_squares_v > 1.0e-12){
         vGauss /= sqrt(sum_of_squares_v);
-        beta = std::max( beta ,
+        beta = std::max( beta,
                 std::abs(1.0/sqrt(sum_of_squares_v) * Kratos::inner_prod(traction,vGauss)) );
     }
         

@@ -87,13 +87,17 @@ public:
      */
     LevelSetConvectionProcess(
         Variable<double>& rLevelSetVar,
+        Variable<array_1d<double, 3 > >& rConvectVar,
         ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer plinear_solver,
+        const double dt_factor = 1.0,
         const double max_cfl = 1.0,
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0)
         : mrBaseModelPart(rBaseModelPart),
           mrLevelSetVar(rLevelSetVar),
+          mrConvectVar(rConvectVar),
+          mDtFactor(dt_factor),
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps)
     {
@@ -107,7 +111,7 @@ public:
         KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
 
         VariableUtils().CheckVariableExists< Variable< double > >(rLevelSetVar, rBaseModelPart.Nodes());
-        VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(VELOCITY, rBaseModelPart.Nodes());
+        VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(rConvectVar, rBaseModelPart.Nodes());
 
         if(TDim == 2){
             KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
@@ -127,7 +131,7 @@ public:
             ConvectionDiffusionSettings::Pointer p_conv_diff_settings = Kratos::make_unique<ConvectionDiffusionSettings>();
             rBaseModelPart.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(rLevelSetVar);
-            p_conv_diff_settings->SetConvectionVariable(VELOCITY);
+            p_conv_diff_settings->SetConvectionVariable(rConvectVar);
         }
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
@@ -162,6 +166,24 @@ public:
         KRATOS_CATCH("")
     }
 
+    LevelSetConvectionProcess(
+        Variable<double>& rLevelSetVar,
+        ModelPart& rBaseModelPart,
+        typename TLinearSolver::Pointer plinear_solver,
+        const double dt_factor = 1.0,
+        const double max_cfl = 1.0,
+        const double cross_wind_stabilization_factor = 0.7,
+        const unsigned int max_substeps = 0)
+        :   LevelSetConvectionProcess(
+            rLevelSetVar,
+            VELOCITY,
+            rBaseModelPart,
+            plinear_solver,
+            dt_factor,
+            max_cfl,
+            cross_wind_stabilization_factor,
+            max_substeps) {}
+
     /// Destructor.
     ~LevelSetConvectionProcess() override
     {
@@ -195,17 +217,18 @@ public:
         ProcessInfo& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
         const auto & r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
+        const double levelset_delta_time = mDtFactor * previous_delta_time;
 
         // Save current level set value and current and previous step velocity values
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-            mVelocity[i_node] = it_node->FastGetSolutionStepValue(VELOCITY);
-            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(VELOCITY,1);
+            mVelocity[i_node] = it_node->FastGetSolutionStepValue(mrConvectVar);
+            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(mrConvectVar,1);
             mOldDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar,1);
         }
 
-        const double dt = previous_delta_time / static_cast<double>(n_substep);
+        const double dt = /* previous_delta_time */ levelset_delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(mrLevelSetVar);
 
@@ -231,8 +254,8 @@ public:
                 const array_1d<double,3>& v = mVelocity[i_node];
                 const array_1d<double,3>& v_old = mVelocityOld[i_node];
 
-                it_node->FastGetSolutionStepValue(VELOCITY) = Nold * v_old + Nnew * v;
-                it_node->FastGetSolutionStepValue(VELOCITY, 1) = Nold_before * v_old + Nnew_before * v;
+                it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
+                it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
                 it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
             }
 
@@ -247,8 +270,8 @@ public:
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(VELOCITY) = mVelocity[i_node];
-            it_node->FastGetSolutionStepValue(VELOCITY,1) = mVelocityOld[i_node];
+            it_node->FastGetSolutionStepValue(mrConvectVar) = mVelocity[i_node];
+            it_node->FastGetSolutionStepValue(mrConvectVar,1) = mVelocityOld[i_node];
             it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
         }
 
@@ -313,6 +336,10 @@ protected:
     ModelPart* mpDistanceModelPart;
 
     Variable<double>& mrLevelSetVar;
+
+    Variable<array_1d<double, 3 > >& mrConvectVar;
+
+    const double mDtFactor;     // Used to march in only a fraction of dt
 
     const double mMaxAllowedCFL;
 
@@ -413,7 +440,7 @@ protected:
     unsigned int EvaluateNumberOfSubsteps(){
         // First of all compute the cfl number
         const auto n_elem = mpDistanceModelPart->NumberOfElements();
-        const double dt = mpDistanceModelPart->GetProcessInfo()[DELTA_TIME];
+        const double dt = mDtFactor * mpDistanceModelPart->GetProcessInfo()[DELTA_TIME];
 
 		// Vector where each thread will store its maximum (VS does not support OpenMP reduce max)
 		int NumThreads = OpenMPUtils::GetNumThreads();
@@ -447,7 +474,7 @@ protected:
             // Get average velocity at the nodes
             array_1d<double, 3 > vgauss = ZeroVector(3);
             for(unsigned int i=0; i<TDim+1; i++){
-                vgauss += N[i]* r_geom[i].FastGetSolutionStepValue(VELOCITY);
+                vgauss += N[i]* r_geom[i].FastGetSolutionStepValue(mrConvectVar);
             }
 
             double cfl_local = norm_2(vgauss) / h;
