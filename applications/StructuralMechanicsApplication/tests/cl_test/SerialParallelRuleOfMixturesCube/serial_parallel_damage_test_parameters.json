@@ -29,8 +29,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto3","DISPLACEMENT_Displacement_Auto2"],
         "rotation_dofs"                      : false,
         "linear_solver_settings":{
                 "solver_type": "amgcl"
@@ -41,7 +39,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto3",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -51,7 +49,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,false,true],
                 "value"           : [null,null,"0.00001*t"],
@@ -69,7 +67,7 @@
             "Parameters"            : {
                 "gauss_points_check_variables" : ["DAMAGE"],
                 "input_file_name"              : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_results.json",
-                "model_part_name"              : "Parts_Parts_Auto1",
+                "model_part_name"              : "Structure.Parts_Parts_Auto1",
                 "time_frequency"               : 0.2
             }
         }
@@ -84,7 +82,7 @@
         "Parameters"            : {
             "gauss_points_output_variables" : ["DAMAGE"],
             "output_file_name"              : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_results.json",
-            "model_part_name"               : "Parts_Parts_Auto1",
+            "model_part_name"               : "Structure.Parts_Parts_Auto1",
             "time_frequency"                : 0.2
         }
     }

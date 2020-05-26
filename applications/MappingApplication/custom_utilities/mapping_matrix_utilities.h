@@ -30,7 +30,7 @@ namespace MappingMatrixUtilities
 {
 
 template<class TSparseSpace, class TDenseSpace>
-void BuildMappingMatrix(
+void KRATOS_API(MAPPING_APPLICATION) BuildMappingMatrix(
     Kratos::unique_ptr<typename TSparseSpace::MatrixType>& rpMappingMatrix,
     Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpInterfaceVectorOrigin,
     Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpInterfaceVectorDestination,

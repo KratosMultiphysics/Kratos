@@ -65,7 +65,7 @@
             "Parameters"            : {
                 "gauss_points_check_variables" : ["PLASTIC_DISSIPATION"],
                 "input_file_name"              : "cl_test/TensileTestStructural/TensileTestStructural_results.json",
-                "model_part_name"              : "Parts_Central",
+                "model_part_name"              : "Structure.Parts_Central",
                 "tolerance"                    : 1e-2,
                 "relative_tolerance"           : 1e-4,
                 "time_frequency"               : 0.1
@@ -82,7 +82,7 @@
         "Parameters"            : {
             "gauss_points_output_variables" : ["PLASTIC_DISSIPATION"],
             "output_file_name"              : "cl_test/TensileTestStructural/TensileTestStructural_results.json",
-            "model_part_name"               : "Parts_Central",
+            "model_part_name"               : "Structure.Parts_Central",
             "time_frequency"                : 0.1
         }
     }],

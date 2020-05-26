@@ -164,11 +164,30 @@ public:
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
     /**
+     * @brief Indicates if this CL requires initialization of the material response,
+     * called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
      * @brief Initialize the material response in terms of Cauchy stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
     void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Indicates if this CL requires finalization step the material
+     * response (e.g. update of the internal variables), called by the element
+     * in FinalizeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses

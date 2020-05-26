@@ -53,10 +53,6 @@ RansVectorAlignProcess::RansVectorAlignProcess(Model& rModel, Parameters rParame
     KRATOS_CATCH("");
 }
 
-RansVectorAlignProcess::~RansVectorAlignProcess()
-{
-}
-
 int RansVectorAlignProcess::Check()
 {
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);

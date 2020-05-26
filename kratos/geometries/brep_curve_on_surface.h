@@ -24,6 +24,8 @@
 #include "geometries/geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+#include "geometries/nurbs_curve_on_surface_geometry.h"
+
 
 namespace Kratos
 {
@@ -57,6 +59,10 @@ public:
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TContainerPointEmbeddedType> NurbsCurveType;
 
+    typedef NurbsCurveOnSurfaceGeometry<3, TContainerPointEmbeddedType, TContainerPointType> NurbsCurveOnSurfaceType;
+
+    typedef typename NurbsCurveOnSurfaceType::Pointer NurbsCurveOnSurfacePointerType;
+
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
     typedef typename BaseType::IndexType IndexType;
@@ -64,6 +70,7 @@ public:
 
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -72,22 +79,56 @@ public:
     /// constructor for untrimmed surface
     BrepCurveOnSurface( 
         typename NurbsSurfaceType::Pointer pSurface,
-        typename NurbsCurveType::Pointer pCurve)
+        typename NurbsCurveType::Pointer pCurve,
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
+        , mpCurveOnSurface(
+            Kratos::make_shared<NurbsCurveOnSurfaceType>(
+                pSurface, pCurve))
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
 
+    /// constructor for trimmed surface
     BrepCurveOnSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
-        NurbsInterval CurveNurbsInterval)
+        NurbsInterval CurveNurbsInterval,
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
+        , mpCurveOnSurface(
+            Kratos::make_shared<NurbsCurveOnSurfaceType>(
+                pSurface, pCurve))
         , mCurveNurbsInterval(CurveNurbsInterval)
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
+
+    /// constructor for untrimmed surface with curve on surface
+    BrepCurveOnSurface(
+        NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
+        bool SameCurveDirection = true)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mSameCurveDirection(SameCurveDirection)
+    {
+    }
+
+    /// constructor for trimmed surface with curve on surface
+    BrepCurveOnSurface(
+        NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
+        NurbsInterval CurveNurbsInterval,
+        bool SameCurveDirection = true)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mCurveNurbsInterval(CurveNurbsInterval)
+        , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mSameCurveDirection(SameCurveDirection)
+    {
+    }
+
+    BrepCurveOnSurface()
+        : BaseType(PointsArrayType(), &msGeometryData)
+    {}
 
     explicit BrepCurveOnSurface(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
@@ -97,9 +138,9 @@ public:
     /// Copy constructor.
     BrepCurveOnSurface( BrepCurveOnSurface const& rOther )
         : BaseType( rOther )
-        , mpNurbsSurface(rOther.mpNurbsSurface)
-        , mpNurbsCurve(rOther.mpNurbsCurve)
+        , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
+        , mSameCurveDirection(rOther.mSameCurveDirection)
     {
     }
 
@@ -108,9 +149,9 @@ public:
     explicit BrepCurveOnSurface(
         BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
-        , mpNurbsSurface(rOther.mpNurbsSurface)
-        , mpNurbsCurve(rOther.mpNurbsCurve)
+        , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
+        , mSameCurveDirection(rOther.mSameCurveDirection)
     {
     }
 
@@ -135,9 +176,9 @@ public:
     BrepCurveOnSurface& operator=( const BrepCurveOnSurface& rOther )
     {
         BaseType::operator=( rOther );
-        mpNurbsSurface = rOther.mpNurbsSurface;
-        mpNurbsCurve = rOther.mpNurbsCurve;
+        mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
+        mSameCurveDirection = rOther.mSameCurveDirection;
         return *this;
     }
 
@@ -156,9 +197,9 @@ public:
     BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
-        mpNurbsSurface = rOther.mpNurbsSurface;
-        mpNurbsCurve = rOther.mpNurbsCurve;
+        mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
+        mSameCurveDirection = rOther.mSameCurveDirection;
         return *this;
     }
 
@@ -169,6 +210,48 @@ public:
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new BrepCurveOnSurface( ThisPoints ) );
+    }
+
+    ///@}
+    ///@name Set/ Get functions
+    ///@{
+
+    /*
+    * @brief Indicates if the NURBS-curve is pointing in the same direction
+    *        as the B-Rep curve.
+    * @return true -> brep curve and nurbs curve point in same direction.
+    *        false -> brep curve and nurbs curve point in opposite directions.
+    */
+    bool HasSameCurveDirection()
+    {
+        return mSameCurveDirection;
+    }
+
+    /// Returns the NurbsCurveOnSurface::Pointer of this brep.
+    NurbsCurveOnSurfacePointerType pGetCurveOnSurface()
+    {
+        return mpCurveOnSurface;
+    }
+
+    /// Returns the const NurbsCurveOnSurface::Pointer of this brep.
+    const NurbsCurveOnSurfacePointerType pGetCurveOnSurface() const
+    {
+        return mpCurveOnSurface;
+    }
+
+    ///@}
+    ///@name Curve Properties
+    ///@{
+
+    /* @brief Provides intersections of the nurbs curve with the knots of the surface,
+     *         using the interval of this curve.
+     * @param vector of span intervals.
+     * @param index of chosen direction, for curves always 0.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    {
+        mpCurveOnSurface->Spans(rSpans, DirectionIndex,
+            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 
     ///@}
@@ -187,11 +270,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
      {
-        CoordinatesArrayType surface_coordinates(3, 0.0);
-        mpNurbsCurve->GlobalCoordinates(surface_coordinates, rLocalCoordinates);
-        mpNurbsSurface->GlobalCoordinates(rResult, surface_coordinates);
-
-        return rResult;
+        return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
     /**
@@ -211,6 +290,44 @@ public:
         KRATOS_ERROR << "IsInside is not yet implemented within the BrepCurveOnSurface";
     }
 
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the nurbs surface of this geometry.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
+            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /* @brief creates a list of quadrature point geometries
+     *        from a list of integration points on the
+     *        curve on surface of this geometry.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of provided integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives) override
+    {
+        mpCurveOnSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives);
+    }
+
+    ///@}
     ///@name Shape Function
     ///@{
 
@@ -218,22 +335,14 @@ public:
         Vector &rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        CoordinatesArrayType surface_coordinates(3, 0.0);
-        mpNurbsCurve->GlobalCoordinates(surface_coordinates, rCoordinates);
-        mpNurbsSurface->ShapeFunctionsValues(rResult, surface_coordinates);
-
-        return rResult;
+        return mpCurveOnSurface->ShapeFunctionsValues(rResult, rCoordinates);
     }
 
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        CoordinatesArrayType surface_coordinates(3, 0.0);
-        mpNurbsCurve->GlobalCoordinates(surface_coordinates, rCoordinates);
-        mpNurbsSurface->ShapeFunctionsLocalGradients(rResult, surface_coordinates);
-
-        return rResult;
+        return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
     }
 
     ///@}
@@ -267,8 +376,6 @@ public:
 
     ///@}
 
-protected:
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -281,10 +388,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename NurbsSurfaceType::Pointer mpNurbsSurface;
-    typename NurbsCurveType::Pointer mpNurbsCurve;
+    NurbsCurveOnSurfacePointerType mpCurveOnSurface;
 
     NurbsInterval mCurveNurbsInterval;
+
+    /** true-> brep curve and nurbs curve point in same direction.
+    *  false-> brep curve and nurbs curve point in opposite directions. */
+    bool mSameCurveDirection;
 
     ///@}
     ///@name Serialization
@@ -295,22 +405,18 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.save("NurbsSurface", mpNurbsSurface);
-        rSerializer.save("NurbsCurve", mpNurbsCurve);
+        rSerializer.save("CurveOnSurface", mpCurveOnSurface);
         rSerializer.save("NurbsInterval", mCurveNurbsInterval);
+        rSerializer.save("SameCurveDirection", mSameCurveDirection);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.load("NurbsSurface", mpNurbsSurface);
-        rSerializer.load("NurbsCurve", mpNurbsCurve);
+        rSerializer.load("CurveOnSurface", mpCurveOnSurface);
         rSerializer.load("NurbsInterval", mCurveNurbsInterval);
+        rSerializer.load("SameCurveDirection", mSameCurveDirection);
     }
-
-    BrepCurveOnSurface()
-        : BaseType( PointsArrayType(), &msGeometryData )
-    {}
 
     ///@}
 }; // Class BrepCurveOnSurface

@@ -38,11 +38,11 @@ else:
 
 
 class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
-    def __init__(self, model, settings):
+    def __init__(self, model_part, settings):
         self._validate_settings_in_baseclass = True  # To be removed eventually
 
         super(TurbulenceEddyViscosityModelConfiguration, self).__init__(
-            model, settings)
+            model_part, settings)
 
         # self.mesh_moving = self.settings["mesh_moving"].GetBool()
         self.strategies_list = []
@@ -190,7 +190,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
             self.fluid_model_part.ProcessInfo[
                 Kratos.
                 BOSSAK_ALPHA] = scheme_settings["alpha_bossak"].GetDouble()
-            self.fluid_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA] = 1.0
             self.fluid_model_part.ProcessInfo[
                 KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True
             if (self.fluid_model_part.ProcessInfo[Kratos.DYNAMIC_TAU] != 0.0):

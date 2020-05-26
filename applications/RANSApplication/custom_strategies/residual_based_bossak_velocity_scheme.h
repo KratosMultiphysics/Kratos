@@ -76,9 +76,9 @@ public:
         const std::vector<Variable<double> const*> rDisplacementVariables,
         const std::vector<Variable<double> const*> rVelocityVariables,
         const std::vector<Variable<double> const*> rAccelerationVariables,
-        const std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const*> rDisplacementComponentVariables,
-        const std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const*> rVelocityComponentVariables,
-        const std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const*> rAccelerationComponentVariables)
+        const std::vector<Variable<double> const*> rDisplacementComponentVariables,
+        const std::vector<Variable<double> const*> rVelocityComponentVariables,
+        const std::vector<Variable<double> const*> rAccelerationComponentVariables)
         : mAlphaBossak(AlphaBossak),
           mUpdateAcceleration(rAccelerationVariables.size() > 0 ||
                               rAccelerationComponentVariables.size() > 0),
@@ -108,9 +108,7 @@ public:
     }
 
     /// Destructor.
-    ~ResidualBasedBossakVelocityScheme() override
-    {
-    }
+    ~ResidualBasedBossakVelocityScheme() override = default;
 
     ///@}
     ///@name Operators
@@ -442,11 +440,11 @@ protected:
 
         UpdateAcceleration<Variable<double>>(rModelPart, mVelocityVariables,
                                              mAccelerationVariables);
-        UpdateAcceleration<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+        UpdateAcceleration<Variable<double>>(
             rModelPart, mVelocityComponentVariables, mAccelerationComponentVariables);
         UpdateDisplacement<Variable<double>>(rModelPart, mDisplacementVariables,
                                              mVelocityVariables, mAccelerationVariables);
-        UpdateDisplacement<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+        UpdateDisplacement<Variable<double>>(
             rModelPart, mDisplacementComponentVariables,
             mVelocityComponentVariables, mAccelerationComponentVariables);
 
@@ -526,9 +524,9 @@ private:
     const std::vector<Variable<double> const*> mVelocityVariables;
     const std::vector<Variable<double> const*> mAccelerationVariables;
 
-    const std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const*> mDisplacementComponentVariables;
-    const std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const*> mVelocityComponentVariables;
-    const std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> const*> mAccelerationComponentVariables;
+    const std::vector<Variable<double> const*> mDisplacementComponentVariables;
+    const std::vector<Variable<double> const*> mVelocityComponentVariables;
+    const std::vector<Variable<double> const*> mAccelerationComponentVariables;
 
     BossakConstants mBossak;
 

@@ -5,20 +5,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 from KratosMultiphysics.CoSimulationApplication.factories import coupling_operation_factory
+from testing_utilities import DummySolverWrapper
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 using_pykratos = UsingPyKratos()
 
 from math import sqrt, pi
-
-class SolverWrapper(object):
-    '''dummy object used for testing to emulate the behavior of the SolverWrapper'''
-    def __init__(self, interface_data_dict):
-        self.interface_data_dict = interface_data_dict
-
-    def GetInterfaceData(self, data_name):
-        return self.interface_data_dict[data_name]
-
 
 class TestScalingOperation(KratosUnittest.TestCase):
 
@@ -40,7 +32,9 @@ class TestScalingOperation(KratosUnittest.TestCase):
         self.interface_data = CouplingInterfaceData(data_settings, self.model)
         self.interface_data.Initialize()
 
-        self.solver_wrappers = {"dummy_solver" : SolverWrapper({"data_4_testing" : self.interface_data})}
+        self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"data_4_testing" : self.interface_data})}
+
+        self.solver_process_info = KM.ProcessInfo()
 
     def test_constant_scaling(self):
         scaling_op_settings = KM.Parameters("""{
@@ -51,7 +45,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "echo_level"     : 0
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
 
         factors = [1.5] * 3
 
@@ -66,7 +60,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "echo_level"     : 0
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
 
         factors = [1.5] * 3
 
@@ -81,7 +75,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "echo_level"     : 0
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
 
         factors = [1.5*0.25, 1.5*0.5, 1.5*0.75]
 
@@ -96,7 +90,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "echo_level"     : 0
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
 
         factors = [1.5*pi*sqrt(1), 1.5*pi*sqrt(2), 1.5*pi*sqrt(3), 1.5*pi*sqrt(4), 1.5*pi*sqrt(5)]
 
@@ -114,7 +108,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "interval"       : [0.0, 0.3]
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
 
         factors = [1.0] * 5
         factors[0] = 1.22
@@ -133,7 +127,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "interval"       : [0.8, "End"]
         }""")
 
-        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers)
+        scaling_op = coupling_operation_factory.CreateCouplingOperation(scaling_op_settings, self.solver_wrappers, self.solver_process_info)
 
         factors = [1.0] * 3
         factors.extend([1.22] * 3)

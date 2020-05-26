@@ -8,9 +8,8 @@ if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
     from KratosMultiphysics.TrilinosApplication import *
 from KratosRANSApplication import *
 
-from KratosMultiphysics import _ImportApplicationAsModule
+from KratosMultiphysics import _ImportApplication
 application = KratosRANSApplication()
 application_name = "KratosRANSApplication"
-application_folder = "RANSApplication"
 
-_ImportApplicationAsModule(application, application_name, application_folder, __path__)
+_ImportApplication(application, application_name)

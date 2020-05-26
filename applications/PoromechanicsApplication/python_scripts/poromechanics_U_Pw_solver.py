@@ -51,6 +51,9 @@ class UPwSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "material_import_settings" :{
+                "materials_filename": ""
+            },
             "buffer_size": 2,
             "echo_level": 0,
             "reform_dofs_at_each_step": false,
@@ -315,8 +318,23 @@ class UPwSolver(PythonSolver):
         check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
-        from KratosMultiphysics.PoromechanicsApplication import poromechanics_constitutivelaw_utility
-        poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
+        materials_imported = self.import_constitutive_laws()
+        if materials_imported:
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was successfully imported via json.")
+        else:
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was not successfully imported.")
+
+    def import_constitutive_laws(self):
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            # Add constitutive laws and material properties from json file to model parts.
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported
 
     def _SetBufferSize(self):
         required_buffer_size = self.settings["buffer_size"].GetInt()

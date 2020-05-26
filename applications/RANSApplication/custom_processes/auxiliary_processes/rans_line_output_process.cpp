@@ -89,10 +89,6 @@ RansLineOutputProcess::RansLineOutputProcess(Model& rModel, Parameters rParamete
     KRATOS_CATCH("");
 }
 
-RansLineOutputProcess::~RansLineOutputProcess()
-{
-}
-
 int RansLineOutputProcess::Check()
 {
     KRATOS_TRY

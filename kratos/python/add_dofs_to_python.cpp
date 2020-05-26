@@ -44,6 +44,12 @@ void  AddDofsToPython(pybind11::module& m)
     .def("Fix", &Dof<double>::FixDof)
     .def("Free", &Dof<double>::FreeDof)
     .def("IsFixed", &Dof<double>::IsFixed)
+    .def("__lt__", [](Dof<double>& dof1, Dof<double>& dof2){return dof1<dof2; })
+    .def("__gt__", [](Dof<double>& dof1, Dof<double>& dof2){return dof1>dof2; })
+    .def("__le__", [](Dof<double>& dof1, Dof<double>& dof2){return dof1<=dof2; })
+    .def("__ge__", [](Dof<double>& dof1, Dof<double>& dof2){return dof1>=dof2; })
+    .def("__eq__", [](Dof<double>& dof1, Dof<double>& dof2){return dof1==dof2; })
+    .def("__ne__", [](Dof<double>& dof1, Dof<double>& dof2){return !(dof1==dof2); })
     .def("__str__", PrintObject<Dof<double>>)
     ;
 

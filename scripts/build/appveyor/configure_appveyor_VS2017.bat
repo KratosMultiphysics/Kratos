@@ -11,7 +11,7 @@ set CC=cl.exe
 set CXX=cl.exe
 
 rem Set variables
-set KRATOS_BUILD_TYPE=Release
+set KRATOS_BUILD_TYPE=Debug
 set KRATOS_SOURCE=.
 set KRATOS_BUILD=.\build
 set KRATOS_APP_DIR=applications
@@ -46,9 +46,10 @@ rem Configur
  -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
  -DBOOST_ROOT="C:\Libraries\boost_1_65_1"           ^
  -DPYTHON_EXECUTABLE="C:\Python36-x64\python.exe"   ^
- -DINCLUDE_FEAST=OFF                                ^
  -DINSTALL_RUNKRATOS=OFF                            ^
  -DUSE_COTIRE=ON
 
 rem Build
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target zlibstatic -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64

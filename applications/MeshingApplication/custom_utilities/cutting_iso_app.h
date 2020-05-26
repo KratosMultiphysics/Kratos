@@ -336,7 +336,7 @@ public:
 
         //now to the conditions!
         vector<int>  triangle_nodes(3); //here we'll save the nodes' ids with the new node names
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");         //condition type
+        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");         //condition type
         Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(number); 		//this will allow us later to turn this layer on/off in GID
 
         for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
@@ -1103,7 +1103,7 @@ public:
             KRATOS_WATCH("First Cutting Surface");
         }
 
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
         Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(surface_number);
 
         int number_of_triangles =  0;
@@ -1451,7 +1451,7 @@ public:
             KRATOS_WATCH("First Cutting Surface");
         }
 
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
         Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(surface_number);
 
         int number_of_triangles =  0;
@@ -1793,7 +1793,7 @@ public:
             KRATOS_WATCH("First Cutting Surface");
         }
 
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
         Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(surface_number);
 
         int number_of_triangles =  0;

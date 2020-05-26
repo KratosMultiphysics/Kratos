@@ -146,7 +146,7 @@ class fgmres {
                 ) const
         {
             scalar_type norm_rhs = norm(rhs);
-            if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
+            if (norm_rhs < amgcl::detail::eps<scalar_type>(1)) {
                 backend::clear(x);
                 return std::make_tuple(0, norm_rhs);
             }

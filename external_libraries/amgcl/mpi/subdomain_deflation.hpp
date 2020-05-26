@@ -107,18 +107,17 @@ sdd_projected_matrix<SDD, Matrix> make_sdd_projected_matrix(const SDD &S, const 
  */
 template <
     class LocalPrecond,
-    template <class, class> class IterativeSolver,
+    class IterativeSolver,
     class DirectSolver = mpi::direct::skyline_lu<typename LocalPrecond::backend_type::value_type>
     >
 class subdomain_deflation {
     public:
         typedef typename LocalPrecond::backend_type backend_type;
         typedef typename backend_type::params backend_params;
-        typedef IterativeSolver<backend_type, mpi::inner_product> ISolver;
 
         struct params {
             typename LocalPrecond::params local;
-            typename ISolver::params      isolver;
+            typename IterativeSolver::params isolver;
             typename DirectSolver::params dsolver;
 
             // Number of deflation vectors.
@@ -535,7 +534,7 @@ class subdomain_deflation {
         std::shared_ptr<vector> q;
         std::shared_ptr<vector> dd;
 
-        ISolver S;
+        IterativeSolver S;
 
         void coarse_solve(std::vector<value_type> &f, std::vector<value_type> &x) const
         {

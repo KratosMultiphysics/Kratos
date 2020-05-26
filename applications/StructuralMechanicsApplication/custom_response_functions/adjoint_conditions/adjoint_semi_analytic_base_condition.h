@@ -111,29 +111,20 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override
-    {
-        KRATOS_ERROR << "EquationIdVector of the base class called!" << std::endl;
-    }
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override
-    {
-        KRATOS_ERROR << "GetDofList of the base class called!" << std::endl;
-    }
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const override;
 
     IntegrationMethod GetIntegrationMethod() override
     {
         return mpPrimalCondition->GetIntegrationMethod();
     }
 
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override
-    {
-        KRATOS_ERROR << "GetValuesVector of the base class called!" << std::endl;
-    }
+    void GetValuesVector(Vector& rValues, int Step = 0 ) const override;
 
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->Initialize();
+        mpPrimalCondition->Initialize(rCurrentProcessInfo);
     }
 
     void ResetConstitutiveLaw() override
@@ -294,17 +285,11 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
-    }
+					      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& Output,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
-    }
+					      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& Output,
@@ -320,32 +305,28 @@ public:
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override
-    {
-        KRATOS_ERROR << "Check of the base class called!" << std::endl;
-    }
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Calculates the pseudo-load contribution of the condition w.r.t.  a scalar design variable.
      */
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateSensitivityMatrix of the base class called!" << std::endl;
-    }
+                                            const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculates the pseudo-load contribution of the condition w.r.t.  a vector design variable.
      */
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateSensitivityMatrix of the base class called!" << std::endl;
-    }
+                                            const ProcessInfo& rCurrentProcessInfo) override;
 
     Condition::Pointer pGetPrimalCondition()
+    {
+        return mpPrimalCondition;
+    }
+
+    const Condition::Pointer pGetPrimalCondition() const
     {
         return mpPrimalCondition;
     }
@@ -426,6 +407,32 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * Get the perturbation size for a scalar variable
+     */
+    double GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+     * Get the perturbation size for a vector variable
+     */
+    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+     * Get the perturbation size modification factor for a scalar variable.
+     * The computed factor reflects the current value of the property (design variable).
+     * Note: This approach is only based on experience.
+     * This can be overwritten by derived classes.
+     */
+    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable) const;
+
+    /**
+     * Get the perturbation size modification factor for a vector variable.
+     * The computed factor reflects the size of the geometry.
+     * Note: This approach is only based on experience.
+     * This can be overwritten by derived classes.
+     */
+    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const;
 
 
     ///@}

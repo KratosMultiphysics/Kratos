@@ -41,66 +41,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * Constructor.
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(NewId)
-{
-}
-
-/**
- * Constructor using an array of nodes
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId,
-                                                                  const NodesArrayType& ThisNodes)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(
-          NewId, ThisNodes)
-{
-}
-
-/**
- * Constructor using Geometry
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId,
-                                                                  GeometryType::Pointer pGeometry)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(
-          NewId, pGeometry)
-{
-}
-
-/**
- * Constructor using Properties
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(
-          NewId, pGeometry, pProperties)
-{
-}
-
-/**
- * Copy Constructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(
-    RansEvmKEpsilonKElement<TDim, TNumNodes> const& rOther)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(rOther)
-{
-}
-
-/**
- * Destructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::~RansEvmKEpsilonKElement()
-{
-}
-
 ///@}
 ///@name Operators
 ///@{
@@ -198,14 +138,13 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rEleme
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
+void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step)
 {
     this->GetFirstDerivativesVector(rValues, Step);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues,
-                                                                         int Step)
+void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -220,8 +159,7 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorT
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues,
-                                                                          int Step)
+void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);

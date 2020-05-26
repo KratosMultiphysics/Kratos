@@ -179,7 +179,7 @@ class STMonolithicSolver:
 
             if(domain_size == 2):
                 self.Mesher =  TriGenDropletModeler()
-                self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+                self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part)
                 #this is needed if we want to also store the conditions a node belongs to
                 self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
 
@@ -254,7 +254,7 @@ class STMonolithicSolver:
             if self.use_spalart_allmaras:
                 self.neighbour_search.Execute()
 
-        NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
                 node.SetSolutionStepValue(NORMAL_X,0,0.0)
@@ -300,7 +300,7 @@ class STMonolithicSolver:
         h_factor=0.25;
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","LineCondition2D2N", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
 
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
@@ -318,7 +318,7 @@ class STMonolithicSolver:
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
 ######################################################################################################
         #FOR PFEM
-        NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
         if (self.domain_size == 2):
             for node in self.model_part.Nodes:
                 node.SetSolutionStepValue(FLAG_VARIABLE,0,0.0)

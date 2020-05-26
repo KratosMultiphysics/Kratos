@@ -94,13 +94,11 @@ public:
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void Initialize() override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief This function calculates the elastic part of the total stiffness matrix
@@ -215,20 +213,20 @@ public:
 
     void AddExplicitContribution(const VectorType& rRHSVector,
                                  const Variable<VectorType>& rRHSVariable,
-                                 Variable<array_1d<double, 3> >& rDestinationVariable,
+                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
                                  const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     /**
      * @brief This function is used to assemble single transformation matrix in the big global rotation matrix
@@ -238,7 +236,7 @@ public:
     void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
                                   msElementSize,msElementSize>& BigMatrix) const;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /**
@@ -261,11 +259,6 @@ public:
     void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;

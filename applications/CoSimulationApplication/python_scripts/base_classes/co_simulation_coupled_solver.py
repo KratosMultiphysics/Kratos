@@ -9,6 +9,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.factories.helpers as factories_helper
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
@@ -25,7 +26,30 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     - Handles the coupling sequence
     """
     def __init__(self, settings, solver_name):
+        # perform some initial checks
+        if not settings.Has("coupling_sequence"):
+            err_msg  = 'No "coupling_sequence" was specified for coupled solver\n'
+            err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
+            raise Exception(err_msg)
+
+        if settings["coupling_sequence"].size() == 0:
+            err_msg  = '"coupling_sequence" is empty for coupled solver\n'
+            err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
+            raise Exception(err_msg)
+
+        if not settings.Has("solvers"):
+            err_msg  = 'No "solvers" are specified for coupled solver\n'
+            err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
+            raise Exception(err_msg)
+
+        if len(settings["solvers"].keys()) == 0:
+            err_msg  = '"solvers" is empty for coupled solver\n'
+            err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
+            raise Exception(err_msg)
+
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
+
+        self.process_info = KM.ProcessInfo()
 
         self.solver_wrappers = self.__CreateSolverWrappers()
 
@@ -36,21 +60,30 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             # using the Echo_level of the coupled solver, since IO is needed by the coupling
 
         ### Creating the predictors
-        self.predictors_list = cs_tools.CreatePredictors(
+        self.predictors_list = factories_helper.CreatePredictors(
             self.settings["predictors"],
             self.solver_wrappers,
             self.echo_level)
 
         ### Creating the coupling operations
-        self.coupling_operations_dict = cs_tools.CreateCouplingOperations(
+        self.coupling_operations_dict = factories_helper.CreateCouplingOperations(
             self.settings["coupling_operations"],
             self.solver_wrappers,
+            self.process_info,
             self.echo_level)
 
         ### Creating the data transfer operators
-        self.data_transfer_operators_dict = cs_tools.CreateDataTransferOperators(
+        self.data_transfer_operators_dict = factories_helper.CreateDataTransferOperators(
             self.settings["data_transfer_operators"],
             self.echo_level)
+
+    def _GetSolver(self, solver_name):
+        solver_name, *sub_solver_names = solver_name.split(".")
+        solver = self.solver_wrappers[solver_name]
+        if len(sub_solver_names) > 0:
+            return solver._GetSolver(".".join(sub_solver_names))
+        else:
+            return solver
 
     def Initialize(self):
         for solver in self.solver_wrappers.values():
@@ -83,9 +116,18 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             coupling_operation.Finalize()
 
     def AdvanceInTime(self, current_time):
+        # not all solvers provide time (e.g. external solvers or steady solvers)
+        # hence we have to check first if they return time (i.e. time != 0.0)
+        # and then if the times are matching, since currently no interpolation in time is possible
+
         self.time = 0.0
         for solver in self.solver_wrappers.values():
-            self.time = max(self.time, solver.AdvanceInTime(current_time))
+            solver_time = solver.AdvanceInTime(current_time)
+            if solver_time != 0.0: # solver provides time
+                if self.time == 0.0: # first time a solver returns a time different from 0.0
+                    self.time = solver_time
+                elif abs(self.time - solver_time) > 1e-12:
+                        raise Exception("Solver time mismatch")
 
         return self.time
 
@@ -243,6 +285,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         # TODO check that there is no self-communication with the same data!
         # self-communication is allowed within a solver, but not on the same data
         super(CoSimulationCoupledSolver, self).Check()
+
         for solver in self.solver_wrappers.values():
             solver.Check()
 
@@ -259,12 +302,19 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_name)
 
         # then order them according to the coupling-loop
-        # NOTE solvers that are not used in the coupling-sequence will not participate
         solvers_map = OrderedDict()
         for i_solver_settings in range(self.settings["coupling_sequence"].size()):
             solver_settings = self.settings["coupling_sequence"][i_solver_settings]
             solver_name = solver_settings["name"].GetString()
             solvers_map[solver_name] = solvers[solver_name]
+
+        for solver_name in self.settings["solvers"].keys():
+            if solver_name not in solvers_map:
+                err_msg  = 'Solver "{}" of type "{}"\n'.format(solver_name, solvers[solver_name]._ClassName())
+                err_msg += 'is specified in the "solvers" of coupled solver\n'
+                err_msg += '"{}" of type "{}"\n'.format(self.name, self._ClassName())
+                err_msg += 'but not used in the "coupling_sequence"!'
+                raise Exception(err_msg)
 
         return solvers_map
 

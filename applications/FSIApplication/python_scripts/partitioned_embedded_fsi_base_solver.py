@@ -172,13 +172,13 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.__UpdateLevelSet()
 
         # Correct the updated level set
-        self.fluid_solver._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+        self.fluid_solver.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
         # Fluid solver prediction
         self.fluid_solver.Predict()
 
         # Restore the fluid node fixity to its original status
-        self.fluid_solver._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        self.fluid_solver.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
@@ -597,7 +597,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def __GetStructureInterfaceSubmodelPart(self):
         # Returns the structure interface submodelpart that will be used in the residual minimization
-        return self.structure_solver.main_model_part.GetSubModelPart(self.structure_interface_submodelpart_name)
+        return self.model.GetModelPart(self.structure_interface_submodelpart_name)
 
     def __GetDomainSize(self):
         fluid_domain_size = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

@@ -31,16 +31,12 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
         "time_stepping"                      : {
-            "time_step_intervals" : {
-                "first_interval" : {
-                    "interval"  : [0.0, 0.9999999],
-                    "time_step" : 1.0e-1
-                },
-                "second_interval" : {
-                    "interval"  : [1.0, "End"],
-                    "time_step" : 1.0e-2
-                }
-            }
+            "time_step_table" : [
+                [0.0, 0.1],
+                [0.9999, 0.1],
+                [1.0, 0.01],
+                [2.6, 0.01]
+            ]
         }
     },
     "processes" : {
@@ -170,7 +166,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                 "result_file_configuration" : {
@@ -201,7 +197,7 @@
             "process_name"  : "VtkOutputProcess",
             "help"          : "This process writes postprocessing files for Paraview",
             "Parameters"    : {
-                "model_part_name"                    : "Structure.computing_domain",
+                "model_part_name"                    : "Structure",
                 "output_control_type"                : "time",
                 "output_frequency"                   : 1.0e-1,
                 "file_format"                        : "ascii",

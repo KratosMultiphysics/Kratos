@@ -69,8 +69,8 @@ MmgIO<TMMGLibrary>::MmgIO(
     if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(rFilename + ".time");
 
     /* We restart the MMG mesh and solution */
-    mMmmgUtilities.SetEchoLevel(mThisParameters["echo_level"].GetInt());
-    mMmmgUtilities.InitMesh();
+    mMmgUtilities.SetEchoLevel(mThisParameters["echo_level"].GetInt());
+    mMmgUtilities.InitMesh();
 }
 
 /***********************************************************************************/
@@ -82,10 +82,10 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     // Automatically read the mesh
-    mMmmgUtilities.InputMesh(mFilename);
+    mMmgUtilities.InputMesh(mFilename);
 
     // Automatically read the solution
-    mMmmgUtilities.InputSol(mFilename);
+    mMmgUtilities.InputSol(mFilename);
 
     // Read JSON of colors
     std::unordered_map<IndexType,std::vector<std::string>> colors;  /// Where the sub model parts IDs are stored
@@ -103,24 +103,24 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
 
     // Some information
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
-    mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
+    mMmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
 
     // Creating auxiliar maps of pointers
     std::unordered_map<IndexType,Condition::Pointer> ref_condition; /// Reference condition
     std::unordered_map<IndexType,Element::Pointer> ref_element;     /// Reference element
 
     // Fill the maps
-    mMmmgUtilities.WriteReferenceEntitities(rModelPart, mFilename, ref_condition, ref_element);
+    mMmgUtilities.WriteReferenceEntitities(rModelPart, mFilename, ref_condition, ref_element);
 
     // Writing the new mesh data on the model part
     NodeType::DofsContainerType empty_dofs;
-    mMmmgUtilities.WriteMeshDataToModelPart(rModelPart, colors, empty_dofs, mmg_mesh_info, ref_condition, ref_element);
+    mMmgUtilities.WriteMeshDataToModelPart(rModelPart, colors, empty_dofs, mmg_mesh_info, ref_condition, ref_element);
 
     // Writing the new solution data on the model part
-    mMmmgUtilities.WriteSolDataToModelPart(rModelPart);
+    mMmgUtilities.WriteSolDataToModelPart(rModelPart);
 
     /* After that we reorder nodes, conditions and elements: */
-    mMmmgUtilities.ReorderAllIds(rModelPart);
+    mMmgUtilities.ReorderAllIds(rModelPart);
 
     KRATOS_CATCH("");
 }
@@ -138,27 +138,27 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
 
     // We initialize the mesh data with the given modelpart
     std::unordered_map<IndexType,std::vector<std::string>> colors;  /// Where the sub model parts IDs are stored
-    mMmmgUtilities.GenerateMeshDataFromModelPart(rModelPart, colors, aux_ref_cond, aux_ref_elem);
+    mMmgUtilities.GenerateMeshDataFromModelPart(rModelPart, colors, aux_ref_cond, aux_ref_elem);
 
     // Generate the maps of reference
     std::unordered_map<IndexType,Element::Pointer>   ref_element;   /// Reference element
     std::unordered_map<IndexType,Condition::Pointer> ref_condition; /// Reference condition
-    mMmmgUtilities.GenerateReferenceMaps(rModelPart, aux_ref_cond, aux_ref_elem, ref_condition, ref_element);
+    mMmgUtilities.GenerateReferenceMaps(rModelPart, aux_ref_cond, aux_ref_elem, ref_condition, ref_element);
 
     // We initialize the solution data with the given modelpart
-    mMmmgUtilities.GenerateSolDataFromModelPart(rModelPart);
+    mMmgUtilities.GenerateSolDataFromModelPart(rModelPart);
 
     // Check if the number of given entities match with mesh size
-    mMmmgUtilities.CheckMeshData();
+    mMmgUtilities.CheckMeshData();
 
     // Automatically save the mesh
-    mMmmgUtilities.OutputMesh(mFilename);
+    mMmgUtilities.OutputMesh(mFilename);
 
     // Automatically save the solution
-    mMmmgUtilities.OutputSol(mFilename);
+    mMmgUtilities.OutputSol(mFilename);
 
     // Output the reference files
-    mMmmgUtilities.OutputReferenceEntitities(mFilename, ref_condition, ref_element);
+    mMmgUtilities.OutputReferenceEntitities(mFilename, ref_condition, ref_element);
 
     // Writing the colors to a JSON
     AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(mFilename, colors);

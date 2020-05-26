@@ -12,6 +12,7 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rv_swe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cv_swe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/swe.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conserved_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nothing_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/estimate_dt_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/post_process_utilities.cpp
@@ -23,6 +24,8 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_sinusoidal_function_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/rough_porous_layer_wetting_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/negative_height_wetting_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_velocity_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/move_shallow_particles_process.cpp
 )
 
 ## define python interface sources
