@@ -52,6 +52,10 @@ namespace MPMParticleGeneratorUtility
     /// Get integration weights of the geometry for the given integration method
     void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
 
+    /// Get integration method and shape function values for the given element
+    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+        IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
+
     /**
      * @brief Construct material points or particles from given initial mesh
      * @details Generating particles using a designated shape functions
@@ -121,81 +125,16 @@ namespace MPMParticleGeneratorUtility
                     // Get geometry and dimension of the background grid
                     const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
                     const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
-                    const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
-                    auto int_method = GeometryData::GI_GAUSS_2;
+                    
+                    // Get integration method and shape function values
+                    IntegrationMethod int_method = GeometryData::GI_GAUSS_1;
                     Matrix shape_functions_values;
                     bool is_equal_int_volumes = false;
-                    if (geo_type == GeometryData::Kratos_Tetrahedra3D4 || geo_type == GeometryData::Kratos_Triangle2D3)
-                    {
-                        switch (particles_per_element)
-                        {
-                        case 1:
-                            int_method = GeometryData::GI_GAUSS_1;
-                            break;
-                        case 3:
-                            int_method = GeometryData::GI_GAUSS_2;
-                            break;
-                        case 6:
-                            int_method = GeometryData::GI_GAUSS_4;
-                            break;
-                        case 12:
-                            int_method = GeometryData::GI_GAUSS_5;
-                            break;
-                        case 16:
-                            if (domain_size == 2) {
-                                is_equal_int_volumes = true;
-                                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " 
-                                    << "16 particles per triangle element is only valid for undistorted triangles." << std::endl;
-                                shape_functions_values = MP16ShapeFunctions();
-                                break;
-                            }
-                        case 33:
-                            if (domain_size == 2) {
-                                is_equal_int_volumes = true;
-                                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: "
-                                    << "33 particles per triangle element is only valid for undistorted triangles." << std::endl;
-                                shape_functions_values = MP33ShapeFunctions();
-                                break;
-                            }
-                        default:
-                            std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
-                            warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                            warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
-                            warning_msg += "The default number of particle: 3 is currently assumed.";
-                            KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
-                            break;
-                        }
-                    }
-                    else if (geo_type == GeometryData::Kratos_Hexahedra3D8 || geo_type == GeometryData::Kratos_Quadrilateral2D4)
-                    {
-                        switch (particles_per_element)
-                        {
-                        case 1:
-                            int_method = GeometryData::GI_GAUSS_1;
-                            break;
-                        case 4:
-                            int_method = GeometryData::GI_GAUSS_2;
-                            break;
-                        case 9:
-                            int_method = GeometryData::GI_GAUSS_3;
-                            break;
-                        case 16:
-                            int_method = GeometryData::GI_GAUSS_4;
-                            break;
-                        default:
-                            std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
-                            warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
-                            warning_msg += "Available options are: 1, 4, 9, 16.\n";
-                            warning_msg += "The default number of particle: 4 is currently assumed.";
-                            KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
-                            break;
-                        }
-                    }
-
-                    // Get shape functions and integration point volumes
-                    if(!is_equal_int_volumes) shape_functions_values = r_geometry.ShapeFunctionsValues(int_method);
+                    DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, particles_per_element,
+                        int_method, shape_functions_values, is_equal_int_volumes);
+                    
+                    // Get volumes of the material points
                     const unsigned int integration_point_per_elements = shape_functions_values.size1();
                     Vector int_volumes (integration_point_per_elements);
                     if (is_equal_int_volumes) {
