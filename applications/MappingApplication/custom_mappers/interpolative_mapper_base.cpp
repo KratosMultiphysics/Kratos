@@ -26,7 +26,7 @@
 #include "input_output/vtk_output.h"
 #include "utilities/variable_utils.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "custom_searching/interface_communicator_mpi.h"
+#include "custom_searching/mpi/interface_communicator_mpi.h"
 #endif
 
 namespace Kratos {

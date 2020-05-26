@@ -13,32 +13,33 @@ class ControlModuleFemDemUtility(object):
         if not test_number:
             return
 
-        compression_length = 0.00381
         if test_number == 1: # CTW16
-            face_area = 0.008062
+            compression_length = 0.00381
+            # face_area = 0.008062
         elif test_number == 2: # CTW10
-            face_area = 0.007601
+            compression_length = 0.00381
+            # face_area = 0.007601
         else: # Blind test
             compression_length = 0.009144
-            face_area = 0.088343
+            # face_area = 0.088343
 
         if fem_main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             self.fem_submodel_part = Model["Structure.Parts_Solid_part"]
             settings = KratosMultiphysics.Parameters( """
             {
+                "alternate_axis_loading": true,
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
-                "limit_velocity" : -10.0,
-                "velocity_factor" : 0.5,
+                "limit_velocity" : -15.0,
+                "velocity_factor" : 1.0,
                 "compression_length" : 1.0,
                 "young_modulus" : 7.0e9,
-                "stress_increment_tolerance": 100.0,
+                "stress_increment_tolerance": 1.0e-3,
                 "update_stiffness": true,
-                "start_time" : 0.0
+                "start_time" : 0.0,
+                "stress_averaging_time": 1.0e-5
             }  """ )
 
-            settings.AddEmptyValue("face_area")
-            settings["face_area"].SetDouble(face_area)
             self.components_utility_list.append(DemFem.ControlModuleFemDem2DUtilities(self.fem_submodel_part, self.dem_main_model_part, settings))
         else:
             self.top_fem_model_part = Model["Structure.SurfacePressure3D_top_pressure"]
@@ -46,13 +47,8 @@ class ControlModuleFemDemUtility(object):
             self.top_dem_model_part = self.dem_main_model_part.GetSubModelPart("topdem")
             top_settings = KratosMultiphysics.Parameters( """
             {
-                "variable_name": "DISPLACEMENT",
-                "reaction_variable_name": "REACTION",
-                "dem_force_variable_name": "TOTAL_FORCES",
-                "target_stress_variable_name": "TARGET_STRESS",
-                "reaction_stress_variable_name": "REACTION_STRESS",
-                "loading_velocity_variable_name": "LOADING_VELOCITY",
                 "imposed_direction" : 2,
+                "alternate_axis_loading": false,
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
                 "limit_velocity" : -0.1,
@@ -60,13 +56,12 @@ class ControlModuleFemDemUtility(object):
                 "young_modulus" : 7.0e9,
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
-                "start_time" : 0.0
+                "start_time" : 0.0,
+                "stress_averaging_time": 1.0e-5
             }  """ )
 
             top_settings.AddEmptyValue("compression_length")
             top_settings["compression_length"].SetDouble(compression_length)
-            top_settings.AddEmptyValue("face_area")
-            top_settings["face_area"].SetDouble(face_area)
             self.components_utility_list.append(DemFem.ControlModuleFemDemUtilities(self.top_fem_model_part, self.top_dem_model_part, top_settings))
 
             self.bot_fem_model_part = Model["Structure.SurfacePressure3D_bottom_pressure"]
@@ -74,13 +69,8 @@ class ControlModuleFemDemUtility(object):
             self.bot_dem_model_part = self.dem_main_model_part.GetSubModelPart("botdem")
             bot_settings = KratosMultiphysics.Parameters( """
             {
-                "variable_name": "DISPLACEMENT",
-                "reaction_variable_name": "REACTION",
-                "dem_force_variable_name": "TOTAL_FORCES",
-                "target_stress_variable_name": "TARGET_STRESS",
-                "reaction_stress_variable_name": "REACTION_STRESS",
-                "loading_velocity_variable_name": "LOADING_VELOCITY",
                 "imposed_direction" : 2,
+                "alternate_axis_loading": false,
                 "target_stress_table_id" : 2,
                 "initial_velocity" : 0.0,
                 "limit_velocity" : 0.1,
@@ -88,13 +78,12 @@ class ControlModuleFemDemUtility(object):
                 "young_modulus" : 7.0e9,
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
-                "start_time" : 0.0
+                "start_time" : 0.0,
+                "stress_averaging_time": 1.0e-5
             }  """ )
 
             bot_settings.AddEmptyValue("compression_length")
             bot_settings["compression_length"].SetDouble(compression_length)
-            bot_settings.AddEmptyValue("face_area")
-            bot_settings["face_area"].SetDouble(face_area)
             self.components_utility_list.append(DemFem.ControlModuleFemDemUtilities(self.bot_fem_model_part, self.bot_dem_model_part, bot_settings))
 
     def ExecuteInitialize(self):

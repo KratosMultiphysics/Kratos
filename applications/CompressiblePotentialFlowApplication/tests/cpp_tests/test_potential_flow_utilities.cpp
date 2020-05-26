@@ -91,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityMagnitude, CompressiblePotentialApplica
 
     // velocity corresponding to squared mach number of 3.0
     const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(3.0, model_part.GetProcessInfo());
-    
+
     const double reference_velocity_squared = 232356.0;
 
     KRATOS_CHECK_RELATIVE_NEAR(local_velocity_squared, reference_velocity_squared, 1e-15);
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedofSoundSquared, CompressiblePotential
 
     array_1d<double, 2> velocity(2, 0.0);
     velocity[0] = std::sqrt(local_velocity_squared);
-    
+
     const double local_speed_sound_squared = PotentialFlowUtilities::ComputeLocalSpeedofSoundSquared<2,3>(velocity, model_part.GetProcessInfo());
 
     const double reference_local_speed_sound_squared = 77452.0;
@@ -207,7 +207,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredTra
                 local_mach_squared, model_part.GetProcessInfo());
 
     const double reference_derivative = 1.1620100191086091883e-05;
-    
+
     KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
 
@@ -231,7 +231,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSup
 
     const double mach_derivative = PotentialFlowUtilities::ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(velocity,
                 local_mach_squared, model_part.GetProcessInfo());
-                
+
     const double reference_derivative = 2.0657955895264163348e-05;
 
     KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
