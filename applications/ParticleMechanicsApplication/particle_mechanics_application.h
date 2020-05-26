@@ -64,6 +64,7 @@
 #include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_UP_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_UP_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_axisym_2D_law.hpp"
@@ -281,6 +282,7 @@ private:
     const HyperElasticAxisym2DLaw                           mHyperElasticAxisym2DLaw;
     const HyperElasticUP3DLaw                               mHyperElasticUP3DLaw;
     const HyperElasticPlaneStrainUP2DLaw                    mHyperElasticPlaneStrainUP2DLaw;
+    const HyperElasticPlastic3DLaw                          mHyperElasticPlastic3DLaw;
     // CL: Mohr Coulomb
     const HenckyMCPlastic3DLaw                              mHenckyMCPlastic3DLaw;
     const HenckyMCPlasticPlaneStrain2DLaw                   mHenckyMCPlasticPlaneStrain2DLaw;

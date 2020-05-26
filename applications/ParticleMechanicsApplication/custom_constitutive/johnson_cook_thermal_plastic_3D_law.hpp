@@ -23,7 +23,7 @@
 #include "custom_constitutive/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
 #include "custom_constitutive/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
 
-#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
 
 
 namespace Kratos
@@ -36,23 +36,8 @@ namespace Kratos
  * The functionality is limited to large displacements
  */
 
-class JohnsonCookThermalPlastic3DLaw : public HyperElastic3DLaw
+class JohnsonCookThermalPlastic3DLaw : public HyperElasticPlastic3DLaw
 {
-protected:
-    ///Parameters to be used in the volumetric and deviatoric split
-    struct VectorSplit
-    {
-        Vector  Isochoric;
-        Vector  Volumetric;
-    };
-
-    struct MatrixSplit
-    {
-        Matrix  Isochoric;
-        Matrix  Volumetric;
-        Matrix  Plastic;
-    };
-
 public:
     /**
      * Type Definitions
@@ -216,7 +201,7 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElasticPlastic3DLaw);
 
         rSerializer.save("mElasticLeftCauchyGreen", mElasticLeftCauchyGreen);
         rSerializer.save("mpFlowRule", mpFlowRule);
@@ -226,7 +211,7 @@ private:
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElasticPlastic3DLaw);
 
         rSerializer.load("mElasticLeftCauchyGreen", mElasticLeftCauchyGreen);
         rSerializer.load("mpFlowRule", mpFlowRule);

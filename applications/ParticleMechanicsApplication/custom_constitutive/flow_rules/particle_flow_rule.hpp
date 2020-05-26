@@ -361,6 +361,11 @@ public:
         return mInternalVariables;
     };
 
+    InternalVariables& SetInternalVariables()
+    {
+        return mInternalVariables;
+    };
+
     const ThermalVariables & GetThermalVariables()
     {
         return mThermalVariables;
