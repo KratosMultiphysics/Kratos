@@ -14,13 +14,13 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
-#include<set>
+#include <set>
 
 // External includes
 #include "Epetra_FECrsGraph.h"
 
 // Project includes
-#include "mapping_matrix_utilities.h"
+#include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
