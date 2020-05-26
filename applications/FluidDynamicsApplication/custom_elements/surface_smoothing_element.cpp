@@ -233,7 +233,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     //GeometryType::Pointer p_geom = this->pGetGeometry();
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
     const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry());
-    const double epsilon = 1.0e2*dt*he*he;
+    const double epsilon = 1.0e3*dt*he*he;
     //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 

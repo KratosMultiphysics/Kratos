@@ -313,6 +313,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
+        KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "to begin InitializeSolutionStep")
+
         if self._TimeBufferIsInitialized():
             # Recompute the BDF2 coefficients
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
@@ -344,10 +346,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 for node in self.main_model_part.Nodes:
                     velocityOld = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
-                    node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1, velocityOld)
                     velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                    node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1, 
+                        velocity )
+                        #velocityOld )
                     node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 
-                        0.5 * (3.0 * velocity - velocityOld) )
+                        velocity )
+                        #0.5 * (velocity + velocityOld) )
                 (self.level_set_convection_process).Execute()
 
             #for elem in self.main_model_part.Elements:
@@ -535,16 +540,36 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             with open("MaxVelocity.log", "a") as distLogFile:
                 distLogFile.write( str(TimeStep*DT) + "\t" + str(VMax) + "\n" )
 
-    def FinalizeSolutionStep(self):
+        KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "ended InitializeSolutionStep")
+
+    def SolveSolutionStep(self):
+        KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "to begin SolutionStep")
+
+        # Call the base solver SolveSolutionStep()
+        super(NavierStokesTwoFluidsSolver, self).SolveSolutionStep()
+
+        KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "solved SolutionStep")
+
         if not(self._bfecc_convection):
             for node in self.main_model_part.Nodes:
                 velocityOld = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
-                node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1, velocityOld)
                 velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1, 
+                    0.5 * (velocity + velocityOld) )
                 node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 
-                    0.5 * (3.0 * velocity - velocityOld) )
+                    velocity )
             (self.level_set_convection_process).Execute()
+            # Smoothing the surface to filter oscillatory surface
+            (self.distance_gradient_process).Execute()
+            (self.surface_smoothing_process).Execute()
+            for node in self.main_model_part.Nodes:
+                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            #it_number=self.linear_solver.GetIterationsNumber()
+            #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
 
+    
+    def FinalizeSolutionStep(self):
         #it_number=self.linear_solver.GetIterationsNumber()
         #KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, NS", it_number)
         TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]

@@ -795,8 +795,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
     double beta = 1.0e-2/mean_h;
     if (sum_of_squares_v > 1.0e-12){
         vGauss /= sqrt(sum_of_squares_v);
-        beta = std::max( beta ,
-                std::abs(1.0/sqrt(sum_of_squares_v) * Kratos::inner_prod(traction,vGauss)) );
+        //beta = std::max( beta ,
+        //        std::abs(1.0/sqrt(sum_of_squares_v) * Kratos::inner_prod(traction,vGauss)) );
     }
 
     //KRATOS_INFO("Navier slip condition, beta") << beta << std::endl;
@@ -872,8 +872,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
     double beta = 1.0e-2/mean_h;
     if (sum_of_squares_v > 1.0e-12){
         vGauss /= sqrt(sum_of_squares_v);
-        beta = std::max( beta,
-                std::abs(1.0/sqrt(sum_of_squares_v) * Kratos::inner_prod(traction,vGauss)) );
+        //beta = std::max( beta,
+        //        std::abs(1.0/sqrt(sum_of_squares_v) * Kratos::inner_prod(traction,vGauss)) );
     }
         
     for(unsigned int inode = 0; inode < TNumNodes; inode++){  
