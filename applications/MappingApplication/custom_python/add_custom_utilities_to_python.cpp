@@ -15,7 +15,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 //Utilities
-#include "custom_utilities/geometrical_utilities/intersection_utilities.h"
+#include "custom_utilities/intersection_utilities.h"
 
 namespace Kratos {
 namespace Python {
