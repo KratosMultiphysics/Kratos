@@ -230,6 +230,8 @@ private:
 
     void GetEquationIdVectorExtendedElement(EquationIdVectorType& rResult) const;
 
+    void AddUpwindEquationId(EquationIdVectorType& rResult) const;
+
     void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
 
     void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;
@@ -246,12 +248,6 @@ private:
                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
-                                            const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateLeftHandSideExtendedElement(MatrixType& rLeftHandSideMatrix,
-                                            const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateRightHandSideExtendedElement(VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
@@ -307,7 +303,7 @@ private:
     void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,
                              GlobalPointersVector<Element>& rUpwindElementCandidates);
 
-    int GetAdditionalNode() const;
+    int GetAdditionalUpwindNodeIndex() const;
 
     ///@}
     ///@name Private Operations
