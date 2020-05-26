@@ -61,17 +61,6 @@ public:
     ///@name Operations
     ///@{
 
-
-    // template<class TSparseSpace, class TDenseSpace>
-    // static typename Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
-    //     ModelPart& rModelPartOrigin,
-    //     ModelPart& rModelPartDestination,
-    //     Parameters MapperSettings);
-
-    // template<class TSparseSpace, class TDenseSpace>
-    // static void Register(const std::string& rMapperName,
-    //               typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype);
-
     template<class TSparseSpace, class TDenseSpace>
     static typename Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
         ModelPart& rModelPartOrigin,
@@ -192,24 +181,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-
-/* typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> UblasDenseSpaceType;
-
-// template<>
-// inline MPI_Datatype MapperUtilitiesMPI::GetMPIDatatype<int>(const int& rValue)
-// {
-//     return MPI_INT ;
-// }
-
-template<>
-std::unordered_map<std::string, typename Mapper<SparseSpaceType,
-    UblasDenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<SparseSpaceType, UblasDenseSpaceType>()
-{
-    static std::unordered_map<std::string, typename Mapper<SparseSpaceType, UblasDenseSpaceType>::Pointer> registered_mappers;
-
-    return registered_mappers;
-} */
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
