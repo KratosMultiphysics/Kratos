@@ -27,6 +27,16 @@
 namespace Kratos
 {
 
+template<> KRATOS_API(MAPPING_APPLICATION) std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceType,
+    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::SparseSpaceType,
+    MapperDefinitions::DenseSpaceType>();
+
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+template<> KRATOS_API(MAPPING_APPLICATION) std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType,
+    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::MPISparseSpaceType,
+    MapperDefinitions::DenseSpaceType>();
+#endif
+
 template<>
 std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceType,
     MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::SparseSpaceType,
