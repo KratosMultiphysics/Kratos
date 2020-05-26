@@ -85,16 +85,16 @@ double& JohnsonCookThermalHardeningLaw::CalculateHardening(double &rHardening, c
 	const double& rDeltaTime               = rValues.GetDeltaTime();
 
 	//Constant Parameters of the -- Johnson and Cook --:
-	double A = GetProperties()[JC_PARAMETER_A];
-	double B = GetProperties()[JC_PARAMETER_B];
-	double C = GetProperties()[JC_PARAMETER_C];
+	const double A = GetProperties()[JC_PARAMETER_A];
+	const double B = GetProperties()[JC_PARAMETER_B];
+	const double C = GetProperties()[JC_PARAMETER_C];
 
-	double n = GetProperties()[JC_PARAMETER_n];
-	double m = GetProperties()[JC_PARAMETER_m];
+	const double n = GetProperties()[JC_PARAMETER_n];
+	const double m = GetProperties()[JC_PARAMETER_m];
 
-	double ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
-	double MeldTemperature      = GetProperties()[MELD_TEMPERATURE];
-	double PlasticStrainRate    = GetProperties()[PLASTIC_STRAIN_RATE];
+	const double ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
+	const double MeldTemperature      = GetProperties()[MELD_TEMPERATURE];
+	const double PlasticStrainRate    = GetProperties()[PLASTIC_STRAIN_RATE];
 
 	double DeltaTemperature = rTemperature - ReferenceTemperature;
 	if( DeltaTemperature < 0){
@@ -261,16 +261,16 @@ double& JohnsonCookThermalHardeningLaw::CalculateDeltaThermalHardening(double &r
 	const double& rDeltaTime                  = rValues.GetDeltaTime();
 
 	//Constant Parameters of the -- Johnson and Cook --:
-	double A = GetProperties()[JC_PARAMETER_A];
-	double B = GetProperties()[JC_PARAMETER_B];
-	double C = GetProperties()[JC_PARAMETER_C];
+	const double A = GetProperties()[JC_PARAMETER_A];
+	const double B = GetProperties()[JC_PARAMETER_B];
+	const double C = GetProperties()[JC_PARAMETER_C];
 
-	double n = GetProperties()[JC_PARAMETER_n];
-	double m = GetProperties()[JC_PARAMETER_m];
+	const double n = GetProperties()[JC_PARAMETER_n];
+	const double m = GetProperties()[JC_PARAMETER_m];
 
-	double ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
-	double MeldTemperature      = GetProperties()[MELD_TEMPERATURE];
-	double PlasticStrainRate    = GetProperties()[PLASTIC_STRAIN_RATE];
+	const double ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
+	const double MeldTemperature      = GetProperties()[MELD_TEMPERATURE];
+	const double PlasticStrainRate    = GetProperties()[PLASTIC_STRAIN_RATE];
 
 	double DeltaTemperature = rTemperature - ReferenceTemperature;
 	double DeltaNormalizedTemperature = 0;
