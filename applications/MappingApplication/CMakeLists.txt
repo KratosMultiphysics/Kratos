@@ -8,25 +8,14 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## Mapping Core sources
-set( KRATOS_MAPPING_APPLICATION_CORE
+file( GLOB KRATOS_MAPPING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/mapping_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mapping_application_variables.cpp
-    # Mappers
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/interpolative_mapper_base.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_neighbor_mapper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_element_mapper.cpp
-    # # Searching
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_communicator.cpp
-    # # Utilities
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_matrix_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_vector_container.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_flags.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/projection_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-set(KRATOS_MAPPING_APPLICATION_CORE_MPI "")
 set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
 ## If we have mpi support, use it
 if(${USE_MPI} MATCHES ON )
@@ -34,12 +23,9 @@ if(${USE_MPI} MATCHES ON )
     find_package(TRILINOS REQUIRED)
     include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR}) # Included as "SYSTEM" to suppress warnings from it
 
-    set( KRATOS_MAPPING_APPLICATION_CORE_MPI ${KRATOS_MAPPING_APPLICATION_CORE_MPI}
-        # Searching
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_communicator_mpi.cpp
-        # Utilities
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_matrix_utilities_mpi.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_vector_container_mpi.cpp
+    file( GLOB KRATOS_MAPPING_APPLICATION_CORE ${KRATOS_MAPPING_APPLICATION_CORE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/mpi/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
     )
 
     set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} ${MPI_LIBRARIES})
@@ -54,7 +40,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## Mapping python interface sources
 file(GLOB_RECURSE KRATOS_MAPPING_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-add_library(KratosMappingCore SHARED ${KRATOS_MAPPING_APPLICATION_CORE} ${KRATOS_MAPPING_APPLICATION_CORE_MPI} ${KRATOS_MAPPING_APPLICATION_TESTING_SOURCES})
+add_library(KratosMappingCore SHARED ${KRATOS_MAPPING_APPLICATION_CORE} ${KRATOS_MAPPING_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosMappingCore PUBLIC KratosCore ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosMappingCore PROPERTIES COMPILE_DEFINITIONS "MAPPING_APPLICATION=EXPORT,API")
 
