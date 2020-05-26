@@ -567,6 +567,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return linear_solver
 
     def _create_builder_and_solver(self):
+        if self.settings["analysis_type"].GetString() == "explicit":
+            builder_and_solver = KratosMultiphysics.ExplicitBuilderAndSolver()
+            return builder_and_solver
         linear_solver = self.get_linear_solver()
         if self.settings["block_builder"].GetBool():
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
@@ -589,6 +592,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 convection_diffusion_solution_strategy = self._create_newton_raphson_strategy()
             else:
                 convection_diffusion_solution_strategy = self._create_line_search_strategy()
+        elif analysis_type == "explicit":
+            convection_diffusion_solution_strategy = self._create_runge_kutta_4_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
@@ -640,3 +645,12 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                             self.settings["compute_reactions"].GetBool(),
                             self.settings["reform_dofs_at_each_step"].GetBool(),
                             self.settings["move_mesh_flag"].GetBool())
+
+    def _create_runge_kutta_4_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        explicit_builder_and_solver = self.get_builder_and_solver()
+        rebuild_level = 0
+        return KratosMultiphysics.ExplicitSolvingStrategyRungeKutta4(computing_model_part,
+                            explicit_builder_and_solver,
+                            self.settings["move_mesh_flag"].GetBool(),
+                            rebuild_level)
