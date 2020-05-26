@@ -784,7 +784,16 @@ const ResultDatabase& FromJSONCheckResultProcess::GetNodeDatabase()
 {
     if (this->IsNot(NODES_DATABASE_INITIALIZED)) {
         InitializeDatabases();
-        KRATOS_ERROR_IF(this->IsNot(NODES_DATABASE_INITIALIZED)) << "Is not possible to initialize the node database" << std::endl;
+
+        // If we consider any flag
+        const auto& r_flag_name = mThisParameters["check_for_flag"].GetString();
+        const Flags* p_flag = (r_flag_name != "") ? KratosComponents<Flags>::Has(r_flag_name) ? &KratosComponents<Flags>::Get(r_flag_name) : nullptr : nullptr;
+
+        // Array nodes 
+        const auto& r_nodes_array = GetNodes(p_flag);
+
+        // If not empty arry we throw an error if not possible to initialize database
+        KRATOS_ERROR_IF(this->IsNot(NODES_DATABASE_INITIALIZED) && r_nodes_array.size() > 0) << "Is not possible to initialize the node database" << std::endl;
     }
 
     return mDatabaseNodes;
@@ -797,7 +806,16 @@ const ResultDatabase& FromJSONCheckResultProcess::GetGPDatabase()
 {
     if (this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) {
         InitializeDatabases();
-        KRATOS_ERROR_IF(this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) << "Is not possible to initialize the element database" << std::endl;
+
+        // If we consider any flag
+        const auto& r_flag_name = mThisParameters["check_for_flag"].GetString();
+        const Flags* p_flag = (r_flag_name != "") ? KratosComponents<Flags>::Has(r_flag_name) ? &KratosComponents<Flags>::Get(r_flag_name) : nullptr : nullptr;
+
+        // Array elements 
+        const auto& r_elements_array = GetElements(p_flag);
+
+        // If not empty arry we throw an error if not possible to initialize database
+        KRATOS_ERROR_IF(this->IsNot(ELEMENTS_DATABASE_INITIALIZED) && r_elements_array.size() > 0) << "Is not possible to initialize the element database" << std::endl;
     }
 
     return mDatabaseGP;
