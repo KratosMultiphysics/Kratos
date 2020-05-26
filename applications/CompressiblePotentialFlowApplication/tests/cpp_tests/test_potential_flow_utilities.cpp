@@ -239,6 +239,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSup
     KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
 
+// tests the function ComputeUpwindFactor from the utilities
 KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactor, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -260,7 +261,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactor, CompressiblePotentialApplicationF
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.705466666666667, 1e-15);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ComputeMaxUpwindFactor, CompressiblePotentialApplicationFastSuite) {
+// tests the function SelectMaxUpwindFactor from the utilities
+KRATOS_TEST_CASE_IN_SUITE(SelectMaxUpwindFactor, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -286,6 +288,23 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeMaxUpwindFactor, CompressiblePotentialApplicati
     const double upwind_factor = PotentialFlowUtilities::SelectMaxUpwindFactor<2, 3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
 
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.705466666666667, 1e-15);
+}
+
+// tests the function ComputeUpwindFactorCase from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    array_1d<double, 3> upwind_factor_options(3, 0.0);
+
+    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(3.0, model_part.GetProcessInfo());
+    upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.49, model_part.GetProcessInfo());
+    
+    const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
+    
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 1.0, 1e-15);
 }
 
 
