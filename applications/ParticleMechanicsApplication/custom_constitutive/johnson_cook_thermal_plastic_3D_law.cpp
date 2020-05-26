@@ -31,8 +31,8 @@ namespace Kratos
   : HyperElastic3DLaw()
   {
     mpHardeningLaw   = ParticleHardeningLaw::Pointer( new JohnsonCookThermalHardeningLaw() );
-    mpYieldCriterion = ParticleYieldCriterion::Pointer( new MisesHuberThermalYieldCriterion(mpHardeningLaw) );
-    mpFlowRule       = ParticleFlowRule::Pointer( new NonLinearRateDependentPlasticFlowRule(mpYieldCriterion) );
+    mpYieldCriterion = ParticleYieldCriterion::Pointer( new JohnsonCookThermalYieldCriterion(mpHardeningLaw) );
+    mpFlowRule       = ParticleFlowRule::Pointer( new JohnsonCookPlasticFlowRule(mpYieldCriterion) );
   }
 
 
@@ -42,7 +42,7 @@ namespace Kratos
     JohnsonCookThermalPlastic3DLaw::JohnsonCookThermalPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
   {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  = ParticleYieldCriterion::Pointer( new MisesHuberThermalYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  = ParticleYieldCriterion::Pointer( new JohnsonCookThermalYieldCriterion(mpHardeningLaw) );
     mpFlowRule        =  pFlowRule;
   }
 

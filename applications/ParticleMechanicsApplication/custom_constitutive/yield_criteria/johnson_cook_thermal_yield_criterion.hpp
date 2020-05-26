@@ -7,14 +7,11 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    JMCarbonell
-//					 (adapted to Particle Mechanics by Peter Wilson)
+//  Main authors:    Peter Wilson (adapted from Solid Mechanics App)
 //
 
-#if !defined(KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED)
-#define  KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED
-
-
+#if !defined(KRATOS_JOHNSON_COOK_THERMAL_YIELD_CRITERION_H_INCLUDED )
+#define  KRATOS_JOHNSON_COOK_THERMAL_YIELD_CRITERION_H_INCLUDED
 
 // System includes
 
@@ -50,35 +47,35 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class MisesHuberYieldCriterion
+class JohnsonCookThermalYieldCriterion
 	: public ParticleYieldCriterion
 {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Pointer definition of MisesHuberYieldCriterion
-        KRATOS_CLASS_POINTER_DEFINITION( MisesHuberYieldCriterion );
+        /// Pointer definition of JohnsonCookThermalYieldCriterion
+        KRATOS_CLASS_POINTER_DEFINITION(JohnsonCookThermalYieldCriterion);
 
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Default constructor.
-        MisesHuberYieldCriterion();
+        JohnsonCookThermalYieldCriterion();
 
         /// Initialization constructor.
-        MisesHuberYieldCriterion(HardeningLawPointer pHardeningLaw);
+        JohnsonCookThermalYieldCriterion(HardeningLawPointer pHardeningLaw);
 
         /// Copy constructor.
-        MisesHuberYieldCriterion(MisesHuberYieldCriterion const& rOther);
+        JohnsonCookThermalYieldCriterion(JohnsonCookThermalYieldCriterion const& rOther);
 
         /// Assignment operator.
-        MisesHuberYieldCriterion& operator=(MisesHuberYieldCriterion const& rOther);
+        JohnsonCookThermalYieldCriterion& operator=(JohnsonCookThermalYieldCriterion const& rOther);
 
 
         /// Destructor.
-        ~MisesHuberYieldCriterion() override;
+        ~JohnsonCookThermalYieldCriterion() override;
 
 
         ///@}
@@ -95,23 +92,19 @@ class MisesHuberYieldCriterion
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const Parameters& rValues) override;
+        double& CalculateYieldCondition(double& rStateFunction, const Parameters& rValues) override;
 
+        double& CalculateStateFunction(double& rStateFunction, const Parameters& rValues) override;
 
-	double& CalculateStateFunction(double & rStateFunction, const Parameters& rValues) override;
-
-	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rValues) override;
-
+        double& CalculateDeltaStateFunction(double& rDeltaStateFunction, const Parameters& rValues) override;
 
         double& CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rValues) override;
 
         double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues) override;
 
-
         double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rValues) override;
 
         double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues) override;
-
 
         ///@}
         ///@name Access
@@ -228,7 +221,7 @@ class MisesHuberYieldCriterion
 
         ///@}
 
-    }; // Class MisesHuberYieldCriterion
+    }; // Class JohnsonCookThermalYieldCriterion
 
     ///@}
 
@@ -240,27 +233,6 @@ class MisesHuberYieldCriterion
     ///@name Input and output
     ///@{
 
-
-    // /// input stream function
-    // inline std::istream& operator >> (std::istream& rIStream,
-    //                                   MisesHuberYieldCriterion& rThis);
-
-    // /// output stream function
-    // inline std::ostream& operator << (std::ostream& rOStream,
-    //                                   const MisesHuberYieldCriterion& rThis)
-    // {
-    //     rThis.PrintInfo(rOStream);
-    //     rOStream << std::endl;
-    //     rThis.PrintData(rOStream);
-
-    //     return rOStream;
-    // }
-    ///@}
-
-    ///@} addtogroup block
-
 }  // namespace Kratos.
 
-#endif // KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED  defined
-
-
+#endif // KRATOS_JOHNSON_COOK_THERMAL_YIELD_CRITERION_H_INCLUDED  defined

@@ -11,8 +11,8 @@
 //					 (adapted to Particle Mechanics by Peter Wilson)
 //
 
-#if !defined(KRATOS_NON_LINEAR_RATE_DEPENDENT_PLASTIC_FLOW_RULE_H_INCLUDED )
-#define  KRATOS_NON_LINEAR_RATE_DEPENDENT_PLASTIC_FLOW_RULE_H_INCLUDED
+#if !defined(KRATOS_JOHNSON_COOK_PLASTIC_FLOW_RULE_H_INCLUDED )
+#define  KRATOS_JOHNSON_COOK_PLASTIC_FLOW_RULE_H_INCLUDED
 
 
 // System includes
@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/flow_rules/non_linear_associative_plastic_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/particle_flow_rule.hpp"
 
 namespace Kratos
 {
@@ -49,34 +49,34 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class NonLinearRateDependentPlasticFlowRule
-	  :public NonLinearAssociativePlasticFlowRule
+  class JohnsonCookPlasticFlowRule
+	  :public ParticleFlowRule
   {
   public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of NonLinearRateDependentPlasticFlowRule
-      KRATOS_CLASS_POINTER_DEFINITION(NonLinearRateDependentPlasticFlowRule);
+      KRATOS_CLASS_POINTER_DEFINITION(JohnsonCookPlasticFlowRule);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    NonLinearRateDependentPlasticFlowRule();
+      JohnsonCookPlasticFlowRule();
 
     /// Initialization constructor.
-    NonLinearRateDependentPlasticFlowRule(YieldCriterionPointer pYieldCriterion);
+      JohnsonCookPlasticFlowRule(YieldCriterionPointer pYieldCriterion);
 
     /// Copy constructor.
-    NonLinearRateDependentPlasticFlowRule(NonLinearRateDependentPlasticFlowRule const& rOther);
+      JohnsonCookPlasticFlowRule(JohnsonCookPlasticFlowRule const& rOther);
 
     /// Assignment operator.
-    NonLinearRateDependentPlasticFlowRule& operator=(NonLinearRateDependentPlasticFlowRule const& rOther);
+    JohnsonCookPlasticFlowRule& operator=(JohnsonCookPlasticFlowRule const& rOther);
 
     /// Destructor.
-    ~NonLinearRateDependentPlasticFlowRule() override;
+    ~JohnsonCookPlasticFlowRule() override;
 
 
     ///@}
@@ -94,6 +94,12 @@ namespace Kratos
     ///@name Operations
     ///@{
 
+    bool CalculateReturnMapping(RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix) override;
+
+    void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors) override;
+
+    bool UpdateInternalVariables(RadialReturnVariables& rReturnMappingVariables) override;
+
 
     ///@}
     ///@name Access
@@ -108,15 +114,6 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-
-    // /// Turn back information as a string.
-    // virtual std::string Info() const;
-
-    // /// Print information about this object.
-    // virtual void PrintInfo(std::ostream& rOStream) const;
-
-    // /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -144,9 +141,19 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
+    double& CalculateStressNorm(Matrix& rStressMatrix, double& rStressNorm) override;
+
+    void SetCriterionParameters(RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters);
+
+    void UpdateConfiguration(RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix);
+
+    void CalculateThermalDissipation(ParticleYieldCriterion::Parameters& rCriterionParameters, ThermalVariables& rThermalVariables);
 
 
-    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters) override;
+
+
+
+    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters);
 
     bool CalculateRateDependentConsistency( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters);
 
@@ -156,8 +163,9 @@ namespace Kratos
 
     //implex protected methods
 
-    void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix ) override;
+    void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix );
 
+    void CalculateImplexThermalDissipation(ParticleYieldCriterion::Parameters& rCriterionParameters);
 
     ///@}
     ///@name Protected  Access
@@ -223,7 +231,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class NonLinearRateDependentPlasticFlowRule
+  }; // Class JohnsonCookPlasticFlowRule
 
   ///@}
 
@@ -236,20 +244,7 @@ namespace Kratos
   ///@{
 
 
-  /// input stream function
-  // inline std::istream& operator >> (std::istream& rIStream,
-  // 				    NonLinearRateDependentPlasticFlowRule& rThis);
 
-  // /// output stream function
-  // inline std::ostream& operator << (std::ostream& rOStream,
-  // 				    const NonLinearRateDependentPlasticFlowRule& rThis)
-  // {
-  //   rThis.PrintInfo(rOStream);
-  //   rOStream << std::endl;
-  //   rThis.PrintData(rOStream);
-
-  //   return rOStream;
-  // }
   ///@}
 
   ///@} addtogroup block
@@ -266,6 +261,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_RATE_DEPENDENT_PLASTIC_FLOW_RULE_H_INCLUDED  defined
+#endif // KRATOS_JOHNSON_COOK_PLASTIC_FLOW_RULE_H_INCLUDED  defined
 
 

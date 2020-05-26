@@ -19,8 +19,8 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/flow_rules/non_linear_rate_dependent_plastic_flow_rule.hpp"
-#include "custom_constitutive/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
+#include "custom_constitutive/flow_rules/johnson_cook_plastic_flow_rule.hpp"
+#include "custom_constitutive/yield_criteria/johnson_cook_thermal_yield_criterion.hpp"
 #include "custom_constitutive/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
 
 #include "custom_constitutive/hyperelastic_3D_law.hpp"

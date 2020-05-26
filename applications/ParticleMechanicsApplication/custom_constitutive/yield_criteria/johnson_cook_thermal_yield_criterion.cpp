@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_constitutive/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/johnson_cook_thermal_yield_criterion.hpp"
 
 #include "particle_mechanics_application_variables.h"
 
@@ -29,8 +29,8 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 
-MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion()
-	:MisesHuberYieldCriterion()
+JohnsonCookThermalYieldCriterion::JohnsonCookThermalYieldCriterion()
+	:ParticleYieldCriterion()
 {
 
 }
@@ -39,8 +39,8 @@ MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion()
 //*****************************INITIALIZATION CONSTRUCTOR*****************************
 //************************************************************************************
 
-MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion(HardeningLawPointer pHardeningLaw)
-	:MisesHuberYieldCriterion(pHardeningLaw)
+JohnsonCookThermalYieldCriterion::JohnsonCookThermalYieldCriterion(HardeningLawPointer pHardeningLaw)
+	:ParticleYieldCriterion(pHardeningLaw)
 {
 
 }
@@ -48,17 +48,17 @@ MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion(HardeningLawPoi
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 
-MisesHuberThermalYieldCriterion& MisesHuberThermalYieldCriterion::operator=(MisesHuberThermalYieldCriterion const& rOther)
+JohnsonCookThermalYieldCriterion& JohnsonCookThermalYieldCriterion::operator=(JohnsonCookThermalYieldCriterion const& rOther)
 {
-   MisesHuberYieldCriterion::operator=(rOther);
+   ParticleYieldCriterion::operator=(rOther);
    return *this;
 }
 
 //*******************************COPY CONSTRUCTOR*************************************
 //************************************************************************************
 
-MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion(MisesHuberThermalYieldCriterion const& rOther)
-	:MisesHuberYieldCriterion(rOther)
+JohnsonCookThermalYieldCriterion::JohnsonCookThermalYieldCriterion(JohnsonCookThermalYieldCriterion const& rOther)
+	:ParticleYieldCriterion(rOther)
 {
 
 }
@@ -66,25 +66,98 @@ MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion(MisesHuberTherm
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ParticleYieldCriterion::Pointer MisesHuberThermalYieldCriterion::Clone() const
+ParticleYieldCriterion::Pointer JohnsonCookThermalYieldCriterion::Clone() const
 {
-  return Kratos::make_shared<MisesHuberThermalYieldCriterion>(*this);
+  return Kratos::make_shared<JohnsonCookThermalYieldCriterion>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-MisesHuberThermalYieldCriterion::~MisesHuberThermalYieldCriterion()
+JohnsonCookThermalYieldCriterion::~JohnsonCookThermalYieldCriterion()
 {
 }
 
 /// Operations.
 
 
+//***************************CALCULATE YIELD CONDITION********************************
+//************************************************************************************
+
+double& JohnsonCookThermalYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Parameters& rValues)
+{
+	double Hardening = 0.0;
+
+	const double& rStressNorm = rValues.GetStressNorm();
+
+	const ParticleHardeningLaw::Parameters& rHardeningParameters = rValues.GetHardeningParameters();
+
+	//std::cout<<" yield function "<<std::endl;
+	//rHardeningParameters.print();
+
+	Hardening = mpHardeningLaw->CalculateHardening(Hardening, rHardeningParameters);
+
+	rStateFunction = rStressNorm - sqrt(2.0 / 3.0) * Hardening;
+
+	return rStateFunction;
+}
+
+
+//***************************CALCULATE STATE FUNCTION ********************************
+//************************************************************************************
+
+double& JohnsonCookThermalYieldCriterion::CalculateStateFunction(double& rStateFunction, const Parameters& rValues)
+{
+
+	const double& rStressNorm = rValues.GetStressNorm();
+	const double& rLameMu_bar = rValues.GetLameMu_bar();
+	const double& rDeltaGamma = rValues.GetDeltaGamma();
+
+	const ParticleHardeningLaw::Parameters& rHardeningParameters = rValues.GetHardeningParameters();
+
+
+	double Hardening = 0.0;
+
+	//std::cout<<" state function "<<std::endl;
+	//rHardeningParameters.print();
+
+	Hardening = mpHardeningLaw->CalculateHardening(Hardening, rHardeningParameters);
+
+	rStateFunction = rStressNorm - 2.0 * rLameMu_bar * rDeltaGamma - sqrt(2.0 / 3.0) * (Hardening);
+
+	return rStateFunction;
+}
+
+
+//***************************CALCULATE STATE FUNCTION ********************************
+//************************************************************************************
+
+double& JohnsonCookThermalYieldCriterion::CalculateDeltaStateFunction(double& rDeltaStateFunction, const Parameters& rValues)
+{
+	const double& rLameMu_bar = rValues.GetLameMu_bar();
+
+	const ParticleHardeningLaw::Parameters& rHardeningParameters = rValues.GetHardeningParameters();
+
+	double DeltaHardening = 0.0;
+
+
+	//std::cout<<" delta state function "<<std::endl;
+	//rHardeningParameters.print();
+
+	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening(DeltaHardening, rHardeningParameters);
+
+	//std::cout<<" DeltaHardening "<<DeltaHardening<<std::endl;
+
+	rDeltaStateFunction = 2.0 * rLameMu_bar + (2.0 / 3.0) * DeltaHardening;
+
+	return rDeltaStateFunction;
+}
+
+
 //***************************CALCULATE PLASTIC DISSIPATION****************************
 //************************************************************************************
 
-double& MisesHuberThermalYieldCriterion::CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rValues)
+double& JohnsonCookThermalYieldCriterion::CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rValues)
 {
         const double& rDeltaGamma = rValues.GetDeltaGamma();
 	const double& rDeltaTime  = rValues.GetDeltaTime();
@@ -113,7 +186,7 @@ double& MisesHuberThermalYieldCriterion::CalculatePlasticDissipation(double & rP
 //**********************CALCULATE DELTA PLASTIC DISSIPATION***************************
 //************************************************************************************
 
-double& MisesHuberThermalYieldCriterion::CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues)
+double& JohnsonCookThermalYieldCriterion::CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues)
 {
 
 	const double& rLameMu_bar = rValues.GetLameMu_bar();
@@ -189,7 +262,7 @@ double& MisesHuberThermalYieldCriterion::CalculateDeltaPlasticDissipation(double
 //***********************CALCULATE IMPLEX PLASTIC DISSIPATION*************************
 //************************************************************************************
 
-double& MisesHuberThermalYieldCriterion::CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rValues)
+double& JohnsonCookThermalYieldCriterion::CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rValues)
 {
 
 	const double& rDeltaGamma = rValues.GetDeltaGamma();
@@ -213,7 +286,7 @@ double& MisesHuberThermalYieldCriterion::CalculateImplexPlasticDissipation(doubl
 //*****************CALCULATE IMPLEX DELTA PLASTIC DISSIPATION*************************
 //************************************************************************************
 
-double& MisesHuberThermalYieldCriterion::CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues)
+double& JohnsonCookThermalYieldCriterion::CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues)
 {
 
 	double DeltaThermalHardening = 0.0;
@@ -237,14 +310,14 @@ double& MisesHuberThermalYieldCriterion::CalculateImplexDeltaPlasticDissipation(
 }
 
 
-void MisesHuberThermalYieldCriterion::save( Serializer& rSerializer ) const
+void JohnsonCookThermalYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MisesHuberYieldCriterion );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleYieldCriterion );
 }
 
-void MisesHuberThermalYieldCriterion::load( Serializer& rSerializer )
+void JohnsonCookThermalYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MisesHuberYieldCriterion );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleYieldCriterion );
 }
 
 
