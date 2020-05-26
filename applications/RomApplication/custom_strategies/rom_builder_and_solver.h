@@ -158,7 +158,8 @@ public:
         set_type dof_global_set;
         dof_global_set.reserve(number_of_elements * 20);
 
-        #pragma omp parallel firstprivate(dof_list, second_dof_list)
+        double NumberOfHRomElements=0.0;
+        #pragma omp parallel firstprivate(dof_list, second_dof_list) reduction(+:NumberOfHRomElements)
         {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -172,7 +173,7 @@ public:
                 auto it_elem = r_elements_array.begin() + i;
                 //detect whether the element has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
                 if ((it_elem)->Has(HROM_WEIGHT))
-                    h_rom_simulation = true;
+                    NumberOfHRomElements++;
                 else
                     it_elem->SetValue(HROM_WEIGHT, 1.0);
                 // Gets list of Dof involved on every element
@@ -192,7 +193,7 @@ public:
                 // Gather the H-reduced conditions that are to be considered for assembling. Ignoring those for displaying results only
                 if ((*it_cond)->Has(HROM_WEIGHT)){
                     mSelectedConditions_private.push_back(*it_cond);
-                    h_rom_simulation = true;
+                    NumberOfHRomElements++;
                 }
                 else
                     (*it_cond)->SetValue(HROM_WEIGHT, 1.0);
@@ -226,6 +227,9 @@ public:
             {
                 dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
             }
+        }
+        if (NumberOfHRomElements>0){
+            h_rom_simulation=true;
         }
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;

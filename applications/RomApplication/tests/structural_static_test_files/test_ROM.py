@@ -30,7 +30,7 @@ class ROMStaticStruct(KratosUnittest.TestCase):
                     UP += (NodalArea[i]*(   (1  - (ObtainedOutput[i] / ExpectedOutput[i] )    )**2)  )
                     DOWN +=  NodalArea[i]
             L2 = (np.sqrt(UP/DOWN)) *100
-            self.assertLess(L2, 0.1)#percent
+            self.assertLess(L2, 1.2e-10)#percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
             kratos_utilities.DeleteDirectoryIfExisting("vtk_output")
@@ -59,7 +59,7 @@ class ROMStaticStruct(KratosUnittest.TestCase):
                     UP += NodalArea*(    (ExpectedOutput[(2*node.Id)-1] - node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)  )**2)
                     DOWN +=  2*NodalArea
             L2 = (np.sqrt(UP/DOWN))*100
-            self.assertLess(L2, 0.1) #percent
+            self.assertLess(L2, 7.2e-8) #percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
             kratos_utilities.DeleteDirectoryIfExisting("vtk_output")

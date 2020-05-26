@@ -31,7 +31,7 @@ class ROMDynamicStruct(KratosUnittest.TestCase):
                         UP += (NodalArea[j]*(    (1  - (ObtainedOutput[j,i] / ExpectedOutput[j,i] )   )**2)  )
                         DOWN +=  NodalArea[j]
                 L2 = (np.sqrt(UP/DOWN)) *100
-            self.assertLess(L2, 0.5) #percent
+            self.assertLess(L2, 0.36) #percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 
