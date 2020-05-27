@@ -25,81 +25,56 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
-///@{
+    ///@addtogroup ApplicationNameApplication
+    ///@{
 
-///@name Kratos Globals
-///@{
+    ///@name Kratos Globals
+    ///@{
 
-///@}
-///@name Type Definitions
-///@{
+    ///@}
+    ///@name Type Definitions
+    ///@{
 
-///@}
-///@name  Enum's
-///@{
+    ///@}
+    ///@name  Enum's
+    ///@{
 
-///@}
-///@name  Functions
-///@{
+    ///@}
+    ///@name  Functions
+    ///@{
 
-///@}
-///@name Kratos Classes
-///@{
+    ///@}
+    ///@name Kratos Classes
+    ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
-{
+    /// Short class definition.
+    /** Detail class definition.
+    */
+    class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
+    {
     public:
         struct Parameters
         {
         private:
 
-        const double* mpStressNorm;
-        ParticleHardeningLaw::Parameters HardeningParameters;
+            const double* mpStressNorm;
+            ParticleHardeningLaw::Parameters HardeningParameters;
 
         public:
-	  //Set Parameters
-	  void SetStressNorm  (const double& rStressNorm)  { mpStressNorm = &rStressNorm; };
+            //Set Parameters
+            void SetStressNorm(const double& rStressNorm) { mpStressNorm = &rStressNorm; };
 
-      void SetDeltaGamma(const double& rDeltaGamma) { HardeningParameters.SetDeltaGamma(rDeltaGamma); };
-      void SetLameMu_bar(const double& rLameMu_bar) { HardeningParameters.SetLameMu_bar(rLameMu_bar); };
-      void SetTemperature(const double& rTemperature) { HardeningParameters.SetTemperature(rTemperature); };
-
-      void SetEquivalentPlasticStrain(const double& rEquivalentPlasticStrain) { HardeningParameters.SetEquivalentPlasticStrain(rEquivalentPlasticStrain); };
-      void SetEquivalentPlasticStrainOld(const double& rEquivalentPlasticStrainOld) { HardeningParameters.SetEquivalentPlasticStrainOld(rEquivalentPlasticStrainOld); };
-
-
-	  //Get Parameters
-	  const double& GetStressNorm  () const { return *mpStressNorm;  };
-
-      const double& GetDeltaGamma() const { return HardeningParameters.GetDeltaGamma(); };
-      const double& GetLameMu_bar() const { return HardeningParameters.GetLameMu_bar(); };
-      const double& GetTemperature() const { return HardeningParameters.GetTemperature(); };
-
-      const double& GetEquivalentPlasticStrain() const { return HardeningParameters.GetEquivalentPlasticStrain(); };
-      const double& GetEquivalentPlasticStrainOld() const { return HardeningParameters.GetEquivalentPlasticStrainOld(); };
-
-	  const ParticleHardeningLaw::Parameters& GetHardeningParameters  () const { return HardeningParameters; };
-
-	  //Set Hardening Parameters
-	  //void SetRateFactor  (double rRateFactor)         { HardeningParameters.SetRateFactor(rRateFactor);   };
-	  void SetDeltaTime   (const double& rDeltaTime)   { HardeningParameters.SetDeltaTime(rDeltaTime);     };
-
-	  //Get Hardening Parameters
-	  //const double& GetRateFactor  () const { return HardeningParameters.GetRateFactor();   };
-	  const double& GetDeltaTime   () const { return HardeningParameters.GetDeltaTime();    };
-
-	};
+            //Get Parameters
+            const double& GetStressNorm() const { return *mpStressNorm; };
+            const ParticleHardeningLaw::Parameters& GetHardeningParameters() const { return HardeningParameters; };
+        };
 
         ///@name Type Definitions
         ///@{
         typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
 
         /// Pointer definition of ParticleYieldCriterion
-        KRATOS_CLASS_POINTER_DEFINITION( ParticleYieldCriterion );
+        KRATOS_CLASS_POINTER_DEFINITION(ParticleYieldCriterion);
 
         ///@}
         ///@name Life Cycle
@@ -107,28 +82,28 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
 
         /// Default constructor.
         ParticleYieldCriterion()
-	{
+        {
         };
 
         /// Initialization constructor.
         ParticleYieldCriterion(HardeningLawPointer pHardeningLaw)
-	:mpHardeningLaw(pHardeningLaw)
-	{
-	};
+            :mpHardeningLaw(pHardeningLaw)
+        {
+        };
 
         /// Copy constructor.
         ParticleYieldCriterion(ParticleYieldCriterion const& rOther)
-	:mpHardeningLaw(rOther.mpHardeningLaw)
-	{
+            :mpHardeningLaw(rOther.mpHardeningLaw)
+        {
 
-	};
+        };
 
         /// Assignment operator.
         ParticleYieldCriterion& operator=(ParticleYieldCriterion const& rOther)
-	{
-        mpHardeningLaw = rOther.mpHardeningLaw;
-        return *this;
-	}
+        {
+            mpHardeningLaw = rOther.mpHardeningLaw;
+            return *this;
+        }
 
         /// Destructor.
         virtual ~ParticleYieldCriterion() {};
@@ -139,43 +114,43 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         ///@{
 
         /**
-	 * Clone function (has to be implemented by any derived class)
-	 * @return a pointer to a new instance of this yield criterion
-	 */
+     * Clone function (has to be implemented by any derived class)
+     * @return a pointer to a new instance of this yield criterion
+     */
         virtual ParticleYieldCriterion::Pointer Clone() const
         {
-          return Kratos::make_shared<ParticleYieldCriterion>(*this);
-	}
+            return Kratos::make_shared<ParticleYieldCriterion>(*this);
+        }
 
 
         ///@}
         ///@name Operations
         ///@{
-        void InitializeMaterial (HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
-	{
-	        mpHardeningLaw = pHardeningLaw;
-		mpHardeningLaw->InitializeMaterial(rMaterialProperties);
-	}
-
-
-        void SetHardeningLaw(ParticleHardeningLaw& rHardeningLaw)
+        void InitializeMaterial(HardeningLawPointer & pHardeningLaw, const Properties & rMaterialProperties)
         {
-	  mpHardeningLaw = (HardeningLawPointer) (&rHardeningLaw);
+            mpHardeningLaw = pHardeningLaw;
+            mpHardeningLaw->InitializeMaterial(rMaterialProperties);
         }
 
-        void pSetHardeningLaw(HardeningLawPointer& pHardeningLaw)
+
+        void SetHardeningLaw(ParticleHardeningLaw & rHardeningLaw)
         {
-	  mpHardeningLaw = pHardeningLaw;
+            mpHardeningLaw = (HardeningLawPointer)(&rHardeningLaw);
+        }
+
+        void pSetHardeningLaw(HardeningLawPointer & pHardeningLaw)
+        {
+            mpHardeningLaw = pHardeningLaw;
         }
 
         ParticleHardeningLaw& GetHardeningLaw()
         {
-	  return *mpHardeningLaw;
+            return *mpHardeningLaw;
         }
 
         HardeningLawPointer pGetHardeningLaw()
         {
-	  return mpHardeningLaw;
+            return mpHardeningLaw;
         }
 
 
@@ -188,20 +163,20 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         * @param[in] rBeta Used parameters
         * @return Yield criterion
         */
-        virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
-	{
-		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
-		return rStateFunction;
-	};
-
-        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha)
-	{
-		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
+        virtual double& CalculateYieldCondition(double& rStateFunction, const Kratos::Parameters & rVariables)
+        {
+            KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
+            return rStateFunction;
         };
 
-        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha, const double& rBeta)
-	{
-		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
+        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector & rPrincipalStress, const double& rAlpha)
+        {
+            KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
+        };
+
+        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector & rPrincipalStress, const double& rAlpha, const double& rBeta)
+        {
+            KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
 
@@ -212,20 +187,20 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         * @param[in] rAlpha Used parameters
         * @param[in] rBeta Used parameters
         */
-	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative)
-	{
-		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
+        virtual void CalculateYieldFunctionDerivative(const Vector & rPrincipalStress, Vector & rFirstDerivative)
+        {
+            KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
 
         };
 
-	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha)
-	{
-		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
+        virtual void CalculateYieldFunctionDerivative(const Vector & rPrincipalStress, Vector & rFirstDerivative, const double& rAlpha)
+        {
+            KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
-        virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha, const double& rBeta)
-	{
-		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
+        virtual void CalculateYieldFunctionDerivative(const Vector & rPrincipalStress, Vector & rFirstDerivative, const double& rAlpha, const double& rBeta)
+        {
+            KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
 
@@ -234,54 +209,9 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         * @param[in] rStressVector Principal stresses
         * @param[in/out] rSecondDerivative Second stress derivative value of yield function
         */
-        virtual void CalculateYieldFunctionSecondDerivative(const Vector& rPrincipalStress, Vector& rSecondDerivative)
-	{
-		KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
-        };
-
-        virtual double& CalculateDeltaStateFunction(double& rDeltaStateFunction, const Parameters& rVariables)
+        virtual void CalculateYieldFunctionSecondDerivative(const Vector & rPrincipalStress, Vector & rSecondDerivative)
         {
-            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
-
-                return rDeltaStateFunction;
-        };
-
-        virtual double& CalculateStateFunction(double& rStateFunction, const Parameters& rVariables)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
-
-                return rStateFunction;
-        };
-
-        virtual double& CalculatePlasticDissipation(double& rPlasticDissipation, const Parameters& rVariables)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
-
-                return rPlasticDissipation;
-        };
-
-
-        virtual double& CalculateDeltaPlasticDissipation(double& rDeltaPlasticDissipation, const Parameters& rVariables)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
-
-                return rDeltaPlasticDissipation;
-        };
-
-
-        virtual double& CalculateImplexPlasticDissipation(double& rPlasticDissipation, const Parameters& rVariables)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
-
-                return rPlasticDissipation;
-        };
-
-
-        virtual double& CalculateImplexDeltaPlasticDissipation(double& rDeltaPlasticDissipation, const Parameters& rVariables)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "")
-
-                return rDeltaPlasticDissipation;
+            KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
         };
 
 
@@ -315,7 +245,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         ///@name Protected member Variables
         ///@{
 
-	HardeningLawPointer mpHardeningLaw;
+        HardeningLawPointer mpHardeningLaw;
 
         ///@}
         ///@name Protected Operators
@@ -369,22 +299,22 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
         ///@{
 
 
-	///@}
-	///@name Serialization
-	///@{
-	friend class Serializer;
+    ///@}
+    ///@name Serialization
+    ///@{
+        friend class Serializer;
 
-	// A private default constructor necessary for serialization
+        // A private default constructor necessary for serialization
 
-	virtual void save(Serializer& rSerializer) const
-	{
-	  rSerializer.save("mpHardeningLaw",mpHardeningLaw);
-	};
+        virtual void save(Serializer & rSerializer) const
+        {
+            rSerializer.save("mpHardeningLaw", mpHardeningLaw);
+        };
 
-	virtual void load(Serializer& rSerializer)
-	{
-	  rSerializer.load("mpHardeningLaw",mpHardeningLaw);
-	};
+        virtual void load(Serializer & rSerializer)
+        {
+            rSerializer.load("mpHardeningLaw", mpHardeningLaw);
+        };
 
         ///@}
         ///@name Private Inquiry

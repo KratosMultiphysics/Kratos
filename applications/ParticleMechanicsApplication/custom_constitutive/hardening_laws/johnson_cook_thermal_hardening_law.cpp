@@ -124,53 +124,6 @@ double& JohnsonCookThermalHardeningLaw::CalculateHardening(double &rHardening, c
 	return rHardening;
 }
 
-
-
-double& JohnsonCookThermalHardeningLaw::CalculateHardening(double& rHardening, 
-	const double rPlasticStrainRate, const double rEquivalentPlasticStrain, const double rTemperature)
-{
-	//Constant Parameters of the -- Johnson and Cook --:
-	const double A = GetProperties()[JC_PARAMETER_A];
-	const double B = GetProperties()[JC_PARAMETER_B];
-	const double C = GetProperties()[JC_PARAMETER_C];
-
-	const double n = GetProperties()[JC_PARAMETER_n];
-	const double m = GetProperties()[JC_PARAMETER_m];
-
-	const double ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
-	const double MeldTemperature = GetProperties()[MELD_TEMPERATURE];
-	const double ReferenceStrainRate = GetProperties()[REFERENCE_STRAIN_RATE];
-
-	// Hardening formula is: = (A + B* ep^n) * strain_rate_hardening_factor * thermal_hardening_factor
-
-	// Calculate thermal hardening factor
-	double thermal_hardening_factor;
-	if (rTemperature < ReferenceTemperature)
-	{
-		thermal_hardening_factor = 1.0;
-	}
-	else if (rTemperature >= MeldTemperature)
-	{
-		thermal_hardening_factor = 0.0;
-	}
-	else
-	{
-		thermal_hardening_factor = 1.0 - std::pow((rTemperature - ReferenceTemperature) / (MeldTemperature - ReferenceTemperature), m);
-	}
-
-	// Calculate strain rate hardening factor
-	double strain_rate_hardening_factor = 1.0;
-	if (rPlasticStrainRate > ReferenceStrainRate)
-	{
-		strain_rate_hardening_factor += C * std::log(rPlasticStrainRate / ReferenceStrainRate);
-	}
-
-	// Store results into hardening
-	rHardening = thermal_hardening_factor * strain_rate_hardening_factor;
-
-	return rHardening;
-}
-
 void JohnsonCookThermalHardeningLaw::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleHardeningLaw );

@@ -90,10 +90,7 @@ public:
     ///@name Operations
     ///@{
 
-    //double& CalculateHardening(double &rHardening, const Parameters& rValues) override;
-
-    double& CalculateHardening(double& rHardening,
-        const double rPlasticStrainRate, const double rEquivalentPlasticStrain, const double rTemperature) override;
+    double& CalculateHardening(double &rHardening, const Parameters& rValues) override;
 
     ///@}
     ///@name Access
