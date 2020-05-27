@@ -138,57 +138,20 @@ namespace Kratos
       //mpFlowRule->InitializeMaterial( rMaterialProperties );
   }
 
-  void JohnsonCookThermalPlastic3DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
-  {
-      // TODO this is hyperelastic atm
-
-      this->CalculateMaterialResponseKirchhoff(rValues);
-
-      //1.- Obtain parameters
-      Flags& Options = rValues.GetOptions();
-
-      Vector& StressVector = rValues.GetStressVector();
-      Vector& StrainVector = rValues.GetStrainVector();
-
-      const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
-      const double& DeterminantF = rValues.GetDeterminantF();
-
-      Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-
-      //2.-Green-Lagrange Strain:
-      if (Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
-      {
-          TransformStrains(StrainVector, DeformationGradientF, StrainMeasure_Almansi, StrainMeasure_GreenLagrange);
-      }
-
-      //3.-Calculate Total PK2 stress
-      if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
-      {
-          TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_Kirchhoff, StressMeasure_PK2);
-      }
-
-      //4.-Calculate PK2 constitutive tensor
-      if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
-      {
-          PullBackConstitutiveMatrix(ConstitutiveMatrix, DeformationGradientF);
-      }
-  }
 
   void JohnsonCookThermalPlastic3DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
   {
-      // TODO this is hyperelastic atm
-
       //a.-Check if the constitutive parameters are passed correctly to the law calculation
       CheckParameters(rValues);
 
       //b.- Get Values to compute the constitutive law:
       Flags& Options = rValues.GetOptions();
+      KRATOS_ERROR_IF(Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+          << "The JohnsonCookThermalPlastic3DLaw cannot accept the deformation graddient F as a strain input."
+          << " Please set the strain vector and set USE_ELEMENT_PROVIDED_STRAIN = False in the element.";
 
       const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
       const Properties& MaterialProperties = rValues.GetMaterialProperties();
-
-      const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
-      const double& DeterminantF = rValues.GetDeterminantF();
 
       const GeometryType& DomainGeometry = rValues.GetElementGeometry();
       const Vector& ShapeFunctions = rValues.GetShapeFunctionsValues();
@@ -196,6 +159,110 @@ namespace Kratos
       Vector& StrainVector = rValues.GetStrainVector();
       Vector& StressVector = rValues.GetStressVector();
       Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+
+      // Convert vectors to matrices for easier manipulation
+      Matrix stress_old(3, 3);
+      Matrix strain_increment(3, 3);
+      MakeStrainStressMatrixFromVector((StrainVector - mStrainOld), strain_increment);
+      MakeStrainStressMatrixFromVector(StressVector, stress_old);
+
+      const double strain_increment_trace = strain_increment(0, 0) + strain_increment(1, 1) + strain_increment(2, 2);
+      const Matrix strain_increment_hydrostatic = strain_increment_trace/3.0 * identity_matrix<double>(3);
+      const Matrix strain_increment_deviatoric = strain_increment - strain_increment_hydrostatic;
+
+
+      // Material moduli
+      const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
+      const double bulk_modulus_K = MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
+
+      
+
+      // TODO decide if we skip the first timestep
+      //if (CurrentProcessInfo.GetSolutionStepIndex() == 0)
+      //{
+      //
+      //}
+
+      const double stress_hydrostatic_old = (stress_old(0, 0) + stress_old(1, 1) + stress_old(2, 2)) / 3.0;
+      Matrix stress_deviatoric_old = stress_old - stress_hydrostatic_old * identity_matrix<double>(3);
+      const double j2_stress_old = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_old));
+      Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
+      const double j2_stress_trial = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_trial));
+
+      ParticleYieldCriterion::Parameters yield_parameters;
+      yield_parameters.SetStressNorm(j2_stress_trial);
+      double yield_function;
+      mpYieldCriterion->CalculateYieldCondition(yield_function, yield_parameters);
+
+      if (yield_function > 0.0)
+      {
+          double current_yield = j2_stress_trial - yield_function;
+
+          // Thermal properties
+          const double eta = 0.9; // TODO check this
+          const double density = MaterialProperties[DENSITY];
+          const double specific_heat_Cp = MaterialProperties[SPECIFIC_HEAT];
+
+
+          // Newton raphson setup
+          double gamma = mGammaOld;
+          double gamma_min = 0.0;
+          double gamma_max = j2_stress_trial / std::sqrt(6.0) / shear_modulus_G;
+          bool is_converged = false;
+          SizeType iteration_limit = 50;
+          IndexType iteration = 1;
+          const double tolerance = 1e-9;
+          double yield_function, yield_function_gradient, dYield_dGamma, delta_gamma;
+
+          while (!is_converged)
+          {
+              double predicted_eps = mEquivalentPlasticStrainOld + std::sqrt(2.0 / 3.0 * gamma); // eps = equivalent plastic strain
+              double predicted_eps_rate = std::sqrt(2.0 / 3.0 * gamma) / CurrentProcessInfo[DELTA_TIME];
+
+              double predicted_temperature = mTemperatureOld +  eta / 2.0 / density / specific_heat_Cp * // TODO check this, [johnson cool umat pdfp169]
+                  std::sqrt(2.0 / 3.0) * (current_yield + j2_stress_old)* gamma;
+
+              //double predicted_temperature = mTemperatureOld +  eta / std::sqrt(6.0) / density / specific_heat_Cp * 
+              //    (std::sqrt(2.0 / 3.0) * current_yield + j2_stress_old)* gamma;
+
+              current_yield = mpHardeningLaw->CalculateHardening(current_yield, predicted_eps_rate, predicted_eps, predicted_temperature);
+              yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - current_yield;
+              if (yield_function < 0.0) gamma_max = gamma;
+              else gamma_min = gamma;
+              dYield_dGamma = mpFlowRule->CalculatePlasticStrainDerivative();
+              dYield_dGamma += mpFlowRule->CalculatePlasticStrainRateDerivative()/ CurrentProcessInfo[DELTA_TIME];
+              dYield_dGamma += mpFlowRule->CalculateThermalDerivative()*eta* current_yield/density/specific_heat_Cp;
+              dYield_dGamma *= std::sqrt(2.0/3.0);
+              yield_function_gradient = -1.0 * std::sqrt(6.0) * shear_modulus_G - dYield_dGamma;
+              delta_gamma = -1.0 * yield_function / yield_function_gradient;
+              gamma += delta_gamma;
+
+              if (gamma_min > gamma || gamma > gamma_max)
+              {
+                  delta_gamma = 0.5 * (gamma_max - gamma_min);
+                  gamma = gamma_min + delta_gamma;
+              }
+
+              if (std::abs(delta_gamma) < tolerance)
+              {
+                  is_converged = true;
+              }
+
+              iteration += 1;
+              KRATOS_ERROR_IF(iteration > iteration_limit) << "Johnson Cook iteration limit exceeded";
+          }
+
+      }
+
+
+
+
+
+
+
+
+
+
 
       //-----------------------------//
 
@@ -222,9 +289,7 @@ namespace Kratos
       VectorSplit SplitStressVector;
       MatrixSplit SplitConstitutiveMatrix;
 
-      //1.- Lame constants
-      const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
-      const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+      
 
       ElasticVariables.LameLambda = (YoungModulus * PoissonCoefficient) / ((1 + PoissonCoefficient) * (1 - 2 * PoissonCoefficient));
       ElasticVariables.LameMu = YoungModulus / (2 * (1 + PoissonCoefficient));
@@ -241,21 +306,8 @@ namespace Kratos
           ElasticVariables.ReferenceTemperature = 0;
 
 
-      //2.-Determinant of the Total DeformationGradientF
-      ElasticVariables.DeterminantF = DeterminantF;
-
       //3.-Compute Incremental DeformationGradientF_bar
-      double detF = DeterminantF / mDeterminantF0;
 
-      ElasticVariables.J_pow13 = pow(detF, 1.0 / 3.0);
-
-      ElasticVariables.DeformationGradientF = DeformationGradientF;
-
-      ElasticVariables.DeformationGradientF = this->Transform2DTo3D(ElasticVariables.DeformationGradientF);
-
-      ElasticVariables.DeformationGradientF = prod(ElasticVariables.DeformationGradientF, this->mInverseDeformationGradientF0);
-
-      ElasticVariables.DeformationGradientF /= ElasticVariables.J_pow13; //now ElasticVariables.DeformationGradientF is DeformationGradientFbar
 
       //4.-Left Cauchy-Green tensor b_bar to the new configuration
       ElasticVariables.CauchyGreenMatrix.resize(3, 3, false);
@@ -272,15 +324,7 @@ namespace Kratos
 
       ReturnMappingVariables.LameMu_bar = ElasticVariables.LameMu * (ElasticVariables.traceCG / 3.0);
 
-      //4.-Almansi Strain:
-      if (Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
-      {
-          // e= 0.5*(1-invbT*invb)
-          this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix, StrainVector);
-          // correct b_bar to b
-          double J_pow23 = pow(ElasticVariables.DeterminantF, 2.0 / 3.0);
-          StrainVector /= (J_pow23 * J_pow23);
-      }
+
 
 
       //5.-Calculate Total Kirchhoff stress
@@ -324,43 +368,7 @@ namespace Kratos
 
       if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
       {
-
-          if (ReturnMappingVariables.Options.IsNot(ParticleFlowRule::RETURN_MAPPING_COMPUTED))
-          {
-              KRATOS_ERROR << " ReturnMappingCall was not performed  ...error in the constitutive calculation..." << std::endl;
-          }
-
-          //initialize constitutive tensors
-          ConstitutiveMatrix.clear();
-          SplitConstitutiveMatrix.Isochoric = ConstitutiveMatrix;
-          SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
-          SplitConstitutiveMatrix.Plastic = ConstitutiveMatrix;
-
-          ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
-
-          this->CalculateIsochoricConstitutiveMatrix(ElasticVariables, ReturnMappingVariables.TrialIsoStressMatrix, SplitConstitutiveMatrix.Isochoric);
-
-          this->CalculateVolumetricConstitutiveMatrix(ElasticVariables, SplitConstitutiveMatrix.Volumetric);
-
-          if (ReturnMappingVariables.Options.Is(ParticleFlowRule::PLASTIC_REGION))
-              this->CalculatePlasticConstitutiveMatrix(ElasticVariables, ReturnMappingVariables, SplitConstitutiveMatrix.Plastic);
-
-
-          // std::cout<< " Isochoric Constitutive "<<SplitConstitutiveMatrix.Isochoric<<std::endl;
-          // std::cout<< " Volumetric Constitutive "<<SplitConstitutiveMatrix.Volumetric<<std::endl;
-          //if( ReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION) )
-            //std::cout<< " Plastic Constitutive   "<<SplitConstitutiveMatrix.Plastic<<std::endl;
-
-          ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric + SplitConstitutiveMatrix.Plastic;
-
-          if (Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY))
-          {
-              ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Plastic;
-          }
-          else if (Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY))
-          {
-              ConstitutiveMatrix = SplitConstitutiveMatrix.Volumetric;
-          }
+          KRATOS_ERROR << "COMPUTE_CONSTITUTIVE_TENSOR not yet implemented in JohnsonCookThermalPlastic3DLaw";
       }
 
 
@@ -374,12 +382,8 @@ namespace Kratos
 
       }
 
-
-
-      // std::cout<<" StrainVector "<<StrainVector<<std::endl;
-      // std::cout<<" StressVector "<<StressVector<<std::endl;
-      // std::cout<<" ConstitutiveMatrix "<<ConstitutiveMatrix<<std::endl;
-
+      // Update old strain for next timestep
+      for (size_t i = 0; i < mStrainOld.size(); ++i) mStrainOld[i] = StrainVector[i];
   }
 
   int JohnsonCookThermalPlastic3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
@@ -560,6 +564,20 @@ namespace Kratos
   bool JohnsonCookThermalPlastic3DLaw::CheckParameters(Parameters& rValues)
   {
       return rValues.CheckAllParameters();
+  }
+
+  void JohnsonCookThermalPlastic3DLaw::MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput)
+  {
+      if (rOutput.size1() != 3 || rOutput.size2() != 3)rOutput.resize(3, 3, false);
+
+      // 3D stress arrangement
+      rOutput(0, 0) = rInput[0];
+      rOutput(1, 1) = rInput[1];
+      rOutput(2, 2) = rInput[2];
+
+      rOutput(0, 1) = 0.5*rInput[3]; //xy
+      rOutput(1, 2) = 0.5*rInput[4]; //yz
+      rOutput(0, 2) = 0.5*rInput[5]; //xz
   }
 
   //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************

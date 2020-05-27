@@ -183,9 +183,6 @@ public:
     */
     virtual double& CalculateHardening(double &rHardening, const Parameters& rValues){ return rHardening; };
 
-    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double& rBeta) {return rHardening; };
-
-    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const Variable<double>& rThisVariable) {return rHardening;};
 
     virtual double& CalculateDeltaHardening(double& rDeltaHardening, const Parameters& rValues) { return rDeltaHardening; };
 

@@ -77,7 +77,6 @@ class JohnsonCookThermalYieldCriterion
         /// Destructor.
         ~JohnsonCookThermalYieldCriterion() override;
 
-
         ///@}
         ///@name Operators
         ///@{
@@ -88,54 +87,7 @@ class JohnsonCookThermalYieldCriterion
 	 */
         ParticleYieldCriterion::Pointer Clone() const override;
 
-        ///@}
-        ///@name Operations
-        ///@{
-
         double& CalculateYieldCondition(double& rStateFunction, const Parameters& rValues) override;
-
-        double& CalculateStateFunction(double& rStateFunction, const Parameters& rValues) override;
-
-        double& CalculateDeltaStateFunction(double& rDeltaStateFunction, const Parameters& rValues) override;
-
-        double& CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rValues) override;
-
-        double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues) override;
-
-        double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rValues) override;
-
-        double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues) override;
-
-        ///@}
-        ///@name Access
-        ///@{
-
-
-        ///@}
-        ///@name Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Input and output
-        ///@{
-
-        // /// Turn back information as a string.
-        // virtual std::string Info() const;
-
-        // /// Print information about this object.
-        // virtual void PrintInfo(std::ostream& rOStream) const;
-
-        // /// Print object's data.
-        // virtual void PrintData(std::ostream& rOStream) const;
-
-
-        ///@}
-        ///@name Friends
-        ///@{
-
-
-        ///@}
 
     protected:
         ///@name Protected static Member Variables
@@ -146,7 +98,6 @@ class JohnsonCookThermalYieldCriterion
         ///@name Protected member Variables
         ///@{
 
-
         ///@}
         ///@name Protected Operators
         ///@{
@@ -155,7 +106,6 @@ class JohnsonCookThermalYieldCriterion
         ///@}
         ///@name Protected Operations
         ///@{
-
 
         ///@}
         ///@name Protected  Access

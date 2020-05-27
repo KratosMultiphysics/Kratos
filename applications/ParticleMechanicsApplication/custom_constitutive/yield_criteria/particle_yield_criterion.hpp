@@ -85,11 +85,11 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ParticleYieldCriterion
 	  const ParticleHardeningLaw::Parameters& GetHardeningParameters  () const { return HardeningParameters; };
 
 	  //Set Hardening Parameters
-	  void SetRateFactor  (double rRateFactor)         { HardeningParameters.SetRateFactor(rRateFactor);   };
+	  //void SetRateFactor  (double rRateFactor)         { HardeningParameters.SetRateFactor(rRateFactor);   };
 	  void SetDeltaTime   (const double& rDeltaTime)   { HardeningParameters.SetDeltaTime(rDeltaTime);     };
 
 	  //Get Hardening Parameters
-	  const double& GetRateFactor  () const { return HardeningParameters.GetRateFactor();   };
+	  //const double& GetRateFactor  () const { return HardeningParameters.GetRateFactor();   };
 	  const double& GetDeltaTime   () const { return HardeningParameters.GetDeltaTime();    };
 
 	};

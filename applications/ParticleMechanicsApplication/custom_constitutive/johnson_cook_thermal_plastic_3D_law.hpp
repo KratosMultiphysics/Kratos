@@ -156,14 +156,6 @@ public:
 
     /**
      * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2(Parameters& rValues) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-
-    /**
-     * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
      * @param rValues
      * @see   Parameters
@@ -190,13 +182,19 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Matrix mElasticLeftCauchyGreen;
+    //Matrix mElasticLeftCauchyGreen; // TODO maybe delete
+
+    Vector mStrainOld;
 
     FlowRulePointer       mpFlowRule;
 
     YieldCriterionPointer mpYieldCriterion;
 
     HardeningLawPointer   mpHardeningLaw;
+
+    double mEquivalentPlasticStrainOld;
+    double mTemperatureOld;
+    double mHardeningOld;
 
     ///@}
     ///@name Protected Operators
@@ -296,6 +294,21 @@ protected:
      */
     bool CheckParameters(Parameters& rValues) override; //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
 
+    virtual void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput);
+
+    double CalculateMatrixDoubleContraction(const Matrix& rInput)
+    {
+        double result = 0.0;
+        for (size_t i = 0; i < rInput.size1(); ++i)
+        {
+            for (size_t j = 0; j < rInput.size2(); ++j)
+            {
+                result += rInput(i, j) * rInput(i, j);
+            }
+        }
+        return result;
+    }
+
 private:
 
     ///@name Static Member Variables
@@ -305,6 +318,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    double mGammaOld = 1e-8;
 
 
     ///@}
