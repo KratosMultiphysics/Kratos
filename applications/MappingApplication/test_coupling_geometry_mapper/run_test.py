@@ -1,10 +1,9 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
-import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def ReadModelPart(model_part, mdpa_file_name):
     # adding variables used for mapping
-    historical_vars = [KM.PRESSURE, KM.FORCE, KM.TEMPERATURE, KM.VELOCITY]
+    historical_vars = [KM.PRESSURE, KM.FORCE, KM.TEMPERATURE, KM.VELOCITY, KM.DISPLACEMENT]
     for var in historical_vars:
         model_part.AddNodalSolutionStepVariable(var)
 
@@ -45,12 +44,12 @@ originProps = originInterface.GetProperties()[1]
 nodeOffset = 327
 for conditionIndex in range(1,6):
     cNode = nodeOffset + conditionIndex
-    originInterface.CreateNewCondition("LineLoadCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
+    originInterface.CreateNewCondition("LineCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
 
 destProps = destinationInterface.GetProperties()[1]
-destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 101, [1,3], destProps)
-destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 102, [3,6], destProps)
-destinationInterface.CreateNewCondition("LineLoadCondition2D2N", 103, [6,10], destProps)
+destinationInterface.CreateNewCondition("LineCondition2D2N", 101, [1,3], destProps)
+destinationInterface.CreateNewCondition("LineCondition2D2N", 102, [3,6], destProps)
+destinationInterface.CreateNewCondition("LineCondition2D2N", 103, [6,10], destProps)
 
 # TODO, add some logic to call the correct intersection functions. that would depend on the dimension of the coupling interfaces
 KratosMapping.FindIntersection1DGeometries2D(originInterface, destinationInterface, model_part_coupling, 1e-6)
@@ -68,6 +67,6 @@ mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_
 #mapper = KratosMapping.MapperFactory.CreateMapper(model_part_coupling, dummy, mapper_params) // goal
 
 for node in model_part_origin.Nodes:
-    node.SetSolutionStepValue(KM.DISPLACEMENT_X, 1.0, model_part_origin.ProcessInfo)
+    node.SetSolutionStepValue(KM.DISPLACEMENT_X, 1.0)
 
 mapper.Map(KM.DISPLACEMENT, KM.DISPLACEMENT)
