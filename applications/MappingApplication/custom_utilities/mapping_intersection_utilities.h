@@ -42,13 +42,13 @@ namespace MappingIntersectionUtilities
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    inline void KRATOS_API(MAPPING_APPLICATION) FindIntersection1DGeometries2D(
+    void KRATOS_API(MAPPING_APPLICATION) FindIntersection1DGeometries2D(
         ModelPart& rModelPartDomainA,
         ModelPart& rModelPartDomainB,
         ModelPart& rModelPartResult,
         double Tolerance = 1e-6);
 
-    inline void KRATOS_API(MAPPING_APPLICATION) CreateQuadraturePointsCoupling1DGeometries2D(
+    void KRATOS_API(MAPPING_APPLICATION) CreateQuadraturePointsCoupling1DGeometries2D(
         ModelPart& rModelPartCoupling,
         ModelPart& rModelPartResult,
         double Tolerance);
