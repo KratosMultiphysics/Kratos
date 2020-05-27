@@ -77,6 +77,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
                 "multi_axial": true,
                 "perturbation_tolerance": 1.0e-2,
                 "perturbation_period": 10,
+                "max_force_correction_fraction": 0.25,
                 "velocity_alpha" : 0.0,
                 "stiffness_alpha": 0.0,
                 "reaction_alpha" : 0.0
@@ -95,13 +96,13 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     mPerturbationTolerance = rParameters["Parameters"]["perturbation_tolerance"].GetDouble();
     mPerturbationPeriod = rParameters["Parameters"]["perturbation_period"].GetInt();
     mMultiAxial = rParameters["Parameters"]["multi_axial"].GetBool();
+    mMaxForceCorrectionFraction = rParameters["Parameters"]["max_force_correction_fraction"].GetDouble();
     mVelocityAlpha = rParameters["Parameters"]["velocity_alpha"].GetDouble();
     mStiffnessAlpha = rParameters["Parameters"]["stiffness_alpha"].GetDouble();
     mReactionAlpha = rParameters["Parameters"]["reaction_alpha"].GetDouble();
 
     const unsigned int number_of_actuators = rParameters["list_of_actuators"].size();
     mVelocity.resize(number_of_actuators, false);
-    mLimitVelocities.resize(number_of_actuators, false);
     mReactionStress.resize(number_of_actuators, false);
     mReactionStressOld.resize(number_of_actuators, false);
     mElasticReactionStress.resize(number_of_actuators, false);
@@ -154,10 +155,8 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         mTargetStressTableIds[actuator_name] = rParameters["list_of_actuators"][i]["Parameters"]["target_stress_table_id"].GetInt();
         const double compression_length = rParameters["list_of_actuators"][i]["Parameters"]["compression_length"].GetDouble();
         const double initial_velocity = rParameters["list_of_actuators"][i]["Parameters"]["initial_velocity"].GetDouble();
-        const double limit_velocity = rParameters["list_of_actuators"][i]["Parameters"]["limit_velocity"].GetDouble();
         const double stiffness = rParameters["list_of_actuators"][i]["Parameters"]["young_modulus"].GetDouble()/compression_length; // mStiffness is actually a stiffness over an area
         mVelocity[i] = initial_velocity;
-        mLimitVelocities[i] = limit_velocity;
         mStiffness(i,i) = stiffness;
         mReactionStress[i] = 0.0;
         mReactionStressOld[i] = 0.0;
@@ -238,6 +237,7 @@ protected:
     bool mMultiAxial;
     double mPerturbationTolerance;
     unsigned int mPerturbationPeriod;
+    double mMaxForceCorrectionFraction;
     double mVelocityAlpha;
     double mStiffnessAlpha;
     double mReactionAlpha;
@@ -245,9 +245,8 @@ protected:
     std::map<std::string, std::vector<ModelPart*>> mFEMBoundariesSubModelParts; /// FEM SubModelParts associated to each boundary of every actuator
     std::map<std::string, std::vector<ModelPart*>> mDEMBoundariesSubModelParts; /// DEM SubModelParts associated to each boundary of every actuator
     std::map<std::string, std::vector<array_1d<double,3>>> mFEMOuterNormals; /// OuterNormal associated to each FEM boundary of every actuator
-    // std::map<std::string, std::vector<array_1d<double,3>>> mDEMOuterNormals; /// OuterNormal associated to each DEM boundary of every actuator. TODO
+    // std::map<std::string, std::vector<array_1d<double,3>>> mDEMOuterNormals; /// OuterNormal associated to each DEM boundary of every actuator. TODO: not used for now...
     std::map<std::string, unsigned int> mTargetStressTableIds; /// TargetStressTableIds associated to every actuator
-    Vector mLimitVelocities;
     Vector mVelocity;
     Vector mReactionStress;
     Vector mElasticReactionStress;
