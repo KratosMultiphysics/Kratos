@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "mapping_application_variables.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
@@ -199,7 +200,7 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
 {
     // @tteschemachen here kann man zwischen Elementen & Conditions wählen
     // hab doch conditions genommen weil das in meinm MDPA so war :)
-    const std::size_t num_elements = rModelPartCommunicator.LocalMesh().NumberOfConditions(); 
+    const std::size_t num_elements = rModelPartCommunicator.LocalMesh().NumberOfConditions();
     const auto elems_ptr_begin = rModelPartCommunicator.LocalMesh().Conditions().ptr_begin();
 
     // set to 2x the number of systems. First block is projected systems, second block is slave systems

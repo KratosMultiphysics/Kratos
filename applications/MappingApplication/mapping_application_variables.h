@@ -25,7 +25,6 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
-// #include "custom_utilities/mapper_interface_info.h"
 
 namespace Kratos
 {
