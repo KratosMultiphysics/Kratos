@@ -413,34 +413,48 @@ enum class DataLocation { NodeHistorical, NodeNonHistorical, Element, Condition,
 
 void  AddCoSimIOToPython(pybind11::module& m)
 {
-    // namespace py = pybind11;
+    namespace py = pybind11;
 
-    // auto mCoSimIO = m.def_submodule("CoSimIO");
+    auto m_co_sim_io = m.def_submodule("CoSimIO");
 
-    // void (*ConnectWithSettings)(const std::string&, CoSimIO::SettingsType) = &CoSimIO::Connect;
+    py::class_<CoSimIO::Info>(m_co_sim_io,"Info")
+        .def(py::init<>())
+        .def("Has",       &CoSimIO::Info::Has)
+        .def("GetInt",    &CoSimIO::Info::Get<int>)
+        .def("GetDouble", &CoSimIO::Info::Get<double>)
+        .def("GetBool",   &CoSimIO::Info::Get<bool>)
+        .def("GetString", &CoSimIO::Info::Get<std::string>)
+        .def("SetInt",    &CoSimIO::Info::Set<int>)
+        .def("SetDouble", &CoSimIO::Info::Set<double>)
+        .def("SetBool",   &CoSimIO::Info::Set<bool>)
+        .def("SetString", &CoSimIO::Info::Set<std::string>)
+        .def("Erase",     &CoSimIO::Info::Erase)
+        .def("Clear",     &CoSimIO::Info::Clear)
+        .def("Size",      &CoSimIO::Info::Size)
+        .def("__str__",   PrintObject<CoSimIO::Info>);
+        ;
 
-    // mCoSimIO.def("Connect", ConnectWithSettings);
+    m_co_sim_io.def("Connect", &CoSimIO::Connect);
+    m_co_sim_io.def("Disconnect", &CoSimIO::Disconnect);
 
-    // mCoSimIO.def("Disconnect", CoSimIO::Disconnect);
+    m_co_sim_io.def("IsConverged", &CoSimIO::IsConverged);
 
-    // mCoSimIO.def("IsConverged", CoSimIO::IsConverged);
+    // m_co_sim_io.def("SendControlSignal", CoSimIO::Internals::SendControlSignal); // this function should only be used by Kratos to control other solvers
 
-    // mCoSimIO.def("SendControlSignal", CoSimIO::Internals::SendControlSignal); // this function should only be used by Kratos to control other solvers
+    // m_co_sim_io.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
+    // m_co_sim_io.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);
 
-    // mCoSimIO.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
-    // mCoSimIO.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);
+    // m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_Scalar);
+    // m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_Scalar);
+    // m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_Vector);
+    // m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_Vector);
+    // m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_Values);
+    // m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_Values);
 
-    // mCoSimIO.def("ImportData", CoSimIO_Wrappers::ImportData_Scalar);
-    // mCoSimIO.def("ExportData", CoSimIO_Wrappers::ExportData_Scalar);
-    // mCoSimIO.def("ImportData", CoSimIO_Wrappers::ImportData_Vector);
-    // mCoSimIO.def("ExportData", CoSimIO_Wrappers::ExportData_Vector);
-    // mCoSimIO.def("ImportData", CoSimIO_Wrappers::ImportData_Values);
-    // mCoSimIO.def("ExportData", CoSimIO_Wrappers::ExportData_Values);
+    // // m_co_sim_io.def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry); // This is not yet implemented in the CoSimIO
+    // // m_co_sim_io.def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry); // This is not yet implemented in the CoSimIO
 
-    // // mCoSimIO.def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry); // This is not yet implemented in the CoSimIO
-    // // mCoSimIO.def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry); // This is not yet implemented in the CoSimIO
-
-    // py::enum_<CoSimIO_Wrappers::DataLocation>(mCoSimIO,"DataLocation")
+    // py::enum_<CoSimIO_Wrappers::DataLocation>(m_co_sim_io,"DataLocation")
     //     .value("NodeHistorical",    CoSimIO_Wrappers::DataLocation::NodeHistorical)
     //     .value("NodeNonHistorical", CoSimIO_Wrappers::DataLocation::NodeNonHistorical)
     //     .value("Element",           CoSimIO_Wrappers::DataLocation::Element)
@@ -448,7 +462,7 @@ void  AddCoSimIOToPython(pybind11::module& m)
     //     .value("ModelPart",         CoSimIO_Wrappers::DataLocation::ModelPart)
     //     ;
 
-    // py::enum_<CoSimIO::ControlSignal>(mCoSimIO,"ControlSignal")
+    // py::enum_<CoSimIO::ControlSignal>(m_co_sim_io,"ControlSignal")
     //     .value("Dummy", CoSimIO::ControlSignal::Dummy)
     //     .value("BreakSolutionLoop", CoSimIO::ControlSignal::BreakSolutionLoop)
     //     .value("ConvergenceAchieved", CoSimIO::ControlSignal::ConvergenceAchieved)
@@ -469,4 +483,3 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
 }  // namespace Python.
 } // Namespace Kratos
-
