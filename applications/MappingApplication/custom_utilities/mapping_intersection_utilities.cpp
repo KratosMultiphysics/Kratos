@@ -15,12 +15,12 @@
 // External includes
 
 // Project includes
-#include "intersection_utilities.h"
+#include "mapping_intersection_utilities.h"
 
 namespace Kratos
 {
 
-void IntersectionUtilities::FindIntersection1DGeometries2D(
+void MappingIntersectionUtilities::FindIntersection1DGeometries2D(
     ModelPart& rModelPartDomainA,
     ModelPart& rModelPartDomainB,
     ModelPart& rModelPartResult,
@@ -48,7 +48,7 @@ void IntersectionUtilities::FindIntersection1DGeometries2D(
     }
 }
 
-void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
+void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
     ModelPart& rModelPartCoupling,
     ModelPart& rModelPartResult,
     double Tolerance)
@@ -70,7 +70,7 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
         CoordinatesArrayType local_parameter_2 = ZeroVector(3);
 
         std::vector<array_1d<double, 3>> overlap_extents;
-        KRATOS_ERROR_IF_NOT(IntersectionUtilities::FindOverlapExtents1DGeometries2D(
+        KRATOS_ERROR_IF_NOT(MappingIntersectionUtilities::FindOverlapExtents1DGeometries2D(
             r_geom_master, r_geom_slave, overlap_extents, 1e-6))
             << "Lines do not intersect." << std::endl;
         r_geom_master.PointLocalCoordinates(local_parameter_1, overlap_extents[0]); // min of overlap
@@ -117,7 +117,7 @@ void IntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
     }
 }
 
-bool IntersectionUtilities::FindOverlapExtents1DGeometries2D(
+bool MappingIntersectionUtilities::FindOverlapExtents1DGeometries2D(
     const GeometryType& rMasterLine,
     const GeometryType& rSlaveLine,
     std::vector<array_1d<double, 3>>& rOverlapExtents,

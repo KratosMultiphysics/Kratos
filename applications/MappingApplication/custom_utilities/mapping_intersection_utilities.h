@@ -10,8 +10,8 @@
 //  Main authors:    Peter Wilson
 //
 
-#if !defined(KRATOS_INTERSECTION_UTILITIES_H_INCLUDED)
-#define  KRATOS_INTERSECTION_UTILITIES_H_INCLUDED
+#if !defined(KRATOS_MAPPING_INTERSECTION_UTILITIES_H_INCLUDED)
+#define  KRATOS_MAPPING_INTERSECTION_UTILITIES_H_INCLUDED
 
 // System includes
 
@@ -28,7 +28,7 @@
 
 namespace Kratos
 {
-namespace IntersectionUtilities
+namespace MappingIntersectionUtilities
 {
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
@@ -42,13 +42,13 @@ namespace IntersectionUtilities
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    void KRATOS_API(MAPPING_APPLICATION) FindIntersection1DGeometries2D(
+    inline void KRATOS_API(MAPPING_APPLICATION) FindIntersection1DGeometries2D(
         ModelPart& rModelPartDomainA,
         ModelPart& rModelPartDomainB,
         ModelPart& rModelPartResult,
         double Tolerance = 1e-6);
 
-    void KRATOS_API(MAPPING_APPLICATION) CreateQuadraturePointsCoupling1DGeometries2D(
+    inline void KRATOS_API(MAPPING_APPLICATION) CreateQuadraturePointsCoupling1DGeometries2D(
         ModelPart& rModelPartCoupling,
         ModelPart& rModelPartResult,
         double Tolerance);
@@ -58,8 +58,8 @@ namespace IntersectionUtilities
         const GeometryType& rSlaveLine,
         std::vector<array_1d<double, 3 > >& rOverlapExtents,
         const double Tolerance = 1e-6);
-}  // namespace IntersectionUtilities.
+}  // namespace MappingIntersectionUtilities.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTERSECTION_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_MAPPING_INTERSECTION_UTILITIES_H_INCLUDED  defined
