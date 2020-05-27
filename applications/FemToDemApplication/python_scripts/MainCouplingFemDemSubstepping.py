@@ -29,7 +29,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         # Perform substepping
         pseudo_substepping_time = 0
         if self.DEM_Solution.spheres_model_part.NumberOfElements() > 0:
-            self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping...")
+            self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping... Explicit time step: " + str(self.DEM_Solution.solver.dt))
             while pseudo_substepping_time <= self.FEM_Solution.delta_time:
                 ### Begin Substepping
                 self.BeforeSolveDEMOperations()
