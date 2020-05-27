@@ -150,6 +150,7 @@ bool IntersectionUtilities::FindOverlapExtents1DGeometries2D(
         const double t = numerator / denominator;
         rOverlapExtents[0] = first_point + t * (second_point - first_point);
         rOverlapExtents[1] = rOverlapExtents[0];
+        return false;
     }
     else
     {
