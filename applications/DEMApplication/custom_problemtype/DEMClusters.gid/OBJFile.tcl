@@ -38,8 +38,8 @@ proc GenerateOBJFile { basename dir problemtypedir } {
 
     set triangle_nodes [list]
     foreach element_id $triangles { ;
-        set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;   # get the nodes of the element
-        lappend triangle_nodes {*}$nodes ;                              # add those nodes to the nodes_to_delete list
+        set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
+        lappend triangle_nodes {*}$nodes ;                              
     }
 
     
@@ -47,6 +47,7 @@ proc GenerateOBJFile { basename dir problemtypedir } {
 
     ## Nodes only if belong to any triangle
     set Nodes [GiD_Info Mesh Nodes]
+    set position_list [list]
     W $Nodes
     W $triangle_nodes
     W "________________________________________"
@@ -54,14 +55,30 @@ proc GenerateOBJFile { basename dir problemtypedir } {
     #puts $FileVar "Ordered vertex list only if associated with any face triangle"
     for {set i 0} {$i < [llength $Nodes]} {incr i 4} {
         if {[lindex $Nodes $i] in $triangle_nodes} {
+        incr position
         puts -nonewline $FileVar "v "
         puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+1 }]]]
         puts -nonewline $FileVar " "
         puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+2 }]]]
         puts -nonewline $FileVar " "
-        puts $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+3 }]]]
+        puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+3 }]]]
+        puts -nonewline $FileVar " "
+        #puts  $FileVar  $position
+        lappend position_list [lindex $Nodes $i] $position ;  
+        dict set position_list_dict [lindex $Nodes $i] $position
         }
+        
     }
+    W "position_list"
+    W $position_list
+    W $position_list_dict
+
+    W [dict get $position_list_dict 88]
+
+    # position_list
+    # 1 1 2 2 3 3 4 4 6 5 7 6 8 7 9 8 10 9 11 10 13 11 14 12 15 13 28 14 29 15 30 16 31 17 32 18 33 19 38 20 39 21 40 22 42 23 43 24 44 25 45 26 46 27 47 28 55 29 56 30 57 31 58 32 59 33 60 34 62 35 63 36 64 37 65 38 66 39 67 40 71 41 72 42 73 43 74 44 75 45 76 46 77 47 78 48 79 49 81 50 82 51 83 52 85 53 86 54 87 55 88 56
+
+
 
     # Lo que tienes que hacer es recorrer los elementos que son los que apuntan a
     # sus nodos, y sumar a cada nodo la aportación de su normal.
@@ -205,11 +222,13 @@ proc GenerateOBJFile { basename dir problemtypedir } {
     puts $FileVar " "
     foreach element_id $triangles { ;
         set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
-        puts $FileVar "f [lindex $nodes 0]//[lindex $nodes 0] [lindex $nodes 1]//[lindex $nodes 1] [lindex $nodes 2]//[lindex $nodes 2]" ;
+        #puts $FileVar "f [lindex $nodes 0]//[lindex $nodes 0] [lindex $nodes 1]//[lindex $nodes 1] [lindex $nodes 2]//[lindex $nodes 2]" ;
+        puts $FileVar "f [dict get $position_list_dict [lindex $nodes 0]]//[dict get $position_list_dict [lindex $nodes 0]] [dict get $position_list_dict [lindex $nodes 1]]//[dict get $position_list_dict [lindex $nodes 1]] [dict get $position_list_dict [lindex $nodes 2]]//[dict get $position_list_dict [lindex $nodes 2]]" ;
+
     }
 
 
-  # required format is
+    # required format is
     # v 987.823009 -583.341002 122.360997    
     # vn 0.329248 0.150250 0.932213
     # v 979.430974 -499.442995 88.674001
@@ -225,3 +244,4 @@ proc GenerateOBJFile { basename dir problemtypedir } {
 
     return $OBJOutput
 }
+

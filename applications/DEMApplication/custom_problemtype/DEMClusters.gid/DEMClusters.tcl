@@ -136,7 +136,6 @@ namespace eval DEMClusters {
 
 proc call_SphereTree { } {
 
-    W "executing call_SphereTree"
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     if {$Algorithm == "MakeTreeMedial"} {
         ::DEMClusters::call_TreeMedial
@@ -175,7 +174,6 @@ proc DEMClusters::call_TreeMedial { } {
     #set filename_obj $::DEMClusters::ProblemName ## custom names
     #append filename_obj .obj
 
-    #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     exec $program {*}$argv
@@ -229,7 +227,6 @@ proc DEMClusters::call_makeTreeGrid { } {
     set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
     set genericOBJFilename "\"$genericOBJFilename\""
 
-    #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     exec $program {*}$argv
@@ -258,7 +255,6 @@ proc DEMClusters::call_makeTreeSpawn { } {
     set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
     set genericOBJFilename "\"$genericOBJFilename\""
 
-    #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     exec $program {*}$argv
@@ -292,7 +288,6 @@ proc DEMClusters::call_makeTreeHubbard { } {
     set modelname [GiD_Info Project ModelName]
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
-    #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -branch $branch -numSamples $numSamples -minSamples $minSamples -nopause $genericOBJFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     exec $program {*}$argv
