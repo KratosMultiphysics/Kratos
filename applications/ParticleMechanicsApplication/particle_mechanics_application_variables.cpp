@@ -53,6 +53,9 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, COHESION_RESIDUAL )
     KRATOS_CREATE_VARIABLE( double, INTERNAL_DILATANCY_ANGLE_RESIDUAL )
     KRATOS_CREATE_VARIABLE( double, SHAPE_FUNCTION_BETA )
+    // CL: Johnson Cook
+    KRATOS_CREATE_VARIABLE( double, REFERENCE_STRAIN_RATE)
+
 
     // Conditions
     // Essential Boundary Conditions

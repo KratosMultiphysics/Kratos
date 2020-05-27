@@ -62,7 +62,7 @@ public:
     {
     private:
 
-          double        mRateFactor;
+          double        mPlasticStrainRate;
           const double* mpDeltaTime;
 
           const double* mpDeltaGamma;
@@ -75,7 +75,7 @@ public:
     public:
 
           //Set Parameters
-          void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;     };
+          void SetPlasticStrainRate(double rPlasticStrainRate)         { mPlasticStrainRate = rPlasticStrainRate;     };
           void SetDeltaTime   (const double& rDeltaTime)   { mpDeltaTime = &rDeltaTime;     };
 
           void SetDeltaGamma(const double& rDeltaGamma) { mpDeltaGamma = &rDeltaGamma; };
@@ -87,7 +87,7 @@ public:
 
 
           //Get Parameters
-          const double& GetRateFactor  () const { return  mRateFactor;   };
+          const double& GetPlasticStrainRate  () const { return  mPlasticStrainRate;   };
           const double& GetDeltaTime   () const { return *mpDeltaTime;   };
 
           const double& GetDeltaGamma() const { return *mpDeltaGamma; };
@@ -100,7 +100,7 @@ public:
 
           void print() const
           {
-            KRATOS_INFO("ParticleHardeningLaw.Parameters") << " RateFactor " << mRateFactor  << std::endl;
+            KRATOS_INFO("ParticleHardeningLaw.Parameters") << " PlasticStrainRate " << mPlasticStrainRate << std::endl;
             KRATOS_INFO("ParticleHardeningLaw.Parameters") << " DeltaTime  " << *mpDeltaTime << std::endl;
           }
 

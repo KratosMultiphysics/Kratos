@@ -97,8 +97,8 @@ bool JohnsonCookPlasticFlowRule::CalculateConsistencyCondition( RadialReturnVari
 	// if(!converged)
 	//   std::cout<<" ConstitutiveLaw did not converge on the rate dependent return mapping"<<std::endl;
 
-	const double& PlasticStrainRate = GetProperties()[PLASTIC_STRAIN_RATE];
-	double MaterialDeltaPlasticStrain = PlasticStrainRate * rReturnMappingVariables.DeltaTime;
+	const double& ReferenceStrainRate = GetProperties()[REFERENCE_STRAIN_RATE];
+	double MaterialDeltaPlasticStrain = ReferenceStrainRate * rReturnMappingVariables.DeltaTime;
 
 	//std::cout<<" DeltaPlasticStrain: "<<rPlasticVariables.DeltaPlasticStrain<<" MaterialDeltaPlasticStrain: "<<MaterialDeltaPlasticStrain<<std::endl;
 
@@ -140,9 +140,9 @@ bool JohnsonCookPlasticFlowRule::CalculateRateDependentConsistency( RadialReturn
 	//rReturnMappingVariables.DeltaGamma = std::sqrt(3.0*0.5) * ( rPlasticVariables.EquivalentPlasticStrain - rPlasticVariables.EquivalentPlasticStrainOld );
 
 
-	const double& PlasticStrainRate = GetProperties()[PLASTIC_STRAIN_RATE];
+	const double& ReferenceStrainRate = GetProperties()[REFERENCE_STRAIN_RATE];
 
-	rReturnMappingVariables.DeltaGamma         = std::sqrt(3.0*0.5) * PlasticStrainRate * rReturnMappingVariables.DeltaTime;
+	rReturnMappingVariables.DeltaGamma         = std::sqrt(3.0*0.5) * ReferenceStrainRate * rReturnMappingVariables.DeltaTime;
 
 	rPlasticVariables.DeltaPlasticStrain       = std::sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 

@@ -171,6 +171,9 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( COHESION_RESIDUAL )
         KRATOS_REGISTER_VARIABLE( INTERNAL_DILATANCY_ANGLE_RESIDUAL )
         KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_BETA )
+        // CL: Johnson Cook
+        KRATOS_REGISTER_VARIABLE( REFERENCE_STRAIN_RATE)
+
 
         // Registering condition variables
         // Essential Boundary Conditions

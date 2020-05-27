@@ -92,6 +92,7 @@ public:
 
     double& CalculateHardening(double &rHardening, const Parameters& rValues) override;
 
+    /*
     double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues) override;
 
     double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues) override;
@@ -103,6 +104,7 @@ public:
     double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const Parameters& rValues) override;
 
     double& CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const Parameters& rValues) override;
+    */
 
 
     ///@}
