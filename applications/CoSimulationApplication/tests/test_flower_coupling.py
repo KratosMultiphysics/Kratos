@@ -11,9 +11,6 @@ using_pykratos = UsingPyKratos()
 
 import os, subprocess
 
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
-
 class TestFLOWerCoupling(KratosUnittest.TestCase):
     '''TODO add description
     '''
