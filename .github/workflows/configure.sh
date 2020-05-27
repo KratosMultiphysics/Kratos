@@ -63,7 +63,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 -DBLAS_LIBRARIES="/usr/lib/x86_64-linux-gnu/blas/libblas.so.3" \
--DLAPACK_LIBRARIES="/usr/lib/x86_64-linux-gnu/lapackliblapack.so.3" \
+-DLAPACK_LIBRARIES="/usr/lib/x86_64-linux-gnu/liblapack.so.3" \
 -DUSE_COTIRE=ON \
 -DINCLUDE_MMG=ON                                    \
 -DMMG_ROOT="/usr/local/"                            \
