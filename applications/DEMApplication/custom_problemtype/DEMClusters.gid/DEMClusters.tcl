@@ -318,6 +318,8 @@ proc DEMClusters::call_makeTreeOctree { } {
 
 proc GenerateClusterFile { } {
 
+    #TODO: no hi ha forma de que funcione desde GID
+
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     if {$Algorithm == "MakeTreeMedial"} {
         set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-medial.sph]
