@@ -11,6 +11,9 @@ using_pykratos = UsingPyKratos()
 
 import os, subprocess
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 class TestFLOWerCoupling(KratosUnittest.TestCase):
     '''TODO add description
     '''
@@ -39,7 +42,7 @@ class TestFLOWerCoupling(KratosUnittest.TestCase):
 
     def _runTest(self):
         p = subprocess.Popen(
-            ["python3", "../python_scripts/helpers/dummy_flower_solver.py", self.ext_parameter_file_name],
+            ["python3", os.path.join(self.problem_dir_name,"dummy_flower_solver.py"), self.ext_parameter_file_name],
             cwd=os.path.dirname(os.path.abspath(__file__)))
 
         CoSimulationAnalysis(self.cosim_parameters).Run()
