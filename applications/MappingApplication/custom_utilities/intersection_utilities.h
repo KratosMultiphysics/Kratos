@@ -42,18 +42,18 @@ namespace IntersectionUtilities
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    void FindIntersection1DGeometries2D(
+    void KRATOS_API(MAPPING_APPLICATION) FindIntersection1DGeometries2D(
         ModelPart& rModelPartDomainA,
         ModelPart& rModelPartDomainB,
         ModelPart& rModelPartResult,
         double Tolerance = 1e-6);
 
-    void CreateQuadraturePointsCoupling1DGeometries2D(
+    void KRATOS_API(MAPPING_APPLICATION) CreateQuadraturePointsCoupling1DGeometries2D(
         ModelPart& rModelPartCoupling,
         ModelPart& rModelPartResult,
         double Tolerance);
 
-    bool FindOverlapExtents1DGeometries2D(
+    bool KRATOS_API(MAPPING_APPLICATION) FindOverlapExtents1DGeometries2D(
         const GeometryType& rMasterLine,
         const GeometryType& rSlaveLine,
         std::vector<array_1d<double, 3 > >& rOverlapExtents,
