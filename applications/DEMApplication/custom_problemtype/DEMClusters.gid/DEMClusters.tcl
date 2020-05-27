@@ -17,17 +17,18 @@
 # 3GenerateSPHFileFromOBJFile
 # -call_SphereTree
 
-
 # 4Generate.ClusterFile
+
+
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ## 
 
-## llegir el spheretree i mosstrar el cluster dintre gid en PRE
+## GenerateClusterFile works fine in the folder but shows segmentation fault when launching from gid
 
 ##- spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples 
 ##- even if spheretree works as expected, it throw an error when finalizing. kike: child process exited abnormally
-##- add export gidmesh as generic.msh
+
 
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -42,9 +43,11 @@
 ##- plan on msh to clu functionaly design of precompiled executable. args, paths and location, 
 ##-     define arguments path and call exe from inside exec folder.
 ##- add dummy .bat to avoid error showing both unix.bat and win.bat
-
-
+##- cluster visualizaton in GID pre
+##- add export gidmesh as generic.msh on calculate
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 
 ## GiD events --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -59,6 +62,7 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateSPH" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateCLU" ] 2 PRE [list GenerateClusterFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster" ] 3 PRE [list ReadClusterFile] "" ""
         GiDMenu::UpdateMenus
     }
 
@@ -95,33 +99,30 @@ proc AfterReadGIDProject { filename } {
 }
 
 
-proc BeforeMeshGeneration {elementsize} {
+#proc BeforeMeshGeneration {elementsize}
+proc GiD_Event_BeforeMeshGeneration {elementsize} {
 
     # Align the normal
-    #TODO: check priority of AlignSurfNormals vs Mesh process
     AlignSurfNormals Outwards
-
-    foreach surf [GiD_Geometry list surface 1:end] {
-        lappend surf_list $surf 
-    }
-    GiD_MeshData mesh_criteria to_be_meshed 2 surfaces $surf_list
-
-    
+    GiD_MeshData mesh_criteria to_be_meshed 2 surfaces [GiD_Geometry list surface]
 }
 
 proc AfterMeshGeneration {fail} {
-    #Mescape Files WriteMesh
+
 }
 
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
-
     source [file join $problemtypedir OBJFile.tcl]
     set OBJOutput [GenerateOBJFile $basename $dir $problemtypedir]
+
+    set modelname [GiD_Info Project ModelName]
+    set export_msh [file join ${modelname}.gid generic.msh]
+    GiD_Process Mescape Files WriteMesh $export_msh
 }
 
+
 proc GenerateSPHFileFromOBJFile { } {
-    # TODO: On pressing Button, execute GenerateSPHFileFromOBJFile.
     call_SphereTree
 }
 
@@ -156,8 +157,6 @@ proc call_SphereTree { } {
 }
 
 proc DEMClusters::call_TreeMedial { } {
-
-    W "executing call_TreeMedial"
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set branch [GiD_AccessValue get gendata branch]
@@ -288,7 +287,10 @@ proc DEMClusters::call_makeTreeHubbard { } {
     set numSamples [GiD_AccessValue get gendata numSamples]
     set minSamples [GiD_AccessValue get gendata minSamples]
     set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
-    set genericOBJFilename "\"$genericOBJFilename\""
+    #set genericOBJFilename "\"$genericOBJFilename\""
+
+    set modelname [GiD_Info Project ModelName]
+    set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -branch $branch -numSamples $numSamples -minSamples $minSamples -nopause $genericOBJFilename"
@@ -310,7 +312,6 @@ proc DEMClusters::call_makeTreeOctree { } {
     set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
     set genericOBJFilename "\"$genericOBJFilename\""
 
-    #TODO: now define the arguments and call the external script sphereTree:
     set argv "-depth $depth -nopause $genericOBJFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     exec $program {*}$argv
@@ -322,33 +323,47 @@ proc DEMClusters::call_makeTreeOctree { } {
 
 proc GenerateClusterFile { } {
 
-    W "executing GenerateClusterFile"
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     if {$Algorithm == "MakeTreeMedial"} {
-        set genericSPHFilename generic-medial.sph
+        set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-medial.sph]
+        set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeGrid"} {
-        set genericSPHFilename generic-grid.sph
+        set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-grid.sph]
+        set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeSpawn"} {
-        set genericSPHFilename generic-spawn.sph
-    } elseif {$Algorithm == "MakeTreeOctree"} {
-        set genericSPHFilename generic-octree.sph   
+        set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-spawn.sph]
+        set genericSPHFilename "\"$genericSPHFilename\""
+    } elseif {$Algorithm == "MakeTreeOctree"} {    
+        set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-octree.sph]
+        set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeHubbard"} {
-        set genericSPHFilename generic-hubbard.sph
+        #set genericSPHFilename generic-hubbard.sph
+        set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-hubbard.sph]
+        set genericSPHFilename "\"$genericSPHFilename\""
     } else {
         W "Select a valid algorithm"
     }
      
-    set cluster_exec create_cluster
-    set genericMSHFilename generic.msh
+    set cluster_exec create_cluster.exe
+    set genericMSHFilename [file join $::DEMClusters::ProblemPath generic.msh]
+    set genericMSHFilename "\"$genericMSHFilename\""
+    set argv_number 2
 
-    set argv " 2 $genericMSHFilename $genericSPHFilename"
+    set argv "$argv_number $genericMSHFilename $genericSPHFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
+    #set program "\"$program\""
+    W $argv
+    W $program
+
+    #set fid [open "| $program $argv_number $genericMSHFilename $genericSPHFilename" r+]
+    #close $fid
+    #exec $program $argv_number $genericMSHFilename $genericSPHFilename
+    #exec {*}[auto_execok start] $program $argv_number $genericMSHFilename $genericSPHFilename
     exec $program {*}$argv
 }
 
 
 proc AlignSurfNormals {direction} {
-    W "AlignSurfNormals"
     # ABSTRACT: Makes all of boundary surfaces' normals point inwards or outwards
     # Arguments
     # direction => Direction option ["Inwards"|"Outwards"]
@@ -394,90 +409,25 @@ proc AlignSurfNormals {direction} {
 
 
 
+proc ReadClusterFile { } {
 
+    set modelname [GiD_Info Project ModelName]
+    set clustername [file join ${modelname}.gid generic_cluster.clu]
+    set FileVar [open $clustername "r+"]
+    set file_data [read $FileVar]
+    lreplace $file_data end end
+    close $FileVar
 
-
-
-
-
-
-## references ######################
-# proc Dam::write::Triangle2D3Connectivities { ElemId } {
-
-#     set ElementInfo [GiD_Mesh get element $ElemId]
-#     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
-#     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]"
-# }
-
-
-#   if {$FEMtoDEM == "AttheCentroid"} {
-#                     set nodes_to_delete [list]
-#                     set element_ids [GiD_EntitiesGroups get $groupid elements] ;               # get ids of all elements in cgroupid
-#                     #array set is_external_element [DEM::write::Compute_External_Elements 3 $groupid $element_ids]
-
-#                     foreach element_id $element_ids { ;                                         # loop on each of the elements by id
-#                         set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;   # get the nodes of the element
-#                         lappend nodes_to_delete {*}$element_nodes ;                             # add those nodes to the nodes_to_delete list
-
-
-# GiD_EntitiesLayers assign|get|entity_layer
-# To handle the entities that belong to layers
-
-
-# GiD_EntitiesLayers assign|assign_back_layer|assign_front_layer|get <layer> ?-also_lower_entities? <over> <selection>
-
-
-# To add or know entities of a layer
-
-
-
-# GiD_EntitiesLayers assign <layer> ?-also_lower_entities? ?-also_higher_entities? <over> <selection>
-
-
-
-# To assing the selection of entities of kind over to the layer
-
-
-
-
-# <layer> is the full name of the layer
-
-
-
-
-# <-also_lower_entities> is an optional flag, to select also all lower entities of the selected ones (e.g. curves and points of the selected surfaces)
-
-
-
-
-# <-also_higher_entities> is an optional flag, to select also all higher entities of the selected ones (e.g. volumes of the selected surfaces)
-
-
-
-
-# <over> could be points, lines, surfaces, volumes, nodes, elements, all_geometry, all_mesh
-
-
-
-
-# <selection> is a list of integer entity id's starting from 1.
-
-
-
-# In case of all_geometry is expected a list with 4 items with the list of ids of points, lines, surfaces and volumes.
-
-
-
-# In case of all_mesh is expected a list with 2 itemos with the list of ids of nodes and elements respectivelly
-
-
-
-
-
-
-
-
-
+    #  Process data file
+    set data [split $file_data "\n"]
+    set data [lreplace $data end-14 end] 
+    foreach line $data {
+        if {[llength $line] >3} {
+            W $line
+            GiD_Process Mescape Geometry Create Object Sphere [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] [lrange $line 3 3] escape escape
+        } 
+    }
+}
 
 
 
@@ -486,66 +436,20 @@ proc AlignSurfNormals {direction} {
 
 # GiD_Mesh get element <num|from_face|from_edge> ?face|face_linear|num_faces|edge_linear|num_edges|normal|tangent|center|connectivities ?<face_id>|<edge_id>??
 
-
-# <num> is the identifier (integer > 0) for the element to be asked
-
-
-
-# face optional, instead of the element nodes it returns the nodes of the face, first the linear corner nodes and then the quadratic nodes
-
-
-
-# face_linear optional, instead of the element nodes it returns only the linear corner nodes, also is the element is quadratic
-
-
-
-# num_faces returns the amount of faces of the element (for surface elements its edges act as faces)
-
-
-
-# <face_id> is the local face index from 1 to the number of faces of the element. If <face_id> is missing then a list with all faces is returned
-
-
-
-# edge_linear optional, instead of the element nodes it returns only the linear edge nodes, also is the element is quadratic
-
-
-
-# <edge_id> is the local edge index from 1 to the number of edges of the element. If <edge_id> is missing then a list with all edges is returned
-
-
-
-# num_edges returns the amount of edges of the element
-
-
-# get element return the list: <element_layer> <elemtype> <nnode> <N1> ... <Nnnode>
-
-# get element face|face_linear: <N1_face> ... <Nnnode_face>
-
-# get element edge_linear: <N1_edge> <N2_edge>
-
-
-
 # If from_face is specified then the command has this syntax
-
 
 # GiD_Mesh get element from_face <face_nodes> ?-ordered?
 
 # it find and return the list of element ids that have a face with these nodes
 
-
 # <face_nodes> is the list of integer ids of the face nodes {<face_node_1> ... <face_node_n>} (only corner lineal nodes must be specified in the list)
-
 
 # if -ordered is specified then only faces with the same orientation of the nodes will be taken into account (else the ordenation of the face nodes doesn't matter)
 
-
 # If from_edge is specified then the command has this syntax
-
 
 # GiD_Mesh get element from_edge <edge_nodes>
 
 # it find and return the list of element ids that have an edge with these nodes
-
 
 # <edge_nodes> is the list of integer ids of the edge nodes {<edge_node_1> <edge_node_2>} (only corner lineal nodes must be specified in the list)
