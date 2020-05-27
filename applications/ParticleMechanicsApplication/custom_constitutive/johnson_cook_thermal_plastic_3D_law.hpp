@@ -95,17 +95,6 @@ public:
      * Operators
      */
 
-
-
-    /**
-     * Calculates the Temperature of the domain (element)
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * @param rTemperature the calculated temperature to be returned
-     */
-    double& CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
-					double & rTemperature) override;
-
     /**
      * Operations needed by the base class:
      */
@@ -171,107 +160,24 @@ protected:
 
     Vector mStrainOld;
 
-    FlowRulePointer       mpFlowRule;
-
-    YieldCriterionPointer mpYieldCriterion;
-
-    HardeningLawPointer   mpHardeningLaw;
+    //FlowRulePointer       mpFlowRule;
+    //
+    //YieldCriterionPointer mpYieldCriterion;
+    //
+    //HardeningLawPointer   mpHardeningLaw;
 
     double mEquivalentPlasticStrainOld;
     double mPlasticStrainRateOld;
     double mTemperatureOld;
     //double mYieldOld;
     double mGammaOld = 1e-8;
+    double mEnergyInternal = 0.0;
+    double mEnergyDissipated = 0.0;
+    double mYieldStressOld = 0.0;
 
     ///@}
     ///@name Protected Operators
     ///@{
-
-
-    /**
-     * Constitutive volumetric component
-     */
-
-    double& PlasticConstitutiveComponent(double& rCabcd, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-        const MaterialResponseVariables& rElasticVariables,
-        const Matrix& rIsoStressMatrix,
-        const ParticleFlowRule::PlasticFactors& rScalingFactors,
-        const unsigned int& a, const unsigned int& b,
-        const unsigned int& c, const unsigned int& d);
-
-
-    /**
-     * Calculates the isochoric stress vector
-     * @param rElasticVariables
-     * matrix is to be generated for
-     * @param rStressMeasure measure of stress to be calculated
-     * @param rIsoStressMatrix matrix where the stress result is stored
-     * @param rIsoStressVector vector where the stress result is stored
-     */
-    virtual void CalculatePlasticIsochoricStress(MaterialResponseVariables& rElasticVariables, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-        ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
-        StressMeasure rStressMeasure,
-        Matrix& rIsoStressMatrix,
-        Vector& rIsoStressVector);
-
-
-
-
-
-    /**
-     * Calculates the GreenLagrange strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    void CalculateGreenLagrangeStrain(const Matrix& rRightCauchyGreen, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
-        Vector& rStrainVector) override;
-
-
-    /**
-     * Calculates the Almansi strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    void CalculateAlmansiStrain(const Matrix& rLeftCauchyGreen, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
-        Vector& rStrainVector) override;
-
-
-    /**
-     * Calculates the isochoric constitutive matrix
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    void CalculateIsochoricConstitutiveMatrix(const MaterialResponseVariables& rElasticVariables,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
-        const Matrix& rIsoStressMatrix,
-        Matrix& rConstitutiveMatrix) override;
-
-
-
-
-    /**
-     * Calculates the volumetric constitutive matrix
-     * @param rElasticVariables
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    void CalculateVolumetricConstitutiveMatrix(const MaterialResponseVariables& rElasticVariables,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
-        Matrix& rConstitutiveMatrix) override;
-
-
-
-    /**
-     * Calculates the plastic constitutive matrix
-     * @param rElasticVariables
-     * @param rReturnMappingVariables, plastic variables
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    void CalculatePlasticConstitutiveMatrix(const MaterialResponseVariables& rElasticVariables,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.hpp
-        ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
-        Matrix& rConstitutiveMatrix) ;
-
 
     /**
      * This function is designed to be called when before the material response
@@ -282,6 +188,8 @@ protected:
     bool CheckParameters(Parameters& rValues) override; //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
 
     virtual void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput);
+
+    virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput);
 
     double CalculateMatrixDoubleContraction(const Matrix& rInput)
     {

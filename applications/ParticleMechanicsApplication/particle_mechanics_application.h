@@ -78,17 +78,17 @@
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
-#include "custom_constitutive/flow_rules/johnson_cook_plastic_flow_rule.hpp"
+//#include "custom_constitutive/flow_rules/johnson_cook_plastic_flow_rule.hpp"
 
 //---yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 #include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
-#include "custom_constitutive/yield_criteria/johnson_cook_thermal_yield_criterion.hpp"
+//#include "custom_constitutive/yield_criteria/johnson_cook_thermal_yield_criterion.hpp"
 
 //---hardening laws
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
-#include "custom_constitutive/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
+//#include "custom_constitutive/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -300,17 +300,17 @@ private:
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
     const MCStrainSofteningPlasticFlowRule          mMCStrainSofteningPlasticFlowRule;
     const BorjaCamClayPlasticFlowRule               mBorjaCamClayPlasticFlowRule;
-    const JohnsonCookPlasticFlowRule                mJohnsonCookPlasticFlowRule;
+    //const JohnsonCookPlasticFlowRule                mJohnsonCookPlasticFlowRule;
 
     // Yield Criteria
     const MCYieldCriterion                          mMCYieldCriterion;
     const ModifiedCamClayYieldCriterion             mModifiedCamClayYieldCriterion;
-    const JohnsonCookThermalYieldCriterion          mJohnsonCookThermalYieldCriterion;
+    //const JohnsonCookThermalYieldCriterion          mJohnsonCookThermalYieldCriterion;
 
     // Hardening Laws
     const ExponentialStrainSofteningLaw             mExponentialStrainSofteningLaw;
     const CamClayHardeningLaw                       mCamClayHardeningLaw;
-    const JohnsonCookThermalHardeningLaw            mJohnsonCookThermalHardeningLaw;
+    //const JohnsonCookThermalHardeningLaw            mJohnsonCookThermalHardeningLaw;
 
     ///@}
     ///@name Private Operators
