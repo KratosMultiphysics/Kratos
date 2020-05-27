@@ -717,6 +717,98 @@ namespace MPMParticleGeneratorUtility
         return MP_shape_functions;
     }
 
+    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes)
+    {
+        auto int_points = rGeom.IntegrationPoints(IntegrationMethod);
+        if (rIntVolumes.size() != int_points.size()) rIntVolumes.resize(int_points.size(),false);
+        DenseVector<Matrix> jac_vec(int_points.size());
+        rGeom.Jacobian(jac_vec, IntegrationMethod);
+        for (size_t i = 0; i < int_points.size(); ++i) {
+            rIntVolumes[i] = MathUtils<double>::DetMat(jac_vec[i]) * int_points[i].Weight();
+        }
+    }
+
+    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+        IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes)
+    {
+        const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
+        const SizeType domain_size = rGeom.WorkingSpaceDimension();
+
+        if (geo_type == GeometryData::Kratos_Tetrahedra3D4 || geo_type == GeometryData::Kratos_Triangle2D3)
+        {
+            switch (ParticlesPerElement)
+            {
+            case 1:
+                rIntegrationMethod = GeometryData::GI_GAUSS_1;
+                break;
+            case 3:
+                rIntegrationMethod = GeometryData::GI_GAUSS_2;
+                break;
+            case 6:
+                rIntegrationMethod = GeometryData::GI_GAUSS_4;
+                break;
+            case 12:
+                rIntegrationMethod = GeometryData::GI_GAUSS_5;
+                break;
+            case 16:
+                if (domain_size == 2) {
+                    IsEqualVolumes = true;
+                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: "
+                        << "16 particles per triangle element is only valid for undistorted triangles." << std::endl;
+                    rN = MP16ShapeFunctions();
+                    break;
+                }
+            case 33:
+                if (domain_size == 2) {
+                    IsEqualVolumes = true;
+                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: "
+                        << "33 particles per triangle element is only valid for undistorted triangles." << std::endl;
+                    rN = MP33ShapeFunctions();
+                    break;
+                }
+            default:
+                rIntegrationMethod = GeometryData::GI_GAUSS_2; // default to 3 particles per tri
+
+                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(ParticlesPerElement);
+                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
+                warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
+                warning_msg += "The default number of particle: 3 is currently assumed.";
+                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                break;
+            }
+        }
+        else if (geo_type == GeometryData::Kratos_Hexahedra3D8 || geo_type == GeometryData::Kratos_Quadrilateral2D4)
+        {
+            switch (ParticlesPerElement)
+            {
+            case 1:
+                rIntegrationMethod = GeometryData::GI_GAUSS_1;
+                break;
+            case 4:
+                rIntegrationMethod = GeometryData::GI_GAUSS_2;
+                break;
+            case 9:
+                rIntegrationMethod = GeometryData::GI_GAUSS_3;
+                break;
+            case 16:
+                rIntegrationMethod = GeometryData::GI_GAUSS_4;
+                break;
+            default:
+                rIntegrationMethod = GeometryData::GI_GAUSS_2; // default to 4 particles per quad
+
+                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(ParticlesPerElement);
+                warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
+                warning_msg += "Available options are: 1, 4, 9, 16.\n";
+                warning_msg += "The default number of particle: 4 is currently assumed.";
+                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                break;
+            }
+        }
+
+        // Get shape function values
+        if (!IsEqualVolumes) rN = rGeom.ShapeFunctionsValues(rIntegrationMethod);
+    }
+
 } // end namespace MPMParticleGeneratorUtility
 } // end namespace Kratos
 
