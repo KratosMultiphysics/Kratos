@@ -96,10 +96,6 @@ namespace Kratos
 
     bool CalculateReturnMapping(RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix) override;
 
-    void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors) override;
-
-    bool UpdateInternalVariables(RadialReturnVariables& rReturnMappingVariables) override;
-
 
     ///@}
     ///@name Access
@@ -143,29 +139,15 @@ namespace Kratos
     ///@{
     double& CalculateStressNorm(Matrix& rStressMatrix, double& rStressNorm) override;
 
-    void SetCriterionParameters(RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters);
+    double CalculateThermalDerivative(const ParticleHardeningLaw::Parameters& rValues);
 
-    void UpdateConfiguration(RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix);
+    double CalculatePlasticStrainRateDerivative(const ParticleHardeningLaw::Parameters& rValues);
 
-    void CalculateThermalDissipation(ParticleYieldCriterion::Parameters& rCriterionParameters, ThermalVariables& rThermalVariables);
-
-
+    double CalculatePlasticStrainDerivative(const ParticleHardeningLaw::Parameters& rValues);
 
 
 
-    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters);
-
-    bool CalculateRateDependentConsistency( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters);
-
-    bool CalculateRateIndependentConsistency( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters );
-
-    double CalculateLineSearch( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters );
-
-    //implex protected methods
-
-    void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix );
-
-    void CalculateImplexThermalDissipation(ParticleYieldCriterion::Parameters& rCriterionParameters);
+   
 
     ///@}
     ///@name Protected  Access

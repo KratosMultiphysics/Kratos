@@ -80,359 +80,6 @@ JohnsonCookPlasticFlowRule::~JohnsonCookPlasticFlowRule()
 
 /// Operations.
 
-
-//***************************CALCULATE LOCAL NEWTON PROCEDURE*************************
-//************************************************************************************
-
-bool JohnsonCookPlasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters )
-{
-
-	bool converged    = false;
-
-	//Start 1rst Newton Raphson iteration
-	rReturnMappingVariables.Options.Set(PLASTIC_RATE_REGION,true);
-	rCriterionParameters.SetRateFactor(1); //plastic rate region on
-	converged = this->CalculateRateDependentConsistency (rReturnMappingVariables, rPlasticVariables, rCriterionParameters);
-
-	// if(!converged)
-	//   std::cout<<" ConstitutiveLaw did not converge on the rate dependent return mapping"<<std::endl;
-
-	const double& ReferenceStrainRate = GetProperties()[REFERENCE_STRAIN_RATE];
-	double MaterialDeltaPlasticStrain = ReferenceStrainRate * rReturnMappingVariables.DeltaTime;
-
-	//std::cout<<" DeltaPlasticStrain: "<<rPlasticVariables.DeltaPlasticStrain<<" MaterialDeltaPlasticStrain: "<<MaterialDeltaPlasticStrain<<std::endl;
-
-	if( rPlasticVariables.DeltaPlasticStrain < MaterialDeltaPlasticStrain ){
-
-	        //std::cout<<" DeltaPlasticStrain: "<<rPlasticVariables.DeltaPlasticStrain<<" MaterialDeltaPlasticStrain: "<<MaterialDeltaPlasticStrain<<std::endl;
-
-	        //Start 2nd Newton Raphson iteration
-		rReturnMappingVariables.Options.Set(PLASTIC_RATE_REGION,false);
-		rCriterionParameters.SetRateFactor(0); //plastic rate region off
-
-		converged = this->CalculateRateIndependentConsistency (rReturnMappingVariables, rPlasticVariables, rCriterionParameters);
-		// if(!converged)
-		//   std::cout<<" ConstitutiveLaw did not converge on the rate independent return mapping"<<std::endl;
-
-	}
-
-	return converged;
-
-}
-
-
-//***************************CALCULATE LOCAL NEWTON PROCEDURE (1)*********************
-//************************************************************************************
-
-bool JohnsonCookPlasticFlowRule::CalculateRateDependentConsistency( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters)
-{
-	//Set convergence parameters
-	unsigned int iter    = 0;
-	double Tolerance     = 1e-5;
-	double MaxIterations = 50;
-
-	//start
-	double DeltaDeltaGamma    = 0;
-	double DeltaStateFunction = 0;
-	rReturnMappingVariables.DeltaGamma  = 0;
-
-	//initial guess
-	//rReturnMappingVariables.DeltaGamma = std::sqrt(3.0*0.5) * ( rPlasticVariables.EquivalentPlasticStrain - rPlasticVariables.EquivalentPlasticStrainOld );
-
-
-	const double& ReferenceStrainRate = GetProperties()[REFERENCE_STRAIN_RATE];
-
-	rReturnMappingVariables.DeltaGamma         = std::sqrt(3.0*0.5) * ReferenceStrainRate * rReturnMappingVariables.DeltaTime;
-
-	rPlasticVariables.DeltaPlasticStrain       = std::sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
-
-	rPlasticVariables.EquivalentPlasticStrain  = rPlasticVariables.EquivalentPlasticStrainOld + rPlasticVariables.DeltaPlasticStrain;
-
-
-	//std::cout<<" Rate Dependent DeltaGamma "<<rReturnMappingVariables.DeltaGamma<<std::endl;
-
-	double StateFunction = mpYieldCriterion->CalculateStateFunction( StateFunction, rCriterionParameters );
-
-	double InitialStateFunction =  StateFunction;
-
-	double alpha = 1;
-	while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations )
-	{
-	       //Calculate Delta State Function:
-		DeltaStateFunction = this->mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rCriterionParameters );
-
-		//Calculate DeltaGamma:
-		DeltaDeltaGamma = StateFunction/DeltaStateFunction;
-		rReturnMappingVariables.DeltaGamma += DeltaDeltaGamma;
-
-		//Update Equivalent Plastic Strain:
-		rPlasticVariables.DeltaPlasticStrain       = std::sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
-
-		//alpha =  CalculateLineSearch( rReturnMappingVariables,rPlasticVariables,rCriterionParameters );
-
-		rPlasticVariables.EquivalentPlasticStrain  = rPlasticVariables.EquivalentPlasticStrainOld + alpha * rPlasticVariables.DeltaPlasticStrain;
-
-
-		//check negative equivalent plastic strain:
-		// if( rPlasticVariables.EquivalentPlasticStrain < 0 )
-		//   std::cout<<" EquivalentPlasticStrain NEGATIVE "<<rPlasticVariables.EquivalentPlasticStrain<<std::endl;
-
-		//Calculate State Function:
-		StateFunction = this->mpYieldCriterion->CalculateStateFunction( StateFunction, rCriterionParameters );
-
-		iter++;
-	}
-
-
-	//std::cout<<" RateDependent Consistency [ PlasticStrain: "<<rPlasticVariables.EquivalentPlasticStrain<<" DeltaPlasticStrain "<<rPlasticVariables.DeltaPlasticStrain<<" DeltaGamma "<<rReturnMappingVariables.DeltaGamma<<" State Function "<<StateFunction<<"] (iters:"<<iter<<")"<<std::endl;
-
-	// if( rReturnMappingVariables.DeltaGamma < 0 ){
-	//   std::cout<<" DeltaGamma NEGATIVE "<<rReturnMappingVariables.DeltaGamma<<std::endl;
-	// }
-
-
-	if(iter>MaxIterations){
-	  std::cout<<" IniStateFunction "<<InitialStateFunction<<" StateFunction "<<StateFunction<<" PlasticStrain "<<rPlasticVariables.EquivalentPlasticStrain<<" DeltaPlasticStrain "<<rPlasticVariables.DeltaPlasticStrain<<std::endl;
-	  return false;
-	}
-
-	return true;
-}
-
-
-
-//***************************CALCULATE LOCAL NEWTON PROCEDURE (2)*********************
-//************************************************************************************
-
-bool JohnsonCookPlasticFlowRule::CalculateRateIndependentConsistency( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters )
-{
-	//Set convergence parameters
-	unsigned int iter    = 0;
-	double Tolerance     = 1e-5;
-	double MaxIterations = 50;
-
-	//start
-	double DeltaDeltaGamma    = 0;
-	double DeltaStateFunction = 0;
-	rReturnMappingVariables.DeltaGamma  = 1e-40;  //this can not be zero (zig-zag in the iterative loop if is zero)
-
-	//initial guess
-	//rReturnMappingVariables.DeltaGamma = std::sqrt(3.0*0.5) * ( rPlasticVariables.EquivalentPlasticStrain - rPlasticVariables.EquivalentPlasticStrainOld );
-
-
-	double StateFunction = rReturnMappingVariables.TrialStateFunction;
-
-	double InitialStateFunction =  StateFunction;
-
-	//std::cout<<" StateFunction "<<StateFunction<<std::endl;
-
-	rPlasticVariables.DeltaPlasticStrain       = std::sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
-
-	rPlasticVariables.EquivalentPlasticStrain  = rPlasticVariables.EquivalentPlasticStrainOld + rPlasticVariables.DeltaPlasticStrain;
-
-	double alpha = 1;
-	while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
-	{
-		//Calculate Delta State Function:
-		DeltaStateFunction = this->mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rCriterionParameters );
-
-		//Calculate DeltaGamma:
-		DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
-		rReturnMappingVariables.DeltaGamma += DeltaDeltaGamma;
-
-		//Update Equivalent Plastic Strain:
-		rPlasticVariables.DeltaPlasticStrain       = std::sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
-
-		//alpha =  CalculateLineSearch( rReturnMappingVariables,rPlasticVariables,rCriterionParameters );
-
-		rPlasticVariables.EquivalentPlasticStrain  = rPlasticVariables.EquivalentPlasticStrainOld + alpha * rPlasticVariables.DeltaPlasticStrain;
-
-		//Calculate State Function:
-		StateFunction = this->mpYieldCriterion->CalculateStateFunction( StateFunction, rCriterionParameters );
-
-		//std::cout<<" StateFunction "<<StateFunction<<" PlasticStrain "<<rPlasticVariables.EquivalentPlasticStrain<<" DeltaPlasticStrain "<<rPlasticVariables.DeltaPlasticStrain<<" alpha "<<alpha<<" DeltaStateFunction "<<DeltaStateFunction<<std::endl;
-
-
-		iter++;
-	}
-
-	// std::cout<<" RateDependent Independent Consistency [ PlasticStrain: "<<rPlasticVariables.EquivalentPlasticStrain<<" DeltaPlasticStrain "<<rPlasticVariables.DeltaPlasticStrain<<" DeltaGamma "<<rReturnMappingVariables.DeltaGamma<<" State Function "<<StateFunction<<"] (iters:"<<iter<<")"<<std::endl;
-
-	// if( rReturnMappingVariables.DeltaGamma < 0 ){
-	//   std::cout<<" ERROR: DeltaGamma NEGATIVE "<<rReturnMappingVariables.DeltaGamma<<std::endl;
-	// }
-
-	if(iter>MaxIterations){
-	  std::cout<<" IniStateFunction "<<InitialStateFunction<<" Rate StateFunction "<<StateFunction<<" PlasticStrain "<<rPlasticVariables.EquivalentPlasticStrain<<std::endl;
-	  return false;
-	}
-
-
-	return true;
-}
-
-//************************CALCULATE RETURN MAPPING LINE SEARCH************************
-//************************************************************************************
-
-double JohnsonCookPlasticFlowRule::CalculateLineSearch( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters)
-{
-	//Set convergence parameters
-	unsigned int iter    = 0;
-	double MaxIterations = 10;
-
-	//start preserve initial variables
-	double DeltaPlasticStrain = rPlasticVariables.DeltaPlasticStrain;
-
-	double StateFunction = this->mpYieldCriterion->CalculateStateFunction( StateFunction, rCriterionParameters );
-        double R0 = rPlasticVariables.DeltaPlasticStrain * StateFunction;
-
-	//double Residual0 = StateFunction;
-
-	rPlasticVariables.EquivalentPlasticStrain  = rPlasticVariables.EquivalentPlasticStrainOld + rPlasticVariables.DeltaPlasticStrain;
-	StateFunction = this->mpYieldCriterion->CalculateStateFunction( StateFunction, rCriterionParameters );
-
-        double R1 = rPlasticVariables.DeltaPlasticStrain * StateFunction;
-
-	double alpha = 1;
-
-	if(R0*R1<0.0){
-
-	  double R2 = R1;
-
-	  if(fabs(R1)<fabs(R0))
-	    R2=R0;
-	  double R0start = R0;
-
-
-	  double nabla = 0.0;
-	  double delta = 1.0;
-
-	  //if( Residual0 < StateFunction ){
-
-	    while ( fabs(R2/R0start)>0.3 && iter<MaxIterations && (R1*R0)<0.0 && fabs(R1)>1e-7 && fabs(R0)>1e-7 )
-	      {
-
-		alpha = 0.5*(nabla+delta);
-
-		rPlasticVariables.DeltaPlasticStrain *= alpha;
-
-		rPlasticVariables.EquivalentPlasticStrain  = rPlasticVariables.EquivalentPlasticStrainOld + rPlasticVariables.DeltaPlasticStrain;
-		StateFunction = this->mpYieldCriterion->CalculateStateFunction( StateFunction, rCriterionParameters );
-
-		R2 = rPlasticVariables.DeltaPlasticStrain * StateFunction;
-
-		rPlasticVariables.DeltaPlasticStrain /= alpha;
-
-
-		if(R2*R1<0.0){
-		  nabla = alpha;
-		  R0 = R2;
-		}
-		else if(R2*R0<0){
-		  delta = alpha;
-		  R1 = R2;
-		}
-		else{
-		  break;
-		}
-
-		iter++;
-	      }
-	    //}
-
-	}
-
-	rPlasticVariables.DeltaPlasticStrain = DeltaPlasticStrain;
-
-	if( alpha != 1.0)
-	  std::cout<<" [ LINE SEARCH: (Iterations: "<<iter<<", alpha: "<<alpha<<") ] "<<std::endl;
-
-
-   	if(alpha>1.0 || alpha<=0.0)
-   	  alpha=1.0;
-
-	return alpha;
-}
-
-
-//***************************CALCULATE IMPLEX RETURN MAPPING**************************
-//************************************************************************************
-
-void JohnsonCookPlasticFlowRule::CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix )
-{
-
-        //1.-Computation of the plastic Multiplier
-        rReturnMappingVariables.DeltaGamma = std::sqrt(3.0*0.5) * ( rPlasticVariables.EquivalentPlasticStrain - rPlasticVariables.EquivalentPlasticStrainOld );
-
-	//2.- Update back stress, plastic strain and stress
-	UpdateConfiguration( rReturnMappingVariables, rIsoStressMatrix );
-
-	//3.- Calculate thermal dissipation and delta thermal dissipation
-	if( rReturnMappingVariables.DeltaGamma > 0.0 ){
-
-	  const double& PlasticStrainRate = GetProperties()[PLASTIC_STRAIN_RATE];
-	  double MaterialDeltaPlasticStrain = PlasticStrainRate * rReturnMappingVariables.DeltaTime;
-
-	  //plastic rate region on
-	  rReturnMappingVariables.Options.Set(PLASTIC_RATE_REGION,true);
-	  rCriterionParameters.SetRateFactor(1.0);
-
-	  if( rPlasticVariables.DeltaPlasticStrain < MaterialDeltaPlasticStrain ){
-	    //plastic rate region off
-	    rReturnMappingVariables.Options.Set(PLASTIC_RATE_REGION,false);
-	    rCriterionParameters.SetRateFactor(0.0);
-	  }
-
-	  this->CalculateImplexThermalDissipation( rCriterionParameters );
-
-	  rReturnMappingVariables.Options.Set(PLASTIC_REGION,true);
-
-	}
-	else{
-
-	  mThermalVariables.PlasticDissipation = 0.0;
-	  mThermalVariables.DeltaPlasticDissipation = 0.0;
-
-	}
-
-
-}
-
-//***************************CALCULATE THERMAL DISSIPATION****************************
-//************************************************************************************
-
-void JohnsonCookPlasticFlowRule::CalculateImplexThermalDissipation(ParticleYieldCriterion::Parameters& rCriterionParameters)
-{
-
-	//1.- Thermal Dissipation:
-
-	mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculateImplexPlasticDissipation(mThermalVariables.PlasticDissipation, rCriterionParameters);
-
-	//2.- Thermal Dissipation Increment:
-
-	mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateImplexDeltaPlasticDissipation(mThermalVariables.DeltaPlasticDissipation, rCriterionParameters);
-}
-
-//***************************UPDATE STRESS CONFIGURATION *****************************
-//************************************************************************************
-
-void JohnsonCookPlasticFlowRule::UpdateConfiguration(RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix)
-{
-	//Back Stress update
-
-	//Plastic Strain Update
-	if (rReturnMappingVariables.NormIsochoricStress > 0) {
-
-		//Stress Update:
-		double Auxiliar = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma;
-
-		Matrix Normal = rIsoStressMatrix * (1.0 / rReturnMappingVariables.NormIsochoricStress);
-
-		rIsoStressMatrix -= (Normal * Auxiliar);
-
-	}
-}
-
 //***************************CALCULATE STRESS NORM ***********************************
 //************************************************************************************
 
@@ -446,54 +93,132 @@ double& JohnsonCookPlasticFlowRule::CalculateStressNorm(Matrix& rStressMatrix, d
 	return rStressNorm;
 }
 
-
-//***************************SET YIELD AND HARDENING VARIABLES************************
-//************************************************************************************
-
-void JohnsonCookPlasticFlowRule::SetCriterionParameters(RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, ParticleYieldCriterion::Parameters& rCriterionParameters)
+double JohnsonCookPlasticFlowRule::CalculateThermalDerivative(const ParticleHardeningLaw::Parameters& rValues)
 {
-	// constant variables during the return mapping
-	rCriterionParameters.SetStressNorm(rReturnMappingVariables.NormIsochoricStress);
+	//get values
+	const double rPlasticStrainRate = rValues.GetPlasticStrainRate();
+	const double rEquivalentPlasticStrain = rValues.GetEquivalentPlasticStrain();
+	const double rTemperature = rValues.GetTemperature();
 
-	rCriterionParameters.SetDeltaTime(rReturnMappingVariables.DeltaTime);
+	//Constant Parameters of the -- Johnson and Cook --:
+	const double A = GetProperties()[JC_PARAMETER_A];
+	const double B = GetProperties()[JC_PARAMETER_B];
+	const double C = GetProperties()[JC_PARAMETER_C];
 
-	rCriterionParameters.SetLameMu_bar(rReturnMappingVariables.LameMu_bar);
+	const double n = GetProperties()[JC_PARAMETER_n];
+	const double m = GetProperties()[JC_PARAMETER_m];
 
-	rCriterionParameters.SetEquivalentPlasticStrainOld(rPlasticVariables.EquivalentPlasticStrainOld);
+	const double ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
+	const double MeldTemperature = GetProperties()[MELD_TEMPERATURE];
+	const double ReferenceStrainRate = GetProperties()[REFERENCE_STRAIN_RATE];
 
-	rCriterionParameters.SetTemperature(rReturnMappingVariables.Temperature);
+	double thermal_derivative = 0.0;
+	if (ReferenceTemperature <= rTemperature && rTemperature <= MeldTemperature)
+	{
+		double strain_rate_hardening_factor = 1.0;
+		if (rPlasticStrainRate > ReferenceStrainRate)
+		{
+			strain_rate_hardening_factor += C * std::log(rPlasticStrainRate / ReferenceStrainRate);
+		}
 
+		double thermal_hardening_factor = std::pow((rTemperature - ReferenceTemperature) / (MeldTemperature - ReferenceTemperature), m);
 
-	// changing variables during the return mapping
-	rReturnMappingVariables.DeltaGamma = 0;
+		double temp = -1.0 * m * (A + B * std::pow(rEquivalentPlasticStrain, n)) / (rTemperature - ReferenceTemperature);
 
-	rCriterionParameters.SetDeltaGamma(rReturnMappingVariables.DeltaGamma);
-
-	rCriterionParameters.SetEquivalentPlasticStrain(rPlasticVariables.EquivalentPlasticStrain);
-
-	rCriterionParameters.SetRateFactor(0);
-
-	// changing thermal variables during the return mapping
-	rReturnMappingVariables.Thermal.clear();
-
+		thermal_derivative = temp * strain_rate_hardening_factor * thermal_hardening_factor;
+	}
+	return thermal_derivative;
 }
 
-
-//***************************CALCULATE THERMAL DISSIPATION****************************
-//************************************************************************************
-
-void JohnsonCookPlasticFlowRule::CalculateThermalDissipation(ParticleYieldCriterion::Parameters& rCriterionParameters, ThermalVariables& rThermalVariables)
+double JohnsonCookPlasticFlowRule::CalculatePlasticStrainRateDerivative(const ParticleHardeningLaw::Parameters& rValues)
 {
+	//get values
+	const double rPlasticStrainRate = rValues.GetPlasticStrainRate();
+	const double rEquivalentPlasticStrain = rValues.GetEquivalentPlasticStrain();
+	const double rTemperature = rValues.GetTemperature();
 
-	//1.- Thermal Dissipation:
+	//Constant Parameters of the -- Johnson and Cook --:
+	const double A = GetProperties()[JC_PARAMETER_A];
+	const double B = GetProperties()[JC_PARAMETER_B];
+	const double C = GetProperties()[JC_PARAMETER_C];
 
-	mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculatePlasticDissipation(mThermalVariables.PlasticDissipation, rCriterionParameters);
+	const double n = GetProperties()[JC_PARAMETER_n];
+	const double m = GetProperties()[JC_PARAMETER_m];
 
+	const double ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
+	const double MeldTemperature = GetProperties()[MELD_TEMPERATURE];
+	const double ReferenceStrainRate = GetProperties()[REFERENCE_STRAIN_RATE];
 
-	//2.- Thermal Dissipation Increment:
+	double plastic_strain_rate_derivative = 0.0;
 
-	mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateDeltaPlasticDissipation(mThermalVariables.DeltaPlasticDissipation, rCriterionParameters);
+	if (rPlasticStrainRate >= ReferenceStrainRate)
+	{
+		double thermal_hardening_factor;
+		if (rTemperature < ReferenceTemperature)
+		{
+			thermal_hardening_factor = 1.0;
+		}
+		else if (rTemperature >= MeldTemperature)
+		{
+			thermal_hardening_factor = 0.0;
+		}
+		else
+		{
+			thermal_hardening_factor = 1.0 - std::pow((rTemperature - ReferenceTemperature) / (MeldTemperature - ReferenceTemperature), m);
+		}
 
+		plastic_strain_rate_derivative = C / rPlasticStrainRate * (A + B * std::pow(rEquivalentPlasticStrain, n)) * thermal_hardening_factor;
+	}
+
+	return plastic_strain_rate_derivative;
+}
+
+double JohnsonCookPlasticFlowRule::CalculatePlasticStrainDerivative(const ParticleHardeningLaw::Parameters& rValues)
+{
+	//get values
+	const double rPlasticStrainRate = rValues.GetPlasticStrainRate();
+	const double rEquivalentPlasticStrain = rValues.GetEquivalentPlasticStrain();
+	const double rTemperature = rValues.GetTemperature();
+
+	//Constant Parameters of the -- Johnson and Cook --:
+	const double A = GetProperties()[JC_PARAMETER_A];
+	const double B = GetProperties()[JC_PARAMETER_B];
+	const double C = GetProperties()[JC_PARAMETER_C];
+
+	const double n = GetProperties()[JC_PARAMETER_n];
+	const double m = GetProperties()[JC_PARAMETER_m];
+
+	const double ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
+	const double MeldTemperature = GetProperties()[MELD_TEMPERATURE];
+	const double ReferenceStrainRate = GetProperties()[REFERENCE_STRAIN_RATE];
+
+	double plastic_strain_derivative = 0.0;
+
+	// Calculate thermal hardening factor
+	double thermal_hardening_factor;
+	if (rTemperature < ReferenceTemperature)
+	{
+		thermal_hardening_factor = 1.0;
+	}
+	else if (rTemperature >= MeldTemperature)
+	{
+		thermal_hardening_factor = 0.0;
+	}
+	else
+	{
+		thermal_hardening_factor = 1.0 - std::pow((rTemperature - ReferenceTemperature) / (MeldTemperature - ReferenceTemperature), m);
+	}
+
+	// Calculate strain rate hardening factor
+	double strain_rate_hardening_factor = 1.0;
+	if (rPlasticStrainRate > ReferenceStrainRate)
+	{
+		strain_rate_hardening_factor += C * std::log(rPlasticStrainRate / ReferenceStrainRate);
+	}
+
+	plastic_strain_derivative = n * B * std::pow(rEquivalentPlasticStrain, (n - 1.0)) * strain_rate_hardening_factor * thermal_hardening_factor;
+
+	return plastic_strain_derivative;
 }
 
 //***************************CALCULATE RADIAL RETURN MAPPING**************************
@@ -571,99 +296,6 @@ bool JohnsonCookPlasticFlowRule::CalculateReturnMapping(RadialReturnVariables& r
 	rReturnMappingVariables.Options.Set(RETURN_MAPPING_COMPUTED, true);
 
 	return 	PlasticityActive;
-}
-
-
-//**************CALCULATE SCALING FACTORS FOR THE ELASTO PLASTIC MODULI***************
-//************************************************************************************
-
-void JohnsonCookPlasticFlowRule::CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors)
-{
-
-	//1.-Identity build
-	Matrix Identity = identity_matrix<double>(3);
-
-	//2.-Auxiliar matrices
-	rScalingFactors.Normal = rReturnMappingVariables.TrialIsoStressMatrix * (1.0 / rReturnMappingVariables.NormIsochoricStress);
-
-	Matrix Norm_Normal = prod(rScalingFactors.Normal, trans(rScalingFactors.Normal));
-
-	double Trace_Norm_Normal = Norm_Normal(0, 0) + Norm_Normal(1, 1) + Norm_Normal(2, 2);
-
-	rScalingFactors.Dev_Normal = Norm_Normal;
-	rScalingFactors.Dev_Normal -= (1.0 / 3.0) * Trace_Norm_Normal * Identity;
-
-
-	//3.-Auxiliar constants
-	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + std::sqrt(2.0 / 3.0) * rReturnMappingVariables.DeltaGamma;
-	double DeltaHardening = 0;
-
-	if (rReturnMappingVariables.Options.Is(IMPLEX_ACTIVE))
-	{
-		rScalingFactors.Beta0 = 0;
-
-		rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
-
-		rScalingFactors.Beta2 = (2.0 / 3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma / (rReturnMappingVariables.LameMu_bar);
-
-		rScalingFactors.Beta3 = (-rScalingFactors.Beta1 + rScalingFactors.Beta2);
-
-		rScalingFactors.Beta4 = (-rScalingFactors.Beta1) * rReturnMappingVariables.NormIsochoricStress / (rReturnMappingVariables.LameMu_bar);
-
-	}
-	else
-	{
-
-		ParticleHardeningLaw::Parameters HardeningParameters;
-		HardeningParameters.SetTemperature(rReturnMappingVariables.Temperature);
-		HardeningParameters.SetEquivalentPlasticStrain(EquivalentPlasticStrain);
-		HardeningParameters.SetDeltaGamma(rReturnMappingVariables.DeltaGamma);
-		HardeningParameters.SetDeltaTime(rReturnMappingVariables.DeltaTime);
-
-		if (rReturnMappingVariables.Options.Is(PLASTIC_RATE_REGION))
-			HardeningParameters.SetRateFactor(1);
-		else if (rReturnMappingVariables.Options.IsNot(PLASTIC_RATE_REGION))
-			HardeningParameters.SetRateFactor(0);
-
-		DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening(DeltaHardening, HardeningParameters);
-
-		rScalingFactors.Beta0 = 1.0 + DeltaHardening / (3.0 * rReturnMappingVariables.LameMu_bar);
-
-		rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
-
-		rScalingFactors.Beta2 = ((1.0 - (1.0 / rScalingFactors.Beta0)) * (2.0 / 3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma) / (rReturnMappingVariables.LameMu_bar);
-
-		rScalingFactors.Beta3 = ((1.0 / rScalingFactors.Beta0) - rScalingFactors.Beta1 + rScalingFactors.Beta2);
-
-		rScalingFactors.Beta4 = ((1.0 / rScalingFactors.Beta0) - rScalingFactors.Beta1) * rReturnMappingVariables.NormIsochoricStress / (rReturnMappingVariables.LameMu_bar);
-
-	}
-
-	//std::cout<<"FACTORS:: Beta0 "<<rScalingFactors.Beta0<<" Beta 1 "<<rScalingFactors.Beta1<<" Beta2 "<<rScalingFactors.Beta2<<" Beta 3 "<<rScalingFactors.Beta3<<" Beta4 "<<rScalingFactors.Beta4<<std::endl;
-}
-
-
-//***************************UPDATE INTERNAL VARIABLES********************************
-//************************************************************************************
-
-bool JohnsonCookPlasticFlowRule::UpdateInternalVariables(RadialReturnVariables& rReturnMappingVariables)
-{
-
-	mInternalVariables.EquivalentPlasticStrainOld = mInternalVariables.EquivalentPlasticStrain;
-
-	mInternalVariables.DeltaPlasticStrain = std::sqrt(2.0 / 3.0) * rReturnMappingVariables.DeltaGamma;
-
-	mInternalVariables.EquivalentPlasticStrain += mInternalVariables.DeltaPlasticStrain;
-
-	mInternalVariables.DeltaPlasticStrain *= (1.0 / rReturnMappingVariables.DeltaTime);
-
-	//update thermal variables
-	// mThermalVariables = rReturnMappingVariables.Thermal;
-
-	// mInternalVariables.print();
-	// mThermalVariables.print();
-
-	return true;
 }
 
 
