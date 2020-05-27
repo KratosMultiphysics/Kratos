@@ -2,9 +2,8 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
-import KratosMultiphysics.CoSimulationApplication as KratosCoSim
+from KratosMultiphysics.CoSimulationApplication import CoSimIO
 from KratosMultiphysics import kratos_utilities as kratos_utils
 
 import os
@@ -14,12 +13,15 @@ def GetFilePath(fileName):
 
 class TestCoSimIOKratosPythonExposure(KratosUnittest.TestCase):
 
-    # TODO add more tests, similar to the EMPIRE_API-tests
-
     def test_Connect_Disconnect(self):
-        connection_name = "abcc"
-        KratosCoSim.CoSimIO.Connect(connection_name, {"echo_level" : "0"})
-        KratosCoSim.CoSimIO.Disconnect(connection_name)
+        connection_settings = CoSimIO.Info()
+        connection_settings.SetString("connection_name", "abcc")
+        CoSimIO.Connect(connection_settings)
+
+        disconnect_settings = CoSimIO.Info()
+        disconnect_settings.SetString("connection_name", "abcc")
+
+        CoSimIO.Disconnect(disconnect_settings)
 
 if __name__ == '__main__':
     KratosUnittest.main()
