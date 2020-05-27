@@ -26,12 +26,16 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
         FEMDEM_utilities = KratosFemDem.FEMDEMCouplingUtilities()
         FEMDEM_utilities.SaveStructuralSolution(self.FEM_Solution.main_model_part)
+        # FEMDEM_utilities.IdentifyFreeParticles(self.FEM_Solution.main_model_part, self.DEM_Solution.spheres_model_part)
+
         # Perform substepping
         pseudo_substepping_time = 0
         if self.DEM_Solution.spheres_model_part.NumberOfElements() > 0:
             self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping... Explicit time step: " + str(self.DEM_Solution.solver.dt))
+            self.FEM_Solution.KratosPrintInfo("")
             while pseudo_substepping_time <= self.FEM_Solution.delta_time:
                 ### Begin Substepping
+                
                 self.BeforeSolveDEMOperations()
                 FEMDEM_utilities.InterpolateStructuralSolution(self.FEM_Solution.main_model_part,
                                                                self.FEM_Solution.delta_time,
