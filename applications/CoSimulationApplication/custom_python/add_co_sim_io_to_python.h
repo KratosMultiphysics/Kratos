@@ -9,8 +9,8 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_COSIM_IO_PYTHON_H_INCLUDED)
-#define  KRATOS_COSIM_IO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_CO_SIM_IO_PYTHON_H_INCLUDED)
+#define  KRATOS_CO_SIM_IO_PYTHON_H_INCLUDED
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -30,4 +30,4 @@ void  AddCoSimIOToPython(pybind11::module& m);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_COSIM_IO_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_CO_SIM_IO_PYTHON_H_INCLUDED  defined
