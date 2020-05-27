@@ -130,7 +130,7 @@ namespace Kratos
   {
       HyperElastic3DLaw::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
-      mElasticLeftCauchyGreen = identity_matrix<double>(3);
+      //mElasticLeftCauchyGreen = identity_matrix<double>(3);
 
       mpHardeningLaw->SetProperties(rMaterialProperties);
 
@@ -139,7 +139,7 @@ namespace Kratos
   }
 
 
-  void JohnsonCookThermalPlastic3DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
+  void JohnsonCookThermalPlastic3DLaw::CalculateMaterialResponseKirchhoff(Kratos::ConstitutiveLaw::Parameters& rValues)
   {
       //a.-Check if the constitutive parameters are passed correctly to the law calculation
       CheckParameters(rValues);
@@ -189,53 +189,50 @@ namespace Kratos
       Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
       const double j2_stress_trial = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
-      ParticleYieldCriterion::Parameters yield_parameters;
-      yield_parameters.SetStressNorm(j2_stress_trial);
-      double yield_function;
-      mpYieldCriterion->CalculateYieldCondition(yield_function, yield_parameters);
+      double yield_stress = CalculateHardenedYieldStress(MaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
 
-      if (yield_function > 0.0)
+
+      if (j2_stress_trial > yield_stress)
       {
-          double current_yield = j2_stress_trial - yield_function;
-
           // Thermal properties
           const double eta = 0.9; // TODO check this
           const double density = MaterialProperties[DENSITY];
           const double specific_heat_Cp = MaterialProperties[SPECIFIC_HEAT];
-
 
           // Newton raphson setup
           double gamma = mGammaOld;
           double gamma_min = 0.0;
           double gamma_max = j2_stress_trial / std::sqrt(6.0) / shear_modulus_G;
           bool is_converged = false;
-          SizeType iteration_limit = 50;
+          const SizeType iteration_limit = 50;
           IndexType iteration = 1;
           const double tolerance = 1e-9;
           double yield_function, yield_function_gradient, dYield_dGamma, delta_gamma;
 
           while (!is_converged)
           {
+              // Predict quantities
               double predicted_eps = mEquivalentPlasticStrainOld + std::sqrt(2.0 / 3.0 * gamma); // eps = equivalent plastic strain
               double predicted_eps_rate = std::sqrt(2.0 / 3.0 * gamma) / CurrentProcessInfo[DELTA_TIME];
-
               double predicted_temperature = mTemperatureOld +  eta / 2.0 / density / specific_heat_Cp * // TODO check this, [johnson cool umat pdfp169]
-                  std::sqrt(2.0 / 3.0) * (current_yield + j2_stress_old)* gamma;
-
+                  std::sqrt(2.0 / 3.0) * (yield_stress + j2_stress_old)* gamma;
               //double predicted_temperature = mTemperatureOld +  eta / std::sqrt(6.0) / density / specific_heat_Cp * 
               //    (std::sqrt(2.0 / 3.0) * current_yield + j2_stress_old)* gamma;
 
-              current_yield = mpHardeningLaw->CalculateHardening(current_yield, predicted_eps_rate, predicted_eps, predicted_temperature);
-              yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - current_yield;
+              yield_stress = CalculateHardenedYieldStress(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
+              yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - yield_stress;
+
               if (yield_function < 0.0) gamma_max = gamma;
               else gamma_min = gamma;
-              dYield_dGamma = mpFlowRule->CalculatePlasticStrainDerivative();
-              dYield_dGamma += mpFlowRule->CalculatePlasticStrainRateDerivative()/ CurrentProcessInfo[DELTA_TIME];
-              dYield_dGamma += mpFlowRule->CalculateThermalDerivative()*eta* current_yield/density/specific_heat_Cp;
+
+              dYield_dGamma = CalculatePlasticStrainDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
+              dYield_dGamma += CalculateThermalDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
+              dYield_dGamma += CalculatePlasticStrainRateDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
               dYield_dGamma *= std::sqrt(2.0/3.0);
               yield_function_gradient = -1.0 * std::sqrt(6.0) * shear_modulus_G - dYield_dGamma;
               delta_gamma = -1.0 * yield_function / yield_function_gradient;
               gamma += delta_gamma;
+              
 
               if (gamma_min > gamma || gamma > gamma_max)
               {
@@ -251,6 +248,8 @@ namespace Kratos
               iteration += 1;
               KRATOS_ERROR_IF(iteration > iteration_limit) << "Johnson Cook iteration limit exceeded";
           }
+
+
 
       }
 
@@ -578,6 +577,143 @@ namespace Kratos
       rOutput(0, 1) = 0.5*rInput[3]; //xy
       rOutput(1, 2) = 0.5*rInput[4]; //yz
       rOutput(0, 2) = 0.5*rInput[5]; //xz
+  }
+
+  double JohnsonCookThermalPlastic3DLaw::CalculateHardenedYieldStress(const Properties& MaterialProperties, 
+      const double EquivalentPlasticStrain, const double PlasticStrainRate, const double Temperature)
+  {
+      //Constant Parameters of the -- Johnson and Cook --:
+      const double A = MaterialProperties[JC_PARAMETER_A];
+      const double B = MaterialProperties[JC_PARAMETER_B];
+      const double n = MaterialProperties[JC_PARAMETER_n];
+
+      // Hardening formula is: = (A + B* ep^n) * strain_rate_hardening_factor * thermal_hardening_factor
+      double hardened_stress = A+B*std::pow(EquivalentPlasticStrain,n);
+      hardened_stress *= CalculateStrainRateHardeningFactor(MaterialProperties, PlasticStrainRate);
+      hardened_stress *= CalculateThermalHardeningFactor(MaterialProperties, Temperature);
+
+      return hardened_stress;
+  }
+
+  double JohnsonCookThermalPlastic3DLaw::CalculateThermalHardeningFactor(const Properties& MaterialProperties, const double Temperature)
+  {
+      // Calculate thermal hardening factor
+      const double m = MaterialProperties[JC_PARAMETER_m];
+      const double ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+      const double MeldTemperature = MaterialProperties[MELD_TEMPERATURE];
+
+      double thermal_hardening_factor;
+      if (Temperature < ReferenceTemperature)
+      {
+          thermal_hardening_factor = 1.0;
+      }
+      else if (Temperature >= MeldTemperature)
+      {
+          thermal_hardening_factor = 0.0;
+      }
+      else
+      {
+          thermal_hardening_factor = 1.0 - std::pow((Temperature - ReferenceTemperature) / (MeldTemperature - ReferenceTemperature), m);
+      }
+
+      return thermal_hardening_factor;
+  }
+
+  double JohnsonCookThermalPlastic3DLaw::CalculateStrainRateHardeningFactor(const Properties& MaterialProperties, const double PlasticStrainRate)
+  {
+      // Calculate strain rate hardening factor
+      const double ReferenceStrainRate = MaterialProperties[REFERENCE_STRAIN_RATE];
+      const double C = MaterialProperties[JC_PARAMETER_C];
+
+      double strain_rate_hardening_factor = 1.0;
+      if (PlasticStrainRate > ReferenceStrainRate)
+      {
+          strain_rate_hardening_factor += C * std::log(PlasticStrainRate / ReferenceStrainRate);
+      }
+
+      return strain_rate_hardening_factor;
+  }
+
+  double JohnsonCookThermalPlastic3DLaw::CalculateThermalDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain, const double PlasticStrainRate, const double Temperature)
+  {
+      const double A = MaterialProperties[JC_PARAMETER_A];
+      const double B = MaterialProperties[JC_PARAMETER_B];
+      const double C = MaterialProperties[JC_PARAMETER_C];
+
+      const double n = MaterialProperties[JC_PARAMETER_n];
+      const double m = MaterialProperties[JC_PARAMETER_m];
+
+      const double ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+      const double MeldTemperature = MaterialProperties[MELD_TEMPERATURE];
+      const double ReferenceStrainRate = MaterialProperties[REFERENCE_STRAIN_RATE];
+
+      double thermal_derivative = 0.0;
+      if (ReferenceTemperature <= Temperature && Temperature <= MeldTemperature)
+      {
+          double strain_rate_hardening_factor = CalculateStrainRateHardeningFactor(MaterialProperties,PlasticStrainRate);
+
+          double thermal_hardening_factor = std::pow((Temperature - ReferenceTemperature) / (MeldTemperature - ReferenceTemperature), m);
+
+          double temp = -1.0 * m * (A + B * std::pow(EquivalentPlasticStrain, n)) / (Temperature - ReferenceTemperature);
+
+          thermal_derivative = temp * strain_rate_hardening_factor * thermal_hardening_factor;
+      }
+      return thermal_derivative;
+  }
+
+  double JohnsonCookThermalPlastic3DLaw::CalculatePlasticStrainRateDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain, const double PlasticStrainRate, const double Temperature)
+  {
+      const double A = MaterialProperties[JC_PARAMETER_A];
+      const double B = MaterialProperties[JC_PARAMETER_B];
+      const double C = MaterialProperties[JC_PARAMETER_C];
+
+      const double n = MaterialProperties[JC_PARAMETER_n];
+      const double m = MaterialProperties[JC_PARAMETER_m];
+
+      const double ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+      const double MeldTemperature = MaterialProperties[MELD_TEMPERATURE];
+      const double ReferenceStrainRate = MaterialProperties[REFERENCE_STRAIN_RATE];
+
+      double plastic_strain_rate_derivative = 0.0;
+
+      if (PlasticStrainRate >= ReferenceStrainRate)
+      {
+          double thermal_hardening_factor = CalculateThermalHardeningFactor(MaterialProperties,Temperature);
+
+          plastic_strain_rate_derivative = C / PlasticStrainRate * (A + B * std::pow(EquivalentPlasticStrain, n)) * thermal_hardening_factor;
+      }
+
+      return plastic_strain_rate_derivative;
+  }
+
+  double JohnsonCookThermalPlastic3DLaw::CalculatePlasticStrainDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain, const double PlasticStrainRate, const double Temperature)
+  {
+      const double A = MaterialProperties[JC_PARAMETER_A];
+      const double B = MaterialProperties[JC_PARAMETER_B];
+      const double C = MaterialProperties[JC_PARAMETER_C];
+
+      const double n = MaterialProperties[JC_PARAMETER_n];
+      const double m = MaterialProperties[JC_PARAMETER_m];
+
+      const double ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+      const double MeldTemperature = MaterialProperties[MELD_TEMPERATURE];
+      const double ReferenceStrainRate = MaterialProperties[REFERENCE_STRAIN_RATE];
+
+      double plastic_strain_derivative = 0.0;
+
+      // Calculate thermal hardening factor
+      double thermal_hardening_factor = CalculateThermalHardeningFactor(MaterialProperties,Temperature);
+
+      // Calculate strain rate hardening factor
+      double strain_rate_hardening_factor = 1.0;
+      if (PlasticStrainRate > ReferenceStrainRate)
+      {
+          strain_rate_hardening_factor += C * std::log(PlasticStrainRate / ReferenceStrainRate);
+      }
+
+      plastic_strain_derivative = n * B * std::pow(EquivalentPlasticStrain, (n - 1.0)) * strain_rate_hardening_factor * thermal_hardening_factor;
+
+      return plastic_strain_derivative;
   }
 
   //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************

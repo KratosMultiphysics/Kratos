@@ -38,21 +38,6 @@ namespace Kratos
 
 class JohnsonCookThermalPlastic3DLaw : public HyperElastic3DLaw
 {
-protected:
-    ///Parameters to be used in the volumetric and deviatoric split
-    struct VectorSplit
-    {
-        Vector  Isochoric;
-        Vector  Volumetric;
-    };
-
-    struct MatrixSplit
-    {
-        Matrix  Isochoric;
-        Matrix  Volumetric;
-        Matrix  Plastic;
-    };
-
 public:
     /**
      * Type Definitions
@@ -193,8 +178,10 @@ protected:
     HardeningLawPointer   mpHardeningLaw;
 
     double mEquivalentPlasticStrainOld;
+    double mPlasticStrainRateOld;
     double mTemperatureOld;
-    double mHardeningOld;
+    //double mYieldOld;
+    double mGammaOld = 1e-8;
 
     ///@}
     ///@name Protected Operators
@@ -319,7 +306,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mGammaOld = 1e-8;
 
 
     ///@}
@@ -330,6 +316,24 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    double CalculateHardenedYieldStress(const Properties& MaterialProperties, const double EquivalentPlasticStrain, 
+        const double PlasticStrainRate, const double Temperature);
+
+    double CalculateThermalHardeningFactor(const Properties& MaterialProperties, const double Temperature);
+
+    double CalculateStrainRateHardeningFactor(const Properties& MaterialProperties, const double PlasticStrainRate);
+
+    double CalculateThermalDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
+        const double PlasticStrainRate, const double Temperature);
+
+    double CalculatePlasticStrainRateDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
+        const double PlasticStrainRate, const double Temperature);
+
+    double CalculatePlasticStrainDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
+        const double PlasticStrainRate, const double Temperature);
+
+
 
 
     ///@}
@@ -347,7 +351,6 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
 
-        rSerializer.save("mElasticLeftCauchyGreen", mElasticLeftCauchyGreen);
         rSerializer.save("mpFlowRule", mpFlowRule);
         rSerializer.save("mpYieldCriterion", mpYieldCriterion);
         rSerializer.save("mpHardeningLaw", mpHardeningLaw);
@@ -357,7 +360,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
 
-        rSerializer.load("mElasticLeftCauchyGreen", mElasticLeftCauchyGreen);
         rSerializer.load("mpFlowRule", mpFlowRule);
         rSerializer.load("mpYieldCriterion", mpYieldCriterion);
         rSerializer.load("mpHardeningLaw", mpHardeningLaw);
