@@ -202,12 +202,6 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
     // Update Stiffness matrix
     if (current_time > (mCMTime - 0.5 * delta_time)) {
 
-        KRATOS_WATCH(current_time)
-        KRATOS_WATCH(mCMTime)
-        KRATOS_WATCH(mVelocity)
-        KRATOS_WATCH(mReactionStress)
-        KRATOS_WATCH(mReactionStressOld)
-
         // Update K if DeltaDisplacement is invertible
         this->CalculateStiffness();
     }
@@ -439,9 +433,6 @@ Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStres
             } else {
                 reaction_stress[map_index] = 0.0;
             }
-            // KRATOS_WATCH(actuator_name)
-            // KRATOS_WATCH(face_reaction)
-            // KRATOS_WATCH(face_area)
         } else {
             // Calculate face_area
             // Iterate through all FEMBoundaries
@@ -475,9 +466,6 @@ Vector MultiaxialControlModuleFEMDEMGeneralized2DUtilities::MeasureReactionStres
             } else {
                 reaction_stress[map_index] = 0.0;
             }
-            // KRATOS_WATCH(actuator_name)
-            // KRATOS_WATCH(face_reaction)
-            // KRATOS_WATCH(face_area)
         }
     }
 
