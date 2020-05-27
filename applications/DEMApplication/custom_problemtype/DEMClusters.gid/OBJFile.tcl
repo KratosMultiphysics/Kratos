@@ -39,7 +39,7 @@ proc GenerateOBJFile { basename dir problemtypedir } {
         puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+2 }]]]
         puts -nonewline $FileVar " "
         puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+3 }]]]
-        puts -nonewline $FileVar " "
+        puts $FileVar " "
         #puts  $FileVar  $position
         #lappend position_list [lindex $Nodes $i] $position ;  
         dict set position_list_dict [lindex $Nodes $i] $position
