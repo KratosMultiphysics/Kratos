@@ -95,8 +95,11 @@ class FEMDEMCouplingUtilities
     void ResetContactImpulses(ModelPart &rStructureModelPart);
 
     void RemoveDuplicates(
-    ModelPart& rModelPart
-    );
+    ModelPart& rModelPart);
+
+    void IdentifyFreeParticles(
+        ModelPart& rFEMModelPart,
+        ModelPart& rDEMModelPart);
     
 
 

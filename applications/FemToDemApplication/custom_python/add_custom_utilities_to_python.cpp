@@ -28,7 +28,7 @@ namespace Python
 {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-	namespace py = pybind11;
+    namespace py = pybind11;
 
     py::class_<FEMDEMCouplingUtilities>(m,"FEMDEMCouplingUtilities")
         .def(py::init<>())
@@ -39,6 +39,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeAndTranferAveragedContactTotalForces",&FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces)
         .def("ResetContactImpulses",&FEMDEMCouplingUtilities::ResetContactImpulses)
         .def("RemoveDuplicates",&FEMDEMCouplingUtilities::RemoveDuplicates)
+        .def("IdentifyFreeParticles",&FEMDEMCouplingUtilities::IdentifyFreeParticles)
         ;
 
     py::class_<AitkenRelaxationFEMDEMUtility>(m, "AitkenRelaxationFEMDEMUtility")
