@@ -116,8 +116,8 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     double net_inflow_inlet = ComputeFlowOverBoundary(INLET);
     //KRATOS_INFO("Outlet:") << OUTLET << std::endl;
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
-    //KRATOS_INFO("Inlet/Outlet:") << PRESSURE_BC << std::endl;
-    double net_inflow = ComputeFlowOverBoundary(PRESSURE_BC);
+    //KRATOS_INFO("Inlet/Outlet:") << BOUNDARY << std::endl;
+    double net_inflow = ComputeFlowOverBoundary(BOUNDARY);
     
     // computing global quantities via MPI communication
     const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
@@ -484,8 +484,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
         const auto p_condition = mrModelPart.ConditionsBegin() + i_cond;
 
         if ( p_condition->Is( boundaryFlag ) ){
-
-            //KRATOS_INFO("ComputeFlowOverBoundary:") << "Flag is found" << std::endl;
+            //KRATOS_INFO("ComputeFlowOverBoundary:") << boundaryFlag << std::endl;
 
             const auto& rGeom = p_condition->GetGeometry();
             const int dim = rGeom.PointsNumber();
