@@ -190,7 +190,6 @@ void ExportData_ModelPart_Scalar(
 {
     KRATOS_TRY
 
-    // TODO resize only if too small
     if (DataLoc == DataLocation::NodeHistorical) {
         std::size_t counter = 0;
         DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes());
