@@ -89,6 +89,12 @@ jobs:
         path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
+      
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+      
     - name: Build
       shell: cmd
       run: |
@@ -143,5 +149,4 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        pip install numpy
         python kratos/python_scripts/run_tests.py -l small -c python
