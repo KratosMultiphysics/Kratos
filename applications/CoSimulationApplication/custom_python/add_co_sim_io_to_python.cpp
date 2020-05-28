@@ -177,12 +177,19 @@ enum class DataLocation { NodeHistorical, NodeNonHistorical, Element, Condition,
 //     }
 // }
 
+void ImportDataSizeCheck(const std::size_t ExpectedSize, const std::size_t ImportedSize)
+{
+    KRATOS_ERROR_IF(ExpectedSize != ImportedSize) << "Expected to import " << ExpectedSize << " values but got " << ImportedSize << " values instead!" << std::endl;
+}
+
 void ExportData_ModelPart_Scalar(
     CoSimIO::Info& rInfo,
     const ModelPart& rModelPart,
     const Variable<double>& rVariable,
     const DataLocation DataLoc)
 {
+    KRATOS_TRY
+
     // TODO resize only if too small
     if (DataLoc == DataLocation::NodeHistorical) {
         std::size_t counter = 0;
@@ -218,6 +225,8 @@ void ExportData_ModelPart_Scalar(
     }
 
     CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
+
+    KRATOS_CATCH("")
 }
 
 void ImportData_ModelPart_Scalar(
@@ -226,38 +235,44 @@ void ImportData_ModelPart_Scalar(
     const Variable<double>& rVariable,
     const DataLocation DataLoc)
 {
+    KRATOS_TRY
 
     CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
-    // TODO implement size-checks
-
     if (DataLoc == DataLocation::NodeHistorical) {
+        ImportDataSizeCheck(rModelPart.NumberOfNodes(), DataBuffers::vector_doubles.size());
         std::size_t counter = 0;
         for (auto& r_node : rModelPart.Nodes()) {
             r_node.FastGetSolutionStepValue(rVariable) = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        ImportDataSizeCheck(rModelPart.NumberOfNodes(), DataBuffers::vector_doubles.size());
         std::size_t counter = 0;
         for (auto& r_node : rModelPart.Nodes()) {
             r_node.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::Element) {
+        ImportDataSizeCheck(rModelPart.NumberOfElements(), DataBuffers::vector_doubles.size());
         std::size_t counter = 0;
         for (auto& r_elem : rModelPart.Elements()) {
             r_elem.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::Condition) {
+        ImportDataSizeCheck(rModelPart.NumberOfConditions(), DataBuffers::vector_doubles.size());
         std::size_t counter = 0;
         for (auto& r_cond : rModelPart.Conditions()) {
             r_cond.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::ModelPart) {
+        ImportDataSizeCheck(1, DataBuffers::vector_doubles.size());
         rModelPart[rVariable] = DataBuffers::vector_doubles[0];
     }
+
+    KRATOS_CATCH("")
 }
 
 void ExportData_ModelPart_Vector(
@@ -266,6 +281,8 @@ void ExportData_ModelPart_Vector(
     const Variable< array_1d<double, 3> >& rVariable,
     const DataLocation DataLoc)
 {
+    KRATOS_TRY
+
     if (DataLoc == DataLocation::NodeHistorical) {
         std::size_t counter = 0;
         DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes()*3);
@@ -315,6 +332,8 @@ void ExportData_ModelPart_Vector(
     }
 
     CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
+
+    KRATOS_CATCH("")
 }
 
 void ImportData_ModelPart_Vector(
@@ -323,11 +342,12 @@ void ImportData_ModelPart_Vector(
     const Variable< array_1d<double, 3> >& rVariable,
     const DataLocation DataLoc)
 {
+    KRATOS_TRY
+
     CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
-    // TODO implement size-checks
-
     if (DataLoc == DataLocation::NodeHistorical) {
+        ImportDataSizeCheck(rModelPart.NumberOfNodes()*3, DataBuffers::vector_doubles.size());
         std::size_t counter = 0;
         for (auto& r_node : rModelPart.Nodes()) {
             array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
@@ -337,6 +357,7 @@ void ImportData_ModelPart_Vector(
         }
 
     } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        ImportDataSizeCheck(rModelPart.NumberOfNodes()*3, DataBuffers::vector_doubles.size());
         std::size_t counter = 0;
         for (auto& r_node : rModelPart.Nodes()) {
             array_1d<double, 3>& r_val = r_node.GetValue(rVariable);
@@ -346,6 +367,7 @@ void ImportData_ModelPart_Vector(
         }
 
     } else if (DataLoc == DataLocation::Element) {
+        ImportDataSizeCheck(rModelPart.NumberOfElements()*3, DataBuffers::vector_doubles.size());
         std::size_t counter = 0;
         for (auto& r_elem : rModelPart.Elements()) {
             array_1d<double, 3>& r_val = r_elem.GetValue(rVariable);
@@ -355,6 +377,7 @@ void ImportData_ModelPart_Vector(
         }
 
     } else if (DataLoc == DataLocation::Condition) {
+        ImportDataSizeCheck(rModelPart.NumberOfConditions()*3, DataBuffers::vector_doubles.size());
         std::size_t counter = 0;
         for (auto& r_cond : rModelPart.Conditions()) {
             array_1d<double, 3>& r_val = r_cond.GetValue(rVariable);
@@ -364,26 +387,37 @@ void ImportData_ModelPart_Vector(
         }
 
     } else if (DataLoc == DataLocation::ModelPart) {
+        ImportDataSizeCheck(3, DataBuffers::vector_doubles.size());
         auto& r_val = rModelPart[rVariable];
         r_val[0] = DataBuffers::vector_doubles[0];
         r_val[1] = DataBuffers::vector_doubles[1];
         r_val[2] = DataBuffers::vector_doubles[2];
     }
+
+    KRATOS_CATCH("")
 }
 
 std::vector<double> ImportData_RawValues(
     CoSimIO::Info& rInfo)
 {
+    KRATOS_TRY
+
     CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
     return DataBuffers::vector_doubles;
+
+    KRATOS_CATCH("")
 }
 
 void ExportData_RawValues(
     CoSimIO::Info& rInfo,
     std::vector<double>& rValues)
 {
+    KRATOS_TRY
+
     CoSimIO::ExportData(rInfo, rValues);
+
+    KRATOS_CATCH("")
 }
 
 } // helpers namespace
