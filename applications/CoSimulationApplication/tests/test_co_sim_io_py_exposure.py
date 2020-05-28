@@ -283,7 +283,7 @@ def RunPythonInSubProcess(python_script_name):
     if not python_script_name.endswith(".py"):
         python_script_name += ".py"
     cmd_list = ["python3", os.path.join("co_sim_io_py_exposure_aux_files", python_script_name)]
-    subprocess.run(cmd_list, check=True) # crashes the calling script too, otherwise the error is silent
+    subprocess.run(cmd_list, check=True, shell=os.name=="nt") # crashes the calling script too, otherwise the error is silent (using shell in Win)
 
 
 if __name__ == '__main__':
