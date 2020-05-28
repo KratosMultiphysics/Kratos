@@ -233,7 +233,7 @@ public:
     double DomainSize() const override
     {
         Vector temp;
-        temp = this->DeterminantOfJacobian(temp, GeometryData::GI_GAUSS_1);
+        temp = this->DeterminantOfJacobian(temp);
         const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
         double domain_size = 0.0;
 
