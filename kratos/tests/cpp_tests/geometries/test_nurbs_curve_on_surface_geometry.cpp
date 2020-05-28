@@ -384,7 +384,7 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_EQUAL(spans.size(), 5);
 
 
-        const double scaling_factor = 23.313708498984759 * 2;
+        const double scaling_factor = 23.313708498984759 / 2;
         // Compare each value
         KRATOS_CHECK_NEAR(spans[0], 0, TOLERANCE);
         KRATOS_CHECK_NEAR(spans[1], 4.02565 / scaling_factor, 1e-4);
