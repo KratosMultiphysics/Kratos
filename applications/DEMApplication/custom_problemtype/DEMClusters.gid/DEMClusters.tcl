@@ -112,6 +112,16 @@ proc AfterMeshGeneration {fail} {
 }
 
 
+
+# new proc
+# 0delete old spheres from geometry
+# 1 calculate
+# 2 GenerateSPH
+# 3Generateclu
+# 4visualize
+
+
+
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
     source [file join $problemtypedir OBJFile.tcl]
     set OBJOutput [GenerateOBJFile $basename $dir $problemtypedir]

@@ -2,7 +2,7 @@ PROBLEM DATA
 
 TITLE:Sphere_Tree_Algorithm_Settings
 QUESTION: Algorithm#CB#(MakeTreeMedial,MakeTreeGrid,MakeTreeSpawn,MakeTreeHubbard,MakeTreeOctree)
-VALUE: MakeTreeHubbard
+VALUE: MakeTreeMedial
 DEPENDENCIES: (MakeTreeMedial,RESTORE,depth,#CURRENT#,RESTORE,branch,#CURRENT#,RESTORE,numCover,#CURRENT#,RESTORE,minCover,#CURRENT#,RESTORE,initSpheres,#CURRENT#,RESTORE,minSpheres,#CURRENT#,RESTORE,erFact,#CURRENT#,RESTORE,testerLevels,#CURRENT#,HIDE,numSamples,#CURRENT#,HIDE,minSamples,#CURRENT#)
 DEPENDENCIES: (MakeTreeSpawn,RESTORE,depth,#CURRENT#,RESTORE,numCover,#CURRENT#,RESTORE,minCover,#CURRENT#,RESTORE,testerLevels,#CURRENT#,HIDE,branch,#CURRENT#,HIDE,initSpheres,#CURRENT#,HIDE,minSpheres,#CURRENT#,HIDE,erFact,#CURRENT#,HIDE,numSamples,#CURRENT#,HIDE,minSamples,#CURRENT#)
 DEPENDENCIES: (MakeTreeGrid,RESTORE,depth,#CURRENT#,RESTORE,numCover,#CURRENT#,RESTORE,minCover,#CURRENT#,RESTORE,testerLevels,#CURRENT#,HIDE,branch,#CURRENT#,HIDE,initSpheres,#CURRENT#,HIDE,minSpheres,#CURRENT#,HIDE,erFact,#CURRENT#,HIDE,numSamples,#CURRENT#,HIDE,minSamples,#CURRENT#)
@@ -10,11 +10,11 @@ DEPENDENCIES: (MakeTreeHubbard,RESTORE,depth,#CURRENT#,RESTORE,branch,#CURRENT#,
 DEPENDENCIES: (MakeTreeOctree,RESTORE,depth,#CURRENT#,HIDE,branch,#CURRENT#,HIDE,numSamples,#CURRENT#,HIDE,minSamples,#CURRENT#,HIDE,testerLevels,#CURRENT#,HIDE,initSpheres,#CURRENT#,HIDE,minSpheres,#CURRENT#,HIDE,erFact,#CURRENT#,HIDE,numCover,#CURRENT#,HIDE,minCover,#CURRENT#)
 
 QUESTION: depth
-VALUE: 3
+VALUE: 1
 HELP: Depth of the sphere-tree
 
 QUESTION: branch
-VALUE: 8
+VALUE: 100
 HELP: Branching factor of sphere-tree
 
 QUESTION: testerLevels
@@ -22,7 +22,7 @@ VALUE: 2
 HELP: Controls the number of points to use to represent a sphere when evaluating fit.
 
 QUESTION: numCover
-VALUE: 10000
+VALUE: 1000
 HELP: Number of sample points to cover object with
 
 QUESTION: minCover
@@ -30,7 +30,7 @@ VALUE: 5
 HELP: Minimum number of sample points per triangle
 
 QUESTION: initSpheres
-VALUE: 1000
+VALUE: 100
 HELP: Initial number of spheres in medial axis approx
 
 QUESTION: minSpheres
@@ -42,11 +42,11 @@ VALUE: 2
 HELP: Amount by which to reduce the error when refining the medial axis approximation.
 
 QUESTION: numSamples
-VALUE: 500
+VALUE: 1000
 HELP: Number of sample points to cover object with
 
 QUESTION: minSamples
-VALUE: 1
+VALUE: 5
 HELP: Minimum number of sample points per triangle
 
 END PROBLEM DATA

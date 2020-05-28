@@ -34,13 +34,15 @@ int main(int argc, char * argv[]){
 
     int node_counter = 0;
     while (std::getline(infile, line)) {
-        std::cout << "infile "<< node_counter << std::endl;
+        std::cout << line << std::endl;
+        if (line == "End Coordinates") {break;} 
         std::istringstream iss(line);
         int a;
         double b, c, d, e;
         if (iss >> a >> b >> c >> d) {
             node_counter++;
         } else break;
+        
     }
     std::cout << "\nNumber of nodes: " << node_counter << '\n';
 
@@ -171,6 +173,9 @@ int main(int argc, char * argv[]){
     }
     std::cout << "Total mass: " << Vmaspiedra << '\n';
 
+
+
+    // TODO: remove move centers
     //Calculo del centro de gravedad del cluster o piedra
     double Valor1=0.0;
     double Valor2=0.0;
