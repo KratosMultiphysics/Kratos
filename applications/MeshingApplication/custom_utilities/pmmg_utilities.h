@@ -631,7 +631,7 @@ public:
      * @param[in,out] rModelPart The model part with the kratos communicator.
      */
     void GenerateParallelInterfaces(
-        ModelPart& rModelPart   
+        ModelPart& rModelPart
     );
 
     /**
@@ -639,7 +639,7 @@ public:
      * @param[in,out] rModelPart The model part with the kratos communicator.
      */
     void PrintParallelInterfaces(
-        ModelPart& rModelPart   
+        ModelPart& rModelPart
     );
 
     /**
@@ -796,6 +796,7 @@ private:
     std::map<int, int> local_node_id;
     std::map<int, int> local_elem_id;
     std::map<int, int> local_cond_id;
+    std::map<int, int> mLocalToGlobal;
 
     ///@}
     ///@name Private Operators
