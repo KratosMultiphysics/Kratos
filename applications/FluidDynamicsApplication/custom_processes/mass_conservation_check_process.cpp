@@ -116,11 +116,13 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     double net_inflow_inlet = ComputeFlowOverBoundary(INLET);
     //KRATOS_INFO("Outlet:") << OUTLET << std::endl;
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
+    //KRATOS_INFO("Inlet/Outlet:") << PRESSURE_BC << std::endl;
+    double net_inflow = ComputeFlowOverBoundary(PRESSURE_BC);
     
     // computing global quantities via MPI communication
     const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
-    std::vector<double> local_data{pos_vol, neg_vol, inter_area, net_inflow_inlet, net_inflow_outlet};
-    std::vector<double> remote_sum{0, 0, 0, 0, 0};
+    std::vector<double> local_data{pos_vol, neg_vol, inter_area, net_inflow_inlet, net_inflow_outlet, net_inflow};
+    std::vector<double> remote_sum{0, 0, 0, 0, 0, 0};
     r_comm.SumAll(local_data, remote_sum);
 
     pos_vol = remote_sum[0];
@@ -128,13 +130,14 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     inter_area = remote_sum[2];
     net_inflow_inlet = remote_sum[3];
     net_inflow_outlet = remote_sum[4];
+    net_inflow = remote_sum[5];
 
     // making a "time step forwards" and updating the
     const double current_time = mrModelPart.GetProcessInfo()[TIME];
     const double current_dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
     mQNet2 = mQNet1;
     mQNet1 = mQNet0;
-    mQNet0 = net_inflow_inlet + net_inflow_outlet;
+    mQNet0 = net_inflow_inlet + net_inflow_outlet + net_inflow;
 
     // adding time-integrated net inflow ( = new water volume ) to the theoretical value
     // The value of the integral is evaluated following the idea of the Adams-Moulton-Procedure (s=2)
@@ -155,7 +158,7 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     std::ostringstream oss;
     //oss.precision(std::numeric_limits<double>::digits10);
     oss << std::scientific << neg_vol << "\t\t" << pos_vol << "\t\t" << water_volume_error 
-        << "\t\t" << net_inflow_inlet << "\t\t" << net_inflow_outlet << "\t\t" << inter_area << "\t\t" << shift_for_correction << "\n";
+        << "\t\t" << net_inflow_inlet << "\t\t" << net_inflow/* net_inflow_outlet */ << "\t\t" << inter_area << "\t\t" << shift_for_correction << "\n";
     std::string add_string = oss.str();
 
     std::string output_line_timestep =  std::to_string(current_time) + "\t\t";

@@ -55,12 +55,12 @@ class ApplyPressureBoundaryProcess(KratosMultiphysics.Process):
         self.hydrostatic = settings["hydrostatic"].GetBool()
         self.h_top = settings["h_top"].GetDouble()
 
-        # Set the OUTLET flag in the outlet model part nodes and conditions
-        #self.outlet_model_part = Model[pres_settings["model_part_name"].GetString()]
-        #for node in self.outlet_model_part.Nodes:
-        #    node.Set(KratosMultiphysics.OUTLET, True)
-        #for condition in self.outlet_model_part.Conditions:
-        #    condition.Set(KratosMultiphysics.OUTLET, True)
+        # Set the PRESSURE_BC flag in the outlet model part nodes and conditions
+        self.outlet_model_part = Model[pres_settings["model_part_name"].GetString()]
+        for node in self.outlet_model_part.Nodes:
+            node.Set(KratosMultiphysics.PRESSURE_BC, True)
+        for condition in self.outlet_model_part.Conditions:
+            condition.Set(KratosMultiphysics.PRESSURE_BC, True)
 
         # Construct the base process AssignValueProcess
         self.aux_pressure_process = AssignScalarVariableProcess(Model, pres_settings)
