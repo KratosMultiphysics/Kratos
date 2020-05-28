@@ -182,16 +182,16 @@ typedef Node<3> NodeType;
         // Assign the points belonging to the curve
         PointerVector<Point> points_curve;
         if (uniform_knot_spans) {
-            points_curve.push_back(Point::Pointer(new Point(0.3, 0.7, 0)));
-            points_curve.push_back(Point::Pointer(new Point(0.3, 0.1, 0)));
-            points_curve.push_back(Point::Pointer(new Point(0.7, 0.9, 0)));
-            points_curve.push_back(Point::Pointer(new Point(0.7, 0.3, 0)));
+            points_curve.push_back(Kratos::make_shared<Point>(6, 7, 0));
+            points_curve.push_back(Kratos::make_shared<Point>(6, 1, 0));
+            points_curve.push_back(Kratos::make_shared<Point>(14, 9, 0));
+            points_curve.push_back(Kratos::make_shared<Point>(14, 3, 0));
         }
         else {
-            points_curve.push_back(Point::Pointer(new Point(0.3, 0.7, 0)));
-            points_curve.push_back(Point::Pointer(new Point(0.3 0.1, 0)));
-            points_curve.push_back(Point::Pointer(new Point(0.7, 0.9, 0)));
-            points_curve.push_back(Point::Pointer(new Point(0.7, 0.3, 0)));
+            points_curve.push_back(Kratos::make_shared<Point>(0.3, 0.7, 0));
+            points_curve.push_back(Kratos::make_shared<Point>(0.3 0.1, 0));
+            points_curve.push_back(Kratos::make_shared<Point>(0.7, 0.9, 0));
+            points_curve.push_back(Kratos::make_shared<Point>(0.7, 0.3, 0));
         }
 
         // Assign the curve's knot vector
@@ -371,7 +371,7 @@ typedef Node<3> NodeType;
     }
 
     // test intersection with background surface with not coinciding knot vectors
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceIntersectionSpans, KratosCoreNurbsGeometriesFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceNonUniformKnotVectorsIntersectionSpans, KratosCoreNurbsGeometriesFastSuite)
     {
         // Create a Nurbs curve on a Nurbs surface
         auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections(false);
