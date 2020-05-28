@@ -70,8 +70,21 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         for i, node in enumerate(model_part.Nodes):
             self.assertAlmostEqual(node.GetSolutionStepValue(KM.TEMPERATURE), i*1.7)
 
+    def test_Export_Import_Data_ModelPart_vector_node_historical(self):
+        model = KM.Model()
 
-class ExtendedTestsCoSimIOPyExposure(KratosUnittest.TestCase):
+        model_part = model.CreateModelPart("for_test")
+        model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        for i in range(5):
+            node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
+            node.SetSolutionStepValue(KM.DISPLACEMENT, [i*1.7, i+1.1, i**1.2])
+
+        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.NodeHistorical)
+
+        # checking the values after disconnecting to avoid deadlock
+        for i, node in enumerate(model_part.Nodes):
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(KM.VELOCITY), KM.Vector([i*1.7, i+1.1, i**1.2]))
 
     def test_Export_Import_Data_ModelPart_scalar_node_non_historical(self):
         model = KM.Model()
@@ -192,22 +205,6 @@ class ExtendedTestsCoSimIOPyExposure(KratosUnittest.TestCase):
 
         # checking the values after disconnecting to avoid deadlock
         self.assertVectorAlmostEqual(model_part.GetValue(KM.VELOCITY), KM.Vector([14.3, -333.896, 987.2]))
-
-    def test_Export_Import_Data_ModelPart_vector_node_historical(self):
-        model = KM.Model()
-
-        model_part = model.CreateModelPart("for_test")
-        model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
-        for i in range(5):
-            node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
-            node.SetSolutionStepValue(KM.DISPLACEMENT, [i*1.7, i+1.1, i**1.2])
-
-        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.NodeHistorical)
-
-        # checking the values after disconnecting to avoid deadlock
-        for i, node in enumerate(model_part.Nodes):
-            self.assertVectorAlmostEqual(node.GetSolutionStepValue(KM.VELOCITY), KM.Vector([i*1.7, i+1.1, i**1.2]))
 
     def test_Export_Import_Mesh(self):
         model = KM.Model()
