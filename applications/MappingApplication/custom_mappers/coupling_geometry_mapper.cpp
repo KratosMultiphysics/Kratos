@@ -66,7 +66,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
                 rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
                     * det_jacobian[integration_point_itr];
-                KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0) 
+                KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
                     << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
             }
         }
@@ -79,9 +79,9 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                         * sf_values_master(integration_point_itr, j)
                         * det_jacobian[integration_point_itr];
 
-                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0) 
+                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
                         << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
-                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, j) < 0.0) 
+                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, j) < 0.0)
                         << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
                 }
             }
@@ -121,7 +121,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 {
     // @tteschemachen here kann man theoretisch auch das Origin-MP nehmen
     // kommt drauf an, wo die Coupling-Geometries sind
-    
+
     // compose local element mappings
     CreateMapperLocalSystems(mpCouplingMP->GetCommunicator(),
                              mMapperLocalSystems);
@@ -130,7 +130,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     const std::size_t num_nodes_interface_slave = mrModelPartDestination.GetSubModelPart("interface").NumberOfNodes(); // fix up and put in the mapper parameters
     const std::size_t num_nodes_interface_master = mrModelPartOrigin.GetSubModelPart("interface").NumberOfNodes();
     Matrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
-    for (size_t local_projector_system = 0; 
+    for (size_t local_projector_system = 0;
         local_projector_system < mMapperLocalSystems.size()/2; local_projector_system++)
     {
         // assemble from mMapperLocalSystems(local_projector_system) to interface_matrix_projector
@@ -138,14 +138,14 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     // assemble slave interface mass matrix - interface_matrix_slave
     Matrix interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
-    for (size_t local_projector_system = mMapperLocalSystems.size() / 2; 
+    for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
         local_projector_system < mMapperLocalSystems.size(); local_projector_system++)
     {
         // assemble from mMapperLocalSystems(local_projector_system) to interface_matrix_slave
     }
 
     // Perform consistency scaling if requested
-    if (mMapperSettings["consistency_scaling"].GetBool()) 
+    if (mMapperSettings["consistency_scaling"].GetBool())
         EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
 
     // get total interface mapping matrix
@@ -154,7 +154,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
     Matrix interface_mapper = prod(interface_matrix_slave, interface_matrix_projector);
 
-    
+
 
 
     // assemble to global
@@ -208,27 +208,18 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
-    const std::vector<std::string> var_comps{"_X", "_Y", "_Z"};
-
-    for (const auto& var_ext : var_comps) {
+    for (const auto var_ext : {"_X", "_Y", "_Z"}) {
         const auto& var_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + var_ext);
         const auto& var_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + var_ext);
 
-        mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_origin, MappingOptions);
-
-        TSparseSpace::Mult(
-            *mpMappingMatrix,
-            mpInterfaceVectorContainerOrigin->GetVector(),
-            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
-
-        mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(var_destination, MappingOptions);
+        MapInternal(var_origin, var_destination, MappingOptions);
     }
 }
 
 template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithScaling(
-    const Matrix& rInterfaceMatrixSlave, 
-    Matrix& rInterfaceMatrixProjected, 
+    const Matrix& rInterfaceMatrixSlave,
+    Matrix& rInterfaceMatrixProjected,
     const double scalingLimit)
 {
     // Performs scaling of projected mapping entries as per eqn25 Wang2016
@@ -247,7 +238,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
         const double alpha = (row_sum_slave / row_sum_projector < scalingLimit)
             ? row_sum_slave / row_sum_projector
             : scalingLimit;
-        for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j) 
+        for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j)
                 rInterfaceMatrixProjected(i, j) *= alpha;
     }
 }
