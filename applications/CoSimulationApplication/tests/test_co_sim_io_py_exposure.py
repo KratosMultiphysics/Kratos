@@ -205,6 +205,56 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         # checking the values after disconnecting to avoid deadlock
         self.assertVectorAlmostEqual(model_part.GetValue(KM.VELOCITY), KM.Vector([14.3, -333.896, 987.2]))
 
+    def test_Export_Import_Mesh(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        model_part_returned = model.CreateModelPart("for_test_2")
+
+        for i in range(15):
+            model_part.CreateNewNode(i+1, i*1.1, 1.1**i, 0.0)
+        props = model_part.CreateNewProperties(0)
+        for i in range(9): # this leaves some hanging nodes
+            model_part.CreateNewElement("Element2D2N", i+1, [i+1, i+2], props)
+
+        connection_settings = CoSimIO.Info()
+        connection_settings.SetString("connection_name", "im_exp_mesh")
+        connection_settings.SetInt("echo_level", 0)
+        CoSimIO.Connect(connection_settings)
+
+        export_info = CoSimIO.Info()
+        export_info.SetString("connection_name", "im_exp_mesh")
+        export_info.SetString("identifier", "mesh_exchange_1")
+        CoSimIO.ExportMesh(export_info, model_part)
+
+        RunPythonInSubProcess("import_export_mesh")
+
+        import_info = CoSimIO.Info()
+        import_info.SetString("connection_name", "im_exp_mesh")
+        import_info.SetString("identifier", "mesh_exchange_2")
+        CoSimIO.ImportMesh(import_info, model_part_returned)
+
+        disconnect_settings = CoSimIO.Info()
+        disconnect_settings.SetString("connection_name", "im_exp_mesh")
+
+        CoSimIO.Disconnect(disconnect_settings)
+
+        # checking the values after disconnecting to avoid deadlock
+        self.assertEqual(model_part.NumberOfNodes(), model_part_returned.NumberOfNodes())
+        self.assertEqual(model_part.NumberOfElements(), model_part_returned.NumberOfElements())
+
+        for node_orig, node_exchanged in zip(model_part.Nodes, model_part_returned.Nodes):
+            self.assertAlmostEqual(node_orig.X0, node_exchanged.X0)
+            self.assertAlmostEqual(node_orig.Y0, node_exchanged.Y0)
+            self.assertAlmostEqual(node_orig.Z0, node_exchanged.Z0)
+
+        for elem_orig, elem_exchanged in zip(model_part.Elements, model_part_returned.Elements):
+            self.assertEqual(len(elem_orig.GetNodes()), len(elem_exchanged.GetNodes()))
+            for node_orig, node_exchanged in zip(elem_orig.GetNodes(), elem_exchanged.GetNodes()):
+                self.assertAlmostEqual(node_orig.X0, node_exchanged.X0)
+                self.assertAlmostEqual(node_orig.Y0, node_exchanged.Y0)
+                self.assertAlmostEqual(node_orig.Z0, node_exchanged.Z0)
+
 
 def ExportImportDataOnModelPart(model_part, var_export, var_import, data_location):
     connection_settings = CoSimIO.Info()
