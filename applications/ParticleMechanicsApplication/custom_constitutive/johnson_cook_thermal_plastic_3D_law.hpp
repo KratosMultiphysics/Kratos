@@ -24,6 +24,7 @@
 #include "custom_constitutive/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
 
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "includes/checks.h"
 
 
 namespace Kratos
@@ -43,7 +44,7 @@ public:
      * Type Definitions
      */
     typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
+    typedef HyperElastic3DLaw         BaseType;
     typedef std::size_t             SizeType;
 
     typedef ParticleFlowRule::Pointer                FlowRulePointer;
@@ -98,33 +99,20 @@ public:
     /**
      * Operations needed by the base class:
      */
-    void GetLawFeatures(Features& rFeatures) override; //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_plane_strain_2D_law.cpp
+    void GetLawFeatures(Features& rFeatures) override;
 
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-    Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-
-
-    void SetValue(const Variable<double>& rVariable,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+    void SetValue(const Variable<double>& rVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo) override;
-    void SetValue(const Variable<Vector>& rThisVariable,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-        const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo) override;
-    void SetValue(const Variable<Matrix>& rThisVariable,//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-        const Matrix& rValue,
-        const ProcessInfo& rCurrentProcessInfo) override; 
 
-    bool Has(const Variable<double>& rThisVariable) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-    bool Has(const Variable<Vector>& rThisVariable) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-    bool Has(const Variable<Matrix>& rThisVariable) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+    bool Has(const Variable<double>& rThisVariable) override;
 
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial(const Properties& rMaterialProperties, //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+    void InitializeMaterial(const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues) override;
 
@@ -134,8 +122,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;//E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
-
+    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -156,7 +143,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    array_1d<double,6> mStrainOld;
+    Vector mStrainOld;
     double mEquivalentPlasticStrainOld;
     double mPlasticStrainRateOld;
     double mTemperatureOld;
@@ -175,11 +162,11 @@ protected:
      * @param Parameters
      * @return
      */
-    bool CheckParameters(Parameters& rValues) override; //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
+    bool CheckParameters(Parameters& rValues) override;
 
-    virtual void MakeStrainStressMatrixFromVector(const array_1d<double, 6>& rInput, Matrix& rOutput);
+    virtual void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput);
 
-    virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, array_1d<double, 6>& rOutput);
+    virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput);
 
     double CalculateMatrixDoubleContraction(const Matrix& rInput)
     {
@@ -192,6 +179,14 @@ protected:
             }
         }
         return result;
+    }
+
+    void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo)
+    {
+        const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+            ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+            : false;
+        KRATOS_ERROR_IF_NOT(is_explicit) << "The Johnson Cook MPM material law is currently limited to explicit time integration only";
     }
 
 private:

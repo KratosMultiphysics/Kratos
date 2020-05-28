@@ -22,89 +22,52 @@
 
 namespace Kratos
 {
-
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
-
     JohnsonCookThermalPlastic3DLaw::JohnsonCookThermalPlastic3DLaw()
   : HyperElastic3DLaw()
-  {
-  }
+  {  }
 
-
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
 
     JohnsonCookThermalPlastic3DLaw::JohnsonCookThermalPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
-  {
-  }
+  {  }
 
-  //******************************COPY CONSTRUCTOR**************************************
-  //************************************************************************************
 
     JohnsonCookThermalPlastic3DLaw::JohnsonCookThermalPlastic3DLaw(const JohnsonCookThermalPlastic3DLaw& rOther)
   : HyperElastic3DLaw(rOther)
-  {
-  }
+  {  }
 
-  //********************************CLONE***********************************************
-  //************************************************************************************
 
   ConstitutiveLaw::Pointer JohnsonCookThermalPlastic3DLaw::Clone() const
-  {
-    return Kratos::make_shared<JohnsonCookThermalPlastic3DLaw>(*this);
-  }
+  { return Kratos::make_shared<JohnsonCookThermalPlastic3DLaw>(*this) ; }
 
-  //*******************************DESTRUCTOR*******************************************
-  //************************************************************************************
 
   JohnsonCookThermalPlastic3DLaw::~JohnsonCookThermalPlastic3DLaw()
-  {
-  }
+  {  }
 
-  //*******************************OPERATIONS FROM BASE CLASS***************************
-  //************************************************************************************
-
-  //***********************HAS : DOUBLE - VECTOR - MATRIX*******************************
-  //************************************************************************************
 
   bool JohnsonCookThermalPlastic3DLaw::Has( const Variable<double>& rThisVariable )
   {
-    if(rThisVariable == DELTA_PLASTIC_DISSIPATION || rThisVariable == PLASTIC_DISSIPATION ) return true;
+    if(    rThisVariable == TEMPERATURE
+        || rThisVariable == PLASTIC_STRAIN
+        || rThisVariable == PLASTIC_STRAIN_RATE) return true;
     else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function Has double.";
 
     return false;
   }
 
-  bool JohnsonCookThermalPlastic3DLaw::Has(const Variable<Vector>& rThisVariable)
-  {
-     KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function Has Vector.";
-
-      return false;
-  }
-
-  bool JohnsonCookThermalPlastic3DLaw::Has(const Variable<Matrix>& rThisVariable)
-  {
-     KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function Has Matrix.";
-
-      return false;
-  }
 
   void JohnsonCookThermalPlastic3DLaw::InitializeMaterial(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const Vector& rShapeFunctionsValues)
   {
-      HyperElastic3DLaw::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+      BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
-      mStrainOld = ZeroVector(6);
+      mStrainOld = ZeroVector(GetStrainSize());
       mEquivalentPlasticStrainOld = 0.0;
       mPlasticStrainRateOld = 0.0;
-
-      mTemperatureOld = 273.0 + 25.0; // TODO retrieve from element
-
       mEnergyInternal = 0.0;
       mEnergyDissipated = 0.0;
-      mYieldStressOld = CalculateHardenedYieldStress(rMaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
-
+      mTemperatureOld = rMaterialProperties[TEMPERATURE];
       mGammaOld = 1e-8;
+
+      mYieldStressOld = CalculateHardenedYieldStress(rMaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
   }
 
 
@@ -120,13 +83,12 @@ namespace Kratos
           << " Please set the strain vector and set USE_ELEMENT_PROVIDED_STRAIN = False in the element.";
 
       const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
-      const Properties& MaterialProperties = rValues.GetMaterialProperties();
-      //const GeometryType& DomainGeometry = rValues.GetElementGeometry();
-      //const Vector& ShapeFunctions = rValues.GetShapeFunctionsValues();
+      CheckIsExplicitTimeIntegration(CurrentProcessInfo);
 
-      array_1d<double, 6> StrainVector = rValues.GetStrainVector();
-      array_1d<double, 6> StressVector = rValues.GetStressVector();
-      //Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+      const Properties& MaterialProperties = rValues.GetMaterialProperties();
+
+      Vector StrainVector = rValues.GetStrainVector();
+      Vector StressVector = rValues.GetStressVector();
 
       // Convert vectors to matrices for easier manipulation
       Matrix stress_old(3, 3);
@@ -266,25 +228,17 @@ namespace Kratos
 
   int JohnsonCookThermalPlastic3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
   {
-      if (YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
-      {
-          KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
-      }
+      const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-      const double& nu = rMaterialProperties[POISSON_RATIO];
-      const bool check = bool((nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01));
+      KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_A);
+      KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_B);
+      KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_m);
+      KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_n);
+      KRATOS_CHECK_VARIABLE_KEY(REFERENCE_STRAIN_RATE);
+      KRATOS_CHECK_VARIABLE_KEY(REFERENCE_TEMPERATURE);
+      KRATOS_CHECK_VARIABLE_KEY(MELD_TEMPERATURE);
 
-      if (POISSON_RATIO.Key() == 0 || check == true)
-      {
-          KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value " << std::endl;
-      }
-
-
-      if (DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.00)
-      {
-          KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
-      }
-
+      if (check_base > 1) return 1;
       return 0;
   }
 
@@ -293,9 +247,9 @@ namespace Kratos
       return rValues.CheckAllParameters();
   }
 
-  void JohnsonCookThermalPlastic3DLaw::MakeStrainStressVectorFromMatrix(const Matrix& rInput, array_1d<double, 6>& rOutput)
+  void JohnsonCookThermalPlastic3DLaw::MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput)
   {
-      if (rOutput.size() != 6) rOutput.resize(6, false);
+      if (rOutput.size() != GetStrainSize()) rOutput.resize(GetStrainSize(), false);
 
       // 3D stress arrangement
       rOutput[0] = rInput(0, 0);
@@ -307,7 +261,7 @@ namespace Kratos
       rOutput[5] = 2.0* rInput(0, 2); //xz
   }
 
-  void JohnsonCookThermalPlastic3DLaw::MakeStrainStressMatrixFromVector(const array_1d<double, 6>& rInput, Matrix& rOutput)
+  void JohnsonCookThermalPlastic3DLaw::MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput)
   {
       if (rOutput.size1() != 3 || rOutput.size2() != 3)rOutput.resize(3, 3, false);
 
@@ -464,12 +418,12 @@ namespace Kratos
   void JohnsonCookThermalPlastic3DLaw::GetLawFeatures(Features& rFeatures)
   {
       //Set the type of law
-      rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
+      rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
       rFeatures.mOptions.Set(FINITE_STRAINS);
       rFeatures.mOptions.Set(ISOTROPIC);
 
       //Set strain measure required by the consitutive law
-      rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+      rFeatures.mStrainMeasures.push_back(StrainMeasure_GreenLagrange);
 
       //Set the strain size
       rFeatures.mStrainSize = GetStrainSize();
@@ -478,47 +432,36 @@ namespace Kratos
       rFeatures.mSpaceDimension = WorkingSpaceDimension();
   }
 
-  double& JohnsonCookThermalPlastic3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
-  {
-      return (this->GetValue(rThisVariable, rValue));
-  }
-
   double& JohnsonCookThermalPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
   {
+      if (rThisVariable == TEMPERATURE)
+      {
+          rValue = mTemperatureOld;
+      }
+      else if (rThisVariable == PLASTIC_STRAIN)
+      {
+          rValue = mEquivalentPlasticStrainOld;
+      }
+      else if (rThisVariable == PLASTIC_STRAIN_RATE)
+      {
+          rValue = mEquivalentPlasticStrainOld;
+      }
       KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function GetValue double.";
 
     return( rValue );
   }
 
-  Vector& JohnsonCookThermalPlastic3DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
-  {
-      KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function GetValue Vector.";
-      return(rValue);
-  }
-
-  Matrix& JohnsonCookThermalPlastic3DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
-  {
-      KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function GetValue Matrix.";
-      return(rValue);
-  }
-
   void JohnsonCookThermalPlastic3DLaw::SetValue(const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
   {
-      if (rThisVariable == DETERMINANT_F)
+      if (rThisVariable == TEMPERATURE)
       {
-          mDeterminantF0 = rValue;
+          if (mEquivalentPlasticStrainOld > 0)
+          {
+              KRATOS_ERROR << "Temperature may only be set before any plastic strain occurs.";
+          }
+          else mTemperatureOld = rValue;
       }
       else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function SetValue double.";
-  }
-
-  void JohnsonCookThermalPlastic3DLaw::SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
-  {
-      KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function SetValue Vector.";
-  }
-
-  void JohnsonCookThermalPlastic3DLaw::SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo)
-  {
-      KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function SetValue Matrix.";
   }
 
 
