@@ -189,7 +189,7 @@ typedef Node<3> NodeType;
         }
         else {
             points_curve.push_back(Kratos::make_shared<Point>(0.3, 0.7, 0));
-            points_curve.push_back(Kratos::make_shared<Point>(0.3 0.1, 0));
+            points_curve.push_back(Kratos::make_shared<Point>(0.3, 0.1, 0));
             points_curve.push_back(Kratos::make_shared<Point>(0.7, 0.9, 0));
             points_curve.push_back(Kratos::make_shared<Point>(0.7, 0.3, 0));
         }
