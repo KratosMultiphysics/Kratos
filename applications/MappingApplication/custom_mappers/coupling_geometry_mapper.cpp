@@ -98,6 +98,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
 std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
 {
+    std::cout << "   >>> XXX : IS_PROJECTED_LOCAL_SYSTEM: " << mpGeom->GetValue(IS_PROJECTED_LOCAL_SYSTEM) << std::endl;
     // KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
     // std::stringstream buffer;
@@ -126,33 +127,65 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     CreateMapperLocalSystems(mpCouplingMP->GetCommunicator(),
                              mMapperLocalSystems);
 
+    AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
+
+    KRATOS_WATCH("111")
+
     // assemble projector interface mass matrix - interface_matrix_projector
     const std::size_t num_nodes_interface_slave = mrModelPartDestination.GetSubModelPart("interface").NumberOfNodes(); // fix up and put in the mapper parameters
     const std::size_t num_nodes_interface_master = mrModelPartOrigin.GetSubModelPart("interface").NumberOfNodes();
     Matrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
+
+    MapperLocalSystem::MatrixType local_mapping_matrix;
+    MapperLocalSystem::EquationIdVectorType origin_ids;
+    MapperLocalSystem::EquationIdVectorType destination_ids;
+
     for (size_t local_projector_system = 0;
         local_projector_system < mMapperLocalSystems.size()/2; local_projector_system++)
     {
-        // assemble from mMapperLocalSystems(local_projector_system) to interface_matrix_projector
+        mMapperLocalSystems[local_projector_system]->PairingInfo(0);
+
+        mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+
+        KRATOS_WATCH(local_mapping_matrix)
+        KRATOS_WATCH(origin_ids)
+        KRATOS_WATCH(destination_ids)
+
+        // KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << local_mapping_matrix.size1() << " | DestinationIDs-size: " << destination_ids.size() << std::endl;
+        // KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << local_mapping_matrix.size2() << " | OriginIDs-size: " << origin_ids.size() << std::endl;
+
+        // for (IndexType i=0; i<destination_ids.size(); ++i) {
+        //     for (IndexType j=0; j<origin_ids.size(); ++j) {
+        //         // #pragma omp atomic
+        //         (*rpMdo)(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
+        //     }
+        // }
+
+        // r_local_sys->Clear();
     }
+    std::cout << std::endl << std::endl;
 
     // assemble slave interface mass matrix - interface_matrix_slave
     Matrix interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
     for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
         local_projector_system < mMapperLocalSystems.size(); local_projector_system++)
     {
+        mMapperLocalSystems[local_projector_system]->PairingInfo(0);
         // assemble from mMapperLocalSystems(local_projector_system) to interface_matrix_slave
     }
 
+    KRATOS_WATCH("222")
     // Perform consistency scaling if requested
     if (mMapperSettings["consistency_scaling"].GetBool())
         EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
+    KRATOS_WATCH("333")
 
     // get total interface mapping matrix
     Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave);
     double aux_det_slave = 0;
     MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
     Matrix interface_mapper = prod(interface_matrix_slave, interface_matrix_projector);
+    KRATOS_WATCH("444")
 
 
 
@@ -192,14 +225,16 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<double>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
-    mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    TSparseSpace::Mult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+    KRATOS_WATCH("MAP IS NOT IMPLEMENTED!!!")
+    // mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+    // TSparseSpace::Mult(
+    //     *mpMappingMatrix,
+    //     mpInterfaceVectorContainerOrigin->GetVector(),
+    //     mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+
+    // mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 }
 
 template<class TSparseSpace, class TDenseSpace>
