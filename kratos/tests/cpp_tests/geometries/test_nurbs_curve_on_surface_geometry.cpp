@@ -253,7 +253,7 @@ typedef Node<3> NodeType;
 
 
         if (!uniform_knot_spans) {
-            knot_vector_v_surface *= 0.05;
+            knot_vector_u_surface *= 0.05;
             knot_vector_v_surface *= 0.1;
         }
 
