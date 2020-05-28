@@ -118,6 +118,7 @@ int main(int argc, char * argv[]){
     std::vector<double> radii;
 
     std::getline(infilesph, linesph);
+    std::getline(infilesph, linesph);
     while (std::getline(infilesph, linesph)) {
         std::istringstream iss(linesph);
         double Xcoord, Ycoord, Zcoord, Rad;
@@ -390,7 +391,7 @@ int main(int argc, char * argv[]){
 
     std::cout << "\nThe size ratio is: " << diameter/characteristic_size << "\n\n";
 
-    std::ofstream outputfile("Generated_cluster.clu", std::ios_base::out);
+    std::ofstream outputfile("generic_cluster.clu", std::ios_base::out);
 
     outputfile << "Name\nCluster\n\nBegin centers_and_radii\n";
     for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
@@ -399,7 +400,7 @@ int main(int argc, char * argv[]){
     outputfile << "End centers_and_radii\n\n";
     outputfile << "Particle_center_and_diameter\n" << CenterX << " " << CenterY << " " << CenterZ << " " << diameter << "\n\n";
     outputfile << "Size\n" << diameter << "\n\n" << "Volume\n" << total_volume << "\n\n";
-    outputfile << "Inertia per unit mass\n" << D[0][0] << '\n' << D[1][1] << '\n' << D[2][2] << '\n';
+    outputfile << "Inertia unit mass\n" << D[0][0] << '\n' << D[1][1] << '\n' << D[2][2] << '\n';
 
     outputfile.close();
 }

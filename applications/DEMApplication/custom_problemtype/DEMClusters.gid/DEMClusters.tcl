@@ -174,6 +174,10 @@ proc DEMClusters::call_TreeMedial { } {
     #set filename_obj $::DEMClusters::ProblemName ## custom names
     #append filename_obj .obj
 
+
+    set modelname [GiD_Info Project ModelName]
+    set genericOBJFilename [file join ${modelname}.gid generic.obj]
+
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     exec $program {*}$argv
@@ -357,6 +361,8 @@ proc GenerateClusterFile { } {
     #exec $program $argv_number $genericMSHFilename $genericSPHFilename
     #exec {*}[auto_execok start] $program $argv_number $genericMSHFilename $genericSPHFilename
     exec $program {*}$argv
+
+    # create_cluster 2 generic.msh generic-medial.sph
 }
 
 
