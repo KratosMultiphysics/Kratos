@@ -156,24 +156,14 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    //Matrix mElasticLeftCauchyGreen; // TODO maybe delete
-
-    Vector mStrainOld;
-
-    //FlowRulePointer       mpFlowRule;
-    //
-    //YieldCriterionPointer mpYieldCriterion;
-    //
-    //HardeningLawPointer   mpHardeningLaw;
-
+    array_1d<double,6> mStrainOld;
     double mEquivalentPlasticStrainOld;
     double mPlasticStrainRateOld;
     double mTemperatureOld;
-    //double mYieldOld;
-    double mGammaOld = 1e-8;
-    double mEnergyInternal = 0.0;
-    double mEnergyDissipated = 0.0;
-    double mYieldStressOld = 0.0;
+    double mGammaOld;
+    double mEnergyInternal;
+    double mEnergyDissipated;
+    double mYieldStressOld;
 
     ///@}
     ///@name Protected Operators
@@ -187,9 +177,9 @@ protected:
      */
     bool CheckParameters(Parameters& rValues) override; //E:\Kratos\applications\SolidMechanicsApplication\custom_constitutive\hyperelastic_plastic_3D_law.hpp
 
-    virtual void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput);
+    virtual void MakeStrainStressMatrixFromVector(const array_1d<double, 6>& rInput, Matrix& rOutput);
 
-    virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput);
+    virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, array_1d<double, 6>& rOutput);
 
     double CalculateMatrixDoubleContraction(const Matrix& rInput)
     {
@@ -205,25 +195,6 @@ protected:
     }
 
 private:
-
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     double CalculateHardenedYieldStress(const Properties& MaterialProperties, const double EquivalentPlasticStrain, 
         const double PlasticStrainRate, const double Temperature);
@@ -241,36 +212,34 @@ private:
     double CalculatePlasticStrainDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
         const double PlasticStrainRate, const double Temperature);
 
-
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-
-    ///@}
-    ///@name Serialization
-    ///@{
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
 
-        rSerializer.save("mpFlowRule", mpFlowRule);
-        rSerializer.save("mpYieldCriterion", mpYieldCriterion);
-        rSerializer.save("mpHardeningLaw", mpHardeningLaw);
+        rSerializer.save("mStrainOld", mStrainOld);
+        rSerializer.save("mEquivalentPlasticStrainOld", mEquivalentPlasticStrainOld);
+        rSerializer.save("mPlasticStrainRateOld", mPlasticStrainRateOld);
+        rSerializer.save("mTemperatureOld", mTemperatureOld);
+        rSerializer.save("mGammaOld", mGammaOld);
+        rSerializer.save("mEnergyInternal", mEnergyInternal);
+        rSerializer.save("mEnergyDissipated", mEnergyDissipated);
+        rSerializer.save("mYieldStressOld", mYieldStressOld);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
 
-        rSerializer.load("mpFlowRule", mpFlowRule);
-        rSerializer.load("mpYieldCriterion", mpYieldCriterion);
-        rSerializer.load("mpHardeningLaw", mpHardeningLaw);
+        rSerializer.load("mStrainOld", mStrainOld);
+        rSerializer.load("mEquivalentPlasticStrainOld", mEquivalentPlasticStrainOld);
+        rSerializer.load("mPlasticStrainRateOld", mPlasticStrainRateOld);
+        rSerializer.load("mTemperatureOld", mTemperatureOld);
+        rSerializer.load("mGammaOld", mGammaOld);
+        rSerializer.load("mEnergyInternal", mEnergyInternal);
+        rSerializer.load("mEnergyDissipated", mEnergyDissipated);
+        rSerializer.load("mYieldStressOld", mYieldStressOld);
     }
 
 

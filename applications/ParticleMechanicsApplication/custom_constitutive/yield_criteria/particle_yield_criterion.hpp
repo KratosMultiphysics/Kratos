@@ -67,6 +67,15 @@ namespace Kratos
             //Get Parameters
             const double& GetStressNorm() const { return *mpStressNorm; };
             const ParticleHardeningLaw::Parameters& GetHardeningParameters() const { return HardeningParameters; };
+
+            //Set Hardening Parameters
+            void SetRateFactor(double rRateFactor) { HardeningParameters.SetRateFactor(rRateFactor); };
+            void SetDeltaTime(const double& rDeltaTime) { HardeningParameters.SetDeltaTime(rDeltaTime); };
+
+            //Get Hardening Parameters
+            const double& GetRateFactor() const { return HardeningParameters.GetRateFactor(); };
+            const double& GetDeltaTime() const { return HardeningParameters.GetDeltaTime(); };
+
         };
 
         ///@name Type Definitions
@@ -163,7 +172,7 @@ namespace Kratos
         * @param[in] rBeta Used parameters
         * @return Yield criterion
         */
-        virtual double& CalculateYieldCondition(double& rStateFunction, const Kratos::Parameters & rVariables)
+        virtual double& CalculateYieldCondition(double& rStateFunction, const Parameters & rVariables)
         {
             KRATOS_ERROR << "Calling the base class function in ParticleYieldCriterion ... illegal operation!!" << std::endl;
             return rStateFunction;

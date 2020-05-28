@@ -29,9 +29,6 @@ namespace Kratos
     JohnsonCookThermalPlastic3DLaw::JohnsonCookThermalPlastic3DLaw()
   : HyperElastic3DLaw()
   {
-    //mpHardeningLaw   = ParticleHardeningLaw::Pointer( new JohnsonCookThermalHardeningLaw() );
-    //mpYieldCriterion = ParticleYieldCriterion::Pointer( new JohnsonCookThermalYieldCriterion(mpHardeningLaw) );
-    //mpFlowRule       = ParticleFlowRule::Pointer( new JohnsonCookPlasticFlowRule(mpYieldCriterion) );
   }
 
 
@@ -40,9 +37,6 @@ namespace Kratos
 
     JohnsonCookThermalPlastic3DLaw::JohnsonCookThermalPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
   {
-    //mpHardeningLaw    =  pHardeningLaw;
-    //mpYieldCriterion  = ParticleYieldCriterion::Pointer( new JohnsonCookThermalYieldCriterion(mpHardeningLaw) );
-    //mpFlowRule        =  pFlowRule;
   }
 
   //******************************COPY CONSTRUCTOR**************************************
@@ -51,7 +45,6 @@ namespace Kratos
     JohnsonCookThermalPlastic3DLaw::JohnsonCookThermalPlastic3DLaw(const JohnsonCookThermalPlastic3DLaw& rOther)
   : HyperElastic3DLaw(rOther)
   {
-
   }
 
   //********************************CLONE***********************************************
@@ -101,7 +94,17 @@ namespace Kratos
   {
       HyperElastic3DLaw::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
-      // TODO setup here;
+      mStrainOld = ZeroVector(6);
+      mEquivalentPlasticStrainOld = 0.0;
+      mPlasticStrainRateOld = 0.0;
+
+      mTemperatureOld = 273.0 + 25.0; // TODO retrieve from element
+
+      mEnergyInternal = 0.0;
+      mEnergyDissipated = 0.0;
+      mYieldStressOld = CalculateHardenedYieldStress(rMaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
+
+      mGammaOld = 1e-8;
   }
 
 
@@ -118,13 +121,12 @@ namespace Kratos
 
       const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
       const Properties& MaterialProperties = rValues.GetMaterialProperties();
+      //const GeometryType& DomainGeometry = rValues.GetElementGeometry();
+      //const Vector& ShapeFunctions = rValues.GetShapeFunctionsValues();
 
-      const GeometryType& DomainGeometry = rValues.GetElementGeometry();
-      const Vector& ShapeFunctions = rValues.GetShapeFunctionsValues();
-
-      Vector& StrainVector = rValues.GetStrainVector();
-      Vector& StressVector = rValues.GetStressVector();
-      Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+      array_1d<double, 6> StrainVector = rValues.GetStrainVector();
+      array_1d<double, 6> StressVector = rValues.GetStressVector();
+      //Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
       // Convert vectors to matrices for easier manipulation
       Matrix stress_old(3, 3);
@@ -132,37 +134,38 @@ namespace Kratos
       MakeStrainStressMatrixFromVector((StrainVector - mStrainOld), strain_increment);
       MakeStrainStressMatrixFromVector(StressVector, stress_old);
 
-      const double strain_increment_trace = strain_increment(0, 0) + strain_increment(1, 1) + strain_increment(2, 2);
-      const Matrix strain_increment_hydrostatic = strain_increment_trace/3.0 * identity_matrix<double>(3);
-      const Matrix strain_increment_deviatoric = strain_increment - strain_increment_hydrostatic;
-
-
       // Material moduli
       const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
       const double bulk_modulus_K = MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
+      const double density = MaterialProperties[DENSITY];
 
+      // TODO retrieve current temperature
+      
+      // Calculate strain increments
+      const double strain_increment_trace = strain_increment(0, 0) + strain_increment(1, 1) + strain_increment(2, 2);
+      const Matrix strain_increment_hydrostatic = strain_increment_trace/3.0 * IdentityMatrix(3);
+      const Matrix strain_increment_deviatoric = strain_increment - strain_increment_hydrostatic;
+
+      // Calculate current (old) j2 stress
+      const double stress_hydrostatic_old = (stress_old(0, 0) + stress_old(1, 1) + stress_old(2, 2)) / 3.0;
+      Matrix stress_deviatoric_old = stress_old - stress_hydrostatic_old * IdentityMatrix(3);
       
 
-      // TODO decide if we skip the first timestep
-      //if (CurrentProcessInfo.GetSolutionStepIndex() == 0)
-      //{
-      //
-      //}
-
-      const double stress_hydrostatic_old = (stress_old(0, 0) + stress_old(1, 1) + stress_old(2, 2)) / 3.0;
-      Matrix stress_deviatoric_old = stress_old - stress_hydrostatic_old * identity_matrix<double>(3);
-      const double j2_stress_old = std::sqrt(3.0 / 2.0) * CalculateMatrixDoubleContraction(stress_deviatoric_old);
+      // Calculate trial (predicted) j2 stress
+      double stress_hydrostatic_new = stress_hydrostatic_old + bulk_modulus_K * strain_increment_trace; // TODO (1)
       Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
-      const double j2_stress_trial = std::sqrt(3.0 / 2.0) * CalculateMatrixDoubleContraction(stress_deviatoric_trial);
+      const double j2_stress_trial = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
-      double yield_stress = CalculateHardenedYieldStress(MaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
+      // Declare deviatoric stress matrix to be used later
+      Matrix stress_deviatoric_converged(3, 3);
 
-      Matrix stress_deviatoric_converged = IdentityMatrix(3);
-
-      const double density = MaterialProperties[DENSITY];
+      // Assume current yield stress is the same as the old (elastic predictor)
+      double yield_stress = mYieldStressOld;
 
       if (j2_stress_trial > yield_stress)
       {
+          const double j2_stress_old = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_old));
+
           // Thermal properties
           const double eta = 0.9; // TODO check this
           const double specific_heat_Cp = MaterialProperties[SPECIFIC_HEAT];
@@ -172,46 +175,59 @@ namespace Kratos
           double gamma_min = 0.0;
           double gamma_max = j2_stress_trial / std::sqrt(6.0) / shear_modulus_G;
           bool is_converged = false;
-          const SizeType iteration_limit = 50;
-          IndexType iteration = 1;
-          const double tolerance = 1e-9;
-          double yield_function, yield_function_gradient, dYield_dGamma, delta_gamma, predicted_eps, predicted_eps_rate, predicted_temperature;
+          const SizeType iteration_limit = 100;
+          IndexType iteration = 0;
+          const double tolerance = 1e-8;
+          double yield_function, yield_function_gradient, dYield_dGamma, 
+              delta_gamma, predicted_eps, predicted_eps_rate, 
+              predicted_temperature;
 
+          // Initial prediction of quantities
+          predicted_eps = mEquivalentPlasticStrainOld + std::sqrt(2.0 / 3.0) * gamma; // eps = equivalent plastic strain
+          predicted_eps_rate = std::sqrt(2.0 / 3.0) * gamma / CurrentProcessInfo[DELTA_TIME];
+          predicted_temperature = mTemperatureOld + eta / std::sqrt(6.0) / density / specific_heat_Cp * // TODO check this, [johnson cool umat pdfp169]
+              (yield_stress + mYieldStressOld) * gamma;
+
+          // Newton Raphson return mapping loop
           while (!is_converged)
           {
-              // Predict quantities
-              predicted_eps = mEquivalentPlasticStrainOld + std::sqrt(2.0 / 3.0 * gamma); // eps = equivalent plastic strain
-              predicted_eps_rate = std::sqrt(2.0 / 3.0 * gamma) / CurrentProcessInfo[DELTA_TIME];
-              predicted_temperature = mTemperatureOld +  eta / 2.0 / density / specific_heat_Cp * // TODO check this, [johnson cool umat pdfp169]
-                  std::sqrt(2.0 / 3.0) * (yield_stress + j2_stress_old)* gamma;
-              //double predicted_temperature = mTemperatureOld +  eta / std::sqrt(6.0) / density / specific_heat_Cp * 
-              //    (std::sqrt(2.0 / 3.0) * current_yield + j2_stress_old)* gamma;
-
+              // Calculate predicted yield stress
               yield_stress = CalculateHardenedYieldStress(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
-              yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - yield_stress;
 
+              // Compute yield function and derivative
+              yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - yield_stress;
               if (yield_function < 0.0) gamma_max = gamma;
               else gamma_min = gamma;
-
               dYield_dGamma = CalculatePlasticStrainDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
               dYield_dGamma += CalculateThermalDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
               dYield_dGamma += CalculatePlasticStrainRateDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
               dYield_dGamma *= std::sqrt(2.0/3.0);
               yield_function_gradient = -1.0 * std::sqrt(6.0) * shear_modulus_G - dYield_dGamma;
+
+              // Update gamma
               delta_gamma = -1.0 * yield_function / yield_function_gradient;
               gamma += delta_gamma;
               
               // Bisect increment if out of search bounds
               if (gamma_min > gamma || gamma > gamma_max) gamma = gamma_min + 0.5 * (gamma_max - gamma_min);
 
-              if (std::abs(delta_gamma) < tolerance) is_converged = true;
+              if (std::abs(delta_gamma) < tolerance) {
+                  is_converged = true;
+                  break;
+              }
+
+              // Update of quantities
+              predicted_eps = mEquivalentPlasticStrainOld + std::sqrt(2.0 / 3.0) * gamma; // eps = equivalent plastic strain
+              predicted_eps_rate = std::sqrt(2.0 / 3.0) * gamma / CurrentProcessInfo[DELTA_TIME];
+              predicted_temperature = mTemperatureOld + eta / std::sqrt(6.0) / density / specific_heat_Cp * // TODO check this, [johnson cool umat pdfp169]
+                  (yield_stress + mYieldStressOld) * gamma;
 
               iteration += 1;
-              KRATOS_ERROR_IF(iteration > iteration_limit) << "Johnson Cook iteration limit exceeded";
+              KRATOS_ERROR_IF(iteration == iteration_limit) << "Johnson Cook iteration limit exceeded";
           }
 
           // Correct trial stress
-          Matrix flow_direction_normalized = stress_deviatoric_trial / CalculateMatrixDoubleContraction(stress_deviatoric_trial);
+          Matrix flow_direction_normalized = stress_deviatoric_trial / (j2_stress_trial / std::sqrt(3.0 / 2.0));
           stress_deviatoric_converged = stress_deviatoric_trial - 2.0 * shear_modulus_G * gamma * flow_direction_normalized;
 
           mEnergyDissipated += gamma / std::sqrt(6.0) / density * (mYieldStressOld + yield_stress);
@@ -225,19 +241,19 @@ namespace Kratos
           stress_deviatoric_converged = stress_deviatoric_trial;
       }
 
-      double stress_hydrostatic_new = stress_hydrostatic_old + bulk_modulus_K * strain_increment_trace;
+      
       Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * IdentityMatrix(3);
 
       // Store stresses and strains
       MakeStrainStressVectorFromMatrix(stress_converged, StressVector);
-      for (size_t i = 0; i < mStrainOld.size(); ++i) mStrainOld[i] = StrainVector[i];
+      mStrainOld = StrainVector;
 
       // Udpdate internal energy
       for (size_t i = 0; i < stress_converged.size1(); ++i)
       {
           for (size_t j = 0; j < stress_converged.size2(); ++j)
           {
-              mEnergyInternal += (stress_converged(i, j) + stress_old(i, j)) * strain_increment(i, j) / 2.0 / density;
+              mEnergyInternal += 0.5*(stress_converged(i, j) + stress_old(i, j)) * strain_increment(i, j) / density;
           }
       }
 
@@ -277,7 +293,7 @@ namespace Kratos
       return rValues.CheckAllParameters();
   }
 
-  void JohnsonCookThermalPlastic3DLaw::MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput)
+  void JohnsonCookThermalPlastic3DLaw::MakeStrainStressVectorFromMatrix(const Matrix& rInput, array_1d<double, 6>& rOutput)
   {
       if (rOutput.size() != 6) rOutput.resize(6, false);
 
@@ -291,7 +307,7 @@ namespace Kratos
       rOutput[5] = 2.0* rInput(0, 2); //xz
   }
 
-  void JohnsonCookThermalPlastic3DLaw::MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput)
+  void JohnsonCookThermalPlastic3DLaw::MakeStrainStressMatrixFromVector(const array_1d<double, 6>& rInput, Matrix& rOutput)
   {
       if (rOutput.size1() != 3 || rOutput.size2() != 3)rOutput.resize(3, 3, false);
 
