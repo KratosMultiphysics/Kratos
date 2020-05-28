@@ -142,11 +142,13 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
     def FinalizeSolutionStep(self):
         super(DEMAnalysisStage2DSpRigidFem, self).FinalizeSolutionStep()
-        
+
         self.multiaxial_control_module.ExecuteFinalizeSolutionStep()
 
     def PrintResultsForGid(self, time):
         super(DEMAnalysisStage2DSpRigidFem, self).PrintResultsForGid(time)
+
+        self.multiaxial_control_module.PrintResults()
 
         DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.ring_submodelpart)
         self.creator_destructor.MarkParticlesForErasingGivenCylinder(self.ring_submodelpart, self.center, self.axis, self.radius_to_delete_sp)

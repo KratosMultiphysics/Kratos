@@ -80,7 +80,8 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
                 "max_force_correction_fraction": 0.25,
                 "velocity_alpha" : 0.0,
                 "stiffness_alpha": 0.0,
-                "reaction_alpha" : 0.0
+                "reaction_alpha" : 0.0,
+                "output_interval": 1
             },
             "list_of_actuators" : []
         }  )" );
