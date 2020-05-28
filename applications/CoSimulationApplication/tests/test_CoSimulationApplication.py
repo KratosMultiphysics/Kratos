@@ -15,7 +15,7 @@ from co_simulation_test_factory import TestCoSimulationCases
 from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
 from test_processes import TestCreatePointBasedEntitiesProcess
-from test_co_sim_io_kratos_python_exposure import TestCoSimIOKratosPythonExposure
+from test_co_sim_io_py_exposure import TestCoSimIOPyExposure
 
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
@@ -50,7 +50,7 @@ def AssembleTestSuites():
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGenericCallFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreatePointBasedEntitiesProcess]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOKratosPythonExposure]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
     if numpy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))

@@ -410,7 +410,7 @@ std::vector<double> ImportData_RawValues(
 
 void ExportData_RawValues(
     CoSimIO::Info& rInfo,
-    std::vector<double>& rValues)
+    const std::vector<double>& rValues)
 {
     KRATOS_TRY
 
