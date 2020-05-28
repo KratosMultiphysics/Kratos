@@ -177,237 +177,214 @@ enum class DataLocation { NodeHistorical, NodeNonHistorical, Element, Condition,
 //     }
 // }
 
-// void ExportData_Scalar(
-//     const std::string& rConnectionName,
-//     const std::string& rIdentifier,
-//     const ModelPart& rModelPart,
-//     const Variable<double>& rVariable,
-//     const DataLocation DataLoc)
-// {
-//     // TODO resize only if too small
-//     if (DataLoc == DataLocation::NodeHistorical) {
-//         std::size_t counter = 0;
-//         DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes());
-//         for (const auto& r_node : rModelPart.Nodes()) {
-//             DataBuffers::vector_doubles[counter++] = r_node.FastGetSolutionStepValue(rVariable);
-//         }
+void ExportData_ModelPart_Scalar(
+    CoSimIO::Info& rInfo,
+    const ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const DataLocation DataLoc)
+{
+    // TODO resize only if too small
+    if (DataLoc == DataLocation::NodeHistorical) {
+        std::size_t counter = 0;
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes());
+        for (const auto& r_node : rModelPart.Nodes()) {
+            DataBuffers::vector_doubles[counter++] = r_node.FastGetSolutionStepValue(rVariable);
+        }
 
-//     } else if (DataLoc == DataLocation::NodeNonHistorical) {
-//         std::size_t counter = 0;
-//         DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes());
-//         for (const auto& r_node : rModelPart.Nodes()) {
-//             DataBuffers::vector_doubles[counter++] = r_node.GetValue(rVariable);
-//         }
+    } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        std::size_t counter = 0;
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes());
+        for (const auto& r_node : rModelPart.Nodes()) {
+            DataBuffers::vector_doubles[counter++] = r_node.GetValue(rVariable);
+        }
 
-//     } else if (DataLoc == DataLocation::Element) {
-//         std::size_t counter = 0;
-//         DataBuffers::vector_doubles.resize(rModelPart.NumberOfElements());
-//         for (const auto& r_elem : rModelPart.Elements()) {
-//             DataBuffers::vector_doubles[counter++] = r_elem.GetValue(rVariable);
-//         }
+    } else if (DataLoc == DataLocation::Element) {
+        std::size_t counter = 0;
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfElements());
+        for (const auto& r_elem : rModelPart.Elements()) {
+            DataBuffers::vector_doubles[counter++] = r_elem.GetValue(rVariable);
+        }
 
-//     } else if (DataLoc == DataLocation::Condition) {
-//         std::size_t counter = 0;
-//         DataBuffers::vector_doubles.resize(rModelPart.NumberOfConditions());
-//         for (const auto& r_cond : rModelPart.Conditions()) {
-//             DataBuffers::vector_doubles[counter++] = r_cond.GetValue(rVariable);
-//         }
+    } else if (DataLoc == DataLocation::Condition) {
+        std::size_t counter = 0;
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfConditions());
+        for (const auto& r_cond : rModelPart.Conditions()) {
+            DataBuffers::vector_doubles[counter++] = r_cond.GetValue(rVariable);
+        }
 
-//     } else if (DataLoc == DataLocation::ModelPart) {
-//         DataBuffers::vector_doubles.resize(1);
-//         DataBuffers::vector_doubles[0] = rModelPart[rVariable];
-//     }
+    } else if (DataLoc == DataLocation::ModelPart) {
+        DataBuffers::vector_doubles.resize(1);
+        DataBuffers::vector_doubles[0] = rModelPart[rVariable];
+    }
 
-//     CoSimIO::ExportData(
-//         rConnectionName,
-//         rIdentifier,
-//         DataBuffers::vector_doubles);
-// }
+    CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
+}
 
-// void ImportData_Scalar(
-//     const std::string& rConnectionName,
-//     const std::string& rIdentifier,
-//     ModelPart& rModelPart,
-//     const Variable<double>& rVariable,
-//     const DataLocation DataLoc)
-// {
-//     CoSimIO::ImportData(
-//         rConnectionName,
-//         rIdentifier,
-//         DataBuffers::vector_doubles);
+void ImportData_ModelPart_Scalar(
+    CoSimIO::Info& rInfo,
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const DataLocation DataLoc)
+{
 
-//     // TODO implement size-checks
+    CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
-//     if (DataLoc == DataLocation::NodeHistorical) {
-//         std::size_t counter = 0;
-//         for (auto& r_node : rModelPart.Nodes()) {
-//             r_node.FastGetSolutionStepValue(rVariable) = DataBuffers::vector_doubles[counter++];
-//         }
+    // TODO implement size-checks
 
-//     } else if (DataLoc == DataLocation::NodeNonHistorical) {
-//         std::size_t counter = 0;
-//         for (auto& r_node : rModelPart.Nodes()) {
-//             r_node.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
-//         }
+    if (DataLoc == DataLocation::NodeHistorical) {
+        std::size_t counter = 0;
+        for (auto& r_node : rModelPart.Nodes()) {
+            r_node.FastGetSolutionStepValue(rVariable) = DataBuffers::vector_doubles[counter++];
+        }
 
-//     } else if (DataLoc == DataLocation::Element) {
-//         std::size_t counter = 0;
-//         for (auto& r_elem : rModelPart.Elements()) {
-//             r_elem.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
-//         }
+    } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        std::size_t counter = 0;
+        for (auto& r_node : rModelPart.Nodes()) {
+            r_node.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
+        }
 
-//     } else if (DataLoc == DataLocation::Condition) {
-//         std::size_t counter = 0;
-//         for (auto& r_cond : rModelPart.Conditions()) {
-//             r_cond.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
-//         }
+    } else if (DataLoc == DataLocation::Element) {
+        std::size_t counter = 0;
+        for (auto& r_elem : rModelPart.Elements()) {
+            r_elem.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
+        }
 
-//     } else if (DataLoc == DataLocation::ModelPart) {
-//         rModelPart[rVariable] = DataBuffers::vector_doubles[0];
-//     }
-// }
+    } else if (DataLoc == DataLocation::Condition) {
+        std::size_t counter = 0;
+        for (auto& r_cond : rModelPart.Conditions()) {
+            r_cond.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
+        }
 
-// void ExportData_Vector(
-//     const std::string& rConnectionName,
-//     const std::string& rIdentifier,
-//     const ModelPart& rModelPart,
-//     const Variable< array_1d<double, 3> >& rVariable,
-//     const DataLocation DataLoc)
-// {
-//     if (DataLoc == DataLocation::NodeHistorical) {
-//         std::size_t counter = 0;
-//         DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes()*3);
-//         for (const auto& r_node : rModelPart.Nodes()) {
-//             const array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
-//             DataBuffers::vector_doubles[counter++] = r_val[0];
-//             DataBuffers::vector_doubles[counter++] = r_val[1];
-//             DataBuffers::vector_doubles[counter++] = r_val[2];
-//         }
+    } else if (DataLoc == DataLocation::ModelPart) {
+        rModelPart[rVariable] = DataBuffers::vector_doubles[0];
+    }
+}
 
-//     } else if (DataLoc == DataLocation::NodeNonHistorical) {
-//         std::size_t counter = 0;
-//         DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes()*3);
-//         for (const auto& r_node : rModelPart.Nodes()) {
-//             const array_1d<double, 3>& r_val = r_node.GetValue(rVariable);
-//             DataBuffers::vector_doubles[counter++] = r_val[0];
-//             DataBuffers::vector_doubles[counter++] = r_val[1];
-//             DataBuffers::vector_doubles[counter++] = r_val[2];
-//         }
+void ExportData_ModelPart_Vector(
+    CoSimIO::Info& rInfo,
+    const ModelPart& rModelPart,
+    const Variable< array_1d<double, 3> >& rVariable,
+    const DataLocation DataLoc)
+{
+    if (DataLoc == DataLocation::NodeHistorical) {
+        std::size_t counter = 0;
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes()*3);
+        for (const auto& r_node : rModelPart.Nodes()) {
+            const array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
+            DataBuffers::vector_doubles[counter++] = r_val[0];
+            DataBuffers::vector_doubles[counter++] = r_val[1];
+            DataBuffers::vector_doubles[counter++] = r_val[2];
+        }
 
-//     } else if (DataLoc == DataLocation::Element) {
-//         std::size_t counter = 0;
-//         DataBuffers::vector_doubles.resize(rModelPart.NumberOfElements()*3);
-//         for (const auto& r_elem : rModelPart.Elements()) {
-//             const array_1d<double, 3>& r_val = r_elem.GetValue(rVariable);
-//             DataBuffers::vector_doubles[counter++] = r_val[0];
-//             DataBuffers::vector_doubles[counter++] = r_val[1];
-//             DataBuffers::vector_doubles[counter++] = r_val[2];
-//         }
+    } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        std::size_t counter = 0;
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes()*3);
+        for (const auto& r_node : rModelPart.Nodes()) {
+            const array_1d<double, 3>& r_val = r_node.GetValue(rVariable);
+            DataBuffers::vector_doubles[counter++] = r_val[0];
+            DataBuffers::vector_doubles[counter++] = r_val[1];
+            DataBuffers::vector_doubles[counter++] = r_val[2];
+        }
 
-//     } else if (DataLoc == DataLocation::Condition) {
-//         std::size_t counter = 0;
-//         DataBuffers::vector_doubles.resize(rModelPart.NumberOfConditions()*3);
-//         for (const auto& r_cond : rModelPart.Conditions()) {
-//             const array_1d<double, 3>& r_val = r_cond.GetValue(rVariable);
-//             DataBuffers::vector_doubles[counter++] = r_val[0];
-//             DataBuffers::vector_doubles[counter++] = r_val[1];
-//             DataBuffers::vector_doubles[counter++] = r_val[2];
-//         }
+    } else if (DataLoc == DataLocation::Element) {
+        std::size_t counter = 0;
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfElements()*3);
+        for (const auto& r_elem : rModelPart.Elements()) {
+            const array_1d<double, 3>& r_val = r_elem.GetValue(rVariable);
+            DataBuffers::vector_doubles[counter++] = r_val[0];
+            DataBuffers::vector_doubles[counter++] = r_val[1];
+            DataBuffers::vector_doubles[counter++] = r_val[2];
+        }
 
-//     } else if (DataLoc == DataLocation::ModelPart) {
-//         DataBuffers::vector_doubles.resize(3);
-//         const auto& r_val = rModelPart[rVariable];
-//         DataBuffers::vector_doubles[0] = r_val[0];
-//         DataBuffers::vector_doubles[1] = r_val[1];
-//         DataBuffers::vector_doubles[2] = r_val[2];
-//     }
+    } else if (DataLoc == DataLocation::Condition) {
+        std::size_t counter = 0;
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfConditions()*3);
+        for (const auto& r_cond : rModelPart.Conditions()) {
+            const array_1d<double, 3>& r_val = r_cond.GetValue(rVariable);
+            DataBuffers::vector_doubles[counter++] = r_val[0];
+            DataBuffers::vector_doubles[counter++] = r_val[1];
+            DataBuffers::vector_doubles[counter++] = r_val[2];
+        }
 
-//     CoSimIO::ExportData(
-//         rConnectionName,
-//         rIdentifier,
-//         DataBuffers::vector_doubles);
-// }
+    } else if (DataLoc == DataLocation::ModelPart) {
+        DataBuffers::vector_doubles.resize(3);
+        const auto& r_val = rModelPart[rVariable];
+        DataBuffers::vector_doubles[0] = r_val[0];
+        DataBuffers::vector_doubles[1] = r_val[1];
+        DataBuffers::vector_doubles[2] = r_val[2];
+    }
 
-// void ImportData_Vector(
-//     const std::string& rConnectionName,
-//     const std::string& rIdentifier,
-//     ModelPart& rModelPart,
-//     const Variable< array_1d<double, 3> >& rVariable,
-//     const DataLocation DataLoc)
-// {
-//     CoSimIO::ImportData(
-//         rConnectionName,
-//         rIdentifier,
-//         DataBuffers::vector_doubles);
+    CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
+}
 
-//     // TODO implement size-checks
+void ImportData_ModelPart_Vector(
+    CoSimIO::Info& rInfo,
+    ModelPart& rModelPart,
+    const Variable< array_1d<double, 3> >& rVariable,
+    const DataLocation DataLoc)
+{
+    CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
-//     if (DataLoc == DataLocation::NodeHistorical) {
-//         std::size_t counter = 0;
-//         for (auto& r_node : rModelPart.Nodes()) {
-//             array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
-//             r_val[0] = DataBuffers::vector_doubles[counter++];
-//             r_val[1] = DataBuffers::vector_doubles[counter++];
-//             r_val[2] = DataBuffers::vector_doubles[counter++];
-//         }
+    // TODO implement size-checks
 
-//     } else if (DataLoc == DataLocation::NodeNonHistorical) {
-//         std::size_t counter = 0;
-//         for (auto& r_node : rModelPart.Nodes()) {
-//             array_1d<double, 3>& r_val = r_node.GetValue(rVariable);
-//             r_val[0] = DataBuffers::vector_doubles[counter++];
-//             r_val[1] = DataBuffers::vector_doubles[counter++];
-//             r_val[2] = DataBuffers::vector_doubles[counter++];
-//         }
+    if (DataLoc == DataLocation::NodeHistorical) {
+        std::size_t counter = 0;
+        for (auto& r_node : rModelPart.Nodes()) {
+            array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
+            r_val[0] = DataBuffers::vector_doubles[counter++];
+            r_val[1] = DataBuffers::vector_doubles[counter++];
+            r_val[2] = DataBuffers::vector_doubles[counter++];
+        }
 
-//     } else if (DataLoc == DataLocation::Element) {
-//         std::size_t counter = 0;
-//         for (auto& r_elem : rModelPart.Elements()) {
-//             array_1d<double, 3>& r_val = r_elem.GetValue(rVariable);
-//             r_val[0] = DataBuffers::vector_doubles[counter++];
-//             r_val[1] = DataBuffers::vector_doubles[counter++];
-//             r_val[2] = DataBuffers::vector_doubles[counter++];
-//         }
+    } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        std::size_t counter = 0;
+        for (auto& r_node : rModelPart.Nodes()) {
+            array_1d<double, 3>& r_val = r_node.GetValue(rVariable);
+            r_val[0] = DataBuffers::vector_doubles[counter++];
+            r_val[1] = DataBuffers::vector_doubles[counter++];
+            r_val[2] = DataBuffers::vector_doubles[counter++];
+        }
 
-//     } else if (DataLoc == DataLocation::Condition) {
-//         std::size_t counter = 0;
-//         for (auto& r_cond : rModelPart.Conditions()) {
-//             array_1d<double, 3>& r_val = r_cond.GetValue(rVariable);
-//             r_val[0] = DataBuffers::vector_doubles[counter++];
-//             r_val[1] = DataBuffers::vector_doubles[counter++];
-//             r_val[2] = DataBuffers::vector_doubles[counter++];
-//         }
+    } else if (DataLoc == DataLocation::Element) {
+        std::size_t counter = 0;
+        for (auto& r_elem : rModelPart.Elements()) {
+            array_1d<double, 3>& r_val = r_elem.GetValue(rVariable);
+            r_val[0] = DataBuffers::vector_doubles[counter++];
+            r_val[1] = DataBuffers::vector_doubles[counter++];
+            r_val[2] = DataBuffers::vector_doubles[counter++];
+        }
 
-//     } else if (DataLoc == DataLocation::ModelPart) {
-//         auto& r_val = rModelPart[rVariable];
-//         r_val[0] = DataBuffers::vector_doubles[0];
-//         r_val[1] = DataBuffers::vector_doubles[1];
-//         r_val[2] = DataBuffers::vector_doubles[2];
-//     }
-// }
+    } else if (DataLoc == DataLocation::Condition) {
+        std::size_t counter = 0;
+        for (auto& r_cond : rModelPart.Conditions()) {
+            array_1d<double, 3>& r_val = r_cond.GetValue(rVariable);
+            r_val[0] = DataBuffers::vector_doubles[counter++];
+            r_val[1] = DataBuffers::vector_doubles[counter++];
+            r_val[2] = DataBuffers::vector_doubles[counter++];
+        }
 
-// std::vector<double> ImportData_Values(
-//     const std::string& rConnectionName,
-//     const std::string& rIdentifier)
-// {
-//     CoSimIO::ImportData(
-//         rConnectionName,
-//         rIdentifier,
-//         DataBuffers::vector_doubles);
+    } else if (DataLoc == DataLocation::ModelPart) {
+        auto& r_val = rModelPart[rVariable];
+        r_val[0] = DataBuffers::vector_doubles[0];
+        r_val[1] = DataBuffers::vector_doubles[1];
+        r_val[2] = DataBuffers::vector_doubles[2];
+    }
+}
 
-//     return DataBuffers::vector_doubles;
-// }
+std::vector<double> ImportData_RawValues(
+    CoSimIO::Info& rInfo)
+{
+    CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
-// void ExportData_Values(
-//     const std::string& rConnectionName,
-//     const std::string& rIdentifier,
-//     std::vector<double>& rValues)
-// {
-//     CoSimIO::ExportData(
-//         rConnectionName,
-//         rIdentifier,
-//         rValues);
-// }
+    return DataBuffers::vector_doubles;
+}
+
+void ExportData_RawValues(
+    CoSimIO::Info& rInfo,
+    std::vector<double>& rValues)
+{
+    CoSimIO::ExportData(rInfo, rValues);
+}
 
 } // helpers namespace
 
@@ -444,23 +421,23 @@ void  AddCoSimIOToPython(pybind11::module& m)
     // m_co_sim_io.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
     // m_co_sim_io.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);
 
-    // m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_Scalar);
-    // m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_Scalar);
-    // m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_Vector);
-    // m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_Vector);
-    // m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_Values);
-    // m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_Values);
+    m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_ModelPart_Scalar);
+    m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_ModelPart_Scalar);
+    m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_ModelPart_Vector);
+    m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_ModelPart_Vector);
+    m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_RawValues);
+    m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_RawValues);
 
     // // m_co_sim_io.def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry); // This is not yet implemented in the CoSimIO
     // // m_co_sim_io.def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry); // This is not yet implemented in the CoSimIO
 
-    // py::enum_<CoSimIO_Wrappers::DataLocation>(m_co_sim_io,"DataLocation")
-    //     .value("NodeHistorical",    CoSimIO_Wrappers::DataLocation::NodeHistorical)
-    //     .value("NodeNonHistorical", CoSimIO_Wrappers::DataLocation::NodeNonHistorical)
-    //     .value("Element",           CoSimIO_Wrappers::DataLocation::Element)
-    //     .value("Condition",         CoSimIO_Wrappers::DataLocation::Condition)
-    //     .value("ModelPart",         CoSimIO_Wrappers::DataLocation::ModelPart)
-    //     ;
+    py::enum_<CoSimIO_Wrappers::DataLocation>(m_co_sim_io,"DataLocation")
+        .value("NodeHistorical",    CoSimIO_Wrappers::DataLocation::NodeHistorical)
+        .value("NodeNonHistorical", CoSimIO_Wrappers::DataLocation::NodeNonHistorical)
+        .value("Element",           CoSimIO_Wrappers::DataLocation::Element)
+        .value("Condition",         CoSimIO_Wrappers::DataLocation::Condition)
+        .value("ModelPart",         CoSimIO_Wrappers::DataLocation::ModelPart)
+        ;
 
     // py::enum_<CoSimIO::ControlSignal>(m_co_sim_io,"ControlSignal")
     //     .value("Dummy", CoSimIO::ControlSignal::Dummy)
