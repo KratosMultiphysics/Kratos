@@ -7,14 +7,14 @@ CoSimIO.Connect(connection_settings)
 
 import_info = CoSimIO.Info()
 import_info.SetString("connection_name", "im_exp_data")
-import_info.SetString("identifier", "raw_data")
+import_info.SetString("identifier", "data_exchange_1")
 imported_values = CoSimIO.ImportData(import_info)
 
 # print(imported_values)
 
 export_info = CoSimIO.Info()
 export_info.SetString("connection_name", "im_exp_data")
-export_info.SetString("identifier", "return_raw_data")
+export_info.SetString("identifier", "data_exchange_2")
 CoSimIO.ExportData(export_info, imported_values)
 
 disconnect_settings = CoSimIO.Info()

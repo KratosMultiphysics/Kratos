@@ -35,14 +35,14 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
 
         export_info = CoSimIO.Info()
         export_info.SetString("connection_name", "im_exp_data")
-        export_info.SetString("identifier", "raw_data")
+        export_info.SetString("identifier", "data_exchange_1")
         CoSimIO.ExportData(export_info, values)
 
         RunPythonInSubProcess("import_export_data")
 
         import_info = CoSimIO.Info()
         import_info.SetString("connection_name", "im_exp_data")
-        import_info.SetString("identifier", "return_raw_data")
+        import_info.SetString("identifier", "data_exchange_2")
         imported_values = CoSimIO.ImportData(import_info)
 
         disconnect_settings = CoSimIO.Info()
@@ -52,6 +52,182 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
 
         # checking the values after disconnecting to avoid deadlock
         self.assertVectorAlmostEqual(KM.Vector(values), KM.Vector(imported_values))
+
+    def test_Export_Import_Data_ModelPart_scalar_node_historical(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+        model_part.AddNodalSolutionStepVariable(KM.TEMPERATURE)
+        for i in range(5):
+            node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
+            node.SetSolutionStepValue(KM.PRESSURE, i*1.7)
+
+        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.NodeHistorical)
+
+        # checking the values after disconnecting to avoid deadlock
+        for i, node in enumerate(model_part.Nodes):
+            self.assertAlmostEqual(node.GetSolutionStepValue(KM.TEMPERATURE), i*1.7)
+
+    def test_Export_Import_Data_ModelPart_vector_node_historical(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        for i in range(5):
+            node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
+            node.SetSolutionStepValue(KM.DISPLACEMENT, [i*1.7, i+1.1, i**1.2])
+
+        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.NodeHistorical)
+
+        # checking the values after disconnecting to avoid deadlock
+        for i, node in enumerate(model_part.Nodes):
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(KM.VELOCITY), KM.Vector([i*1.7, i+1.1, i**1.2]))
+
+    def test_Export_Import_Data_ModelPart_scalar_node_non_historical(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+        model_part.AddNodalSolutionStepVariable(KM.TEMPERATURE)
+        for i in range(5):
+            node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
+            node.SetValue(KM.PRESSURE, i*1.6)
+
+        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.NodeNonHistorical)
+
+        # checking the values after disconnecting to avoid deadlock
+        for i, node in enumerate(model_part.Nodes):
+            self.assertAlmostEqual(node.GetValue(KM.TEMPERATURE), i*1.6)
+
+    def test_Export_Import_Data_ModelPart_vector_node_non_historical(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        for i in range(5):
+            node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
+            node.SetValue(KM.DISPLACEMENT, [i*1.7, i+1.99, i**1.2])
+
+        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.NodeNonHistorical)
+
+        # checking the values after disconnecting to avoid deadlock
+        for i, node in enumerate(model_part.Nodes):
+            self.assertVectorAlmostEqual(node.GetValue(KM.VELOCITY), KM.Vector([i*1.7, i+1.99, i**1.2]))
+
+    def test_Export_Import_Data_ModelPart_scalar_element(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        for i in range(5):
+            model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
+        props = model_part.CreateNewProperties(0)
+        for i in range(4):
+            element = model_part.CreateNewElement("Element2D2N", i+1, [i+1, i+2], props)
+            element.SetValue(KM.PRESSURE, i*1.6)
+
+        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.Element)
+
+        # checking the values after disconnecting to avoid deadlock
+        for i, elem in enumerate(model_part.Elements):
+            self.assertAlmostEqual(elem.GetValue(KM.TEMPERATURE), i*1.6)
+
+    def test_Export_Import_Data_ModelPart_vector_element(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        for i in range(5):
+            model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
+        props = model_part.CreateNewProperties(0)
+        for i in range(4):
+            element = model_part.CreateNewElement("Element2D2N", i+1, [i+1, i+2], props)
+            element.SetValue(KM.DISPLACEMENT, [i*1.7, i+1.99, i**1.2])
+
+        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.Element)
+
+        # checking the values after disconnecting to avoid deadlock
+        for i, elem in enumerate(model_part.Elements):
+            self.assertVectorAlmostEqual(elem.GetValue(KM.VELOCITY), KM.Vector([i*1.7, i+1.99, i**1.2]))
+
+    def test_Export_Import_Data_ModelPart_scalar_condition(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        for i in range(5):
+            model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
+        props = model_part.CreateNewProperties(0)
+        for i in range(5):
+            condition = model_part.CreateNewCondition("PointCondition2D1N", i+1, [i+1], props)
+            condition.SetValue(KM.PRESSURE, i*(-11.6))
+
+        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.Condition)
+
+        # checking the values after disconnecting to avoid deadlock
+        for i, cond in enumerate(model_part.Conditions):
+            self.assertAlmostEqual(cond.GetValue(KM.TEMPERATURE), i*(-11.6))
+
+    def test_Export_Import_Data_ModelPart_vector_condition(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        for i in range(5):
+            model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
+        props = model_part.CreateNewProperties(0)
+        for i in range(5):
+            condition = model_part.CreateNewCondition("PointCondition2D1N", i+1, [i+1], props)
+            condition.SetValue(KM.DISPLACEMENT, [i*1.7, i+1.25, i**1.2])
+
+        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.Condition)
+
+        # checking the values after disconnecting to avoid deadlock
+        for i, cond in enumerate(model_part.Conditions):
+            self.assertVectorAlmostEqual(cond.GetValue(KM.VELOCITY), KM.Vector([i*1.7, i+1.25, i**1.2]))
+
+    def test_Export_Import_Data_ModelPart_scalar_model_part(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        model_part.SetValue(KM.PRESSURE, 333.896)
+
+        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.ModelPart)
+
+        # checking the values after disconnecting to avoid deadlock
+        self.assertAlmostEqual(model_part.GetValue(KM.TEMPERATURE), 333.896)
+
+    def test_Export_Import_Data_ModelPart_vector_model_part(self):
+        model = KM.Model()
+
+        model_part = model.CreateModelPart("for_test")
+        model_part.SetValue(KM.DISPLACEMENT, [14.3, -333.896, 987.2])
+
+        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.ModelPart)
+
+        # checking the values after disconnecting to avoid deadlock
+        self.assertVectorAlmostEqual(model_part.GetValue(KM.VELOCITY), KM.Vector([14.3, -333.896, 987.2]))
+
+
+def ExportImportDataOnModelPart(model_part, var_export, var_import, data_location):
+    connection_settings = CoSimIO.Info()
+    connection_settings.SetString("connection_name", "im_exp_data")
+    connection_settings.SetInt("echo_level", 0)
+    CoSimIO.Connect(connection_settings)
+
+    export_info = CoSimIO.Info()
+    export_info.SetString("connection_name", "im_exp_data")
+    export_info.SetString("identifier", "data_exchange_1")
+    CoSimIO.ExportData(export_info, model_part, var_export, data_location)
+
+    RunPythonInSubProcess("import_export_data")
+
+    import_info = CoSimIO.Info()
+    import_info.SetString("connection_name", "im_exp_data")
+    import_info.SetString("identifier", "data_exchange_2")
+    CoSimIO.ImportData(import_info, model_part, var_import, data_location)
+
+    disconnect_settings = CoSimIO.Info()
+    disconnect_settings.SetString("connection_name", "im_exp_data")
+
+    CoSimIO.Disconnect(disconnect_settings)
 
 def RunPythonInSubProcess(python_script_name):
     if not python_script_name.endswith(".py"):
