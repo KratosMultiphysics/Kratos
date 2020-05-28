@@ -319,7 +319,6 @@ struct GlobalPointerCompare
     {
 #ifdef KRATOS_USING_MPI
         return (pGp1.GetRank() == pGp2.GetRank()) ? (pGp1.get() < pGp2.get()) : (pGp1.GetRank() < pGp2.GetRank());
-        }
 #else
         return (pGp1.get() < pGp2.get());
 #endif
