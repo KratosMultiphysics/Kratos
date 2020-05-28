@@ -192,9 +192,12 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
     ProcessInfo &rCurrentProcessInfo)
 {
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     // Calculate the explicit residual vector
     VectorType rhs;
     this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
@@ -202,7 +205,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitCon
     // Note that the reaction is indeed the formulation residual
     for (unsigned int i_node = 0; i_node < local_size; i_node++) {
         #pragma omp atomic
-        r_geometry[i_node].FastGetSolutionStepValue(REACTION_FLUX) += rhs[i_node];
+        r_geometry[i_node].FastGetSolutionStepValue(r_settings.GetReactionVariable()) += rhs[i_node];
     }
 }
 
