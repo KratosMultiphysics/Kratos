@@ -80,7 +80,7 @@ class TestCase(TestCase):
             yield err_msg
 
         self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
-        for i, (v1, v2) in enumerate(zip(vector1, vector2):
+        for i, (v1, v2) in enumerate(zip(vector1, vector2)):
             self.assertAlmostEqual(v1, v2, prec, msg=GetErrMsg(i))
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
