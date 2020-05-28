@@ -7,8 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    JMCarbonell
-//					 (adapted to Particle Mechanics by Peter Wilson)
+//  Main authors:    Peter Wilson
 //
 
 #if !defined (KRATOS_JOHNSON_COOK_THERMAL_PLASTIC_3D_LAW_H_INCLUDED)
@@ -19,9 +18,6 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/flow_rules/johnson_cook_plastic_flow_rule.hpp"
-#include "custom_constitutive/yield_criteria/johnson_cook_thermal_yield_criterion.hpp"
-#include "custom_constitutive/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
 
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "includes/checks.h"
@@ -40,41 +36,25 @@ namespace Kratos
 class JohnsonCookThermalPlastic3DLaw : public HyperElastic3DLaw
 {
 public:
-    /**
-     * Type Definitions
-     */
+
+    /// Type Definitions
     typedef ProcessInfo      ProcessInfoType;
     typedef HyperElastic3DLaw         BaseType;
     typedef std::size_t             SizeType;
-
-    typedef ParticleFlowRule::Pointer                FlowRulePointer;
-    typedef ParticleYieldCriterion::Pointer    YieldCriterionPointer;
-    typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
-    /**
-     * Counted pointer of JohnsonCookThermalPlastic3DLaw
-     */
-
+    /// Counted pointer of JohnsonCookThermalPlastic3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(JohnsonCookThermalPlastic3DLaw);
-
-    /**
-     * Life Cycle
-     */
 
     /**
      * Default constructor.
      */
     JohnsonCookThermalPlastic3DLaw();
 
-
-    JohnsonCookThermalPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
-
     /**
      * Copy constructor.
      */
     JohnsonCookThermalPlastic3DLaw(const JohnsonCookThermalPlastic3DLaw& rOther);
-
 
     /**
      * Assignment operator.
@@ -181,13 +161,7 @@ protected:
         return result;
     }
 
-    void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo)
-    {
-        const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-            ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-            : false;
-        KRATOS_ERROR_IF_NOT(is_explicit) << "The Johnson Cook MPM material law is currently limited to explicit time integration only";
-    }
+    void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo);
 
 private:
 
