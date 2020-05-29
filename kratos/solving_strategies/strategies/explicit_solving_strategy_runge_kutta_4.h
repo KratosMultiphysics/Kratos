@@ -200,7 +200,7 @@ protected:
             if (!it_dof->IsFixed()) {
                 r_u = it_dof->GetSolutionStepValue(1);
             } else {
-                u_n(i_dof) = r_u;
+                u_n(i_dof) = it_dof->GetSolutionStepValue(1);
             }
         }
 
