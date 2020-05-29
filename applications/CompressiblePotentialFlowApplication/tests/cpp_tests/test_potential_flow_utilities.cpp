@@ -57,7 +57,7 @@ void AssignFreeStreamValues(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
     rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
-    rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
+    rModelPart.GetProcessInfo()[CRITICAL_MACH] = 0.99;
     rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
 
     BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
@@ -310,19 +310,11 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactor, CompressiblePotentialApplicationF
 
     AssignFreeStreamValues(model_part);
 
-    const double local_mach_number_squared = 3.0;
-
-    // velocity corresponding to mach number 3.0
-    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
-
-    array_1d<double, 2> velocity(2, 0.0);
-    velocity[0] = std::sqrt(local_velocity_squared);
-
-    const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
+    const double local_mach_squared = 3.0;
 
     const double upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(local_mach_squared, model_part.GetProcessInfo());
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.705466666666667, 1e-15);
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.6733, 1e-15);
 }
 
 // tests the function SelectMaxUpwindFactor from the utilities
@@ -351,11 +343,28 @@ KRATOS_TEST_CASE_IN_SUITE(SelectMaxUpwindFactor, CompressiblePotentialApplicatio
     // find max of current element upwind factor, upwind element upwind factor, and 0
     const double upwind_factor = PotentialFlowUtilities::SelectMaxUpwindFactor<2, 3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.705466666666667, 1e-15);
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.6733, 1e-15);
 }
 
 // tests the function ComputeUpwindFactorCase from the utilities
-KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase, CompressiblePotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase0, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    array_1d<double, 3> upwind_factor_options(3, 0.0);
+
+    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.35, model_part.GetProcessInfo());
+    upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.49, model_part.GetProcessInfo());
+
+    const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
+}
+
+// tests the function ComputeUpwindFactorCase from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase1, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -369,6 +378,23 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase, CompressiblePotentialApplicat
     const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
 
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 1.0, 1e-15);
+}
+
+// tests the function ComputeUpwindFactorCase from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase2, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    array_1d<double, 3> upwind_factor_options(3, 0.0);
+
+    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.49, model_part.GetProcessInfo());
+    upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(3.0, model_part.GetProcessInfo());
+
+    const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 2.0, 1e-15);
 }
 
 } // namespace Testing

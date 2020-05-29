@@ -516,9 +516,12 @@ double ComputeUpwindFactor(
     //           by Brian Nishida (1996), Equation 2.13
 
     // read free stream values
-    // default MACH_LIMIT - 0.94 and default UPWIND_FACTOR_CONSTANT - 1.0
-    const double critical_mach = rCurrentProcessInfo[MACH_LIMIT];
+    // default CRITICAL_MACH - 0.99 and default UPWIND_FACTOR_CONSTANT - 1.0
+    const double critical_mach = rCurrentProcessInfo[CRITICAL_MACH];
     const double upwind_factor_constant = rCurrentProcessInfo[UPWIND_FACTOR_CONSTANT];
+
+    KRATOS_ERROR_IF(localMachNumberSquared < std::numeric_limits<double>::epsilon())
+        << "Error in ComputeUpwindFactor: localMachNumberSquared must be larger than zero." << std::endl;
 
     return upwind_factor_constant * (1.0 - std::pow(critical_mach, 2.0) / localMachNumberSquared);
 }
@@ -550,6 +553,11 @@ size_t ComputeUpwindFactorCase(const array_1d<double, 3>& rUpwindFactorOptions)
     //           and the Integral Boundary Layer Equations in Three Dimensions
     //           by Brian Nishida (1996), Equation 2.13
     const auto max_upwind_factor_opt = std::max_element(rUpwindFactorOptions.begin(), rUpwindFactorOptions.end());
+    
+    // Case 0: Subsonic flow
+    // Case 1: Supersonic and accelerating flow (M^2 > M^2_up)
+    // Case 2: Supersonic and decelerating flow (M^2 < M^2_up)
+    // If Case 1 = Case 2, returns Case 1
     return std::distance(rUpwindFactorOptions.begin(), max_upwind_factor_opt);
 }
 
