@@ -134,6 +134,9 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     const std::size_t num_nodes_interface_master = mrModelPartOrigin.GetSubModelPart("interface").NumberOfNodes();
     Matrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
 
+    KRATOS_WATCH(num_nodes_interface_slave)
+    KRATOS_WATCH(num_nodes_interface_master)
+
     MapperLocalSystem::MatrixType local_mapping_matrix;
     MapperLocalSystem::EquationIdVectorType origin_ids;
     MapperLocalSystem::EquationIdVectorType destination_ids;
