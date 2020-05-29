@@ -328,6 +328,7 @@ def FindOutputFilename(working_path, step):
     outputs_path = working_path + "Outputs/"
     CheckIfPathExists(outputs_path)
     ouput_file_pattern = "airfoilSol.pval.deform_i="
+    # ouput_file_pattern = "airfoilSol.pval.unsteady_i="
     return FindFilename(outputs_path, ouput_file_pattern, step + 1)
 
 
