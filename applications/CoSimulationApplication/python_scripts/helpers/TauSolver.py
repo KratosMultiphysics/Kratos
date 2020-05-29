@@ -18,34 +18,8 @@ rotate = tau_settings["rotate"]
 # tau_functions can only be imported after appending kratos' path
 import tau_functions as TauFunctions
 
+# Definition of the parameter file
 if rotate:
-    # --- Prepare parameters for unsteady rotating simulation ---
-    nodeNames = ["MEMBRANE"]
-    deltaT = 0.005  # unsteady physical time step size
-
-    # external output period (needed if output period in para_path not working properly)
-    pitchDeg = 0  # mean pitch angle
-
-    # --- Load external excitation files ---
-    # --- thetaDeg -> pitch angle per timestep in deg
-    # --- thetaRate -> pitch rate per timestep in deg/s
-    thetaDeg = np.loadtxt(working_path + 'signal/APRBSDeg_membrane.dat')
-    thetaRate = np.loadtxt(working_path + 'signal/APRBSRate_membrane.dat')
-
-    # --- Instanciate required modules ---
-    MyTauMotionDelegate = PyMotionExternalDelegate.MotionExternalDelegate(
-        nodeNames)
-
-    MyMotionStringGenerator = TauFunctions.MotionStringGenerator(
-        deltaT, pitchDeg, thetaDeg, thetaRate)
-
-    # --- Init motion stack ---
-    motionString = MyMotionStringGenerator(0)
-    MyTauMotionDelegate.UpdateMotion("MEMBRANE", motionString)
-    MyTauMotionDelegate.PushMotion()
-    TauFunctions.PrintBlockHeader("Inital Motionstring: %s" %(motionString))
-
-    # Definition of the parameter file
     para_path='airfoil_Structured_rotation.cntl'
 else:
     para_path='airfoil_Structured.cntl'
@@ -56,18 +30,47 @@ shutil.copy(para_path, para_path_mod)
 # Initialize Tau python classes and auxiliary variable step
 Para = PyPara.Parafile(para_path_mod)
 Prep = PyPrep.Preprocessing(para_path_mod)
+
+tau_time_step = float(Para.get_para_value('Unsteady physical time step size'))
+
 if rotate:
-    Solver = PySolv.Solver(para_path_mod, delegate=MyTauMotionDelegate)
     # --- Prepare parameters for unsteady simulation ---
     Para.update({"Unsteady allow external control over progress in time (0/1)": 1,
                  "Unsteady enable external control over progress in time (0/1)": 1})
+
+    # external output period (needed if output period in para_path not working properly)
+    pitchDeg = 0  # mean pitch angle
+
+    # --- Load external excitation files ---
+    # --- thetaDeg -> pitch angle per timestep in deg
+    # --- thetaRate -> pitch rate per timestep in deg/s
+    thetaDeg = np.loadtxt(working_path + 'signal/APRBSDeg_membrane.dat')
+    thetaRate = np.loadtxt(working_path + 'signal/APRBSRate_membrane.dat')
+
+    MyMotionStringGenerator = TauFunctions.MotionStringGenerator(
+        tau_time_step, pitchDeg, thetaDeg, thetaRate)
+
+    # --- Prepare parameters for unsteady rotating simulation ---
+    nodeNames = ["MEMBRANE"]
+
+    # --- Instanciate required modules ---
+    MyTauMotionDelegate = PyMotionExternalDelegate.MotionExternalDelegate(
+        nodeNames)
+
+    Solver = PySolv.Solver(para_path_mod, delegate=MyTauMotionDelegate)
+
+    # --- Init motion stack ---
+    motionString = MyMotionStringGenerator(0)
+    MyTauMotionDelegate.UpdateMotion("MEMBRANE", motionString)
+    MyTauMotionDelegate.PushMotion()
+    TauFunctions.PrintBlockHeader("Inital Motionstring: %s" %(motionString))
 else:
     Solver = PySolv.Solver(para_path_mod)
+
 Deform = PyDeform.Deformation(para_path_mod)
 step = start_step
 
 def AdvanceInTime(current_time):
-
     # Preprocessing needs to be done before getting the time and time step
     TauFunctions.PrintBlockHeader("Start Preprocessing at time %s" %(str(time)))
     Prep.run(write_dualgrid=False,free_primgrid=False)
@@ -75,13 +78,13 @@ def AdvanceInTime(current_time):
     TauFunctions.PrintBlockHeader("Initialize Solver at time %s" %(str(time)))
     Solver.init(verbose = 1, reset_steps = True, n_time_steps = 1)
 
-    motionString = MyMotionStringGenerator(step - start_step)
-    MyTauMotionDelegate.UpdateMotion("MEMBRANE", motionString)
-    MyTauMotionDelegate.InitExchange()
+    if rotate:
+        motionString = MyMotionStringGenerator(step - start_step)
+        MyTauMotionDelegate.UpdateMotion("MEMBRANE", motionString)
+        MyTauMotionDelegate.InitExchange()
 
     # Get current time and time step from tau
     tau_current_time = float(tau_solver_unsteady_get_physical_time())
-    tau_time_step = float(Para.get_para_value('Unsteady physical time step size'))
 
     if tau_settings["echo_level"] > 0:
         print "TAU SOLVER AdvanceInTime"

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re, glob, subprocess, time, os, warnings
+import re, glob, subprocess, time, os, warnings, json
 import numpy as np
 import tau_python
 from tau_python import tau_msg
@@ -7,7 +7,14 @@ from tau_python import tau_solver_unsteady_get_physical_time
 import PyPara, PySurfDeflect
 from scipy.io import netcdf
 
-echo_level = 1
+with open('tau_settings.json') as json_file:
+    tau_settings = json.load(json_file)
+
+start_step = tau_settings["start_step"]
+tau_path = tau_settings["tau_path"]
+working_path = os.getcwd() + '/'
+echo_level = tau_settings["echo_level"]
+rotate = tau_settings["rotate"]
 
 
 # Convert tau output to dat file using tau2plt
@@ -327,8 +334,10 @@ def FindPrimaryGridFilename(working_path, step, start_step):
 def FindOutputFilename(working_path, step):
     outputs_path = working_path + "Outputs/"
     CheckIfPathExists(outputs_path)
-    ouput_file_pattern = "airfoilSol.pval.deform_i="
-    # ouput_file_pattern = "airfoilSol.pval.unsteady_i="
+    if rotate:
+        ouput_file_pattern = "airfoilSol.pval.deform_i="
+    else:
+        ouput_file_pattern = "airfoilSol.pval.unsteady_i="
     return FindFilename(outputs_path, ouput_file_pattern, step + 1)
 
 
