@@ -55,7 +55,7 @@ Parameters GetTwoLayersParameters()
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "ParallelRuleOfMixturesLaw",
+                "name" : "ParallelRuleOfMixturesLaw3D",
                 "combination_factors"      : [0.4, 0.6 ]
             },
             "Variables"        : {
@@ -104,7 +104,7 @@ Parameters GetThreeLayersParameters()
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "ParallelRuleOfMixturesLaw",
+                "name" : "ParallelRuleOfMixturesLaw3D",
                 "combination_factors"      : [0.4, 0.3, 0.3 ]
             },
             "Variables"        : {
