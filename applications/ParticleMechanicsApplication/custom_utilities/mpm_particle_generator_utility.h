@@ -19,7 +19,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/model_part.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include "utilities/quadrature_points_utility.h"
 #include "particle_mechanics_application_variables.h"
 
 
@@ -117,6 +119,7 @@ namespace MPMParticleGeneratorUtility
                     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
                     const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
+<<<<<<< HEAD
                     const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
                     Matrix shape_functions_values = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
                     if (geo_type == GeometryData::Kratos_Tetrahedra3D4 || geo_type == GeometryData::Kratos_Triangle2D3)
@@ -153,6 +156,21 @@ namespace MPMParticleGeneratorUtility
                             KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                             break;
                         }
+=======
+
+                    // Get integration method and shape function values
+                    IntegrationMethod int_method = GeometryData::GI_GAUSS_1;
+                    Matrix shape_functions_values;
+                    bool is_equal_int_volumes = false;
+                    DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, particles_per_element,
+                        int_method, shape_functions_values, is_equal_int_volumes);
+
+                    // Get volumes of the material points
+                    const unsigned int integration_point_per_elements = shape_functions_values.size1();
+                    Vector int_volumes (integration_point_per_elements);
+                    if (is_equal_int_volumes) {
+                        for (size_t j = 0; j < integration_point_per_elements; ++j)  int_volumes[j] = r_geometry.DomainSize() / integration_point_per_elements;
+>>>>>>> e3d1f33fc7... fixing includes
                     }
                     else if (geo_type == GeometryData::Kratos_Hexahedra3D8 || geo_type == GeometryData::Kratos_Quadrilateral2D4)
                     {
