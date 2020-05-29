@@ -739,16 +739,6 @@ public:
                                                                                     const double Constant,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id,
-                                                                                    NodeType& rMasterNode,
-                                                                                    const VariableComponentType& rMasterVariable,
-                                                                                    NodeType& rSlaveNode,
-                                                                                    const VariableComponentType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant,
-                                                                                    IndexType ThisIndex = 0);
-
     /**
      * @brief Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
      */
