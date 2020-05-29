@@ -222,7 +222,7 @@ namespace Kratos
 			}
 		}
 
-		if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) KRATOS_ERROR << "COMPUTE_CONSTITUTIVE_TENSOR not yet implemented in JohnsonCookThermalPlastic3DLaw";
+		//if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) KRATOS_ERROR << "COMPUTE_CONSTITUTIVE_TENSOR not yet implemented in JohnsonCookThermalPlastic3DLaw";
 	}
 
 
@@ -232,6 +232,7 @@ namespace Kratos
 
 		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_A);
 		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_B);
+		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_C);
 		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_m);
 		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_n);
 		KRATOS_CHECK_VARIABLE_KEY(REFERENCE_STRAIN_RATE);
@@ -428,7 +429,7 @@ namespace Kratos
 		rFeatures.mOptions.Set(ISOTROPIC);
 
 		//Set strain measure required by the consitutive law
-		rFeatures.mStrainMeasures.push_back(StrainMeasure_GreenLagrange);
+		rFeatures.mStrainMeasures.push_back(StrainMeasure_Velocity_Gradient);
 
 		//Set the strain size
 		rFeatures.mStrainSize = GetStrainSize();

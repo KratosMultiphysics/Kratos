@@ -251,7 +251,8 @@ namespace Kratos
         // CL: Johnson Cook
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
-        
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
+
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
@@ -274,7 +275,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(CALCULATE_MUSL_VELOCITY_FIELD)
         KRATOS_REGISTER_VARIABLE(IS_EXPLICIT)
         KRATOS_REGISTER_VARIABLE(IS_EXPLICIT_CENTRAL_DIFFERENCE)
-        KRATOS_REGISTER_VARIABLE(EXPLICIT_STRESS_UPDATE_OPTION)  
+        KRATOS_REGISTER_VARIABLE(EXPLICIT_STRESS_UPDATE_OPTION)
         KRATOS_REGISTER_VARIABLE(CALCULATE_EXPLICIT_MP_STRESS)
         KRATOS_REGISTER_VARIABLE(EXPLICIT_MAP_GRID_TO_MP)
     }
