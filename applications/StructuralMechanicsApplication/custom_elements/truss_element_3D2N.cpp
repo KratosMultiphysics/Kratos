@@ -52,7 +52,7 @@ TrussElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 TrussElement3D2N::~TrussElement3D2N() {}
 
 void TrussElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rResult.size() != msLocalSize) {
@@ -69,7 +69,7 @@ void TrussElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
     }
 }
 void TrussElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rElementalDofList.size() != msLocalSize) {
@@ -462,7 +462,7 @@ void TrussElement3D2N::GetValueOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -485,7 +485,7 @@ int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        NodeType& rnode = GetGeometry()[i];
+        const NodeType& rnode = GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, rnode);
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode);

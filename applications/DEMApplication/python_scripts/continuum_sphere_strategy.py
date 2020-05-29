@@ -39,6 +39,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.max_amplification_ratio_of_search_radius = 0.0
 
+        self.local_coordination_number_option = DEM_parameters["LocalCoordinationNumberOption"].GetBool()
+        self.global_coordination_number_option = DEM_parameters["GlobalCoordinationNumberOption"].GetBool()
+
         if not "PostPoissonRatio" in DEM_parameters.keys():
             self.poisson_ratio_option = 0
         else:
@@ -69,6 +72,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # ADDITIONAL VARIABLES AND OPTIONS
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR, self.continuum_search_radius_amplification_factor)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS, self.max_amplification_ratio_of_search_radius)
+        self.spheres_model_part.ProcessInfo.SetValue(LOCAL_COORDINATION_NUMBER_OPTION, self.local_coordination_number_option)
+        self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_COORDINATION_NUMBER_OPTION, self.global_coordination_number_option)
 
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)

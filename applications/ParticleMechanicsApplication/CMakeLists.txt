@@ -78,6 +78,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 
 	###utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpm_particle_generator_utility.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpm_energy_calculation_utility.cpp
 
 )
 
