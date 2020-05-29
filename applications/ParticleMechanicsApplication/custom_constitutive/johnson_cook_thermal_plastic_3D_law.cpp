@@ -123,8 +123,6 @@ namespace Kratos
 
 		if (j2_stress_trial > yield_stress && yield_stress/mYieldStressVirgin > yield_stress_failure_ratio)
 		{
-			const double j2_stress_old = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_old));
-
 			// Thermal properties
 			const double eta = 0.9; // TODO check this
 			const double specific_heat_Cp = MaterialProperties[SPECIFIC_HEAT];
@@ -356,12 +354,10 @@ namespace Kratos
 	{
 		const double A = MaterialProperties[JC_PARAMETER_A];
 		const double B = MaterialProperties[JC_PARAMETER_B];
-		const double C = MaterialProperties[JC_PARAMETER_C];
 		const double n = MaterialProperties[JC_PARAMETER_n];
 		const double m = MaterialProperties[JC_PARAMETER_m];
 		const double ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
 		const double MeldTemperature = MaterialProperties[MELD_TEMPERATURE];
-		const double ReferenceStrainRate = MaterialProperties[REFERENCE_STRAIN_RATE];
 
 		double thermal_derivative = 0.0;
 		if (ReferenceTemperature <= Temperature && Temperature <= MeldTemperature)
@@ -383,9 +379,6 @@ namespace Kratos
 		const double B = MaterialProperties[JC_PARAMETER_B];
 		const double C = MaterialProperties[JC_PARAMETER_C];
 		const double n = MaterialProperties[JC_PARAMETER_n];
-		const double m = MaterialProperties[JC_PARAMETER_m];
-		const double ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
-		const double MeldTemperature = MaterialProperties[MELD_TEMPERATURE];
 		const double ReferenceStrainRate = MaterialProperties[REFERENCE_STRAIN_RATE];
 
 		double plastic_strain_rate_derivative = 0.0;
@@ -404,13 +397,9 @@ namespace Kratos
 	double JohnsonCookThermalPlastic3DLaw::CalculatePlasticStrainDerivative(const Properties& MaterialProperties, 
 		const double EquivalentPlasticStrain, const double PlasticStrainRate, const double Temperature)
 	{
-		const double A = MaterialProperties[JC_PARAMETER_A];
 		const double B = MaterialProperties[JC_PARAMETER_B];
 		const double C = MaterialProperties[JC_PARAMETER_C];
 		const double n = MaterialProperties[JC_PARAMETER_n];
-		const double m = MaterialProperties[JC_PARAMETER_m];
-		const double ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
-		const double MeldTemperature = MaterialProperties[MELD_TEMPERATURE];
 		const double ReferenceStrainRate = MaterialProperties[REFERENCE_STRAIN_RATE];
 
 		double plastic_strain_derivative = 0.0;
