@@ -16,8 +16,6 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
-// #include "containers/global_pointers_vector.h"
-// #include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
