@@ -16,132 +16,53 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/flow_rules/non_linear_rate_dependent_plastic_flow_rule.hpp"
-#include "custom_constitutive/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
-#include "custom_constitutive/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
-#include "custom_constitutive/hyperelastic_plastic_thermal_U_P_johnson_cook_plane_strain_2D_law.hpp"
-
-#include "solid_mechanics_application_variables.h"
+#include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
 
 namespace Kratos
 {
+    JohnsonCookThermalPlastic2DPlaneStrainLaw::JohnsonCookThermalPlastic2DPlaneStrainLaw()
+  : JohnsonCookThermalPlastic3DLaw()
+  { }
 
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
+    JohnsonCookThermalPlastic2DPlaneStrainLaw::JohnsonCookThermalPlastic2DPlaneStrainLaw(const JohnsonCookThermalPlastic2DPlaneStrainLaw& rOther)
+  : JohnsonCookThermalPlastic3DLaw(rOther)
+  { }
 
-  HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw::HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw()
-  : HyperElasticPlasticUPPlaneStrain2DLaw()
+  ConstitutiveLaw::Pointer JohnsonCookThermalPlastic2DPlaneStrainLaw::Clone() const
   {
-    mpHardeningLaw   = HardeningLaw::Pointer( new JohnsonCookThermalHardeningLaw() );
-    mpYieldCriterion = YieldCriterion::Pointer( new MisesHuberThermalYieldCriterion(mpHardeningLaw) );
-    mpFlowRule       = FlowRule::Pointer( new NonLinearRateDependentPlasticFlowRule(mpYieldCriterion) );
+    return Kratos::make_shared<JohnsonCookThermalPlastic2DPlaneStrainLaw>(*this);
+  }
+
+  JohnsonCookThermalPlastic2DPlaneStrainLaw::~JohnsonCookThermalPlastic2DPlaneStrainLaw()
+  { }
+
+  void JohnsonCookThermalPlastic2DPlaneStrainLaw::MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput)
+  {
+	  if (rOutput.size() != GetStrainSize()) rOutput.resize(GetStrainSize(), false);
+
+	  // 2D stress arrangement
+	  rOutput[0] = rInput(0, 0);
+	  rOutput[1] = rInput(1, 1);
+	  rOutput[2] = 2.0 * rInput(0, 1); //xy
   }
 
 
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
-
-  HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw::HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+  void JohnsonCookThermalPlastic2DPlaneStrainLaw::MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput)
   {
-    mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  YieldCriterion::Pointer( new MisesHuberThermalYieldCriterion(mpHardeningLaw) );
-    mpFlowRule        =  pFlowRule;
+	  if (rOutput.size1() != 3 || rOutput.size2() != 3)rOutput.resize(3, 3, false);
+
+	  // 3D stress arrangement
+      rOutput.clear();
+
+      // Normal components
+	  rOutput(0, 0) = rInput[0];
+	  rOutput(1, 1) = rInput[1];
+
+      // Shear components
+	  rOutput(0, 1) = 0.5 * rInput[2]; //xy
+
+      // Fill symmetry
+	  rOutput(1, 0) = rOutput(0, 1);
   }
-
-  //******************************COPY CONSTRUCTOR**************************************
-  //************************************************************************************
-
-  HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw::HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw(const HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw& rOther)
-  : HyperElasticPlasticUPPlaneStrain2DLaw(rOther)
-  {
-
-  }
-
-  //********************************CLONE***********************************************
-  //************************************************************************************
-
-  ConstitutiveLaw::Pointer HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw::Clone() const
-  {
-    return Kratos::make_shared<HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw>(*this);
-  }
-
-  //*******************************DESTRUCTOR*******************************************
-  //************************************************************************************
-
-  HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw::~HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw()
-  {
-  }
-
-  //******************************* COMPUTE DOMAIN TEMPERATURE  ************************
-  //************************************************************************************
-
-
-  double &  HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw::CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
-										      double & rTemperature)
-  {
-
-    //1.-Temperature from nodes
-    const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
-    const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
-    const unsigned int number_of_nodes = DomainGeometry.size();
-
-    rTemperature=0;
-
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
-      {
-     	rTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
-      }
-
-
-    return rTemperature;
-  }
-
-  //*******************************OPERATIONS FROM BASE CLASS***************************
-  //************************************************************************************
-
-  //***********************HAS : DOUBLE - VECTOR - MATRIX*******************************
-  //************************************************************************************
-
-  bool HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw::Has( const Variable<double>& rThisVariable )
-  {
-    if(rThisVariable == DELTA_PLASTIC_DISSIPATION || rThisVariable == PLASTIC_DISSIPATION )
-      return true;
-
-    return false;
-  }
-
-  //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************
-  //************************************************************************************
-
-  double& HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
-  {
-    if (rThisVariable==PLASTIC_STRAIN)
-      {
-	const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
-	rValue=InternalVariables.EquivalentPlasticStrain;
-      }
-
-    if (rThisVariable==DELTA_PLASTIC_STRAIN)
-      {
-	const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
-	rValue=InternalVariables.DeltaPlasticStrain;
-      }
-
-
-    if (rThisVariable==PLASTIC_DISSIPATION)
-      {
-	const FlowRule::ThermalVariables& ThermalVariables = mpFlowRule->GetThermalVariables();
-	rValue=ThermalVariables.PlasticDissipation;
-      }
-
-    if (rThisVariable==DELTA_PLASTIC_DISSIPATION)
-      {
-	const FlowRule::ThermalVariables& ThermalVariables = mpFlowRule->GetThermalVariables();
-	rValue=ThermalVariables.DeltaPlasticDissipation;
-      }
-
-    return( rValue );
-  }
-
 
 } // Namespace Kratos

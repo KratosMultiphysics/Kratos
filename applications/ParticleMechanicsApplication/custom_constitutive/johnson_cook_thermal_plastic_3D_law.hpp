@@ -26,11 +26,11 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic thermal isotropic constitutive law J2 in plane strain 2D
- * With stress split in an isochoric and volumetric parts
- * This material law is defined by the parameters needed by the yield criterion:
-
- * The functionality is limited to large displacements
+ * The Johnson Cook strain-rate senstive plastic 3D material law.
+ * Requires a strain vector to be provided by the element, which
+ * should ideally be objective to enable large displacements.
+ * Only suitable for explicit time integration because calculate 
+ * constitutive tensor is not implemented.
  */
 
 class JohnsonCookThermalPlastic3DLaw : public HyperElastic3DLaw

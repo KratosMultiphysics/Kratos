@@ -83,7 +83,7 @@ namespace Kratos
 		const Properties& MaterialProperties = rValues.GetMaterialProperties();
 
 		// Get old stress vector and current strain vector
-		Vector StrainVector = rValues.GetStrainVector();
+		const Vector StrainVector = rValues.GetStrainVector();
 		Vector StressVector = rValues.GetStressVector();
 
 		// Convert vectors to matrices for easier manipulation
@@ -246,10 +246,12 @@ namespace Kratos
 		if (rOutput.size() != GetStrainSize()) rOutput.resize(GetStrainSize(), false);
 
 		// 3D stress arrangement
+		// Normal components
 		rOutput[0] = rInput(0, 0);
 		rOutput[1] = rInput(1, 1);
 		rOutput[2] = rInput(2, 2);
 
+		// Shear components
 		rOutput[3] = 2.0 * rInput(0, 1); //xy
 		rOutput[4] = 2.0 * rInput(1, 2); //yz
 		rOutput[5] = 2.0 * rInput(0, 2); //xz
@@ -261,13 +263,20 @@ namespace Kratos
 		if (rOutput.size1() != 3 || rOutput.size2() != 3)rOutput.resize(3, 3, false);
 
 		// 3D stress arrangement
+		// Normal components
 		rOutput(0, 0) = rInput[0];
 		rOutput(1, 1) = rInput[1];
 		rOutput(2, 2) = rInput[2];
 
+		// Shear components
 		rOutput(0, 1) = 0.5 * rInput[3]; //xy
 		rOutput(1, 2) = 0.5 * rInput[4]; //yz
 		rOutput(0, 2) = 0.5 * rInput[5]; //xz
+
+		// Fill symmetry
+		rOutput(1, 0) = rOutput(0, 1);
+		rOutput(2, 1) = rOutput(1, 2);
+		rOutput(2, 0) = rOutput(0, 2);
 	}
 
 

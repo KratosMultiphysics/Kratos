@@ -56,7 +56,7 @@
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
-//#include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
@@ -78,17 +78,14 @@
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
-//#include "custom_constitutive/flow_rules/johnson_cook_plastic_flow_rule.hpp"
 
 //---yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 #include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
-//#include "custom_constitutive/yield_criteria/johnson_cook_thermal_yield_criterion.hpp"
 
 //---hardening laws
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
-//#include "custom_constitutive/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
 
 namespace Kratos
 {
