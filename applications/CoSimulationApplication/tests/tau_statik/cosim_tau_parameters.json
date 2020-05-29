@@ -1,0 +1,102 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 1.0,
+        "end_time" : 1.015,
+        "echo_level" : 2,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 3,
+        "data_transfer_operators" : {
+            "mapper" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "TAU",
+                "input_data_list": [],
+                "output_data_list": []
+            },
+            {
+                "name": "structure",
+                "input_data_list": [
+                    {
+                        "data"             : "Interface_force",
+                        "from_solver"      : "TAU",
+                        "from_solver_data" : "Interface_force",
+                        "data_transfer_operator" : "mapper",
+                        "data_transfer_operator_options" : []
+                    }
+                ],
+                "output_data_list": [
+                    {
+                        "data"           : "Interface_disp",
+                        "to_solver"      : "TAU",
+                        "to_solver_data" : "Interface_disp",
+                        "data_transfer_operator" : "mapper"
+                    }
+                ]
+            }
+        ],
+        "solvers" :
+        {
+            "TAU":
+            {
+                "type" : "solver_wrappers.external.tau_wrapper",
+                "echo_level": 2,
+                "solver_wrapper_settings" : {
+                    "start_external_solver": true,
+                    "external_solver_start_command": "python",
+                    "path_to_tau": "/home/inigo/software/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/bin/py_turb1eq/tau.py",
+                    "tau_input_file":"airfoil_Structured.cntl",
+                    "tau_log_file": "log_TAU.out",
+                    "controlling_external_solver": true,
+                    "main_model_part_name": "Fluid",
+                    "model_parts_recv" : {
+                        "Fluid.Interface"    : "Membrane"
+                    }
+                },
+                "data" : {
+                    "Interface_disp" : {
+                        "model_part_name"   : "Fluid.Interface",
+                        "dimension" : 3,
+                        "variable_name" : "MESH_DISPLACEMENT"
+                    },
+                    "Interface_force" : {
+                        "model_part_name"   : "Fluid.Interface",
+                        "dimension" : 3,
+                        "variable_name" : "REACTION"
+                    }
+                }
+            },
+            "structure":
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "ProjectParametersCSM"
+                },
+                "data" : {
+                    "Interface_disp" : {
+                        "model_part_name"   : "Structure",
+                        "dimension" : 3,
+                        "variable_name" : "DISPLACEMENT"
+                    },
+                    "Interface_force" : {
+                        "model_part_name"   : "Structure",
+                        "dimension" : 3,
+                        "variable_name" : "POINT_LOAD"
+                    }
+                }
+            }
+        }
+    }
+}

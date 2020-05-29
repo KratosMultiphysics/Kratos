@@ -1,0 +1,52 @@
+  Files/IO ------------------------------------------------------: -
+                                            Primary grid filename:
+                                        Boundary mapping filename: /gpfs/work/pr27ce/di73jef2/TAU/JPiquee/2D_Fall/WKA_Modell/airfoil_Structured.cntl
+                                              Restart-data prefix:
+                                  2D offset vector (0 / x=1,y=2,z=3): 0
+  Bounding Box --------------------------------------------------: -
+                                 Bounding x coordinate range (3D): (none)
+                                 Bounding y coordinate range (3D): (none)
+                                 Bounding z coordinate range (3D): (none)
+  Volume element options ----------------------------------------: -
+                                         Volume data output (0/1): 1
+                                           Element types for zone: (none)
+                                 One zone for all volume elements: 0
+                                         Specify tetrahedral list: (none)
+                                             Specify pyramid list: (none)
+                                               Specify prism list: (none)
+                                            Specify hexaeder list: (none)
+                               Percentage of BL reduction (0-100): 0
+  Surface element options ---------------------------------------: -
+                                        Surface data output (0/1): 1
+                          Create surface zone for boundary marker: (none)
+                                              Create one boundary: 0
+                          Create surface zone for surface element: (none)
+                      Create surface zone for triangular elements: (none)
+                   Create surface zone for quadrilateral elements: (none)
+  Output Control ------------------------------------------------: -
+                                                    Output format: tecplot
+                                            # Output format: ensight_gold
+                                                      Ascii (0/1): 1
+                                                        Precision: 9
+                                             Title of output file: (none)
+           Chimera component output (Tecplot, Ensight Gold) (0/1): 0
+                         Tecio separate grid and solution (0/1/2): 0
+                                         Tecio format szplt (0/1): 0
+  Other ---------------------------------------------------------: -
+                                                    Variable list: (none)
+                                                          Swap yz: 0
+                                    Use vectors and tensors (0/1): 0
+                                                    Old grid size: 0
+                                                      Use node ID: 0
+                                                     Output level: 5
+                                       Amif aero coordinate frame: 1
+  BDF format options --------------------------------------------: -
+                                          BDF field format (8/16): 8
+                                          BDF coordinate frame CP: (none)
+                          BDF basic coordinate frame for frame CP: (none)
+                          BDF points defining coordinate frame CP: 0 0 0 0 0 1 1 0 1
+                                          BDF coordinate frame CD: (none)
+                          BDF basic coordinate frame for frame CD: (none)
+                          BDF points defining coordinate frame CD: 0 0 0 0 0 1 1 0 1
+                                          BDF scale data entry ID: (none)
+                                      BDF scale reference lengths: 1 1 1

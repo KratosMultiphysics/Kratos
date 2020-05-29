@@ -43,7 +43,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
 
             full_command = [command_txt]
             full_command.extend(command_args)
-            # self.external_solver_process = subprocess.Popen(full_command, stderr=subprocess.PIPE, start_new_session=True) # TODO check what to use here
+            self.external_solver_process = subprocess.Popen(full_command, stderr=subprocess.PIPE, start_new_session=True) # TODO check what to use here
             # self.external_solver_process = subprocess.Popen(full_command)
 
         self.controlling_external_solver = wrapper_settings["controlling_external_solver"].GetBool()
