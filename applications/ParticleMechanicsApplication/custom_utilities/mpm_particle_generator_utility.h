@@ -19,7 +19,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/model_part.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include "utilities/quadrature_points_utility.h"
 #include "particle_mechanics_application_variables.h"
 
 
@@ -126,14 +128,14 @@ namespace MPMParticleGeneratorUtility
                     const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
                     const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
-                    
+
                     // Get integration method and shape function values
                     IntegrationMethod int_method = GeometryData::GI_GAUSS_1;
                     Matrix shape_functions_values;
                     bool is_equal_int_volumes = false;
                     DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, particles_per_element,
                         int_method, shape_functions_values, is_equal_int_volumes);
-                    
+
                     // Get volumes of the material points
                     const unsigned int integration_point_per_elements = shape_functions_values.size1();
                     Vector int_volumes (integration_point_per_elements);
