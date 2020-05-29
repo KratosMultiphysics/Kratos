@@ -43,6 +43,14 @@ void MappingIntersectionUtilities::FindIntersection1DGeometries2D(
             {
                 rModelPartResult.AddGeometry(Kratos::make_shared<CouplingGeometry<NodeType>>(
                     condition_a_itr->pGetGeometry(), condition_b_itr->pGetGeometry()));
+
+                // TODO remove
+                if (mPrintDebugForPeter) std::cout << "\nIntersection found!"
+                                        << "\nSeg A = " << condition_a_itr->GetGeometry().Points()[0].Coordinates()
+                                        << " to " << condition_a_itr->GetGeometry().Points()[1].Coordinates()
+                                        << "\nSeg B = " << condition_b_itr->GetGeometry().Points()[0].Coordinates()
+                                        << " to " << condition_b_itr->GetGeometry().Points()[1].Coordinates()
+                                        << std::endl;
             }
         }
     }
@@ -75,6 +83,15 @@ void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
             << "Lines do not intersect." << std::endl;
         r_geom_master.PointLocalCoordinates(local_parameter_1, overlap_extents[0]); // min of overlap
         r_geom_master.PointLocalCoordinates(local_parameter_2, overlap_extents[1]); // max of overlap
+
+        // TODO remove
+        if (mPrintDebugForPeter) std::cout << "\nOverlap found!"
+            << "\nSeg A = " << r_geom_master.Points()[0].Coordinates()
+            << " to " << r_geom_master.Points()[1].Coordinates()
+            << "\nSeg B = " << r_geom_slave.Points()[0].Coordinates()
+            << " to " << r_geom_slave.Points()[1].Coordinates()
+            << "\nOverlap limits = " << overlap_extents[0] << " to " << overlap_extents[1]
+            << std::endl;
 
         const SizeType IntegrationPointsPerSpan = 2; // TODO this should depend on the basis order
 
