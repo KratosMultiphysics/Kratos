@@ -51,8 +51,22 @@ public:
     /// Turn back information as a string.
     std::string PairingInfo(const int EchoLevel) const override;
 
+    void SetValue(const Variable<bool>& rVariable, const bool rValue) override
+    {
+        if (rVariable == IS_PROJECTED_LOCAL_SYSTEM) mIsProjection = rValue;
+        else MapperLocalSystem::SetValue(rVariable, rValue);
+    }
+
+    bool GetValue(const Variable<bool>& rVariable) override
+    {
+        if (rVariable == IS_PROJECTED_LOCAL_SYSTEM) return mIsProjection;
+        else return MapperLocalSystem::GetValue(rVariable);
+    }
+
 private:
     GeometryPointerType mpGeom;
+    bool mIsProjection; // Set to true is we are projecting the master onto the slave. 
+                        // Set to false if we are projecting the slave onto the slave.
 
 };
 

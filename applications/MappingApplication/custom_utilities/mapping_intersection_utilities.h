@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Peter Wilson
+//  Main authors:    Philipp  DetectosIntersectosOverlapposAndMappos
 //
 
 #if !defined(KRATOS_MAPPING_INTERSECTION_UTILITIES_H_INCLUDED)

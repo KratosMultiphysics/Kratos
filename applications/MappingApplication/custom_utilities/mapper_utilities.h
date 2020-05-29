@@ -212,11 +212,11 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
         auto it_elem = elems_ptr_begin + i;
         Geometry<Node<3>>* p_geom(&((*it_elem)->GetGeometry()));
 
-        p_geom->SetValue(IS_PROJECTED_LOCAL_SYSTEM, true);
         rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
+        rLocalSystems[i]->SetValue(IS_PROJECTED_LOCAL_SYSTEM, true);
 
-        p_geom->SetValue(IS_PROJECTED_LOCAL_SYSTEM, false);
         rLocalSystems[num_elements+i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
+        rLocalSystems[num_elements+i]->SetValue(IS_PROJECTED_LOCAL_SYSTEM, false);
     }
 
     int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI

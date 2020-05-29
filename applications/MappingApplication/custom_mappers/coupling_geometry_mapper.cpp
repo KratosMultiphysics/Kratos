@@ -31,13 +31,12 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
-    const auto& r_geometry_master = (mpGeom->GetValue(IS_PROJECTED_LOCAL_SYSTEM))
+    const auto& r_geometry_master = (mIsProjection)
         ? mpGeom->GetGeometryPart(0) // set to master  - get projected 'mass' matrix
         : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
     const auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
 
-    const bool is_dual_mortar = (mpGeom->GetValue(IS_PROJECTED_LOCAL_SYSTEM) &&
-        mpGeom->GetValue(IS_DUAL_MORTAR))
+    const bool is_dual_mortar = (mIsProjection && mpGeom->GetValue(IS_DUAL_MORTAR))
         ? true
         : false;
 
@@ -58,8 +57,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     Vector det_jacobian;
     r_geometry_slave.DeterminantOfJacobian(det_jacobian);
     KRATOS_ERROR_IF(det_jacobian.size() != 1)
-        << "Coupling Geometry Mapper should only have 1 integration point coupling per local system"
-        << std::endl;
+        << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
 
     if (is_dual_mortar) {
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) { // This loop is probably redundant - it will always just be 1
@@ -98,7 +96,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
 std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
 {
-    std::cout << "   >>> XXX : IS_PROJECTED_LOCAL_SYSTEM: " << mpGeom->GetValue(IS_PROJECTED_LOCAL_SYSTEM) << std::endl;
+    std::cout << "   >>> XXX : IS_PROJECTED_LOCAL_SYSTEM: " << mIsProjection << std::endl;
     // KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
     // std::stringstream buffer;
@@ -140,11 +138,11 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     MapperLocalSystem::EquationIdVectorType origin_ids;
     MapperLocalSystem::EquationIdVectorType destination_ids;
 
+
     for (size_t local_projector_system = 0;
         local_projector_system < mMapperLocalSystems.size()/2; local_projector_system++)
     {
         mMapperLocalSystems[local_projector_system]->PairingInfo(0);
-
         mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
 
         KRATOS_WATCH(local_mapping_matrix)
@@ -171,6 +169,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         local_projector_system < mMapperLocalSystems.size(); local_projector_system++)
     {
         mMapperLocalSystems[local_projector_system]->PairingInfo(0);
+        mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
         // assemble from mMapperLocalSystems(local_projector_system) to interface_matrix_slave
     }
 
