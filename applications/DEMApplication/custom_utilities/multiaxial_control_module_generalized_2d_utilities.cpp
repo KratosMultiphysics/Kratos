@@ -528,20 +528,18 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
         Vector velocity_perturbation(number_of_actuators);
         noalias(velocity_perturbation) = GetPerturbations(mVelocity,r_current_time);
         if (is_k_invertible == false || std::isnan(k_condition_number)) {
-            noalias(velocity_estimated) = mVelocity + velocity_perturbation;
+            noalias(mVelocity) += velocity_perturbation;
             std::cout << "Stiffness matrix is not invertible. Keeping loading velocity constant" << std::endl;            
         } else {
-            noalias(velocity_estimated) = prod(k_inverse,delta_target_stress)/mCMDeltaTime;
+            noalias(mVelocity) = prod(k_inverse,delta_target_stress)/mCMDeltaTime;
         }
-        noalias(mVelocity) = (1.0 - mVelocityAlpha) * velocity_estimated + mVelocityAlpha * mVelocity;
 
         double norm_stiffness = 0.0;
         for(unsigned int i = 0; i < mStiffness.size1(); i++) {
             norm_stiffness += mStiffness(i,i)*mStiffness(i,i);
         }
         norm_stiffness = std::sqrt(norm_stiffness);
-        const double norm_target_stress = norm_2(r_next_target_stress);
-        const double max_allowed_velocity = mMaxForceCorrectionFraction * norm_target_stress / (norm_stiffness * mCMDeltaTime);
+        const double max_allowed_velocity = mMaxReactionCorrectionFraction * mCharacteristicReactionVariationRate / norm_stiffness;
         const double norm_velocity = norm_2(mVelocity);
         if (norm_velocity > max_allowed_velocity) {
             for (unsigned int i = 0; i < mVelocity.size(); i++) {
@@ -551,12 +549,11 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
     } else {
 
         for (unsigned int i = 0; i < mVelocity.size(); i++) {
-            velocity_estimated[i] = delta_target_stress[i]/(mStiffness(i,i)*mCMDeltaTime);
+            mVelocity[i] = delta_target_stress[i]/(mStiffness(i,i)*mCMDeltaTime);
         }
-        noalias(mVelocity) = (1.0 - mVelocityAlpha) * velocity_estimated + mVelocityAlpha * mVelocity;
 
         for (unsigned int i = 0; i < mVelocity.size(); i++) {
-            const double max_allowed_velocity = mMaxForceCorrectionFraction * std::abs(r_next_target_stress[i]) / (std::abs(mStiffness(i,i)) * mCMDeltaTime);
+            const double max_allowed_velocity = mMaxReactionCorrectionFraction * mCharacteristicReactionVariationRate / std::abs(mStiffness(i,i));
             if (std::abs(mVelocity[i]) > max_allowed_velocity) {
                 mVelocity[i] = max_allowed_velocity/std::abs(mVelocity[i]) * mVelocity[i];
             }
@@ -617,6 +614,49 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
     } else{
         mActuatorCounter++;
     }
+}
+
+//***************************************************************************************************************
+
+void MultiaxialControlModuleGeneralized2DUtilities::CalculateCharacteristicReactionVariationRate(const double& r_final_time) {
+
+    const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
+
+    Vector max_target_stress(number_of_actuators);
+    noalias(max_target_stress) = ZeroVector(number_of_actuators);
+    Vector min_target_stress(number_of_actuators);
+    noalias(min_target_stress) = ZeroVector(number_of_actuators);
+
+    double max_stress = -std::numeric_limits<double>::infinity();
+    double min_stress = std::numeric_limits<double>::infinity();
+
+    TableType::Pointer pTargetStressTable;
+
+    // Iterate through all actuators
+    for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
+        const std::string actuator_name = mOrderedMapKeys[map_index];
+        std::vector<ModelPart*> FEMSubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
+        std::vector<ModelPart*> DEMSubModelPartList = mDEMBoundariesSubModelParts[actuator_name];
+        unsigned int target_stress_table_id = mTargetStressTableIds[actuator_name];
+        if (actuator_name == "Z") {
+            pTargetStressTable = (*(DEMSubModelPartList[0])).pGetTable(target_stress_table_id);
+        } else {
+            pTargetStressTable = (*(FEMSubModelPartList[0])).pGetTable(target_stress_table_id);
+        }
+        const auto table_data = pTargetStressTable->Data();
+        for(auto i_row = table_data.begin() ; i_row != table_data.end() ; i_row++){
+            max_stress = std::max(i_row->second[0], max_stress);
+            min_stress = std::min(i_row->second[0], max_stress);
+        }
+        max_target_stress[map_index] = max_stress;
+        min_target_stress[map_index] = min_stress;
+    }
+
+    mCharacteristicReactionVariationRate = std::abs(norm_inf(max_target_stress-min_target_stress)) / r_final_time;
+
+    KRATOS_WATCH(max_target_stress)
+    KRATOS_WATCH(min_target_stress)
+    KRATOS_WATCH(norm_inf(max_target_stress-min_target_stress))
 }
 
 

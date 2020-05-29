@@ -77,11 +77,11 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
                 "multi_axial": true,
                 "perturbation_tolerance": 1.0e-2,
                 "perturbation_period": 10,
-                "max_force_correction_fraction": 0.25,
-                "velocity_alpha" : 0.0,
-                "stiffness_alpha": 0.0,
-                "reaction_alpha" : 0.0,
-                "output_interval": 1
+                "max_reaction_rate_factor": 2.0,
+                "stiffness_averaging_time_interval": 1.0,
+                "reaction_averaging_time_interval": 1.0,
+                "output_interval": 1,
+                "final_time": 1.0
             },
             "list_of_actuators" : []
         }  )" );
@@ -97,10 +97,9 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     mPerturbationTolerance = rParameters["Parameters"]["perturbation_tolerance"].GetDouble();
     mPerturbationPeriod = rParameters["Parameters"]["perturbation_period"].GetInt();
     mMultiAxial = rParameters["Parameters"]["multi_axial"].GetBool();
-    mMaxForceCorrectionFraction = rParameters["Parameters"]["max_force_correction_fraction"].GetDouble();
-    mVelocityAlpha = rParameters["Parameters"]["velocity_alpha"].GetDouble();
-    mStiffnessAlpha = rParameters["Parameters"]["stiffness_alpha"].GetDouble();
-    mReactionAlpha = rParameters["Parameters"]["reaction_alpha"].GetDouble();
+    mMaxReactionCorrectionFraction = rParameters["Parameters"]["max_reaction_rate_factor"].GetDouble();
+    mStiffnessAlpha = 1.0 - mCMDeltaTime / rParameters["Parameters"]["stiffness_averaging_time_interval"].GetDouble();
+    mReactionAlpha = 1.0 - mrDemModelPart.GetProcessInfo()[DELTA_TIME] / rParameters["Parameters"]["reaction_averaging_time_interval"].GetDouble();
 
     const unsigned int number_of_actuators = rParameters["list_of_actuators"].size();
     mVelocity.resize(number_of_actuators, false);
@@ -166,6 +165,8 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     }
 
     mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
+
+    CalculateCharacteristicReactionVariationRate(rParameters["Parameters"]["final_time"].GetDouble());
 
     KRATOS_CATCH("");
 }
@@ -238,10 +239,10 @@ protected:
     bool mMultiAxial;
     double mPerturbationTolerance;
     unsigned int mPerturbationPeriod;
-    double mMaxForceCorrectionFraction;
-    double mVelocityAlpha;
+    double mMaxReactionCorrectionFraction;
     double mStiffnessAlpha;
     double mReactionAlpha;
+    double mCharacteristicReactionVariationRate;
     std::vector<std::string> mOrderedMapKeys; // TODO: we could have std::vectors instead of std::maps
     std::map<std::string, std::vector<ModelPart*>> mFEMBoundariesSubModelParts; /// FEM SubModelParts associated to each boundary of every actuator
     std::map<std::string, std::vector<ModelPart*>> mDEMBoundariesSubModelParts; /// DEM SubModelParts associated to each boundary of every actuator
@@ -280,6 +281,8 @@ double GetConditionNumber(const Matrix& rInputMatrix, const Matrix& rInvertedMat
 void CalculateVelocity(const Vector& r_next_target_stress, const double& r_current_time);
 
 void CalculateStiffness();
+
+void CalculateCharacteristicReactionVariationRate(const double& r_final_time);
 
 ///@}
 ///@name Protected  Access
