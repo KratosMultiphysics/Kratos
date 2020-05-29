@@ -34,17 +34,31 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
         item = std::pow(item, 0.1);
     });
 
-    //c++17 version - no explicit template parameter in constructor and auto in lambda
-    // BlockPartition(data_vector).for_each(
-    //     [](auto& item){
-    //         item = std::pow(item, 0.1);
-    //     });
+    //error check
+    for(auto& item : data_vector)
+    {
+        KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
+    }
+
+    //shorter form
+    block_for_each(data_vector, [](double& item){
+            item = std::pow(5.0, 0.1);
+    });
 
     //error check
     for(auto& item : data_vector)
     {
         KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
     }
+
+    //c++17 version - no explicit template parameter in constructor and auto in lambda
+    // BlockPartition(data_vector).for_each(
+    //     [](auto& item){
+    //         item = std::pow(item, 0.1);
+    //     });
+
+
+
 
     //here we check for a reduction (computing the sum of all the entries)
     auto final_sum = BlockPartition<std::vector<double>>(data_vector).for_reduce<SumReduction<double>>(
@@ -109,11 +123,11 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
                 return values;
             }
 
-            void LocalMerge(double function_return_value){
+            void LocalReduce(double function_return_value){
                 this->max_value = std::max(this->max_value,function_return_value);
                 this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
             }
-            void ThreadSafeMerge(CustomReducer& rOther){
+            void ThreadSafeReduce(CustomReducer& rOther){
                 #pragma omp critical
                 {
                 this->max_value = std::max(this->max_value,rOther.max_value);
@@ -175,10 +189,15 @@ KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
         data_vector[i] = i;
 
     //check ability to handle exceptions in pure c++ - DELIBERATELY THROWING AN EXCEPTION!
-    IndexPartition<unsigned int>(data_vector.size()).for_pure_c11([&](unsigned int i){
-                    data_vector.at(i+1); //the highest thread will throw
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        IndexPartition<unsigned int>(data_vector.size()).for_pure_c11([&](unsigned int i){
+                if(i==0)
+                    KRATOS_ERROR << "test error on thread 0";
                 }
             );
+        ,
+        "test error on thread 0"
+        );
 
     //benchmark openmp vs pure c++11 impementation in a simple loop
     double start_omp = OpenMPUtils::GetCurrentTime();
