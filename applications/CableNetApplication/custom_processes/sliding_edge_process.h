@@ -46,7 +46,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
     typedef std::vector<double> DoubleVector;
     typedef DoubleVector::iterator DoubleVectorIterator;
     typedef std::size_t SizeType;
-    typedef ModelPart::VariableComponentType VariableComponentType;
+    typedef Variable<double> VariableComponentType;
     typedef ModelPart::MasterSlaveConstraintType::Pointer ConstraintPointer;
 
     // Type definitions for tree-search
