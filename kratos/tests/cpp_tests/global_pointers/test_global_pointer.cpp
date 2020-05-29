@@ -191,5 +191,19 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyWeakPtr, KratosCoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCompare, KratosCoreFastSuite)
+{
+    std::array<int,3> values={21, 1, 8};
+
+    auto global_ptr_1 = GlobalPointer<int>(&values[0]);
+    auto global_ptr_2 = GlobalPointer<int>(&values[1]);
+    GlobalPointerCompare<int> compare;
+    KRATOS_CHECK(compare(global_ptr_1, global_ptr_2));
+    KRATOS_CHECK_IS_FALSE(compare(global_ptr_2, global_ptr_1));
+    KRATOS_CHECK_IS_FALSE(compare(global_ptr_1, global_ptr_1));
+    KRATOS_CHECK_IS_FALSE(compare(global_ptr_2, global_ptr_2));
+}
+
+
 } // namespace Testing
 } // namespace Kratos
