@@ -144,3 +144,71 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l small -c python
+
+
+
+  windows-core-full-debug:
+    runs-on: windows-latest
+    env:
+      KRATOS_BUILD_TYPE: FullDebug
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.6'
+    - name: Cache Build
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: build
+        key: ${{ runner.os }}-build-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-build-
+    - name: Build
+      shell: cmd
+      run: |
+        call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
+
+        set CC=cl.exe
+        set CXX=cl.exe
+
+        set KRATOS_SOURCE=%cd%
+        set KRATOS_BUILD=%cd%\build
+        set KRATOS_APP_DIR=applications
+
+        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+        del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
+
+        cmake                                                ^
+          -G"Visual Studio 16 2019"                          ^
+          -H"%KRATOS_SOURCE%"                                ^
+          -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
+          -DBOOST_ROOT="%BOOST_ROOT_1_72_0%"                 ^
+          -DINSTALL_RUNKRATOS=OFF                            ^
+          -DCMAKE_CXX_FLAGS="/Od                             ^
+          -DUSE_COTIRE=ON                                    || goto :error
+
+        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
+        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target zlibstatic -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
+        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
+
+        goto :EOF
+
+        :error
+        echo Failed with error #%errorlevel%.
+        exit /b %errorlevel%
+
+    - name: Running small tests (python)
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/tests/test_KratosCore.py -l small
+
+    - name: Running cpp tests
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/python_scripts/run_cpp_tests.py
