@@ -64,7 +64,7 @@ mapper_params = KM.Parameters("""{
 }""")
 
 mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)
-#mapper = KratosMapping.MapperFactory.CreateMapper(model_part_coupling, dummy, mapper_params) // goal
+#mapper = KratosMapping.MapperFactory.CreateMapper(model_part_coupling, dummy, mapper_params) // goal => NO!!!
 
 for node in model_part_origin.Nodes:
     node.SetSolutionStepValue(KM.DISPLACEMENT_X, 1.0)
