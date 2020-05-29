@@ -117,6 +117,11 @@ void block_for_each(TContainerType &&v, TFunctionType &&func) {
     BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::forward<TFunctionType>(func));
 }
 
+template <class TReducer, class TContainerType, class TFunctionType>
+typename TReducer::value_type block_for_reduce(TContainerType &&v, TFunctionType &&func) {
+    return BlockPartition<typename std::decay<TContainerType>::type>
+        (std::forward<TContainerType>(v)).template for_reduce<TReducer>(std::forward<TFunctionType>(func));
+}
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
@@ -212,11 +217,6 @@ private:
     std::array<TIndexType, TMaxThreads> mBlockPartition;
 
 };
-
-template <class TContainerType, class TFunctionType>
-void indexbased_for_each(TContainerType &&v, TFunctionType &&func) {
-    IndexPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::forward<TFunctionType>(func));
-}
 
 
 }  // namespace Kratos.

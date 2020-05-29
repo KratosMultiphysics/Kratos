@@ -136,6 +136,14 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(max_value, 0.0 );
     KRATOS_CHECK_EQUAL(max_abs, nsize-1 );
 
+    //same but with short form with block version
+    std::tie(max_value,max_abs) = block_for_reduce<CustomReducer>(data_vector,[&](double& item){
+            return item; //note that here the lambda returns the values to be reduced
+        });
+
+    KRATOS_CHECK_EQUAL(max_value, 0.0 );
+    KRATOS_CHECK_EQUAL(max_abs, nsize-1 );
+
 
 
     //******************************************************************************************
