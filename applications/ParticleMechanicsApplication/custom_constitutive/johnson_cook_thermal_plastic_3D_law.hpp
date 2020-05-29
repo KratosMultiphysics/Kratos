@@ -131,6 +131,8 @@ protected:
     double mEnergyInternal;
     double mEnergyDissipated;
     double mYieldStressOld;
+    double mYieldStressVirgin;
+    double mHardeningRatio;
 
     ///@}
     ///@name Protected Operators
@@ -195,6 +197,8 @@ private:
         rSerializer.save("mEnergyInternal", mEnergyInternal);
         rSerializer.save("mEnergyDissipated", mEnergyDissipated);
         rSerializer.save("mYieldStressOld", mYieldStressOld);
+        rSerializer.save("mYieldStressVirgin", mYieldStressVirgin);
+        rSerializer.save("mHardeningRatio", mHardeningRatio);
     }
 
     void load(Serializer& rSerializer) override
@@ -209,6 +213,8 @@ private:
         rSerializer.load("mEnergyInternal", mEnergyInternal);
         rSerializer.load("mEnergyDissipated", mEnergyDissipated);
         rSerializer.load("mYieldStressOld", mYieldStressOld);
+        rSerializer.load("mYieldStressVirgin", mYieldStressVirgin);
+        rSerializer.load("mHardeningRatio", mHardeningRatio);
     }
 
 

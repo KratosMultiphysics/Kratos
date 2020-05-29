@@ -181,6 +181,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_BETA )
         // CL: Johnson Cook
         KRATOS_REGISTER_VARIABLE( REFERENCE_STRAIN_RATE)
+        KRATOS_REGISTER_VARIABLE( HARDENING_RATIO)
 
 
         // Registering condition variables
@@ -247,6 +248,10 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlastic3DLaw", mHenckyBorjaCamClayPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlasticPlaneStrain2DLaw", mHenckyBorjaCamClayPlasticPlaneStrain2DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlasticAxisym2DLaw", mHenckyBorjaCamClayPlasticAxisym2DLaw);
+        // CL: Johnson Cook
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
+        
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);

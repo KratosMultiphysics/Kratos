@@ -55,6 +55,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, SHAPE_FUNCTION_BETA )
     // CL: Johnson Cook
     KRATOS_CREATE_VARIABLE( double, REFERENCE_STRAIN_RATE)
+    KRATOS_CREATE_VARIABLE( double, HARDENING_RATIO)
 
 
     // Conditions

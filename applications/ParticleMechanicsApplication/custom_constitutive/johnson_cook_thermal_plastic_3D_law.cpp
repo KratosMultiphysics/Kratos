@@ -45,7 +45,8 @@ namespace Kratos
 	{
 		if (rThisVariable == TEMPERATURE
 			|| rThisVariable == PLASTIC_STRAIN
-			|| rThisVariable == PLASTIC_STRAIN_RATE) return true;
+			|| rThisVariable == PLASTIC_STRAIN_RATE
+			|| rThisVariable == HARDENING_RATIO) return true;
 		else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function Has double.";
 
 		return false;
@@ -63,8 +64,10 @@ namespace Kratos
 		mEnergyDissipated = 0.0;
 		mTemperatureOld = rMaterialProperties[TEMPERATURE];
 		mGammaOld = 1e-8;
+		mHardeningRatio = 1.0;
 
 		mYieldStressOld = CalculateHardenedYieldStress(rMaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
+		mYieldStressVirgin = mYieldStressOld;
 	}
 
 
@@ -81,6 +84,7 @@ namespace Kratos
 		const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
 		CheckIsExplicitTimeIntegration(CurrentProcessInfo);
 		const Properties& MaterialProperties = rValues.GetMaterialProperties();
+		const double yield_stress_failure_ratio = 1e-3; // particle fails if current_yield/virgin_yield < yield_stress_failure_ratio
 
 		// Get old stress vector and current strain vector
 		const Vector StrainVector = rValues.GetStrainVector();
@@ -117,7 +121,7 @@ namespace Kratos
 		// Assume current yield stress is the same as the old (elastic predictor)
 		double yield_stress = mYieldStressOld;
 
-		if (j2_stress_trial > yield_stress)
+		if (j2_stress_trial > yield_stress && yield_stress/mYieldStressVirgin > yield_stress_failure_ratio)
 		{
 			const double j2_stress_old = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_old));
 
@@ -190,10 +194,21 @@ namespace Kratos
 			mPlasticStrainRateOld = predicted_eps_rate;
 			mTemperatureOld = predicted_temperature;
 			mYieldStressOld = yield_stress;
+			mHardeningRatio = yield_stress / mYieldStressVirgin;
 		}
 		else
 		{
-			stress_deviatoric_converged = stress_deviatoric_trial;
+			if (yield_stress / mYieldStressVirgin > yield_stress_failure_ratio)
+			{
+				stress_deviatoric_converged = stress_deviatoric_trial;
+			}
+			else
+			{
+				// Particle has failed. It can only take compressive volumetric stresses!
+				stress_deviatoric_converged.clear();
+				if (stress_hydrostatic_new > 0.0) stress_hydrostatic_new = 0.0;
+				mHardeningRatio = 0.0;
+			}
 		}
 
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * IdentityMatrix(3);
@@ -203,18 +218,13 @@ namespace Kratos
 		mStrainOld = StrainVector;
 
 		// Udpdate internal energy
-		for (size_t i = 0; i < stress_converged.size1(); ++i)
-		{
-			for (size_t j = 0; j < stress_converged.size2(); ++j)
-			{
+		for (size_t i = 0; i < stress_converged.size1(); ++i) {
+			for (size_t j = 0; j < stress_converged.size2(); ++j) {
 				mEnergyInternal += 0.5 * (stress_converged(i, j) + stress_old(i, j)) * strain_increment(i, j) / density;
 			}
 		}
 
-		if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
-		{
-			KRATOS_ERROR << "COMPUTE_CONSTITUTIVE_TENSOR not yet implemented in JohnsonCookThermalPlastic3DLaw";
-		}
+		if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) KRATOS_ERROR << "COMPUTE_CONSTITUTIVE_TENSOR not yet implemented in JohnsonCookThermalPlastic3DLaw";
 	}
 
 
@@ -452,6 +462,10 @@ namespace Kratos
 		else if (rThisVariable == PLASTIC_STRAIN_RATE)
 		{
 			rValue = mEquivalentPlasticStrainOld;
+		}
+		else if (rThisVariable == HARDENING_RATIO)
+		{
+			rValue = mHardeningRatio;
 		}
 		KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function GetValue double.";
 

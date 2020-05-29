@@ -271,7 +271,7 @@ private:
     const LinearElasticAxisym2DLaw                          mLinearElasticAxisym2DLaw;
     // CL: Johnson Cooker Thermal Plastic laws
     const JohnsonCookThermalPlastic3DLaw                    mJohnsonCookThermalPlastic3DLaw;
-    //const JohnsonCookThermalPlasticPlainStrain2DLaw         mJohnsonCookThermalPlasticPlainStrain2DLaw;
+    const JohnsonCookThermalPlastic2DPlaneStrainLaw         mJohnsonCookThermalPlastic2DPlaneStrainLaw;
     // CL: Hyperelastic laws
     const HyperElastic3DLaw                                 mHyperElastic3DLaw;
     const HyperElasticPlaneStrain2DLaw                      mHyperElasticPlaneStrain2DLaw;
