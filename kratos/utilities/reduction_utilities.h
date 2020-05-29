@@ -160,11 +160,6 @@ struct CombinedReduction {
     typename std::enable_if<(I == sizeof...(Reducer)), void>::type
     fill_value(T& v) {}
 
-    // template <int I>
-    // auto GetValue() const -> decltype(std::get<I>(mChild).GetValue()) {
-    //     return std::get<I>(mChild).GetValue();
-    // }
-
     template <class... T>
     void LocalReduce(const std::tuple<T...> &&v) {
         // Static recursive loop over tuple elements

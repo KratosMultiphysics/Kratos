@@ -27,7 +27,6 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
         it = 5.0;
 
     //here we raise every entry of a vector to the power 0.1
-    //c++11 version
     BlockPartition<std::vector<double>>(data_vector).for_each(
                                          [](double& item)
     {
@@ -50,15 +49,6 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     {
         KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
     }
-
-    //c++17 version - no explicit template parameter in constructor and auto in lambda
-    // BlockPartition(data_vector).for_each(
-    //     [](auto& item){
-    //         item = std::pow(item, 0.1);
-    //     });
-
-
-
 
     //here we check for a reduction (computing the sum of all the entries)
     auto final_sum = BlockPartition<std::vector<double>>(data_vector).for_reduce<SumReduction<double>>(
@@ -168,13 +158,6 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
                     return std::make_tuple( to_sum, to_max, to_min, to_sub ); //note that these may have different types
                 }
             );
-    // KRATOS_CHECK_EQUAL(reduction_res.GetValue<0>(), reference_sum );
-    // KRATOS_CHECK_EQUAL(reduction_res.GetValue<1>(), reference_min );
-    // KRATOS_CHECK_EQUAL(reduction_res.GetValue<2>(), reference_max );
-    // KRATOS_CHECK_EQUAL(reduction_res.GetValue<3>(), reference_sub );
-
-    // double sum,max,min,sub;
-    // std::tie(sum,max,min,sub) = reduction_res.ReturnValue();
     KRATOS_CHECK_EQUAL(sum, reference_sum );
     KRATOS_CHECK_EQUAL(min, reference_min );
     KRATOS_CHECK_EQUAL(max, reference_max );
