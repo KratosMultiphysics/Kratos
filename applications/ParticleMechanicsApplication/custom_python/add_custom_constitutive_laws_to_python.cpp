@@ -65,6 +65,7 @@
 #include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/johnson_cook_thermal_plastic_axisym_2D_law.hpp"
 
 namespace Kratos{
 namespace Python{
@@ -200,14 +201,19 @@ namespace Python{
 
         // Johnson Cook
         py::class_< JohnsonCookThermalPlastic3DLaw, typename JohnsonCookThermalPlastic3DLaw::Pointer, ConstitutiveLaw >
-            (m, "JohnsonCookThermalPlastic3DLaw")
-            .def(py::init<>())
-            ;
+        (m, "JohnsonCookThermalPlastic3DLaw")
+        .def(py::init<>())
+        ;
 
         py::class_< JohnsonCookThermalPlastic2DPlaneStrainLaw, typename JohnsonCookThermalPlastic2DPlaneStrainLaw::Pointer, ConstitutiveLaw >
-            (m, "JohnsonCookThermalPlastic2DPlaneStrainLaw")
-            .def(py::init<>())
-            ;
+        (m, "JohnsonCookThermalPlastic2DPlaneStrainLaw")
+        .def(py::init<>())
+        ;
+
+        py::class_< JohnsonCookThermalPlastic2DAxisymLaw, typename JohnsonCookThermalPlastic2DAxisymLaw::Pointer, ConstitutiveLaw >
+        (m, "JohnsonCookThermalPlastic2DAxisymLaw")
+        .def(py::init<>())
+        ;
     }
 }  // namespace Python.
 }  // namespace Kratos.

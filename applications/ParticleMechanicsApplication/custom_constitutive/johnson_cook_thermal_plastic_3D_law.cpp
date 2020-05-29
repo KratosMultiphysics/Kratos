@@ -332,7 +332,7 @@ namespace Kratos
 	}
 
 
-	double JohnsonCookThermalPlastic3DLaw::CalculateStrainRateHardeningFactor(const Properties& MaterialProperties, 
+	double JohnsonCookThermalPlastic3DLaw::CalculateStrainRateHardeningFactor(const Properties& MaterialProperties,
 		const double PlasticStrainRate)
 	{
 		// Calculate strain rate hardening factor
@@ -349,7 +349,7 @@ namespace Kratos
 	}
 
 
-	double JohnsonCookThermalPlastic3DLaw::CalculateThermalDerivative(const Properties& MaterialProperties, 
+	double JohnsonCookThermalPlastic3DLaw::CalculateThermalDerivative(const Properties& MaterialProperties,
 		const double EquivalentPlasticStrain, const double PlasticStrainRate, const double Temperature)
 	{
 		const double A = MaterialProperties[JC_PARAMETER_A];
@@ -372,7 +372,7 @@ namespace Kratos
 	}
 
 
-	double JohnsonCookThermalPlastic3DLaw::CalculatePlasticStrainRateDerivative(const Properties& MaterialProperties, 
+	double JohnsonCookThermalPlastic3DLaw::CalculatePlasticStrainRateDerivative(const Properties& MaterialProperties,
 		const double EquivalentPlasticStrain, const double PlasticStrainRate, const double Temperature)
 	{
 		const double A = MaterialProperties[JC_PARAMETER_A];
@@ -394,7 +394,7 @@ namespace Kratos
 	}
 
 
-	double JohnsonCookThermalPlastic3DLaw::CalculatePlasticStrainDerivative(const Properties& MaterialProperties, 
+	double JohnsonCookThermalPlastic3DLaw::CalculatePlasticStrainDerivative(const Properties& MaterialProperties,
 		const double EquivalentPlasticStrain, const double PlasticStrainRate, const double Temperature)
 	{
 		const double B = MaterialProperties[JC_PARAMETER_B];
