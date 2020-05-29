@@ -898,6 +898,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
         ModelPart::IndexType Id, std::vector<ModelPart::IndexType> ElementNodeIds,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     if (IsSubModelPart())
     {
         ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(ElementName, Id, ElementNodeIds, pProperties, ThisIndex);
@@ -913,6 +914,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     }
 
     return CreateNewElement(ElementName, Id, pElementNodes, pProperties, ThisIndex);
+    KRATOS_CATCH("");
 }
 
 /** Inserts an element in the mesh with ThisIndex.
@@ -1440,6 +1442,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
         ModelPart::IndexType Id, std::vector<IndexType> ConditionNodeIds,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     Geometry< Node < 3 > >::PointsArrayType pConditionNodes;
 
     for (unsigned int i = 0; i < ConditionNodeIds.size(); i++)
@@ -1448,6 +1451,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     }
 
     return CreateNewCondition(ConditionName, Id, pConditionNodes, pProperties, ThisIndex);
+    KRATOS_CATCH("")
 }
 
 /** Inserts a condition in the mesh with ThisIndex.
