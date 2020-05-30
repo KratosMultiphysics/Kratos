@@ -1566,8 +1566,8 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     else if (rVariable == MP_TOTAL_ENERGY) {
         rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
     }
-    else if (rVariable == HARDENING_RATIO) {
-        rValues[0] = mConstitutiveLawVector->GetValue(HARDENING_RATIO, rValues[0]);
+    else if (rVariable == MP_HARDENING_RATIO) {
+        rValues[0] = mConstitutiveLawVector->GetValue(MP_HARDENING_RATIO, rValues[0]);
     }
     else
     {

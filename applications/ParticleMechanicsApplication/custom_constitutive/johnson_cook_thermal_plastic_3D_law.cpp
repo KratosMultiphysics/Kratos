@@ -43,10 +43,10 @@ namespace Kratos
 
 	bool JohnsonCookThermalPlastic3DLaw::Has(const Variable<double>& rThisVariable)
 	{
-		if (rThisVariable == TEMPERATURE
-			|| rThisVariable == PLASTIC_STRAIN
-			|| rThisVariable == PLASTIC_STRAIN_RATE
-			|| rThisVariable == HARDENING_RATIO) return true;
+		if (rThisVariable == MP_TEMPERATURE
+			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN
+			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE
+			|| rThisVariable == MP_HARDENING_RATIO) return true;
 		else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function Has double.";
 
 		return false;
@@ -441,19 +441,19 @@ namespace Kratos
 
 	double& JohnsonCookThermalPlastic3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
 	{
-		if (rThisVariable == TEMPERATURE)
+		if (rThisVariable == MP_TEMPERATURE)
 		{
 			rValue = mTemperatureOld;
 		}
-		else if (rThisVariable == PLASTIC_STRAIN)
+		else if (rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN)
 		{
 			rValue = mEquivalentPlasticStrainOld;
 		}
-		else if (rThisVariable == PLASTIC_STRAIN_RATE)
+		else if (rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE)
 		{
 			rValue = mEquivalentPlasticStrainOld;
 		}
-		else if (rThisVariable == HARDENING_RATIO)
+		else if (rThisVariable == MP_HARDENING_RATIO)
 		{
 			rValue = mHardeningRatio;
 		}
@@ -465,7 +465,7 @@ namespace Kratos
 
 	void JohnsonCookThermalPlastic3DLaw::SetValue(const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
 	{
-		if (rThisVariable == TEMPERATURE)
+		if (rThisVariable == MP_TEMPERATURE)
 		{
 			if (mEquivalentPlasticStrainOld > 0)
 			{
