@@ -108,7 +108,7 @@ public:
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofsVectorType;
     typedef Kratos::Variable<double> DoubleVariableType;
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+    typedef Kratos::Variable<double> VariableComponentType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
