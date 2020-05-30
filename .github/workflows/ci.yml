@@ -203,7 +203,7 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/tests/test_KratosCore.py -l small -v2
+        # python kratos/tests/test_KratosCore.py -l small -v2
 
     - name: Running cpp tests
       shell: cmd
