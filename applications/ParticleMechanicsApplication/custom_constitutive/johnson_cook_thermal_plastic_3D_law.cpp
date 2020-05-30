@@ -46,10 +46,9 @@ namespace Kratos
 		if (rThisVariable == MP_TEMPERATURE
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE
-			|| rThisVariable == MP_HARDENING_RATIO) return true;
-		else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function Has double.";
-
-		return false;
+			|| rThisVariable == MP_HARDENING_RATIO)
+			return true;
+		else return false;
 	}
 
 
@@ -457,7 +456,7 @@ namespace Kratos
 		{
 			rValue = mHardeningRatio;
 		}
-		KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function GetValue double.";
+		else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function GetValue double.";
 
 		return(rValue);
 	}
