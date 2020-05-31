@@ -651,9 +651,14 @@ protected:
                     {
                         for (size_t dim = 0; dim < TDim; ++dim)
                         {
-                            unsigned int k = a * TDim + dim;
-                            rLocalVector[k] -= r_wall_velocity[dim] * value;
-                            rLocalMatrix(k, k) += value;
+                            for (size_t b = 0; b < r_geometry.PointsNumber(); ++b)
+                            {
+                                rLocalMatrix(a * TDim + dim, b * TDim + dim) +=
+                                    gauss_shape_functions[a] *
+                                    gauss_shape_functions[b] * value;
+                            }
+                            rLocalVector[a * TDim + dim] -=
+                                gauss_shape_functions[a] * value * r_wall_velocity[dim];
                         }
                     }
                 }
