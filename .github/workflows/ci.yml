@@ -86,7 +86,7 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        ll
+        ls -l
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
   ubuntu-mpi-tests:
