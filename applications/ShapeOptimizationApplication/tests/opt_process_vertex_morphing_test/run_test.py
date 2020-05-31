@@ -24,8 +24,10 @@ from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, os
 
-from .tent_analyzer import CustomAnalyzer
-
+try:
+    from .tent_analyzer import CustomAnalyzer
+except ImportError:
+    from tent_analyzer import CustomAnalyzer
 # =======================================================================================================
 # Perform optimization
 # =======================================================================================================
