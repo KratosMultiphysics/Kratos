@@ -5,6 +5,7 @@ on:
     branches:
       - master
 
+
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
@@ -19,7 +20,7 @@ jobs:
       MKLVARS_INTERFACE: lp64
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-bionic:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
       env:
         CCACHE_SLOPPINESS: pch_defines,time_macros
         CCACHE_COMPILERCHECK: content
@@ -88,6 +89,12 @@ jobs:
         path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
+      
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+      
     - name: Build
       shell: cmd
       run: |
