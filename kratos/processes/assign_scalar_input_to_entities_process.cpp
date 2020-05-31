@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "utilities/delaunator_utilities.h"
 #include "processes/assign_scalar_input_to_entities_process.h"
 
 namespace Kratos
