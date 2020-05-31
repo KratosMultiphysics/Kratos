@@ -7,7 +7,7 @@ on:
 
 
 jobs:
-  ubuntu:
+  ubuntu-build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -64,6 +64,19 @@ jobs:
         bash configure.sh
         ccache -s
 
+  ubuntu-tests:
+    needs: ubuntu-build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Custom, FullDebug]
+        compiler: [gcc, clang]
+    env:
+      KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      MKLVARS_ARCHITECTURE: intel64
+      MKLVARS_INTERFACE: lp64
+
     - name: Running small tests
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
@@ -89,12 +102,12 @@ jobs:
         path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
-      
+
     - name: Installing dependencies
       shell: cmd
       run: |
         pip install numpy
-      
+
     - name: Build
       shell: cmd
       run: |
