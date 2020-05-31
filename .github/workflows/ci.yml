@@ -61,7 +61,7 @@ jobs:
         fi
         . /opt/intel/mkl/bin/mklvars.sh
         cp .github/workflows/configure.sh configure.sh
-        bash configure.sh
+        # bash configure.sh
         ccache -s
 
   ubuntu-tests:
@@ -86,6 +86,7 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        ll
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
   ubuntu-mpi-tests:
