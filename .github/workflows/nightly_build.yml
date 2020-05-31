@@ -65,6 +65,11 @@ jobs:
       with:
         python-version: '3.6'
 
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+      
     - name: Build
       shell: cmd
       run: |

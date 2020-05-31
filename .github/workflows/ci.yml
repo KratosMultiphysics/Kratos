@@ -89,6 +89,12 @@ jobs:
         path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
+      
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+      
     - name: Build
       shell: cmd
       run: |
