@@ -11,8 +11,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_assign_scalar_input_to_entities_process_H_INCLUDED )
-#define  KRATOS_assign_scalar_input_to_entities_process_H_INCLUDED
+#if !defined(KRATOS_ASSIGN_SCALAR_INPUT_TO_ENTITIES_PROCESS_H_INCLUDED )
+#define  KRATOS_ASSIGN_SCALAR_INPUT_TO_ENTITIES_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -284,4 +284,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_assign_scalar_input_to_entities_process_H_INCLUDED  defined
+#endif // KRATOS_ASSIGN_SCALAR_INPUT_TO_ENTITIES_PROCESS_H_INCLUDED  defined
