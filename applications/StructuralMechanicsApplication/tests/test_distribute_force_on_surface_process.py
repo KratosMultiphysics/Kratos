@@ -30,7 +30,7 @@ class TestDistributeForceOnSurfaceProcess(KratosUnittest.TestCase):
 
         settings = KM.Parameters("""{
             "model_part_name": "main",
-            "direction": [1.0, 2.0, 3.0]
+            "force": [1.0, 2.0, 3.0]
         }""")
 
         process = DistributeForceOnSurfaceProcess(current_model, settings)

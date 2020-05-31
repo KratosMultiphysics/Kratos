@@ -24,11 +24,11 @@ class DistributeForceOnSurfaceProcess(KM.Process):
         # The value can be a double or a string (function)
         default_settings = KM.Parameters("""
         {
-            "help"                 : "This process distributes a force on surface load conditions belonging to a submodelpart. The force is distributed according to the surface area.",
-            "model_part_name"      : "please_specify_model_part_name",
-            "interval"             : [0.0, 1e30],
-            "modulus"              : 1.0,
-            "direction"            : [1.0, 0.0, 0.0]
+            "help"            : "This process distributes a force on surface load conditions belonging to a submodelpart. The force is distributed according to the surface area.",
+            "model_part_name" : "please_specify_model_part_name",
+            "interval"        : [0.0, 1e30],
+            "modulus"         : 1.0,
+            "force"           : [1.0, 0.0, 0.0]
         }
         """)
 
@@ -42,9 +42,9 @@ class DistributeForceOnSurfaceProcess(KM.Process):
         self.model_part = model.GetModelPart(settings["model_part_name"].GetString())
         modulus = settings["modulus"].GetDouble()
         self.force = [
-            settings["direction"][0].GetDouble() * modulus,
-            settings["direction"][1].GetDouble() * modulus,
-            settings["direction"][2].GetDouble() * modulus
+            settings["force"][0].GetDouble() * modulus,
+            settings["force"][1].GetDouble() * modulus,
+            settings["force"][2].GetDouble() * modulus
         ]
 
     def ExecuteInitializeSolutionStep(self):
