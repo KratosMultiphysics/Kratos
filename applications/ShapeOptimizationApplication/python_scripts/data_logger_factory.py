@@ -45,7 +45,7 @@ class DataLogger():
         {
             "output_directory"          : "Optimization_Results",
             "optimization_log_filename" : "optimization_log",
-            "design_output_mode"        : "WriteOptimizationModelPart",
+            "design_output_mode"        : "write_optimization_model_part",
             "nodal_results"             : [ "SHAPE_CHANGE" ],
             "output_format"             : { "name": "vtk" }
         }""")
@@ -76,6 +76,28 @@ class DataLogger():
 
     # -----------------------------------------------------------------------------
     def __CreateDesignLogger( self ):
+        valid_output_modes = ["write_design_surface", "write_optimization_model_part", "none"]
+        output_mode = self.OptimizationSettings["output"]["design_output_mode"].GetString()
+
+        # backward compatibility
+        if output_mode == "WriteDesignSurface":
+            KM.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteDesignSurface' is deprecated and replaced with 'write_design_surface'.")
+            self.OptimizationSettings["output"]["design_output_mode"].SetString("write_design_surface")
+            output_mode = self.OptimizationSettings["output"]["design_output_mode"].GetString()
+
+        if output_mode == "WriteOptimizationModelPart":
+            KM.Logger.PrintWarning("ShapeOpt", "'design_output_mode': 'WriteOptimizationModelPart' is deprecated and replaced with 'write_optimization_model_part'.")
+            self.OptimizationSettings["output"]["design_output_mode"].SetString("write_optimization_model_part")
+            output_mode = self.OptimizationSettings["output"]["design_output_mode"].GetString()
+
+        if output_mode not in valid_output_modes:
+            raise RuntimeError("Invalid 'design_output_mode', available options are: {}".format(valid_output_modes))
+
+        if output_mode == "none":
+            KM.Logger.Print("")
+            KM.Logger.PrintInfo("ShapeOpt", "No design output will be created because 'design_output_mode' = 'None'.")
+            return None
+
         outputFormatName = self.OptimizationSettings["output"]["output_format"]["name"].GetString()
         if outputFormatName == "gid":
             return DesignLoggerGID( self.ModelPartController, self.OptimizationSettings )
@@ -112,12 +134,14 @@ class DataLogger():
 
     # --------------------------------------------------------------------------
     def InitializeDataLogging( self ):
-        self.DesignLogger.InitializeLogging()
+        if self.DesignLogger:
+            self.DesignLogger.InitializeLogging()
         self.ValueLogger.InitializeLogging()
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, current_iteration ):
-        self.DesignLogger.LogCurrentDesign( current_iteration )
+        if self.DesignLogger:
+            self.DesignLogger.LogCurrentDesign( current_iteration )
 
     # --------------------------------------------------------------------------
     def LogCurrentValues( self, current_iteration, additional_values ):
@@ -125,7 +149,8 @@ class DataLogger():
 
     # --------------------------------------------------------------------------
     def FinalizeDataLogging( self ):
-        self.DesignLogger.FinalizeLogging()
+        if self.DesignLogger:
+            self.DesignLogger.FinalizeLogging()
         self.ValueLogger.FinalizeLogging()
 
     # --------------------------------------------------------------------------

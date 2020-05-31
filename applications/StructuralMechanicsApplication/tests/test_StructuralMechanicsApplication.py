@@ -22,6 +22,7 @@ from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
 from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia as TTestComputeMassMomentOfInertia
 from test_axis_projection import TestAxisProjection as TTestAxisProjection
+from test_distribute_force_on_surface_process import TestDistributeForceOnSurfaceProcess as TTestDistributeForceOnSurfaceProcess
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
@@ -195,6 +196,7 @@ from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
 # Serial-Parallel Tests
 from structural_mechanics_test_factory import SerialParallelRuleOfMixturesCubeDamageTest as TSerialParallelRuleOfMixturesCubeDamageTest
+from structural_mechanics_test_factory import AnisotropyTest as TAnisotropyTest
 
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
@@ -270,6 +272,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
     nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
+    nightSuite.addTest(TAnisotropyTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
@@ -283,6 +286,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeMassMomentOfInertia]))
     # Axis projection tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAxisProjection]))
+    # Force distribution process
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDistributeForceOnSurfaceProcess]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
