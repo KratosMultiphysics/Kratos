@@ -84,8 +84,8 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        # mpiexec -np 2 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi -v2
-        mpiexec -np 2 python3 kratos/mpi/tests/test_mpi_communicator.py TestMPICommunicator.testCommunicatorRankSize --using-mpi
+        mpiexec -np 2 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi -v2
+        # mpiexec -np 2 python3 kratos/mpi/tests/test_mpi_communicator.py TestMPICommunicator.testCommunicatorRankSize --using-mpi
 
     - name: Running MPI Python TrilinosApplication
       run: |
