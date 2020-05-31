@@ -7,7 +7,7 @@ on:
 
 
 jobs:
-  ubuntu-build:
+  ubuntu:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -61,79 +61,44 @@ jobs:
         fi
         . /opt/intel/mkl/bin/mklvars.sh
         cp .github/workflows/configure.sh configure.sh
-        # bash configure.sh
+        bash configure.sh
         ccache -s
 
-  ubuntu-tests:
-    needs: ubuntu-build
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        build-type: [Custom, FullDebug]
-        compiler: [gcc, clang]
-    env:
-      KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
-      MKLVARS_ARCHITECTURE: intel64
-      MKLVARS_INTERFACE: lp64
-
-    container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
-
-    steps:
     - name: Running small tests
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        ls -l
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
-  ubuntu-mpi-tests:
-    needs: ubuntu-build
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        build-type: [Custom, FullDebug]
-        compiler: [gcc, clang]
-        num-procs: [2,3,4]
-    env:
-      KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
-      MKLVARS_ARCHITECTURE: intel64
-      MKLVARS_INTERFACE: lp64
-
-    container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
-
-    steps:
     - name: Running MPI C++ tests
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np ${{ matrix.num-procs }} python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+        mpiexec -np 2 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPI Python tests
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np ${{ matrix.num-procs }} python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
+        mpiexec -np 2 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
 
     - name: Running MPI Python TrilinosApplication
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np ${{ matrix.num-procs }} python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
+        mpiexec -np 2 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
 
     - name: Running MPI Python MappingApplication
       run: |
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np ${{ matrix.num-procs }} python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
+        mpiexec -np 2 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
+
 
 
   windows:
