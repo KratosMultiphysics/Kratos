@@ -653,10 +653,6 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateCharacteristicReact
     }
 
     mCharacteristicReactionVariationRate = std::abs(norm_inf(max_target_stress-min_target_stress)) / r_final_time;
-
-    KRATOS_WATCH(max_target_stress)
-    KRATOS_WATCH(min_target_stress)
-    KRATOS_WATCH(norm_inf(max_target_stress-min_target_stress))
 }
 
 
