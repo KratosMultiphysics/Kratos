@@ -27,7 +27,6 @@ class DistributeForceOnSurfaceProcess(KM.Process):
             "help"            : "This process distributes a force on surface load conditions belonging to a submodelpart. The force is distributed according to the surface area.",
             "model_part_name" : "please_specify_model_part_name",
             "interval"        : [0.0, 1e30],
-            "modulus"         : 1.0,
             "force"           : [1.0, 0.0, 0.0]
         }
         """)
@@ -40,11 +39,10 @@ class DistributeForceOnSurfaceProcess(KM.Process):
         self.variable_utils = KM.VariableUtils()
 
         self.model_part = model.GetModelPart(settings["model_part_name"].GetString())
-        modulus = settings["modulus"].GetDouble()
         self.force = [
-            settings["force"][0].GetDouble() * modulus,
-            settings["force"][1].GetDouble() * modulus,
-            settings["force"][2].GetDouble() * modulus
+            settings["force"][0].GetDouble(),
+            settings["force"][1].GetDouble(),
+            settings["force"][2].GetDouble()
         ]
 
     def ExecuteInitializeSolutionStep(self):
