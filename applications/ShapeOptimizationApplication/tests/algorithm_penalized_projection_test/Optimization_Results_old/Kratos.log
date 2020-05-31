@@ -1,0 +1,364 @@
+Importing    KratosShapeOptimizationApplication 
+    KRATOS   __| |  |   \   _ \ __|
+           \__ \ __ |  _ \  __/ _|
+           ____/_| _|_/  _\_|  ___| OPTIMIZATION
+Initializing KratosShapeOptimizationApplication...
+Importing    KratosStructuralMechanicsApplication 
+    KRATOS   ___|  |                   |                   |
+           \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+                 | |   |    |   | (    |   |   | |   (   | |
+           _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+Initializing KratosStructuralMechanicsApplication...
+Importing    KratosConvectionDiffusionApplication 
+ KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+       / __/ _ || || | | / /__|   |_ _| __| __|
+      | (_| (_) | .` || V /___| |) | || _|| _| 
+       |___|___/|_||_| |_/    |___/___|_| |_|  APPLICATION
+Importing    EigenSolversApplication 
+Initializing KratosEigenSolversApplication...
+ 
+=============================================================================== 
+ShapeOpt: Tue May 19 09:14:55 2020 : Starting optimization using the following algorithm:  penalized_projection_old 
+===============================================================================
+ 
+ModelPartIO:   [Reading Nodes    : 1861 nodes read]
+ModelPartIO:   [Reading Elements : 3418 elements read] [Type: ShellThinElement3D3N]
+ModelPartIO:   [Reading Conditions : 1 conditions read] [Type: PointLoadCondition3D1N]
+ModelPartIO:   [Reading Conditions : 3418 conditions read] [Type: SurfaceCondition3D3N]
+ModelPartIO:   [Total Lines Read : 19690]
+ 
+ShapeOpt: The following design surface was defined:
+
+ -design_surface- model part
+    Number of tables : 0
+    Number of sub model parts : 0
+
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 1861
+        Number of Properties  : 0
+        Number of Elements    : 0
+        Number of Conditions  : 3418
+        Number of Constraints : 0
+
+ 
+Read materials: Started
+[WARNING] ReadMaterialsUtility: WARNING:: The properties ID: 0 in mesh ID: 0 is already defined. This will overwrite the existing values
+Read materials: Finished
+ShapeOpt: Starting initialization of mapper...
+ShapeOpt: Finished initialization of mapper in 0.0416797 s.
+ 
+ShapeOpt: The following objectives are defined:
+ 
+Parameters Object {
+    "analyzer": "kratos",
+    "combination_type": "sum",
+    "combined_responses": [],
+    "identifier": "mass",
+    "is_combined": false,
+    "project_gradient_on_surface_normals": true,
+    "response_settings": {
+        "gradient_mode": "finite_differencing",
+        "material_import_settings": {
+            "materials_filename": "materials.json"
+        },
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
+        },
+        "model_part_name": "3D_Shell",
+        "response_type": "mass",
+        "step_size": 1e-06
+    },
+    "scaling_factor": 1.0,
+    "type": "minimization",
+    "weight": 1.0
+}
+ 
+ShapeOpt: The following constraints are defined:
+ 
+Parameters Object {
+    "analyzer": "external",
+    "identifier": "distance",
+    "project_gradient_on_surface_normals": true,
+    "reference": "specified_value",
+    "reference_value": 0,
+    "response_settings": {},
+    "scaling_factor": 1.0,
+    "type": "="
+}
+ 
+ 
+ 
+=============================================================================== 
+ShapeOpt: Tue May 19 09:14:55 2020 : Starting optimization iteration  1 
+===============================================================================
+ 
+ 
+ShapeOpt: Starting to update the mesh 
+ShapeOpt: Time needed for updating the mesh =  0.0 s 
+MassResponse: Starting primal analysis for response mass 
+MassResponse: Time needed for calculating the response value =  0.0 s 
+MassResponse: Starting gradient calculation for response mass 
+FindNodalNeighboursProcess: please call separetely FindGlobalNodalNeighboursProcess 
+        and FindGlobalNodalElementalNeighboursProcess. 
+        The two calculations are currently independent,
+            hence memory savings can be achieved
+MassResponse: Time needed for calculating gradients 0.08 s 
+ShapeOpt: Starting to update mapper...
+ShapeOpt: Finished updating of mapper in 0.0304279 s.
+
+ShapeOpt: Starting inverse mapping of DF1DX...
+ShapeOpt: Finished mapping in 0.00135092 s.
+
+ShapeOpt: Starting inverse mapping of DC1DX...
+ShapeOpt: Finished mapping in 0.00091487 s.
+
+ShapeOpt: Constraint is active. Modified search direction on the constraint hyperplane is computed...
+
+ShapeOpt: Starting mapping of CONTROL_POINT_UPDATE...
+ShapeOpt: Finished mapping in 0.00126683 s.
+ 
+ShapeOpt: Current value of objective =   2.46597E+06 
+ShapeOpt: Absolut change of objective =   0.00000E+00  [%] 
+ShapeOpt: Relative change of objective =   0.00000E+00  [%]
+ 
+ShapeOpt: Value of C1 =   0.00000E+00 
+ 
+ShapeOpt: Time needed for current optimization step =  0.229 s 
+ShapeOpt: Time needed for total optimization so far =  0.229 s 
+ 
+=============================================================================== 
+ShapeOpt: Tue May 19 09:14:55 2020 : Starting optimization iteration  2 
+===============================================================================
+ 
+ 
+ShapeOpt: Starting to update the mesh 
+ShapeOpt: Time needed for updating the mesh =  0.0 s 
+MassResponse: Starting primal analysis for response mass 
+MassResponse: Time needed for calculating the response value =  0.0 s 
+MassResponse: Starting gradient calculation for response mass 
+FindNodalNeighboursProcess: please call separetely FindGlobalNodalNeighboursProcess 
+        and FindGlobalNodalElementalNeighboursProcess. 
+        The two calculations are currently independent,
+            hence memory savings can be achieved
+MassResponse: Time needed for calculating gradients 0.1 s 
+ShapeOpt: Starting to update mapper...
+ShapeOpt: Finished updating of mapper in 0.0330897 s.
+
+ShapeOpt: Starting inverse mapping of DF1DX...
+ShapeOpt: Finished mapping in 0.0016042 s.
+
+ShapeOpt: Starting inverse mapping of DC1DX...
+ShapeOpt: Finished mapping in 0.00100952 s.
+
+ShapeOpt: Constraint is active. Modified search direction on the constraint hyperplane is computed...
+
+ShapeOpt: Starting mapping of CONTROL_POINT_UPDATE...
+ShapeOpt: Finished mapping in 0.00140956 s.
+ 
+ShapeOpt: Current value of objective =   2.38314E+06 
+ShapeOpt: Absolut change of objective =  -3.35869E+00  [%] 
+ShapeOpt: Relative change of objective =  -3.35869E+00  [%]
+ 
+ShapeOpt: Value of C1 =   1.76535E-01 
+ 
+ShapeOpt: Time needed for current optimization step =  0.263 s 
+ShapeOpt: Time needed for total optimization so far =  0.491 s 
+ 
+=============================================================================== 
+ShapeOpt: Tue May 19 09:14:56 2020 : Starting optimization iteration  3 
+===============================================================================
+ 
+ 
+ShapeOpt: Starting to update the mesh 
+ShapeOpt: Time needed for updating the mesh =  0.0 s 
+MassResponse: Starting primal analysis for response mass 
+MassResponse: Time needed for calculating the response value =  0.0 s 
+MassResponse: Starting gradient calculation for response mass 
+FindNodalNeighboursProcess: please call separetely FindGlobalNodalNeighboursProcess 
+        and FindGlobalNodalElementalNeighboursProcess. 
+        The two calculations are currently independent,
+            hence memory savings can be achieved
+MassResponse: Time needed for calculating gradients 0.08 s 
+ShapeOpt: Starting to update mapper...
+ShapeOpt: Finished updating of mapper in 0.0357545 s.
+
+ShapeOpt: Starting inverse mapping of DF1DX...
+ShapeOpt: Finished mapping in 0.00152455 s.
+
+ShapeOpt: Starting inverse mapping of DC1DX...
+ShapeOpt: Finished mapping in 0.00100914 s.
+
+ShapeOpt: Constraint is active. Modified search direction on the constraint hyperplane is computed...
+
+ShapeOpt: Starting mapping of CONTROL_POINT_UPDATE...
+ShapeOpt: Finished mapping in 0.00132079 s.
+ 
+ShapeOpt: Current value of objective =   2.37689E+06 
+ShapeOpt: Absolut change of objective =  -3.61236E+00  [%] 
+ShapeOpt: Relative change of objective =  -2.53669E-01  [%]
+ 
+ShapeOpt: Value of C1 =   4.27885E-02 
+ 
+ShapeOpt: Time needed for current optimization step =  0.234 s 
+ShapeOpt: Time needed for total optimization so far =  0.726 s 
+ 
+=============================================================================== 
+ShapeOpt: Tue May 19 09:14:56 2020 : Starting optimization iteration  4 
+===============================================================================
+ 
+ 
+ShapeOpt: Starting to update the mesh 
+ShapeOpt: Time needed for updating the mesh =  0.0 s 
+MassResponse: Starting primal analysis for response mass 
+MassResponse: Time needed for calculating the response value =  0.0 s 
+MassResponse: Starting gradient calculation for response mass 
+FindNodalNeighboursProcess: please call separetely FindGlobalNodalNeighboursProcess 
+        and FindGlobalNodalElementalNeighboursProcess. 
+        The two calculations are currently independent,
+            hence memory savings can be achieved
+MassResponse: Time needed for calculating gradients 0.08 s 
+ShapeOpt: Starting to update mapper...
+ShapeOpt: Finished updating of mapper in 0.0329433 s.
+
+ShapeOpt: Starting inverse mapping of DF1DX...
+ShapeOpt: Finished mapping in 0.00155214 s.
+
+ShapeOpt: Starting inverse mapping of DC1DX...
+ShapeOpt: Finished mapping in 0.00110096 s.
+
+ShapeOpt: Constraint is active. Modified search direction on the constraint hyperplane is computed...
+
+ShapeOpt: Starting mapping of CONTROL_POINT_UPDATE...
+ShapeOpt: Finished mapping in 0.00150001 s.
+ 
+ShapeOpt: Current value of objective =   2.37236E+06 
+ShapeOpt: Absolut change of objective =  -3.79610E+00  [%] 
+ShapeOpt: Relative change of objective =  -1.83741E-01  [%]
+ 
+ShapeOpt: Value of C1 =   1.78459E-05 
+ 
+ShapeOpt: Time needed for current optimization step =  0.23 s 
+ShapeOpt: Time needed for total optimization so far =  0.956 s 
+ 
+=============================================================================== 
+ShapeOpt: Tue May 19 09:14:56 2020 : Starting optimization iteration  5 
+===============================================================================
+ 
+ 
+ShapeOpt: Starting to update the mesh 
+ShapeOpt: Time needed for updating the mesh =  0.0 s 
+MassResponse: Starting primal analysis for response mass 
+MassResponse: Time needed for calculating the response value =  0.0 s 
+MassResponse: Starting gradient calculation for response mass 
+FindNodalNeighboursProcess: please call separetely FindGlobalNodalNeighboursProcess 
+        and FindGlobalNodalElementalNeighboursProcess. 
+        The two calculations are currently independent,
+            hence memory savings can be achieved
+MassResponse: Time needed for calculating gradients 0.09 s 
+ShapeOpt: Starting to update mapper...
+ShapeOpt: Finished updating of mapper in 0.0330983 s.
+
+ShapeOpt: Starting inverse mapping of DF1DX...
+ShapeOpt: Finished mapping in 0.00153046 s.
+
+ShapeOpt: Starting inverse mapping of DC1DX...
+ShapeOpt: Finished mapping in 0.00111632 s.
+
+ShapeOpt: Constraint is active. Modified search direction on the constraint hyperplane is computed...
+ShapeOpt: Correction scaling needs to increase....
+
+ShapeOpt: Starting mapping of CONTROL_POINT_UPDATE...
+ShapeOpt: Finished mapping in 0.00171667 s.
+ 
+ShapeOpt: Current value of objective =   2.34267E+06 
+ShapeOpt: Absolut change of objective =  -5.00010E+00  [%] 
+ShapeOpt: Relative change of objective =  -1.20400E+00  [%]
+ 
+ShapeOpt: Value of C1 =   1.04742E-01 
+ 
+ShapeOpt: Time needed for current optimization step =  0.248 s 
+ShapeOpt: Time needed for total optimization so far =  1.204 s 
+ 
+=============================================================================== 
+ShapeOpt: Tue May 19 09:14:56 2020 : Starting optimization iteration  6 
+===============================================================================
+ 
+ 
+ShapeOpt: Starting to update the mesh 
+ShapeOpt: Time needed for updating the mesh =  0.0 s 
+MassResponse: Starting primal analysis for response mass 
+MassResponse: Time needed for calculating the response value =  0.0 s 
+MassResponse: Starting gradient calculation for response mass 
+FindNodalNeighboursProcess: please call separetely FindGlobalNodalNeighboursProcess 
+        and FindGlobalNodalElementalNeighboursProcess. 
+        The two calculations are currently independent,
+            hence memory savings can be achieved
+MassResponse: Time needed for calculating gradients 0.08 s 
+ShapeOpt: Starting to update mapper...
+ShapeOpt: Finished updating of mapper in 0.0329412 s.
+
+ShapeOpt: Starting inverse mapping of DF1DX...
+ShapeOpt: Finished mapping in 0.00172571 s.
+
+ShapeOpt: Starting inverse mapping of DC1DX...
+ShapeOpt: Finished mapping in 0.00109572 s.
+
+ShapeOpt: Constraint is active. Modified search direction on the constraint hyperplane is computed...
+
+ShapeOpt: Starting mapping of CONTROL_POINT_UPDATE...
+ShapeOpt: Finished mapping in 0.00159483 s.
+ 
+ShapeOpt: Current value of objective =   2.33873E+06 
+ShapeOpt: Absolut change of objective =  -5.15965E+00  [%] 
+ShapeOpt: Relative change of objective =  -1.59552E-01  [%]
+ 
+ShapeOpt: Value of C1 =   1.29973E-02 
+ 
+ShapeOpt: Time needed for current optimization step =  0.231 s 
+ShapeOpt: Time needed for total optimization so far =  1.435 s 
+ 
+=============================================================================== 
+ShapeOpt: Tue May 19 09:14:57 2020 : Starting optimization iteration  7 
+===============================================================================
+ 
+ 
+ShapeOpt: Starting to update the mesh 
+ShapeOpt: Time needed for updating the mesh =  0.0 s 
+MassResponse: Starting primal analysis for response mass 
+MassResponse: Time needed for calculating the response value =  0.0 s 
+MassResponse: Starting gradient calculation for response mass 
+FindNodalNeighboursProcess: please call separetely FindGlobalNodalNeighboursProcess 
+        and FindGlobalNodalElementalNeighboursProcess. 
+        The two calculations are currently independent,
+            hence memory savings can be achieved
+MassResponse: Time needed for calculating gradients 0.07 s 
+ShapeOpt: Starting to update mapper...
+ShapeOpt: Finished updating of mapper in 0.0449201 s.
+
+ShapeOpt: Starting inverse mapping of DF1DX...
+ShapeOpt: Finished mapping in 0.00334032 s.
+
+ShapeOpt: Starting inverse mapping of DC1DX...
+ShapeOpt: Finished mapping in 0.0022846 s.
+
+ShapeOpt: Constraint is active. Modified search direction on the constraint hyperplane is computed...
+
+ShapeOpt: Starting mapping of CONTROL_POINT_UPDATE...
+ShapeOpt: Finished mapping in 0.0033237 s.
+ 
+ShapeOpt: Current value of objective =   2.33628E+06 
+ShapeOpt: Absolut change of objective =  -5.25898E+00  [%] 
+ShapeOpt: Relative change of objective =  -9.93309E-02  [%]
+ 
+ShapeOpt: Value of C1 =   8.62954E-03 
+ 
+ShapeOpt: Time needed for current optimization step =  0.285 s 
+ShapeOpt: Time needed for total optimization so far =  1.72 s 
+ 
+ShapeOpt: Optimization problem converged within a relative objective tolerance of  0.1 %. 
+ 
+=============================================================================== 
+ShapeOpt: Finished optimization 
+===============================================================================
+ 
