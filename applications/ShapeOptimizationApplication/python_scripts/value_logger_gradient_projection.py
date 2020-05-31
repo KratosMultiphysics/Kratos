@@ -36,6 +36,8 @@ class ValueLoggerGradientProjection( ValueLogger ):
                 row.append("{:>13s}".format("c"+str(itr+1)+"_ref"))
 
             row.append("{:>13s}".format("step_size"))
+            row.append("{:>13s}".format("inf_norm_s"))
+            row.append("{:>13s}".format("inf_norm_c"))
             row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
 
@@ -70,6 +72,8 @@ class ValueLoggerGradientProjection( ValueLogger ):
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
 
             row.append(" {:> .5E}".format(self.history["step_size"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["inf_norm_s"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["inf_norm_c"][self.current_index]))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 

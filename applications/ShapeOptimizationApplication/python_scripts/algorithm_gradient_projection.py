@@ -31,7 +31,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         default_algorithm_settings = KM.Parameters("""
         {
             "name"                    : "penalized_projection",
-            "max_correction_share"    : 0.5,
+            "max_correction_share"    : 0.75,
             "max_iterations"          : 100,
             "relative_tolerance"      : 1e-3,
             "line_search" : {
@@ -205,25 +205,29 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         g_a, g_a_variables = self.__getActiveConstraints()
 
-        if len(g_a) == 0:
-            self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
-            return
-
-        print("AssembleVector")
+        KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
         nabla_f = KM.Vector()
+        s = KM.Vector()
         gp_utilities.AssembleVector(nabla_f, KSO.DF1DX_MAPPED)
 
-        print("AssembleMatrix")
-        print(g_a_variables)
-        N = KM.Matrix()
-        gp_utilities.AssembleMatrix(N, g_a_variables)
+        if len(g_a) == 0:
+            KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
+            s = nabla_f * (-1.0)
+            s *= self.step_size / s.norm_inf()
+            gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
+            gp_utilities.AssignVectorToVariable([0.0]*len(s), KSO.CORRECTION)
+            gp_utilities.AssignVectorToVariable(s, KSO.CONTROL_POINT_UPDATE)
+            return
 
-        print("Create Solver")
+
+        KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
+        N = KM.Matrix()
+        gp_utilities.AssembleMatrix(N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+
         settings = KM.Parameters('{ "solver_type" : "EigenSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
 
-        print("AssembleVector")
-        s = KM.Vector()
+        KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
         c = KM.Vector()
         gp_utilities.CalculateProjectedSearchDirectionAndCorrection(
             nabla_f,
@@ -238,6 +242,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 delta = self.step_size - c.norm_inf()
                 s *= delta/s.norm_inf()
             else:
+                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
                 c *= self.max_correction_share * self.step_size / c.norm_inf()
                 s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
         else:
@@ -277,6 +282,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
+        additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.SEARCH_DIRECTION)
+        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.CORRECTION)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 
