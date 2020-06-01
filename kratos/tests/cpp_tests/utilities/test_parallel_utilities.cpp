@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     }
 
     //here we check for a reduction (computing the sum of all the entries)
-    auto final_sum = BlockPartition<std::vector<double>>(data_vector).for_reduce<SumReduction<double>>(
+    auto final_sum = BlockPartition<std::vector<double>>(data_vector).for_each<SumReduction<double>>(
         [](double& item)
         {
             return item;
@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     auto partition = IndexPartition<unsigned int>(data_vector.size());
 
     double max_value,max_abs;
-    std::tie(max_value,max_abs) = partition.for_reduce<CustomReducer>([&](unsigned int i){
+    std::tie(max_value,max_abs) = partition.for_each<CustomReducer>([&](unsigned int i){
             return data_vector[i]; //note that here the lambda returns the values to be reduced
         });
 
@@ -137,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(max_abs, nsize-1 );
 
     //same but with short form with block version
-    std::tie(max_value,max_abs) = block_for_reduce<CustomReducer>(data_vector,[&](double& item){
+    std::tie(max_value,max_abs) = block_for_each<CustomReducer>(data_vector,[&](double& item){
             return item; //note that here the lambda returns the values to be reduced
         });
 
@@ -157,7 +157,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     //auto reduction_res
     double sum,min,max,sub;
     std::tie(sum,min,max,sub) = IndexPartition<unsigned int>(data_vector.size()).
-        for_reduce<MultipleReduction>(
+        for_each<MultipleReduction>(
             [&](unsigned int i){
                     double to_sum = data_vector[i];
                     double to_max = data_vector[i];

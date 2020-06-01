@@ -104,7 +104,7 @@ public:
      * @param f - must be a unary function accepting as input TContainerType::value_type&
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::value_type for_reduce(TUnaryFunction &&f)
+    inline typename TReducer::value_type for_each(TUnaryFunction &&f)
     {
         TReducer global_reducer;
         #pragma omp parallel for
@@ -139,9 +139,9 @@ void block_for_each(TContainerType &&v, TFunctionType &&func) {
 }
 
 template <class TReducer, class TContainerType, class TFunctionType>
-typename TReducer::value_type block_for_reduce(TContainerType &&v, TFunctionType &&func) {
+typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &&func) {
     return BlockPartition<typename std::decay<TContainerType>::type>
-        (std::forward<TContainerType>(v)).template for_reduce<TReducer>(std::forward<TFunctionType>(func));
+        (std::forward<TContainerType>(v)).template for_each<TReducer>(std::forward<TFunctionType>(func));
 }
 
 //***********************************************************************************
@@ -230,7 +230,7 @@ public:
      * @param f - must be a unary function accepting as input IndexType
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::value_type for_reduce(TUnaryFunction &&f)
+    inline typename TReducer::value_type for_each(TUnaryFunction &&f)
     {
         TReducer global_reducer;
         #pragma omp parallel for
