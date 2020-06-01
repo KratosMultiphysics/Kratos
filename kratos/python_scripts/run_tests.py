@@ -173,15 +173,18 @@ class Commander(object):
 
 
 def print_test_header(application):
+    sys.stdout.flush()
     print("\nRunning {} tests".format(application), file=sys.stderr)
     sys.stderr.flush()
 
 def print_test_footer(application, exit_code):
+    sys.stdout.flush()
     appendix = " with exit code {}!".format(exit_code) if exit_code != 0 else "."
     print("Completed {} tests{}\n".format(application, appendix), file=sys.stderr)
     sys.stderr.flush()
 
 def print_summary(exit_codes):
+    sys.stdout.flush()
     print("Test results summary:", file=sys.stderr)
     max_test_name_length = len(max(exit_codes.keys(), key=len))
     for test, exit_code in exit_codes.items():
