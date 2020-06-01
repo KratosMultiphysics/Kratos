@@ -73,6 +73,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_ray_casting_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_elemental_neighbours_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/time_averaging_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/from_json_check_result_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -104,6 +105,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/delaunator_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/string_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
