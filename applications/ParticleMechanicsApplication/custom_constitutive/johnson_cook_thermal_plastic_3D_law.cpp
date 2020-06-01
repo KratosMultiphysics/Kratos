@@ -123,6 +123,7 @@ namespace Kratos
 
 		if (j2_stress_trial > yield_stress && yield_stress/mYieldStressVirgin > yield_stress_failure_ratio)
 		{
+			std::cout << "\nJohnson cook NR iteration ===========\n";
 			// Thermal properties
 			const double eta = 0.9; // TODO check this
 			const double specific_heat_Cp = MaterialProperties[SPECIFIC_HEAT];
@@ -153,6 +154,7 @@ namespace Kratos
 
 				// Compute yield function and derivative
 				yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - yield_stress;
+				std::cout << "yield function = " << yield_function << "\n";
 				if (yield_function < 0.0) gamma_max = gamma;
 				else gamma_min = gamma;
 				dYield_dGamma = CalculatePlasticStrainDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
