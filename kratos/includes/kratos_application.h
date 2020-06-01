@@ -119,7 +119,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpElements(rOther.mpElements),
           mpConditions(rOther.mpConditions),
           mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints),
-          mpModelers(rOther.mpModelers) {},
+          mpModelers(rOther.mpModelers),
           mpProcesses(rOther.mpProcesses) {}
 
     /// Destructor.
