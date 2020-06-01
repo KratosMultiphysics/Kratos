@@ -46,7 +46,8 @@ namespace Kratos
 		if (rThisVariable == MP_TEMPERATURE
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE
-			|| rThisVariable == MP_HARDENING_RATIO)
+			|| rThisVariable == MP_HARDENING_RATIO
+			|| rThisVariable == MP_EQUIVALENT_STRESS)
 			return true;
 		else return false;
 	}
@@ -209,6 +210,7 @@ namespace Kratos
 		}
 
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * IdentityMatrix(3);
+		mEquivalentStress = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_converged));
 
 		// Store stresses and strains
 		MakeStrainStressVectorFromMatrix(stress_converged, StressVector);
@@ -235,8 +237,10 @@ namespace Kratos
 		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_m);
 		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_n);
 		KRATOS_CHECK_VARIABLE_KEY(REFERENCE_STRAIN_RATE);
+		KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
 		KRATOS_CHECK_VARIABLE_KEY(REFERENCE_TEMPERATURE);
 		KRATOS_CHECK_VARIABLE_KEY(MELD_TEMPERATURE);
+		KRATOS_CHECK_VARIABLE_KEY(SPECIFIC_HEAT);
 
 		if (check_base > 1) return 1;
 		return 0;
@@ -455,6 +459,10 @@ namespace Kratos
 		else if (rThisVariable == MP_HARDENING_RATIO)
 		{
 			rValue = mHardeningRatio;
+		}
+		else if (rThisVariable == MP_EQUIVALENT_STRESS)
+		{
+			rValue = mEquivalentStress;
 		}
 		else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function GetValue double.";
 

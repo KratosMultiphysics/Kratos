@@ -1575,6 +1575,9 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     else if (rVariable == MP_HARDENING_RATIO) {
         rValues[0] = mConstitutiveLawVector->GetValue(MP_HARDENING_RATIO, rValues[0]);
     }
+    else if (rVariable == MP_EQUIVALENT_STRESS) {
+        rValues[0] = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_STRESS, rValues[0]);
+    }
     else
     {
         KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;

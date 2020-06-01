@@ -123,6 +123,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    double mEquivalentStress;
     Vector mStrainOld;
     double mEquivalentPlasticStrainOld;
     double mPlasticStrainRateOld;
@@ -189,6 +190,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
 
+        rSerializer.save("mEquivalentStress", mEquivalentStress);
         rSerializer.save("mStrainOld", mStrainOld);
         rSerializer.save("mEquivalentPlasticStrainOld", mEquivalentPlasticStrainOld);
         rSerializer.save("mPlasticStrainRateOld", mPlasticStrainRateOld);
@@ -205,6 +207,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
 
+        rSerializer.load("mEquivalentStress", mEquivalentStress);
         rSerializer.load("mStrainOld", mStrainOld);
         rSerializer.load("mEquivalentPlasticStrainOld", mEquivalentPlasticStrainOld);
         rSerializer.load("mPlasticStrainRateOld", mPlasticStrainRateOld);
