@@ -2,8 +2,11 @@
 
 [![Build Status](https://travis-ci.org/nlohmann/json.svg?branch=master)](https://travis-ci.org/nlohmann/json)
 [![Build Status](https://ci.appveyor.com/api/projects/status/1acb366xfyg3qybk/branch/develop?svg=true)](https://ci.appveyor.com/project/nlohmann/json)
+[![Ubuntu](https://github.com/nlohmann/json/workflows/Ubuntu/badge.svg)](https://github.com/nlohmann/json/actions?query=workflow%3AUbuntu)
+[![macOS](https://github.com/nlohmann/json/workflows/macOS/badge.svg)](https://github.com/nlohmann/json/actions?query=workflow%3AmacOS)
+[![Windows](https://github.com/nlohmann/json/workflows/Windows/badge.svg)](https://github.com/nlohmann/json/actions?query=workflow%3AWindows)
 [![Build Status](https://circleci.com/gh/nlohmann/json.svg?style=svg)](https://circleci.com/gh/nlohmann/json)
-[![Coverage Status](https://img.shields.io/coveralls/nlohmann/json.svg)](https://coveralls.io/r/nlohmann/json)
+[![Coverage Status](https://coveralls.io/repos/github/nlohmann/json/badge.svg?branch=develop)](https://coveralls.io/github/nlohmann/json?branch=develop)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/5550/badge.svg)](https://scan.coverity.com/projects/nlohmann-json)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f3732b3327e34358a0e9d1fe9f661f08)](https://www.codacy.com/app/nlohmann/json?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nlohmann/json&amp;utm_campaign=Badge_Grade)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/nlohmann/json.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/nlohmann/json/context:cpp)
@@ -11,6 +14,7 @@
 [![Try online](https://img.shields.io/badge/try-online-blue.svg)](https://wandbox.org/permlink/3lCHrFUZANONKv7a)
 [![Documentation](https://img.shields.io/badge/docs-doxygen-blue.svg)](http://nlohmann.github.io/json)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/nlohmann/json/master/LICENSE.MIT)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnlohmann%2Fjson.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnlohmann%2Fjson?ref=badge_shield)
 [![GitHub Releases](https://img.shields.io/github/release/nlohmann/json.svg)](https://github.com/nlohmann/json/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/nlohmann/json/total)](https://github.com/nlohmann/json/releases)
 [![GitHub Issues](https://img.shields.io/github/issues/nlohmann/json.svg)](http://github.com/nlohmann/json/issues)
@@ -144,7 +148,7 @@ Example:
 include(FetchContent)
 
 FetchContent_Declare(json
-  GIT_REPOSITORY https://github.com/nlohmann/json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
   GIT_TAG v3.7.3)
 
 FetchContent_GetProperties(json)
@@ -540,6 +544,11 @@ for (auto& [key, value] : o.items()) {
 }
 
 // find an entry
+if (o.contains("foo")) {
+  // there is an entry with key "foo"
+}
+
+// or via find and an iterator
 if (o.find("foo") != o.end()) {
   // there is an entry with key "foo"
 }
@@ -1046,13 +1055,43 @@ std::vector<std::uint8_t> v_ubjson = json::to_ubjson(j);
 json j_from_ubjson = json::from_ubjson(v_ubjson);
 ```
 
+The library also supports binary types from BSON, CBOR (byte strings), and MessagePack (bin, ext, fixext). They are stored by default as `std::vector<std::uint8_t>` to be processed outside of the library.
+
+```cpp
+// CBOR byte string with payload 0xCAFE
+std::vector<std::uint8_t> v = {0x42, 0xCA, 0xFE};
+
+// read value
+json j = json::from_cbor(v);
+
+// the JSON value has type binary
+j.is_binary(); // true
+
+// get reference to stored binary value
+auto& binary = j.get_binary();
+
+// the binary value has no subtype (CBOR has no binary subtypes)
+binary.has_subtype(); // false
+
+// access std::vector<std::uint8_t> member functions
+binary.size(); // 2
+binary[0]; // 0xCA
+binary[1]; // 0xFE
+
+// set subtype to 0x10
+binary.set_subtype(0x10);
+
+// serialize to MessagePack
+auto cbor = json::to_msgpack(j); // 0xD5 (fixext2), 0x10, 0xCA, 0xFE
+```
+
 
 ## Supported compilers
 
-Though it's 2019 already, the support for C++11 is still a bit sparse. Currently, the following compilers are known to work:
+Though it's 2020 already, the support for C++11 is still a bit sparse. Currently, the following compilers are known to work:
 
-- GCC 4.8 - 9.2 (and possibly later)
-- Clang 3.4 - 9.0 (and possibly later)
+- GCC 4.8 - 10.1 (and possibly later)
+- Clang 3.4 - 10.0 (and possibly later)
 - Intel C++ Compiler 17.0.2 (and possibly later)
 - Microsoft Visual C++ 2015 / Build Tools 14.0.25123.0 (and possibly later)
 - Microsoft Visual C++ 2017 / Build Tools 15.5.180.51428 (and possibly later)
@@ -1077,36 +1116,42 @@ Please note:
 
 - Unsupported versions of GCC and Clang are rejected by `#error` directives. This can be switched off by defining `JSON_SKIP_UNSUPPORTED_COMPILER_CHECK`. Note that you can expect no support in this case.
 
-The following compilers are currently used in continuous integration at [Travis](https://travis-ci.org/nlohmann/json), [AppVeyor](https://ci.appveyor.com/project/nlohmann/json), and [CircleCI](https://circleci.com/gh/nlohmann/json):
+The following compilers are currently used in continuous integration at [Travis](https://travis-ci.org/nlohmann/json), [AppVeyor](https://ci.appveyor.com/project/nlohmann/json), [GitHub Actions](https://github.com/nlohmann/json/actions), and [CircleCI](https://circleci.com/gh/nlohmann/json):
 
-| Compiler              | Operating System             | Version String |
-|-----------------------|------------------------------|----------------|
-| GCC 4.8.5             | Ubuntu 14.04.5 LTS           | g++-4.8 (Ubuntu 4.8.5-2ubuntu1~14.04.2) 4.8.5 |
-| GCC 4.9.4             | Ubuntu 14.04.1 LTS           | g++-4.9 (Ubuntu 4.9.4-2ubuntu1~14.04.1) 4.9.4 |
-| GCC 5.5.0             | Ubuntu 14.04.1 LTS           | g++-5 (Ubuntu 5.5.0-12ubuntu1~14.04) 5.5.0 20171010 |
-| GCC 6.3.0             | Debian 9 (stretch)           | g++ (Debian 6.3.0-18+deb9u1) 6.3.0 20170516 |
-| GCC 6.4.0             | Ubuntu 14.04.1 LTS           | g++-6 (Ubuntu 6.4.0-17ubuntu1~14.04) 6.4.0 20180424 |
-| GCC 7.3.0             | Ubuntu 14.04.1 LTS           | g++-7 (Ubuntu 7.3.0-21ubuntu1~14.04) 7.3.0 |
-| GCC 7.3.0             | Windows Server 2012 R2 (x64) | g++ (x86_64-posix-seh-rev0, Built by MinGW-W64 project) 7.3.0 |
-| GCC 8.1.0             | Ubuntu 14.04.1 LTS           | g++-8 (Ubuntu 8.1.0-5ubuntu1~14.04) 8.1.0 |
-| GCC 9.2.1             | Ubuntu 14.05.1 LTS           | g++-9 (Ubuntu 9.2.1-16ubuntu1~14.04.1) 9.2.1 20191030 |
-| Clang 3.5.0           | Ubuntu 14.04.1 LTS           | clang version 3.5.0-4ubuntu2~trusty2 (tags/RELEASE_350/final) (based on LLVM 3.5.0) |
-| Clang 3.6.2           | Ubuntu 14.04.1 LTS           | clang version 3.6.2-svn240577-1~exp1 (branches/release_36) (based on LLVM 3.6.2) |
-| Clang 3.7.1           | Ubuntu 14.04.1 LTS           | clang version 3.7.1-svn253571-1~exp1 (branches/release_37) (based on LLVM 3.7.1) |
-| Clang 3.8.0           | Ubuntu 14.04.1 LTS           | clang version 3.8.0-2ubuntu3~trusty5 (tags/RELEASE_380/final) |
-| Clang 3.9.1           | Ubuntu 14.04.1 LTS           | clang version 3.9.1-4ubuntu3~14.04.3 (tags/RELEASE_391/rc2) |
-| Clang 4.0.1           | Ubuntu 14.04.1 LTS           | clang version 4.0.1-svn305264-1~exp1 (branches/release_40) |
-| Clang 5.0.2           | Ubuntu 14.04.1 LTS           | clang version 5.0.2-svn328729-1~exp1~20180509123505.100 (branches/release_50) |
-| Clang 6.0.1           | Ubuntu 14.04.1 LTS           | clang version 6.0.1-svn334776-1~exp1~20180726133705.85 (branches/release_60) |
-| Clang 7.0.1           | Ubuntu 14.04.1 LTS           | clang version 7.0.1-svn348686-1~exp1~20181213084532.54 (branches/release_70) |
-| Clang Xcode 9.3       | OSX 10.13.3                  | Apple LLVM version 9.1.0 (clang-902.0.39.2) |
-| Clang Xcode 10.0      | OSX 10.13.3                  | Apple LLVM version 10.0.0 (clang-1000.11.45.2) |
-| Clang Xcode 10.1      | OSX 10.13.3                  | Apple LLVM version 10.0.0 (clang-1000.11.45.5) |
-| Clang Xcode 10.2      | OSX 10.14.4                  | Apple LLVM version 10.0.1 (clang-1001.0.46.4) |
-| Clang Xcode 11.2.1    | OSX 10.14.4                  | Apple LLVM version 11.0.0 (clang-1100.0.33.12) |
-| Visual Studio 14 2015 | Windows Server 2012 R2 (x64) | Microsoft (R) Build Engine version 14.0.25420.1, MSVC 19.0.24215.1 |
-| Visual Studio 15 2017 | Windows Server 2012 R2 (x64) | Microsoft (R) Build Engine version 15.9.21+g9802d43bc3, MSVC 19.16.27032.1 |
-| Visual Studio 16 2019 | Windows Server 2012 R2 (x64) | Microsoft (R) Build Engine version 16.3.1+1def00d3d, MSVC 19.23.28106.4 |
+| Compiler                                                        | Operating System   | CI Provider    |
+|-----------------------------------------------------------------|--------------------|----------------|
+| Apple Clang 9.1.0 (clang-902.0.39.1); Xcode 9.3                 | macOS 10.13.3      | Travis         |
+| Apple Clang 9.1.0 (clang-902.0.39.2); Xcode 9.4.1               | macOS 10.13.6      | Travis         |
+| Apple Clang 10.0.0 (clang-1000.11.45.2); Xcode 10.0             | macOS 10.13.6      | Travis         |
+| Apple Clang 10.0.0 (clang-1000.11.45.5); Xcode 10.1             | macOS 10.13.6      | Travis         |
+| Apple Clang 10.0.1 (clang-1001.0.46.4); Xcode 10.2.1            | macOS 10.14.4      | Travis         |
+| Apple Clang 11.0.0 (clang-1100.0.33.12); Xcode 11.2.1           | macOS 10.14.6      | Travis         |
+| Apple Clang 11.0.3 (clang-1103.0.32.59); Xcode 11.4.1           | macOS 10.15.4      | GitHub Actions |
+| Clang 3.5.0 (3.5.0-4ubuntu2~trusty2)                            | Ubuntu 14.04.5 LTS | Travis         |
+| Clang 3.6.2 (3.6.2-svn240577-1~exp1)                            | Ubuntu 14.04.5 LTS | Travis         |
+| Clang 3.7.1 (3.7.1-svn253571-1~exp1)                            | Ubuntu 14.04.5 LTS | Travis         |
+| Clang 3.8.0 (3.8.0-2ubuntu3~trusty5)                            | Ubuntu 14.04.5 LTS | Travis         |
+| Clang 3.9.1 (3.9.1-4ubuntu3~14.04.3)                            | Ubuntu 14.04.5 LTS | Travis         |
+| Clang 4.0.1 (4.0.1-svn305264-1~exp1)                            | Ubuntu 14.04.5 LTS | Travis         |
+| Clang 5.0.2 (version 5.0.2-svn328729-1~exp1~20180509123505.100) | Ubuntu 14.04.5 LTS | Travis         |
+| Clang 6.0.1 (6.0.1-svn334776-1~exp1~20190309042707.121)         | Ubuntu 14.04.5 LTS | Travis         |
+| Clang 7.1.0 (7.1.0-svn353565-1~exp1~20190419134007.64)          | Ubuntu 14.04.5 LTS | Travis         |
+| Clang 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)                       | Ubuntu 18.04.4 LTS | Travis         |
+| GCC 4.8.5 (Ubuntu 4.8.5-4ubuntu8~14.04.2)                       | Ubuntu 14.04.5 LTS | Travis         |
+| GCC 4.9.4 (Ubuntu 4.9.4-2ubuntu1~14.04.1)                       | Ubuntu 14.04.5 LTS | Travis         |
+| GCC 5.5.0 (Ubuntu 5.5.0-12ubuntu1~14.04)                        | Ubuntu 14.04.5 LTS | Travis         |
+| GCC 6.3.0 (Debian 6.3.0-18+deb9u1)                              | Debian 9           | Circle CI      |
+| GCC 6.5.0 (Ubuntu 6.5.0-2ubuntu1~14.04.1)                       | Ubuntu 14.04.5 LTS | Travis         |
+| GCC 7.3.0 (x86_64-posix-seh-rev0, Built by MinGW-W64 project)   | Windows-6.3.9600   | AppVeyor       |
+| GCC 7.5.0 (Ubuntu 7.5.0-3ubuntu1~14.04.1)                       | Ubuntu 14.04.5 LTS | Travis         |
+| GCC 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)                         | Ubuntu 18.04.4 LTS | GitHub Actions |
+| GCC 8.4.0 (Ubuntu 8.4.0-1ubuntu1~14.04)                         | Ubuntu 14.04.5 LTS | Travis         |
+| GCC 9.3.0 (Ubuntu 9.3.0-11ubuntu0~14.04)                        | Ubuntu 14.04.5 LTS | Travis         |
+| GCC 10.1.0 (Arch Linux latest)                                  | Arch Linux         | Circle CI      |
+| MSVC 19.0.24241.7 (Build Engine version 14.0.25420.1)           | Windows-6.3.9600   | AppVeyor       |
+| MSVC 19.16.27035.0 (15.9.21+g9802d43bc3 for .NET Framework)     | Windows-10.0.14393 | AppVeyor       |
+| MSVC 19.25.28614.0 (Build Engine version 16.5.0+d4cbfca49 for .NET Framework) | Windows-10.0.17763  | AppVeyor       |
+| MSVC 19.25.28614.0 (Build Engine version 16.5.0+d4cbfca49 for .NET Framework) | Windows-10.0.17763  | GitHub Actions |
 
 ## License
 
@@ -1185,7 +1230,7 @@ I deeply appreciate the help of the following people.
 - [Mário Feroldi](https://github.com/thelostt) fixed a small typo.
 - [duncanwerner](https://github.com/duncanwerner) found a really embarrassing performance regression in the 2.0.0 release.
 - [Damien](https://github.com/dtoma) fixed one of the last conversion warnings.
-- [Thomas Braun](https://github.com/t-b) fixed a warning in a test case.
+- [Thomas Braun](https://github.com/t-b) fixed a warning in a test case and adjusted MSVC calls in the CI.
 - [Théo DELRIEU](https://github.com/theodelrieu) patiently and constructively oversaw the long way toward [iterator-range parsing](https://github.com/nlohmann/json/issues/290). He also implemented the magic behind the serialization/deserialization of user-defined types and split the single header file into smaller chunks.
 - [Stefan](https://github.com/5tefan) fixed a minor issue in the documentation.
 - [Vasil Dimov](https://github.com/vasild) fixed the documentation regarding conversions from `std::multiset`.
@@ -1329,6 +1374,33 @@ I deeply appreciate the help of the following people.
 - [Florian Pigorsch](https://github.com/flopp) fixed a lot of typos.
 - [Camille Bégué](https://github.com/cbegue) fixed an issue in the conversion from  `std::pair` and `std::tuple` to `json`.
 - [Anthony VH](https://github.com/AnthonyVH) fixed a compile error in an enum deserialization.
+- [Yuriy Vountesmery](https://github.com/ua-code-dragon) noted a subtle bug in a preprocessor check.
+- [Chen](https://github.com/dota17) fixed numerous issues in the library.
+- [Antony Kellermann](https://github.com/aokellermann) added a CI step for GCC 10.1.
+- [Alex](https://github.com/gistrec) fixed an MSVC warning.
+- [Rainer](https://github.com/rvjr) proposed an improvement in the floating-point serialization in CBOR.
+- [Francois Chabot](https://github.com/FrancoisChabot) made performance improvements in the input adapters.
+- [Arthur Sonzogni](https://github.com/ArthurSonzogni) documented how the library can be included via `FetchContent`.
+- [Rimas Misevičius](https://github.com/rmisev) fixed an error message.
+- [Alexander Myasnikov](https://github.com/alexandermyasnikov) fixed some examples and a link in the README.
+- [Hubert Chathi](https://github.com/uhoreg) made CMake's version config file architecture-independent.
+- [OmnipotentEntity](https://github.com/OmnipotentEntity) implemented the binary values for CBOR, MessagePack, BSON, and UBJSON.
+- [ArtemSarmini](https://github.com/ArtemSarmini) fixed a compilation issue with GCC 10 and fixed a leak.
+- [Evgenii Sopov](https://github.com/sea-kg) integrated the library to the wsjcpp package manager.
+- [Sergey Linev](https://github.com/linev) fixed a compiler warning.
+- [Miguel Magalhães](https://github.com/magamig) fixed the year in the copyright.
+- [Gareth Sylvester-Bradley](https://github.com/garethsb-sony) fixed a compilation issue with MSVC.
+- [Alexander “weej” Jones](https://github.com/alex-weej) fixed an example in the README.
+- [Antoine Cœur](https://github.com/Coeur) fixed some typos in the documentation.
+- [jothepro](https://github.com/jothepro) updated links to the Hunter package.
+- [Dave Lee](https://github.com/kastiglione) fixed link in the README.
+- [Joël Lamotte](https://github.com/Klaim) added instruction for using Build2's package manager.
+- [Paul Jurczak](https://github.com/pauljurczak) fixed an example in the README.
+- [Sonu Lohani](https://github.com/sonulohani) fixed a warning.
+- [Carlos Gomes Martinho](https://github.com/gocarlos) updated the Conan package source.
+- [Konstantin Podsvirov](https://github.com/podsvirov) fixed the MSYS2 package documentation.
+- [Tridacnid](https://github.com/Tridacnid) improved the CMake tests.
+- [Michael](https://github.com/MBalszun) fixed MSVC warnings.
 
 Thanks a lot for helping out! Please [let me know](mailto:mail@nlohmann.me) if I forgot someone.
 
@@ -1429,7 +1501,7 @@ To compile and run the tests, you need to execute
 ```sh
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake .. -DJSON_BuildTests=On
 $ cmake --build .
 $ ctest --output-on-failure
 ```
