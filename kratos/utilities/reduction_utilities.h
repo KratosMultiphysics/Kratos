@@ -132,7 +132,7 @@ class MinReduction
 {
 public:
     typedef TDataType value_type;
-    TDataType mvalue = std::numeric_limits<TDataType>::max(); //i am deliberately making the member value public, to allow one to change it as needed
+    TDataType mvalue = std::numeric_limits<TDataType>::max(); // deliberately making the member value public, to allow one to change it as needed
 
     /// access to reduced value
     TDataType GetValue() const
@@ -223,4 +223,3 @@ struct CombinedReduction {
 }  // namespace Kratos.
 
 #endif // KRATOS_REDUCTION_UTILITIES_H_INCLUDED  defined
-
