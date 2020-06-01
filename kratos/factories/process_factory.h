@@ -37,7 +37,7 @@ namespace ProcessFactory
 
     /// Checks if the process is registered
     typename Process::Pointer Create(
-        const std::string& ProcessName, Model& rModel, const Parameters ModelParameters)
+        const std::string& ProcessName, Model& rModel, Parameters ModelParameters)
     {
         KRATOS_ERROR_IF_NOT(Has(ProcessName))
             << "Trying to construct a process: "
