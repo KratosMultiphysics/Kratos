@@ -22,6 +22,7 @@ file(GLOB_RECURSE KRATOS_MOR_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/mor_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
