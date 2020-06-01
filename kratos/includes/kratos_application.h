@@ -64,6 +64,9 @@
 // Modelers
 #include "modeler/modeler.h"
 
+// Processes
+#include "processes/process.h"
+
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
@@ -116,7 +119,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpElements(rOther.mpElements),
           mpConditions(rOther.mpConditions),
           mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints),
-          mpModelers(rOther.mpModelers) {}
+          mpModelers(rOther.mpModelers) {},
+          mpProcesses(rOther.mpProcesses) {}
 
     /// Destructor.
     virtual ~KratosApplication() {}
@@ -246,6 +250,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpModelers;
     }
 
+    KratosComponents<Process>::ComponentsContainerType& GetProcesses() {
+        return *mpProcesses;
+    }
+
     void SetComponents(
         KratosComponents<VariableData>::ComponentsContainerType const&
             VariableDataComponents)
@@ -281,6 +289,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     void SetComponents(KratosComponents<Modeler>::ComponentsContainerType const& ModelerComponents)
     {
         mpModelers->insert(ModelerComponents.begin(), ModelerComponents.end());
+    }
+
+    void SetComponents(KratosComponents<Process>::ComponentsContainerType const& ProcessComponents)
+    {
+        mpProcesses->insert(ProcessComponents.begin(), ProcessComponents.end());
     }
 
     void SetComponents(
@@ -364,6 +377,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         rOStream << "Modelers:" << std::endl;
 
         KratosComponents<Modeler>().PrintData(rOStream);
+
+        rOStream << std::endl;
+
+        rOStream << "Processes:" << std::endl;
+
+        KratosComponents<Process>().PrintData(rOStream);
     }
 
     ///@}
@@ -470,6 +489,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Modeler
     const Modeler mModeler;
 
+    // Modeler
+    const Process mProcess;
+
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
 
@@ -513,6 +535,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<MasterSlaveConstraint>::ComponentsContainerType* mpMasterSlaveConstraints;
 
     KratosComponents<Modeler>::ComponentsContainerType* mpModelers;
+
+    KratosComponents<Process>::ComponentsContainerType* mpProcesses;
 
     // Serialization
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;
