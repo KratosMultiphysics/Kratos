@@ -273,7 +273,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         constraint_value = self.communicator.getStandardizedValue(identifier)
         if constraint["type"].GetString() == "=":
             return True
-        elif constraint_value > 0:
+        elif constraint_value >= 0:
             return True
         else:
             return False
