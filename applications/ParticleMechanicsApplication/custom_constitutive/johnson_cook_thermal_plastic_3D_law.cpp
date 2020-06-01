@@ -104,7 +104,7 @@ namespace Kratos
 		// Calculate strain increments
 		const double strain_increment_trace = strain_increment(0, 0) + strain_increment(1, 1) + strain_increment(2, 2);
 		const Matrix strain_increment_hydrostatic = strain_increment_trace / 3.0 * IdentityMatrix(3);
-		const Matrix strain_increment_deviatoric = strain_increment - strain_increment_hydrostatic;
+		const Matrix strain_increment_deviatoric = strain_increment - strain_increment_hydrostatic; // TODO need to fix!!!
 
 		// Calculate current (old) j2 stress
 		const double stress_hydrostatic_old = (stress_old(0, 0) + stress_old(1, 1) + stress_old(2, 2)) / 3.0;
@@ -120,10 +120,12 @@ namespace Kratos
 
 		// Assume current yield stress is the same as the old (elastic predictor)
 		double yield_stress = mYieldStressOld;
+		bool is_NR = false;
 
 		if (j2_stress_trial > yield_stress && yield_stress/mYieldStressVirgin > yield_stress_failure_ratio)
 		{
-			std::cout << "\nJohnson cook NR iteration ===========\n";
+			is_NR = true;
+
 			// Thermal properties
 			const double eta = 0.9; // TODO check this
 			const double specific_heat_Cp = MaterialProperties[SPECIFIC_HEAT];
@@ -154,12 +156,15 @@ namespace Kratos
 
 				// Compute yield function and derivative
 				yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - yield_stress;
-				std::cout << "yield function = " << yield_function << "\n";
+				KRATOS_WATCH(yield_function)
+
 				if (yield_function < 0.0) gamma_max = gamma;
 				else gamma_min = gamma;
 				dYield_dGamma = CalculatePlasticStrainDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
-				dYield_dGamma += CalculateThermalDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
-				dYield_dGamma += CalculatePlasticStrainRateDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
+				dYield_dGamma += CalculatePlasticStrainRateDerivative(
+					MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature)/ CurrentProcessInfo[DELTA_TIME];
+				dYield_dGamma += eta* yield_stress/density/ specific_heat_Cp * CalculateThermalDerivative(
+					MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
 				dYield_dGamma *= std::sqrt(2.0 / 3.0);
 				yield_function_gradient = -1.0 * std::sqrt(6.0) * shear_modulus_G - dYield_dGamma;
 
@@ -184,6 +189,9 @@ namespace Kratos
 				iteration += 1;
 				KRATOS_ERROR_IF(iteration == iteration_limit) << "Johnson Cook iteration limit exceeded";
 			}
+			// Calculate predicted yield stress
+			yield_stress = CalculateHardenedYieldStress(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
+
 
 			// Correct trial stress
 			Matrix flow_direction_normalized = stress_deviatoric_trial / (j2_stress_trial / std::sqrt(3.0 / 2.0));
@@ -212,7 +220,12 @@ namespace Kratos
 		}
 
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * IdentityMatrix(3);
-		mEquivalentStress = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_converged));
+		mEquivalentStress = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_converged));
+		if (is_NR)
+		{
+			std::cout << "Error = " << mEquivalentStress - mYieldStressOld << "\n";
+			int adsfadsf = 1;
+		}
 
 		// Store stresses and strains
 		MakeStrainStressVectorFromMatrix(stress_converged, StressVector);
