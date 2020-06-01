@@ -114,7 +114,7 @@ public:
 
     void Sort()
     {
-        std::sort(mData.begin(), mData.end(), GlobalPointerComparor<TDataType>());
+        std::sort(mData.begin(), mData.end(), GlobalPointerCompare<TDataType>());
     }
 
     void Unique()

@@ -74,6 +74,12 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
+        # Modelers:
+        self._CreateModelers()
+        self._ModelersSetupGeometryModel()
+        self._ModelersPrepareGeometryModel()
+        self._ModelersSetupModelPart()
+
         self._GetSolver().ImportModelPart()
         self._GetSolver().PrepareModelPart()
         self._GetSolver().AddDofs()
@@ -212,6 +218,62 @@ class AnalysisStage(object):
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")
 
+    ### Modelers
+    def _ModelersSetupGeometryModel(self):
+        # Import or generate geometry models from external input.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup Geometry Model started.")
+            modeler.SetupGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup Geometry Model finished.")
+
+    def _ModelersPrepareGeometryModel(self):
+        # Prepare or update the geometry model_part.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Prepare Geometry Model started.")
+            modeler.PrepareGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Prepare Geometry Model finished.")
+
+    def _ModelersSetupModelPart(self):
+        # Convert the geometry model or import analysis suitable models.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart started.")
+            modeler.SetupModelPart()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart finished.")
+
+    ### Modelers
+    def _GetListOfModelers(self):
+        """ This function returns the list of modelers
+        """
+        if not hasattr(self, '_list_of_modelers'):
+            raise Exception("The list of modelers was not yet created!")
+        return self._list_of_modelers
+
+    def _CreateModelers(self):
+        """ List of modelers in following format:
+        "modelers" : [{
+            "modeler_name" : "geometry_import":
+            "parameters" : {
+                "echo_level" : 0:
+                // settings for this modeler
+            }
+        },{ ... }]
+        """
+        self._list_of_modelers = []
+
+        if self.project_parameters.Has("modelers"):
+            from KratosMultiphysics.modeler_factory import KratosModelerFactory
+            factory = KratosModelerFactory()
+
+            modelers_list = self.project_parameters["modelers"]
+            self._list_of_modelers = factory.ConstructListOfModelers(self.model, modelers_list)
+
+    ### Processes
     def _GetListOfProcesses(self):
         """This function returns the list of processes involved in this Analysis
         """
