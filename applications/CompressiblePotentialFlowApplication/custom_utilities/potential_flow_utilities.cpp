@@ -562,6 +562,48 @@ size_t ComputeUpwindFactorCase(const array_1d<double, 3>& rUpwindFactorOptions)
 }
 
 template <int Dim, int NumNodes>
+double ComputeDensity(
+    const double localMachNumberSquared, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Implemented according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+
+    // reading free stream values
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+
+    // density calculation
+    const double numerator = 1.0 + (0.5 * (heat_capacity_ratio - 1.0)) * std::pow(free_stream_mach, 2.0);
+    const double denominator = 1.0 + (0.5 * (heat_capacity_ratio - 1.0)) * localMachNumberSquared;
+
+    return free_stream_density * std::pow((numerator/denominator), 1.0/(heat_capacity_ratio - 1.0));
+}
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensity(
+    const array_1d<double, Dim>& rCurrentVelocity, 
+    const array_1d<double, Dim>& rUpwindVelocity, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Equation 2.12
+
+    const double upwind_factor = SelectMaxUpwindFactor<Dim,NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+
+    const double current_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
+    const double upwind_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+    
+    const double current_element_density = ComputeDensity<Dim,NumNodes>(current_element_mach_squared, rCurrentProcessInfo);
+    const double upwind_element_density = ComputeDensity<Dim,NumNodes>(upwind_element_mach_squared, rCurrentProcessInfo);
+
+    return current_element_density - upwind_factor * (current_element_density - upwind_element_density);
+}
+
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
@@ -698,6 +740,8 @@ template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement
 template double ComputeUpwindFactor<2,3>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 template double SelectMaxUpwindFactor<2, 3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template size_t ComputeUpwindFactorCase<2, 3>(const array_1d<double, 3>& rUpwindFactorOptions);
+template double ComputeDensity<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensity<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -734,6 +778,8 @@ template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement
 template double ComputeUpwindFactor<3, 4>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 template double SelectMaxUpwindFactor<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template size_t ComputeUpwindFactorCase<3, 4>(const array_1d<double, 3>& rUpwindFactorOptions);
+template double ComputeDensity<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensity<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);

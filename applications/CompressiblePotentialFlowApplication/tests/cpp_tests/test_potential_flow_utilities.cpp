@@ -397,5 +397,47 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase2, CompressiblePotentialApplica
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 2.0, 1e-15);
 }
 
+// tests the function ComputeDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeDensity, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    const double density = PotentialFlowUtilities::ComputeDensity<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(density, 0.450114595263459, 1e-15);
+}
+
+// tests the function ComputeDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensity, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    // velocity corresponding to mach number sqrt(3.0)
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> current_velocity(2, 0.0);
+    current_velocity[0] = std::sqrt(local_velocity_squared);
+
+    const double upwind_mach_number_squared = 0.7 * 0.7;
+
+    // velocity corresponding to mach number 0.7
+    const double upwind_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(upwind_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> upwind_velocity(2, 0.0);
+    upwind_velocity[0] = std::sqrt(upwind_velocity_squared);
+
+    const double upwinded_density = PotentialFlowUtilities::ComputeUpwindedDensity<2,3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwinded_density, 0.92388212928098, 1e-15);
+}
+
 } // namespace Testing
 } // namespace Kratos.
