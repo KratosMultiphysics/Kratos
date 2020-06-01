@@ -201,13 +201,14 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("__str__", PrintObject<Timer>)
         ;
 
-
     // Exact integration (for testing)
     py::class_<ExactMortarIntegrationUtility<2,2>>(m,"ExactMortarIntegrationUtility2D2N")
         .def(py::init<>())
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
         ;
@@ -217,9 +218,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
-        .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3>::TestGiDDebug)
+        .def("TestIODebug",&ExactMortarIntegrationUtility<3,3>::TestIODebug)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
@@ -227,9 +230,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
-        .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4>::TestGiDDebug)
+        .def("TestIODebug",&ExactMortarIntegrationUtility<3,4>::TestIODebug)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,3,false,4>>(m,"ExactMortarIntegrationUtility3D3N4N")
@@ -237,9 +242,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactAreaIntegration)
-        .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestGiDDebug)
+        .def("TestIODebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestIODebug)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,4,false,3>>(m,"ExactMortarIntegrationUtility3D4N3N")
@@ -247,9 +254,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactAreaIntegration)
-        .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestGiDDebug)
+        .def("TestIODebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestIODebug)
         ;
 
     // Mortar utilities
