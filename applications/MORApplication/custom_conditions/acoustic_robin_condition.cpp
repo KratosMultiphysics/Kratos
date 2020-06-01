@@ -193,6 +193,10 @@ int AcousticRobinCondition::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_CHECK_DOF_IN_NODE(PRESSURE, r_node)
     }
 
+    // Check if the required variables are available
+    KRATOS_ERROR_IF( !this->GetProperties().Has(ADMITTANCE) ) << "The required variable ADMITTANCE is not available in condition "
+        << this->Id() << std::endl;
+
     return 0;
 }
 
