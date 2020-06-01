@@ -89,10 +89,11 @@ namespace Kratos
 		// Get old stress vector and current strain vector
 		const Vector StrainVector = rValues.GetStrainVector();
 		Vector& StressVector = rValues.GetStressVector();
+		const Matrix identity = (GetStrainSize() == 3) ? IdentityMatrix(2) : IdentityMatrix(3);
 
 		// Convert vectors to matrices for easier manipulation
-		Matrix stress_old(3, 3);
-		Matrix strain_increment(3, 3);
+		Matrix stress_old = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
+		Matrix strain_increment = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
 		MakeStrainStressMatrixFromVector((StrainVector - mStrainOld), strain_increment);
 		MakeStrainStressMatrixFromVector(StressVector, stress_old);
 
@@ -102,13 +103,17 @@ namespace Kratos
 		const double density = MaterialProperties[DENSITY];
 
 		// Calculate strain increments
-		const double strain_increment_trace = strain_increment(0, 0) + strain_increment(1, 1) + strain_increment(2, 2);
-		const Matrix strain_increment_hydrostatic = strain_increment_trace / 3.0 * IdentityMatrix(3);
+		const double strain_increment_trace = (GetStrainSize() == 3)
+			? (strain_increment(0,0) + strain_increment(1,1)) //2D case
+			: (strain_increment(0,0) + strain_increment(1,1) + strain_increment(2,2)); // 3D and axisym
+		Matrix strain_increment_hydrostatic = strain_increment_trace / 3.0 * identity;
 		const Matrix strain_increment_deviatoric = strain_increment - strain_increment_hydrostatic; // TODO need to fix!!!
 
 		// Calculate current (old) j2 stress
-		const double stress_hydrostatic_old = (stress_old(0, 0) + stress_old(1, 1) + stress_old(2, 2)) / 3.0;
-		Matrix stress_deviatoric_old = stress_old - stress_hydrostatic_old * IdentityMatrix(3);
+		const double stress_hydrostatic_old = (GetStrainSize() == 3)
+			? (stress_old(0, 0) + stress_old(1, 1)) / 3.0
+			: (stress_old(0, 0) + stress_old(1, 1) + stress_old(2, 2)) / 3.0;
+		const Matrix stress_deviatoric_old = stress_old - stress_hydrostatic_old * identity;
 
 		// Calculate trial (predicted) j2 stress
 		double stress_hydrostatic_new = stress_hydrostatic_old + bulk_modulus_K * strain_increment_trace / 3.0; // TODO (1) - think this is fixed
@@ -116,7 +121,7 @@ namespace Kratos
 		const double j2_stress_trial = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
 		// Declare deviatoric stress matrix to be used later
-		Matrix stress_deviatoric_converged(3, 3);
+		Matrix stress_deviatoric_converged = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
 
 		// Assume current yield stress is the same as the old (elastic predictor)
 		double yield_stress = mYieldStressOld;
@@ -174,10 +179,10 @@ namespace Kratos
 
 				// Bisect increment if out of search bounds
 				if (gamma_min > gamma || gamma > gamma_max) gamma = gamma_min + 0.5 * (gamma_max - gamma_min);
-
+				KRATOS_WATCH(delta_gamma)
 				if (std::abs(delta_gamma) < tolerance) {
 					is_converged = true;
-					break;
+					//break;
 				}
 
 				// Update of quantities
@@ -219,7 +224,7 @@ namespace Kratos
 			}
 		}
 
-		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * IdentityMatrix(3);
+		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
 		mEquivalentStress = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_converged));
 		if (is_NR)
 		{

@@ -49,7 +49,7 @@ namespace Kratos
 
   void JohnsonCookThermalPlastic2DPlaneStrainLaw::MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput)
   {
-	  if (rOutput.size1() != 3 || rOutput.size2() != 3)rOutput.resize(3, 3, false);
+	  if (rOutput.size1() != 2 || rOutput.size2() != 2)rOutput.resize(2, 2, false);
 
 	  // 3D stress arrangement
       rOutput.clear();
