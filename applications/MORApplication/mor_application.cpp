@@ -38,6 +38,7 @@ namespace Kratos {
 
 KratosMORApplication::KratosMORApplication():
     KratosApplication("MORApplication"),
+      mAcousticElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mAcousticElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mAcousticElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mAcousticElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
@@ -52,7 +53,11 @@ KratosMORApplication::KratosMORApplication():
       mAcousticStructureCouplingCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
       mAcousticStructureCouplingCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Condition::GeometryType::PointsArrayType(4)))),
       mAcousticStructureCouplingCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
-      mDisplacementOutputCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1))))
+      mAcousticStructureMappingCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+      mAcousticStructureMappingCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+      mAcousticStructureMappingCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Condition::GeometryType::PointsArrayType(4)))),
+      mDisplacementOutputCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
+      mPressureOutputCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1))))
     {}
 
 void KratosMORApplication::Register()
@@ -73,6 +78,7 @@ void KratosMORApplication::Register()
   KRATOS_REGISTER_VARIABLE( IMAG_PRESSURE )
 
   // elements
+  KRATOS_REGISTER_ELEMENT("AcousticElement2D2N", mAcousticElement2D2N)
   KRATOS_REGISTER_ELEMENT("AcousticElement2D4N", mAcousticElement2D4N)
   KRATOS_REGISTER_ELEMENT("AcousticElement3D4N", mAcousticElement3D4N)
   KRATOS_REGISTER_ELEMENT("AcousticElement3D8N", mAcousticElement3D8N)
@@ -87,8 +93,12 @@ void KratosMORApplication::Register()
   KRATOS_REGISTER_CONDITION("AcousticStructureCouplingCondition2D2N", mAcousticStructureCouplingCondition2D2N)
   KRATOS_REGISTER_CONDITION("AcousticStructureCouplingCondition3D4N", mAcousticStructureCouplingCondition3D4N)
   KRATOS_REGISTER_CONDITION("AcousticStructureCouplingCondition3D3N", mAcousticStructureCouplingCondition3D3N)
+  KRATOS_REGISTER_CONDITION("AcousticStructureMappingCondition2D2N", mAcousticStructureMappingCondition2D2N)
+  KRATOS_REGISTER_CONDITION("AcousticStructureMappingCondition3D3N", mAcousticStructureMappingCondition3D3N)
+  KRATOS_REGISTER_CONDITION("AcousticStructureMappingCondition3D4N", mAcousticStructureMappingCondition3D4N)
 
   KRATOS_REGISTER_CONDITION("DisplacementOutputCondition3D1N", mDisplacementOutputCondition3D1N)
+  KRATOS_REGISTER_CONDITION("PressureOutputCondition3D1N", mPressureOutputCondition3D1N)
 
 }
 }  // namespace Kratos.
