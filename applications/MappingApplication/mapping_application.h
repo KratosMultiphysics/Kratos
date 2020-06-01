@@ -56,7 +56,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosMappingApplication : public KratosApplication
+class KRATOS_API(MAPPING_APPLICATION) KratosMappingApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
