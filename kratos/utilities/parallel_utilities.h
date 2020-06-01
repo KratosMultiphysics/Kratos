@@ -56,7 +56,7 @@ class BlockPartition
 {
 public:
 
-    /** @param it_begin - iterator pointing at the begining of the container
+    /** @param it_begin - iterator pointing at the beginning of the container
      *  @param it_end - iterator pointing to the end of the container
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
