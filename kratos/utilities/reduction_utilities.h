@@ -38,6 +38,8 @@ namespace Kratos
 {
 ///@addtogroup KratosCore
 
+/** @brief utility function to do a sum reduction
+ */
 template<class TDataType>
 class SumReduction
 {
@@ -45,16 +47,18 @@ public:
     typedef TDataType value_type;
     TDataType mvalue = TDataType(); //i am deliberately making the member value public, to allow one to change it as needed
 
+    /// access to reduced value
     TDataType GetValue() const
     {
         return mvalue;
     }
 
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     void LocalReduce(const TDataType value){
         mvalue += value;
     }
 
-    //a user could define a ThreadSafeReduce for his specific reduction case
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const SumReduction<TDataType>& rOther)
     {
         #pragma omp atomic
@@ -72,14 +76,18 @@ public:
     typedef TDataType value_type;
     TDataType mvalue = TDataType(); //i am deliberately making the member value public, to allow one to change it as needed
 
+    /// access to reduced value
     TDataType GetValue() const
     {
         return mvalue;
     }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     void LocalReduce(const TDataType value){
         mvalue -= value;
     }
 
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const SubReduction<TDataType>& rOther)
     {
         #pragma omp atomic
@@ -96,13 +104,19 @@ class MaxReduction
 public:
     typedef TDataType value_type;
     TDataType mvalue = std::numeric_limits<TDataType>::lowest(); //i am deliberately making the member value public, to allow one to change it as needed
+
+    /// access to reduced value
     TDataType GetValue() const
     {
         return mvalue;
     }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     void LocalReduce(const TDataType value){
         mvalue = std::max(mvalue,value);
     }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType>& rOther)
     {
         #pragma omp critical
@@ -120,14 +134,18 @@ public:
     typedef TDataType value_type;
     TDataType mvalue = std::numeric_limits<TDataType>::max(); //i am deliberately making the member value public, to allow one to change it as needed
 
+    /// access to reduced value
     TDataType GetValue() const
     {
         return mvalue;
     }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     void LocalReduce(const TDataType value){
         mvalue = std::min(mvalue,value);
     }
 
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType>& rOther)
     {
         #pragma omp critical
@@ -143,6 +161,7 @@ struct CombinedReduction {
 
     CombinedReduction() {}
 
+    /// access to reduced value
     value_type GetValue(){
         value_type return_value;
         fill_value<0>(return_value);
@@ -160,12 +179,14 @@ struct CombinedReduction {
     typename std::enable_if<(I == sizeof...(Reducer)), void>::type
     fill_value(T& v) {}
 
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     template <class... T>
     void LocalReduce(const std::tuple<T...> &&v) {
         // Static recursive loop over tuple elements
         reduce_local<0>(v);
     }
 
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const CombinedReduction &other) {
         reduce_global<0>(other);
     }

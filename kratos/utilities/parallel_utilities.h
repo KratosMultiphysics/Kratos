@@ -42,6 +42,11 @@ namespace Kratos
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
+/** @param TContainerType - the type of the container used in the loop (must provide random access iterators)
+ *  @param TIteratorType - type of iterator (by default as provided by the TContainerType)
+ *  @param TMaxThreads - maximum number of threads allowed in the partitioning.
+ *                       must be known at compile time to avoid heap allocations in the partitioning
+ */
 template<
         class TContainerType,
         class TIteratorType=typename TContainerType::iterator,
@@ -51,7 +56,10 @@ class BlockPartition
 {
 public:
 
-
+    /** @param it_begin - iterator pointing at the begining of the container
+     *  @param it_end - iterator pointing to the end of the container
+     *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
+     */
     BlockPartition(TIteratorType it_begin,
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
@@ -64,6 +72,9 @@ public:
             mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize ;
     }
 
+    /** @param rData - the continer to be iterated upon
+     *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
+     */
     BlockPartition(TContainerType& rData,
                    int Nchunks = omp_get_max_threads())
         : BlockPartition(rData.begin(), rData.end(), Nchunks)
@@ -71,8 +82,9 @@ public:
 
     virtual ~BlockPartition() {}
 
-    //version enabling reduction
-    //simple version
+    /** @brief simple iteration loop. f called on every entry in rData
+     * @param f - must be a unary function accepting as input TContainerType::value_type&
+     */
     template <class TUnaryFunction>
     inline void for_each(TUnaryFunction&& f)
     {
@@ -86,7 +98,11 @@ public:
         }
     }
 
-    //version with reduction
+    /** @brie loop allowing reductions. f called on every entry in rData
+     * the function f needs to return the values to be used by the reducer
+     * @param TReducer template parameter specifying the reduction operation to be done
+     * @param f - must be a unary function accepting as input TContainerType::value_type&
+     */
     template <class TReducer, class TUnaryFunction>
     inline typename TReducer::value_type for_reduce(TUnaryFunction &&f)
     {
@@ -112,6 +128,11 @@ private:
 
 };
 
+/** @brief simplified version of the basic loo (without reduction) to enable template type deduction
+ * @param v - containers to be looped upon
+ * @param func - must be a unary function accepting as input TContainerType::value_type&
+ *
+ */
 template <class TContainerType, class TFunctionType>
 void block_for_each(TContainerType &&v, TFunctionType &&func) {
     BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::forward<TFunctionType>(func));
@@ -122,15 +143,24 @@ typename TReducer::value_type block_for_reduce(TContainerType &&v, TFunctionType
     return BlockPartition<typename std::decay<TContainerType>::type>
         (std::forward<TContainerType>(v)).template for_reduce<TReducer>(std::forward<TFunctionType>(func));
 }
+
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
-///This class is useful for iteration over containers
+/** @brief This class is useful for index iteration over containers
+ *  @param TIndexType type of index to be used in the loop
+ *  @param TMaxThreads - maximum number of threads allowed in the partitioning.
+ *                       must be known at compile time to avoid heap allocations in the partitioning
+ */
 template<class TIndexType, int TMaxThreads=Globals::MaxAllowedThreads>
 class IndexPartition
 {
 public:
 
+/** @brief constructor using the size of the partition to be used
+ *  @param Size - the size of the partition
+ *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
+ */
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
         : mSize(Size), mNchunks(Nchunks)
@@ -145,6 +175,7 @@ public:
 
     virtual ~IndexPartition() {}
 
+    //NOT COMMENTING IN DOXYGEN - THIS SHOULD BE SORT OF HIDDEN UNTIL GIVEN PRIME TIME
     //pure c++11 version (can handle exceptions)
     template <class TUnaryFunction>
     inline void for_pure_c11(TUnaryFunction &&f)
@@ -177,7 +208,9 @@ public:
         }
     }
 
-    //simple version
+    /** simple version of for_each (no reduction) to be caled for each index in the partition
+     * @param f - must be a unary function accepting as input IndexType
+     */
     template <class TUnaryFunction>
     inline void for_each(TUnaryFunction &&f)
     {
@@ -191,7 +224,11 @@ public:
         }
     }
 
-    //version with reduction
+    /** version with reduction to be called for each index in the partition
+     * function f is expected to return the values to be reduced
+     * @param TReducer - template parameter specifying the type of reducer to be applied
+     * @param f - must be a unary function accepting as input IndexType
+     */
     template <class TReducer, class TUnaryFunction>
     inline typename TReducer::value_type for_reduce(TUnaryFunction &&f)
     {
