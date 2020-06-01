@@ -103,6 +103,22 @@ public:
     }
 
     /**
+     * @brief This method creates an pointer of the process
+     * @details We consider as input a Mmodel and a set of Parameters for the sake of generality
+     * @warning Must be overrided in each process implementation
+     * @param rModel The model to be consider
+     * @param ThisParameters The configuration parameters
+     */
+    virtual Process::Pointer Create(
+        Model& rModel,
+        const Parameters ThisParameters
+        ) const
+    {
+        KRATOS_ERROR << "Calling base class create. Please override this method in the corresonding Process" << std::endl;
+        return nullptr;
+    }
+
+    /**
      * @brief Execute method is used to execute the Process algorithms.
      */
     virtual void Execute() {}
