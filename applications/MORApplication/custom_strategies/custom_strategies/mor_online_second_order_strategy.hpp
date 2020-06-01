@@ -307,7 +307,7 @@ class MorOnlineSecondOrderStrategy
         r_A = r_Dr;
         r_A *= std::complex<double>(0,excitation_frequency);
         r_A += r_Kr;
-        r_A -= std::pow( excitation_frequency, 2.0 ) * r_Mr;
+        r_A -= std::pow( excitation_frequency, 2 ) * r_Mr;
 
         KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
             << system_construction_time.ElapsedSeconds() << std::endl;
@@ -323,7 +323,7 @@ class MorOnlineSecondOrderStrategy
         KRATOS_TRY;
         ModelPart& r_model_part = BaseType::GetModelPart();
         const int rank = r_model_part.GetCommunicator().MyPID();
-        
+
         ComplexDenseVectorType& r_rhs = *mpRHS;
         ComplexDenseMatrixType& r_A = *mpA;
         ComplexDenseVectorType& r_dx = *mpDx;
@@ -378,44 +378,6 @@ class MorOnlineSecondOrderStrategy
         return 0;
 
         KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method returns the components of the system of equations depending of the echo level
-     */
-    virtual void EchoInfo()
-    {
-        // TSystemMatrixType& rA  = *mpKr;
-        // TSystemMatrixType& rM = *mpMr;
-        // TSystemVectorType& rRHS  = *mpRHS;
-        // TSystemMatrixType& rS  = *mpDr;
-
-        // if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
-        // {
-        //     KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
-        // }
-        // else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
-        // {
-        //     KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-        //     KRATOS_INFO("Dx")  << "Mass Matrix = " << mpMr << std::endl;
-        //     KRATOS_INFO("Sx") << "Damping Matrix = " << rS << std::endl;
-        //     KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
-        // }
-        // std::stringstream matrix_market_name;
-        // matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
-
-        // std::stringstream matrix_market_mass_name;
-        // matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
-
-        // std::stringstream matrix_market_damping_name;
-        // matrix_market_name << "S_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);
-
-        // std::stringstream matrix_market_vectname;
-        // matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
-        // TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), *mpRHS);
     }
 
     ///@}
