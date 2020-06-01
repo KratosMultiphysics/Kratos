@@ -1,12 +1,14 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Author1 Fullname
+//                   Author2 Fullname
 //
 
 // System includes
@@ -20,6 +22,7 @@
 // Project includes
 #include "includes/condition.h"
 #include "includes/variables.h"
+#include "mor_application_variables.h"
 
 namespace Kratos
 {
@@ -51,7 +54,7 @@ namespace Kratos
  * @tparam TDim The dimension of the condition
  * @author Vicente Mataix Ferrandiz
  */
-template<std::size_t TDim>
+template<std::size_t TDim, bool TIsMapping>
 class AcousticStructureCouplingCondition
     : public Condition
 {
@@ -256,7 +259,10 @@ public:
      */
     virtual bool HasRotDof() const
     {
-        return (GetGeometry()[0].HasDofFor(ROTATION_Z) && GetGeometry().size() == 2); //Z????
+        if( !TIsMapping )
+            return (GetGeometry()[0].HasDofFor(ROTATION_Z) && GetGeometry().size() == 2); //Z????
+        else
+            return (this->GetValue(MAPPING_NODES)[0]->HasDofFor(ROTATION_Z) && GetGeometry().size() == 2);
     }
 
     /**
@@ -272,10 +278,36 @@ public:
             else if(dim == 3)
                 return 7;
             else
-                KRATOS_ERROR << "The conditions only works for 2D and 3D elements";
+                KRATOS_ERROR << "The condition only works for 2D and 3D elements";
         } else {
             return dim+1;
         }
+    }
+
+    /**
+     * @brief This method computed the equation system size
+     * @return The size
+     */
+    unsigned int GetSystemSize()
+    {
+        // unsigned int size = 0;
+        if( !TIsMapping ) {
+            return 0;
+        } else {
+            const SizeType number_of_nodes = GetGeometry().size();
+            auto& mapped_nodes = this->GetValue(MAPPING_NODES);
+            const SizeType n_mapped_nodes = mapped_nodes.size();
+            const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+
+            if( dim == 2 ) {
+                return n_mapped_nodes * (this->GetBlockSize() - 1) + number_of_nodes;
+            } else if( dim == 3 ) {
+                return n_mapped_nodes * 3 + number_of_nodes;
+            } else {
+                KRATOS_ERROR << "The condition only works for 2D and 3D elements";
+            }
+        }
+        // return size;
     }
 
     ///@}
@@ -295,8 +327,10 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
+        std::string s;
+        TIsMapping ? s = " with " : s = " without ";
         std::stringstream buffer;
-        buffer << "AcousticStructureCouplingCondition #" << Id();
+        buffer << "AcousticStructureCouplingCondition #" << Id() << s << "mapping";
         return buffer.str();
     }
 
@@ -304,13 +338,16 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AcousticStructureCouplingCondition #" << Id();
+        std::string s;
+        TIsMapping ? s = " with " : s = " without ";
+        rOStream << "AcousticStructureCouplingCondition #" << Id() << s << "mapping";
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
         pGetGeometry()->PrintData(rOStream);
+        // rOStream << "\n\n\t Is mapping condition: " << TIsMapping << std::endl;
     }
 
     ///@}
@@ -470,13 +507,13 @@ private:
 ///@{
 
 /// input stream function
-template<std::size_t TDim>
+template<std::size_t TDim, bool TIsMapping>
 inline std::istream& operator >> (std::istream& rIStream,
-        AcousticStructureCouplingCondition<TDim>& rThis);
+        AcousticStructureCouplingCondition<TDim,TIsMapping>& rThis);
 /// output stream function
-template<std::size_t TDim>
+template<std::size_t TDim, bool TIsMapping>
 inline std::ostream& operator << (std::ostream& rOStream,
-        const AcousticStructureCouplingCondition<TDim>& rThis)
+        const AcousticStructureCouplingCondition<TDim,TIsMapping>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
