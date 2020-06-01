@@ -35,7 +35,7 @@ namespace ProcessFactory
         return KratosComponents< Process >::Has(ProcessName);
     }
 
-    /// Checks if the modeler is registered
+    /// Checks if the process is registered
     typename Process::Pointer Create(
         const std::string& ProcessName, Model& rModel, const Parameters ModelParameters)
     {
@@ -53,5 +53,5 @@ namespace ProcessFactory
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODELER_FACTORY_H_INCLUDED  defined
+#endif // KRATOS_PROCESS_FACTORY_H_INCLUDED  defined
 
