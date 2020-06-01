@@ -19,9 +19,18 @@
 
 namespace Kratos
 {
-    class Element; // forward-declaring to not having to include it here
-    class ProcessInfo; // forward-declaring to not having to include it here
-    class ModelPart; // forward-declaring to not having to include it here
+    // forward-declaring
+    class Element;
+    class ProcessInfo;
+    class ModelPart;
+    template< class TDataType >
+    class GlobalPointersVector;
+    template< class TDataType >
+    class Dof;
+    template< std::size_t TDimension, class TDofType >
+    class Node;
+    template< class TPointType >
+    class Geometry;
 
 namespace PotentialFlowUtilities
 {
@@ -33,6 +42,9 @@ struct ElementalData{
     BoundedMatrix<double, TNumNodes, TDim> DN_DX;
     array_1d<double, TNumNodes> N;
 };
+
+typedef Node < 3, Dof<double> > NodeType;
+typedef Geometry<NodeType> GeometryType;
 
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
@@ -119,6 +131,12 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
 
 template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+
+template <int Dim, int NumNodes>
+void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
+
+template <int Dim, int NumNodes>
+void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 } // namespace PotentialFlow
 } // namespace Kratos
 
