@@ -37,7 +37,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     typedef Dof<double>*                                    DofPointerType;
     typedef Dof<double>                                     DofType;
     typedef Node<3>                                         NodeType;
-    typedef ModelPart::VariableComponentType                VariableComponentType;
+    typedef Variable<double>                                VariableType;
     typedef KratosComponents<Variable<array_1d<double, 3>>> VectorVariableType;
     typedef ProcessInfo                                     ProcessInfoType;
     typedef ProcessInfo::Pointer                            ProcessInfoPointerType;
