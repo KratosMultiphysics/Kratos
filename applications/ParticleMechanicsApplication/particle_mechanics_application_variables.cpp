@@ -93,6 +93,7 @@ namespace Kratos
 
     // Solver related variables
     KRATOS_CREATE_VARIABLE(bool, IGNORE_GEOMETRIC_STIFFNESS)
+    KRATOS_CREATE_VARIABLE(bool, IS_AXISYMMETRIC)
 
     // Explicit time integration variables
     KRATOS_CREATE_VARIABLE(bool, CALCULATE_MUSL_VELOCITY_FIELD)

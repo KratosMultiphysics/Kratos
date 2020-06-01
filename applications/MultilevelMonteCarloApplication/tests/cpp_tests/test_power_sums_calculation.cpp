@@ -36,6 +36,16 @@ namespace Kratos {
 
             // Variables addition
             rModelPart.AddNodalSolutionStepVariable(PRESSURE);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_1);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_2);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_3);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_4);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_5);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_6);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_7);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_8);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_9);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_10);
 
             // Element creation
             rModelPart.CreateNewNode(1, 1.0, 1.0, 0.0);
