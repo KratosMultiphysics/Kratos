@@ -128,7 +128,7 @@ private:
 
 };
 
-/** @brief simplified version of the basic loo (without reduction) to enable template type deduction
+/** @brief simplified version of the basic loop (without reduction) to enable template type deduction
  * @param v - containers to be looped upon
  * @param func - must be a unary function accepting as input TContainerType::value_type&
  *
@@ -259,4 +259,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_PARALLEL_UTILITIES_H_INCLUDED  defined
-
