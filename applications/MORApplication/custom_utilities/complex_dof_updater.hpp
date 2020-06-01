@@ -19,10 +19,15 @@ namespace ComplexDofUpdater
         Variable<double>& var_real,
         Variable<double>& var_imag,
         Node<3>& node,
-        const std::complex<double>& Z)
+        const std::complex<double>& Z,
+        bool signed_abs)
     {
-        const int sign = std::real(Z) >= 0 ? 1 : -1;
-        node.FastGetSolutionStepValue(var) = sign * std::abs(Z);
+        if( signed_abs ) {
+            const int sign = std::real(Z) >= 0 ? 1 : -1;
+            node.FastGetSolutionStepValue(var) = sign * std::abs(Z);
+        } else {
+            node.FastGetSolutionStepValue(var) = std::abs(Z);
+        }
         node.FastGetSolutionStepValue(var_real) = std::real(Z);
         node.FastGetSolutionStepValue(var_imag) = std::imag(Z);
     }
@@ -30,11 +35,11 @@ namespace ComplexDofUpdater
 #ifdef KRATOS_MOR_ASSIGN_COMPLEX_DOF
 #undef KRATOS_MOR_ASSIGN_COMPLEX_DOF
 #endif
-#define KRATOS_MOR_ASSIGN_COMPLEX_DOF(name, it_node) \
+#define KRATOS_MOR_ASSIGN_COMPLEX_DOF(name, it_node, signed_abs) \
     if( it_node->HasDofFor(name) ) \
     { \
-        const size_t eq_id = it_node->GetDof(name).EquationId(); \
-        AssignComplexDofValue(name, REAL_##name, IMAG_##name, (*it_node), rX(eq_id)); \
+        const std::size_t eq_id = it_node->GetDof(name).EquationId(); \
+        AssignComplexDofValue(name, REAL_##name, IMAG_##name, (*it_node), rX(eq_id), signed_abs); \
     }
 
     /** @brief Assign new values for the problem's degrees of freedom using the complex vector rX.
@@ -56,10 +61,10 @@ namespace ComplexDofUpdater
         {
             auto it_node = std::begin(rModelPart.Nodes()) + i;
 
-            KRATOS_MOR_ASSIGN_COMPLEX_DOF(DISPLACEMENT_X, it_node);
-            KRATOS_MOR_ASSIGN_COMPLEX_DOF(DISPLACEMENT_Y, it_node);
-            KRATOS_MOR_ASSIGN_COMPLEX_DOF(DISPLACEMENT_Z, it_node);
-            KRATOS_MOR_ASSIGN_COMPLEX_DOF(PRESSURE, it_node);
+            KRATOS_MOR_ASSIGN_COMPLEX_DOF(DISPLACEMENT_X, it_node, true);
+            KRATOS_MOR_ASSIGN_COMPLEX_DOF(DISPLACEMENT_Y, it_node, true);
+            KRATOS_MOR_ASSIGN_COMPLEX_DOF(DISPLACEMENT_Z, it_node, true);
+            KRATOS_MOR_ASSIGN_COMPLEX_DOF(PRESSURE, it_node, false);
         }
     }
 
