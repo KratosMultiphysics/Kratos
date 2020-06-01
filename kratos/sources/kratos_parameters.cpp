@@ -989,8 +989,9 @@ void Parameters::RecursivelyFindValue(
     for (auto itr = rBaseValue.begin(); itr != rBaseValue.end(); ++itr) {
         const auto value = itr.value();
         if (&(value) == &rValueToFind) {
+            const std::string value_string = value.dump();
             KRATOS_INFO("Parameters") << "Base = " << PrettyPrintJsonString()
-                        << "\nProblematic var name " << itr.key() << std::endl;
+                        << "\nProblematic var name " << itr.key() << " value " << value_string << std::endl;
         } else {
             if (itr->is_object()) RecursivelyFindValue(value, rValueToFind);
             //TODO: it could be an array
