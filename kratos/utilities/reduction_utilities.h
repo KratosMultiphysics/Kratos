@@ -103,7 +103,7 @@ class MaxReduction
 {
 public:
     typedef TDataType value_type;
-    TDataType mvalue = std::numeric_limits<TDataType>::lowest(); //i am deliberately making the member value public, to allow one to change it as needed
+    TDataType mvalue = std::numeric_limits<TDataType>::lowest(); // deliberately making the member value public, to allow one to change it as needed
 
     /// access to reduced value
     TDataType GetValue() const
