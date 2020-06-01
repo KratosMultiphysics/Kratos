@@ -83,7 +83,7 @@ template <class TSparseSpace,
 class MorSecondOrderIRKAStrategy
     : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver, TReducedSparseSpace, TReducedDenseSpace >
 {
-  
+
     using complex = std::complex<double>;
 
   public:
@@ -158,11 +158,12 @@ class MorSecondOrderIRKAStrategy
         typename TSchemeType::Pointer pScheme,
         typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
+        typename TLinearSolverType::Pointer pNewAdjointLinearSolver,
         vector< std::complex<double> > SamplingPoints,
         size_t MaxIter,
         double Tolerance,
-        bool MoveMeshFlag = false)
-        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true, MoveMeshFlag), 
+        bool SystemIsSymmetric = true)
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, pNewAdjointLinearSolver, true, SystemIsSymmetric),
             mMaxIter(MaxIter), mTolerance(Tolerance)
     {
         KRATOS_TRY;
@@ -177,8 +178,8 @@ class MorSecondOrderIRKAStrategy
         }
         ComplexSortUtility::PairComplexConjugates(mSamplingPoints);
 
-        KRATOS_ERROR_IF( mMaxIter < 1 ) << "Invalid number of maximal iterations provided\n";
-        KRATOS_ERROR_IF( (mTolerance >= 1.) || (mTolerance < 0.) ) << "Invalid tolerance provided\n";
+        KRATOS_ERROR_IF( mMaxIter < 1 ) << "Invalid number of maximal iterations provided" << std::endl;
+        KRATOS_ERROR_IF( (mTolerance >= 1.) || (mTolerance < 0.) ) << "Invalid tolerance provided" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -218,6 +219,9 @@ class MorSecondOrderIRKAStrategy
             TReducedDenseSpace::Resize(this->GetDr(), reduced_system_size, reduced_system_size);
             TReducedDenseSpace::Resize(this->GetMr(), reduced_system_size, reduced_system_size);
             TReducedDenseSpace::Resize(this->GetBasis(), system_size, reduced_system_size);
+            if( !this->SystemIsSymmetric() ) {
+                TReducedDenseSpace::Resize(this->GetBasisLeft(), system_size, reduced_system_size);
+            }
 
             this->mSolutionStepIsInitialized = true;
         }
@@ -237,7 +241,6 @@ class MorSecondOrderIRKAStrategy
         KRATOS_CATCH("")
 
     }
-    
 
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT: **/
@@ -252,13 +255,16 @@ class MorSecondOrderIRKAStrategy
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
         typename BaseType::TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+        complex z(0,1);
 
-        // get the full system size matrices                
+        // get the full system size matrices
         TSystemMatrixType& r_K = this->GetSystemMatrix();
         TSystemMatrixType& r_M = this->GetMassMatrix();
         TSystemMatrixType& r_D = this->GetDampingMatrix();
         TSystemVectorType& r_RHS = this->GetSystemVector();
+        TSystemVectorType& r_ov = this->GetOutputVector();
         TReducedDenseMatrixType& r_basis = this->GetBasis();
+        TReducedDenseMatrixType& r_basis_l = this->GetBasisLeft();
 
         // get the reduced matrices
         TReducedDenseMatrixType& r_Kr = this->GetKr();
@@ -270,84 +276,133 @@ class MorSecondOrderIRKAStrategy
         const size_t n_sampling_points = mSamplingPoints.size();
         const size_t reduced_system_size = n_sampling_points;
 
-        // copy mass matrix and rhs to the complex space
-        ComplexSparseMatrixType r_M_tmp = ComplexSparseMatrixType(r_M);
+        // copy mass matrix, damping matrix, and rhs to the complex space
+        ComplexSparseMatrixType r_M_tmp(r_M.size1(), r_M.size2());
+        noalias(r_M_tmp) = r_M;
+        ComplexSparseMatrixType r_D_tmp(r_D.size1(), r_D.size2());
+        noalias(r_D_tmp) = r_D;
         ComplexSparseVectorType r_RHS_tmp = ComplexSparseVectorType(r_RHS);
+        ComplexSparseVectorType r_ov_tmp = ComplexSparseVectorType(r_ov);
 
-        // create a complex stiffness matrix
-        TReducedSparseMatrixType r_K_cplx;
+        // create a complex stiffness matrix if required
+        TReducedSparseMatrixType r_K_cplx(r_M.size1(), r_M.size2());
         if( TUseModalDamping )
         {
-            r_K_cplx = TReducedSparseMatrixType(r_D);
-            complex z(0,1);
-            r_K_cplx *= reinterpret_cast<typename TReducedSparseSpace::DataType(&)[2]>(z)[0];   //cast complex to double (real part)
-            r_K_cplx += r_K;
+            //cast complex to double (real part). This is a hack for real valued strategies to make it compile. It will not be called
+            noalias(r_K_cplx) = r_K + TReducedSparseMatrixType(r_D) * reinterpret_cast<typename TReducedSparseSpace::DataType(&)[2]>(z)[0];
 
+            //set reduced damping matrix to zero
             noalias(r_Dr) = ZeroMatrix(r_Dr.size1(), r_Dr.size2());
         }
 
         // create solution vector
         ComplexSparseVectorPointerType tmp_dx = ComplexSparseSpaceType::CreateEmptyVectorPointer();
-        ComplexSparseVectorType& r_tmp_dx   = *tmp_dx;
+        ComplexSparseVectorType& r_tmp_dx = *tmp_dx;
         ComplexSparseSpaceType::Resize(r_tmp_dx, system_size);
         ComplexSparseSpaceType::Set(r_tmp_dx, 0.0);
 
         // create dynamic stiffness matrix
-        auto kdyn = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_kdyn   = *kdyn;
-        ComplexSparseSpaceType::Resize(r_kdyn, system_size, system_size); // n x n
+        ComplexSparseMatrixType r_kdyn(system_size, system_size);
 
-        BuiltinTimer irka_overall_time;
-
-        //initial basis
-        for( size_t i=0; i<n_sampling_points/2; ++i )
-        {
-            if( TUseModalDamping )
-                noalias(r_kdyn) = r_K_cplx;
-            else
-            {
-                noalias(r_kdyn) = r_D;
-                r_kdyn *= mSamplingPoints(2*i);
-                r_kdyn += r_K;
-            }
-            r_kdyn += std::pow( mSamplingPoints(2*i), 2.0 ) * r_M_tmp;
-            this->mpLinearSolver->Solve( r_kdyn, r_tmp_dx, r_RHS_tmp );
-
-            KRATOS_DEBUG_ERROR_IF(isinf(norm_2(r_tmp_dx))) << "No solution could be obtained (norm infinity)!";
-
-            column(r_basis, 2*i)   = real(r_tmp_dx);
-            column(r_basis, 2*i+1) = imag(r_tmp_dx);
+        if( BaseType::GetEchoLevel() == 7 ) {
+            this->template MatrixOutput<SparseSpaceType>(r_K, "K");
+            this->template MatrixOutput<SparseSpaceType>(r_D, "D");
+            this->template MatrixOutput<SparseSpaceType>(r_M, "M");
+            this->template VectorOutput<SparseSpaceType>(r_RHS, "RHS");
+            this->template VectorOutput<SparseSpaceType>(r_ov, "o");
         }
-
-        OrthogonalizationUtility::OrthogonalizeQR<TReducedDenseSpace>(r_basis);
 
         // create loop variables
         size_t iter = 0;
         double error = 1;
+        std::vector<double> error_vec(reduced_system_size, 1);
         vector<complex> eigenvalues;
         auto samplingPoints_old = mSamplingPoints;
         double projection_time;
         double construction_time;
 
+        BuiltinTimer irka_overall_time;
         while( iter < mMaxIter && error > mTolerance )
         {
             BuiltinTimer irka_iteration_time;
             BuiltinTimer irka_projection_time;
+            BuiltinTimer basis_construction_time;
+
+            for( size_t i=0; i<n_sampling_points/2; ++i )
+            {
+                // if already converged, skip the expansion point
+                if( error_vec[2*i] < mTolerance ) {
+                    KRATOS_INFO_IF("\tSkipping expansion points", BaseType::GetEchoLevel() > 1 && rank == 0)
+                        << 2*i << "/" << 2*i+1 << " with error " << error_vec[2*i] << std::endl;
+                    continue;
+                }
+
+                // build dynamic stiffness matrix
+                if( TUseModalDamping) {
+                    if( this->SystemIsSymmetric() ) {
+                        noalias(r_kdyn) = r_K_cplx + std::pow( mSamplingPoints(2*i), 2 ) * r_M_tmp;
+                    } else {
+                        noalias(r_kdyn) = r_K_cplx - std::pow( mSamplingPoints(2*i), 2 ) * r_M_tmp;
+                    }
+                } else {
+                    if( this->SystemIsSymmetric() ) {
+                        noalias(r_kdyn) = r_K + mSamplingPoints(2*i) * r_D_tmp + std::pow( mSamplingPoints(2*i), 2 ) * r_M_tmp;
+                    } else {
+                        noalias(r_kdyn) = r_K + mSamplingPoints(2*i) * r_D_tmp - std::pow( mSamplingPoints(2*i), 2 ) * r_M_tmp;
+                    }
+                }
+
+                // solve for current expansion point
+                this->mpLinearSolver->Solve( r_kdyn, r_tmp_dx, r_RHS_tmp );
+
+                KRATOS_DEBUG_ERROR_IF(isinf(norm_2(r_tmp_dx))) << "No solution could be obtained (norm infinity)!" << std::endl;
+
+                // update basis
+                column(r_basis, 2*i)   = real(r_tmp_dx);
+                column(r_basis, 2*i+1) = imag(r_tmp_dx);
+
+                // for unsymmetric systems, solve the adjoint problem and update left basis
+                if( !this->SystemIsSymmetric() ) {
+                    this->mpAdjointLinearSolver->Solve( r_kdyn, r_tmp_dx, r_ov_tmp);
+
+                    column(r_basis_l, 2*i)   = real(r_tmp_dx);
+                    column(r_basis_l, 2*i+1) = imag(r_tmp_dx);
+                }
+            }
+            construction_time = basis_construction_time.ElapsedSeconds();
+
+            // orthogonalize the bases
+            OrthogonalizationUtility::OrthogonalizeQR<TReducedDenseSpace>(r_basis);
+            if( !this->SystemIsSymmetric() ) {
+                OrthogonalizationUtility::OrthogonalizeQR<TReducedDenseSpace>(r_basis_l);
+            }
 
             // project onto reduced space
             if( TUseModalDamping )
             {
-                this->template ProjectMatrix<TReducedSparseMatrixType>(r_K_cplx, r_basis, r_Kr);
-                this->template ProjectMatrix<TSystemMatrixType>(r_M, r_basis, r_Mr);
+                if( this->SystemIsSymmetric() ) {
+                    this->template ProjectMatrix<TReducedSparseMatrixType>(r_K_cplx, r_basis, r_Kr);
+                    this->template ProjectMatrix<TSystemMatrixType>(r_M, r_basis, r_Mr);
+                } else {
+                    this->template ProjectMatrix<TReducedSparseMatrixType>(r_K_cplx, r_basis, r_basis_l, r_Kr);
+                    this->template ProjectMatrix<TSystemMatrixType>(r_M, r_basis, r_basis_l, r_Mr);
+                }
             }
             else
             {
-                this->template ProjectMatrix<TSystemMatrixType>(r_K, r_basis, r_Kr);
-                this->template ProjectMatrix<TSystemMatrixType>(r_D, r_basis, r_Dr);
-                this->template ProjectMatrix<TSystemMatrixType>(r_M, r_basis, r_Mr);
+                if( this->SystemIsSymmetric() ) {
+                    this->template ProjectMatrix<TSystemMatrixType>(r_K, r_basis, r_Kr);
+                    this->template ProjectMatrix<TSystemMatrixType>(r_D, r_basis, r_Dr);
+                    this->template ProjectMatrix<TSystemMatrixType>(r_M, r_basis, r_Mr);
+                } else {
+                    this->template ProjectMatrix<TSystemMatrixType>(r_K, r_basis, r_basis_l, r_Kr);
+                    this->template ProjectMatrix<TSystemMatrixType>(r_D, r_basis, r_basis_l, r_Dr);
+                    this->template ProjectMatrix<TSystemMatrixType>(r_M, r_basis, r_basis_l, r_Mr);
+                }
             }
             projection_time = irka_projection_time.ElapsedSeconds();
 
+            // compute eigenvalues in reduced space
             if( TUseModalDamping )
             {
                 // compute generalized eigenvalues
@@ -357,11 +412,18 @@ class MorSecondOrderIRKAStrategy
                 std::for_each(tmp_eigenvalues.begin(), tmp_eigenvalues.end(),
                     [](complex &a) {a = std::sqrt(a);});
 
-                eigenvalues.resize(2*reduced_system_size);
+                eigenvalues.resize(2*reduced_system_size, false);
                 noalias(subrange(eigenvalues, 0, reduced_system_size)) = tmp_eigenvalues;
-                std::for_each(tmp_eigenvalues.begin(), tmp_eigenvalues.end(), 
+                std::for_each(tmp_eigenvalues.begin(), tmp_eigenvalues.end(),
                     [](complex &a) {a = std::conj(a);});
                 noalias(subrange(eigenvalues, reduced_system_size, reduced_system_size*2)) = tmp_eigenvalues;
+
+                // sort by absolute value with negative imaginary part in front (pair first, then stable sort)
+                ComplexSortUtility::PairComplexConjugates(eigenvalues);
+                std::stable_sort(eigenvalues.begin(), eigenvalues.end(),
+                    [](complex z1, complex z2) {return std::abs(z1) < std::abs(z2);});
+
+                noalias(mSamplingPoints) = subrange(eigenvalues, 0, reduced_system_size);
             }
             else
             {
@@ -370,57 +432,37 @@ class MorSecondOrderIRKAStrategy
 
                 // use mirror images of first r eigenvalues as expansion points
                 eigenvalues *= -1.;
+                ComplexSortUtility::PairComplexConjugates(eigenvalues);
+                noalias(mSamplingPoints) = subrange(eigenvalues, 0, reduced_system_size);
             }
-
-            ComplexSortUtility::PairComplexConjugates(eigenvalues);
-            noalias(mSamplingPoints) = subrange(eigenvalues, 0, reduced_system_size);
 
             // calculate error
             error = norm_2(mSamplingPoints - samplingPoints_old);
             error /= norm_2(samplingPoints_old);
-
-            //update basis
-            BuiltinTimer basis_construction_time;
-            for( size_t i=0; i<n_sampling_points/2; ++i )
-            {
-                if( TUseModalDamping )
-                    noalias(r_kdyn) = r_K_cplx;
-                else
-                {
-                    noalias(r_kdyn) = r_D;
-                    r_kdyn *= mSamplingPoints(2*i);
-                    r_kdyn += r_K;
-                }
-                r_kdyn += std::pow( mSamplingPoints(2*i), 2.0 ) * r_M_tmp;
-                ComplexSparseSpaceType::SetToZero(r_tmp_dx);
-                
-                this->mpLinearSolver->Solve( r_kdyn, r_tmp_dx, r_RHS_tmp );
-
-                KRATOS_DEBUG_ERROR_IF(isinf(norm_2(r_tmp_dx))) << "No solution could be obtained (norm infinity)!";
-
-                column(r_basis, 2*i)   = real(r_tmp_dx);
-                column(r_basis, 2*i+1) = imag(r_tmp_dx);
+            for( std::size_t i=0; i<reduced_system_size; ++i ) {
+                error_vec[i] = std::abs((mSamplingPoints[i] - samplingPoints_old[i]) / samplingPoints_old[i]);
             }
-            
-            // orthogonalize basis
-            OrthogonalizationUtility::OrthogonalizeQR<TReducedDenseSpace>(r_basis);
 
-            construction_time = basis_construction_time.ElapsedSeconds();
+            // update loop variables
             iter++;
             samplingPoints_old = mSamplingPoints;
 
             KRATOS_INFO_IF("IRKA error after iteration " + iter, BaseType::GetEchoLevel() > 0 && rank == 0)
-                << ": e=" << error << "\n";
+                << ": e=" << error << std::endl;
             KRATOS_INFO_IF("IRKA Iteration Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << irka_iteration_time.ElapsedSeconds() << "\n";
+                << irka_iteration_time.ElapsedSeconds() << std::endl;
             KRATOS_INFO_IF("\tProjection Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << projection_time << "\n";
+                << projection_time << std::endl;
             KRATOS_INFO_IF("\tBasis update Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << construction_time << "\n";
+                << construction_time << std::endl;
+            KRATOS_INFO_IF("\tCurrent expansion points", BaseType::GetEchoLevel() > 1 && rank == 0)
+                << mSamplingPoints << std::endl;
+            KRATOS_INFO_IF("\tRespective errors", BaseType::GetEchoLevel() > 1 && rank == 0)
+                << error_vec << std::endl;
         }
 
         KRATOS_INFO_IF("IRKA Complete Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-            << irka_overall_time.ElapsedSeconds() << "\n";
+            << irka_overall_time.ElapsedSeconds() << std::endl;
 
 		return true;
 
@@ -430,17 +472,17 @@ class MorSecondOrderIRKAStrategy
     void FinalizeSolutionStep() override
     {
         // matrices have been projected inside the IRKA loop
+        auto& r_RHS = this->GetSystemVector();
         auto& r_force_vector_reduced = this->GetRHSr();
         auto& r_output_vector = this->GetOutputVector();
         auto& r_output_vector_r = this->GetOVr();
         auto& r_basis = this->GetBasis();
+        auto& r_basis_l = this->GetBasisLeft();
 
-        const size_t reduced_system_size = r_basis.size2();
-
-        BuiltinTimer system_projection_time;
+        const std::size_t reduced_system_size = r_basis.size2();
 
         r_force_vector_reduced.resize( reduced_system_size, false);
-        r_force_vector_reduced = prod( this->GetSystemVector(), r_basis );
+        axpy_prod(r_RHS, r_basis_l, r_force_vector_reduced, true);
 
         r_output_vector_r.resize( reduced_system_size, false);
         r_output_vector_r = prod( r_output_vector, r_basis );

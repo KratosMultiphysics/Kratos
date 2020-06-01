@@ -151,6 +151,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetKr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetKr)
         .def("GetDr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetDr)
         .def("GetMr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetMr)
+        .def("GetRHSr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetRHSr)
         .def("GetOutputVectorR", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetOVr)
         .def("ImportSystem", &MorSecondOrderRealInComplexOutOfflineStrategyType::ImportSystem)
         ;
@@ -204,11 +205,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorSecondOrderIrkaRealStrategyType, typename MorSecondOrderIrkaRealStrategyType::Pointer, MorSecondOrderRealInRealOutOfflineStrategyType >(m,"MorSecondOrderRealIrkaStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double, bool >())
         ;
 
     py::class_< MorSecondOrderIrkaComplexStrategyType, typename MorSecondOrderIrkaComplexStrategyType::Pointer, MorSecondOrderRealInComplexOutOfflineStrategyType >(m,"MorSecondOrderComplexIrkaStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double, bool >())
         ;
 
     //********************************************************************
@@ -218,6 +219,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, bool, bool >())
         .def("GetBuilderAndSolver", &FrequencyResponseAnalysisStrategyType::GetBuilderAndSolver)
+        .def("EchoInfo", &FrequencyResponseAnalysisStrategyType::EchoInfo)
         ;
 
     //********************************************************************

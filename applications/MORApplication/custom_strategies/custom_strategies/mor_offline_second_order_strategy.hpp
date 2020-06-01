@@ -139,22 +139,20 @@ class MorOfflineSecondOrderStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
-        // typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
+        typename TLinearSolverType::Pointer pNewAdjointLinearSolver,
         bool UseDampingFlag = false,
-        bool MoveMeshFlag = false)//,
+        bool SystemIsSymmetric = true)//,
         // bool UseDefinedOutputFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>>(rModelPart, MoveMeshFlag),
-            mUseDamping(UseDampingFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>>(rModelPart, false),
+            mpScheme(pScheme),
+            mpBuilderAndSolver(pBuilderAndSolver),
+            mpLinearSolver(pNewLinearSolver),
+            mpAdjointLinearSolver(pNewAdjointLinearSolver),
+            mUseDamping(UseDampingFlag),
+            mSystemIsSymmetric(SystemIsSymmetric)
     {
         KRATOS_TRY;
-
-        // Saving the scheme
-        mpScheme = pScheme;
-        mpBuilderAndSolver = pBuilderAndSolver;
-
-        // Saving the linear solver -> better put this in the builder and solver?
-        mpLinearSolver = pNewLinearSolver;
 
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
@@ -185,6 +183,7 @@ class MorOfflineSecondOrderStrategy
         mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
         mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
         mpBasis = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        mpBasisLeft = TReducedDenseSpace::CreateEmptyMatrixPointer();
         mpSr = TReducedDenseSpace::CreateEmptyMatrixPointer();
 
         KRATOS_CATCH("");
@@ -486,6 +485,7 @@ class MorOfflineSecondOrderStrategy
     /**
      * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     * @todo Add support for unsymmetric problems
      */
     virtual void FinalizeSolutionStep() override
     {
@@ -591,22 +591,22 @@ class MorOfflineSecondOrderStrategy
     void ImportSystem(TSystemMatrixType& rK, TSystemMatrixType& rD, TSystemMatrixType& rM, TSystemVectorType& rRHS, TSystemVectorType& rOV)
     {
         Initialize();
-        
+
         TSystemMatrixType& A = *mpA;
         A = TSystemMatrixType(rK);
-        
+
         TSystemMatrixType& D = *mpS;
         D = TSystemMatrixType(rD);
-        
+
         TSystemMatrixType& M = *mpM;
         M = TSystemMatrixType(rM);
-        
+
         TSystemVectorType& RHS = *mpRHS;
         RHS = TSystemVectorType(rRHS);
-        
+
         TSystemVectorType& OV = *mpOV;
         OV = TSystemVectorType(rOV);
-        
+
         mImportedSystem = true;
     }
 
@@ -766,6 +766,24 @@ class MorOfflineSecondOrderStrategy
         return mpBasis;
     }
 
+    virtual TReducedDenseMatrixType& GetBasisLeft()
+    {
+        if( mSystemIsSymmetric ) {
+            return *mpBasis;
+        } else {
+            return *mpBasisLeft;
+        }
+    }
+
+    virtual TReducedDenseMatrixPointerType& pGetBasisLeft()
+    {
+        if( mSystemIsSymmetric ) {
+            return mpBasis;
+        } else {
+            return mpBasisLeft;
+        }
+    }
+
     virtual TSystemVectorType& GetOutputVector()
     {
         TSystemVectorType &mOutputVector = *mpOV;
@@ -790,6 +808,11 @@ class MorOfflineSecondOrderStrategy
         {
             return this->GetBuilderAndSolver()->GetEquationSystemSize();
         }
+    }
+
+    bool SystemIsSymmetric()
+    {
+        return mSystemIsSymmetric;
     }
 
     ///@}
@@ -839,9 +862,11 @@ class MorOfflineSecondOrderStrategy
     ///@}
     ///@name Member Variables
     ///@{
-    typename TLinearSolverType::Pointer mpLinearSolver; /// The pointer to the linear solver considered
+
     typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employe
+    typename TLinearSolverType::Pointer mpLinearSolver; /// The pointer to the linear solver considered
+    typename TLinearSolverType::Pointer mpAdjointLinearSolver; /// The pointer to the linear solver for the adjoint problem considered
 
     TSystemVectorPointerType mpRHS; /// The RHS vector of the system of equations
     TSystemMatrixPointerType mpA; /// The Stiffness matrix of the system of equations
@@ -855,10 +880,9 @@ class MorOfflineSecondOrderStrategy
     TReducedDenseMatrixPointerType mpAr;
     TReducedDenseMatrixPointerType mpMr;
     TReducedDenseMatrixPointerType mpBasis;
+    TReducedDenseMatrixPointerType mpBasisLeft;
     TReducedDenseMatrixPointerType mpSr;
     TReducedDenseVectorPointerType mpOVr;
-
-    int myTestInteger = 42;
 
     vector< double > mSamplingPoints;
 
@@ -876,6 +900,8 @@ class MorOfflineSecondOrderStrategy
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
 
     bool mUseDamping; /// Flag to set if damping should be considered
+
+    bool mSystemIsSymmetric; /// Flag to set if the system is symmetric
 
     bool mImportedSystem; // Flag to set if an imported system is considered
 
@@ -901,6 +927,53 @@ class MorOfflineSecondOrderStrategy
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief computes X=W^H * A * V
+     */
+    template <typename MatrixType>
+    void ProjectMatrix(MatrixType& rA, ComplexMatrix& rV, ComplexMatrix& rW, ComplexMatrix& rX)
+    {
+        const size_t system_size = rV.size1();
+        const size_t reduced_system_size = rV.size2();
+        ComplexVector v_col = ComplexZeroVector(system_size);
+        ComplexVector tmp_1 = ComplexZeroVector(system_size);
+        ComplexVector tmp_2 = ComplexZeroVector(reduced_system_size);
+        ComplexMatrix rWH = ComplexZeroMatrix(reduced_system_size, system_size);
+        noalias(rWH) = herm(rW);
+
+        #pragma omp parallel for firstprivate(v_col, tmp_1, tmp_2) schedule(static)
+        for( int i=0; i<static_cast<int>(reduced_system_size); ++i )
+        {
+            noalias(v_col) = column(rV,i);
+
+            axpy_prod(rA, v_col, tmp_1, true);      // A*V  (=T)
+            axpy_prod(rWH, tmp_1, tmp_2, true);     // W^H * T
+            noalias(column(rX, i)) = tmp_2;         // X = W^H A V
+        }
+    }
+
+    /**
+     * @brief computes X=W^T * A * V
+     */
+    template <typename MatrixType>
+    void ProjectMatrix(MatrixType& rA, Matrix& rV, Matrix& rW, Matrix& rX)
+    {
+        const size_t reduced_system_size = rV.size2();
+        Vector v_col = ZeroVector(rV.size1());
+        Vector tmp_1 = ZeroVector(rV.size1());
+        Vector tmp_2 = ZeroVector(rV.size2());
+
+        #pragma omp parallel for firstprivate(v_col, tmp_1, tmp_2) schedule(static)// nowait
+        for( int i=0; i<static_cast<int>(reduced_system_size); ++i )
+        {
+            noalias(v_col) = column(rV,i);
+
+            axpy_prod(rA, v_col, tmp_1, true);      // A*V  (=T)
+            axpy_prod(tmp_1, rW, tmp_2, true);      // W' * T
+            noalias(column(rX, i)) = tmp_2;         // X = W' A V
+        }
+    }
 
     /**
      * @brief computes X=V^H * A * V
@@ -956,6 +1029,22 @@ class MorOfflineSecondOrderStrategy
     ///@}
     ///@name Protected Inquiry
     ///@{
+
+    template <typename SparseSpaceType>
+    void MatrixOutput(typename SparseSpaceType::MatrixType matrix, const std::string name)
+    {
+        std::stringstream matrix_market_name;
+        matrix_market_name << name << ".mm";
+        SparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), matrix, false);
+    }
+
+    template <typename SparseSpaceType>
+    void VectorOutput(typename SparseSpaceType::VectorType vector, const std::string name)
+    {
+        std::stringstream matrix_market_name;
+        matrix_market_name << name << ".mm.rhs";
+        SparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_name.str()).c_str(), vector);
+    }
 
     ///@}
     ///@name Un accessible methods

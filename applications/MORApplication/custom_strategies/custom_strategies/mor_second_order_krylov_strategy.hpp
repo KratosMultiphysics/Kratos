@@ -132,7 +132,7 @@ class MorSecondOrderKrylovStrategy
         typename TLinearSolverType::Pointer pNewLinearSolver,
         vector< double > samplingPoints,
         bool MoveMeshFlag = false)
-        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true, MoveMeshFlag),
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, nullptr, true, MoveMeshFlag),
             mSamplingPoints(samplingPoints)
     {
         KRATOS_TRY;
@@ -221,7 +221,7 @@ class MorSecondOrderKrylovStrategy
         TReducedSparseVectorType aux(system_size, std::complex<double>(0.0,0.0));
         TReducedSparseVectorType tmp_rhs;
         tmp_rhs = TReducedSparseVectorType(r_RHS);
-        
+
         BuiltinTimer basis_construction_time;
 
         for( size_t i = 0; i < n_sampling_points; ++i )
@@ -234,7 +234,7 @@ class MorSecondOrderKrylovStrategy
 
             this->mpLinearSolver->Solve( r_kdyn, rs, tmp_rhs );
             noalias(aux) = prod( r_M, rs );
-        
+
             this->mpLinearSolver->Solve( r_kdyn, rAs, aux );
             noalias(aux) = prod( r_M, rAs );
 
@@ -250,7 +250,7 @@ class MorSecondOrderKrylovStrategy
 
         // orthogonalization step
         BuiltinTimer basis_orthogonalization_time;
-        
+
         OrthogonalizationUtility::OrthogonalizeQR<TReducedDenseSpace>(r_basis);
 
         KRATOS_INFO_IF("Basis Orthogonalization Time", BaseType::GetEchoLevel() > 0 && rank == 0)
