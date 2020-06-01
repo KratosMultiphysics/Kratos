@@ -31,8 +31,12 @@ class TestProperties(KratosUnittest.TestCase):
         self.assertEqual(properties.GetValue(KM.YOUNG_MODULUS), 1.0)
 
         properties_copy = model_part.CreateNewProperties(2)
+        properties_copy[KM.TEMPERATURE] = 15.0
+        properties_copy[KM.PRESSURE] = 25.0
         KM.PropertiesUtilities.CopyPropertiesValues(properties, properties_copy)
         self.assertEqual(properties_copy.GetValue(KM.YOUNG_MODULUS), 1.0)
+        self.assertEqual(properties_copy.Has(KM.TEMPERATURE), False)
+        self.assertEqual(properties_copy.Has(KM.PRESSURE), False)
 
         properties.SetValue(KM.DENSITY, 12.0)
         self.assertEqual(properties.GetValue(KM.DENSITY), 12.0)
