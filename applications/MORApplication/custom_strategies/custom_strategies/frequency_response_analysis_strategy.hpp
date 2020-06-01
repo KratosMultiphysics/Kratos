@@ -171,6 +171,7 @@ class FrequencyResponseAnalysisStrategy
         mpKi = TSparseSpace::CreateEmptyMatrixPointer();
         mpC = TSparseSpace::CreateEmptyMatrixPointer();
         mpM = TSparseSpace::CreateEmptyMatrixPointer();
+        mpMi = TSparseSpace::CreateEmptyMatrixPointer();
         mpRHS = ComplexSparseSpaceType::CreateEmptyVectorPointer();
         mpDx = ComplexSparseSpaceType::CreateEmptyVectorPointer();
 
@@ -325,6 +326,8 @@ class FrequencyResponseAnalysisStrategy
             SparseSpaceType::Clear(mpKi);
         if (mpM != nullptr)
             SparseSpaceType::Clear(mpM);
+        if (mpMi != nullptr)
+            SparseSpaceType::Clear(mpMi);
         if (mpC != nullptr)
             SparseSpaceType::Clear(mpC);
         if (mpRHS != nullptr)
@@ -363,6 +366,7 @@ class FrequencyResponseAnalysisStrategy
             TSystemMatrixType& r_K  = *mpK;
             TSystemMatrixType& r_Ki  = *mpKi;
             TSystemMatrixType& r_M = *mpM;
+            TSystemMatrixType& r_Mi = *mpMi;
             TSystemMatrixType& r_C  = *mpC;
             TSolutionMatrixType& r_A  = *mpA;
             TSolutionVectorType& r_RHS  = *mpRHS;
@@ -409,10 +413,11 @@ class FrequencyResponseAnalysisStrategy
                 //set up the stiffness matrix and rhs
                 r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
                 TSparseSpace::SetToZero(r_tmp_RHS);
+                p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), r_K, tmp, tmp);
                 p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_K, r_tmp_RHS);
                 DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_K, r_tmp_RHS, fixed_dofs, 1.0);
 
-                //if required, set up the imaginary part of the stiffness
+                //if required, set up the imaginary part of the stiffness and mass
                 if( mUseModalDamping )
                 {
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpKi, tmp_RHS, tmp_RHS,
@@ -420,6 +425,12 @@ class FrequencyResponseAnalysisStrategy
                     r_model_part.GetProcessInfo()[BUILD_LEVEL] = 111;
                     p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_Ki, tmp);
                     DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_Ki, tmp, fixed_dofs, 0.0);
+
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMi, tmp_RHS, tmp_RHS,
+                                                                    BaseType::GetModelPart());
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 121;
+                    p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_Mi, tmp);
+                    DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_Mi, tmp, fixed_dofs, 0.0);
                 }
 
                 //set up the damping matrix
@@ -431,6 +442,8 @@ class FrequencyResponseAnalysisStrategy
                 r_model_part.GetProcessInfo()[BUILD_LEVEL] = 201;
                 p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_M, tmp);
                 DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_M, tmp, fixed_dofs, 0.0);
+
+                p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), r_K, tmp, tmp);
 
                 //copy the rhs to the complex space
                 r_RHS = TSolutionVectorType(r_tmp_RHS);
@@ -473,6 +486,7 @@ class FrequencyResponseAnalysisStrategy
             SparseSpaceType::Clear(mpK);
             SparseSpaceType::Clear(mpKi);
             SparseSpaceType::Clear(mpM);
+            SparseSpaceType::Clear(mpMi);
             SparseSpaceType::Clear(mpC);
             TSolutionSpace::Clear(mpRHS);
             TSolutionSpace::Clear(mpDx);
@@ -498,18 +512,20 @@ class FrequencyResponseAnalysisStrategy
         TSystemMatrixType& r_K = *mpK;
         TSystemMatrixType& r_Ki = *mpKi;
         TSystemMatrixType& r_M = *mpM;
+        TSystemMatrixType& r_Mi = *mpMi;
         TSystemMatrixType& r_C  = *mpC;
         TSolutionVectorType& r_RHS = *mpRHS;
         TSolutionVectorType& r_Dx = *mpDx;
 
         auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         const double excitation_frequency = r_process_info[FREQUENCY];
+        const double excitation_frequency2 = std::pow(excitation_frequency, 2);
 
         //Build imaginary part
         BuiltinTimer build_imag;
         TSolutionMatrixType tmp_i(r_K.size1(), r_K.size2());
         if( mUseModalDamping ) {
-            noalias(tmp_i) = r_Ki + excitation_frequency * r_C;
+            noalias(tmp_i) = r_Ki + excitation_frequency * r_C - excitation_frequency2 * r_Mi;
         } else {
             noalias(tmp_i) = excitation_frequency * r_C;
         }
@@ -519,7 +535,7 @@ class FrequencyResponseAnalysisStrategy
         //Build real part
         BuiltinTimer build_real;
         TSolutionMatrixType tmp_r(r_K.size1(), r_K.size2());
-        noalias(tmp_r) = r_K - std::pow(excitation_frequency, 2.0) * r_M;
+        noalias(tmp_r) = r_K - excitation_frequency2 * r_M;
         KRATOS_INFO_IF("Build Real Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                 << build_real.ElapsedSeconds() << std::endl;
 
@@ -618,6 +634,55 @@ class FrequencyResponseAnalysisStrategy
     ///@name Inquiry
     ///@{
 
+    /**
+     * @brief This method returns the components of the system of equations depending of the echo level
+     * @param IterationNumber The non linear iteration in the solution loop
+     */
+    virtual void EchoInfo()
+    {
+        TSystemMatrixType& rK  = *mpK;
+        TSystemMatrixType& rKi = *mpKi;
+        TSystemMatrixType& rM = *mpM;
+        TSystemMatrixType& rMi = *mpMi;
+        TSolutionVectorType& rRHS  = *mpRHS;
+        TSystemMatrixType& rC  = *mpC;
+
+        if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
+        {
+            KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
+        }
+        else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
+        {
+            KRATOS_INFO("K") << "SystemMatrix = " << rK << std::endl;
+            KRATOS_INFO("M")  << "Mass Matrix = " << mpM << std::endl;
+            KRATOS_INFO("C")  << "Damping Matrix = " << mpC << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
+        }
+        std::stringstream matrix_market_name;
+        matrix_market_name << "K_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rK, false);
+
+        std::stringstream matrix_market_ki_name;
+        matrix_market_ki_name << "Ki_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_ki_name.str()).c_str(), rKi, false);
+
+        std::stringstream matrix_market_mass_name;
+        matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
+
+        std::stringstream matrix_market_mi_name;
+        matrix_market_mi_name << "Mi_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mi_name.str()).c_str(), rMi, false);
+
+        std::stringstream matrix_market_damping_name;
+        matrix_market_damping_name << "C_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+        ComplexSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rC, false);
+
+        std::stringstream matrix_market_vectname;
+        matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
+        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -671,7 +736,8 @@ class FrequencyResponseAnalysisStrategy
     TSolutionMatrixPointerType mpA; /// The system matrix (dynamic stiffness matrix)
     TSystemMatrixPointerType mpK; /// The stiffness matrix (real part)
     TSystemMatrixPointerType mpKi; /// The stiffness matrix (imaginary part)
-    TSystemMatrixPointerType mpM; /// The mass matrix
+    TSystemMatrixPointerType mpM; /// The mass matrix (real part)
+    TSystemMatrixPointerType mpMi; /// The mass matrix (imaginary part)
     TSystemMatrixPointerType mpC; /// The damping matrix
 
     bool mReformDofSetAtEachStep;
@@ -686,49 +752,6 @@ class FrequencyResponseAnalysisStrategy
     ///@name Private Operators
     ///@{
 
-    /**
-     * @brief This method returns the components of the system of equations depending of the echo level
-     * @param IterationNumber The non linear iteration in the solution loop
-     */
-    virtual void EchoInfo()
-    {
-        TSystemMatrixType& rK  = *mpK;
-        TSystemMatrixType& rKi = *mpKi;
-        TSystemMatrixType& rM = *mpM;
-        TSolutionVectorType& rRHS  = *mpRHS;
-        TSystemMatrixType& rC  = *mpC;
-
-        if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
-        {
-            KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
-        }
-        else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
-        {
-            KRATOS_INFO("K") << "SystemMatrix = " << rK << std::endl;
-            KRATOS_INFO("M")  << "Mass Matrix = " << mpM << std::endl;
-            KRATOS_INFO("C")  << "Damping Matrix = " << mpC << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
-        }
-        std::stringstream matrix_market_name;
-        matrix_market_name << "K_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rK, false);
-
-        std::stringstream matrix_market_ki_name;
-        matrix_market_name << "Ki_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rKi, false);
-
-        std::stringstream matrix_market_mass_name;
-        matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
-
-        std::stringstream matrix_market_damping_name;
-        matrix_market_name << "C_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
-        ComplexSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rC, false);
-
-        // std::stringstream matrix_market_vectname;
-        // matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
-        // TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
-    }
 
     ///@}
     ///@name Private Operations
