@@ -87,7 +87,7 @@ namespace Kratos
 
 		// Get old stress vector and current strain vector
 		const Vector StrainVector = rValues.GetStrainVector();
-		Vector StressVector = rValues.GetStressVector();
+		Vector& StressVector = rValues.GetStressVector();
 
 		// Convert vectors to matrices for easier manipulation
 		Matrix stress_old(3, 3);
