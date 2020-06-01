@@ -19,10 +19,10 @@ namespace GeneralizedEigenvalueUtility
     void SolveGEP(const Eigen::MatrixXcd& rA, const Eigen::MatrixXcd& rB, Eigen::Map<Eigen::ArrayXcd>& rEV);
 
     void SolveGEP(const Eigen::MatrixXd& rA, const Eigen::MatrixXd& rB, Eigen::Map<Eigen::ArrayXcd>& rEV);
-    
+
     template <typename DenseSpaceType>
-    void ComputePolynomial(typename DenseSpaceType::MatrixType& rA0, 
-        typename DenseSpaceType::MatrixType& rA1, 
+    void ComputePolynomial(typename DenseSpaceType::MatrixType& rA0,
+        typename DenseSpaceType::MatrixType& rA1,
         typename DenseSpaceType::MatrixType& rA2,
         ComplexVector& rEigenvalues)
     {

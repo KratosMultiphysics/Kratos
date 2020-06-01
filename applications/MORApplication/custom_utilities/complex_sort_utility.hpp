@@ -28,7 +28,7 @@ namespace ComplexSortUtility
      * @brief Sorts and pairs complex conjugate numbers
      * @param rV A vector of complex numbers to be paired
      * @param tol Tolerance. Defaults to 100*EPS
-     * @details This utility pairs complex conjugate values and sorts them with increasing real part. 
+     * @details This utility pairs complex conjugate values and sorts them with increasing real part.
      *      In each pair, the negative complex part comes first; real numbers are sorted to the end of the vector.
      *      An error is thrown, if the complex numbers cannot be paired in complex conjugates.
      * @author Quirin Aumann
@@ -70,7 +70,7 @@ namespace ComplexSortUtility
         //check if real parts occur in pairs
         for( size_t i=0; i<n_cplx; i+=2)
         {
-            KRATOS_ERROR_IF( std::abs(std::real(rV(i)) - std::real(rV(i+1))) > tol ) 
+            KRATOS_ERROR_IF( std::abs(std::real(rV(i)) - std::real(rV(i+1))) > tol )
                 << "Complex numbers " << rV(i) << "," << rV(i+1) << " cannot be paired (real parts not in pairs): difference "
                 << std::abs(std::real(rV(i)) - std::real(rV(i+1))) << " at tolerance " << tol << "\n";
         }
@@ -104,7 +104,7 @@ namespace ComplexSortUtility
                 }
                 else
                 {
-                    KRATOS_ERROR << "Complex numbers " << rV(i) << "," << rV(i+1) << " cannot be paired (imaginary parts not conjugate): difference " 
+                    KRATOS_ERROR << "Complex numbers " << rV(i) << "," << rV(i+1) << " cannot be paired (imaginary parts not conjugate): difference "
                         << std::abs(std::real(rV(i)) - std::real(rV(i+1))) << " at tolerance " << tol << "\n";
                 }
             }
@@ -129,7 +129,7 @@ namespace ComplexSortUtility
                             break;
                     }
 
-                    KRATOS_ERROR_IF( (jj % 2) != 0 ) 
+                    KRATOS_ERROR_IF( (jj % 2) != 0 )
                         << "Complex numbers cannot be paired (imaginary parts not in pairs)\n";
 
                     for( size_t k = 0; k<jj+1; k+=2 )
@@ -162,7 +162,7 @@ namespace ComplexSortUtility
             {
                 KRATOS_ERROR << "Complex numbers cannot be paired (imaginary parts not in pairs)\n";
             }
-            
+
             i += j;
         }
 
