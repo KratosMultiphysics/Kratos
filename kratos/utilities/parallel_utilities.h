@@ -208,7 +208,7 @@ public:
         }
     }
 
-    /** simple version of for_each (no reduction) to be caled for each index in the partition
+    /** simple version of for_each (no reduction) to be called for each index in the partition
      * @param f - must be a unary function accepting as input IndexType
      */
     template <class TUnaryFunction>
