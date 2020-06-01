@@ -36,6 +36,14 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
 
     mpVariable = &KratosComponents<Variable<double>>::Get(rParameters["variable_name"].GetString());
 
+//     // Read json string in materials file, create Parameters
+//     const std::string& materials_filename = Params["Parameters"]["materials_filename"].GetString();
+//     std::ifstream infile(materials_filename);
+//     KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << materials_filename << " cannot be found" << std::endl;
+//     std::stringstream buffer;
+//     buffer << infile.rdbuf();
+//     Parameters json_input(buffer.str());
+
     KRATOS_CATCH("");
 }
 
