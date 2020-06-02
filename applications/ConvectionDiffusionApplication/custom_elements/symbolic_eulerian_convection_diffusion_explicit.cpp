@@ -579,7 +579,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
 template< unsigned int TDim, unsigned int TNumNodes >
 Element::IntegrationMethod SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_1;
+    return GeometryData::GI_GAUSS_2;
 }
 
 /***********************************************************************************/
