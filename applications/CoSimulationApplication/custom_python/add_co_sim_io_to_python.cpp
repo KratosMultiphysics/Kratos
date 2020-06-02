@@ -458,6 +458,14 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .value("ModelPart",         CoSimIO_Wrappers::DataLocation::ModelPart)
         ;
 
+    py::enum_<CoSimIO::ConnectionStatus>(m_co_sim_io,"ConnectionStatus")
+        .value("NotConnected",CoSimIO::ConnectionStatus::NotConnected)
+        .value("Connected",CoSimIO::ConnectionStatus::Connected)
+        .value("Disconnected", CoSimIO::ConnectionStatus::Disconnected)
+        .value("ConnectionError", CoSimIO::ConnectionStatus::ConnectionError)
+        .value("DisconnectionError", CoSimIO::ConnectionStatus::DisconnectionError)
+        ;
+
     // py::enum_<CoSimIO::ControlSignal>(m_co_sim_io,"ControlSignal")
     //     .value("Dummy", CoSimIO::ControlSignal::Dummy)
     //     .value("BreakSolutionLoop", CoSimIO::ControlSignal::BreakSolutionLoop)
