@@ -130,7 +130,7 @@ namespace Kratos
 		if (j2_stress_trial > yield_stress && yield_stress/mYieldStressVirgin > yield_stress_failure_ratio)
 		{
 			// Thermal properties
-			const double eta = 0.9; // TODO check this
+			const double eta = 0.9;
 			const double specific_heat_Cp = MaterialProperties[SPECIFIC_HEAT];
 
 			// Newton raphson setup
@@ -162,11 +162,11 @@ namespace Kratos
 
 				// Compute yield function and derivative
 				yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - yield_stress;
-				KRATOS_WATCH(yield_function)
+				//KRATOS_WATCH(yield_function)
 
 				if (std::abs(yield_function) < tolerance) {
 					is_converged = true;
-					std::cout << "converged in " << iteration << " iterations\n";
+					//std::cout << "converged in " << iteration << " iterations\n";
 					break;
 				}
 
