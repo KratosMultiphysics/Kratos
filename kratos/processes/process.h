@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "containers/model.h"
 
 // To add as Kratos component
 #include "includes/kratos_components.h"
@@ -70,7 +71,6 @@ public:
     /// Destructor.
     ~Process() override {}
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -85,22 +85,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief This method creates an pointer of the process
-     * @details We consider as input a Mmodel and a set of Parameters for the sake of generality
-     * @warning Must be overrided in each process implementation
-     * @param rModel The model to be consider
-     * @param ThisParameters The configuration parameters
-     */
-    virtual Process::Pointer Create(
-        Model& rModel,
-        Parameters ThisParameters
-        )
-    {
-        KRATOS_ERROR << "Calling base class create. Please override this method in the corresonding Process" << std::endl;
-        return nullptr;
-    }
 
     /**
      * @brief This method creates an pointer of the process
