@@ -56,7 +56,6 @@ public:
 
     typedef Element::DofsVectorType DofsVectorType;
     typedef Node<3>::Pointer PointTypePointer;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
     typedef matrix_column< Matrix > MatrixColumnType;
     typedef matrix_row< Matrix > MatrixRowType;
 
@@ -230,8 +229,8 @@ private:
     {
         KRATOS_TRY;
 
-        const VariableComponentType& r_corresponding_adjoint_dof =
-        KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementLabel);
+        const Variable<double>& r_corresponding_adjoint_dof =
+        KratosComponents<Variable<double>>::Get(std::string("ADJOINT_") + mTracedDisplacementLabel);
 
         DofsVectorType dof_list;
         rAdjointObject.GetDofList(dof_list, rProcessInfo);

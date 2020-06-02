@@ -21,7 +21,7 @@
 // External includes
 
 // Project includes
-#include "interface_communicator.h"
+#include "custom_searching/interface_communicator.h"
 
 
 namespace Kratos
@@ -36,7 +36,7 @@ namespace Kratos
 /** It extends it's baseclass by remote-searching capabilities. I.e. before the local search,
  * data is exchanged among the partitions to be used by the local-search
 */
-class InterfaceCommunicatorMPI : public InterfaceCommunicator
+class KRATOS_API(MAPPING_APPLICATION) InterfaceCommunicatorMPI : public InterfaceCommunicator
 {
 public:
     ///@name Type Definitions

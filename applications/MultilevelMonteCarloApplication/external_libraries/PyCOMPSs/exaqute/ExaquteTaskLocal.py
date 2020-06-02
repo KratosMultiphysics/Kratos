@@ -23,8 +23,9 @@ def get_value_from_remote(obj):  # Gather
     return obj
 
 
-def delete_object(obj):  # Release
-    del obj
+def delete_object(*objs):  # Release
+    for obj in objs:
+        del obj
 
 
 def delete_file(file_path):
