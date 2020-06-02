@@ -443,7 +443,6 @@ protected:
  * @author Vicente Mataix Ferrandiz
 */
 class ResultDatabase
-    : public std::unordered_map<IndexType, VariableDatabase>
 {
 public:
     ///@name Type Definitions
@@ -468,7 +467,17 @@ public:
     ResultDatabase(){}
 
     /// Destructor.
-    virtual ~ResultDatabase() {}
+    virtual ~ResultDatabase()
+    {
+        this->Clear();
+    }
+
+    /// Copy constructor.
+    ResultDatabase(ResultDatabase const& rOther)
+        : mData(rOther.mData),
+          mCommonColumn(rOther.mCommonColumn)
+    {
+    }
 
     ///@}
     ///@name Operators
@@ -504,7 +513,7 @@ public:
         for (IndexType i = 0; i < rVariablesIndexes.size(); ++i) {
             const IndexType index = rVariablesIndexes[i];
             const SizeType size = rValuesSizes[i];
-            this->insert(std::pair<IndexType, VariableDatabase>(index, table_generator(NumberOfEntites, size, NumberOfGP)));
+            mData.insert(std::pair<IndexType, VariableDatabase>(index, table_generator(NumberOfEntites, size, NumberOfGP)));
         }
     }
 
@@ -516,8 +525,8 @@ public:
     template<class TVariableType>
     VariableDatabase& GetVariableData(const TVariableType& rVariable)
     {
-        const auto it = find(rVariable.Key());
-        if (it != end()) {
+        const auto it = mData.find(rVariable.Key());
+        if (it != mData.end()) {
             return it->second;
         } else {
             KRATOS_ERROR << "Not allocated Variable: " << rVariable.Name() << std::endl;
@@ -532,8 +541,8 @@ public:
     template<class TVariableType>
     const VariableDatabase& GetVariableData(const TVariableType& rVariable) const
     {
-        const auto it = find(rVariable.Key());
-        if (it != end()) {
+        const auto it = mData.find(rVariable.Key());
+        if (it != mData.end()) {
             return it->second;
         } else {
             KRATOS_ERROR << "Not allocated Variable: " << rVariable.Name() << std::endl;
@@ -560,8 +569,8 @@ public:
         const SizeType GPIndex = 0
         )
     {
-        auto it = find(rVariable.Key());
-        if (it != end()) {
+        auto it = mData.find(rVariable.Key());
+        if (it != mData.end()) {
             auto& r_database = it->second;
             r_database.SetValues(rValuesX, rValuesY, EntityIndex, ComponentIndex, GPIndex);
         } else {
@@ -574,7 +583,13 @@ public:
      */
     void Clear()
     {
-        this->clear();
+        // Clear stored databases
+        for (auto& r_data : mData) {
+            (r_data.second).Clear();
+        }
+
+        // Clear the container
+        mData.clear();
         mCommonColumn.clear();
     }
 
@@ -584,7 +599,7 @@ public:
     int Check()
     {
         // Doing check in the table size
-        for (const auto& r_pair : *this) {
+        for (const auto& r_pair : mData) {
             const auto& r_table_vector_vector_vector = r_pair.second;
             for (const auto& r_table_vector_vector : r_table_vector_vector_vector) {
                 for (const auto& r_table_vector : r_table_vector_vector) {
@@ -652,6 +667,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    std::unordered_map<IndexType, VariableDatabase> mData; // The database storing the values
 
     Vector mCommonColumn; /// This vector stores the common column (usually TIME), so it needs to be initialized at the begining
 
