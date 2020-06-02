@@ -317,21 +317,33 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief The begin iterator
+     */
     DataType::iterator begin()
     {
         return mData.begin();
     }
 
+    /**
+     * @brief The const begin iterator
+     */
     DataType::const_iterator begin() const
     {
         return mData.begin();
     }
 
+    /**
+     * @brief The end iterator
+     */
     DataType::iterator end()
     {
         return mData.end();
     }
 
+    /**
+     * @brief The const end iterator
+     */
     DataType::const_iterator end() const
     {
         return mData.end();
