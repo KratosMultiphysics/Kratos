@@ -44,7 +44,8 @@ for dim in dim_vector:
     N,DN = DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
 
     ## Unknown fields definition
-    phi = DefineVector('phi',nnodes)   # scalar unknown
+    phi = DefineVector('phi',nnodes)           # scalar unknown
+    phi_old = DefineVector('phi_old',nnodes)   # scalar unknown previous time step
 
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)   # vector unknown field test function (not needed)
@@ -55,6 +56,9 @@ for dim in dim_vector:
     k = Symbol('k',positive= True)     # diffusion coefficient
     v = DefineMatrix('v',nnodes,dim)   # convective velocity
     tau = Symbol('tau',positive= True) # stabilization coefficient
+    time = Symbol('time',positive= True) # time current time step
+    time_old = Symbol('time_old',positive= True) # time previous time step
+    RK_time_coefficient = Symbol('RK_time_coefficient',positive= True) # time coefficient for RK scheme.
 
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
@@ -62,6 +66,7 @@ for dim in dim_vector:
     q_gauss = q.transpose()*N
     v_gauss = v.transpose()*N
     phi_gauss = phi.transpose()*N
+    phi_old_gauss = phi_old.transpose()*N
 
     ## Gradient and divergence computation
     grad_w = DfjDxi(DN,w)
@@ -81,10 +86,10 @@ for dim in dim_vector:
     ##  Stabilization functional terms
     # Convective term
     rhs_stab_1_forcing = tau * (v_gauss.transpose() * grad_q) * f_gauss
-    rhs_stab_1_mass = 0
+    rhs_stab_1_mass = - tau * (v_gauss.transpose() * grad_q) * (phi_gauss-phi_old_gauss)/(RK_time_coefficient*(time-time_old))
     rhs_stab_1_convection_1 = - tau * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
     rhs_stab_1_convection_2 = - tau * (v_gauss.transpose() * grad_q) * phi_gauss * div_v
-    rhs_stab_1 = rhs_stab_1_forcing + rhs_stab_1_convection_1 + rhs_stab_1_convection_2
+    rhs_stab_1 = rhs_stab_1_forcing + rhs_stab_1_convection_1 + rhs_stab_1_convection_2 + rhs_stab_1_mass
 
     # Mass conservation residual
 

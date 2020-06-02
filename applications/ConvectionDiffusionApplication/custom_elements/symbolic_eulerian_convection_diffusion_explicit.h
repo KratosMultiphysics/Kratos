@@ -157,9 +157,13 @@ protected:
         double lumping_factor;
         double tau;
         double weight;
+        double time;
+        double time_old;
+        double RK_time_coefficient;
         // arrays
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
+        array_1d<double,TNumNodes> unknown_old;
         // matrices
         BoundedMatrix<double,TNumNodes,3> convective_velocity;
         // auxiliary containers for the symbolically-generated matrices

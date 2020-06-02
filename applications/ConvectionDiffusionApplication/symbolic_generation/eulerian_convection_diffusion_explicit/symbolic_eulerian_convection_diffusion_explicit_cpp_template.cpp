@@ -281,6 +281,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
+    const auto& r_previous_process_info = r_process_info.GetPreviousTimeStepInfo();
 
     const auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
@@ -297,8 +298,15 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     rVariables.diffusivity += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
     rVariables.specific_heat += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetSpecificHeatVariable());
     rVariables.density += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDensityVariable());
+    rVariables.time = r_process_info[TIME];
+    rVariables.time_old = r_previous_process_info[TIME];
+    // ASGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient(time-time_old))
+    // observation: for RK step = 1 ASGS time derivative term = 0 because phi = phi_old
+    if(r_process_info.GetValue(RUNGE_KUTTA_STEP)<4){rVariables.RK_time_coefficient = 0.5;}
+    else {rVariables.RK_time_coefficient = 1.0;}
     // vectors
     rVariables.unknown[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable());
+    rVariables.unknown_old[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable(),1);
     rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
     // convective_velocity = velocity - velocity_mesh
     // velocity_mesh = 0 in eulerian framework
@@ -329,6 +337,10 @@ void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContributi
     const auto k = rVariables.diffusivity;
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
+    const auto phi_old = rVariables.unknown_old;
+    const auto time = rVariables.time;
+    const auto time_old = rVariables.time_old;
+    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
     auto lhs = rVariables.lhs;
@@ -356,6 +368,10 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContributi
     const auto k = rVariables.diffusivity;
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
+    const auto phi_old = rVariables.unknown_old;
+    const auto time = rVariables.time;
+    const auto time_old = rVariables.time_old;
+    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
     auto lhs = rVariables.lhs;
