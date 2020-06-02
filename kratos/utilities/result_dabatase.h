@@ -257,7 +257,6 @@ protected:
  * @author Vicente Mataix Ferrandiz
 */
 class VariableDatabase
-    : public std::vector<EntityDatabase>
 {
 public:
     ///@name Type Definitions
@@ -267,7 +266,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(VariableDatabase);
 
     /// Base type definition
-    typedef std::vector<EntityDatabase> BaseType;
+    typedef std::vector<EntityDatabase> DataType;
 
     /// The definition of the index type
     typedef std::size_t IndexType;
@@ -285,20 +284,58 @@ public:
     VariableDatabase(
         const SizeType SizeVector,
         const EntityDatabase& rBaseData
-        ) : BaseType(SizeVector, rBaseData)
+        ) : mData(SizeVector, rBaseData)
     {
     }
 
     /// Destructor.
-    virtual ~VariableDatabase() {}
+    virtual ~VariableDatabase()
+    {
+        this->Clear();
+    }
+
+    /// Copy constructor.
+    VariableDatabase(VariableDatabase const& rOther)
+        : mData(rOther.mData)
+    {
+    }
 
     ///@}
     ///@name Operators
     ///@{
 
+    /**
+     * @brief The [] operator
+     * @param i The index of the value to access
+     */
+    EntityDatabase& operator[](const std::size_t i)
+    {
+        return mData[i];
+    }
+
     ///@}
     ///@name Operations
     ///@{
+
+    DataType::iterator begin()
+    {
+        return mData.begin();
+    }
+
+    DataType::const_iterator begin() const
+    {
+        return mData.begin();
+    }
+
+    DataType::iterator end()
+    {
+        return mData.end();
+    }
+
+    DataType::const_iterator end() const
+    {
+        return mData.end();
+    }
 
     /**
      * @brief This method retrieves the entity database
@@ -306,8 +343,8 @@ public:
      */
     const EntityDatabase& GetEntityData(const IndexType EntityIndex) const
     {
-        KRATOS_DEBUG_ERROR_IF(EntityIndex == this->size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << this->size() << std::endl;
-        return operator[](EntityIndex);
+        KRATOS_DEBUG_ERROR_IF(EntityIndex == mData.size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << mData.size() << std::endl;
+        return mData[EntityIndex];
     }
 
     /**
@@ -324,8 +361,8 @@ public:
         const SizeType GPIndex = 0
         ) const
     {
-        KRATOS_DEBUG_ERROR_IF(EntityIndex == this->size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << this->size() << std::endl;
-        return operator[](EntityIndex).GetValue(Time, ComponentIndex, GPIndex);
+        KRATOS_DEBUG_ERROR_IF(EntityIndex == mData.size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << mData.size() << std::endl;
+        return mData[EntityIndex].GetValue(Time, ComponentIndex, GPIndex);
     }
 
     /**
@@ -344,8 +381,22 @@ public:
         const SizeType GPIndex = 0
         )
     {
-        auto& r_database = operator[](EntityIndex);
+        auto& r_database = mData[EntityIndex];
         r_database.SetValues(rValuesX, rValuesY, ComponentIndex, GPIndex);
+    }
+
+    /**
+     * @brief This function is designed for clear all the databases
+     */
+    void Clear()
+    {
+        // Clear stored databases
+        for (auto& r_database : mData) {
+            r_database.Clear();
+        }
+
+        // Clear the container
+        mData.clear();
     }
 
     ///@}
@@ -368,7 +419,17 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    DataType mData; // The database storing the values
+
+    ///@}
 }; // Class VariableDatabase
 
 /**
