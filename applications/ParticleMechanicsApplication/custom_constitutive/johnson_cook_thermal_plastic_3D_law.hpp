@@ -184,6 +184,20 @@ private:
     double CalculatePlasticStrainDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
         const double PlasticStrainRate, const double Temperature);
 
+    double CalculateMatrixTrace(const Matrix& rInput)
+    {
+        KRATOS_ERROR_IF(rInput.size1() != rInput.size2()) << "Can only calculate trace of square matrices";
+        double trace = 0.0;
+        for (size_t i = 0; i < rInput.size1(); ++i) trace += rInput(i, i);
+        return trace;
+    }
+
+    double GetSqrt32() { return 1.2247448713915900000; } //sqrt(3.0/2.0)
+
+    double GetSqrt23() { return 0.8164965809277260000; } //sqrt(2.0/3.0)
+
+    double GetSqrt6() { return 2.4494897427831800000; } //sqrt(6.0)
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

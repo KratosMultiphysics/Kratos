@@ -100,24 +100,13 @@ namespace Kratos
 		// Material moduli
 		const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
 		const double bulk_modulus_K = MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
-		const double density = MaterialProperties[DENSITY];
 
-		// Calculate strain increments
-		const double strain_increment_trace = (GetStrainSize() == 3)
-			? (strain_increment(0,0) + strain_increment(1,1)) //2D case
-			: (strain_increment(0,0) + strain_increment(1,1) + strain_increment(2,2)); // 3D and axisym
-		Matrix strain_increment_hydrostatic = strain_increment_trace / 3.0 * identity;
-		const Matrix strain_increment_deviatoric = strain_increment - strain_increment_hydrostatic;
-
-		// Calculate current (old) j2 stress
-		const double stress_hydrostatic_old = (GetStrainSize() == 3)
-			? (stress_old(0, 0) + stress_old(1, 1)) / 3.0
-			: (stress_old(0, 0) + stress_old(1, 1) + stress_old(2, 2)) / 3.0;
-		const Matrix stress_deviatoric_old = stress_old - stress_hydrostatic_old * identity;
-		const double Snorm0 = std::sqrt(CalculateMatrixDoubleContraction(stress_deviatoric_old));
+		// Calculate deviatoric quantities
+		const Matrix strain_increment_deviatoric = strain_increment - CalculateMatrixTrace(strain_increment) / 3.0 * identity;
+		const Matrix stress_deviatoric_old = stress_old - CalculateMatrixTrace(stress_old) / 3.0 * identity;
 
 		// Calculate trial (predicted) j2 stress
-		double stress_hydrostatic_new = stress_hydrostatic_old + bulk_modulus_K * strain_increment_trace;
+		double stress_hydrostatic_new = CalculateMatrixTrace(stress_old) / 3.0 + bulk_modulus_K * CalculateMatrixTrace(strain_increment);
 		Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
 		const double j2_stress_trial = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
@@ -136,7 +125,7 @@ namespace Kratos
 			// Newton raphson setup
 			double gamma = mGammaOld;
 			double gamma_min = 0.0;
-			double gamma_max = j2_stress_trial / std::sqrt(6.0) / shear_modulus_G;
+			double gamma_max = j2_stress_trial / GetSqrt6() / shear_modulus_G;
 			bool is_converged = false;
 			const SizeType iteration_limit = 100;
 			IndexType iteration = 0;
@@ -149,9 +138,9 @@ namespace Kratos
 			Matrix flow_direction_normalized = stress_deviatoric_trial / (j2_stress_trial / std::sqrt(3.0 / 2.0));
 
 			// Initial prediction of quantities
-			predicted_eps = mEquivalentPlasticStrainOld + std::sqrt(2.0 / 3.0) * gamma; // eps = equivalent plastic strain
-			predicted_eps_rate = std::sqrt(2.0 / 3.0) * gamma / CurrentProcessInfo[DELTA_TIME];
-			predicted_temperature = mTemperatureOld + eta / std::sqrt(6.0) / density / specific_heat_Cp * // TODO check this, [johnson cool umat pdfp169]
+			predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
+			predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
+			predicted_temperature = mTemperatureOld + eta / GetSqrt6() / MaterialProperties[DENSITY] / specific_heat_Cp *
 				(yield_stress + mYieldStressOld) * gamma;
 
 			// Newton Raphson return mapping loop
@@ -161,7 +150,7 @@ namespace Kratos
 				yield_stress = CalculateHardenedYieldStress(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
 
 				// Compute yield function and derivative
-				yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - yield_stress;
+				yield_function = j2_stress_trial - GetSqrt6() * shear_modulus_G * gamma - yield_stress;
 				//KRATOS_WATCH(yield_function)
 
 				if (std::abs(yield_function) < tolerance) {
@@ -175,10 +164,10 @@ namespace Kratos
 				dYield_dGamma = CalculatePlasticStrainDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
 				dYield_dGamma += CalculatePlasticStrainRateDerivative(
 					MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature)/ CurrentProcessInfo[DELTA_TIME];
-				dYield_dGamma += eta* yield_stress/density/ specific_heat_Cp * CalculateThermalDerivative(
+				dYield_dGamma += eta* yield_stress/ MaterialProperties[DENSITY] / specific_heat_Cp * CalculateThermalDerivative(
 					MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
-				dYield_dGamma *= std::sqrt(2.0 / 3.0);
-				yield_function_gradient = -1.0 * std::sqrt(6.0) * shear_modulus_G - dYield_dGamma;
+				dYield_dGamma *= GetSqrt23();
+				yield_function_gradient = -1.0 * GetSqrt6() * shear_modulus_G - dYield_dGamma;
 
 				// Update gamma
 				delta_gamma = -1.0 * yield_function / yield_function_gradient;
@@ -187,19 +176,12 @@ namespace Kratos
 				// Bisect increment if out of search bounds
 				if (gamma_min > gamma || gamma > gamma_max) gamma = gamma_min + 0.5 * (gamma_max - gamma_min);
 
-
 				// Update of quantities
-				predicted_eps = mEquivalentPlasticStrainOld + std::sqrt(2.0 / 3.0) * gamma; // eps = equivalent plastic strain
-				predicted_eps_rate = std::sqrt(2.0 / 3.0) * gamma / CurrentProcessInfo[DELTA_TIME];
-				const bool original_prediction = true; // should be true
-				if (original_prediction) {
-					predicted_temperature = mTemperatureOld + eta / std::sqrt(6.0) / density / specific_heat_Cp * // TODO check this, [johnson cool umat pdfp169]
-						(yield_stress + mYieldStressOld) * gamma;
-				}
-				else {
-					stress_deviatoric_converged = stress_deviatoric_trial - 2.0 * shear_modulus_G * gamma * flow_direction_normalized;
-					predicted_temperature = mTemperatureOld + eta / density / specific_heat_Cp * gamma * std::sqrt(CalculateMatrixDoubleContraction(stress_deviatoric_converged));
-				}
+				predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
+				predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
+				predicted_temperature = mTemperatureOld + eta / GetSqrt6() / MaterialProperties[DENSITY] / specific_heat_Cp *
+					(yield_stress + mYieldStressOld) * gamma;
+
 
 				iteration += 1;
 				KRATOS_ERROR_IF(iteration == iteration_limit) << "Johnson Cook iteration limit exceeded";
@@ -207,23 +189,8 @@ namespace Kratos
 			// Correct trial stress
 			stress_deviatoric_converged = stress_deviatoric_trial - 2.0 * shear_modulus_G * gamma * flow_direction_normalized;
 
-			// error checking =========================================================
-			const bool error_check = true;
-			if (error_check)
-			{
-				// temperature rise
-				double dt_ref = predicted_temperature - mTemperatureOld;
-				double dt_pred = eta / density / specific_heat_Cp * gamma * std::sqrt(CalculateMatrixDoubleContraction(stress_deviatoric_converged));
-				KRATOS_ERROR_IF(std::abs(dt_ref - dt_pred) > tolerance) << "dTemperature error exceeds " << tolerance;
-
-				// plastic eq strain
-				double delta_eps = predicted_eps - mEquivalentPlasticStrainOld;
-				double delta_eps_pred = std::sqrt(3.0 / 2.0) * gamma;
-				KRATOS_ERROR_IF(std::abs(delta_eps - delta_eps_pred) > tolerance) << "dPlastic strain error exceeds " << tolerance;
-			}
-			// ========================================================================
-
-			mEnergyDissipated += gamma / std::sqrt(6.0) / density * (mYieldStressOld + yield_stress);
+			// Store plastic deformation quantities
+			mEnergyDissipated += gamma / GetSqrt6() / MaterialProperties[DENSITY] * (mYieldStressOld + yield_stress);
 			mEquivalentPlasticStrainOld = predicted_eps;
 			mPlasticStrainRateOld = predicted_eps_rate;
 			mTemperatureOld = predicted_temperature;
@@ -244,7 +211,7 @@ namespace Kratos
 				mHardeningRatio = 0.0;
 			}
 		}
-
+		// Update equivalent stress
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
 		mEquivalentStress = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_converged));
 
@@ -255,11 +222,9 @@ namespace Kratos
 		// Udpdate internal energy
 		for (size_t i = 0; i < stress_converged.size1(); ++i) {
 			for (size_t j = 0; j < stress_converged.size2(); ++j) {
-				mEnergyInternal += 0.5 * (stress_converged(i, j) + stress_old(i, j)) * strain_increment(i, j) / density;
+				mEnergyInternal += 0.5 * (stress_converged(i, j) + stress_old(i, j)) * strain_increment(i, j) / MaterialProperties[DENSITY];
 			}
 		}
-
-		//if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) KRATOS_ERROR << "COMPUTE_CONSTITUTIVE_TENSOR not yet implemented in JohnsonCookThermalPlastic3DLaw";
 	}
 
 
