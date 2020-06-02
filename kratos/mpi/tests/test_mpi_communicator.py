@@ -7,7 +7,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestMPICommunicator(KratosUnittest.TestCase):
