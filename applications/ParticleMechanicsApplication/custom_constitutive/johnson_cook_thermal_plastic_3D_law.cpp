@@ -117,7 +117,7 @@ namespace Kratos
 		const double Snorm0 = std::sqrt(CalculateMatrixDoubleContraction(stress_deviatoric_old));
 
 		// Calculate trial (predicted) j2 stress
-		double stress_hydrostatic_new = stress_hydrostatic_old + bulk_modulus_K * strain_increment_trace; // TODO (1) - think this is fixed
+		double stress_hydrostatic_new = stress_hydrostatic_old + bulk_modulus_K * strain_increment_trace;
 		Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
 		const double j2_stress_trial = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
@@ -126,12 +126,9 @@ namespace Kratos
 
 		// Assume current yield stress is the same as the old (elastic predictor)
 		double yield_stress = mYieldStressOld;
-		bool is_NR = false;
 
 		if (j2_stress_trial > yield_stress && yield_stress/mYieldStressVirgin > yield_stress_failure_ratio)
 		{
-			is_NR = true;
-
 			// Thermal properties
 			const double eta = 0.9; // TODO check this
 			const double specific_heat_Cp = MaterialProperties[SPECIFIC_HEAT];
@@ -162,7 +159,13 @@ namespace Kratos
 
 				// Compute yield function and derivative
 				yield_function = j2_stress_trial - std::sqrt(6.0) * shear_modulus_G * gamma - yield_stress;
-				KRATOS_WATCH(yield_function)
+				//KRATOS_WATCH(yield_function)
+
+				if (std::abs(yield_function) < tolerance) {
+					is_converged = true;
+					//std::cout << "converged in " << iteration << " iterations\n";
+					break;
+				}
 
 				if (yield_function < 0.0) gamma_max = gamma;
 				else gamma_min = gamma;
@@ -180,11 +183,7 @@ namespace Kratos
 
 				// Bisect increment if out of search bounds
 				if (gamma_min > gamma || gamma > gamma_max) gamma = gamma_min + 0.5 * (gamma_max - gamma_min);
-				KRATOS_WATCH(delta_gamma)
-				if (std::abs(delta_gamma) < tolerance) {
-					is_converged = true;
-					//break;
-				}
+
 
 				// Update of quantities
 				predicted_eps = mEquivalentPlasticStrainOld + std::sqrt(2.0 / 3.0) * gamma; // eps = equivalent plastic strain
@@ -195,17 +194,36 @@ namespace Kratos
 				iteration += 1;
 				KRATOS_ERROR_IF(iteration == iteration_limit) << "Johnson Cook iteration limit exceeded";
 			}
-			// Calculate predicted yield stress
-			yield_stress = CalculateHardenedYieldStress(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
-
-
 			// Correct trial stress
 			Matrix flow_direction_normalized = stress_deviatoric_trial / (j2_stress_trial / std::sqrt(3.0 / 2.0));
 			stress_deviatoric_converged = stress_deviatoric_trial - 2.0 * shear_modulus_G * gamma * flow_direction_normalized;
 
+			// error checking =========================================================
+			const bool error_check = true;
+			if (error_check)
+			{
+				// temperature rise
+				double dt_ref = predicted_temperature - mTemperatureOld;
+				double dt_pred = eta / density / specific_heat_Cp * gamma * std::sqrt(CalculateMatrixDoubleContraction(stress_deviatoric_converged));
+				KRATOS_ERROR_IF(std::abs(dt_ref - dt_pred) > tolerance) << "dTemperature error exceeds " << tolerance;
+
+				// plastic eq strain
+				double delta_eps = predicted_eps - mEquivalentPlasticStrainOld;
+				double delta_eps_pred = std::sqrt(3.0 / 2.0) * gamma;
+				KRATOS_ERROR_IF(std::abs(delta_eps - delta_eps_pred) > tolerance) << "dPlastic strain error exceeds " << tolerance;
+
+				// plastic eq strain rate
+				double delta_eps_rate = predicted_eps_rate - mPlasticStrainRateOld;
+				double delta_eps_rate_pred = delta_eps_pred / CurrentProcessInfo[DELTA_TIME];
+				KRATOS_ERROR_IF(std::abs(delta_eps_rate - delta_eps_rate_pred) > tolerance) << "dPlastic strain rate error exceeds " << tolerance;
+			}
+			// ========================================================================
+
 			mEnergyDissipated += gamma / std::sqrt(6.0) / density * (mYieldStressOld + yield_stress);
 			mEquivalentPlasticStrainOld = predicted_eps;
 			mPlasticStrainRateOld = predicted_eps_rate;
+
+
 			mTemperatureOld = predicted_temperature;
 			mYieldStressOld = yield_stress;
 			mHardeningRatio = yield_stress / mYieldStressVirgin;
@@ -227,11 +245,6 @@ namespace Kratos
 
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
 		mEquivalentStress = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_converged));
-		if (is_NR)
-		{
-			std::cout << "Error = " << mEquivalentStress - mYieldStressOld << "\n";
-			int adsfadsf = 1;
-		}
 
 		// Store stresses and strains
 		MakeStrainStressVectorFromMatrix(stress_converged, StressVector);
