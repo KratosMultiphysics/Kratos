@@ -73,25 +73,6 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         if self.TransferDEMContactForcesToFEM:
             FEMDEM_utilities.ComputeAndTranferAveragedContactTotalForces(self.FEM_Solution.main_model_part, self.FEM_Solution.delta_time)
 
-
-
-
-        # ######################################### ######################################### remove elements
-        if self.FEM_Solution.step == 100:
-            for elem in self.FEM_Solution.main_model_part.GetSubModelPart("Body_Part-auto-3").Elements:
-                elem.Set(KratosMultiphysics.TO_ERASE, True)
-            element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
-            element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
-
-            self.ComputeSkinSubModelPart()
-            if self.DEMFEM_contact:
-                self.TransferFEMSkinToDEM()
-            KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
-
-            neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
-            neighbour_elemental_finder.Execute()
-        ######################################### #########################################
-
 #============================================================================================================================
     def FinalizeSolutionStep(self):
 
