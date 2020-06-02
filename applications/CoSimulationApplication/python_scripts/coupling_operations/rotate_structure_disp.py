@@ -2,10 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.ChimeraApplication as ChimeraApp
+# import KratosMultiphysics.ChimeraApplication as ChimeraApp
 
 import numpy as np
-import math
+import math, os
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
@@ -34,6 +34,9 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
+        self.step = 0
+        self.working_path = os.getcwd() + '/'
+        self.angle_of_rotation = np.loadtxt(self.working_path + 'signal/APRBSDeg_membrane.dat')
 
     def Initialize(self):
         pass
@@ -57,18 +60,19 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
         self.modelpart = self.interface_data.GetModelPart()
         # 1*angle  because we have to rotate the MESH_DISPLACEMENTS from deformed to
         # original configuration.
-        angle_of_rotation = 1*self.modelpart.GetValue(ChimeraApp.ROTATIONAL_ANGLE)
+        # angle_of_rotation = 1*self.modelpart.GetValue(ChimeraApp.ROTATIONAL_ANGLE)
         axis_of_rotation = self.settings["axis_of_rotation"].GetVector()
-        print("RotateStructDispOperation: ROTATIONAL_ANGLE : ", angle_of_rotation)
+        print("RotateStructDispOperation: ROTATIONAL_ANGLE : ", self.angle_of_rotation[self.step])
         print("RotateStructDispOperation: ROTATIONAL_AXIS  : ", axis_of_rotation)
         for node in self.modelpart.Nodes:
             data_vector = node.GetSolutionStepValue(self.interface_data.variable)
-            rotated_data = self.__RotateVector(data_vector,angle_of_rotation, axis_of_rotation)
+            rotated_data = self.__RotateVector(data_vector,self.angle_of_rotation[self.step], axis_of_rotation)
             rotated_data_vector = KM.Vector(3)
             rotated_data_vector[0] = rotated_data[0]
             rotated_data_vector[1] = rotated_data[1]
             rotated_data_vector[2] = rotated_data[2]
             node.SetSolutionStepValue(self.interface_data.variable, 0, rotated_data_vector)
+        self.step += 1
 
     def PrintInfo(self):
         pass
