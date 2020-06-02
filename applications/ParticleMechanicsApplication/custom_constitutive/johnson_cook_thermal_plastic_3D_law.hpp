@@ -29,7 +29,7 @@ namespace Kratos
  * The Johnson Cook strain-rate senstive plastic 3D material law.
  * Requires a strain vector to be provided by the element, which
  * should ideally be objective to enable large displacements.
- * Only suitable for explicit time integration because calculate 
+ * Only suitable for explicit time integration because calculate
  * constitutive tensor is not implemented.
  */
 
@@ -168,7 +168,7 @@ protected:
 
 private:
 
-    double CalculateHardenedYieldStress(const Properties& MaterialProperties, const double EquivalentPlasticStrain, 
+    double CalculateHardenedYieldStress(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
         const double PlasticStrainRate, const double Temperature);
 
     double CalculateThermalHardeningFactor(const Properties& MaterialProperties, const double Temperature);
