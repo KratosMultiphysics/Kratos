@@ -107,16 +107,17 @@ namespace Kratos
 			? (strain_increment(0,0) + strain_increment(1,1)) //2D case
 			: (strain_increment(0,0) + strain_increment(1,1) + strain_increment(2,2)); // 3D and axisym
 		Matrix strain_increment_hydrostatic = strain_increment_trace / 3.0 * identity;
-		const Matrix strain_increment_deviatoric = strain_increment - strain_increment_hydrostatic; // TODO need to fix!!!
+		const Matrix strain_increment_deviatoric = strain_increment - strain_increment_hydrostatic;
 
 		// Calculate current (old) j2 stress
 		const double stress_hydrostatic_old = (GetStrainSize() == 3)
 			? (stress_old(0, 0) + stress_old(1, 1)) / 3.0
 			: (stress_old(0, 0) + stress_old(1, 1) + stress_old(2, 2)) / 3.0;
 		const Matrix stress_deviatoric_old = stress_old - stress_hydrostatic_old * identity;
+		const double Snorm0 = std::sqrt(CalculateMatrixDoubleContraction(stress_deviatoric_old));
 
 		// Calculate trial (predicted) j2 stress
-		double stress_hydrostatic_new = stress_hydrostatic_old + bulk_modulus_K * strain_increment_trace / 3.0; // TODO (1) - think this is fixed
+		double stress_hydrostatic_new = stress_hydrostatic_old + bulk_modulus_K * strain_increment_trace; // TODO (1) - think this is fixed
 		Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
 		const double j2_stress_trial = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
