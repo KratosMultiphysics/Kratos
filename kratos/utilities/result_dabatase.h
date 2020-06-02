@@ -50,7 +50,6 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 class EntityDatabase
-    : public std::vector<std::vector<Table<double, double>*>>
 {
 public:
     ///@name Type Definitions
@@ -63,7 +62,7 @@ public:
     typedef std::vector<Table<double, double>*> GPDatabaseType;
 
     /// Base type definition
-    typedef std::vector<GPDatabaseType> BaseType;
+    typedef std::vector<GPDatabaseType> DataType;
 
     /// The definition of the index type
     typedef std::size_t IndexType;
@@ -81,20 +80,70 @@ public:
     EntityDatabase(
         const SizeType SizeVector,
         const GPDatabaseType& rBaseData
-        ) : BaseType(SizeVector, rBaseData)
+        ) : mData(SizeVector, rBaseData)
     {
     }
 
     /// Destructor.
-    virtual ~EntityDatabase() {}
+    virtual ~EntityDatabase()
+    {
+        this->Clear();
+    }
+
+    /// Copy constructor.
+    EntityDatabase(EntityDatabase const& rOther)
+        : mData(rOther.mData)
+    {
+    }
 
     ///@}
     ///@name Operators
     ///@{
 
+    /**
+     * @brief The [] operator
+     * @param i The index of the value to access
+     */
+    GPDatabaseType& operator[](const std::size_t i)
+    {
+        return mData[i];
+    }
+
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief The begin iterator
+     */
+    DataType::iterator begin()
+    {
+        return mData.begin();
+    }
+
+    /**
+     * @brief The const begin iterator
+     */
+    DataType::const_iterator begin() const
+    {
+        return mData.begin();
+    }
+
+    /**
+     * @brief The end iterator
+     */
+    DataType::iterator end()
+    {
+        return mData.end();
+    }
+
+    /**
+     * @brief The const end iterator
+     */
+    DataType::const_iterator end() const
+    {
+        return mData.end();
+    }
 
     /**
      * @brief This method retrieves the entity database
@@ -102,8 +151,8 @@ public:
      */
     const GPDatabaseType& GetResultaData(const SizeType GPIndex = 0) const
     {
-        KRATOS_DEBUG_ERROR_IF(GPIndex == this->size()) << "Incompatible size. GPIndex: " << GPIndex << ". Size: " << this->size() << std::endl;
-        return operator[](GPIndex);
+        KRATOS_DEBUG_ERROR_IF(GPIndex == mData.size()) << "Incompatible size. GPIndex: " << GPIndex << ". Size: " << mData.size() << std::endl;
+        return mData[GPIndex];
     }
 
     /**
@@ -119,7 +168,7 @@ public:
         ) const
     {
         KRATOS_DEBUG_ERROR_IF(ComponentIndex == GetResultaData(GPIndex).size()) << "Incompatible size. ComponentIndex: " << ComponentIndex << ". Size: " << GetResultaData(GPIndex).size() << std::endl;
-        return operator[](GPIndex)[ComponentIndex]->GetValue(Time);
+        return mData[GPIndex][ComponentIndex]->GetValue(Time);
     }
 
     /**
@@ -153,6 +202,20 @@ public:
         }
     }
 
+    /**
+     * @brief This function is designed for clear all the databases
+     */
+    void Clear()
+    {
+        // Clear stored databases
+        for (auto& r_database : mData) {
+            r_database.clear();
+        }
+
+        // Clear the container
+        mData.clear();
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -173,6 +236,17 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    DataType mData; // The database storing the values
+
+    ///@}
 
 }; // Class EntityDatabase
 
