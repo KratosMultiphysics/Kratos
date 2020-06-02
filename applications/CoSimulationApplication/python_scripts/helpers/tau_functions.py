@@ -16,6 +16,19 @@ working_path = os.getcwd() + '/'
 echo_level = tau_settings["echo_level"]
 rotate = tau_settings["rotate"]
 
+# Remove output files and deform mesh files from previous simulations
+def RemoveFilesFromPreviousSimulations():
+    # Get a list of all the output and mesh file paths
+    file_list = glob.glob(working_path + 'Outputs/*')
+    file_list += glob.glob(working_path + 'Mesh/airfoil_Structured_scaliert.grid.def*')
+
+    # Iterate over the list of filepaths and remove each file.
+    for file_path in file_list:
+        try:
+            os.remove(file_path)
+        except:
+            raise Exception('Error while deleting file : "{}" '.format(file_path))
+
 
 # Convert tau output to dat file using tau2plt
 def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step):

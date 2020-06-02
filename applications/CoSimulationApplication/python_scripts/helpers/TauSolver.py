@@ -18,6 +18,9 @@ rotate = tau_settings["rotate"]
 # tau_functions can only be imported after appending kratos' path
 import tau_functions as TauFunctions
 
+# Remove output files and deform mesh files from previous simulations
+TauFunctions.RemoveFilesFromPreviousSimulations()
+
 # Definition of the parameter file
 if rotate:
     para_path='airfoil_Structured_rotation.cntl'
