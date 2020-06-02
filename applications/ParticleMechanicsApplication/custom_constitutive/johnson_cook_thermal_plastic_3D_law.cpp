@@ -386,10 +386,9 @@ namespace Kratos
 		double thermal_derivative = 0.0;
 		if (ReferenceTemperature <= Temperature && Temperature <= MeldTemperature)
 		{
-			double strain_rate_hardening_factor = CalculateStrainRateHardeningFactor(MaterialProperties, PlasticStrainRate);
-			double thermal_hardening_factor = std::pow((Temperature - ReferenceTemperature) / (MeldTemperature - ReferenceTemperature), m);
-			double temp = -1.0 * m * (A + B * std::pow(EquivalentPlasticStrain, n)) / (Temperature - ReferenceTemperature);
-			thermal_derivative = temp * strain_rate_hardening_factor * thermal_hardening_factor;
+			thermal_derivative = -1.0 * m * (A + B * std::pow(EquivalentPlasticStrain, n)) / (Temperature - ReferenceTemperature);
+			thermal_derivative *= CalculateStrainRateHardeningFactor(MaterialProperties, PlasticStrainRate);
+			thermal_derivative *= std::pow((Temperature - ReferenceTemperature) / (MeldTemperature - ReferenceTemperature), m);
 		}
 
 		return thermal_derivative;
@@ -409,9 +408,8 @@ namespace Kratos
 
 		if (PlasticStrainRate >= ReferenceStrainRate)
 		{
-			double thermal_hardening_factor = CalculateThermalHardeningFactor(MaterialProperties, Temperature);
-
-			plastic_strain_rate_derivative = C / PlasticStrainRate * (A + B * std::pow(EquivalentPlasticStrain, n)) * thermal_hardening_factor;
+			plastic_strain_rate_derivative = C / PlasticStrainRate * (A + B * std::pow(EquivalentPlasticStrain, n));
+			plastic_strain_rate_derivative *= CalculateThermalHardeningFactor(MaterialProperties, Temperature);
 		}
 
 		return plastic_strain_rate_derivative;
@@ -426,19 +424,9 @@ namespace Kratos
 		const double n = MaterialProperties[JC_PARAMETER_n];
 		const double ReferenceStrainRate = MaterialProperties[REFERENCE_STRAIN_RATE];
 
-		double plastic_strain_derivative = 0.0;
-
-		// Calculate thermal hardening factor
-		double thermal_hardening_factor = CalculateThermalHardeningFactor(MaterialProperties, Temperature);
-
-		// Calculate strain rate hardening factor
-		double strain_rate_hardening_factor = 1.0;
-		if (PlasticStrainRate > ReferenceStrainRate)
-		{
-			strain_rate_hardening_factor += C * std::log(PlasticStrainRate / ReferenceStrainRate);
-		}
-
-		plastic_strain_derivative = n * B * std::pow(EquivalentPlasticStrain, (n - 1.0)) * strain_rate_hardening_factor * thermal_hardening_factor;
+		double plastic_strain_derivative = n * B * std::pow(EquivalentPlasticStrain, (n - 1.0));
+		plastic_strain_derivative *= CalculateStrainRateHardeningFactor(MaterialProperties, PlasticStrainRate);
+		plastic_strain_derivative *= CalculateThermalHardeningFactor(MaterialProperties, Temperature);
 
 		return plastic_strain_derivative;
 	}
