@@ -17,20 +17,22 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         connection_settings = CoSimIO.Info()
         connection_settings.SetString("connection_name", "c_d_test")
         connection_settings.SetInt("echo_level", 0)
-        CoSimIO.Connect(connection_settings)
+        info = CoSimIO.Connect(connection_settings)
+        self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Connected)
 
         RunPythonInSubProcess("connect_disconnect")
 
         disconnect_settings = CoSimIO.Info()
         disconnect_settings.SetString("connection_name", "c_d_test")
-
-        CoSimIO.Disconnect(disconnect_settings)
+        info = CoSimIO.Disconnect(disconnect_settings)
+        self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Disconnected)
 
     def test_Export_Import_Data_raw_values(self):
         connection_settings = CoSimIO.Info()
         connection_settings.SetString("connection_name", "im_exp_data")
         connection_settings.SetInt("echo_level", 0)
-        CoSimIO.Connect(connection_settings)
+        info = CoSimIO.Connect(connection_settings)
+        self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Connected)
 
         values = [1.0, 2.5, 3.3, -9.4]
 
@@ -49,7 +51,8 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         disconnect_settings = CoSimIO.Info()
         disconnect_settings.SetString("connection_name", "im_exp_data")
 
-        CoSimIO.Disconnect(disconnect_settings)
+        info = CoSimIO.Disconnect(disconnect_settings)
+        self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Disconnected)
 
         # checking the values after disconnecting to avoid deadlock
         self.assertVectorAlmostEqual(KM.Vector(values), KM.Vector(imported_values))
@@ -64,7 +67,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
             node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
             node.SetSolutionStepValue(KM.PRESSURE, i*1.7)
 
-        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.NodeHistorical)
+        self.__ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.NodeHistorical)
 
         # checking the values after disconnecting to avoid deadlock
         for i, node in enumerate(model_part.Nodes):
@@ -80,7 +83,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
             node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
             node.SetSolutionStepValue(KM.DISPLACEMENT, [i*1.7, i+1.1, i**1.2])
 
-        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.NodeHistorical)
+        self.__ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.NodeHistorical)
 
         # checking the values after disconnecting to avoid deadlock
         for i, node in enumerate(model_part.Nodes):
@@ -96,7 +99,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
             node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
             node.SetValue(KM.PRESSURE, i*1.6)
 
-        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.NodeNonHistorical)
+        self.__ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.NodeNonHistorical)
 
         # checking the values after disconnecting to avoid deadlock
         for i, node in enumerate(model_part.Nodes):
@@ -110,7 +113,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
             node = model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # using same coord, doesn't matter for this test
             node.SetValue(KM.DISPLACEMENT, [i*1.7, i+1.99, i**1.2])
 
-        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.NodeNonHistorical)
+        self.__ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.NodeNonHistorical)
 
         # checking the values after disconnecting to avoid deadlock
         for i, node in enumerate(model_part.Nodes):
@@ -127,7 +130,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
             element = model_part.CreateNewElement("Element2D2N", i+1, [i+1, i+2], props)
             element.SetValue(KM.PRESSURE, i*1.6)
 
-        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.Element)
+        self.__ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.Element)
 
         # checking the values after disconnecting to avoid deadlock
         for i, elem in enumerate(model_part.Elements):
@@ -144,7 +147,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
             element = model_part.CreateNewElement("Element2D2N", i+1, [i+1, i+2], props)
             element.SetValue(KM.DISPLACEMENT, [i*1.7, i+1.99, i**1.2])
 
-        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.Element)
+        self.__ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.Element)
 
         # checking the values after disconnecting to avoid deadlock
         for i, elem in enumerate(model_part.Elements):
@@ -161,7 +164,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
             condition = model_part.CreateNewCondition("PointCondition2D1N", i+1, [i+1], props)
             condition.SetValue(KM.PRESSURE, i*(-11.6))
 
-        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.Condition)
+        self.__ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.Condition)
 
         # checking the values after disconnecting to avoid deadlock
         for i, cond in enumerate(model_part.Conditions):
@@ -178,7 +181,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
             condition = model_part.CreateNewCondition("PointCondition2D1N", i+1, [i+1], props)
             condition.SetValue(KM.DISPLACEMENT, [i*1.7, i+1.25, i**1.2])
 
-        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.Condition)
+        self.__ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.Condition)
 
         # checking the values after disconnecting to avoid deadlock
         for i, cond in enumerate(model_part.Conditions):
@@ -190,7 +193,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         model_part = model.CreateModelPart("for_test")
         model_part.SetValue(KM.PRESSURE, 333.896)
 
-        ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.ModelPart)
+        self.__ExportImportDataOnModelPart(model_part, KM.PRESSURE, KM.TEMPERATURE, CoSimIO.DataLocation.ModelPart)
 
         # checking the values after disconnecting to avoid deadlock
         self.assertAlmostEqual(model_part.GetValue(KM.TEMPERATURE), 333.896)
@@ -201,7 +204,7 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         model_part = model.CreateModelPart("for_test")
         model_part.SetValue(KM.DISPLACEMENT, [14.3, -333.896, 987.2])
 
-        ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.ModelPart)
+        self.__ExportImportDataOnModelPart(model_part, KM.DISPLACEMENT, KM.VELOCITY, CoSimIO.DataLocation.ModelPart)
 
         # checking the values after disconnecting to avoid deadlock
         self.assertVectorAlmostEqual(model_part.GetValue(KM.VELOCITY), KM.Vector([14.3, -333.896, 987.2]))
@@ -221,7 +224,8 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         connection_settings = CoSimIO.Info()
         connection_settings.SetString("connection_name", "im_exp_mesh")
         connection_settings.SetInt("echo_level", 0)
-        CoSimIO.Connect(connection_settings)
+        info = CoSimIO.Connect(connection_settings)
+        self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Connected)
 
         export_info = CoSimIO.Info()
         export_info.SetString("connection_name", "im_exp_mesh")
@@ -238,7 +242,8 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
         disconnect_settings = CoSimIO.Info()
         disconnect_settings.SetString("connection_name", "im_exp_mesh")
 
-        CoSimIO.Disconnect(disconnect_settings)
+        info = CoSimIO.Disconnect(disconnect_settings)
+        self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Disconnected)
 
         # checking the values after disconnecting to avoid deadlock
         self.assertEqual(model_part.NumberOfNodes(), model_part_returned.NumberOfNodes())
@@ -257,28 +262,30 @@ class TestCoSimIOPyExposure(KratosUnittest.TestCase):
                 self.assertAlmostEqual(node_orig.Z0, node_exchanged.Z0)
 
 
-def ExportImportDataOnModelPart(model_part, var_export, var_import, data_location):
-    connection_settings = CoSimIO.Info()
-    connection_settings.SetString("connection_name", "im_exp_data")
-    connection_settings.SetInt("echo_level", 0)
-    CoSimIO.Connect(connection_settings)
+    def __ExportImportDataOnModelPart(self, model_part, var_export, var_import, data_location):
+        connection_settings = CoSimIO.Info()
+        connection_settings.SetString("connection_name", "im_exp_data")
+        connection_settings.SetInt("echo_level", 0)
+        info = CoSimIO.Connect(connection_settings)
+        self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Connected)
 
-    export_info = CoSimIO.Info()
-    export_info.SetString("connection_name", "im_exp_data")
-    export_info.SetString("identifier", "data_exchange_1")
-    CoSimIO.ExportData(export_info, model_part, var_export, data_location)
+        export_info = CoSimIO.Info()
+        export_info.SetString("connection_name", "im_exp_data")
+        export_info.SetString("identifier", "data_exchange_1")
+        CoSimIO.ExportData(export_info, model_part, var_export, data_location)
 
-    RunPythonInSubProcess("import_export_data")
+        RunPythonInSubProcess("import_export_data")
 
-    import_info = CoSimIO.Info()
-    import_info.SetString("connection_name", "im_exp_data")
-    import_info.SetString("identifier", "data_exchange_2")
-    CoSimIO.ImportData(import_info, model_part, var_import, data_location)
+        import_info = CoSimIO.Info()
+        import_info.SetString("connection_name", "im_exp_data")
+        import_info.SetString("identifier", "data_exchange_2")
+        CoSimIO.ImportData(import_info, model_part, var_import, data_location)
 
-    disconnect_settings = CoSimIO.Info()
-    disconnect_settings.SetString("connection_name", "im_exp_data")
+        disconnect_settings = CoSimIO.Info()
+        disconnect_settings.SetString("connection_name", "im_exp_data")
 
-    CoSimIO.Disconnect(disconnect_settings)
+        info = CoSimIO.Disconnect(disconnect_settings)
+        self.assertEqual(info.GetInt("connection_status"), CoSimIO.ConnectionStatus.Disconnected)
 
 def RunPythonInSubProcess(python_script_name):
     if not python_script_name.endswith(".py"):
