@@ -1051,9 +1051,8 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Auxiliar stress vector
-        const auto it_prop_begin            = r_material_properties.GetSubProperties().begin();
-        Vector auxiliar_stress_vector       = ZeroVector(VoigtSize);
-        Matrix auxiliar_constitutive_matrix = ZeroMatrix(VoigtSize, VoigtSize);
+        const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
+        Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
 
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
