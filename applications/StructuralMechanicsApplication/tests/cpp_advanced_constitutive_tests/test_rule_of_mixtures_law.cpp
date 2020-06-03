@@ -30,21 +30,21 @@ namespace Testing
 /// Nodetype definition
 typedef Node<3> NodeType;
 
-// void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
-// {
-//     GidIO<> gid_io("TEST_RULE_MIXTURES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
-//     const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-//     const double label = static_cast<double>(nl_iter);
-//
-//     gid_io.InitializeMesh(label);
-//     gid_io.WriteMesh(ThisModelPart.GetMesh());
-//     gid_io.FinalizeMesh();
-//     gid_io.InitializeResults(label, ThisModelPart.GetMesh());
-//     gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
-//     gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_VECTOR, ThisModelPart, label);
-//     gid_io.PrintOnGaussPoints(PK2_STRESS_VECTOR, ThisModelPart, label);
-//     gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
-// }
+void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
+{
+    GidIO<> gid_io("TEST_RULE_MIXTURES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+    const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+    const double label = static_cast<double>(nl_iter);
+
+    gid_io.InitializeMesh(label);
+    gid_io.WriteMesh(ThisModelPart.GetMesh());
+    gid_io.FinalizeMesh();
+    gid_io.InitializeResults(label, ThisModelPart.GetMesh());
+    gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
+    gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_VECTOR, ThisModelPart, label);
+    gid_io.PrintOnGaussPoints(PK2_STRESS_VECTOR, ThisModelPart, label);
+    gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
+}
 
 Parameters GetTwoLayersParameters()
 {
@@ -277,9 +277,6 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
         }
     }
 
-//     // DEBUG
-//     GiDIODebugRuleMixtures(model_part);
-
     /// Tolerance
     const double tolerance = 1.0e-6;
 
@@ -317,9 +314,6 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
             node.Coordinates() += delta;
         }
     }
-
-//     // DEBUG
-//     GiDIODebugRuleMixtures(model_part);
 
     /// Tolerance
     const double tolerance = 1.0e-6;
@@ -359,9 +353,6 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, Kra
         }
     }
 
-//     // DEBUG
-//     GiDIODebugRuleMixtures(model_part);
-
     /// Tolerance
     const double tolerance = 1.0e-6;
 
@@ -399,9 +390,6 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, K
             node.Coordinates() += delta;
         }
     }
-
-//     // DEBUG
-//     GiDIODebugRuleMixtures(model_part);
 
     /// Tolerance
     const double tolerance = 1.0e-6;

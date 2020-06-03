@@ -1444,6 +1444,8 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
         } else {
             noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }
+    } else {
+        noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
     }
 }
 
