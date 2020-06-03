@@ -27,7 +27,7 @@ namespace Testing {
 using namespace csv;
 
 // // Construct a CSVRow and assert that its interface works as expected
-// KRATOS_TEST_CASE_IN_SUITE("CSVRow Test", "[test_csv_row]") {
+// KRATOS_TEST_CASE_IN_SUITE(CSVRowTest, KratosExternalLibrariesFastSuite) {
 //     // Create a row of size 4
 //     auto col_names = std::make_shared<internals::ColNames>(
 //         std::vector<std::string>({ "A", "B", "C", "D" })
@@ -101,7 +101,7 @@ using namespace csv;
 // }
 //
 // // Integration test for CSVRow/CSVField
-// KRATOS_TEST_CASE_IN_SUITE("CSVField operator==", "[test_csv_field_equal]") {
+// KRATOS_TEST_CASE_IN_SUITE(CSVFieldoperator==, KratosExternalLibrariesFastSuite) {
 //     auto col_names = std::make_shared<internals::ColNames>(
 //         std::vector<std::string>({ "A", "B", "C", "D" })
 //         );

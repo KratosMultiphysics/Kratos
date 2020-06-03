@@ -28,7 +28,7 @@ using namespace csv;
 
 const std::string PERSONS_CSV = "./data/mimesis_data/persons.csv";
 
-// KRATOS_TEST_CASE_IN_SUITE("Calculating Statistics from Direct Input", "[read_csv_stat_direct]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(CalculatingStatisticsfromDirectInput, KratosExternalLibrariesFastSuite ) {
 //     std::string int_str;
 //     std::string int_list = "";
 //     for (int i = 1; i < 101; i++) {
@@ -61,7 +61,7 @@ const std::string PERSONS_CSV = "./data/mimesis_data/persons.csv";
 //     KRATOS_CHECK( reader.get_dtypes()[0][CSV_INT8] == 100 );
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE( "Statistics - Rows of Integers", "[read_csv_stat]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(Statistics-RowsofIntegers, KratosExternalLibrariesFastSuite ) {
 //     // Header on first row
 //     auto file = GENERATE(as<std::string> {},
 //         "./data/fake_data/ints.csv",
@@ -84,12 +84,12 @@ const std::string PERSONS_CSV = "./data/mimesis_data/persons.csv";
 //     }
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE( "Statistics - persons.csv", "[test_stat_person]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(Statistics-persons.csv, KratosExternalLibrariesFastSuite ) {
 //     CSVStat reader(PERSONS_CSV);
 //     KRATOS_CHECK( ceil(reader.get_mean()[1]) == 42 );
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("Data Types - persons.csv", "test_dtypes_person]") {
+// KRATOS_TEST_CASE_IN_SUITE(DataTypes-persons.csv, KratosExternalLibrariesFastSuite) {
 //     auto dtypes = csv_data_types(PERSONS_CSV);
 //
 //     KRATOS_CHECK(dtypes["Full Name"] == CSV_STRING);
