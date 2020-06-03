@@ -42,7 +42,7 @@ namespace Kratos
 	  // 2D stress arrangement
 	  rOutput[0] = rInput(0, 0);
 	  rOutput[1] = rInput(1, 1);
-	  rOutput[2] = rInput(2, 1); //xy
+	  rOutput[2] = rInput(2, 2);
 	  rOutput[3] = 2.0 * rInput(0, 1); //xy
   }
 
