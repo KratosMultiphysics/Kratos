@@ -59,7 +59,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(EntityDatabase);
 
     /// GP database definition
-    typedef std::vector<Table<double, double>*> GPDatabaseType;
+    typedef std::vector<Table<double, double>::Pointer> GPDatabaseType;
 
     /// Base type definition
     typedef std::vector<GPDatabaseType> DataType;
