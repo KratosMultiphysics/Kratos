@@ -28,7 +28,7 @@ namespace Testing {
 using namespace csv;
 using namespace csv::internals;
 
-// KRATOS_TEST_CASE_IN_SUITE( "Recognize Integers Properly", "[dtype_int]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(RecognizeIntegersProperly, KratosExternalLibrariesFastSuite ) {
 //     std::string a("1"), b(" 2018   "), c(" -69 ");
 //     long double out;
 //
@@ -42,7 +42,7 @@ using namespace csv::internals;
 //     KRATOS_CHECK(out == -69);
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE( "Recognize Strings Properly", "[dtype_str]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(RecognizeStringsProperly, KratosExternalLibrariesFastSuite ) {
 //     auto str = GENERATE(as<std::string> {}, "test", "999.999.9999", "510-123-4567", "510 123", "510 123 4567");
 //
 //     SECTION("String Recognition") {
@@ -50,12 +50,12 @@ using namespace csv::internals;
 //     }
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE( "Recognize Null Properly", "[dtype_null]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(RecognizeNullProperly, KratosExternalLibrariesFastSuite ) {
 //     std::string null_str("");
 //     KRATOS_CHECK( data_type(null_str) ==  CSV_NULL );
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE( "Recognize Floats Properly", "[dtype_float]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(RecognizeFloatsProperly, KratosExternalLibrariesFastSuite ) {
 //     std::string float_a("3.14"),
 //         float_b("       -3.14            "),
 //         e("2.71828");
@@ -72,11 +72,12 @@ using namespace csv::internals;
 //     KRATOS_CHECK(is_equal(out, 2.71828L));
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("Integer Size Recognition", "[int_sizes]") {
+// KRATOS_TEST_CASE_IN_SUITE(IntegerSizeRecognition, KratosExternalLibrariesFastSuite) {
 //     std::string s;
 //     long double out;
 //
-//     SECTION("Boundary Values") {
+//     // Boundary Values
+//     {
 //         s = std::to_string((long long)csv::internals::CSV_INT8_MAX);
 //         KRATOS_CHECK(data_type(s, &out) == CSV_INT8);
 //         KRATOS_CHECK(out == (long long)CSV_INT8_MAX);
@@ -92,7 +93,8 @@ using namespace csv::internals;
 //         // Note: data_type() doesn't have enough precision for CSV_INT64
 //     }
 //
-//     SECTION("Integer Overflow") {
+//     // Integer Overflow
+//     {
 //         s = std::to_string((long long)csv::internals::CSV_INT16_MAX + 1);
 //         KRATOS_CHECK(data_type(s, &out) == CSV_INT32);
 //         KRATOS_CHECK(out == (long long)CSV_INT16_MAX + 1);
@@ -108,14 +110,14 @@ using namespace csv::internals;
 //     }
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE( "Recognize Sub-Unit Double Values", "[regression_double]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(RecognizeSub-UnitDoubleValues, KratosExternalLibrariesFastSuite ) {
 //     std::string s("0.15");
 //     long double out;
 //     KRATOS_CHECK(data_type(s, &out) == CSV_DOUBLE);
 //     KRATOS_CHECK(is_equal(out, 0.15L));
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE( "Recognize Double Values", "[regression_double2]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(RecognizeDoubleValues, KratosExternalLibrariesFastSuite ) {
 //     // Test converting double values back and forth
 //     long double out = -1.0;
 //     std::string s;
@@ -126,9 +128,8 @@ using namespace csv::internals;
 //         KRATOS_CHECK(is_equal(out, i));
 //     }
 // }
-//
-// //! [Parse Scientific Notation]
-// KRATOS_TEST_CASE_IN_SUITE("Parse Scientific Notation", "[e_notation]") {
+
+// KRATOS_TEST_CASE_IN_SUITE(ParseScientificNotation, KratosExternalLibrariesFastSuite) {
 //     // Test parsing e notation
 //     long double out;
 //
@@ -156,10 +157,8 @@ using namespace csv::internals;
 //     KRATOS_CHECK(data_type("4.55E-000000000005", &out) == CSV_DOUBLE);
 //     KRATOS_CHECK(is_equal(out, 0.0000455L));
 // }
-// //! [Parse Scientific Notation]
-//
-// //! [Scientific Notation Flavors]
-// KRATOS_TEST_CASE_IN_SUITE("Parse Different Flavors of Scientific Notation", "[sci_notation_diversity]") {
+
+// KRATOS_TEST_CASE_IN_SUITE(ParseDifferentFlavorsofScientificNotation, KratosExternalLibrariesFastSuite) {
 //     auto number = GENERATE(as<std::string> {},
 //         "4.55e5", "4.55E5",
 //         "4.55E+5", "4.55e+5",
@@ -173,9 +172,8 @@ using namespace csv::internals;
 //         KRATOS_CHECK(is_equal(out, 455000.0L));
 //     }
 // }
-// //! [Scientific Notation Flavors]
 //
-// KRATOS_TEST_CASE_IN_SUITE("Parse Scientific Notation Malformed", "[sci_notation]") {
+// KRATOS_TEST_CASE_IN_SUITE(ParseScientificNotationMalformed, KratosExternalLibrariesFastSuite) {
 //     // Assert parsing butchered scientific notation won't cause a
 //     // crash or any other weird side effects
 //     auto butchered = GENERATE(as<std::string>{},

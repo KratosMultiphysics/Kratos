@@ -30,24 +30,21 @@ using namespace csv;
 using std::vector;
 using std::string;
 
-// //
-// // guess_delim()
-// //
-// KRATOS_TEST_CASE_IN_SUITE("guess_delim() Test - Pipe", "[test_guess_pipe]") {
+// KRATOS_TEST_CASE_IN_SUITE(guess_delim()Test-Pipe, KratosExternalLibrariesFastSuite) {
 //     CSVGuessResult format = guess_format(
 //         "./data/real_data/2009PowerStatus.txt");
 //     KRATOS_CHECK(format.delim == '|');
 //     KRATOS_CHECK(format.header_row == 0);
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("guess_delim() Test - Semi-Colon", "[test_guess_scolon]") {
+// KRATOS_TEST_CASE_IN_SUITE(guess_delim()Test-Semi-Colon, KratosExternalLibrariesFastSuite) {
 //     CSVGuessResult format = guess_format(
 //         "./data/real_data/YEAR07_CBSA_NAC3.txt");
 //     KRATOS_CHECK(format.delim == ';');
 //     KRATOS_CHECK(format.header_row == 0);
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("guess_delim() Test - CSV with Comments", "[test_guess_comment]") {
+// KRATOS_TEST_CASE_IN_SUITE(guess_delim()Test-CSVwithComments, KratosExternalLibrariesFastSuite) {
 //     CSVGuessResult format = guess_format(
 //         "./data/fake_data/ints_comments.csv");
 //     KRATOS_CHECK(format.delim == ',');

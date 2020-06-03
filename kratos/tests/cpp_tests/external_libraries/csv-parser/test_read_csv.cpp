@@ -30,12 +30,12 @@ using namespace csv;
 using std::vector;
 using std::string;
 
-// KRATOS_TEST_CASE_IN_SUITE( "Test Parse Flags", "[test_parse_flags]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(TestParseFlags, KratosExternalLibrariesFastSuite ) {
 //     KRATOS_CHECK(internals::make_parse_flags(',', '"')[162] == internals::ParseFlags::QUOTE);
 // }
 //
 // // Test Main Functions
-// KRATOS_TEST_CASE_IN_SUITE( "Test Reading CSV From Direct Input", "[read_csv_direct]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(TestReadingCSVFromDirectInput, KratosExternalLibrariesFastSuite ) {
 //     auto rows = "A,B,C\r\n" // Header row
 //                 "123,234,345\r\n"
 //                 "1,2,3\r\n"
@@ -48,7 +48,7 @@ using std::string;
 //     KRATOS_CHECK( vector<string>(row) == first_row );
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("Assert UTF-8 Handling Works", "[read_utf8_direct]") {
+// KRATOS_TEST_CASE_IN_SUITE(AssertUTF-8HandlingWorks, KratosExternalLibrariesFastSuite) {
 //     // TODO: Actually check to see if flag is set
 //     auto rows = "\uFEFFA,B,C\r\n" // Header row
 //         "123,234,345\r\n"
@@ -62,8 +62,7 @@ using std::string;
 //     KRATOS_CHECK(vector<string>(row) == first_row);
 // }
 //
-// //! [Escaped Comma]
-// KRATOS_TEST_CASE_IN_SUITE( "Test Escaped Comma", "[read_csv_comma]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(TestEscapedComma, KratosExternalLibrariesFastSuite ) {
 //     auto rows = "A,B,C\r\n" // Header row
 //                 "123,\"234,345\",456\r\n"
 //                 "1,2,3\r\n"
@@ -74,9 +73,8 @@ using std::string;
 //     KRATOS_CHECK( vector<string>(row) ==
 //         vector<string>({"123", "234,345", "456"}));
 // }
-// //! [Escaped Comma]
 //
-// KRATOS_TEST_CASE_IN_SUITE( "Test Escaped Newline", "[read_csv_newline]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(TestEscapedNewline, KratosExternalLibrariesFastSuite ) {
 //     auto rows = "A,B,C\r\n" // Header row
 //                 "123,\"234\n,345\",456\r\n"
 //                 "1,2,3\r\n"
@@ -88,7 +86,7 @@ using std::string;
 //         vector<string>({ "123", "234\n,345", "456" }) );
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE( "Test Empty Field", "[read_empty_field]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(TestEmptyField, KratosExternalLibrariesFastSuite ) {
 //     // Per RFC 1480, escaped quotes should be doubled up
 //     auto rows = "A,B,C\r\n" // Header row
 //                 "123,\"\",456\r\n"_csv;
@@ -99,8 +97,7 @@ using std::string;
 //         vector<string>({ "123", "", "456" }) );
 // }
 //
-// //! [Parse Example]
-// KRATOS_TEST_CASE_IN_SUITE( "Test Escaped Quote", "[read_csv_quote]" ) {
+// KRATOS_TEST_CASE_IN_SUITE(TestEscapedQuote, KratosExternalLibrariesFastSuite ) {
 //     // Per RFC 1480, escaped quotes should be doubled up
 //     string csv_string = (
 //         "A,B,C\r\n" // Header row
@@ -117,9 +114,8 @@ using std::string;
 //         KRATOS_CHECK(vector<string>(row) == correct_row);
 //     }
 // }
-// //! [Parse Example]
 //
-// KRATOS_TEST_CASE_IN_SUITE("Fragment Test", "[read_csv_fragments]") {
+// KRATOS_TEST_CASE_IN_SUITE(FragmentTest, KratosExternalLibrariesFastSuite) {
 //     CSVReader reader;
 //
 //     reader.feed("A,B,C\r\n" // Header row
@@ -135,7 +131,7 @@ using std::string;
 //     }
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("Test Whitespace Trimming", "[read_csv_trim]") {
+// KRATOS_TEST_CASE_IN_SUITE(TestWhitespaceTrimming, KratosExternalLibrariesFastSuite) {
 //     auto row_str = GENERATE(as<std::string> {},
 //         "A,B,C\r\n" // Header row
 //         "123,\"234\n,345\",456\r\n",
@@ -165,7 +161,8 @@ using std::string;
 //         "123,\"234\n,345\",  456\r\n"
 //     );
 //
-//     SECTION("Parse Test") {
+//     // Parse Test
+//     {
 //         CSVFormat format;
 //         format.header_row(0)
 //             .trim({ '\t', ' ' })
@@ -221,10 +218,11 @@ using std::string;
 //     return test_cases;
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("Test Whitespace Trimming w/ Empty Fields") {
+// KRATOS_TEST_CASE_IN_SUITE(TestWhitespaceTrimmingw/EmptyFields, KratosExternalLibrariesFastSuite) {
 //     auto csv_string = GENERATE(from_range(make_whitespace_test_cases()));
 //
-//     SECTION("Parse Test") {
+//     // Parse Test 
+//     {
 //         CSVFormat format;
 //         format.column_names({ "A", "B", "C" })
 //             .trim({ ' ', '\t' });
@@ -258,7 +256,7 @@ using std::string;
 //     }
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("Test Variable Row Length Handling", "[read_csv_var_len]") {
+// KRATOS_TEST_CASE_IN_SUITE("Test Variable Row Length Handling", KratosExternalLibrariesFastSuite) {
 //     string csv_string("A,B,C\r\n" // Header row
 //         "123,234,345\r\n"
 //         "1,2,3\r\n"
@@ -268,7 +266,8 @@ using std::string;
 //         error_message = "";
 //     bool error_caught = false;
 //
-//     SECTION("Throw Error") {
+//     // Throw Error
+//     {
 //         CSVFormat format;
 //         format.variable_columns(VariableColumnPolicy::THROW);
 //
@@ -290,7 +289,8 @@ using std::string;
 //         KRATOS_CHECK(error_message.substr(0, 14) == "Line too short");
 //     }
 //
-//     SECTION("Ignore Row") {
+//     // Ignore Row
+//     {
 //         CSVFormat format;
 //         format.variable_columns(false);
 //
@@ -301,7 +301,8 @@ using std::string;
 //         KRATOS_CHECK(rows.size() == 3);
 //     }
 //
-//     SECTION("Keep Row") {
+//     // Keep Row
+//     {
 //         CSVFormat format;
 //         format.variable_columns(true);
 //
@@ -319,7 +320,7 @@ using std::string;
 //     }
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("Test read_row() CSVField - Memory", "[read_row_csvf2]") {
+// KRATOS_TEST_CASE_IN_SUITE(Testread_row()CSVField-Memory, KratosExternalLibrariesFastSuite) {
 //     CSVFormat format;
 //     format.column_names({ "A", "B" });
 //
@@ -351,7 +352,7 @@ using std::string;
 // }
 //
 // // Reported in: https://github.com/vincentlaucsb/csv-parser/issues/56
-// KRATOS_TEST_CASE_IN_SUITE("Leading Empty Field Regression", "[empty_field_regression]") {
+// KRATOS_TEST_CASE_IN_SUITE(LeadingEmptyFieldRegression, KratosExternalLibrariesFastSuite) {
 //     std::string csv_string(R"(category,subcategory,project name
 // ,,foo-project
 // bar-category,,bar-project
@@ -374,7 +375,7 @@ using std::string;
 //     KRATOS_CHECK(second_row["project name"] == "bar-project");
 // }
 //
-// KRATOS_TEST_CASE_IN_SUITE("Test Parsing CSV with Dummy Column", "[read_csv_dummy]") {
+// KRATOS_TEST_CASE_IN_SUITE(TestParsingCSVwithDummyColumn, KratosExternalLibrariesFastSuite) {
 //     std::string csv_string(R"(A,B,C,
 // 123,345,678,)");
 //
@@ -394,7 +395,7 @@ using std::string;
 // }
 //
 // // Reported in: https://github.com/vincentlaucsb/csv-parser/issues/67
-// KRATOS_TEST_CASE_IN_SUITE("Comments in Header Regression", "[comments_in_header_regression]") {
+// KRATOS_TEST_CASE_IN_SUITE(CommentsinHeaderRegression, "KratosExternalLibrariesFastSuite) {
 //     std::string csv_string(R"(# some extra metadata
 // # some extra metadata
 // timestamp,distance,angle,amplitude
@@ -418,7 +419,7 @@ using std::string;
 // }
 //
 // // Reported in: https://github.com/vincentlaucsb/csv-parser/issues/92
-// KRATOS_TEST_CASE_IN_SUITE("Long Row Test", "[long_row_regression]") {
+// KRATOS_TEST_CASE_IN_SUITE(LongRowTest, KratosExternalLibrariesFastSuite) {
 //     std::stringstream csv_string;
 //     constexpr int n_cols = 100000;
 //

@@ -44,11 +44,13 @@ using namespace csv;
 //
 //     bool error_caught = false;
 //
-//     SECTION("size() Check") {
+//     // size() Check
+//     {
 //         KRATOS_CHECK(row.size() == 4);
 //     }
 //
-//     SECTION("operator[]") {
+//     // operator[]
+//     {
 //         KRATOS_CHECK(row[1] == "Col2");
 //         KRATOS_CHECK(row["B"] == "Col2");
 //
@@ -56,7 +58,8 @@ using namespace csv;
 //         KRATOS_CHECK(row["C"] == "Col3");
 //     }
 //
-//     SECTION("operator[] Out of Bounds") {
+//     // operator[] Out of Bounds 
+//     {
 //         try {
 //             row[4].get<>();
 //         }
@@ -67,7 +70,8 @@ using namespace csv;
 //         KRATOS_CHECK(error_caught);
 //     }
 //
-//     SECTION("operator[] Access Non-Existent Column") {
+//     // operator[] Access Non-Existent Column
+//     {
 //         try {
 //             row["Col5"].get<>();
 //         }
@@ -78,7 +82,8 @@ using namespace csv;
 //         KRATOS_CHECK(error_caught);
 //     }
 //
-//     SECTION("Content Check") {
+//     // Content Check
+//     {
 //         KRATOS_CHECK(std::vector<std::string>(row) ==
 //             std::vector<std::string>({ "Col1", "Col2", "Col3", "Col4" }));
 //     }
@@ -88,7 +93,8 @@ using namespace csv;
 //      *  See: https://github.com/vincentlaucsb/csv-parser/issues/86
 //      *
 //      */
-//     SECTION("get_sv() Check") {
+//     // get_sv() Check
+//     {
 //         std::vector<std::string> content;
 //
 //         for (const auto& field : row) {

@@ -68,7 +68,8 @@ const std::string PERSONS_CSV = "./data/mimesis_data/persons.csv";
 //         "./data/fake_data/ints_newline_sep.csv"
 //     );
 //
-//     SECTION("Compute Statistics") {
+//     // Compute Statistics
+//     {
 //         CSVStat reader(file);
 //
 //         // Expected Results
