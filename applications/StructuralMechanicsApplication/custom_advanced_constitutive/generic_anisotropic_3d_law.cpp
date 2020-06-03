@@ -582,10 +582,9 @@ void GenericAnisotropic3DLaw::InitializeMaterial(
 
     // Let's check variables
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ISOTROPIC_ANISOTROPIC_YIELD_RATIO))  << "ISOTROPIC_ANISOTROPIC_YIELD_RATIO not defined in properties" << std::endl;
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS) && !rMaterialProperties.Has(YOUNG_MODULUS_X)) <<  "The orthotropic elastic constants have not been defined..." << std::endl;
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) << "The ORTHOTROPIC_ELASTIC_CONSTANTS are not defined" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() != 6) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS].size() == 6) << "The dimension of the ORTHOTROPIC_ELASTIC_CONSTANTS is incorrect" << std::endl;
 }
 
 /***********************************************************************************/
