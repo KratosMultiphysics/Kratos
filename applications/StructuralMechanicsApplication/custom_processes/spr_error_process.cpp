@@ -216,11 +216,14 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     BoundedMatrix<double, 1, TDim + 1> p_k;
     BoundedMatrix<double, 1, SigmaSize> sigma;
 
+    // Getting the process info
+    const auto& r_process_info = mThisModelPart.GetProcessInfo();
+
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
 
-        it_elem->CalculateOnIntegrationPoints(*mpStressVariable,stress_vector,mThisModelPart.GetProcessInfo());
-        it_elem->CalculateOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,mThisModelPart.GetProcessInfo());
+        it_elem->CalculateOnIntegrationPoints(*mpStressVariable,stress_vector,r_process_info);
+        it_elem->CalculateOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,r_process_info);
 
         KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3)
         << "\tStress: " << stress_vector[0] << std::endl
