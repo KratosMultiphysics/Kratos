@@ -151,7 +151,7 @@ void ResultDatabase::Initialize(
 
     // Auxiliar lambda to generate vectors of tables
     auto table_generator =[](const SizeType NumberOfEntites, const SizeType NumberOfComponents, const SizeType NumberOfGP){
-        std::vector<Table<double, double>*> aux_1(NumberOfComponents, nullptr);
+        EntityDatabase::GPDatabaseType aux_1(NumberOfComponents, nullptr);
         EntityDatabase aux_2(NumberOfGP, aux_1);
         VariableDatabase data(NumberOfEntites, aux_2);
         for (IndexType k = 0; k < NumberOfEntites; ++k){
