@@ -23,9 +23,9 @@ namespace Kratos
 {
 
 DistributeLoadOnSurfaceProcess::DistributeLoadOnSurfaceProcess(ModelPart& rModelPart,
-                                                                Parameters OutputParameters)
+                                                                Parameters Settings)
                                                                 : mrModelPart(rModelPart),
-                                                                mParameters(OutputParameters)
+                                                                mParameters(Settings)
 {
     Parameters default_parameters(R"(
         {
