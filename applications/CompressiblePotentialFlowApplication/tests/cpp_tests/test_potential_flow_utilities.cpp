@@ -389,12 +389,29 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase2, CompressiblePotentialApplica
 
     array_1d<double, 3> upwind_factor_options(3, 0.0);
 
-    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.49, model_part.GetProcessInfo());
+    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(1.3, model_part.GetProcessInfo());
     upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(3.0, model_part.GetProcessInfo());
 
     const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
 
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 2.0, 1e-15);
+}
+
+// tests the function ComputeUpwindFactorCase from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCaseSubsonicElement, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    array_1d<double, 3> upwind_factor_options(3, 0.0);
+
+    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.49, model_part.GetProcessInfo());
+    upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(3.0, model_part.GetProcessInfo());
+
+    const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
 }
 
 // tests the function ComputeDensity from the utilities

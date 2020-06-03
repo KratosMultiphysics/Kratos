@@ -122,13 +122,13 @@ template <int Dim, int NumNodes>
 double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindFactor(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+double ComputeUpwindFactor(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 double SelectMaxUpwindFactor(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-size_t ComputeUpwindFactorCase(const array_1d<double, 3>& rUpwindFactorOptions);
+size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions);
 
 template <int Dim, int NumNodes>
 double ComputeDensity(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
@@ -139,6 +139,7 @@ double ComputeUpwindedDensity(const array_1d<double, Dim>& rCurrentVelocity, con
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
 
+template <int Dim, int NumNodes>
 bool CheckIfElementIsTrailingEdge(const Element& rElement);
 
 template <int Dim>
