@@ -26,11 +26,13 @@
 namespace Kratos
 {
 /**
- * The Johnson Cook strain-rate senstive plastic 3D material law.
+ * The Johnson Cook strain-rate and temperature senstive plastic 3D material law.
  * Requires a strain vector to be provided by the element, which
  * should ideally be objective to enable large displacements.
  * Only suitable for explicit time integration because calculate
  * constitutive tensor is not implemented.
+ * Thermal softening may be disabled by setting TAYLOR_QUINNEY_COEFFICIENT=0.0
+ * in materials.json
  */
 
 class JohnsonCookThermalPlastic3DLaw : public HyperElastic3DLaw

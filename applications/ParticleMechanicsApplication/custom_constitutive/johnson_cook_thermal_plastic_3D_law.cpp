@@ -66,6 +66,10 @@ namespace Kratos
 		mGammaOld = 1e-8;
 		mHardeningRatio = 1.0;
 
+		if (rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] == 0.0) {
+			KRATOS_WARNING("Johnson Cook Material Model") << " Taylor Quinney Coefficient set to 0, ignoring thermal effects" << std::endl;
+		}
+
 		mYieldStressOld = CalculateHardenedYieldStress(rMaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
 		mYieldStressVirgin = mYieldStressOld;
 	}
@@ -118,10 +122,6 @@ namespace Kratos
 
 		if (j2_stress_trial > yield_stress && yield_stress/mYieldStressVirgin > yield_stress_failure_ratio)
 		{
-			// Thermal properties
-			const double eta = 0.9;
-			const double specific_heat_Cp = MaterialProperties[SPECIFIC_HEAT];
-
 			// Newton raphson setup
 			double gamma = mGammaOld;
 			double gamma_min = 0.0;
@@ -140,7 +140,7 @@ namespace Kratos
 			// Initial prediction of quantities
 			predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
 			predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
-			predicted_temperature = mTemperatureOld + eta / GetSqrt6() / MaterialProperties[DENSITY] / specific_heat_Cp *
+			predicted_temperature = mTemperatureOld + MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY] / MaterialProperties[SPECIFIC_HEAT] *
 				(yield_stress + mYieldStressOld) * gamma;
 
 			// Newton Raphson return mapping loop
@@ -151,26 +151,20 @@ namespace Kratos
 
 				// Compute yield function and derivative
 				yield_function = j2_stress_trial - GetSqrt6() * shear_modulus_G * gamma - yield_stress;
-
-
-
 				if (yield_function < 0.0) gamma_max = gamma;
 				else gamma_min = gamma;
 				dYield_dGamma = CalculatePlasticStrainDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
 				dYield_dGamma += CalculatePlasticStrainRateDerivative(
 					MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature)/ CurrentProcessInfo[DELTA_TIME];
-				dYield_dGamma += eta* yield_stress/ MaterialProperties[DENSITY] / specific_heat_Cp * CalculateThermalDerivative(
+				dYield_dGamma += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] * yield_stress/ MaterialProperties[DENSITY] / MaterialProperties[SPECIFIC_HEAT] * CalculateThermalDerivative(
 					MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
 				dYield_dGamma *= GetSqrt23();
 				yield_function_gradient = -1.0 * GetSqrt6() * shear_modulus_G - dYield_dGamma;
 
 				// Update gamma and check for convergence
 				delta_gamma = -1.0 * yield_function / yield_function_gradient;
-				if (std::abs(delta_gamma) < tolerance_delta_gamma)
-				{
-					//KRATOS_WATCH(delta_gamma)
+				if (std::abs(delta_gamma) < tolerance_delta_gamma) {
 					is_converged = true;
-					//std::cout << "converged in " << iteration << " iterations\n";
 					break;
 				}
 				else gamma += delta_gamma;
@@ -181,18 +175,18 @@ namespace Kratos
 				// Update of quantities
 				predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
 				predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
-				predicted_temperature = mTemperatureOld + eta / GetSqrt6() / MaterialProperties[DENSITY] / specific_heat_Cp *
+				predicted_temperature = mTemperatureOld + MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY] / MaterialProperties[SPECIFIC_HEAT] *
 					(yield_stress + mYieldStressOld) * gamma;
 
 
 				iteration += 1;
 				if (iteration == iteration_limit)
 				{
-					std::cout << "Johnson Cook iteration limit exceeded\n";
+					KRATOS_INFO("Johnson Cook Material Model") << " Johnson Cook iteration limit exceeded\n";
 					KRATOS_WATCH(gamma)
 					KRATOS_WATCH(delta_gamma)
 					KRATOS_WATCH(yield_function)
-					KRATOS_ERROR << "JC ERROR";
+					KRATOS_ERROR << "Johnson Cook iteration limit exceeded";
 				}
 			}
 			// Correct trial stress
@@ -246,6 +240,7 @@ namespace Kratos
 		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_C);
 		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_m);
 		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_n);
+		KRATOS_CHECK_VARIABLE_KEY(TAYLOR_QUINNEY_COEFFICIENT);
 		KRATOS_CHECK_VARIABLE_KEY(REFERENCE_STRAIN_RATE);
 		KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
 		KRATOS_CHECK_VARIABLE_KEY(REFERENCE_TEMPERATURE);
@@ -328,7 +323,8 @@ namespace Kratos
 	{
 		// Calculate thermal hardening factor
 		double thermal_hardening_factor;
-		if (Temperature < MaterialProperties[REFERENCE_TEMPERATURE]) thermal_hardening_factor = 1.0;
+		if (MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] == 0.0) thermal_hardening_factor = 1.0;
+		else if (Temperature < MaterialProperties[REFERENCE_TEMPERATURE]) thermal_hardening_factor = 1.0;
 		else if (Temperature >= MaterialProperties[MELD_TEMPERATURE]) thermal_hardening_factor = 0.0;
 		else {
 			thermal_hardening_factor = 1.0 - std::pow(
@@ -361,7 +357,9 @@ namespace Kratos
 		const double EquivalentPlasticStrain, const double PlasticStrainRate, const double Temperature)
 	{
 		double thermal_derivative = 0.0;
-		if (MaterialProperties[REFERENCE_TEMPERATURE] <= Temperature && Temperature <= MaterialProperties[MELD_TEMPERATURE])
+		if (MaterialProperties[REFERENCE_TEMPERATURE] <= Temperature
+			&& Temperature <= MaterialProperties[MELD_TEMPERATURE]
+			&& MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] > 0.0)
 		{
 			thermal_derivative = -1.0 * MaterialProperties[JC_PARAMETER_m] *
 				(MaterialProperties[JC_PARAMETER_A] + MaterialProperties[JC_PARAMETER_B] *
