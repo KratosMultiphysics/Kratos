@@ -26,7 +26,7 @@ namespace Testing {
 
 using namespace csv;
 
-const std::string PERSONS_CSV = "./tests/data/mimesis_data/persons.csv";
+const std::string PERSONS_CSV = "./data/mimesis_data/persons.csv";
 
 // TEST_CASE("Calculating Statistics from Direct Input", "[read_csv_stat_direct]" ) {
 //     std::string int_str;
@@ -64,8 +64,8 @@ const std::string PERSONS_CSV = "./tests/data/mimesis_data/persons.csv";
 // TEST_CASE( "Statistics - Rows of Integers", "[read_csv_stat]" ) {
 //     // Header on first row
 //     auto file = GENERATE(as<std::string> {},
-//         "./tests/data/fake_data/ints.csv",
-//         "./tests/data/fake_data/ints_newline_sep.csv"
+//         "./data/fake_data/ints.csv",
+//         "./data/fake_data/ints_newline_sep.csv"
 //     );
 //
 //     SECTION("Compute Statistics") {

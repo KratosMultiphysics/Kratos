@@ -99,7 +99,7 @@ using namespace csv;
 // TEST_CASE("Basic CSVReader Iterator Test", "[read_ints_iter]") {
 //     // A file with 100 rows and columns A, B, ... J
 //     // where every value in the ith row is the number i
-//     CSVReader reader("./tests/data/fake_data/ints.csv");
+//     CSVReader reader("./data/fake_data/ints.csv");
 //     std::vector<std::string> col_names = {
 //         "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"
 //     };
@@ -132,8 +132,8 @@ using namespace csv;
 //     // The first is such that each value in the ith row is the number i
 //     // There are 100 rows
 //     // The second file is a database of California state employee salaries
-//     CSVReader r1("./tests/data/fake_data/ints.csv"),
-//         r2("./tests/data/real_data/2015_StateDepartment.csv");
+//     CSVReader r1("./data/fake_data/ints.csv"),
+//         r2("./data/real_data/2015_StateDepartment.csv");
 //
 //     // Find largest number
 //     auto int_finder = [](CSVRow& left, CSVRow& right) {

@@ -32,7 +32,7 @@ using std::string;
 
 // TEST_CASE("col_pos() Test", "[test_col_pos]") {
 //     int pos = get_col_pos(
-//         "./tests/data/real_data/2015_StateDepartment.csv",
+//         "./data/real_data/2015_StateDepartment.csv",
 //         "Entity Type");
 //     REQUIRE(pos == 1);
 // }
@@ -51,7 +51,7 @@ using std::string;
 //     for (auto& format_in : formats) {
 //         // Set up the CSVReader
 //         format_in.column_names(column_names);
-//         CSVReader reader("./tests/data/fake_data/ints_comments.csv", format_in);
+//         CSVReader reader("./data/fake_data/ints_comments.csv", format_in);
 //
 //         // Assert that column names weren't overwritten
 //         CSVFormat format_out = reader.get_format();
@@ -64,7 +64,7 @@ using std::string;
 // // get_file_info()
 // TEST_CASE("get_file_info() Test", "[test_file_info]") {
 //     CSVFileInfo info = get_file_info(
-//         "./tests/data/real_data/2009PowerStatus.txt");
+//         "./data/real_data/2009PowerStatus.txt");
 //
 //     REQUIRE(info.delim == '|');
 //     REQUIRE(info.n_rows == 37960); // Can confirm with Excel
@@ -89,7 +89,7 @@ using std::string;
 //
 // TEST_CASE( "Test Read CSV with Header Row", "[read_csv_header]" ) {
 //     // Header on first row
-//     const std::string data_file = "./tests/data/real_data/2015_StateDepartment.csv";
+//     const std::string data_file = "./data/real_data/2015_StateDepartment.csv";
 //     CSVReader reader(data_file, CSVFormat());
 //     CSVRow row;
 //     reader.read_row(row); // Populate row with first line
@@ -130,7 +130,7 @@ using std::string;
 // //! [CSVField Example]
 // TEST_CASE("Test read_row() CSVField - Easy", "[read_row_csvf1]") {
 //     // Test that integers are type-casted properly
-//     CSVReader reader("./tests/data/fake_data/ints.csv");
+//     CSVReader reader("./data/fake_data/ints.csv");
 //     CSVRow row;
 //
 //     while (reader.read_row(row)) {
@@ -143,7 +143,7 @@ using std::string;
 // //! [CSVField Example]
 //
 // TEST_CASE("Test read_row() CSVField - Power Status", "[read_row_csvf3]") {
-//     CSVReader reader("./tests/data/real_data/2009PowerStatus.txt");
+//     CSVReader reader("./data/real_data/2009PowerStatus.txt");
 //     CSVRow row;
 //
 //     size_t date = reader.index_of("ReportDt"),
