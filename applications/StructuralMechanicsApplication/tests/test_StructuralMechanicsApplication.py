@@ -9,10 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os, subprocess
 
-if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-    has_external_solvers_application = True
-else:
-    has_external_solvers_application = False
+has_eigen_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
 
 # Import the tests or test_classes to create the suits
 
@@ -198,6 +195,7 @@ from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
 # Serial-Parallel Tests
 from structural_mechanics_test_factory import SerialParallelRuleOfMixturesCubeDamageTest as TSerialParallelRuleOfMixturesCubeDamageTest
+from structural_mechanics_test_factory import AnisotropyTest as TAnisotropyTest
 
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
@@ -273,6 +271,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
     nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
+    nightSuite.addTest(TAnisotropyTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
@@ -422,9 +421,9 @@ def AssembleTestSuites():
     # 2.5D solid element test
     nightSuite.addTest(TSolid2p5DElementTest('test_execution'))
 
-    if has_external_solvers_application:
-        import KratosMultiphysics.ExternalSolversApplication
-        if (hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver")):
+    if has_eigen_solvers_application:
+        import KratosMultiphysics.EigenSolversApplication as EiSA
+        if EiSA.HasFEAST():
             # Eigenvalues tests
             smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
             smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
@@ -434,7 +433,7 @@ def AssembleTestSuites():
             # Rayleigh process test
             nightSuite.addTest(TRayleighProcessTest('test_execution'))
         else:
-            print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+            print("FEAST not available in EigenSolversApplication")
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
 

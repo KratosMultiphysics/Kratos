@@ -442,11 +442,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
-        # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(FACE_NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(FACE_TANGENTIAL_IMPACT_VELOCITY)
@@ -541,8 +536,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
         model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
@@ -578,10 +571,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
         # ****************** Quaternion Integration BEGIN ******************
         model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
@@ -1223,7 +1212,7 @@ class Report(object):
         pass
 
     def Prepare(self, timer, control_time):
-        self.initial_pr_time = timer.clock()
+        self.initial_pr_time = timer.process_time()
         self.initial_re_time = timer.time()
         self.prev_time = 0.0
         self.total_steps_expected = 0
@@ -1269,14 +1258,12 @@ class Report(object):
         return report
 
     def FinalReport(self, timer):
-        elapsed_pr_time = timer.clock() - self.initial_pr_time
+        elapsed_pr_time = timer.process_time() - self.initial_pr_time
         elapsed_re_time = timer.time() - self.initial_re_time
         label = "DEM: "
 
-        report = "Calculation ends at instant: " + str(timer.time()) + "\n"\
-            + label + "Calculation ends at processing time instant: " + str(timer.clock()) + "\n"\
-            + label + "Elapsed processing time: " + str(elapsed_pr_time) + "\n"\
-            + label + "Elapsed real time: " + str(elapsed_re_time) + "\n" + label
+        report = label + "Elapsed processing time (sum across cores): " + str(elapsed_pr_time) + " seconds\n"\
+                + label + "Elapsed real time (wall time): " + str(elapsed_re_time) + " seconds\n" + label
 
         report = report + "\n" + label + "ANALYSIS COMPLETED"
 
@@ -1609,16 +1596,8 @@ class DEMIo(object):
             self.PushPrintVar(1, IMPACT_WEAR, self.fem_boundary_variables)
 
     def AddClusterVariables(self):
-
         if self.PostCharacteristicLength:
             self.PushPrintVar(self.PostCharacteristicLength, CHARACTERISTIC_LENGTH, self.clusters_variables)
-
-        if self.DEM_parameters["PostEulerAngles"].GetBool():
-            # JIG: SHOULD BE REMOVED IN THE FUTURE
-            self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables)
-            # JIG: SHOULD BE REMOVED IN THE FUTURE
-            self.PushPrintVar(self.PostEulerAngles, ORIENTATION_IMAG, self.clusters_variables)
-            #self.PushPrintVar(self.PostEulerAngles, ORIENTATION, self.clusters_variables)
 
     def AddRigidBodyVariables(self):
         pass

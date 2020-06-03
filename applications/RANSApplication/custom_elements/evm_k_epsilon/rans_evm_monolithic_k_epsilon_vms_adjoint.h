@@ -153,13 +153,13 @@ public:
     ///@{
 
     // defining the base type
-    typedef Element BaseType;
+    using BaseType = Element;
     // defining the base adjoint base fluid element type
-    typedef RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes> AdjointFluidElement;
+    using AdjointFluidElement = RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>;
     // defining the k element type
-    typedef RansEvmKAdjoint<TDim, TNumNodes> AdjointKElement;
+    using AdjointKElement = RansEvmKAdjoint<TDim, TNumNodes>;
     // defining the epsilon element type
-    typedef RansEvmEpsilonAdjoint<TDim, TNumNodes> AdjointEpsilonElement;
+    using AdjointEpsilonElement = RansEvmEpsilonAdjoint<TDim, TNumNodes>;
 
     constexpr static unsigned int TFluidBlockSize = (TDim + 1);
 
@@ -181,19 +181,19 @@ public:
     constexpr static unsigned int TCoordLocalSize = TDim * TNumNodes;
 
     // variable definitions
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef Element::NodeType NodeType;
+    using NodeType = Element::NodeType;
 
-    typedef Element::NodesArrayType NodesArrayType;
+    using NodesArrayType = Element::NodesArrayType;
 
-    typedef Element::GeometryType GeometryType;
+    using GeometryType = Element::GeometryType;
 
-    typedef Element::PropertiesType PropertiesType;
+    using PropertiesType = Element::PropertiesType;
 
-    typedef Element::VectorType VectorType;
+    using VectorType = Element::VectorType;
 
-    typedef Element::MatrixType MatrixType;
+    using MatrixType = Element::MatrixType;
 
     ///@name Pointer Definitions
     /// Pointer definition of RansEvmMonolithicKEpsilonVMSAdjoint
@@ -208,7 +208,8 @@ public:
     /**
      * Constructor.
      */
-    explicit RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId = 0) : BaseType(NewId)
+    explicit RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId = 0)
+        : BaseType(NewId)
     {
     }
 
@@ -391,32 +392,32 @@ private:
         std::size_t NumBlocks;
     };
 
-    constexpr SubBlockLayout CoordBlock()
+    constexpr SubBlockLayout CoordBlock() const
     {
         return {0, TDim, TDim, TNumNodes};
     }
 
-    constexpr SubBlockLayout VelBlock()
+    constexpr SubBlockLayout VelBlock() const
     {
         return {0, TDim, TDim + 3, TNumNodes};
     }
 
-    constexpr SubBlockLayout VelPresBlock()
+    constexpr SubBlockLayout VelPresBlock() const
     {
         return {0, TDim + 1, TDim + 3, TNumNodes};
     }
 
-    constexpr SubBlockLayout KBlock()
+    constexpr SubBlockLayout KBlock() const
     {
         return {TDim + 1, 1, TDim + 3, TNumNodes};
     }
 
-    constexpr SubBlockLayout EpsilonBlock()
+    constexpr SubBlockLayout EpsilonBlock() const
     {
         return {TDim + 2, 1, TDim + 3, TNumNodes};
     }
 
-    constexpr std::size_t MonolithicIndex(SubBlockLayout L, std::size_t SubIndex)
+    constexpr std::size_t MonolithicIndex(SubBlockLayout L, std::size_t SubIndex) const
     {
         return SubIndex + (SubIndex / L.SubBlockSize) * (L.BlockSize - L.SubBlockSize) +
                L.SubBlockOffset;

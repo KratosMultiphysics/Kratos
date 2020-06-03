@@ -5,6 +5,7 @@ on:
     branches:
       - master
 
+
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
@@ -19,7 +20,7 @@ jobs:
       MKLVARS_INTERFACE: lp64
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-bionic:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
       env:
         CCACHE_SLOPPINESS: pch_defines,time_macros
         CCACHE_COMPILERCHECK: content
@@ -88,6 +89,12 @@ jobs:
         path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
+      
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+      
     - name: Build
       shell: cmd
       run: |
@@ -101,11 +108,14 @@ jobs:
         set KRATOS_APP_DIR=applications
 
         set KRATOS_APPLICATIONS=
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConvectionDiffusionApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FluidDynamicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshMovingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StructuralMechanicsApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ChimeraApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\IgaApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ParticleMechanicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MappingApplication;
@@ -119,10 +129,9 @@ jobs:
           -G"Visual Studio 16 2019"                          ^
           -H"%KRATOS_SOURCE%"                                ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
-          -DBOOST_ROOT="%BOOST_ROOT%"                        ^
-          -DINCLUDE_FEAST=OFF                                ^
+          -DBOOST_ROOT="%BOOST_ROOT_1_72_0%"                 ^
           -DINSTALL_RUNKRATOS=OFF                            ^
-          -DCMAKE_CXX_FLAGS="/Od"                            ^
+          -DCMAKE_CXX_FLAGS="/Od /we4661"                            ^
           -DUSE_COTIRE=ON                                    || goto :error
 
         cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error

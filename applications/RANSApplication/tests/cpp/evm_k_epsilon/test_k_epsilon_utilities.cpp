@@ -127,19 +127,19 @@ void CreateModelPartNodes(ModelPart& rModelPart)
     VariableUtils().AddDof<Variable<double>>(RANS_SCALAR_2_ADJOINT_1, rModelPart);
 
     VariableUtils().AddDof<Variable<double>>(PRESSURE, rModelPart);
-    VariableUtils().AddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+    VariableUtils().AddDof<Variable<double>>(
         VELOCITY_X, rModelPart);
-    VariableUtils().AddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+    VariableUtils().AddDof<Variable<double>>(
         VELOCITY_Y, rModelPart);
-    VariableUtils().AddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+    VariableUtils().AddDof<Variable<double>>(
         VELOCITY_Z, rModelPart);
 
     VariableUtils().AddDof<Variable<double>>(ADJOINT_FLUID_SCALAR_1, rModelPart);
-    VariableUtils().AddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+    VariableUtils().AddDof<Variable<double>>(
         ADJOINT_FLUID_VECTOR_1_X, rModelPart);
-    VariableUtils().AddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+    VariableUtils().AddDof<Variable<double>>(
         ADJOINT_FLUID_VECTOR_1_Y, rModelPart);
-    VariableUtils().AddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>(
+    VariableUtils().AddDof<Variable<double>>(
         ADJOINT_FLUID_VECTOR_1_Z, rModelPart);
 }
 
