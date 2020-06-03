@@ -27,7 +27,7 @@
 
 namespace Kratos {
 
-template <int TWorkingSpaceDimension, class TContainerPointType>
+template <class TContainerPointType>
 class NurbsCurveTessellation
 {
 public:
@@ -37,8 +37,7 @@ public:
 
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
-    typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> NurbsCurveGeometryType;
-    typedef std::vector<std::pair<double, Vector>> TessellationType;
+    typedef std::vector<std::pair<double, CoordinatesArrayType>> TessellationType;
     typedef typename GeometryType::IndexType IndexType;
     typedef typename GeometryType::SizeType SizeType;
 
@@ -85,7 +84,7 @@ public:
         const std::vector<NurbsInterval>& rKnotSpanIntervals,
         const double Tolerance)
     {
-        mTesselation = ComputeTessellation<TWorkingSpaceDimension>(
+        mTesselation = ComputeTessellation(
             rGeometry,
             PolynomialDegree,
             DomainInterval,
@@ -93,7 +92,31 @@ public:
             Tolerance);
     }
 
-    /** 
+    void Tessellate(
+        const GeometryType& rGeometry,
+        const double Start,
+        const double End,
+        const std::vector<double>& rSpanIntervals,
+        const double Tolerance,
+        const int NumberOfGuessesPerInterval = 1)
+    {
+        NurbsInterval this_interval(Start, End);
+
+        std::vector<NurbsInterval> KnotSpanIntervals(rSpanIntervals.size() - 1);
+
+        for (IndexType i = 0; i < rSpanIntervals.size() - 1; ++i) {
+            KnotSpanIntervals[i] = NurbsInterval(rSpanIntervals[i], rSpanIntervals[i + 1]);
+        }
+
+        mTesselation = ComputeTessellation(
+            rGeometry,
+            NumberOfGuessesPerInterval,
+            this_interval,
+            KnotSpanIntervals,
+            Tolerance);
+    }
+
+    /**
     * @brief This method returns the tessellation of a curve
     * @param pGeometry Pointer to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
@@ -143,7 +166,7 @@ public:
         sample_points.emplace_back(1.0, point);
 
         std::sort(std::begin(sample_points), std::end(sample_points),
-            [](std::pair<double, Vector> const& lhs, std::pair<double, Vector> const& rhs) {
+            [](std::pair<double, CoordinatesArrayType> const& lhs, std::pair<double, CoordinatesArrayType> const& rhs) {
                 return std::get<0>(lhs) > std::get<0>(rhs);
             }
         );
@@ -173,7 +196,7 @@ public:
                 const auto point_b = std::get<1>(parameter_point_b);
 
                 double max_distance{ 0 };
-                std::pair<double, Vector> max_point;
+                std::pair<double, CoordinatesArrayType> max_point;
 
                 for (int i = 1; i <= n; i++) {
                     const double t = NurbsInterval::GetParameterAtNormalized(t_a,
@@ -233,6 +256,40 @@ public:
         }
 
         return points;
+    }
+
+    static void GetClosestPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        TessellationType& Tesselation)
+    {
+        double distance = std::numeric_limits<double>::max();
+        double new_distance;
+        for (IndexType i = 0; i < Tesselation.size(); ++i)
+        {
+            new_distance = norm_2(rPointGlobalCoordinates - std::get<1>(Tesselation[i]));
+            if (new_distance < distance)
+            {
+                distance = new_distance;
+                rClosestPointGlobalCoordinates = std::get<1>(Tesselation[i]);
+                rClosestPointLocalCoordinates[0] = std::get<0>(Tesselation[i]);
+            }
+        }
+        KRATOS_WATCH(rClosestPointGlobalCoordinates)
+        KRATOS_WATCH(rClosestPointLocalCoordinates)
+    }
+
+    void GetClosestPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates)
+    {
+        GetClosestPoint(
+            rPointGlobalCoordinates,
+            rClosestPointGlobalCoordinates,
+            rClosestPointLocalCoordinates,
+            mTesselation);
     }
 
     /** 
