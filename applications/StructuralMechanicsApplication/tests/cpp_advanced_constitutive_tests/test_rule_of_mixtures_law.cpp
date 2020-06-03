@@ -30,21 +30,21 @@ namespace Testing
 /// Nodetype definition
 typedef Node<3> NodeType;
 
-void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
-{
-    GidIO<> gid_io("TEST_RULE_MIXTURES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
-    const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-    const double label = static_cast<double>(nl_iter);
+// void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
+// {
+//     GidIO<> gid_io("TEST_RULE_MIXTURES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+//     const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+//     const double label = static_cast<double>(nl_iter);
 
-    gid_io.InitializeMesh(label);
-    gid_io.WriteMesh(ThisModelPart.GetMesh());
-    gid_io.FinalizeMesh();
-    gid_io.InitializeResults(label, ThisModelPart.GetMesh());
-    gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
-    gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_VECTOR, ThisModelPart, label);
-    gid_io.PrintOnGaussPoints(PK2_STRESS_VECTOR, ThisModelPart, label);
-    gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
-}
+//     gid_io.InitializeMesh(label);
+//     gid_io.WriteMesh(ThisModelPart.GetMesh());
+//     gid_io.FinalizeMesh();
+//     gid_io.InitializeResults(label, ThisModelPart.GetMesh());
+//     gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
+//     gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_VECTOR, ThisModelPart, label);
+//     gid_io.PrintOnGaussPoints(PK2_STRESS_VECTOR, ThisModelPart, label);
+//     gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
+// }
 
 Parameters GetTwoLayersParameters()
 {
