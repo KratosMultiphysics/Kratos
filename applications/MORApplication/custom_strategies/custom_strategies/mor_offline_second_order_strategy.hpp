@@ -129,7 +129,64 @@ class MorOfflineSecondOrderStrategy
     ///@{
 
     /**
-     * Default constructor
+     * Default constructor for symmetric problems
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration schemed
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param UseDefinedOutputFlag If true, the solution is only computed at specified dofs
+     */
+    MorOfflineSecondOrderStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
+        typename TLinearSolverType::Pointer pNewLinearSolver,
+        bool UseDampingFlag = false)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>>(rModelPart, false),
+            mpScheme(pScheme),
+            mpBuilderAndSolver(pBuilderAndSolver),
+            mpLinearSolver(pNewLinearSolver),
+            mUseDamping(UseDampingFlag),
+            mSystemIsSymmetric(true)
+    {
+        KRATOS_TRY;
+
+        // Set flags to start correcty the calculations
+        mSolutionStepIsInitialized = false;
+        mInitializeWasPerformed = false;
+        mImportedSystem = false;
+
+        // Tells to the builder and solver if the reactions have to be Calculated or not
+        GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
+
+        // Tells to the Builder And Solver if the system matrix and vectors need to
+        // be reshaped at each step or not
+        // GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        SetEchoLevel(1);
+
+        // By default the matrices are rebuilt at each iteration
+        this->SetRebuildLevel(0);
+
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpS = TSparseSpace::CreateEmptyMatrixPointer();
+        mpM = TSparseSpace::CreateEmptyMatrixPointer();
+        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+        mpOV = TSparseSpace::CreateEmptyVectorPointer();
+
+        mpAr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        mpMr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
+        mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
+        mpBasis = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        mpBasisLeft = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        mpSr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Constructor for unsymmetric problems
      * @param rModelPart The model part of the problem
      * @param pScheme The integration schemed
      * @param MoveMeshFlag The flag that allows to move the mesh
@@ -141,16 +198,14 @@ class MorOfflineSecondOrderStrategy
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
         typename TLinearSolverType::Pointer pNewAdjointLinearSolver,
-        bool UseDampingFlag = false,
-        bool SystemIsSymmetric = true)//,
-        // bool UseDefinedOutputFlag = false)
+        bool UseDampingFlag = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>>(rModelPart, false),
             mpScheme(pScheme),
             mpBuilderAndSolver(pBuilderAndSolver),
             mpLinearSolver(pNewLinearSolver),
             mpAdjointLinearSolver(pNewAdjointLinearSolver),
             mUseDamping(UseDampingFlag),
-            mSystemIsSymmetric(SystemIsSymmetric)
+            mSystemIsSymmetric(false)
     {
         KRATOS_TRY;
 

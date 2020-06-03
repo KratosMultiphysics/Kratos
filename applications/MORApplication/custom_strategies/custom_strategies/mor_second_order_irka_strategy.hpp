@@ -158,28 +158,68 @@ class MorSecondOrderIRKAStrategy
         typename TSchemeType::Pointer pScheme,
         typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
-        typename TLinearSolverType::Pointer pNewAdjointLinearSolver,
         vector< std::complex<double> > SamplingPoints,
         size_t MaxIter,
-        double Tolerance,
-        bool SystemIsSymmetric = true)
-        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, pNewAdjointLinearSolver, true, SystemIsSymmetric),
+        double Tolerance)
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true),
             mMaxIter(MaxIter), mTolerance(Tolerance)
     {
         KRATOS_TRY;
 
-        // create complex conjugates of the sampling points and sort them
-        const size_t n_sampling_points = SamplingPoints.size();
-        mSamplingPoints = ComplexZeroVector(2*n_sampling_points);
-        for( size_t i=0; i<n_sampling_points; ++i )
-        {
-            mSamplingPoints(i) = SamplingPoints(i);
-            mSamplingPoints(n_sampling_points+i) = std::conj(SamplingPoints(i));
-        }
-        ComplexSortUtility::PairComplexConjugates(mSamplingPoints);
+        this->InitializeSamplingPoints(SamplingPoints);
 
-        KRATOS_ERROR_IF( mMaxIter < 1 ) << "Invalid number of maximal iterations provided" << std::endl;
-        KRATOS_ERROR_IF( (mTolerance >= 1.) || (mTolerance < 0.) ) << "Invalid tolerance provided" << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Constructor for unsymmetric problems
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration schemed
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    MorSecondOrderIRKAStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
+        typename TLinearSolverType::Pointer pNewLinearSolver,
+        typename TLinearSolverType::Pointer pNewAdjointLinearSolver,
+        vector< std::complex<double> > SamplingPoints,
+        size_t MaxIter,
+        double Tolerance)
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, pNewAdjointLinearSolver, true),
+            mMaxIter(MaxIter), mTolerance(Tolerance)
+    {
+        KRATOS_TRY;
+
+        this->InitializeSamplingPoints(SamplingPoints);
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Constructor for frequency limited approximation of unsymmetric problems
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration schemed
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    MorSecondOrderIRKAStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
+        typename TLinearSolverType::Pointer pNewLinearSolver,
+        typename TLinearSolverType::Pointer pNewAdjointLinearSolver,
+        vector< std::complex<double> > SamplingPoints,
+        complex LimitLow,
+        complex LimitHigh,
+        size_t MaxIter,
+        double Tolerance)
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, pNewAdjointLinearSolver, true),
+            mLimitLow(LimitLow), mLimitHigh(LimitHigh), mMaxIter(MaxIter), mTolerance(Tolerance)
+    {
+        KRATOS_TRY;
+
+        this->InitializeSamplingPoints(SamplingPoints);
+        this->mUseFrequencyLimits = true;
 
         KRATOS_CATCH("");
     }
@@ -559,6 +599,11 @@ class MorSecondOrderIRKAStrategy
     ///@{
 
     vector< complex > mSamplingPoints; //vector of currently used sampling points
+
+    bool mUseFrequencyLimits = false; //flag if the approximation should be limited to a specific frequency range
+    complex mLimitLow; //lower frequency limit
+    complex mLimitHigh; //higher frequency limit
+
     size_t mMaxIter; //maximum iterations
     double mTolerance; // tolerance
 
@@ -569,6 +614,29 @@ class MorSecondOrderIRKAStrategy
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Initialize sampling points with complex conjugates
+     */
+    void InitializeSamplingPoints(vector<complex> SamplingPoints)
+    {
+        KRATOS_TRY;
+
+        // create complex conjugates of the sampling points and sort them
+        const size_t n_sampling_points = SamplingPoints.size();
+        mSamplingPoints = ComplexZeroVector(2*n_sampling_points);
+        for( size_t i=0; i<n_sampling_points; ++i )
+        {
+            mSamplingPoints(i) = SamplingPoints(i);
+            mSamplingPoints(n_sampling_points+i) = std::conj(SamplingPoints(i));
+        }
+        ComplexSortUtility::PairComplexConjugates(mSamplingPoints);
+
+        KRATOS_ERROR_IF( mMaxIter < 1 ) << "Invalid number of maximal iterations provided" << std::endl;
+        KRATOS_ERROR_IF( (mTolerance >= 1.) || (mTolerance < 0.) ) << "Invalid tolerance provided" << std::endl;
+
+        KRATOS_CATCH("");
+    }
 
     ///@}
     ///@name Private  Access

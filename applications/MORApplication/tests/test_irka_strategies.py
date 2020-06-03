@@ -93,15 +93,13 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
 
         scheme = MOR.MatrixBuilderScheme()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(KratosMultiphysics.LinearSolver())
-        move_mesh_flag = False
         off_strategy = MOR.MorSecondOrderComplexIrkaStrategy(mp,
             scheme,
             builder_and_solver,
             cplx_linear_solver,
             [15j, 25j, 45j],
             20,
-            1e-12,
-            move_mesh_flag)
+            1e-10)
         off_strategy.SetEchoLevel(0)
 
         strategy = MOR.MorComplexOnlineStrategy(mp,
@@ -123,10 +121,10 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
             mp.ProcessInfo[MOR.FREQUENCY] = freq
 
             strategy.Solve()
-            
+
             disp_z = strategy.GetScalarResult()
             result.append([freq, disp_z/n_nodes])
-            
+
             freq = freq + df
 
         # with open('test_results/irka_complex_result.csv', 'w', newline='') as csvfile:
@@ -168,15 +166,13 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
 
         scheme = MOR.MatrixBuilderScheme()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(KratosMultiphysics.LinearSolver())
-        move_mesh_flag = False
         off_strategy = MOR.MorSecondOrderRealIrkaStrategy(mp,
             scheme,
             builder_and_solver,
             cplx_linear_solver,
             [15j, 25j, 45j],
             20,
-            1e-12,
-            move_mesh_flag)
+            1e-12)
         off_strategy.SetEchoLevel(0)
 
         strategy = MOR.MorRealOnlineStrategy(mp,
@@ -198,10 +194,10 @@ class TestIrkaStrategies(KratosUnittest.TestCase):
             mp.ProcessInfo[MOR.FREQUENCY] = freq
 
             strategy.Solve()
-            
+
             disp_z = strategy.GetScalarResult()
             result.append([freq, disp_z/n_nodes])
-            
+
             freq = freq + df
 
         # with open('test_results/irka_real_result.csv', 'w', newline='') as csvfile:

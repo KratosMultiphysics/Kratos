@@ -130,9 +130,8 @@ class MorSecondOrderKrylovStrategy
         typename TSchemeType::Pointer pScheme,
         typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename TLinearSolverType::Pointer pNewLinearSolver,
-        vector< double > samplingPoints,
-        bool MoveMeshFlag = false)
-        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, nullptr, true, MoveMeshFlag),
+        vector< double > samplingPoints)
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true),
             mSamplingPoints(samplingPoints)
     {
         KRATOS_TRY;
