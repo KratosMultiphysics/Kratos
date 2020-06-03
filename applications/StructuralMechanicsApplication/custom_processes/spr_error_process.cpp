@@ -214,6 +214,7 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     BoundedMatrix<double, TDim + 1, TDim + 1> A = ZeroMatrix(TDim + 1,TDim + 1);
     BoundedMatrix<double, TDim + 1, SigmaSize> b = ZeroMatrix(TDim + 1,SigmaSize);
     BoundedMatrix<double, 1, TDim + 1> p_k;
+    BoundedMatrix<double, 1, SigmaSize> sigma;
 
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
@@ -225,7 +226,6 @@ void SPRErrorProcess<TDim>::CalculatePatch(
         << "\tStress: " << stress_vector[0] << std::endl
         << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
 
-        BoundedMatrix<double, 1, SigmaSize> sigma;
         for(IndexType j = 0; j < SigmaSize; ++j)
             sigma(0,j) = stress_vector[0][j];
         p_k(0,0) = 1.0;
