@@ -6,11 +6,11 @@
 //  License:		 BSD License
 //					 license: CoSimulationApplication/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_CUSTOM_IO_PYTHON_H_INCLUDED)
-#define  KRATOS_CUSTOM_IO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_CO_SIM_IO_PYTHON_H_INCLUDED)
+#define  KRATOS_CO_SIM_IO_PYTHON_H_INCLUDED
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -24,10 +24,10 @@
 namespace Kratos {
 namespace Python {
 
-void  AddCustomIOToPython(pybind11::module& m);
+void  AddCoSimIOToPython(pybind11::module& m);
 
 }  // namespace Python.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CUSTOM_IO_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_CO_SIM_IO_PYTHON_H_INCLUDED  defined
