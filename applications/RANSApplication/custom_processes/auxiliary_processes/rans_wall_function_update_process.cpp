@@ -135,6 +135,7 @@ void RansWallFunctionUpdateProcess::Execute()
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     const double c_mu_25 = std::pow(mCmu, 0.25);
+    const double y_plus_limit = r_model_part.GetProcessInfo()[RANS_Y_PLUS_LIMIT];
 
     ModelPart::ConditionsContainerType& r_conditions = r_model_part.Conditions();
     const int number_of_conditions = r_conditions.size();
@@ -173,6 +174,7 @@ void RansWallFunctionUpdateProcess::Execute()
             double y_plus{0.0}, u_tau{0.0};
             RansCalculationUtilities::CalculateYPlusAndUtau(
                 y_plus, u_tau, wall_velocity_magnitude, wall_height, nu, mVonKarman, mBeta);
+            y_plus = std::max(y_plus, y_plus_limit);
 
             u_tau = RansCalculationUtilities::SoftMax(
                 c_mu_25 * std::sqrt(std::max(tke, 0.0)),
