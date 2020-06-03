@@ -399,7 +399,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # Include subdirectories
-add_subdirectory(external_libraries/csv-parser)
+add_subdirectory(external_libraries/csv_parser)
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 

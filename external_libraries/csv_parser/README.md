@@ -64,7 +64,7 @@ While C++17 is recommended, C++11 is the minimum version required. This library 
 [Martin Moene's string view library](https://github.com/martinmoene/string-view-lite) if `std::string_view` is not available.
 
 ### Single Header
-This library is available as a single `.hpp` file under [`single_include/csv-parser/include/csv.hpp`](single_include/csv-parser/include/csv.hpp).
+This library is available as a single `.hpp` file under [`single_include/csv_parser/include/csv.hpp`](single_include/csv_parser/include/csv.hpp).
 
 ### CMake Instructions
 If you're including this in another CMake project, you can simply clone this repo into your project directory, 
@@ -88,7 +88,7 @@ With this library, you can easily stream over a large file without reading its e
 
 **C++ Style**
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv_parser/include/csv.hpp"
 
 using namespace csv;
 
@@ -126,7 +126,7 @@ while (reader.read_row(row)) {
 Retrieving values using a column name string is a cheap, constant time operation.
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv_parser/include/csv.hpp"
 
 using namespace csv;
 
@@ -153,7 +153,7 @@ convert them to the proper data type.
  * **Note:** Conversions to floating point types are not currently checked for loss of precision.
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv_parser/include/csv.hpp"
 
 using namespace csv;
 
@@ -181,7 +181,7 @@ assembled into a larger JSON document is an exercise left for the user.
 
 ```cpp
 # include <sstream>
-# include "csv-parser/include/csv.hpp"
+# include "csv_parser/include/csv.hpp"
 
 using namespace csv;
 
@@ -206,7 +206,7 @@ for (auto& row: reader) {
 Although the CSV parser has a decent guessing mechanism, in some cases it is preferrable to specify the exact parameters of a file.
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv_parser/include/csv.hpp"
 # include ...
 
 using namespace csv;
@@ -269,7 +269,7 @@ format.column_names(col_names);
 ### Parsing an In-Memory String
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv_parser/include/csv.hpp"
 
 using namespace csv;
 
@@ -301,7 +301,7 @@ for (auto& r: rows) {
 ### Writing CSV Files
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv_parser/include/csv.hpp"
 # include ...
 
 using namespace csv;

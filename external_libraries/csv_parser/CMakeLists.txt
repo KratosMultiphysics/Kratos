@@ -37,4 +37,4 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 set(CSV_PARSER_LIBRARIES csv_parser)
 
-message(STATUS "csv-parser : ${CSV_INCLUDE_DIR}")
+message(STATUS "csv_parser : ${CSV_INCLUDE_DIR}")
