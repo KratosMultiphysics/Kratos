@@ -1578,6 +1578,15 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     else if (rVariable == MP_EQUIVALENT_STRESS) {
         rValues[0] = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_STRESS, rValues[0]);
     }
+    else if (rVariable == MP_EQUIVALENT_PLASTIC_STRAIN) {
+        rValues[0] = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, rValues[0]);
+    }
+    else if (rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE) {
+        rValues[0] = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN_RATE, rValues[0]);
+    }
+    else if (rVariable == MP_TEMPERATURE) {
+        rValues[0] = mConstitutiveLawVector->GetValue(MP_TEMPERATURE, rValues[0]);
+    }
     else
     {
         KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;

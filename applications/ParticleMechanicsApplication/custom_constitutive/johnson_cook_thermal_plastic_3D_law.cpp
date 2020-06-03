@@ -63,7 +63,7 @@ namespace Kratos
 		mEnergyInternal = 0.0;
 		mEnergyDissipated = 0.0;
 		mTemperatureOld = rMaterialProperties[TEMPERATURE];
-		mGammaOld = 1e-12;
+		mGammaOld = 1e-8;
 		mHardeningRatio = 1.0;
 
 		mYieldStressOld = CalculateHardenedYieldStress(rMaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
@@ -129,7 +129,7 @@ namespace Kratos
 			bool is_converged = false;
 			const SizeType iteration_limit = 100;
 			IndexType iteration = 0;
-			const double tolerance = 1e-9;
+			const double tolerance_delta_gamma = 1e-9;
 			double yield_function, yield_function_gradient, dYield_dGamma,
 				delta_gamma, predicted_eps, predicted_eps_rate,
 				predicted_temperature;
@@ -151,13 +151,8 @@ namespace Kratos
 
 				// Compute yield function and derivative
 				yield_function = j2_stress_trial - GetSqrt6() * shear_modulus_G * gamma - yield_stress;
-				//KRATOS_WATCH(yield_function)
 
-				if (std::abs(yield_function) < tolerance) {
-					is_converged = true;
-					//std::cout << "converged in " << iteration << " iterations\n";
-					break;
-				}
+
 
 				if (yield_function < 0.0) gamma_max = gamma;
 				else gamma_min = gamma;
@@ -169,9 +164,16 @@ namespace Kratos
 				dYield_dGamma *= GetSqrt23();
 				yield_function_gradient = -1.0 * GetSqrt6() * shear_modulus_G - dYield_dGamma;
 
-				// Update gamma
+				// Update gamma and check for convergence
 				delta_gamma = -1.0 * yield_function / yield_function_gradient;
-				gamma += delta_gamma;
+				if (std::abs(delta_gamma) < tolerance_delta_gamma)
+				{
+					//KRATOS_WATCH(delta_gamma)
+					is_converged = true;
+					//std::cout << "converged in " << iteration << " iterations\n";
+					break;
+				}
+				else gamma += delta_gamma;
 
 				// Bisect increment if out of search bounds
 				if (gamma_min > gamma || gamma > gamma_max) gamma = gamma_min + 0.5 * (gamma_max - gamma_min);
@@ -184,7 +186,14 @@ namespace Kratos
 
 
 				iteration += 1;
-				KRATOS_ERROR_IF(iteration == iteration_limit) << "Johnson Cook iteration limit exceeded";
+				if (iteration == iteration_limit)
+				{
+					std::cout << "Johnson Cook iteration limit exceeded\n";
+					KRATOS_WATCH(gamma)
+					KRATOS_WATCH(delta_gamma)
+					KRATOS_WATCH(yield_function)
+					KRATOS_ERROR << "JC ERROR";
+				}
 			}
 			// Correct trial stress
 			stress_deviatoric_converged = stress_deviatoric_trial - 2.0 * shear_modulus_G * gamma * flow_direction_normalized;
@@ -426,7 +435,7 @@ namespace Kratos
 		}
 		else if (rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE)
 		{
-			rValue = mEquivalentPlasticStrainOld;
+			rValue = mPlasticStrainRateOld;
 		}
 		else if (rThisVariable == MP_HARDENING_RATIO)
 		{
