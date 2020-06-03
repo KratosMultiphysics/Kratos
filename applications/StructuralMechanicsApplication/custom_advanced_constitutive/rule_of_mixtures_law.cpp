@@ -1137,7 +1137,6 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
         // Auxiliar stress vector
         const auto it_prop_begin            = r_material_properties.GetSubProperties().begin();
         Vector auxiliar_stress_vector       = ZeroVector(VoigtSize);
-        Matrix auxiliar_constitutive_matrix = ZeroMatrix(VoigtSize, VoigtSize);
 
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
