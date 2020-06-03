@@ -15,8 +15,8 @@
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
 
-#if !defined(KRATOS_NURBS_CURVE_TESSELLATION_H_INCLUDED )
-#define  KRATOS_NURBS_CURVE_TESSELLATION_H_INCLUDED
+#if !defined(KRATOS_CURVE_TESSELLATION_H_INCLUDED )
+#define  KRATOS_CURVE_TESSELLATION_H_INCLUDED
 
 #include "utilities/math_utils.h"
 #include "geometries/geometry.h"
@@ -28,7 +28,7 @@
 namespace Kratos {
 
 template <class TContainerPointType>
-class NurbsCurveTessellation
+class CurveTessellation
 {
 public:
 
@@ -47,7 +47,7 @@ private:
     ///@{
 
     static double DistanceToLine(
-        const typename GeometryType::CoordinatesArrayType& rPoint, 
+        const typename GeometryType::CoordinatesArrayType& rPoint,
         const typename GeometryType::CoordinatesArrayType& rLineA,
         const typename GeometryType::CoordinatesArrayType& rLineB
         )
@@ -64,11 +64,11 @@ public:
     ///@{
 
     /// Conctructor for tessellation of a nurbs curve
-    NurbsCurveTessellation()
+    CurveTessellation()
     {
     }
 
-    /** 
+    /**
     * @brief This method tessellates a curve and stores the tessellation in the class
     * @param rGeometry Reference to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
@@ -78,7 +78,7 @@ public:
     * @see ComputeTessellation
     */
     void Tessellate(
-        const GeometryType& rGeometry, 
+        const GeometryType& rGeometry,
         const int PolynomialDegree,
         const NurbsInterval DomainInterval,
         const std::vector<NurbsInterval>& rKnotSpanIntervals,
@@ -132,7 +132,7 @@ public:
         const NurbsInterval DomainInterval,
         const std::vector<NurbsInterval>& rKnotSpanIntervals,
         const double Tolerance
-    )
+        )
     {
         TessellationType sample_points;
         TessellationType points;
@@ -229,11 +229,11 @@ public:
 
 
     /* @brief This method returns polygon of this curve with equal curve segments.
-     * @param pGeometry Pointer to the geometry
-     * @param NumberOfPoints The total amount of nodes including start and end node.
-     * @param Start parameter of polygon.
-     * @param End parameter of polygon.
-     */
+        * @param pGeometry Pointer to the geometry
+        * @param NumberOfPoints The total amount of nodes including start and end node.
+        * @param Start parameter of polygon.
+        * @param End parameter of polygon.
+        */
     static TessellationType ComputePolygon(
         const GeometryType& rGeometry,
         const SizeType NumberOfPoints,
@@ -276,10 +276,10 @@ public:
                 rClosestPointLocalCoordinates[0] = std::get<0>(Tesselation[i]);
             }
         }
-        KRATOS_WATCH(rClosestPointGlobalCoordinates)
-        KRATOS_WATCH(rClosestPointLocalCoordinates)
     }
 
+    /* @brief This method returns closest point within the tesselation.
+        */
     void GetClosestPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointGlobalCoordinates,
@@ -292,7 +292,7 @@ public:
             mTesselation);
     }
 
-    /** 
+    /**
     * @brief This method returns the already computed tessellation of a curve
     * @return return std::vector<std::pair<double, Vector>> tessellation
     */
@@ -300,7 +300,7 @@ public:
         return mTesselation;
     }
 
-    private:
+private:
     ///@name Private Member Variables
     ///@{
 
@@ -309,6 +309,6 @@ public:
     ///@}
 };
 
-} // namespace NurbsCurveTessellation
+} // namespace CurveTessellation
 
-#endif // KRATOS_NURBS_CURVE_TESSELLATION_H_INCLUDED defined
+#endif // KRATOS_CURVE_TESSELLATION_H_INCLUDED defined
