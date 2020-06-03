@@ -24,10 +24,17 @@ set(CSV_SOURCE_DIR ${CSV_INCLUDE_DIR}/internal/)
 
 include_directories(${CSV_INCLUDE_DIR})
 
-## Load developer specific CMake settings
-if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    SET(CSV_DEVELOPER TRUE)
-endif()
-
 ## Main Library
 add_subdirectory(${CSV_SOURCE_DIR})
+
+###############################################################
+
+add_library(csv-parser STATIC ${CSV_SOURCE_DIR})
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  target_link_libraries(csv-parser m)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+set(CSV_PARSER_LIBRARIES csv-parser)
+
+message(STATUS "csv-parser : ${CSV_INCLUDE_DIR}")
