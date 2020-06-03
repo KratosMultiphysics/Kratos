@@ -1,6 +1,6 @@
-add_library(csv STATIC "")
+add_library(csv_parser STATIC "")
 
-target_sources(csv
+target_sources(csv_parser
 	PRIVATE
 		compatibility.hpp
 		constants.hpp
@@ -24,5 +24,9 @@ target_sources(csv
 		row_buffer.cpp
 )
 
-set_target_properties(csv PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(csv PRIVATE Threads::Threads)
+set_target_properties(csv_parser PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(csv_parser PRIVATE Threads::Threads)
+
+set(CSV_PARSER_LIBRARIES csv_parser)
+
+message(STATUS "csv_parser : ${CSV_INCLUDE_DIR}")

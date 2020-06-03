@@ -1,4 +1,3 @@
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 cmake_minimum_required(VERSION 3.9)
 
 if(CSV_CXX_STANDARD)
@@ -26,15 +25,3 @@ include_directories(${CSV_INCLUDE_DIR})
 
 ## Main Library
 add_subdirectory(${CSV_SOURCE_DIR})
-
-###############################################################
-
-add_library(csv_parser STATIC ${CSV_SOURCE_DIR})
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  target_link_libraries(csv_parser m)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
-set(CSV_PARSER_LIBRARIES csv_parser)
-
-message(STATUS "csv_parser : ${CSV_INCLUDE_DIR}")
