@@ -179,6 +179,12 @@ void ResultDatabase::Clear()
 {
     // Clear stored databases
     for (auto& r_data : mData) {
+        for (auto& r_sub_data : r_data.second) {
+            for (auto& r_sub_sub_data : r_sub_data) {
+                std::for_each( r_sub_sub_data.begin(), r_sub_sub_data.end(), [](Table<double, double>* p){delete p;});
+                r_sub_sub_data.clear();
+            }
+        }
         (r_data.second).Clear();
     }
 
