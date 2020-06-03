@@ -990,7 +990,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
     BoundedMatrix<double, 3, 3>& rRotationOperator
 )
 {
-    ConstitutiveLawUtilities<6>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
 }
 
 /***********************************************************************************/

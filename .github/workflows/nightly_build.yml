@@ -22,7 +22,7 @@ jobs:
       FC: gfortran-7
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-bionic:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
 
     steps:
     - uses: actions/checkout@v2
@@ -65,6 +65,11 @@ jobs:
       with:
         python-version: '3.6'
 
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+      
     - name: Build
       shell: cmd
       run: |
