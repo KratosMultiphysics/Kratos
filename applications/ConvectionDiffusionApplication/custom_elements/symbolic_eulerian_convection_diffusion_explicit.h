@@ -26,6 +26,7 @@
 #include "includes/variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "geometries/geometry.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -157,9 +158,9 @@ protected:
         double lumping_factor;
         double tau;
         double weight;
-        double time;
-        double time_old;
+        double delta_time;
         double RK_time_coefficient;
+        double dynamic_tau;
         // arrays
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;

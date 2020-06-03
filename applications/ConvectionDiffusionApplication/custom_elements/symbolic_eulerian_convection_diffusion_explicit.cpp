@@ -281,38 +281,55 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
-    const auto& r_previous_process_info = r_process_info.GetPreviousTimeStepInfo();
 
     const auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
 
-    // initialize scalar variables
+    // initialize some scalar variables
     rVariables.lumping_factor = 1.00 / double(TNumNodes);
     rVariables.diffusivity = 0.0;
     rVariables.specific_heat = 0.0;
     rVariables.density = 0.0;
+    rVariables.dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
 
     for(unsigned int node_element = 0; node_element<local_size; node_element++)
 {
-    // scalars
+    // observations
+    // * ASGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient*delta_time)
+    //   observe that for RK step = 1 ASGS time derivative term = 0 because phi = phi_old
+    // * convective velocity and forcing term:
+    //   RK step 1: evaluated at previous time step
+    //   RK steps 2 and 3: linear interpolation between current and oldprevious time step
+    //   RK step 4: evaluated at current time step
+    // * convective_velocity = velocity - velocity_mesh
+    //   velocity_mesh = 0 in eulerian framework
+    if(r_process_info.GetValue(RUNGE_KUTTA_STEP)==1){
+        rVariables.RK_time_coefficient = 0.5;
+        rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1);
+        rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0];
+        rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1];
+        rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2];
+    }
+    else if(r_process_info.GetValue(RUNGE_KUTTA_STEP)==2 || r_process_info.GetValue(RUNGE_KUTTA_STEP)==3){
+        rVariables.RK_time_coefficient = 0.5;
+        rVariables.forcing[node_element] = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable()) + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1));
+        rVariables.convective_velocity(node_element,0) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0]);
+        rVariables.convective_velocity(node_element,1) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1]);
+        rVariables.convective_velocity(node_element,2) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2]);
+    }
+    else{
+        rVariables.RK_time_coefficient = 1.0;
+        rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
+        rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
+        rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
+        rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2];
+    }
     rVariables.diffusivity += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
     rVariables.specific_heat += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetSpecificHeatVariable());
     rVariables.density += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDensityVariable());
-    rVariables.time = r_process_info[TIME];
-    rVariables.time_old = r_previous_process_info[TIME];
-    // ASGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient(time-time_old))
-    // observation: for RK step = 1 ASGS time derivative term = 0 because phi = phi_old
-    if(r_process_info.GetValue(RUNGE_KUTTA_STEP)<4){rVariables.RK_time_coefficient = 0.5;}
-    else {rVariables.RK_time_coefficient = 1.0;}
-    // vectors
+    rVariables.delta_time = r_process_info[DELTA_TIME];
     rVariables.unknown[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable());
     rVariables.unknown_old[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable(),1);
-    rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
-    // convective_velocity = velocity - velocity_mesh
-    // velocity_mesh = 0 in eulerian framework
-    rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
-    rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
-    rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2];
 }
     // divide by number of nodes scalar variables
     rVariables.diffusivity *= rVariables.lumping_factor;
@@ -338,8 +355,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContributi
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
     const auto phi_old = rVariables.unknown_old;
-    const auto time = rVariables.time;
-    const auto time_old = rVariables.time_old;
+    const auto delta_time = rVariables.delta_time;
     const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
@@ -351,7 +367,7 @@ const double clhs1 =             N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0);
 const double clhs2 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1);
 const double clhs3 =             DN(0,0)*clhs1 + DN(0,1)*clhs2;
 const double clhs4 =             N[0]*clhs3;
-const double clhs5 =             tau/(RK_time_coefficient*(time - time_old));
+const double clhs5 =             tau/(RK_time_coefficient*delta_time);
 const double clhs6 =             clhs0*tau;
 const double clhs7 =             DN(1,0)*clhs1 + DN(1,1)*clhs2;
 const double clhs8 =             N[0]*clhs7;
@@ -392,7 +408,7 @@ const double crhs7 =             N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0);
 const double crhs8 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1);
 const double crhs9 =             tau*(DN(0,0)*crhs7 + DN(0,1)*crhs8);
 const double crhs10 =             crhs1*crhs7 + crhs3*crhs8;
-const double crhs11 =             (-N[0]*phi_old[0] - N[1]*phi_old[1] - N[2]*phi_old[2] + crhs5)/(RK_time_coefficient*(time - time_old));
+const double crhs11 =             (-N[0]*phi_old[0] - N[1]*phi_old[1] - N[2]*phi_old[2] + crhs5)/(RK_time_coefficient*delta_time);
 const double crhs12 =             tau*(DN(1,0)*crhs7 + DN(1,1)*crhs8);
 const double crhs13 =             tau*(DN(2,0)*crhs7 + DN(2,1)*crhs8);
             rhs[0]=-DN(0,0)*crhs2 - DN(0,1)*crhs4 + N[0]*crhs0 - N[0]*crhs10 - N[0]*crhs6 + crhs0*crhs9 - crhs10*crhs9 - crhs11*crhs9 - crhs6*crhs9;
@@ -419,8 +435,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContributi
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
     const auto phi_old = rVariables.unknown_old;
-    const auto time = rVariables.time;
-    const auto time_old = rVariables.time_old;
+    const auto delta_time = rVariables.delta_time;
     const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
@@ -433,7 +448,7 @@ const double clhs2 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*
 const double clhs3 =             N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2);
 const double clhs4 =             DN(0,0)*clhs1 + DN(0,1)*clhs2 + DN(0,2)*clhs3;
 const double clhs5 =             N[0]*clhs4;
-const double clhs6 =             tau/(RK_time_coefficient*(time - time_old));
+const double clhs6 =             tau/(RK_time_coefficient*delta_time);
 const double clhs7 =             clhs0*tau;
 const double clhs8 =             DN(1,0)*clhs1 + DN(1,1)*clhs2 + DN(1,2)*clhs3;
 const double clhs9 =             N[0]*clhs8;
@@ -500,15 +515,15 @@ const double crhs9 =             N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*
 const double crhs10 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1);
 const double crhs11 =             N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2);
 const double crhs12 =             tau*(DN(0,0)*crhs9 + DN(0,1)*crhs10 + DN(0,2)*crhs11);
-const double crhs13 =             crhs1*crhs9 + crhs10*crhs3 + crhs11*crhs5;
-const double crhs14 =             (-N[0]*phi_old[0] - N[1]*phi_old[1] - N[2]*phi_old[2] - N[3]*phi_old[3] + crhs7)/(RK_time_coefficient*(time - time_old));
+const double crhs13 =             (-N[0]*phi_old[0] - N[1]*phi_old[1] - N[2]*phi_old[2] - N[3]*phi_old[3] + crhs7)/(RK_time_coefficient*delta_time);
+const double crhs14 =             crhs1*crhs9 + crhs10*crhs3 + crhs11*crhs5;
 const double crhs15 =             tau*(DN(1,0)*crhs9 + DN(1,1)*crhs10 + DN(1,2)*crhs11);
 const double crhs16 =             tau*(DN(2,0)*crhs9 + DN(2,1)*crhs10 + DN(2,2)*crhs11);
 const double crhs17 =             tau*(DN(3,0)*crhs9 + DN(3,1)*crhs10 + DN(3,2)*crhs11);
-            rhs[0]=-DN(0,0)*crhs2 - DN(0,1)*crhs4 - DN(0,2)*crhs6 + N[0]*crhs0 - N[0]*crhs13 - N[0]*crhs8 + crhs0*crhs12 - crhs12*crhs13 - crhs12*crhs14 - crhs12*crhs8;
-            rhs[1]=-DN(1,0)*crhs2 - DN(1,1)*crhs4 - DN(1,2)*crhs6 + N[1]*crhs0 - N[1]*crhs13 - N[1]*crhs8 + crhs0*crhs15 - crhs13*crhs15 - crhs14*crhs15 - crhs15*crhs8;
-            rhs[2]=-DN(2,0)*crhs2 - DN(2,1)*crhs4 - DN(2,2)*crhs6 + N[2]*crhs0 - N[2]*crhs13 - N[2]*crhs8 + crhs0*crhs16 - crhs13*crhs16 - crhs14*crhs16 - crhs16*crhs8;
-            rhs[3]=-DN(3,0)*crhs2 - DN(3,1)*crhs4 - DN(3,2)*crhs6 + N[3]*crhs0 - N[3]*crhs13 - N[3]*crhs8 + crhs0*crhs17 - crhs13*crhs17 - crhs14*crhs17 - crhs17*crhs8;
+            rhs[0]=-DN(0,0)*crhs2 - DN(0,1)*crhs4 - DN(0,2)*crhs6 + N[0]*crhs0 - N[0]*crhs14 - N[0]*crhs8 + crhs0*crhs12 - crhs12*crhs13 - crhs12*crhs14 - crhs12*crhs8;
+            rhs[1]=-DN(1,0)*crhs2 - DN(1,1)*crhs4 - DN(1,2)*crhs6 + N[1]*crhs0 - N[1]*crhs14 - N[1]*crhs8 + crhs0*crhs15 - crhs13*crhs15 - crhs14*crhs15 - crhs15*crhs8;
+            rhs[2]=-DN(2,0)*crhs2 - DN(2,1)*crhs4 - DN(2,2)*crhs6 + N[2]*crhs0 - N[2]*crhs14 - N[2]*crhs8 + crhs0*crhs16 - crhs13*crhs16 - crhs14*crhs16 - crhs16*crhs8;
+            rhs[3]=-DN(3,0)*crhs2 - DN(3,1)*crhs4 - DN(3,2)*crhs6 + N[3]*crhs0 - N[3]*crhs14 - N[3]*crhs8 + crhs0*crhs17 - crhs13*crhs17 - crhs14*crhs17 - crhs17*crhs8;
 
 
     noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
@@ -545,25 +560,25 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
 {
     // Calculate h
     double h = this->ComputeH(rVariables.DN);
-    // Calculate velocity in the gauss point
+    // Calculate velocity and velocity divergence in the gauss point
     array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
+    double div_vel = 0;
     for(unsigned int node_element = 0; node_element<TNumNodes; node_element++)
     {
         for(unsigned int dim = 0; dim < TDim; dim++)
         {
-        noalias(vel_gauss) = prod(rVariables.N,rVariables.convective_velocity);
-        // vel_gauss[k] += N[i]*(rVariables.convective_velocity[i][k]*rVariables.theta + rVariables.vold[i][k]*(1.0-rVariables.theta));
+            noalias(vel_gauss) = prod(rVariables.N,rVariables.convective_velocity);
+            div_vel += rVariables.DN(node_element,dim)*rVariables.convective_velocity(node_element,dim);
         }
     }
     const double norm_velocity = norm_2(vel_gauss);
-
     // Estimate tau
     double inv_tau = 0;
     // Dynamic part
-    // inv_tau += rVariables.dynamic_tau * rVariables.dt_inv;
+    inv_tau += rVariables.dynamic_tau * 1.0/rVariables.delta_time;
     // Convection
     inv_tau += 2.0 * norm_velocity / h;
-    // inv_tau += rVariables.beta*rVariables.div_v;
+    inv_tau += 1.0*div_vel; // unitary coefficient in fron of \nabla \cdot convective_velocity term in the strong equation
     // Dynamic and convection terms are multiplyied by density*specific_heat to have consistent dimensions
     inv_tau *= rVariables.density * rVariables.specific_heat;
     // Diffusion
