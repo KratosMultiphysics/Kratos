@@ -24,7 +24,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(ResultDatabase, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ResultDatabase, KratosCoreFastSuite2)
 {
     // Create model part
     Model current_model;
