@@ -119,59 +119,31 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize() override;
-
-    /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
     //************* COMPUTING  METHODS
@@ -245,7 +217,36 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

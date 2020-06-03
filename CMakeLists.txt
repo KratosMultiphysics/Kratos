@@ -71,7 +71,7 @@ SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 #SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
 #SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
 SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
-SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
+SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -D_DEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
 
 # Define internal CMake flags needed
@@ -86,23 +86,30 @@ SET( CMAKE_MODULE_LINKER_FLAGS_FULLDEBUG "${CMAKE_MODULE_LINKER_FLAGS}")
 SET( CMAKE_MODULE_LINKER_FLAGS_CUSTOM "${CMAKE_MODULE_LINKER_FLAGS}")
 
 # If build mode is not defined, assume Release
-if(DEFINED ENV{KRATOS_BUILD_TYPE})
-    list(FIND CMAKE_CONFIGURATION_TYPES $ENV{KRATOS_BUILD_TYPE} FOUND_MODE)
-    if(FOUND_MODE EQUAL -1)
-        message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
-        set(CMAKE_BUILD_TYPE Release)
-    else(FOUND_MODE EQUAL -1)
-        set(CMAKE_BUILD_TYPE $ENV{KRATOS_BUILD_TYPE})
-    endif(FOUND_MODE EQUAL -1)
-else(DEFINED ENV{KRATOS_BUILD_TYPE})
-    message("--No CMAKE_BUILD_TYPE is defined, building in 'Release' mode.")
-    set(CMAKE_BUILD_TYPE Release)
-endif(DEFINED ENV{KRATOS_BUILD_TYPE})
+if(NOT CMAKE_BUILD_TYPE)
+  if(DEFINED ENV{KRATOS_BUILD_TYPE})
+      list(FIND CMAKE_CONFIGURATION_TYPES $ENV{KRATOS_BUILD_TYPE} FOUND_MODE)
+      if(FOUND_MODE EQUAL -1)
+          message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
+          set(CMAKE_BUILD_TYPE Release)
+      else(FOUND_MODE EQUAL -1)
+          set(CMAKE_BUILD_TYPE $ENV{KRATOS_BUILD_TYPE})
+      endif(FOUND_MODE EQUAL -1)
+  else(DEFINED ENV{KRATOS_BUILD_TYPE})
+      message("--No CMAKE_BUILD_TYPE is defined, building in 'Release' mode.")
+      set(CMAKE_BUILD_TYPE Release)
+  endif(DEFINED ENV{KRATOS_BUILD_TYPE})
+endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+
 
 if(USE_COTIRE MATCHES ON)
   include(cotire)
   set(CMAKE_SKIP_RPATH ON)
+
+  if(${MSVC})
+    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
+  endif(${MSVC})
 endif(USE_COTIRE MATCHES ON)
 
 # Get subversion data. This is done automagically by the cmakes
@@ -216,7 +223,7 @@ endif(${MSVC12})
 if(${MSVC})
   message("Detected compiler as MSVC")
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
   string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
 endif(${MSVC})
@@ -252,6 +259,11 @@ include(pybind11Tools)
 # Reset pybind11 config and remove -LTO since it gives multiple problems.
 set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
 set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+
+# check version of Python, needs to be done after including pybind
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
+    message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+endif()
 
 # Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
 if(DEFINED KRATOS_INSTALL_PREFIX)
@@ -438,6 +450,7 @@ message("\t Making variables non-copiable: https://github.com/KratosMultiphysics
 message("\t Deprecation of NOT_FLAGS : https://github.com/KratosMultiphysics/Kratos/pull/6233")
 message("\t Removing long deprecated conditions : https://github.com/KratosMultiphysics/Kratos/pull/6475")
 message("\t Changing 'FindNodalNeighboursProcess' constructor signature: https://github.com/KratosMultiphysics/Kratos/pull/4947")
+message("\t Minor update of import mechanism for applications: https://github.com/KratosMultiphysics/Kratos/pull/6556")
 
 #compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

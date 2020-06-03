@@ -19,6 +19,28 @@ def ConstructSolver(settings):
             return eigen_solver
         else:
             raise Exception("EigenSolversApplication not available")
+    elif solver_type == "feast":
+        if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
+            import KratosMultiphysics.EigenSolversApplication as EiSA
+            if EiSA.HasFEAST():
+                is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
+                eigen_solver = EiSA.FEASTSymmetricEigensystemSolver(settings) if is_symmetric else EiSA.FEASTGeneralEigensystemSolver(settings)
+                return eigen_solver
+            else:
+                raise Exception("FEAST not available in EigenSolversApplication")
+        else:
+            raise Exception("EigenSolversApplication not available")
+    elif solver_type == "feast_complex":
+        if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
+            import KratosMultiphysics.EigenSolversApplication as EiSA
+            if EiSA.HasFEAST():
+                is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
+                eigen_solver = EiSA.ComplexFEASTSymmetricEigensystemSolver(settings) if is_symmetric else EiSA.ComplexFEASTGeneralEigensystemSolver(settings)
+                return eigen_solver
+            else:
+                raise Exception("FEAST not available in EigenSolversApplication")
+        else:
+            raise Exception("EigenSolversApplication not available")
 
     linear_solver_configuration = settings["linear_solver_settings"]
     if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
@@ -32,12 +54,6 @@ def ConstructSolver(settings):
         eigen_solver = KM.PowerIterationHighestEigenvalueSolver( settings, linear_solver)
     elif solver_type == "rayleigh_quotient_iteration_eigenvalue_solver":
         eigen_solver = KM.RayleighQuotientIterationEigenvalueSolver( settings, linear_solver)
-    elif solver_type == "FEAST" or solver_type == "feast":
-        if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-            import KratosMultiphysics.ExternalSolversApplication as ExSA
-            eigen_solver = ExSA.FEASTSolver(settings, linear_solver)
-        else:
-            raise Exception("ExternalSolversApplication not available")
     else:
         raise Exception("Solver type not found. Asking for :" + solver_type)
 

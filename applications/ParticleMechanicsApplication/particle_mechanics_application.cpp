@@ -59,7 +59,11 @@ namespace Kratos
 
     KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
         KratosApplication("ParticleMechanicsApplication"),
-        //// ELEMENTS:
+        /// Elements, using QuadraturePointGeometries:
+        mUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        mUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+
+        /// Deprecated Elements
         mUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -97,8 +101,6 @@ namespace Kratos
 
     void KratosParticleMechanicsApplication::Register()
     {
-        // Calling base class register to register Kratos components
-        KratosApplication::Register();
         KRATOS_INFO("") << "    KRATOS  ____ __   ____ _____ _  ___ _   ____\n"
                         << "           |  _ |  \\ |  _ |_   _| |/   | | | ___|\n"
                         << "           |   _| \\ \\|    | | | | |   (  |_| _|_\n"
@@ -106,6 +108,10 @@ namespace Kratos
                         << "Initializing KratosParticleMechanicsApplication..." << std::endl;
 
         // Registering elements
+        KRATOS_REGISTER_ELEMENT("UpdatedLagrangian", mUpdatedLagrangian)
+        KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUP", mUpdatedLagrangianUP)
+
+        // Deprecated elements
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D3N", mUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D4N", mUpdatedLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
@@ -158,6 +164,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
+        KRATOS_REGISTER_VARIABLE(IS_COMPRESSIBLE)
 
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
@@ -253,6 +260,15 @@ namespace Kratos
 
         // Solver related variables
         KRATOS_REGISTER_VARIABLE(IGNORE_GEOMETRIC_STIFFNESS);
+        KRATOS_REGISTER_VARIABLE(IS_AXISYMMETRIC);
+
+        // Explicit time integration variables
+        KRATOS_REGISTER_VARIABLE(CALCULATE_MUSL_VELOCITY_FIELD)
+        KRATOS_REGISTER_VARIABLE(IS_EXPLICIT)
+        KRATOS_REGISTER_VARIABLE(IS_EXPLICIT_CENTRAL_DIFFERENCE)
+        KRATOS_REGISTER_VARIABLE(EXPLICIT_STRESS_UPDATE_OPTION)  
+        KRATOS_REGISTER_VARIABLE(CALCULATE_EXPLICIT_MP_STRESS)
+        KRATOS_REGISTER_VARIABLE(EXPLICIT_MAP_GRID_TO_MP)
     }
 
 }  // namespace Kratos.

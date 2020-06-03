@@ -77,8 +77,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2PlasticityPlaneStrain2DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2PlasticityPlaneStrain2DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
@@ -172,8 +172,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2PlasticityPlaneStrain2DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2PlasticityPlaneStrain2DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
@@ -272,8 +272,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2Plasticity3DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2Plasticity3DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
@@ -368,8 +368,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2Plasticity3DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2Plasticity3DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
@@ -468,8 +468,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
@@ -522,7 +522,7 @@ namespace Kratos
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
                 const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
@@ -543,8 +543,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
@@ -601,7 +601,7 @@ namespace Kratos
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
                 const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
@@ -623,8 +623,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
@@ -677,7 +677,7 @@ namespace Kratos
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
                 const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
@@ -699,8 +699,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
@@ -757,7 +757,7 @@ namespace Kratos
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
                 const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);

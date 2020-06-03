@@ -23,7 +23,7 @@ class TestConvectionDiffusionStationaryROM(ConvectionDiffusionAnalysisROM):
         computing_model_part = self.model["ThermalModelPart"]
         dimension = self._GetSolver().settings["domain_size"].GetInt()
         area_calculator = KratosMultiphysics.CalculateNodalAreaProcess(computing_model_part , dimension)
-        area_calculator.Execute()        
+        area_calculator.Execute()
 
         ArrayOfAreas = []
         for node in self._GetSolver().GetComputingModelPart().Nodes:
@@ -34,7 +34,7 @@ class TestConvectionDiffusionStationaryROM(ConvectionDiffusionAnalysisROM):
 
 if __name__ == "__main__":
 
-    with open("ProjectParametersROM.json",'r') as parameter_file:
+    with open("ProjectParameters.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()

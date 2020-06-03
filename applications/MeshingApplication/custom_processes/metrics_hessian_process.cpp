@@ -29,7 +29,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
 
     // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     InitializeVariables(ThisParameters);
 
@@ -37,9 +37,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
 
     // We push the list of double variables
     if (KratosComponents<Variable<double>>::Has(r_metric_variable_name)) {
-        mrOriginVariableDoubleList.push_back(&KratosComponents<Variable<double>>::Get(r_metric_variable_name));
-    } else if (KratosComponents<ComponentType>::Has(r_metric_variable_name)) {
-        mrOriginVariableComponentsList.push_back(&KratosComponents<ComponentType>::Get(r_metric_variable_name));
+        mrOriginVariable = &KratosComponents<Variable<double>>::Get(r_metric_variable_name);
     } else {
         KRATOS_ERROR << "Only components and doubles are allowed as variables" << std::endl;
     }
@@ -52,37 +50,14 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     ModelPart& rThisModelPart,
     Variable<double>& rVariable,
     Parameters ThisParameters
-    ) : mrModelPart(rThisModelPart)
+    ) : mrModelPart(rThisModelPart),
+        mrOriginVariable(&rVariable)
 {
-    // We push the list of double variables
-    mrOriginVariableDoubleList.push_back(&rVariable);
-
     // TODO: Remove this warning in the future
     KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
 
     // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
-    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-    InitializeVariables(ThisParameters);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
-    ModelPart& rThisModelPart,
-    ComponentType& rVariable,
-    Parameters ThisParameters
-    ):mrModelPart(rThisModelPart)
-{
-    // We push the components list
-    mrOriginVariableComponentsList.push_back(&rVariable);
-
-    // TODO: Remove this warning in the future
-    KRATOS_WARNING_IF("ComputeHessianSolMetricProcess", !ThisParameters.Has("enforce_anisotropy_relative_variable")) << "enforce_anisotropy_relative_variable not defined. By default is considered false" << std::endl;
-
-    // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     InitializeVariables(ThisParameters);
 }
@@ -98,17 +73,9 @@ void ComputeHessianSolMetricProcess::Execute()
     // Some checks
     NodesArrayType& r_nodes_array = mrModelPart.Nodes();
     if (!mNonHistoricalVariable) {
-        if (mrOriginVariableDoubleList.size() > 0) {
-            VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], r_nodes_array);
-        } else {
-            VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], r_nodes_array);
-        }
+        VariableUtils().CheckVariableExists(*mrOriginVariable, r_nodes_array);
     } else {
-        if (mrOriginVariableDoubleList.size() > 0) {
-            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableDoubleList[0])) << "Variable " << mrOriginVariableDoubleList[0]->Name() << " not defined on non-historial database" << std::endl;
-        } else {
-            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableComponentsList[0])) << "Variable " << mrOriginVariableComponentsList[0]->Name() << " not defined on non-historial database" << std::endl;
-        }
+        KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariable)) << "Variable " << mrOriginVariable->Name() << " not defined on non-historial database" << std::endl;
     }
 
     // Checking NODAL_H
@@ -232,7 +199,9 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     const int num_nodes = static_cast<int>(r_nodes_array.size());
 
     // We get the normalization factor
-    const double normalization_factor = mThisParameters["normalization_factor"].GetDouble();
+    const Normalization normalization_method = ConvertNormalization(mThisParameters["normalization_method"].GetString());
+    const double normalization_factor = normalization_method == Normalization::CONSTANT ? mThisParameters["normalization_factor"].GetDouble() : 1.0;
+    const double normalization_alpha = mThisParameters["normalization_alpha"].GetDouble();
 
     // Initialize auxiliar variables
     const auto& it_nodes_begin = r_nodes_array.begin();
@@ -244,7 +213,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
 
         // Saving auxiliar value
-        const double value = mNonHistoricalVariable ? (mrOriginVariableDoubleList.size() > 0 ? it_node->GetValue(*mrOriginVariableDoubleList[0]) : it_node->GetValue(*mrOriginVariableComponentsList[0])) : (mrOriginVariableDoubleList.size() > 0 ? it_node->FastGetSolutionStepValue(*mrOriginVariableDoubleList[0]) : it_node->FastGetSolutionStepValue(*mrOriginVariableComponentsList[0]));
+        const double value = mNonHistoricalVariable ? it_node->GetValue(*mrOriginVariable) : it_node->FastGetSolutionStepValue(*mrOriginVariable);
         it_node->SetValue(NODAL_MAUX, value * normalization_factor);
     }
 
@@ -352,9 +321,31 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         }
     }
 
+    // We normalize the value of the NODAL_AREA
+    if (normalization_method == Normalization::VALUE) {
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < num_nodes; ++i_node) {
+            auto it_node = it_nodes_begin + i_node;
+            const double factor = it_node->GetValue(NODAL_MAUX);
+            if (factor > std::numeric_limits<double>::epsilon()) {
+                it_node->GetValue(NODAL_AREA) *= factor;
+            }
+        }
+    } else if (normalization_method == Normalization::NORM_GRADIENT) {
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < num_nodes; ++i_node) {
+            auto it_node = it_nodes_begin + i_node;
+            const double factor = norm_2(it_node->GetValue(AUXILIAR_GRADIENT)) * it_node->GetValue(NODAL_H) + normalization_alpha * it_node->GetValue(NODAL_MAUX);
+            if (factor > std::numeric_limits<double>::epsilon()) {
+                it_node->GetValue(NODAL_AREA) *= factor;
+            }
+        }
+    }
+
+    // We average considering the NODAL_AREA
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = r_nodes_array.begin() + i_node;
+        auto it_node = it_nodes_begin + i_node;
         const double nodal_area = it_node->GetValue(NODAL_AREA);
         if (nodal_area > std::numeric_limits<double>::epsilon()) {
             it_node->GetValue(AUXILIAR_HESSIAN) /= nodal_area;
@@ -473,9 +464,9 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
+const Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                         : 0.1,
         "maximal_size"                         : 10.0,
@@ -491,6 +482,8 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
             "metric_variable"                      : "DISTANCE",
             "non_historical_metric_variable"       : false,
             "normalization_factor"                 : 1.0,
+            "normalization_alpha"                  : 0.0,
+            "normalization_method"                 : "constant",
             "estimate_interpolation_error"         : false,
             "interpolation_error"                  : 1.0e-6,
             "mesh_dependent_constant"              : 0.28125
@@ -528,7 +521,7 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
 void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParameters)
 {
     // Get default variables
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
 
     // In case we have isotropic remeshing (default values)
     const bool default_values = !ThisParameters["anisotropy_remeshing"].GetBool();
@@ -542,6 +535,8 @@ void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParamete
     mThisParameters.AddValue("metric_variable", ThisParameters["hessian_strategy_parameters"]["metric_variable"]);
     mThisParameters.AddValue("non_historical_metric_variable", ThisParameters["hessian_strategy_parameters"]["non_historical_metric_variable"]);
     mThisParameters.AddValue("normalization_factor", ThisParameters["hessian_strategy_parameters"]["normalization_factor"]);
+    mThisParameters.AddValue("normalization_alpha", ThisParameters["hessian_strategy_parameters"]["normalization_alpha"]);
+    mThisParameters.AddValue("normalization_method", ThisParameters["hessian_strategy_parameters"]["normalization_method"]);
     mThisParameters.AddValue("estimate_interpolation_error", considered_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"]);
     mThisParameters.AddValue("mesh_dependent_constant", considered_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"]);
     mThisParameters.AddValue("hmin_over_hmax_anisotropic_ratio", considered_parameters["enforced_anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"]);

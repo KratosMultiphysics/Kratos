@@ -233,7 +233,7 @@ public:
     double DomainSize() const override
     {
         Vector temp;
-        temp = this->DeterminantOfJacobian(temp, GeometryData::GI_GAUSS_1);
+        temp = this->DeterminantOfJacobian(temp);
         const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
         double domain_size = 0.0;
 
@@ -406,6 +406,25 @@ public:
     }
     ///@}
 
+protected:
+
+    ///@name Constructor
+    ///@{
+
+    /// Standard Constructor
+    QuadraturePointGeometry()
+        : BaseType(
+            PointsArrayType(),
+            &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
+    {
+    }
+
+    ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -447,17 +466,6 @@ private:
         rSerializer.load("GeometryData", mGeometryData);
 
         mGeometryData.SetGeometryDimension(&msGeometryDimension);
-    }
-
-    QuadraturePointGeometry()
-        : BaseType(
-            PointsArrayType(),
-            &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            {}, {}, {})
-    {
     }
 
     ///@}

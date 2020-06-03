@@ -14,6 +14,7 @@ import KratosMultiphysics.SolidMechanicsApplication as Solid
 import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 import KratosMultiphysics.DEMApplication as KratosDEM
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
+import KratosMultiphysics.FemToDemApplication.fem_dem_coupled_gid_output as gid_output
 
 def Wait():
     input("Press Something")
@@ -22,6 +23,7 @@ def Wait():
 class MainCoupledFemDem_Solution:
 #============================================================================================================================
     def __init__(self, Model):
+        self.model = Model
         # Initialize solutions
         self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model)
         self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model)
@@ -35,6 +37,7 @@ class MainCoupledFemDem_Solution:
         self.InitializePlotsFiles()
         self.echo_level = 0
         self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.is_slave = False
 
 #============================================================================================================================
     def Run(self):
@@ -94,7 +97,7 @@ class MainCoupledFemDem_Solution:
         else:
             self.DEMFEM_contact = self.FEM_Solution.ProjectParameters["DEM_FEM_contact"].GetBool()
         self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT] = self.DEMFEM_contact
-        
+
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -157,6 +160,11 @@ class MainCoupledFemDem_Solution:
                 self.TransferFEMSkinToDEM()
             KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
 
+        # Initialize the coupled post process
+        if not self.is_slave:
+            self.InitializePostProcess()
+
+
 #============================================================================================================================
     def RunMainTemporalLoop(self):
         # Solving the problem (time integration)
@@ -209,6 +217,10 @@ class MainCoupledFemDem_Solution:
         self.DEM_Solution.solver.Solve()
         ########################################################
 
+
+#============================================================================================================================
+    def FinalizeSolutionStep(self):
+
         self.DEM_Solution.FinalizeSolutionStep()
         self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
@@ -216,9 +228,7 @@ class MainCoupledFemDem_Solution:
         self.UpdateDEMVariables()
 
         # DEM GiD print output
-        self.PrintDEMResults()
-
-        self.DEM_Solution.FinalizeTimeStep(self.DEM_Solution.time)
+        # self.PrintDEMResults()
 
         # Transfer the contact forces of the DEM to the FEM nodes
         if self.TransferDEMContactForcesToFEM:
@@ -226,14 +236,9 @@ class MainCoupledFemDem_Solution:
 
         self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 
-        # Update Coupled Postprocess file for Gid (post.lst)
-        self.WritePostListFile()
-
         # Print required info
         self.PrintPlotsFiles()
-
-#============================================================================================================================
-    def FinalizeSolutionStep(self):
+        
         # MODIFIED FOR THE REMESHING
         self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
 
@@ -244,13 +249,16 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
 
         # write output results GiD: (frequency writing is controlled internally)
-        self.FEM_Solution.GraphicalOutputPrintOutput()
+        # self.FEM_Solution.GraphicalOutputPrintOutput()
 
         # processes to be executed after writting the output
         self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
 
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
+        
+        if not self.is_slave:
+            self.PrintResults()
 
 #============================================================================================================================
     def Finalize(self):
@@ -287,7 +295,7 @@ class MainCoupledFemDem_Solution:
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0, 0.0, 0.0], elements)
-        
+
         if self.PressureLoad:
             utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_ID, 0, nodes)
 
@@ -489,7 +497,7 @@ class MainCoupledFemDem_Solution:
                 # We assign the flag to recompute neighbours inside the 3D elements
                 utils = KratosMultiphysics.VariableUtils()
                 utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
-            
+
             # We update the skin for the DE-FE contact
             self.ComputeSkinSubModelPart()
             if self.DEMFEM_contact:
@@ -712,11 +720,11 @@ class MainCoupledFemDem_Solution:
                     Elem = self.FEM_Solution.main_model_part.GetElement(Idelem)
                     self.PlotFilesElementsList[iElem] = open("PlotElement_" + str(Idelem) + ".txt","a")
 
-                    stress_tensor = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
+                    stress_tensor = Elem.CalculateOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
                     strain_vector = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)
 
                     damage = Elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)
-                    
+
                     if self.domain_size == 2:
                         Sxx = stress_tensor[0][0]
                         Syy = stress_tensor[0][1]
@@ -788,6 +796,30 @@ class MainCoupledFemDem_Solution:
                 self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
                 self.DEM_Solution.time_old_print = self.DEM_Solution.time
 
+#PrintResults============================================================================================================================
+    def PrintResults(self):
+
+        print_parameters = self.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]
+        if self.FEM_Solution.step == 1: # always print the 1st step
+            self.gid_output.Writeresults(self.FEM_Solution.time)
+            self.FEM_Solution.time_old_print = self.FEM_Solution.time
+            self.FEM_Solution.step_old_print = self.FEM_Solution.step
+        else:
+            time_to_print = 0
+            if print_parameters["output_control_type"].GetString() == "step":
+                time_to_print = self.FEM_Solution.step - self.FEM_Solution.step_old_print
+            else:
+                time_to_print = self.FEM_Solution.time - self.FEM_Solution.time_old_print
+
+            if print_parameters["output_control_type"].GetString() == "step":
+                if print_parameters["output_frequency"].GetInt() - time_to_print == 0:
+                    self.gid_output.Writeresults(self.FEM_Solution.time)
+                    self.FEM_Solution.step_old_print = self.FEM_Solution.step
+            else:
+                if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEM_Solution.delta_time:
+                    self.gid_output.Writeresults(self.FEM_Solution.time)
+                    self.FEM_Solution.time_old_print = self.FEM_Solution.time
+
 #CheckIfHasRemeshed============================================================================================================================
     def CheckIfHasRemeshed(self):
         execute_remesh = False
@@ -841,12 +873,12 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveAloneDEMElements")
 
         remove_alone_DEM_elements_process = KratosFemDem.RemoveAloneDEMElementsProcess(
-                                                         self.FEM_Solution.main_model_part, 
+                                                         self.FEM_Solution.main_model_part,
                                                          self.SpheresModelPart)
         remove_alone_DEM_elements_process.Execute()
 
 #ExecuteBeforeGeneratingDEM============================================================================================================================
-    def ExecuteBeforeGeneratingDEM(self): 
+    def ExecuteBeforeGeneratingDEM(self):
         """Here the erased are labeled as INACTIVE so you can access to them. After calling
            GenerateDEM they are totally erased """
         if self.PressureLoad:
@@ -885,7 +917,7 @@ class MainCoupledFemDem_Solution:
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
             dem_walls_mp.AddProperties(props)
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
-    
+
     #-----------------------------------
     def EraseConditionsAndNodesSubModelPart(self):
         DEM_sub_model_part = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
@@ -914,3 +946,50 @@ class MainCoupledFemDem_Solution:
         return props
 
 #============================================================================================================================
+
+    def InitializePostProcess(self):
+        mixed_fluid_solid_mp       = self.model.CreateModelPart('mixed_fluid_solid_mp')
+        mixed_fluid_solid_balls_mp = self.model.CreateModelPart('mixed_fluid_solid_balls_mp')
+        mixed_solid_balls_mp       = self.model.CreateModelPart('mixed_solid_balls_mp')
+        dummy_fluid_part           = self.model.CreateModelPart('dummy_fluid_part')
+
+        filename = os.path.join(self.DEM_Solution.post_path, self.DEM_Solution.DEM_parameters["problem_name"].GetString())
+        self.gid_output = gid_output.FemDemCoupledGiDOutput(
+                            filename,
+                            True,
+                            "Binary",
+                            "Multiples",
+                            True,
+                            True,
+                            self.FEM_Solution.main_model_part,
+                            dummy_fluid_part,
+                            self.DEM_Solution.spheres_model_part,
+                            self.DEM_Solution.cluster_model_part,
+                            self.DEM_Solution.rigid_face_model_part,
+                            mixed_fluid_solid_mp,
+                            mixed_solid_balls_mp,
+                            mixed_fluid_solid_balls_mp)
+
+        solid_nodal_results = ["DISPLACEMENT", "ACCELERATION", "VELOCITY"]
+        dem_nodal_results = ["TOTAL_FORCES", "RADIUS"]
+        fluid_nodal_results = []
+        clusters_nodal_results = []
+        rigid_faces_nodal_results = []
+        mixed_solid_fluid_nodal_results = []
+        mixed_solid_balls_nodal_results = []
+        mixed_solid_balls_fluid_nodal_results = []
+
+        gp_list = self.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]["gauss_point_results"]
+        gauss_points_results = []
+        for i in gp_list:
+            gauss_points_results.append(i.GetString())
+
+        self.gid_output.initialize_dem_fem_results(solid_nodal_results,
+                                                   fluid_nodal_results,
+                                                   dem_nodal_results,
+                                                   clusters_nodal_results,
+                                                   rigid_faces_nodal_results,
+                                                   mixed_solid_fluid_nodal_results,
+                                                   mixed_solid_balls_nodal_results,
+                                                   mixed_solid_balls_fluid_nodal_results,
+                                                   gauss_points_results)

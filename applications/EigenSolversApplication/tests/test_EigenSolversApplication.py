@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from test_eigen_direct_solver import TestEigenDirectSolver as TTestEigenDirectSolver
 from test_eigensystem_solver import TestEigensystemSolver as TTestEigenSystemSolver
 from test_eigen_dense_direct_solver import TestEigenDenseDirectSolver as TTestEigenDenseDirectSolver
+from test_feast_eigensystem_solver import TestFeastEigensystemSolver as TTestFeastEigensystemSolver
 
 
 def AssembleTestSuites():
@@ -31,6 +32,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenDirectSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenSystemSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenDenseDirectSolver]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestFeastEigensystemSolver]))
 
     # Create a test suit with the selected tests
     nightSuite = suites['nightly']

@@ -63,7 +63,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     #### Specific internal functions ####
 
-    def get_epetra_communicator(self):
+    def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = self._create_epetra_communicator()
         return self._epetra_communicator
@@ -88,7 +88,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
             KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
 
         linear_solver = self.get_linear_solver()
-        epetra_communicator = self.get_epetra_communicator()
+        epetra_communicator = self._GetEpetraCommunicator()
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             guess_row_size = 15
         else:

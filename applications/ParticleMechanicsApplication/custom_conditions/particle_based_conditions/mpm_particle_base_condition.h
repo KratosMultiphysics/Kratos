@@ -93,14 +93,19 @@ public:
 
     // Constructor void
     MPMParticleBaseCondition()
+        : m_area(1.0)
     {};
 
     // Constructor using an array of nodes
-    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+        : Condition(NewId,pGeometry)
+        , m_area(1.0)
     {};
 
     // Constructor using an array of nodes with properties
-    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+        : Condition(NewId,pGeometry,pProperties)
+        , m_area(1.0)
     {};
 
     // Destructor
@@ -244,9 +249,30 @@ public:
     }
 
     ///@}
-    ///@name Access
+    ///@name Access Get Values
     ///@{
 
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Access Set Values
+    ///@{
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -269,6 +295,12 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    array_1d<double, 3> m_xg;
+    array_1d<double, 3> m_acceleration;
+    array_1d<double, 3> m_velocity;    
+    array_1d<double, 3> m_normal;
+    double m_area;
 
     ///@}
     ///@name Protected Operators
@@ -330,7 +362,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
 
 
     ///@}
