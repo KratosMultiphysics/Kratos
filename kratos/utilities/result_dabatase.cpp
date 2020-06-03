@@ -157,7 +157,7 @@ void ResultDatabase::Initialize(
         for (IndexType k = 0; k < NumberOfEntites; ++k){
             for (IndexType j = 0; j < NumberOfGP; ++j){
                 for (IndexType i = 0; i < NumberOfComponents; ++i){
-                    data[k][j][i] = Kratos::make_shared<Table<double, double>>();
+                    data[k][j][i] = new Table<double, double>();
                 }
             }
         };
