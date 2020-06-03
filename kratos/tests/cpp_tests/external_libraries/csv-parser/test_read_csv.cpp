@@ -30,12 +30,12 @@ using namespace csv;
 using std::vector;
 using std::string;
 
-// TEST_CASE( "Test Parse Flags", "[test_parse_flags]" ) {
-//     REQUIRE(internals::make_parse_flags(',', '"')[162] == internals::ParseFlags::QUOTE);
+// KRATOS_TEST_CASE_IN_SUITE( "Test Parse Flags", "[test_parse_flags]" ) {
+//     KRATOS_CHECK(internals::make_parse_flags(',', '"')[162] == internals::ParseFlags::QUOTE);
 // }
 //
 // // Test Main Functions
-// TEST_CASE( "Test Reading CSV From Direct Input", "[read_csv_direct]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Test Reading CSV From Direct Input", "[read_csv_direct]" ) {
 //     auto rows = "A,B,C\r\n" // Header row
 //                 "123,234,345\r\n"
 //                 "1,2,3\r\n"
@@ -45,10 +45,10 @@ using std::string;
 //     CSVRow row;
 //     rows.read_row(row);
 //     vector<string> first_row = {"123", "234", "345"};
-//     REQUIRE( vector<string>(row) == first_row );
+//     KRATOS_CHECK( vector<string>(row) == first_row );
 // }
 //
-// TEST_CASE("Assert UTF-8 Handling Works", "[read_utf8_direct]") {
+// KRATOS_TEST_CASE_IN_SUITE("Assert UTF-8 Handling Works", "[read_utf8_direct]") {
 //     // TODO: Actually check to see if flag is set
 //     auto rows = "\uFEFFA,B,C\r\n" // Header row
 //         "123,234,345\r\n"
@@ -59,11 +59,11 @@ using std::string;
 //     CSVRow row;
 //     rows.read_row(row);
 //     vector<string> first_row = { "123", "234", "345" };
-//     REQUIRE(vector<string>(row) == first_row);
+//     KRATOS_CHECK(vector<string>(row) == first_row);
 // }
 //
 // //! [Escaped Comma]
-// TEST_CASE( "Test Escaped Comma", "[read_csv_comma]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Test Escaped Comma", "[read_csv_comma]" ) {
 //     auto rows = "A,B,C\r\n" // Header row
 //                 "123,\"234,345\",456\r\n"
 //                 "1,2,3\r\n"
@@ -71,12 +71,12 @@ using std::string;
 //
 //     CSVRow row;
 //     rows.read_row(row);
-//     REQUIRE( vector<string>(row) ==
+//     KRATOS_CHECK( vector<string>(row) ==
 //         vector<string>({"123", "234,345", "456"}));
 // }
 // //! [Escaped Comma]
 //
-// TEST_CASE( "Test Escaped Newline", "[read_csv_newline]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Test Escaped Newline", "[read_csv_newline]" ) {
 //     auto rows = "A,B,C\r\n" // Header row
 //                 "123,\"234\n,345\",456\r\n"
 //                 "1,2,3\r\n"
@@ -84,23 +84,23 @@ using std::string;
 //
 //     CSVRow row;
 //     rows.read_row(row);
-//     REQUIRE( vector<string>(row) ==
+//     KRATOS_CHECK( vector<string>(row) ==
 //         vector<string>({ "123", "234\n,345", "456" }) );
 // }
 //
-// TEST_CASE( "Test Empty Field", "[read_empty_field]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Test Empty Field", "[read_empty_field]" ) {
 //     // Per RFC 1480, escaped quotes should be doubled up
 //     auto rows = "A,B,C\r\n" // Header row
 //                 "123,\"\",456\r\n"_csv;
 //
 //     CSVRow row;
 //     rows.read_row(row);
-//     REQUIRE( vector<string>(row) ==
+//     KRATOS_CHECK( vector<string>(row) ==
 //         vector<string>({ "123", "", "456" }) );
 // }
 //
 // //! [Parse Example]
-// TEST_CASE( "Test Escaped Quote", "[read_csv_quote]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Test Escaped Quote", "[read_csv_quote]" ) {
 //     // Per RFC 1480, escaped quotes should be doubled up
 //     string csv_string = (
 //         "A,B,C\r\n" // Header row
@@ -114,12 +114,12 @@ using std::string;
 //     // Expected Results: Double " is an escape for a single "
 //     vector<string> correct_row = {"123", "234\"345", "456"};
 //     for (auto& row : rows) {
-//         REQUIRE(vector<string>(row) == correct_row);
+//         KRATOS_CHECK(vector<string>(row) == correct_row);
 //     }
 // }
 // //! [Parse Example]
 //
-// TEST_CASE("Fragment Test", "[read_csv_fragments]") {
+// KRATOS_TEST_CASE_IN_SUITE("Fragment Test", "[read_csv_fragments]") {
 //     CSVReader reader;
 //
 //     reader.feed("A,B,C\r\n" // Header row
@@ -131,11 +131,11 @@ using std::string;
 //     // Expected Results: Double " is an escape for a single "
 //     vector<string> correct_row = { "123", "234\"345", "456" };
 //     for (auto& row : reader) {
-//         REQUIRE(vector<string>(row) == correct_row);
+//         KRATOS_CHECK(vector<string>(row) == correct_row);
 //     }
 // }
 //
-// TEST_CASE("Test Whitespace Trimming", "[read_csv_trim]") {
+// KRATOS_TEST_CASE_IN_SUITE("Test Whitespace Trimming", "[read_csv_trim]") {
 //     auto row_str = GENERATE(as<std::string> {},
 //         "A,B,C\r\n" // Header row
 //         "123,\"234\n,345\",456\r\n",
@@ -175,11 +175,11 @@ using std::string;
 //         CSVRow row;
 //         rows.read_row(row);
 //
-//         REQUIRE(vector<string>(row) ==
+//         KRATOS_CHECK(vector<string>(row) ==
 //             vector<string>({ "123", "234\n,345", "456" }));
-//         REQUIRE(row["A"] == "123");
-//         REQUIRE(row["B"] == "234\n,345");
-//         REQUIRE(row["C"] == "456");
+//         KRATOS_CHECK(row["A"] == "123");
+//         KRATOS_CHECK(row["B"] == "234\n,345");
+//         KRATOS_CHECK(row["C"] == "456");
 //     }
 // }
 //
@@ -221,7 +221,7 @@ using std::string;
 //     return test_cases;
 // }
 //
-// TEST_CASE("Test Whitespace Trimming w/ Empty Fields") {
+// KRATOS_TEST_CASE_IN_SUITE("Test Whitespace Trimming w/ Empty Fields") {
 //     auto csv_string = GENERATE(from_range(make_whitespace_test_cases()));
 //
 //     SECTION("Parse Test") {
@@ -234,31 +234,31 @@ using std::string;
 //
 //         // First Row
 //         rows.read_row(row);
-//         REQUIRE(row[0].get<uint32_t>() == 1);
-//         REQUIRE(row[1].get<std::string>() == "two");
-//         REQUIRE(row[2].get<uint32_t>() == 3);
+//         KRATOS_CHECK(row[0].get<uint32_t>() == 1);
+//         KRATOS_CHECK(row[1].get<std::string>() == "two");
+//         KRATOS_CHECK(row[2].get<uint32_t>() == 3);
 //
 //         // Second Row
 //         rows.read_row(row);
-//         REQUIRE(row[0].get<uint32_t>() == 4);
-//         REQUIRE(row[1].is_null());
-//         REQUIRE(row[2].get<uint32_t>() == 5);
+//         KRATOS_CHECK(row[0].get<uint32_t>() == 4);
+//         KRATOS_CHECK(row[1].is_null());
+//         KRATOS_CHECK(row[2].get<uint32_t>() == 5);
 //
 //         // Third Row
 //         rows.read_row(row);
-//         REQUIRE(row[0].is_null());
-//         REQUIRE(row[1].get<uint32_t>() == 6);
-//         REQUIRE(row[2].is_null());
+//         KRATOS_CHECK(row[0].is_null());
+//         KRATOS_CHECK(row[1].get<uint32_t>() == 6);
+//         KRATOS_CHECK(row[2].is_null());
 //
 //         // Fourth Row
 //         rows.read_row(row);
-//         REQUIRE(row[0].get<uint32_t>() == 7);
-//         REQUIRE(row[1].get<uint32_t>() == 8);
-//         REQUIRE(row[2].get<uint32_t>() == 9);
+//         KRATOS_CHECK(row[0].get<uint32_t>() == 7);
+//         KRATOS_CHECK(row[1].get<uint32_t>() == 8);
+//         KRATOS_CHECK(row[2].get<uint32_t>() == 9);
 //     }
 // }
 //
-// TEST_CASE("Test Variable Row Length Handling", "[read_csv_var_len]") {
+// KRATOS_TEST_CASE_IN_SUITE("Test Variable Row Length Handling", "[read_csv_var_len]") {
 //     string csv_string("A,B,C\r\n" // Header row
 //         "123,234,345\r\n"
 //         "1,2,3\r\n"
@@ -285,9 +285,9 @@ using std::string;
 //             error_message = err.what();
 //         }
 //
-//         REQUIRE(error_caught);
-//         REQUIRE(i == 2);
-//         REQUIRE(error_message.substr(0, 14) == "Line too short");
+//         KRATOS_CHECK(error_caught);
+//         KRATOS_CHECK(i == 2);
+//         KRATOS_CHECK(error_message.substr(0, 14) == "Line too short");
 //     }
 //
 //     SECTION("Ignore Row") {
@@ -298,7 +298,7 @@ using std::string;
 //         std::vector<CSVRow> rows(reader.begin(), reader.end());
 //
 //         // Expect short/long rows to be dropped
-//         REQUIRE(rows.size() == 3);
+//         KRATOS_CHECK(rows.size() == 3);
 //     }
 //
 //     SECTION("Keep Row") {
@@ -309,17 +309,17 @@ using std::string;
 //         std::vector<CSVRow> rows(reader.begin(), reader.end());
 //
 //         // Expect short/long rows to be kept
-//         REQUIRE(rows.size() == 5);
-//         REQUIRE(rows[2][0] == 6);
-//         REQUIRE(rows[2][1] == 9);
+//         KRATOS_CHECK(rows.size() == 5);
+//         KRATOS_CHECK(rows[2][0] == 6);
+//         KRATOS_CHECK(rows[2][1] == 9);
 //
 //         // Should be able to index extra columns via numeric index
-//         REQUIRE(rows[3][2] == 7);
-//         REQUIRE(rows[3][3] == 10);
+//         KRATOS_CHECK(rows[3][2] == 7);
+//         KRATOS_CHECK(rows[3][3] == 10);
 //     }
 // }
 //
-// TEST_CASE("Test read_row() CSVField - Memory", "[read_row_csvf2]") {
+// KRATOS_TEST_CASE_IN_SUITE("Test read_row() CSVField - Memory", "[read_row_csvf2]") {
 //     CSVFormat format;
 //     format.column_names({ "A", "B" });
 //
@@ -333,25 +333,25 @@ using std::string;
 //     rows.read_row(row);
 //
 //     // First Row
-//     REQUIRE((row[0].is_float() && row[0].is_num()));
-//     REQUIRE(row[0].get<std::string>().substr(0, 4) == "3.14");
-//     REQUIRE(internals::is_equal(row[0].get<double>(), 3.14));
+//     KRATOS_CHECK((row[0].is_float() && row[0].is_num()));
+//     KRATOS_CHECK(row[0].get<std::string>().substr(0, 4) == "3.14");
+//     KRATOS_CHECK(internals::is_equal(row[0].get<double>(), 3.14));
 //
 //     // Second Row
 //     rows.read_row(row);
-//     REQUIRE((row[0].is_int() && row[0].is_num()));
-//     REQUIRE((row[1].is_int() && row[1].is_num()));
-//     REQUIRE(row[0].get<std::string>() == "60");
-//     REQUIRE(row[1].get<std::string>() == "70");
+//     KRATOS_CHECK((row[0].is_int() && row[0].is_num()));
+//     KRATOS_CHECK((row[1].is_int() && row[1].is_num()));
+//     KRATOS_CHECK(row[0].get<std::string>() == "60");
+//     KRATOS_CHECK(row[1].get<std::string>() == "70");
 //
 //     // Third Row
 //     rows.read_row(row);
-//     REQUIRE(row[0].is_null());
-//     REQUIRE(row[1].is_null());
+//     KRATOS_CHECK(row[0].is_null());
+//     KRATOS_CHECK(row[1].is_null());
 // }
 //
 // // Reported in: https://github.com/vincentlaucsb/csv-parser/issues/56
-// TEST_CASE("Leading Empty Field Regression", "[empty_field_regression]") {
+// KRATOS_TEST_CASE_IN_SUITE("Leading Empty Field Regression", "[empty_field_regression]") {
 //     std::string csv_string(R"(category,subcategory,project name
 // ,,foo-project
 // bar-category,,bar-project
@@ -362,19 +362,19 @@ using std::string;
 //     reader.end_feed();
 //
 //     CSVRow first_row, second_row;
-//     REQUIRE(reader.read_row(first_row));
-//     REQUIRE(reader.read_row(second_row));
+//     KRATOS_CHECK(reader.read_row(first_row));
+//     KRATOS_CHECK(reader.read_row(second_row));
 //
-//     REQUIRE(first_row["category"] == "");
-//     REQUIRE(first_row["subcategory"] == "");
-//     REQUIRE(first_row["project name"] == "foo-project");
+//     KRATOS_CHECK(first_row["category"] == "");
+//     KRATOS_CHECK(first_row["subcategory"] == "");
+//     KRATOS_CHECK(first_row["project name"] == "foo-project");
 //
-//     REQUIRE(second_row["category"] == "bar-category");
-//     REQUIRE(second_row["subcategory"] == "");
-//     REQUIRE(second_row["project name"] == "bar-project");
+//     KRATOS_CHECK(second_row["category"] == "bar-category");
+//     KRATOS_CHECK(second_row["subcategory"] == "");
+//     KRATOS_CHECK(second_row["project name"] == "bar-project");
 // }
 //
-// TEST_CASE("Test Parsing CSV with Dummy Column", "[read_csv_dummy]") {
+// KRATOS_TEST_CASE_IN_SUITE("Test Parsing CSV with Dummy Column", "[read_csv_dummy]") {
 //     std::string csv_string(R"(A,B,C,
 // 123,345,678,)");
 //
@@ -385,16 +385,16 @@ using std::string;
 //
 //     CSVRow first_row;
 //
-//     REQUIRE(reader.get_col_names() == std::vector<std::string>({"A","B","C",""}));
+//     KRATOS_CHECK(reader.get_col_names() == std::vector<std::string>({"A","B","C",""}));
 //
 //     reader.read_row(first_row);
-//     REQUIRE(std::vector<std::string>(first_row) == std::vector<std::string>({
+//     KRATOS_CHECK(std::vector<std::string>(first_row) == std::vector<std::string>({
 //         "123", "345", "678", ""
 //     }));
 // }
 //
 // // Reported in: https://github.com/vincentlaucsb/csv-parser/issues/67
-// TEST_CASE("Comments in Header Regression", "[comments_in_header_regression]") {
+// KRATOS_TEST_CASE_IN_SUITE("Comments in Header Regression", "[comments_in_header_regression]") {
 //     std::string csv_string(R"(# some extra metadata
 // # some extra metadata
 // timestamp,distance,angle,amplitude
@@ -414,11 +414,11 @@ using std::string;
 //     };
 //
 //     // Original issue: Leading comments appeared in column names
-//     REQUIRE(expected == reader.get_col_names());
+//     KRATOS_CHECK(expected == reader.get_col_names());
 // }
 //
 // // Reported in: https://github.com/vincentlaucsb/csv-parser/issues/92
-// TEST_CASE("Long Row Test", "[long_row_regression]") {
+// KRATOS_TEST_CASE_IN_SUITE("Long Row Test", "[long_row_regression]") {
 //     std::stringstream csv_string;
 //     constexpr int n_cols = 100000;
 //
@@ -445,7 +445,7 @@ using std::string;
 //     }
 //
 //     auto rows = parse(csv_string.str());
-//     REQUIRE(rows.get_col_names().size() == n_cols);
+//     KRATOS_CHECK(rows.get_col_names().size() == n_cols);
 //
 //     CSVRow row;
 //     rows.read_row(row);
@@ -456,7 +456,7 @@ using std::string;
 //     for (auto& field : row) {
 //         std::stringstream temp;
 //         temp << (double)i * 0.000001;
-//         REQUIRE(field.get<>() == temp.str());
+//         KRATOS_CHECK(field.get<>() == temp.str());
 //         i++;
 //     }
 // }

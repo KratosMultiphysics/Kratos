@@ -28,10 +28,10 @@ namespace Testing {
 
 using namespace csv;
 
-// TEMPLATE_TEST_CASE("CSVField get<> - String Value", "[test_csv_field_get_string]",
+// TEMPLATE_TEST_CASE(CSVFieldget<>-StringValue, KratosExternalLibrariesFastSuite,
 //     signed char, short int, int, long long int, double, long double) {
 //     CSVField field("applesauce");
-//     REQUIRE(field.get<>() == "applesauce");
+//     KRATOS_CHECK(field.get<>() == "applesauce");
 //
 //     // Assert that improper conversions attempts are thwarted
 //     bool ex_caught = false;
@@ -39,14 +39,14 @@ using namespace csv;
 //         field.get<TestType>();
 //     }
 //     catch (std::runtime_error& err) {
-//         REQUIRE(err.what() == csv::internals::ERROR_NAN);
+//         KRATOS_CHECK(err.what() == csv::internals::ERROR_NAN);
 //         ex_caught = true;
 //     }
 //
-//     REQUIRE(ex_caught);
+//     KRATOS_CHECK(ex_caught);
 // }
 //
-// TEST_CASE("CSVField get<> - Error Messages", "[test_csv_field_get_error]") {
+// KRATOS_TEST_CASE_IN_SUITE(CSVFieldget<>-ErrorMessages, KratosExternalLibrariesFastSuite) {
 //     CSVField field("applesauce");
 //
 //     bool ex_caught = false;
@@ -54,67 +54,65 @@ using namespace csv;
 //         field.get<double>();
 //     }
 //     catch (std::runtime_error& err) {
-//         REQUIRE(err.what() == csv::internals::ERROR_NAN);
+//         KRATOS_CHECK(err.what() == csv::internals::ERROR_NAN);
 //         ex_caught = true;
 //     }
 //
-//     REQUIRE(ex_caught);
+//     KRATOS_CHECK(ex_caught);
 // }
 //
-// TEST_CASE("CSVField get<>() - Integral Value", "[test_csv_field_get_int]") {
+// KRATOS_TEST_CASE_IN_SUITE(CSVFieldget<>()-IntegralValue, KratosExternalLibrariesFastSuite) {
 //     CSVField this_year("2019");
-//     REQUIRE(this_year.get<>() == "2019");
-//     REQUIRE(this_year.get<csv::string_view>() == "2019");
-//     REQUIRE(this_year.get<int>() == 2019);
-//     REQUIRE(this_year.get<long long int>() == 2019);
-//     REQUIRE(this_year.get<float>() == 2019.0f);
-//     REQUIRE(this_year.get<double>() == 2019.0);
-//     REQUIRE(this_year.get<long double>() == 2019l);
+//     KRATOS_CHECK(this_year.get<>() == "2019");
+//     KRATOS_CHECK(this_year.get<csv::string_view>() == "2019");
+//     KRATOS_CHECK(this_year.get<int>() == 2019);
+//     KRATOS_CHECK(this_year.get<long long int>() == 2019);
+//     KRATOS_CHECK(this_year.get<float>() == 2019.0f);
+//     KRATOS_CHECK(this_year.get<double>() == 2019.0);
+//     KRATOS_CHECK(this_year.get<long double>() == 2019l);
 //
 //     bool ex_caught = false;
 //     try {
 //         this_year.get<signed char>();
 //     }
 //     catch (std::runtime_error& err) {
-//         REQUIRE(err.what() == csv::internals::ERROR_OVERFLOW);
+//         KRATOS_CHECK(err.what() == csv::internals::ERROR_OVERFLOW);
 //         ex_caught = true;
 //     }
 //
-//     REQUIRE(ex_caught);
+//     KRATOS_CHECK(ex_caught);
 // }
 //
-// TEST_CASE("CSVField get<>() - Integer Boundary Value", "[test_csv_field_get_boundary]") {
+// KRATOS_TEST_CASE_IN_SUITE(CSVFieldget<>()-IntegerBoundaryValue, KratosExternalLibrariesFastSuite) {
 //     // Note: Tests may fail if compiler defines typenames differently than
 //     // Microsoft/GCC/clang
-//     REQUIRE(CSVField("127").get<signed char>() == 127);
-//     REQUIRE(CSVField("32767").get<short>() == 32767);
-//     REQUIRE(CSVField("2147483647").get<int>() == 2147483647);
+//     KRATOS_CHECK(CSVField("127").get<signed char>() == 127);
+//     KRATOS_CHECK(CSVField("32767").get<short>() == 32767);
+//     KRATOS_CHECK(CSVField("2147483647").get<int>() == 2147483647);
 //
-//     REQUIRE(CSVField("255").get<unsigned char>() == 255);
-//     REQUIRE(CSVField("65535").get<unsigned short>() == 65535);
-//     REQUIRE(CSVField("4294967295").get<unsigned>() == 4294967295);
+//     KRATOS_CHECK(CSVField("255").get<unsigned char>() == 255);
+//     KRATOS_CHECK(CSVField("65535").get<unsigned short>() == 65535);
+//     KRATOS_CHECK(CSVField("4294967295").get<unsigned>() == 4294967295);
 // }
 //
 // // Test converting a small integer to unsigned and signed integer types
-// TEMPLATE_TEST_CASE("CSVField get<>() - Integral Value to Int", "[test_csv_field_convert_int]",
+// TEMPLATE_TEST_CASE(CSVFieldget<>()-IntegralValuetoInt, KratosExternalLibrariesFastSuite,
 //     unsigned char, unsigned short, unsigned int, unsigned long long,
 //     char, short, int, long long int) {
 //     CSVField savage("21");
-//     REQUIRE(savage.get<TestType>() == 21);
+//     KRATOS_CHECK(savage.get<TestType>() == 21);
 // }
 //
-// TEST_CASE("CSVField get<>() - Floating Point Value", "[test_csv_field_get_float]") {
+// KRATOS_TEST_CASE_IN_SUITE(CSVFieldget<>()-FloatingPointValue, KratosExternalLibrariesFastSuite) {
 //     CSVField euler("2.718");
-//     REQUIRE(euler.get<>() == "2.718");
-//     REQUIRE(euler.get<csv::string_view>() == "2.718");
-//     REQUIRE(euler.get<float>() == 2.718f);
-//     REQUIRE(euler.get<double>() == 2.718);
-//     REQUIRE(euler.get<long double>() == 2.718l);
+//     KRATOS_CHECK(euler.get<>() == "2.718");
+//     KRATOS_CHECK(euler.get<csv::string_view>() == "2.718");
+//     KRATOS_CHECK(euler.get<float>() == 2.718f);
+//     KRATOS_CHECK(euler.get<double>() == 2.718);
+//     KRATOS_CHECK(euler.get<long double>() == 2.718l);
 // }
 //
-// TEMPLATE_TEST_CASE("CSVField get<>() - Disallow Float to Int", "[test_csv_field_get_float_as_int]",
-//     unsigned char, unsigned short, unsigned int, unsigned long long int,
-//     signed char, short, int, long long int) {
+// TEMPLATE_TEST_CASE(CSVFieldget<>()-DisallowFloattoInt, KratosExternalLibrariesFastSuite) {
 //     CSVField euler("2.718");
 //     bool ex_caught = false;
 //
@@ -122,15 +120,14 @@ using namespace csv;
 //         euler.get<TestType>();
 //     }
 //     catch (std::runtime_error& err) {
-//         REQUIRE(err.what() == csv::internals::ERROR_FLOAT_TO_INT);
+//         KRATOS_CHECK(err.what() == csv::internals::ERROR_FLOAT_TO_INT);
 //         ex_caught = true;
 //     }
 //
-//     REQUIRE(ex_caught);
+//     KRATOS_CHECK(ex_caught);
 // }
 //
-// TEMPLATE_TEST_CASE("CSVField get<>() - Disallow Negative to Unsigned", "[test_csv_field_no_unsigned_neg]",
-//     unsigned char, unsigned short, unsigned int, unsigned long long int) {
+// TEMPLATE_TEST_CASE(CSVFieldget<>()-DisallowNegativetoUnsigned, KratosExternalLibrariesFastSuite) {
 //     CSVField neg("-1337");
 //     bool ex_caught = false;
 //
@@ -138,18 +135,18 @@ using namespace csv;
 //         neg.get<TestType>();
 //     }
 //     catch (std::runtime_error& err) {
-//         REQUIRE(err.what() == csv::internals::ERROR_NEG_TO_UNSIGNED);
+//         KRATOS_CHECK(err.what() == csv::internals::ERROR_NEG_TO_UNSIGNED);
 //         ex_caught = true;
 //     }
 //
-//     REQUIRE(ex_caught);
+//     KRATOS_CHECK(ex_caught);
 // }
 //
-// TEST_CASE("CSVField Equality Operator", "[test_csv_field_operator==]") {
+// KRATOS_TEST_CASE_IN_SUITE("CSVFieldEqualityOperator, KratosExternalLibrariesFastSuite) {
 //     CSVField field("3.14");
-//     REQUIRE(field == "3.14");
-//     REQUIRE(field == 3.14f);
-//     REQUIRE(field == 3.14);
+//     KRATOS_CHECK(field == "3.14");
+//     KRATOS_CHECK(field == 3.14f);
+//     KRATOS_CHECK(field == 3.14);
 // }
 
 } // namespace Testing.

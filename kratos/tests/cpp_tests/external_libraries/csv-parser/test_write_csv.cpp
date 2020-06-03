@@ -33,32 +33,32 @@ using std::queue;
 using std::vector;
 using std::string;
 
-// TEST_CASE("CSV Comma Escape", "[test_csv_comma]") {
+// KRATOS_TEST_CASE_IN_SUITE("CSV Comma Escape", "[test_csv_comma]") {
 //     std::string input = "Furthermore, this should be quoted.";
 //     std::string correct = "\"Furthermore, this should be quoted.\"";
 //
-//     REQUIRE(csv_escape<>(input) == correct);
+//     KRATOS_CHECK(csv_escape<>(input) == correct);
 // }
 //
-// TEST_CASE("CSV Quote Escape", "[test_csv_quote]") {
+// KRATOS_TEST_CASE_IN_SUITE("CSV Quote Escape", "[test_csv_quote]") {
 //     std::string input = "\"What does it mean to be RFC 4180 compliant?\" she asked.";
 //     std::string correct = "\"\"\"What does it mean to be RFC 4180 compliant?\"\" she asked.\"";
 //
-//     REQUIRE(csv_escape<>(input) == correct);
+//     KRATOS_CHECK(csv_escape<>(input) == correct);
 // }
 //
-// TEST_CASE("CSV Quote Minimal", "[test_csv_quote_min]") {
+// KRATOS_TEST_CASE_IN_SUITE("CSV Quote Minimal", "[test_csv_quote_min]") {
 //     std::string input = "This should not be quoted";
-//     REQUIRE(csv_escape<>(input) == input);
+//     KRATOS_CHECK(csv_escape<>(input) == input);
 // }
 //
-// TEST_CASE("CSV Quote All", "[test_csv_quote_all]") {
+// KRATOS_TEST_CASE_IN_SUITE("CSV Quote All", "[test_csv_quote_all]") {
 //     std::string input = "This should be quoted";
 //     std::string correct = "\"This should be quoted\"";
-//     REQUIRE(csv_escape<>(input, false) == correct);
+//     KRATOS_CHECK(csv_escape<>(input, false) == correct);
 // }
 //
-// TEST_CASE("CSV to Stringstream", "[test_csv_sstream1]") {
+// KRATOS_TEST_CASE_IN_SUITE("CSV to Stringstream", "[test_csv_sstream1]") {
 //     std::stringstream out, correct;
 //
 //     // Build correct string
@@ -72,7 +72,7 @@ using std::string;
 //     for (; !q.empty(); q.pop())
 //         writer.write_row(q.front());
 //
-//     REQUIRE(out.str() == correct.str());
+//     KRATOS_CHECK(out.str() == correct.str());
 // }
 //
 // //! [CSV Writer Example]
@@ -92,14 +92,14 @@ using std::string;
 //         auto csv_writer = make_csv_writer(output);
 //         csv_writer << test_row_1 << test_row_2;
 //
-//         REQUIRE(output.str() == correct_comma.str());
+//         KRATOS_CHECK(output.str() == correct_comma.str());
 //     }
 //
 //     SECTION("TSV Writer") {
 //         auto tsv_writer = make_tsv_writer(output);
 //         tsv_writer << test_row_1 << test_row_2;
 //
-//         REQUIRE(output.str() == correct_tab.str());
+//         KRATOS_CHECK(output.str() == correct_tab.str());
 //     }
 // }
 // //! [CSV Writer Example]

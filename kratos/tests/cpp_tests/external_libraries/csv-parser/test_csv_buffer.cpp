@@ -39,7 +39,7 @@ std::string get_string(
     );
 }
 
-// TEST_CASE("GiantStringBufferTest", "[test_giant_string_buffer]") {
+// KRATOS_TEST_CASE_IN_SUITE(GiantStringBufferTest, KratosExternalLibrariesFastSuite) {
 //     BufferPtr buffer = BufferPtr(new RawRowBuffer());
 //
 //     buffer->buffer.append("1234");
@@ -61,12 +61,12 @@ std::string get_string(
 //         buffer->get_row().row_str
 //     );
 //
-//     REQUIRE(first_row == "1234");
-//     REQUIRE(second_row == "5678");
-//     REQUIRE(third_row == "abcd");
+//     KRATOS_CHECK(first_row == "1234");
+//     KRATOS_CHECK(second_row == "5678");
+//     KRATOS_CHECK(third_row == "abcd");
 // }
 //
-// TEST_CASE("GiantSplitBufferTest", "[test_giant_split_buffer]") {
+// KRATOS_TEST_CASE_IN_SUITE(GiantSplitBufferTest, KratosExternalLibrariesFastSuite) {
 //     BufferPtr buffer = BufferPtr(new RawRowBuffer());
 //     auto * splits = &(buffer->split_buffer);
 //
@@ -75,19 +75,19 @@ std::string get_string(
 //     splits->push_back(3);
 //
 //     auto pos = buffer->get_row().col_pos;
-//     REQUIRE(split_at(buffer, pos, 0) == 1);
-//     REQUIRE(split_at(buffer, pos, 1) == 2);
-//     REQUIRE(split_at(buffer, pos, 2) == 3);
-//     REQUIRE(pos.n_cols == 4);
+//     KRATOS_CHECK(split_at(buffer, pos, 0) == 1);
+//     KRATOS_CHECK(split_at(buffer, pos, 1) == 2);
+//     KRATOS_CHECK(split_at(buffer, pos, 2) == 3);
+//     KRATOS_CHECK(pos.n_cols == 4);
 //
 //     SECTION("Two Splits Test") {
 //         splits->push_back(4);
 //         splits->push_back(5);
 //
 //         pos = buffer->get_row().col_pos;
-//         REQUIRE(split_at(buffer, pos, 0) == 4);
-//         REQUIRE(split_at(buffer, pos, 1) == 5);
-//         REQUIRE(pos.n_cols == 3);
+//         KRATOS_CHECK(split_at(buffer, pos, 0) == 4);
+//         KRATOS_CHECK(split_at(buffer, pos, 1) == 5);
+//         KRATOS_CHECK(pos.n_cols == 3);
 //     }
 //
 //     SECTION("Reset In Middle Test") {
@@ -98,10 +98,10 @@ std::string get_string(
 //         splits->push_back(3);
 //
 //         pos = buffer->get_row().col_pos;
-//         REQUIRE(split_at(buffer, pos, 0) == 1);
-//         REQUIRE(split_at(buffer, pos, 1) == 2);
-//         REQUIRE(split_at(buffer, pos, 2) == 3);
-//         REQUIRE(pos.n_cols == 4);
+//         KRATOS_CHECK(split_at(buffer, pos, 0) == 1);
+//         KRATOS_CHECK(split_at(buffer, pos, 1) == 2);
+//         KRATOS_CHECK(split_at(buffer, pos, 2) == 3);
+//         KRATOS_CHECK(pos.n_cols == 4);
 //     }
 // }
 

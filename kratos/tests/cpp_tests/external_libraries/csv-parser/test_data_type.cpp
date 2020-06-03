@@ -28,138 +28,138 @@ namespace Testing {
 using namespace csv;
 using namespace csv::internals;
 
-// TEST_CASE( "Recognize Integers Properly", "[dtype_int]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Recognize Integers Properly", "[dtype_int]" ) {
 //     std::string a("1"), b(" 2018   "), c(" -69 ");
 //     long double out;
 //
-//     REQUIRE(data_type(a, &out) ==  CSV_INT8);
-//     REQUIRE(out == 1);
+//     KRATOS_CHECK(data_type(a, &out) ==  CSV_INT8);
+//     KRATOS_CHECK(out == 1);
 //
-//     REQUIRE(data_type(b, &out) == CSV_INT16);
-//     REQUIRE(out == 2018);
+//     KRATOS_CHECK(data_type(b, &out) == CSV_INT16);
+//     KRATOS_CHECK(out == 2018);
 //
-//     REQUIRE(data_type(c, &out) == CSV_INT8);
-//     REQUIRE(out == -69);
+//     KRATOS_CHECK(data_type(c, &out) == CSV_INT8);
+//     KRATOS_CHECK(out == -69);
 // }
 //
-// TEST_CASE( "Recognize Strings Properly", "[dtype_str]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Recognize Strings Properly", "[dtype_str]" ) {
 //     auto str = GENERATE(as<std::string> {}, "test", "999.999.9999", "510-123-4567", "510 123", "510 123 4567");
 //
 //     SECTION("String Recognition") {
-//         REQUIRE(data_type(str) == CSV_STRING);
+//         KRATOS_CHECK(data_type(str) == CSV_STRING);
 //     }
 // }
 //
-// TEST_CASE( "Recognize Null Properly", "[dtype_null]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Recognize Null Properly", "[dtype_null]" ) {
 //     std::string null_str("");
-//     REQUIRE( data_type(null_str) ==  CSV_NULL );
+//     KRATOS_CHECK( data_type(null_str) ==  CSV_NULL );
 // }
 //
-// TEST_CASE( "Recognize Floats Properly", "[dtype_float]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Recognize Floats Properly", "[dtype_float]" ) {
 //     std::string float_a("3.14"),
 //         float_b("       -3.14            "),
 //         e("2.71828");
 //
 //     long double out;
 //
-//     REQUIRE(data_type(float_a, &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 3.14L));
+//     KRATOS_CHECK(data_type(float_a, &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 3.14L));
 //
-//     REQUIRE(data_type(float_b, &out) ==  CSV_DOUBLE);
-//     REQUIRE(is_equal(out, -3.14L));
+//     KRATOS_CHECK(data_type(float_b, &out) ==  CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, -3.14L));
 //
-//     REQUIRE(data_type(e, &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 2.71828L));
+//     KRATOS_CHECK(data_type(e, &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 2.71828L));
 // }
 //
-// TEST_CASE("Integer Size Recognition", "[int_sizes]") {
+// KRATOS_TEST_CASE_IN_SUITE("Integer Size Recognition", "[int_sizes]") {
 //     std::string s;
 //     long double out;
 //
 //     SECTION("Boundary Values") {
 //         s = std::to_string((long long)csv::internals::CSV_INT8_MAX);
-//         REQUIRE(data_type(s, &out) == CSV_INT8);
-//         REQUIRE(out == (long long)CSV_INT8_MAX);
+//         KRATOS_CHECK(data_type(s, &out) == CSV_INT8);
+//         KRATOS_CHECK(out == (long long)CSV_INT8_MAX);
 //
 //         s = std::to_string((long long)csv::internals::CSV_INT16_MAX);
-//         REQUIRE(data_type(s, &out) == CSV_INT16);
-//         REQUIRE(out == (long long)CSV_INT16_MAX);
+//         KRATOS_CHECK(data_type(s, &out) == CSV_INT16);
+//         KRATOS_CHECK(out == (long long)CSV_INT16_MAX);
 //
 //         s = std::to_string((long long)csv::internals::CSV_INT32_MAX);
-//         REQUIRE(data_type(s, &out) == CSV_INT32);
-//         REQUIRE(out == (long long)CSV_INT32_MAX);
+//         KRATOS_CHECK(data_type(s, &out) == CSV_INT32);
+//         KRATOS_CHECK(out == (long long)CSV_INT32_MAX);
 //
 //         // Note: data_type() doesn't have enough precision for CSV_INT64
 //     }
 //
 //     SECTION("Integer Overflow") {
 //         s = std::to_string((long long)csv::internals::CSV_INT16_MAX + 1);
-//         REQUIRE(data_type(s, &out) == CSV_INT32);
-//         REQUIRE(out == (long long)CSV_INT16_MAX + 1);
+//         KRATOS_CHECK(data_type(s, &out) == CSV_INT32);
+//         KRATOS_CHECK(out == (long long)CSV_INT16_MAX + 1);
 //
 //         s = std::to_string((long long)csv::internals::CSV_INT32_MAX + 1);
-//         REQUIRE(data_type(s, &out) == CSV_INT64);
-//         REQUIRE(out == (long long)CSV_INT32_MAX + 1);
+//         KRATOS_CHECK(data_type(s, &out) == CSV_INT64);
+//         KRATOS_CHECK(out == (long long)CSV_INT32_MAX + 1);
 //
 //         // Case: Integer too large to fit in int64 --> store in long double
 //         s = std::to_string((long long)csv::internals::CSV_INT64_MAX);
 //         s.append("1");
-//         REQUIRE(data_type(s, &out) == CSV_DOUBLE);
+//         KRATOS_CHECK(data_type(s, &out) == CSV_DOUBLE);
 //     }
 // }
 //
-// TEST_CASE( "Recognize Sub-Unit Double Values", "[regression_double]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Recognize Sub-Unit Double Values", "[regression_double]" ) {
 //     std::string s("0.15");
 //     long double out;
-//     REQUIRE(data_type(s, &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 0.15L));
+//     KRATOS_CHECK(data_type(s, &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 0.15L));
 // }
 //
-// TEST_CASE( "Recognize Double Values", "[regression_double2]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Recognize Double Values", "[regression_double2]" ) {
 //     // Test converting double values back and forth
 //     long double out = -1.0;
 //     std::string s;
 //
 //     for (long double i = 0; i <= 2.0; i += 0.01) {
 //         s = std::to_string(i);
-//         REQUIRE(data_type(s, &out) == CSV_DOUBLE);
-//         REQUIRE(is_equal(out, i));
+//         KRATOS_CHECK(data_type(s, &out) == CSV_DOUBLE);
+//         KRATOS_CHECK(is_equal(out, i));
 //     }
 // }
 //
 // //! [Parse Scientific Notation]
-// TEST_CASE("Parse Scientific Notation", "[e_notation]") {
+// KRATOS_TEST_CASE_IN_SUITE("Parse Scientific Notation", "[e_notation]") {
 //     // Test parsing e notation
 //     long double out;
 //
-//     REQUIRE(data_type("1E-06", &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 0.000001L));
+//     KRATOS_CHECK(data_type("1E-06", &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 0.000001L));
 //
-//     REQUIRE(data_type("1e-06", &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 0.000001L));
+//     KRATOS_CHECK(data_type("1e-06", &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 0.000001L));
 //
-//     REQUIRE(data_type("2.17222E+02", &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 217.222L));
+//     KRATOS_CHECK(data_type("2.17222E+02", &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 217.222L));
 //
-//     REQUIRE(data_type("4.55E+10", &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 45500000000.0L));
+//     KRATOS_CHECK(data_type("4.55E+10", &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 45500000000.0L));
 //
-//     REQUIRE(data_type("4.55E+11", &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 455000000000.0L));
+//     KRATOS_CHECK(data_type("4.55E+11", &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 455000000000.0L));
 //
-//     REQUIRE(data_type("4.55E-1", &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 0.455L));
+//     KRATOS_CHECK(data_type("4.55E-1", &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 0.455L));
 //
-//     REQUIRE(data_type("4.55E-5", &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 0.0000455L));
+//     KRATOS_CHECK(data_type("4.55E-5", &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 0.0000455L));
 //
-//     REQUIRE(data_type("4.55E-000000000005", &out) == CSV_DOUBLE);
-//     REQUIRE(is_equal(out, 0.0000455L));
+//     KRATOS_CHECK(data_type("4.55E-000000000005", &out) == CSV_DOUBLE);
+//     KRATOS_CHECK(is_equal(out, 0.0000455L));
 // }
 // //! [Parse Scientific Notation]
 //
 // //! [Scientific Notation Flavors]
-// TEST_CASE("Parse Different Flavors of Scientific Notation", "[sci_notation_diversity]") {
+// KRATOS_TEST_CASE_IN_SUITE("Parse Different Flavors of Scientific Notation", "[sci_notation_diversity]") {
 //     auto number = GENERATE(as<std::string> {},
 //         "4.55e5", "4.55E5",
 //         "4.55E+5", "4.55e+5",
@@ -169,13 +169,13 @@ using namespace csv::internals;
 //
 //     SECTION("Recognize 455 thousand") {
 //         long double out;
-//         REQUIRE(data_type(number, &out) == CSV_DOUBLE);
-//         REQUIRE(is_equal(out, 455000.0L));
+//         KRATOS_CHECK(data_type(number, &out) == CSV_DOUBLE);
+//         KRATOS_CHECK(is_equal(out, 455000.0L));
 //     }
 // }
 // //! [Scientific Notation Flavors]
 //
-// TEST_CASE("Parse Scientific Notation Malformed", "[sci_notation]") {
+// KRATOS_TEST_CASE_IN_SUITE("Parse Scientific Notation Malformed", "[sci_notation]") {
 //     // Assert parsing butchered scientific notation won't cause a
 //     // crash or any other weird side effects
 //     auto butchered = GENERATE(as<std::string>{},
@@ -184,7 +184,7 @@ using namespace csv::internals;
 //         "4.55000E40E40");
 //
 //     SECTION("Butchered Parsing Attempt") {
-//         REQUIRE(data_type(butchered) == CSV_STRING);
+//         KRATOS_CHECK(data_type(butchered) == CSV_STRING);
 //     }
 // }
 

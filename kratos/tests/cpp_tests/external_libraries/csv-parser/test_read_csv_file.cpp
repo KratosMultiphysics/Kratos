@@ -30,14 +30,14 @@ using namespace csv;
 using std::vector;
 using std::string;
 
-// TEST_CASE("col_pos() Test", "[test_col_pos]") {
+// KRATOS_TEST_CASE_IN_SUITE("col_pos() Test", "[test_col_pos]") {
 //     int pos = get_col_pos(
 //         "./data/real_data/2015_StateDepartment.csv",
 //         "Entity Type");
-//     REQUIRE(pos == 1);
+//     KRATOS_CHECK(pos == 1);
 // }
 //
-// TEST_CASE("Prevent Column Names From Being Overwritten", "[csv_col_names_overwrite]") {
+// KRATOS_TEST_CASE_IN_SUITE("Prevent Column Names From Being Overwritten", "[csv_col_names_overwrite]") {
 //     std::vector<std::string> column_names = { "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10" };
 //
 //     // Test against a variety of different CSVFormat objects
@@ -55,24 +55,24 @@ using std::string;
 //
 //         // Assert that column names weren't overwritten
 //         CSVFormat format_out = reader.get_format();
-//         REQUIRE(reader.get_col_names() == column_names);
-//         REQUIRE(format_out.get_delim() == ',');
-//         REQUIRE(format_out.get_header() == 5);
+//         KRATOS_CHECK(reader.get_col_names() == column_names);
+//         KRATOS_CHECK(format_out.get_delim() == ',');
+//         KRATOS_CHECK(format_out.get_header() == 5);
 //     }
 // }
 //
 // // get_file_info()
-// TEST_CASE("get_file_info() Test", "[test_file_info]") {
+// KRATOS_TEST_CASE_IN_SUITE("get_file_info() Test", "[test_file_info]") {
 //     CSVFileInfo info = get_file_info(
 //         "./data/real_data/2009PowerStatus.txt");
 //
-//     REQUIRE(info.delim == '|');
-//     REQUIRE(info.n_rows == 37960); // Can confirm with Excel
-//     REQUIRE(info.n_cols == 3);
-//     REQUIRE(info.col_names == vector<string>({"ReportDt", "Unit", "Power"}));
+//     KRATOS_CHECK(info.delim == '|');
+//     KRATOS_CHECK(info.n_rows == 37960); // Can confirm with Excel
+//     KRATOS_CHECK(info.n_cols == 3);
+//     KRATOS_CHECK(info.col_names == vector<string>({"ReportDt", "Unit", "Power"}));
 // }
 //
-// TEST_CASE("Non-Existent CSV", "[read_ghost_csv]") {
+// KRATOS_TEST_CASE_IN_SUITE("Non-Existent CSV", "[read_ghost_csv]") {
 //     // Make sure attempting to parse a non-existent CSV throws an error
 //     bool error_caught = false;
 //
@@ -81,13 +81,13 @@ using std::string;
 //     }
 //     catch (std::runtime_error& err) {
 //         error_caught = true;
-//         REQUIRE(err.what() == std::string("Cannot open file ./lochness.csv"));
+//         KRATOS_CHECK(err.what() == std::string("Cannot open file ./lochness.csv"));
 //     }
 //
-//     REQUIRE(error_caught);
+//     KRATOS_CHECK(error_caught);
 // }
 //
-// TEST_CASE( "Test Read CSV with Header Row", "[read_csv_header]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Test Read CSV with Header Row", "[read_csv_header]" ) {
 //     // Header on first row
 //     const std::string data_file = "./data/real_data/2015_StateDepartment.csv";
 //     CSVReader reader(data_file, CSVFormat());
@@ -116,33 +116,33 @@ using std::string;
 //         "08/02/2016","",""
 //     };
 //
-//     REQUIRE( vector<string>(row) == first_row );
-//     REQUIRE( get_col_names(data_file) == col_names );
+//     KRATOS_CHECK( vector<string>(row) == first_row );
+//     KRATOS_CHECK( get_col_names(data_file) == col_names );
 //
 //     // Skip to end
 //     while (reader.read_row(row));
-//     REQUIRE( reader.num_rows == 246497 );
+//     KRATOS_CHECK( reader.num_rows == 246497 );
 // }
 //
 // //
 // // read_row()
 // //
 // //! [CSVField Example]
-// TEST_CASE("Test read_row() CSVField - Easy", "[read_row_csvf1]") {
+// KRATOS_TEST_CASE_IN_SUITE("Test read_row() CSVField - Easy", "[read_row_csvf1]") {
 //     // Test that integers are type-casted properly
 //     CSVReader reader("./data/fake_data/ints.csv");
 //     CSVRow row;
 //
 //     while (reader.read_row(row)) {
 //         for (size_t i = 0; i < row.size(); i++) {
-//             REQUIRE(row[i].is_int());
-//             REQUIRE(row[i].get<int>() <= 100);
+//             KRATOS_CHECK(row[i].is_int());
+//             KRATOS_CHECK(row[i].get<int>() <= 100);
 //         }
 //     }
 // }
 // //! [CSVField Example]
 //
-// TEST_CASE("Test read_row() CSVField - Power Status", "[read_row_csvf3]") {
+// KRATOS_TEST_CASE_IN_SUITE("Test read_row() CSVField - Power Status", "[read_row_csvf3]") {
 //     CSVReader reader("./data/real_data/2009PowerStatus.txt");
 //     CSVRow row;
 //
@@ -151,19 +151,19 @@ using std::string;
 //         power = reader.index_of("Power");
 //
 //     // Try to find a non-existent column
-//     REQUIRE(reader.index_of("metallica") == CSV_NOT_FOUND);
+//     KRATOS_CHECK(reader.index_of("metallica") == CSV_NOT_FOUND);
 //
 //     for (size_t i = 0; reader.read_row(row); i++) {
 //         // Assert correct types
-//         REQUIRE(row[date].is_str());
-//         REQUIRE(row[unit].is_str());
-//         REQUIRE(row[power].is_int());
+//         KRATOS_CHECK(row[date].is_str());
+//         KRATOS_CHECK(row[unit].is_str());
+//         KRATOS_CHECK(row[power].is_int());
 //
 //         // Spot check
 //         if (i == 2) {
-//             REQUIRE(row[power].get<int>() == 100);
-//             REQUIRE(row[date].get<>() == "12/31/2009"); // string_view
-//             REQUIRE(row[unit].get<std::string>() == "Beaver Valley 1");
+//             KRATOS_CHECK(row[power].get<int>() == 100);
+//             KRATOS_CHECK(row[date].get<>() == "12/31/2009"); // string_view
+//             KRATOS_CHECK(row[unit].get<std::string>() == "Beaver Valley 1");
 //         }
 //     }
 // }

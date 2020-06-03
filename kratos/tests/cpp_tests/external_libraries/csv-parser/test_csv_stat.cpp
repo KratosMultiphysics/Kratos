@@ -28,7 +28,7 @@ using namespace csv;
 
 const std::string PERSONS_CSV = "./data/mimesis_data/persons.csv";
 
-// TEST_CASE("Calculating Statistics from Direct Input", "[read_csv_stat_direct]" ) {
+// KRATOS_TEST_CASE_IN_SUITE("Calculating Statistics from Direct Input", "[read_csv_stat_direct]" ) {
 //     std::string int_str;
 //     std::string int_list = "";
 //     for (int i = 1; i < 101; i++) {
@@ -48,20 +48,20 @@ const std::string PERSONS_CSV = "./data/mimesis_data/persons.csv";
 //     std::vector<long double> mins = { 1, 1, 1 };
 //     std::vector<long double> maxes = { 100, 100, 100 };
 //
-//     REQUIRE( reader.get_mins() == mins );
-//     REQUIRE( reader.get_maxes() == maxes );
-//     REQUIRE( reader.get_mean() == means );
-//     REQUIRE( ceil(reader.get_variance()[0]) == 842 );
+//     KRATOS_CHECK( reader.get_mins() == mins );
+//     KRATOS_CHECK( reader.get_maxes() == maxes );
+//     KRATOS_CHECK( reader.get_mean() == means );
+//     KRATOS_CHECK( ceil(reader.get_variance()[0]) == 842 );
 //
 //     // Make sure all integers between 1 and 100 have a count of 1
 //     for (int i = 1; i < 101; i++)
-//         REQUIRE( reader.get_counts()[0][std::to_string(i)] == 1 );
+//         KRATOS_CHECK( reader.get_counts()[0][std::to_string(i)] == 1 );
 //
 //     // Confirm column at pos 0 has 100 integers (type 2)
-//     REQUIRE( reader.get_dtypes()[0][CSV_INT8] == 100 );
+//     KRATOS_CHECK( reader.get_dtypes()[0][CSV_INT8] == 100 );
 // }
 //
-// TEST_CASE( "Statistics - Rows of Integers", "[read_csv_stat]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Statistics - Rows of Integers", "[read_csv_stat]" ) {
 //     // Header on first row
 //     auto file = GENERATE(as<std::string> {},
 //         "./data/fake_data/ints.csv",
@@ -77,27 +77,27 @@ const std::string PERSONS_CSV = "./data/mimesis_data/persons.csv";
 //             50.5, 50.5, 50.5, 50.5, 50.5
 //         };
 //
-//         REQUIRE(reader.get_mean() == means);
-//         REQUIRE(reader.get_mins()[0] == 1);
-//         REQUIRE(reader.get_maxes()[0] == 100);
-//         REQUIRE(ceil(reader.get_variance()[0]) == 842);
+//         KRATOS_CHECK(reader.get_mean() == means);
+//         KRATOS_CHECK(reader.get_mins()[0] == 1);
+//         KRATOS_CHECK(reader.get_maxes()[0] == 100);
+//         KRATOS_CHECK(ceil(reader.get_variance()[0]) == 842);
 //     }
 // }
 //
-// TEST_CASE( "Statistics - persons.csv", "[test_stat_person]" ) {
+// KRATOS_TEST_CASE_IN_SUITE( "Statistics - persons.csv", "[test_stat_person]" ) {
 //     CSVStat reader(PERSONS_CSV);
-//     REQUIRE( ceil(reader.get_mean()[1]) == 42 );
+//     KRATOS_CHECK( ceil(reader.get_mean()[1]) == 42 );
 // }
 //
-// TEST_CASE("Data Types - persons.csv", "test_dtypes_person]") {
+// KRATOS_TEST_CASE_IN_SUITE("Data Types - persons.csv", "test_dtypes_person]") {
 //     auto dtypes = csv_data_types(PERSONS_CSV);
 //
-//     REQUIRE(dtypes["Full Name"] == CSV_STRING);
-//     REQUIRE(dtypes["Age"] == CSV_INT8);
-//     REQUIRE(dtypes["Occupation"] == CSV_STRING);
-//     REQUIRE(dtypes["Email"] == CSV_STRING);
-//     REQUIRE(dtypes["Telephone"] == CSV_STRING);
-//     REQUIRE(dtypes["Nationality"] == CSV_STRING);
+//     KRATOS_CHECK(dtypes["Full Name"] == CSV_STRING);
+//     KRATOS_CHECK(dtypes["Age"] == CSV_INT8);
+//     KRATOS_CHECK(dtypes["Occupation"] == CSV_STRING);
+//     KRATOS_CHECK(dtypes["Email"] == CSV_STRING);
+//     KRATOS_CHECK(dtypes["Telephone"] == CSV_STRING);
+//     KRATOS_CHECK(dtypes["Nationality"] == CSV_STRING);
 // }
 
 } // namespace Testing.

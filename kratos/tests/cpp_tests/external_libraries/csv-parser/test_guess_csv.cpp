@@ -33,25 +33,25 @@ using std::string;
 // //
 // // guess_delim()
 // //
-// TEST_CASE("guess_delim() Test - Pipe", "[test_guess_pipe]") {
+// KRATOS_TEST_CASE_IN_SUITE("guess_delim() Test - Pipe", "[test_guess_pipe]") {
 //     CSVGuessResult format = guess_format(
 //         "./data/real_data/2009PowerStatus.txt");
-//     REQUIRE(format.delim == '|');
-//     REQUIRE(format.header_row == 0);
+//     KRATOS_CHECK(format.delim == '|');
+//     KRATOS_CHECK(format.header_row == 0);
 // }
 //
-// TEST_CASE("guess_delim() Test - Semi-Colon", "[test_guess_scolon]") {
+// KRATOS_TEST_CASE_IN_SUITE("guess_delim() Test - Semi-Colon", "[test_guess_scolon]") {
 //     CSVGuessResult format = guess_format(
 //         "./data/real_data/YEAR07_CBSA_NAC3.txt");
-//     REQUIRE(format.delim == ';');
-//     REQUIRE(format.header_row == 0);
+//     KRATOS_CHECK(format.delim == ';');
+//     KRATOS_CHECK(format.header_row == 0);
 // }
 //
-// TEST_CASE("guess_delim() Test - CSV with Comments", "[test_guess_comment]") {
+// KRATOS_TEST_CASE_IN_SUITE("guess_delim() Test - CSV with Comments", "[test_guess_comment]") {
 //     CSVGuessResult format = guess_format(
 //         "./data/fake_data/ints_comments.csv");
-//     REQUIRE(format.delim == ',');
-//     REQUIRE(format.header_row == 5);
+//     KRATOS_CHECK(format.delim == ',');
+//     KRATOS_CHECK(format.header_row == 5);
 // }
 
 } // namespace Testing.
