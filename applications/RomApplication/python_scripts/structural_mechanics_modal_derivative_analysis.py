@@ -10,7 +10,7 @@ import KratosMultiphysics.RomApplication as RomApplication
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
-from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural as structural_solvers
+from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom as solver_wrapper
 
 import json
 
@@ -21,9 +21,9 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
 
     #### Internal functions ####
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        return structural_solvers.CreateSolver(self.model, self.project_parameters)
+        return solver_wrapper.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
         return "::[Modal Derivative Simulation]:: "
@@ -35,16 +35,18 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         with open('RomParameters.json') as f:
             data = json.load(f)
             eigenvalues = data["eigenvalues"]
-            number_of_eigenvalues = len(eigenvalues)
+            number_of_eigenvalues = data["rom_settings"]["number_of_rom_dofs"]
             kratos_eigenvalues = KratosMultiphysics.Vector(number_of_eigenvalues)
+            for i in range(number_of_eigenvalues):
+                kratos_eigenvalues[i] = eigenvalues[i]
             computing_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = kratos_eigenvalues
             nodal_dofs = len(data["rom_settings"]["nodal_unknowns"])
             nodal_modes = data["nodal_modes"]
             counter = 0
-            initial_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
-            modified_rom_dofs = initial_rom_dofs * ( initial_rom_dofs + 1 )
+            initial_rom_dofs = number_of_eigenvalues
+            extended_rom_dofs = initial_rom_dofs * ( initial_rom_dofs + 1 )
             for node in computing_model_part.Nodes:
-                aux = KratosMultiphysics.Matrix(nodal_dofs, modified_rom_dofs)
+                aux = KratosMultiphysics.Matrix(nodal_dofs, extended_rom_dofs)
                 for i in range(nodal_dofs):
                     Counter=str(node.Id)
                     for j in range(initial_rom_dofs):

@@ -70,12 +70,13 @@ class ModalDerivativeSolver(MechanicalSolver):
         # mass_matrix_diagonal_value = 0.0
         # stiffness_matrix_diagonal_value = 1.0
 
-        print("Setting derivative_type to true in ModalDerivativeSolver python script")
-        self.settings["derivative_type"] = True
+        print("\n Setting derivative_type to \"False\" in ModalDerivativeSolver python script \n")
+        if not self.settings.Has("derivative_type"):
+            self.settings.AddEmptyValue("derivative_type")
+            self.settings["derivative_type"].SetBool(False)
 
-        return KratosMultiphysics.ModalDerivativeStrategy(computing_model_part,
+        return RomApplication.ModalDerivativeStrategy(computing_model_part,
                                                           mechanical_scheme,
-                                                          linear_solver,
                                                           builder_and_solver,
-                                                          self.settings["derivative_type"])
+                                                          self.settings["derivative_type"].GetBool())
     

@@ -109,6 +109,7 @@ public:
     /// Constructor.
     ModalDerivativeScheme() : Scheme<TSparseSpace,TDenseSpace>() 
     {
+        // KRATOS_WATCH("ModalDerivativeScheme::ModalDerivativeScheme")
     }
 
     /// Destructor.
@@ -128,6 +129,7 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
+        // KRATOS_WATCH("ModalDerivativeScheme::Initialize")
         mSchemeIsInitialized = true;
         KRATOS_CATCH("")
     }
@@ -151,6 +153,7 @@ public:
     {
         KRATOS_TRY
 
+        // KRATOS_WATCH("ModalDerivativeScheme::InitializeNonLinIteration")
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Definition of the first element iterator
@@ -196,6 +199,8 @@ public:
     {
         KRATOS_TRY
 
+        // KRATOS_WATCH("ModalDerivativeScheme::InitializeNonLinearIteration Element")
+
         (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -213,6 +218,8 @@ public:
         ) override
     {
         KRATOS_TRY
+
+        // KRATOS_WATCH("ModalDerivativeScheme::InitializeNonLinearIteration Condition")
 
         (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
 
@@ -234,6 +241,8 @@ public:
         ) override
     {
         KRATOS_TRY
+
+        // KRATOS_WATCH("ModalDerivativeScheme::FinalizeNonLinIteration")
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -322,6 +331,8 @@ public:
     {
         KRATOS_TRY
 
+        // KRATOS_WATCH("ModalDerivativeScheme::CalculateSystemContributions")
+
         this->Calculate_LHS_Contribution(pCurrentElement, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
 
         this->Calculate_RHS_Contribution(pCurrentElement, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
@@ -339,6 +350,8 @@ public:
         ) override
     {
         KRATOS_TRY
+
+        // KRATOS_WATCH("ModalDerivativeScheme::Calculate_LHS_Contribution Element")
 
         if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
         {   
@@ -369,13 +382,25 @@ public:
     {
         KRATOS_TRY
 
+        // KRATOS_WATCH("ModalDerivativeScheme::Calculate_RHS_Contribution Element")
+        // KRATOS_WATCH(pCurrentElement->Id())
+        
         Matrix element_LHS_derivative;
         int eigenvalue_i = rCurrentProcessInfo[EIGENVALUE_I];
         int eigenvalue_j = rCurrentProcessInfo[EIGENVALUE_J];
         //const double eigenvalue = rCurrentProcessInfo[EIGENVALUE_VECTOR](eigenvalue_i); // This will be used for dynamic derivatives
 
+        // KRATOS_WATCH(eigenvalue_i)
+        // KRATOS_WATCH(eigenvalue_j)
+
         // Get PhiElemental
         Vector PhiElemental;
+        int num_element_dofs = 0;
+        for (auto& node_i : pCurrentElement->GetGeometry())
+            num_element_dofs += node_i.GetDofs().size();
+        PhiElemental.resize(num_element_dofs);
+        // element_LHS_derivative.resize(num_element_dofs, num_element_dofs);
+        
         unsigned int dof_ctr = 0;
         for (auto& node_i : pCurrentElement->GetGeometry()) {
             auto& node_i_dofs = node_i.GetDofs();
@@ -390,6 +415,11 @@ public:
             dof_ctr += node_i_dofs.size();
         }
 
+        // KRATOS_WATCH(PhiElemental)
+
+        rRHS_Contribution.resize(num_element_dofs);
+        for (int i = 0; i < rRHS_Contribution.size(); i++)
+            rRHS_Contribution[i] = 0.0;
         // Build RHS contributions
         if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
         {   
@@ -397,22 +427,50 @@ public:
             // Loop over element nodes
             for (auto& node_i : pCurrentElement->GetGeometry()) {
                 auto& node_i_dofs = node_i.GetDofs();
+
+                // std::cout << node_i.Id() << "\n =============================== " << std::endl;
                 
                 // Loop over nodal DOFs
                 auto dof_i = node_i_dofs.begin();
                 for (unsigned int dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
-                    dof_i = dof_i + dof_idx;
-
+                    // std::cout << dof_idx << "\n ------------------------------- " << std::endl;
                     const double perturbationMag = node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j);
-                    RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative(*pCurrentElement,
-                                                                        *(*dof_i),
-                                                                        perturbationMag,
-                                                                        element_LHS_derivative,
-                                                                        rCurrentProcessInfo);
+                    if (abs(perturbationMag) > 0.0)
+                    {
+                        RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative(*pCurrentElement,
+                                                                            *(*dof_i),
+                                                                            perturbationMag,
+                                                                            element_LHS_derivative,
+                                                                            rCurrentProcessInfo);
+                        // KRATOS_WATCH(element_LHS_derivative)
 
-                    // element_LHS_derivative = node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j) * element_LHS_derivative;
-                    rRHS_Contribution = prod(element_LHS_derivative, PhiElemental);
-                    
+                        // KRATOS_WATCH(rRHS_Contribution)
+                        if (rRHS_Contribution.size() != element_LHS_derivative.size1()){
+                            rRHS_Contribution.resize(element_LHS_derivative.size1());
+                            for (int i = 0; i < rRHS_Contribution.size(); i++)
+                                rRHS_Contribution[i] = 0.0;
+                        }   
+                        // KRATOS_WATCH(rRHS_Contribution)
+                        if (element_LHS_derivative.size1() != PhiElemental.size()){
+                            // retrieve only relevant dofs from PhiElemental
+                            Vector tmpPhiElemental;
+                            tmpPhiElemental.resize(PhiElemental.size()/2);
+                            for (int iNode = 0; iNode < pCurrentElement->GetGeometry().size(); iNode++){
+                                for (int iXYZ = 0; iXYZ < 3; iXYZ++){
+                                    tmpPhiElemental[iNode*3+iXYZ] = PhiElemental[iNode*6+3+iXYZ];
+                                }                                
+                            }
+                            // KRATOS_WATCH(tmpPhiElemental)
+                            rRHS_Contribution += prod(element_LHS_derivative, tmpPhiElemental);
+                        }
+                        else {
+                            // KRATOS_WATCH(PhiElemental)
+                            rRHS_Contribution += prod(element_LHS_derivative, PhiElemental);
+                        }
+                            
+                        // KRATOS_WATCH(rRHS_Contribution)
+                    }
+                    dof_i++;
                 }
             }
         }
@@ -427,6 +485,10 @@ public:
         }
 
         pCurrentElement->EquationIdVector(EquationId,rCurrentProcessInfo);
+
+        // // HACK for DEBUG
+        // if (pCurrentElement->Id() == 1)
+        //     std::exit(EXIT_FAILURE);
 
         KRATOS_CATCH("")
     }

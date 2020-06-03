@@ -37,7 +37,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         elif (solver_type == "stationary" or solver_type == "Stationary"):
             solver_module_name = "convection_diffusion_stationary_rom_solver"
-            
+        elif solver_type == "modal_derivative" or solver_type == "Modal_Derivative":
+            solver_module_name = "structural_mechanics_modal_derivative_solver"
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"transient\", \"stationary\""

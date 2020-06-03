@@ -40,12 +40,14 @@ public:
 
     static void CalculateLeftHandSideDOFDerivative(Element& rElement,
                                                 Dof<double>& rDof,
-                                                const double& rPertubationSize,
+                                                const double& rPertubationMag,
                                                 Matrix& rOutput,
                                                 ProcessInfo& rCurrentProcessInfo){
 
 
-    KRATOS_TRY;
+        KRATOS_TRY;
+
+        // KRATOS_WATCH("RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative")
 
         KRATOS_WARNING_IF("RomFiniteDifferenceUtility::CalculateLeftHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
             << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
@@ -61,16 +63,25 @@ public:
             rElement.CalculateLocalSystem(LHS, dummy, rCurrentProcessInfo);
             
             // perturb the design variable
-            rDof.GetSolutionStepValue() += rPertubationSize;
-            
+            // KRATOS_WATCH(rDof.GetSolutionStepValue())
+            rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            rDof.GetSolutionStepValue() += rPertubationMag;
+            rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            // KRATOS_WATCH(rDof.GetSolutionStepValue())
+
             // compute LHS after perturbation
             rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
-            
+
             //compute derivative of RHS w.r.t. design variable with finite differences
-            noalias(rOutput) = (LHS_perturbed - LHS) / rPertubationSize;
+            // KRATOS_WATCH(LHS_perturbed - LHS)
+            rOutput = (LHS_perturbed - LHS) / rPertubationMag;
+            // KRATOS_WATCH(rOutput)
             
             // unperturb the design variable
-            rDof.GetSolutionStepValue() -= rPertubationSize;
+            rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            rDof.GetSolutionStepValue() -= rPertubationMag;
+            rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            // KRATOS_WATCH(rDof.GetSolutionStepValue())
 
         }
         KRATOS_CATCH("");
