@@ -224,7 +224,7 @@ namespace csv {
         }
 
         /** Distinguishes numeric from other text values. Used by various
-         *  type casting functions, like csv_parser::CSVReader::read_row()
+         *  type casting functions, like csv-parser::CSVReader::read_row()
          *
          *  #### Rules
          *   - Leading and trailing whitespace ("padding") ignored

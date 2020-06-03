@@ -20,7 +20,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "csv_parser/include/csv.hpp"
+#include "csv-parser/include/csv.hpp"
 
 namespace Kratos {
 
