@@ -417,7 +417,8 @@ namespace Kratos
                                 GetElementalFaceColor(i,j,k)[2] = FaceColor;   // [-x,-y,-z,x,y,z]
                             }
                             else{
-                                KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
+                                GetElementalFaceColor(i,j,k)[2] = -FaceColor;  // Error color is the -FaceColor
+                                KRATOS_WARNING("CartesianMesh") << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
                             }
                         }
                         previous_center_color = next_center_color;
@@ -427,7 +428,8 @@ namespace Kratos
                             GetElementalFaceColor(i,j,size_z-1)[5] = FaceColor;   // [-x,-y,-z,x,y,z]
                         }
                         else{
-                            KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << size_z-1 << "]" << std::endl;
+                            GetElementalFaceColor(i,j,size_z-1)[5] = -FaceColor;   // Error color is the -FaceColor
+                            KRATOS_WARNING("CartesianMesh") << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << size_z-1 << "]" << std::endl;
                         }
                     }
                 }
@@ -451,7 +453,8 @@ namespace Kratos
                                 GetElementalFaceColor(i,j,k)[1] = FaceColor;   // [-x,-y,-z,x,y,z]
                             }
                             else{
-                                KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
+                                GetElementalFaceColor(i,j,k)[1] = -FaceColor;   // Error color is the -FaceColor
+                                KRATOS_WARNING("CartesianMesh") << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
                             }
                         }
                         previous_center_color = next_center_color;
@@ -461,7 +464,8 @@ namespace Kratos
                             GetElementalFaceColor(i, size_y-1,k)[4] = FaceColor;   // [-x,-y,-z,x,y,z]
                         }
                         else{
-                            KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << size_y-1 << "," << k << "]" << std::endl;
+                            GetElementalFaceColor(i, size_y-1,k)[4] = -FaceColor;   // Error color is the -FaceColor
+                            KRATOS_WARNING("CartesianMesh") << "The given interface is not in the interface of the volume for cell [" << i << "," << size_y-1 << "," << k << "]" << std::endl;
                         }
                     }
                 }
@@ -485,6 +489,7 @@ namespace Kratos
                                 GetElementalFaceColor(i,j,k)[0] = FaceColor;   // [-x,-y,-z,x,y,z]
                             }
                             else{
+                                GetElementalFaceColor(i,j,k)[0] = -FaceColor;   // Error color is the -FaceColor
                                 KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
                             }
                         }
@@ -495,6 +500,7 @@ namespace Kratos
                             GetElementalFaceColor(size_x-1,j,k)[3] = FaceColor;   // [-x,-y,-z,x,y,z]
                         }
                         else{
+                            GetElementalFaceColor(size_x-1,j,k)[3] = -FaceColor;   // Error color is the -FaceColor
                             KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << size_x-1 << "," << j << "," << k << "]" << std::endl;
                         }
                     }
