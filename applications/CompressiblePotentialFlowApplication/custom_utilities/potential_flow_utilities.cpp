@@ -118,6 +118,21 @@ array_1d<double, Dim> ComputeVelocity(const Element& rElement)
 }
 
 template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputePerturbedVelocity(
+    const Element& rElement, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++)
+    {
+        velocity[i] += free_stream_velocity[i];
+    }
+
+    return velocity;
+}
+
+template <int Dim, int NumNodes>
 double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -132,6 +147,9 @@ double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
     const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
+    KRATOS_ERROR_IF(free_stream_mach < std::numeric_limits<double>::epsilon())
+        << "ComputeMaximumVelocitySquared: free_stream_mach must be larger than zero." << std::endl;
+
     // make squares of values
     const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
@@ -140,6 +158,9 @@ double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
     const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
     const double denominator = (2.0 + (heat_capacity_ratio - 1) * max_local_mach_squared );
     const double factor = free_stream_velocity_squared * max_local_mach_squared / free_stream_mach_squared;
+
+    KRATOS_ERROR_IF(denominator < std::numeric_limits<double>::epsilon())
+        << "ComputeMaximumVelocitySquared: denominatior must be larger than zero." << std::endl;
 
     return factor * numerator / denominator;
 }
@@ -730,6 +751,7 @@ template array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& r
 template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
+template array_1d<double, 2> ComputePerturbedVelocity<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<2, 3>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
@@ -768,6 +790,7 @@ template array_1d<double, 3> ComputeVelocityNormalElement<3, 4>(const Element& r
 template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
+template array_1d<double, 3> ComputePerturbedVelocity<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<3, 4>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);

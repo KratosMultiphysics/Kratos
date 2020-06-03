@@ -567,16 +567,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     ElementalData<TNumNodes, TDim> data;
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
 
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
-    for (unsigned int i = 0; i < TDim; i++)
-    {
-        velocity[i] += free_stream_velocity[i];
-    }
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+
+    const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
+    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
 
@@ -601,15 +597,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     ElementalData<TNumNodes, TDim> data;
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
-
     // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
-    for (unsigned int i = 0; i < TDim; i++)
-    {
-        velocity[i] += free_stream_velocity[i];
-    }
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
+
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+
+    const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     const BoundedVector<double, TNumNodes> current_rhs = - data.vol * density * prod(data.DN_DX, velocity);
 
@@ -638,16 +631,13 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
     GetWakeDistances(data.distances);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
-
     // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
-    for (unsigned int i = 0; i < TDim; i++)
-    {
-        velocity[i] += free_stream_velocity[i];
-    }
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
+
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+
+    const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
+    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
 
