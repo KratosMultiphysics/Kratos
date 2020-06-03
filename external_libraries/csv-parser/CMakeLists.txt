@@ -29,12 +29,12 @@ add_subdirectory(${CSV_SOURCE_DIR})
 
 ###############################################################
 
-add_library(csv-parser STATIC ${CSV_SOURCE_DIR})
+add_library(csv_parser STATIC ${CSV_SOURCE_DIR})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  target_link_libraries(csv-parser m)
+  target_link_libraries(csv_parser m)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-set(CSV_PARSER_LIBRARIES csv-parser)
+set(CSV_PARSER_LIBRARIES csv_parser)
 
 message(STATUS "csv-parser : ${CSV_INCLUDE_DIR}")
