@@ -508,7 +508,7 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
 
 template <int Dim, int NumNodes>
 double ComputeUpwindFactor(
-        const double localMachNumberSquared, 
+        double localMachNumberSquared, 
         const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -520,8 +520,10 @@ double ComputeUpwindFactor(
     const double critical_mach = rCurrentProcessInfo[CRITICAL_MACH];
     const double upwind_factor_constant = rCurrentProcessInfo[UPWIND_FACTOR_CONSTANT];
 
-    KRATOS_ERROR_IF(localMachNumberSquared < std::numeric_limits<double>::epsilon())
-        << "Error in ComputeUpwindFactor: localMachNumberSquared must be larger than zero." << std::endl;
+    if(localMachNumberSquared < 1e-3){
+        localMachNumberSquared = 1e-3;
+        KRATOS_WARNING("ComputeUpwindFactor") << "localMachNumberSquared is smaller than 1-3 and is being clamped to 1e-3"  <<  std::endl;
+    }
 
     return upwind_factor_constant * (1.0 - std::pow(critical_mach, 2.0) / localMachNumberSquared);
 }
@@ -539,6 +541,7 @@ double SelectMaxUpwindFactor(
     const double upwind_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
 
     array_1d<double, 3> upwind_factor_options(3, 0.0);
+
     upwind_factor_options[1] = ComputeUpwindFactor<Dim, NumNodes>(current_element_mach_squared, rCurrentProcessInfo);
     upwind_factor_options[2] = ComputeUpwindFactor<Dim, NumNodes>(upwind_element_mach_squared, rCurrentProcessInfo);
 
@@ -547,11 +550,18 @@ double SelectMaxUpwindFactor(
 }
 
 template <int Dim, int NumNodes>
-size_t ComputeUpwindFactorCase(const array_1d<double, 3>& rUpwindFactorOptions)
+size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
     //           and the Integral Boundary Layer Equations in Three Dimensions
     //           by Brian Nishida (1996), Equation 2.13
+
+    // a subsonic current element should always return case 0
+    if (rUpwindFactorOptions[1] < 0.0)
+    {
+        rUpwindFactorOptions[1] = 0.0;
+        rUpwindFactorOptions[2] = 0.0;
+    }
     const auto max_upwind_factor_opt = std::max_element(rUpwindFactorOptions.begin(), rUpwindFactorOptions.end());
     
     // Case 0: Subsonic flow
@@ -695,9 +705,9 @@ template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const Proc
 template double ComputeLocalMachNumberSquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindFactor<2,3>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindFactor<2,3>(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 template double SelectMaxUpwindFactor<2, 3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template size_t ComputeUpwindFactorCase<2, 3>(const array_1d<double, 3>& rUpwindFactorOptions);
+template size_t ComputeUpwindFactorCase<2, 3>(array_1d<double, 3>& rUpwindFactorOptions);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -731,9 +741,9 @@ template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const Proc
 template double ComputeLocalMachNumberSquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindFactor<3, 4>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindFactor<3, 4>(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 template double SelectMaxUpwindFactor<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template size_t ComputeUpwindFactorCase<3, 4>(const array_1d<double, 3>& rUpwindFactorOptions);
+template size_t ComputeUpwindFactorCase<3, 4>(array_1d<double, 3>& rUpwindFactorOptions);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
