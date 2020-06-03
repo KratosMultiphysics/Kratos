@@ -1,13 +1,13 @@
 import KratosMultiphysics as KM
 
 import KratosMultiphysics.StructuralMechanicsApplication as KSM
-from KratosMultiphysics.StructuralMechanicsApplication.distribute_force_on_surface_process import DistributeForceOnSurfaceProcess
+from KratosMultiphysics.StructuralMechanicsApplication.distribute_load_on_surface_process import Factory
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
-class TestDistributeForceOnSurfaceProcess(KratosUnittest.TestCase):
+class TestDistributeLoadOnSurfaceProcess(KratosUnittest.TestCase):
 
-    def test_force_on_surface_distribution(self):
+    def test_load_on_surface_distribution(self):
         """distribute on 2 triangles and 1 quad with a total area of 2.0."""
 
         current_model = KM.Model()
@@ -29,11 +29,13 @@ class TestDistributeForceOnSurfaceProcess(KratosUnittest.TestCase):
         cond3 = mp.CreateNewCondition("SurfaceLoadCondition3D4N", 3, [2,6,5,3], prop)
 
         settings = KM.Parameters("""{
-            "model_part_name": "main",
-            "force": [1.0, 2.0, 3.0]
+            "Parameters" : {
+                "model_part_name": "main",
+                "load": [1.0, 2.0, 3.0]
+            }
         }""")
 
-        process = DistributeForceOnSurfaceProcess(current_model, settings)
+        process = Factory(settings, current_model)
 
         process.ExecuteInitialize()
         process.ExecuteBeforeSolutionLoop()

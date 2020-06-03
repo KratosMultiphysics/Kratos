@@ -22,7 +22,7 @@ from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
 from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia as TTestComputeMassMomentOfInertia
 from test_axis_projection import TestAxisProjection as TTestAxisProjection
-from test_distribute_force_on_surface_process import TestDistributeForceOnSurfaceProcess as TTestDistributeForceOnSurfaceProcess
+from test_distribute_load_on_surface_process import TestDistributeLoadOnSurfaceProcess as TTestDistributeLoadOnSurfaceProcess
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
@@ -287,7 +287,7 @@ def AssembleTestSuites():
     # Axis projection tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAxisProjection]))
     # Force distribution process
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDistributeForceOnSurfaceProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDistributeLoadOnSurfaceProcess]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
