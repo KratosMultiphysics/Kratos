@@ -307,9 +307,9 @@ KRATOS_TEST_CASE_IN_SUITE(CommentsinHeaderRegression, KratosExternalLibrariesFas
     };
 
     // Original issue: Leading comments appeared in column names
-    // Original issue: Leading comments appeared in column names
+    const std::vector<std::string>& r_solution = reader.get_col_names();
     for (std::size_t i = 0; i < 4; ++i) {
-        KRATOS_CHECK_STRING_EQUAL(expected[i], StringUtilities::RemoveWhiteSpaces(reader.get_col_names()[i]));
+        KRATOS_CHECK_STRING_EQUAL(expected[i], StringUtilities::RemoveWhiteSpaces(r_solution[i]));
     }
 }
 
