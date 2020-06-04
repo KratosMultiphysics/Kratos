@@ -542,50 +542,36 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
     noalias(delta_target_stress) = r_next_target_stress-mReactionStress;
     Vector velocity_estimated(number_of_actuators);
 
-    if (mMultiAxial == true) {
-        Matrix k_inverse(number_of_actuators,number_of_actuators);
-        double k_det = 0.0;
-        MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
-        const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness, 
-                                                        k_inverse, std::numeric_limits<double>::epsilon(),
-                                                        false);
-        const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
+    Matrix k_inverse(number_of_actuators,number_of_actuators);
+    double k_det = 0.0;
+    MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
+    const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness, 
+                                                    k_inverse, std::numeric_limits<double>::epsilon(),
+                                                    false);
+    const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
 
-        Vector velocity_perturbation(number_of_actuators);
-        noalias(velocity_perturbation) = GetPerturbations(mVelocity,r_current_time);
-        if (is_k_invertible == false || std::isnan(k_condition_number)) {
-            noalias(velocity_estimated) = mVelocity + velocity_perturbation;
-            std::cout << "Stiffness matrix is not invertible. Keeping loading velocity constant" << std::endl;            
-        } else {
-            noalias(velocity_estimated) = prod(k_inverse,delta_target_stress)/mCMDeltaTime;
-        }
-
-        double norm_stiffness = 0.0;
-        for(unsigned int i = 0; i < mStiffness.size1(); i++) {
-            norm_stiffness += mStiffness(i,i)*mStiffness(i,i);
-        }
-        norm_stiffness = std::sqrt(norm_stiffness);
-        const double max_allowed_velocity = mMaxReactionCorrectionFraction * mCharacteristicReactionVariationRate / norm_stiffness;
-        const double norm_velocity = norm_2(velocity_estimated);
-        if (norm_velocity > max_allowed_velocity) {
-            for (unsigned int i = 0; i < velocity_estimated.size(); i++) {
-                velocity_estimated[i] = max_allowed_velocity/norm_velocity * velocity_estimated[i];
-            }
-        }
-        noalias(mVelocity) = (1.0 - mVelocityAlpha) * velocity_estimated + mVelocityAlpha * mVelocity;
+    Vector velocity_perturbation(number_of_actuators);
+    noalias(velocity_perturbation) = GetPerturbations(mVelocity,r_current_time);
+    if (is_k_invertible == false || std::isnan(k_condition_number)) {
+        noalias(velocity_estimated) = mVelocity + velocity_perturbation;
+        std::cout << "Stiffness matrix is not invertible. Keeping loading velocity constant" << std::endl;            
     } else {
+        noalias(velocity_estimated) = prod(k_inverse,delta_target_stress)/mCMDeltaTime;
+    }
 
-        for (unsigned int i = 0; i < mVelocity.size(); i++) {
-            mVelocity[i] = delta_target_stress[i]/(mStiffness(i,i)*mCMDeltaTime);
-        }
-
-        for (unsigned int i = 0; i < mVelocity.size(); i++) {
-            const double max_allowed_velocity = mMaxReactionCorrectionFraction * mCharacteristicReactionVariationRate / std::abs(mStiffness(i,i));
-            if (std::abs(mVelocity[i]) > max_allowed_velocity) {
-                mVelocity[i] = max_allowed_velocity/std::abs(mVelocity[i]) * mVelocity[i];
-            }
+    double norm_stiffness = 0.0;
+    for(unsigned int i = 0; i < mStiffness.size1(); i++) {
+        norm_stiffness += mStiffness(i,i)*mStiffness(i,i);
+    }
+    norm_stiffness = std::sqrt(norm_stiffness);
+    const double max_allowed_velocity = mMaxReactionCorrectionFraction * mCharacteristicReactionVariationRate / norm_stiffness;
+    const double norm_velocity = norm_2(velocity_estimated);
+    if (norm_velocity > max_allowed_velocity) {
+        for (unsigned int i = 0; i < velocity_estimated.size(); i++) {
+            velocity_estimated[i] = max_allowed_velocity/norm_velocity * velocity_estimated[i];
         }
     }
+    noalias(mVelocity) = (1.0 - mVelocityAlpha) * velocity_estimated + mVelocityAlpha * mVelocity;
 }
 
 void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const Vector& r_next_target_stress, const double& r_current_time) {
@@ -654,33 +640,21 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
 
 //     Matrix k_estimated(number_of_actuators,number_of_actuators);
 
-//     if (mMultiAxial == true) {
-//         if (mCMStep > number_of_actuators-1) {
-//             Matrix delta_displacement_inverse(number_of_actuators,number_of_actuators);
-//             double delta_displacement_det = 0.0;
-//             MathUtils<double>::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
-//             // TODO: check tolerance in CheckConditionNumber
-//             const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement, 
-//                                                             delta_displacement_inverse, 1.0e-10, 
-//                                                             false);
-//             const double delta_displacement_condition_number = GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
+//     if (mCMStep > number_of_actuators-1) {
+//         Matrix delta_displacement_inverse(number_of_actuators,number_of_actuators);
+//         double delta_displacement_det = 0.0;
+//         MathUtils<double>::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
+//         // TODO: check tolerance in CheckConditionNumber
+//         const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement, 
+//                                                         delta_displacement_inverse, 1.0e-10, 
+//                                                         false);
+//         const double delta_displacement_condition_number = GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
 
-//             if (is_delta_displacement_invertible == false || std::isnan(delta_displacement_condition_number) ) {
-//                 noalias(k_estimated) = mStiffness;
-//                 std::cout << "Delta displacement matrix is not invertible. Keeping stiffness matrix constant" << std::endl;
-//             } else {
-//                 noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
-//             }
-//             noalias(mStiffness) = (1.0 - mStiffnessAlpha) * k_estimated + mStiffnessAlpha * mStiffness;
-//         }
-//     } else {
-//         noalias(k_estimated) = ZeroMatrix(number_of_actuators,number_of_actuators);
-//         for (unsigned int i = 0; i < number_of_actuators; i++) {
-//             if (std::abs(mDeltaDisplacement(i,mActuatorCounter)) < 1.0e-10) {
-//                 k_estimated(i,i) = mStiffness(i,i);
-//             } else {
-//                 k_estimated(i,i) = std::abs(mDeltaReactionStress(i,mActuatorCounter)/mDeltaDisplacement(i,mActuatorCounter));
-//             }
+//         if (is_delta_displacement_invertible == false || std::isnan(delta_displacement_condition_number) ) {
+//             noalias(k_estimated) = mStiffness;
+//             std::cout << "Delta displacement matrix is not invertible. Keeping stiffness matrix constant" << std::endl;
+//         } else {
+//             noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
 //         }
 //         noalias(mStiffness) = (1.0 - mStiffnessAlpha) * k_estimated + mStiffnessAlpha * mStiffness;
 //     }
@@ -714,33 +688,21 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
 
     Matrix k_estimated(number_of_actuators,number_of_actuators);
 
-    if (mMultiAxial == true) {
-        if (mKStep > number_of_actuators-1) {
-            Matrix delta_displacement_inverse(number_of_actuators,number_of_actuators);
-            double delta_displacement_det = 0.0;
-            MathUtils<double>::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
-            // TODO: check tolerance in CheckConditionNumber
-            const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement, 
-                                                            delta_displacement_inverse, 1.0e-10, 
-                                                            false);
-            const double delta_displacement_condition_number = GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
+    if (mKStep > number_of_actuators-1) {
+        Matrix delta_displacement_inverse(number_of_actuators,number_of_actuators);
+        double delta_displacement_det = 0.0;
+        MathUtils<double>::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
+        // TODO: check tolerance in CheckConditionNumber
+        const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement, 
+                                                        delta_displacement_inverse, 1.0e-10, 
+                                                        false);
+        const double delta_displacement_condition_number = GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
 
-            if (is_delta_displacement_invertible == false || std::isnan(delta_displacement_condition_number) ) {
-                noalias(k_estimated) = mStiffness;
-                std::cout << "Delta displacement matrix is not invertible. Keeping stiffness matrix constant" << std::endl;
-            } else {
-                noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
-            }
-            noalias(mStiffness) = (1.0 - mStiffnessAlpha) * k_estimated + mStiffnessAlpha * mStiffness;
-        }
-    } else {
-        noalias(k_estimated) = ZeroMatrix(number_of_actuators,number_of_actuators);
-        for (unsigned int i = 0; i < number_of_actuators; i++) {
-            if (std::abs(mDeltaDisplacement(i,mActuatorCounter)) < 1.0e-10) {
-                k_estimated(i,i) = mStiffness(i,i);
-            } else {
-                k_estimated(i,i) = std::abs(mDeltaReactionStress(i,mActuatorCounter)/mDeltaDisplacement(i,mActuatorCounter));
-            }
+        if (is_delta_displacement_invertible == false || std::isnan(delta_displacement_condition_number) ) {
+            noalias(k_estimated) = mStiffness;
+            std::cout << "Delta displacement matrix is not invertible. Keeping stiffness matrix constant" << std::endl;
+        } else {
+            noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
         }
         noalias(mStiffness) = (1.0 - mStiffnessAlpha) * k_estimated + mStiffnessAlpha * mStiffness;
     }

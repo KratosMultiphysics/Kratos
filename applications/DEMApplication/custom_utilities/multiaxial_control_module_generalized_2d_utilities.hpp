@@ -74,7 +74,6 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         {
             "Parameters"    : {
                 "control_module_delta_time": 1.0e-5,
-                "multi_axial": true,
                 "perturbation_tolerance": 1.0e-2,
                 "perturbation_period": 10,
                 "max_reaction_rate_factor": 2.0,
@@ -100,7 +99,6 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     mActuatorCounter = 0;
     mPerturbationTolerance = rParameters["Parameters"]["perturbation_tolerance"].GetDouble();
     mPerturbationPeriod = rParameters["Parameters"]["perturbation_period"].GetInt();
-    mMultiAxial = rParameters["Parameters"]["multi_axial"].GetBool();
     mMaxReactionCorrectionFraction = rParameters["Parameters"]["max_reaction_rate_factor"].GetDouble();
     mStiffnessAlpha = 1.0 - mCMDeltaTime / rParameters["Parameters"]["stiffness_averaging_time_interval"].GetDouble();
     mVelocityAlpha = 1.0 - mCMDeltaTime / rParameters["Parameters"]["velocity_averaging_time_interval"].GetDouble();
@@ -250,7 +248,6 @@ protected:
     unsigned int mCMStep;
     unsigned int mKStep;
     unsigned int mActuatorCounter;
-    bool mMultiAxial;
     double mPerturbationTolerance;
     unsigned int mPerturbationPeriod;
     double mMaxReactionCorrectionFraction;
