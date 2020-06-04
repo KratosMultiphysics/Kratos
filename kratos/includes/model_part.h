@@ -107,6 +107,7 @@ public:
 
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofsVectorType;
+    typedef Variable<double> DoubleVariableType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
@@ -730,9 +731,9 @@ public:
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
                                                                                     IndexType Id,
                                                                                     NodeType& rMasterNode,
-                                                                                    const Variable<double>& rMasterVariable,
+                                                                                    const DoubleVariableType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
-                                                                                    const Variable<double>& rSlaveVariable,
+                                                                                    const DoubleVariableType& rSlaveVariable,
                                                                                     const double Weight,
                                                                                     const double Constant,
                                                                                     IndexType ThisIndex = 0);
