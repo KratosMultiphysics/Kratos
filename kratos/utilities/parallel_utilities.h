@@ -93,7 +93,7 @@ public:
         {
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it)
             {
-                f(*it); //note that we pass a reference to the function, not the iterator
+                f(*it); //note that we pass the value to the function, not the iterator
             }
         }
     }
