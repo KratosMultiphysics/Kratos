@@ -125,8 +125,6 @@ public:
     {
         KRATOS_TRY
 
-        // KRATOS_WATCH("ModalDerivativeStrategy::ModalDerivativeStrategy")
-
         // assign the scheme
         mpScheme = pScheme;
 
@@ -186,8 +184,6 @@ public:
     {
         KRATOS_TRY
 
-        // KRATOS_WATCH("ModalDerivativeStrategy::Initialize")
-
         ModelPart& r_model_part = BaseType::GetModelPart();
         const int rank = r_model_part.GetCommunicator().MyPID();
 
@@ -222,8 +218,6 @@ public:
     void Clear() override
     {
         KRATOS_TRY;
-
-        // KRATOS_WATCH("ModalDerivativeStrategy::Clear")
 
         // if the preconditioner is saved between solves, it
         // should be cleared here.
@@ -262,8 +256,6 @@ public:
     {
         KRATOS_TRY
 
-        // KRATOS_WATCH("ModalDerivativeStrategy::InitializeSolutionStep")
-
         if (mSolutionStepIsInitialized == false)
         {
             //pointers needed in the solution
@@ -296,15 +288,10 @@ public:
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  BaseType::GetModelPart());
 
-                // KRATOS_WATCH("ModalDerivativeStrategy::InitializeSolutionStep 1")
-                // KRATOS_WATCH(mpA->size1())
                 //setting up initial SolutionStepValue
                 TSparseSpace::Resize(*mpInitialVariables, mpA->size1());
-                // KRATOS_WATCH("ModalDerivativeStrategy::InitializeSolutionStep 2")
                 TSparseSpace::SetToZero(*mpInitialVariables);
-                // KRATOS_WATCH("ModalDerivativeStrategy::InitializeSolutionStep 3")
                 this->StoreVariables();
-                // KRATOS_WATCH("ModalDerivativeStrategy::InitializeSolutionStep 4")
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
 
@@ -337,8 +324,6 @@ public:
     void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
-
-        // KRATOS_WATCH("ModalDerivativeStrategy::FinalizeSolutionStep")
 
         const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
         KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
@@ -377,7 +362,6 @@ public:
     {
         KRATOS_TRY
 
-        // KRATOS_WATCH("ModalDerivativeStrategy::SolveSolutionStep")
         // Implementation of this function considers only the static derivatives
 
         ModelPart& r_model_part = BaseType::GetModelPart();
@@ -392,20 +376,16 @@ public:
         const std::size_t num_eigenvalues = r_eigenvalues.size();
 
         // if static derivatives then build the stiffness matrix only once
-        // KRATOS_WATCH(mDerivativeType)
         if (!mDerivativeType)
         {
             // Build stiffness matrix contribution
-            // KRATOS_WATCH("ModalDerivativeStrategy::SolveSolutionStep 1")
             r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
-            // KRATOS_WATCH("ModalDerivativeStrategy::SolveSolutionStep 2")
             this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rA);
         } else
         {
             KRATOS_ERROR <<"Invalid DerivativeType" << std::endl;
         }
         
-        // KRATOS_WATCH("ModalDerivativeStrategy::SolveSolutionStep 4")
         unsigned int basis_j_start_index;
         for (unsigned int basis_i = 0; basis_i < num_eigenvalues; basis_i++)
         {
@@ -483,7 +463,6 @@ public:
     {
         KRATOS_TRY
 
-        // KRATOS_WATCH("ModalDerivativeStrategy::StoreVariables")
         DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
         for (auto dof : r_dof_set)
         {
@@ -503,7 +482,6 @@ public:
     void ResetVariables()
     {
         KRATOS_TRY
-        // KRATOS_WATCH("ModalDerivativeStrategy::ResetVariables")
         DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
         for (auto dof : r_dof_set)
         {
@@ -520,9 +498,6 @@ public:
 
         const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
 
-        // Get eigenvalues vector
-        LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
-        
         std::size_t derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
         
         for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++) {
@@ -531,15 +506,15 @@ public:
             Matrix& rRomBasis = itNode->GetValue(ROM_BASIS);
 
             // fill the ROM_BASIS
-            for (std::size_t j = 0; j < NumNodeDofs; j++)
+            for (std::size_t iDOF = 0; iDOF < NumNodeDofs; iDOF++)
             {
-                const auto itDof = std::begin(NodeDofs) + j;
+                const auto itDof = std::begin(NodeDofs) + iDOF;
                 bool is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
                 if ((*itDof)->IsFree() && is_active) {
-                   rRomBasis(j,derivative_index) = rDx((*itDof)->EquationId());
+                   rRomBasis(iDOF,derivative_index) = rDx((*itDof)->EquationId());
                 }
                 else {
-                   rRomBasis(j,derivative_index) = 0.0;
+                   rRomBasis(iDOF,derivative_index) = 0.0;
                 }
             }            
         }
@@ -584,8 +559,6 @@ public:
     int Check() override
     {
         KRATOS_TRY
-
-        // KRATOS_WATCH("ModalDerivativeStrategy::Check")
 
         ModelPart& r_model_part = BaseType::GetModelPart();
         const int rank = r_model_part.GetCommunicator().MyPID();

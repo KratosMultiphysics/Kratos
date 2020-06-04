@@ -42,7 +42,7 @@ public:
                                                 Dof<double>& rDof,
                                                 const double& rPertubationMag,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo){
+                                                const ProcessInfo& rCurrentProcessInfo){
 
 
         KRATOS_TRY;
@@ -62,35 +62,27 @@ public:
             // compute LHS before perturbation
             rElement.CalculateLocalSystem(LHS, dummy, rCurrentProcessInfo);
             
-            // perturb the design variable
-            // KRATOS_WATCH(rDof.GetSolutionStepValue())
+            // perturb the design variable and update the element internal values (especially necessary for shell elements with corotational frame)
             rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
             rDof.GetSolutionStepValue() += rPertubationMag;
             rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
-            // KRATOS_WATCH(rDof.GetSolutionStepValue())
 
             // compute LHS after perturbation
             rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
 
             //compute derivative of RHS w.r.t. design variable with finite differences
-            // KRATOS_WATCH(LHS_perturbed - LHS)
             rOutput = (LHS_perturbed - LHS) / rPertubationMag;
-            // KRATOS_WATCH(rOutput)
             
-            // unperturb the design variable
+            // unperturb the design variable and update the element internal values (especially necessary for shell elements with corotational frame)
             rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
             rDof.GetSolutionStepValue() -= rPertubationMag;
             rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
-            // KRATOS_WATCH(rDof.GetSolutionStepValue())
-
+            
         }
         KRATOS_CATCH("");
     }
 
-
 }; // class RomFiniteDifferenceUtility.
-
-
 
 }  // namespace Kratos.
 

@@ -41,6 +41,14 @@ class ModalDerivativeSolver(MechanicalSolver):
         super(ModalDerivativeSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ModalDerivativeSolver]:: ", "Construction finished")
 
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "scheme_type"         : "static"
+        }""")
+        this_defaults.AddMissingParameters(super(ModalDerivativeSolver, cls).GetDefaultSettings())
+        return this_defaults
+
     def _create_solution_scheme(self):
         return RomApplication.ModalDerivativeScheme()
 
@@ -60,23 +68,19 @@ class ModalDerivativeSolver(MechanicalSolver):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self.get_solution_scheme()
         builder_and_solver = self.get_builder_and_solver()
-        linear_solver = self.get_linear_solver()
-
-        # TODO: I need to check if this is necessary
-        # reform_dof_set_at_each_step = False
-        # move_mesh_flag = False
         
-        
-        # mass_matrix_diagonal_value = 0.0
-        # stiffness_matrix_diagonal_value = 1.0
-
-        print("\n Setting derivative_type to \"False\" in ModalDerivativeSolver python script \n")
-        if not self.settings.Has("derivative_type"):
-            self.settings.AddEmptyValue("derivative_type")
-            self.settings["derivative_type"].SetBool(False)
+        scheme_type = None
+        if self.settings["scheme_type"].GetString() == "static":
+            scheme_type = False
+        elif self.settings["scheme_type"].GetString() == "dynamic":
+            scheme_type = True
+        else:
+            err_msg  = '\"scheme_type\" can only be \"static\" or \"dynamic\"'
+            err_msg += str(scheme_type)
+            raise Exception(err_msg)
 
         return RomApplication.ModalDerivativeStrategy(computing_model_part,
                                                           mechanical_scheme,
                                                           builder_and_solver,
-                                                          self.settings["derivative_type"].GetBool())
+                                                          scheme_type)
     

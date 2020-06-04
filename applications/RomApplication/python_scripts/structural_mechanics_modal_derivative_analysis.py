@@ -44,7 +44,16 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             nodal_modes = data["nodal_modes"]
             counter = 0
             initial_rom_dofs = number_of_eigenvalues
-            extended_rom_dofs = initial_rom_dofs * ( initial_rom_dofs + 1 )
+            extended_rom_dofs = None
+            scheme_type = self.project_parameters["solver_settings"]["scheme_type"].GetString()
+            if scheme_type == "static":
+                extended_rom_dofs = int(initial_rom_dofs + initial_rom_dofs * ( initial_rom_dofs + 1 ) / 2)
+            elif scheme_type == "dynamic":
+                extended_rom_dofs = int(initial_rom_dofs * ( initial_rom_dofs + 1 ))
+            else:
+                err_msg  = '\"scheme_type\" can only be \"static\" or \"dynamic\"'
+                raise Exception(err_msg)
+
             for node in computing_model_part.Nodes:
                 aux = KratosMultiphysics.Matrix(nodal_dofs, extended_rom_dofs)
                 for i in range(nodal_dofs):
