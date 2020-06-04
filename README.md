@@ -89,6 +89,7 @@ In Kratos Core:
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
 - [filesystem](https://github.com/gulrak/filesystem) Header-only single-file std::filesystem compatible helper library, based on the C++17 specs
+- [csv-parser](https://github.com/vincentlaucsb/csv-parser) Inspired by Python's csv module, a CSV parser library with simple, intuitive syntax
 - [ZLib](https://zlib.net/) The compression library
 
 In applications
