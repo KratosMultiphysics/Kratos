@@ -33,6 +33,13 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('test_tau_functions/Outputs')
         os.rmdir('test_tau_functions/Mesh')
 
+    def test_CalculateCellNormal(self):
+        # Define test file
+        test_file = 'test_CalculateCellNormal.py'
+
+        # Run test
+        self.execute_test(test_file)
+
     def test_FindInitialMeshFilename(self):
         # Define test file
         test_file = 'test_FindInitialMeshFilename.py'
