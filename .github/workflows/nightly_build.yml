@@ -23,6 +23,7 @@ jobs:
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      options: --user 1001
 
     steps:
     - uses: actions/checkout@v2
@@ -65,6 +66,11 @@ jobs:
       with:
         python-version: '3.6'
 
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+      
     - name: Build
       shell: cmd
       run: |
