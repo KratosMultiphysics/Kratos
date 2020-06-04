@@ -1,20 +1,29 @@
 # -*- coding: utf-8 -*-
 import re, glob, subprocess, time, os, warnings, json
 import numpy as np
-import tau_python
-from tau_python import tau_msg
-from tau_python import tau_solver_unsteady_get_physical_time
-import PyPara, PySurfDeflect
+try:
+    import tau_python
+    from tau_python import tau_msg
+    import PyPara, PySurfDeflect
+    tau_available = True
+except:
+    tau_available = False
+    warnings.warn('tau modules not available')
+
 from scipy.io import netcdf
 
-with open('tau_settings.json') as json_file:
-    tau_settings = json.load(json_file)
+try:
+    with open('tau_settings.json') as json_file:
+        tau_settings = json.load(json_file)
 
-start_step = tau_settings["start_step"]
-tau_path = tau_settings["tau_path"]
+    start_step = tau_settings["start_step"]
+    tau_path = tau_settings["tau_path"]
+    echo_level = tau_settings["echo_level"]
+    rotate = tau_settings["rotate"]
+except:
+    warnings.warn('tau_settings.json not found')
+
 working_path = os.getcwd() + '/'
-echo_level = tau_settings["echo_level"]
-rotate = tau_settings["rotate"]
 
 # Remove output files and deform mesh files from previous simulations
 def RemoveFilesFromPreviousSimulations():
