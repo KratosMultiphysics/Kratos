@@ -16,6 +16,7 @@ from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
 from test_processes import TestCreatePointBasedEntitiesProcess
 from test_co_sim_io_py_exposure import TestCoSimIOPyExposure
+from test_co_sim_io_py_exposure import TestCoSimIOPyExposure_aux_tests
 
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
@@ -61,6 +62,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverGetSolver]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure_aux_tests]))
     if not using_pykratos and numpy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
