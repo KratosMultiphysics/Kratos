@@ -230,24 +230,27 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    std::cout<<"ComputeModelPartVolume "<<std::endl;
     const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
     double ModelPartVolume = 0;
     if( dimension == 2 ){
-
       for(auto& i_elem : rModelPart.Elements())
       {
-        if( i_elem.GetGeometry().Dimension() == 2 )
+        if( i_elem.GetGeometry().size() == 3 ){
           ModelPartVolume += i_elem.GetGeometry().Area();
+        }
       }
     }
     else{ //dimension == 3
-
       for(auto& i_elem : rModelPart.Elements())
 	{
-	  if( i_elem.GetGeometry().Dimension() == 3 )
+	  if( i_elem.GetGeometry().size() == 4 ){
 	    ModelPartVolume += i_elem.GetGeometry().Volume();
+    }
 	}
      }
+
+    std::cout<<" ModelPartVolume "<<ModelPartVolume<<std::endl;
 
     return ModelPartVolume;
 
