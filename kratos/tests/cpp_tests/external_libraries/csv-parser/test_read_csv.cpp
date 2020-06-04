@@ -266,25 +266,6 @@ bar-category,,bar-project
     KRATOS_CHECK_EQUAL(second_row["project name"], "bar-project");
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(TestParsingCSVwithDummyColumn, KratosExternalLibrariesFastSuite)
-// {
-//     std::string csv_string(R"(A,B,C,123,345,678,)");
-//
-//     auto format = csv::CSVFormat();
-//     csv::CSVReader reader(format);
-//     reader.feed(csv_string);
-//     reader.end_feed();
-//
-//     CSVRow first_row;
-//
-//     KRATOS_CHECK_EQUAL(reader.get_col_names(), std::vector<std::string>({"A","B","C",""}));
-//
-//     reader.read_row(first_row);
-//     KRATOS_CHECK_EQUAL(std::vector<std::string>(first_row), std::vector<std::string>({
-//         "123", "345", "678", ""
-//     }));
-// }
-
 // Reported in: https://github.com/vincentlaucsb/csv-parser/issues/67
 KRATOS_TEST_CASE_IN_SUITE(CommentsinHeaderRegression, KratosExternalLibrariesFastSuite)
 {
