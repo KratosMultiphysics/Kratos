@@ -17,6 +17,7 @@ from test_mok_fsi import TestMokFSI
 from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
 from test_co_sim_io_dummy_solvers import TestCoSimIODummySolvers
+from test_tau_functions import TestTauFunctions
 
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
@@ -50,8 +51,9 @@ def AssembleTestSuites():
     '''
     suites = KratosUnittest.KratosSuites
     ################################################################################
-    # smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGenericCallFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTauFunctions]))
     # if numpy_available:
     #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
     #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
@@ -79,8 +81,8 @@ def AssembleTestSuites():
 
     ################################################################################
     # For very long tests that should not be in nighly and you can use to validate
-    validationSuite = suites['validation']
-    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
+    # validationSuite = suites['validation']
+    # validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
     # validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
     # if not using_pykratos and numpy_available:
     #     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
@@ -89,8 +91,8 @@ def AssembleTestSuites():
     ################################################################################
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    # allSuite.addTests(nightSuite) # already contains the smallSuite
-    allSuite.addTests(validationSuite)
+    allSuite.addTests(smallSuite) # already contains the smallSuite
+    # allSuite.addTests(validationSuite)
 
     return suites
 
