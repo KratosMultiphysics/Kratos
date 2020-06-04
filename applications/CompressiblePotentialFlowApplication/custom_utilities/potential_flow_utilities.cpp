@@ -562,6 +562,7 @@ double SelectMaxUpwindFactor(
     const double upwind_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
 
     array_1d<double, 3> upwind_factor_options(3, 0.0);
+
     upwind_factor_options[1] = ComputeUpwindFactor<Dim, NumNodes>(current_element_mach_squared, rCurrentProcessInfo);
     upwind_factor_options[2] = ComputeUpwindFactor<Dim, NumNodes>(upwind_element_mach_squared, rCurrentProcessInfo);
 
