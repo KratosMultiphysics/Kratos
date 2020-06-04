@@ -92,7 +92,7 @@ namespace ProjectionNurbsGeometryUtilities
             // Check if the increment is too small and if yes return true
             if (norm_2(delta_t*derivatives[1]) < Accuracy)
                 return true;
-            KRATOS_WATCH(rParameterLocalCoordinates);
+
             // Check if the parameter gets out of its interval of definition and if so clamp it 
             // back to the boundaries
             int check = rGeometry.SetInsideLocalSpace(rParameterLocalCoordinates);

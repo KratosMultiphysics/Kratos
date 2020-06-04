@@ -300,7 +300,7 @@ public:
      */
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        IntegrationInfo& rIntegrationInfo = IntegrationInfo()) const override
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const SizeType points_per_span = (rIntegrationInfo.NumberOfIntegrationPointsPerSpan() != 0)
             ? rIntegrationInfo.NumberOfIntegrationPointsPerSpan()

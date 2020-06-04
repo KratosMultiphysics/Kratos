@@ -299,7 +299,7 @@ public:
      */
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        IntegrationInfo& rIntegrationInfo = IntegrationInfo()) const override
+        IntegrationInfo& rIntegrationInfo) const override
     {
         mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
@@ -323,7 +323,7 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        IntegrationInfo& rIntegrationInfo = IntegrationInfo()) override
+        IntegrationInfo& rIntegrationInfo) override
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);

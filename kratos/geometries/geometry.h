@@ -1987,7 +1987,7 @@ public:
      */
     virtual void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        IntegrationInfo& rIntegrationInfo = IntegrationInfo()) const
+        IntegrationInfo& rIntegrationInfo) const
     {
         if (rIntegrationInfo.GetIntegrationMethod() == IntegrationMethod::NumberOfIntegrationMethods) {
             rIntegrationPoints = IntegrationPoints(mpGeometryData->DefaultIntegrationMethod());
@@ -2034,7 +2034,7 @@ public:
     virtual void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        IntegrationInfo& rIntegrationInfo = IntegrationInfo())
+        IntegrationInfo& rIntegrationInfo)
     {
         IntegrationPointsArrayType IntegrationPoints;
         CreateIntegrationPoints(IntegrationPoints, rIntegrationInfo);

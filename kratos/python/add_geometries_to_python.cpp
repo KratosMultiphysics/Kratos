@@ -92,7 +92,7 @@ namespace Python
         IndexType NumberOfShapeFunctionDerivatives)
     {
         return(dummy.CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives));
+            rResultGeometries, NumberOfShapeFunctionDerivatives, IntegrationInfo()));
     }
 
     array_1d<double,3> GetNormal(

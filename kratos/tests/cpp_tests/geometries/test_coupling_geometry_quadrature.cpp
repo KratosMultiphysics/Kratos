@@ -168,7 +168,7 @@ namespace Testing {
         std::cout << std::endl;
 
         typename GeometryType::IntegrationPointsArrayType integration_points;
-        p_coupling_geometry->CreateIntegrationPoints(integration_points);
+        p_coupling_geometry->CreateIntegrationPoints(integration_points, IntegrationInfo());
 
 
         // 2 span intersections and each time (p=1) + 1 = 2 integration points.
@@ -186,7 +186,7 @@ namespace Testing {
         auto p_coupling_geometry = GenerateNurbsCurveCouplingGeometry();
 
         typename GeometryType::GeometriesArrayType quadrature_points;
-        p_coupling_geometry->CreateQuadraturePointGeometries(quadrature_points, 2);
+        p_coupling_geometry->CreateQuadraturePointGeometries(quadrature_points, 2, IntegrationInfo());
 
         // 2 span intersections and each time (p=1) + 1 integration point.
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 4);
@@ -205,7 +205,7 @@ namespace Testing {
         auto p_coupling_geometry = GenerateNurbsCurveOnSurfaceCouplingGeometry();
 
         typename GeometryType::IntegrationPointsArrayType integration_points;
-        p_coupling_geometry->CreateIntegrationPoints(integration_points);
+        p_coupling_geometry->CreateIntegrationPoints(integration_points, IntegrationInfo());
 
         // 2 span intersections and each time (p=1) + 1 integration point.
         KRATOS_CHECK_EQUAL(integration_points.size(), 6);
@@ -222,7 +222,7 @@ namespace Testing {
         auto p_coupling_geometry = GenerateNurbsCurveOnSurfaceCouplingGeometry();
 
         typename GeometryType::GeometriesArrayType quadrature_points;
-        p_coupling_geometry->CreateQuadraturePointGeometries(quadrature_points, 2);
+        p_coupling_geometry->CreateQuadraturePointGeometries(quadrature_points, 2, IntegrationInfo());
 
         // 2 span intersections and each time (p=1) + 1 integration point.
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 6);

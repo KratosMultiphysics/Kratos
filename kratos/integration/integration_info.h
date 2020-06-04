@@ -255,11 +255,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mNumberOfIntegrationPointsPerSpan;
-
     IntegrationMethod mIntegrationMethod;
 
     QuadratureMethod mQuadratureMethod;
+
+    SizeType mNumberOfIntegrationPointsPerSpan;
 
 
     std::vector<std::vector<double>> mSpansVector;
