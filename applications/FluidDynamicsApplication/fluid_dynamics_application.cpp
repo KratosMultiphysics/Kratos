@@ -191,6 +191,11 @@ void KratosFluidDynamicsApplication::Register() {
     // Auxiliary variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DRAG_FORCE_CENTER)
 
+    // CFD Utility variables
+    KRATOS_REGISTER_VARIABLE( Y_PLUS )
+    KRATOS_REGISTER_VARIABLE( NUMBER_OF_NEIGHBOUR_CONDITIONS )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FRICTION_VELOCITY )
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention
