@@ -23,13 +23,22 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
         self.connection_name = self.co_sim_settings["connection_name"].GetString()
         self.is_strong_coupling = self.co_sim_settings["is_strong_coupling"].GetBool()
 
-        CoSimIO.Connect(self.connection_name, CoSimIO.InfoFromParameters(self.project_parameters["co_sim_settings"]["io_settings"]))
+        connection_settings = CoSimIO.InfoFromParameters(self.project_parameters["co_sim_settings"]["io_settings"])
+        connection_settings.SetString("connection_name", self.connection_name)
+
+        info = CoSimIO.Connect(connection_settings)
+        if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Connected:
+            raise Exception("Connecting failed!")
 
         self.communication_settings = self.co_sim_settings["communication_settings"]
 
         # Exporting meshes to CoSimulation
         for model_part_name in self.communication_settings["export_meshes"].GetStringArray():
-            CoSimIO.ExportMesh(self.connection_name, model_part_name, self.model[model_part_name])
+            info = CoSimIO.Info()
+            info.SetString("connection_name", self.connection_name)
+            info.SetString("identifier", model_part_name)
+
+            CoSimIO.ExportMesh(info, self.model[model_part_name])
 
     def __InnerLoop(self):
         # Import fields
@@ -40,7 +49,10 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
             variable_name = field_settings["variable_name"].GetString()
             variable = KM.KratosGlobals.GetVariable(variable_name)
 
-            CoSimIO.ImportData(self.connection_name, identifier, model_part, variable, CoSimIO.DataLocation.NodeHistorical)
+            info = CoSimIO.Info()
+            info.SetString("connection_name", self.connection_name)
+            info.SetString("identifier", identifier)
+            CoSimIO.ImportData(info, model_part, variable, CoSimIO.DataLocation.NodeHistorical)
 
         self._GetSolver().SolveSolutionStep()
 
@@ -52,7 +64,10 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
             variable_name = field_settings["variable_name"].GetString()
             variable = KM.KratosGlobals.GetVariable(variable_name)
 
-            CoSimIO.ExportData(self.connection_name, identifier, model_part, variable, CoSimIO.DataLocation.NodeHistorical)
+            info = CoSimIO.Info()
+            info.SetString("connection_name", self.connection_name)
+            info.SetString("identifier", identifier)
+            CoSimIO.ExportData(info, model_part, variable, CoSimIO.DataLocation.NodeHistorical)
 
 
     def RunSolutionLoop(self):
@@ -68,7 +83,9 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
                 is_converged = False
                 while not is_converged:
                     self.__InnerLoop()
-                    is_converged = CoSimIO.IsConverged(self.connection_name)
+                    info = CoSimIO.Info()
+                    info.SetString("connection_name", self.connection_name)
+                    is_converged = CoSimIO.IsConverged(info)
             else:
                 self.__InnerLoop()
 
@@ -78,7 +95,11 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
     def Finalize(self):
         super(StructuralMechanicsAnalysisWithCoSimIO, self).Finalize()
 
-        CoSimIO.Disconnect(self.connection_name)
+        disconnect_settings = CoSimIO.Info()
+        disconnect_settings.SetString("connection_name", self.connection_name)
+        info = CoSimIO.Disconnect(disconnect_settings)
+        if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Disconnected:
+            raise Exception("Disconnecting failed!")
 
     def _GetSimulationName(self):
         return "Structural Mechanics Analysis with CoSimIO"
