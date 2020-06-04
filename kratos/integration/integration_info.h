@@ -75,8 +75,8 @@ public:
 
     IntegrationInfo(SizeType NumberOfIntegrationPointsPerSpan,
         QuadratureMethod ThisQuadratureMethod = QuadratureMethod::GAUSS)
-        : mNumberOfIntegrationPointsPerSpan(NumberOfIntegrationPointsPerSpan)
-        , mQuadratureMethod(ThisQuadratureMethod)
+        : mQuadratureMethod(ThisQuadratureMethod)
+        , mNumberOfIntegrationPointsPerSpan(NumberOfIntegrationPointsPerSpan)
     {
         SetIntegrationMethod(NumberOfIntegrationPointsPerSpan, ThisQuadratureMethod);
     }
@@ -260,7 +260,6 @@ private:
     QuadratureMethod mQuadratureMethod;
 
     SizeType mNumberOfIntegrationPointsPerSpan;
-
 
     std::vector<std::vector<double>> mSpansVector;
 
