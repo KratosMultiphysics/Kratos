@@ -91,7 +91,9 @@ class KratosCoSimIO(CoSimulationIO):
                 control_signal_key = CoSimIO.ControlSignal.ConvergenceAchieved
             else:
                 control_signal_key = CoSimIO.ControlSignal.Dummy
-            CoSimIO.SendControlSignal(self.solver_name, "", control_signal_key)
+            info = CoSimIO.Info()
+            info.SetString("connection_name", self.solver_name)
+            CoSimIO.SendControlSignal(info, control_signal_key)
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
