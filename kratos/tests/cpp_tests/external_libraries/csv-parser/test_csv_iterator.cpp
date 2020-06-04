@@ -27,7 +27,7 @@ namespace Testing {
 
 using namespace csv;
 
-/*
+/**
  * Erase First Occurrence of given  substring from main string.
  */
 std::string EraseSubString(const std::string& rMainStrint, const std::string& rToErase)
