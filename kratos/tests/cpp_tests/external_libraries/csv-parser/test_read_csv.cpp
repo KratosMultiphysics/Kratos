@@ -20,6 +20,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "utilities/string_utilities.h"
 #include "csv-parser/include/csv.hpp"
 
 namespace Kratos {
@@ -284,30 +285,33 @@ bar-category,,bar-project
 //     }));
 // }
 
-// // Reported in: https://github.com/vincentlaucsb/csv-parser/issues/67
-// KRATOS_TEST_CASE_IN_SUITE(CommentsinHeaderRegression, KratosExternalLibrariesFastSuite)
-// {
-//     std::string csv_string(R"(# some extra metadata
-//     # some extra metadata
-//     timestamp,distance,angle,amplitude
-//     22857782,30000,-3141.59,0
-//     22857786,30000,-3141.09,0
-//     )");
-//
-//     auto format = csv::CSVFormat();
-//     format.header_row(2);
-//
-//     csv::CSVReader reader(format);
-//     reader.feed(csv_string);
-//     reader.end_feed();
-//
-//     std::vector<std::string> expected = {
-//         "timestamp", "distance", "angle", "amplitude"
-//     };
-//
-//     // Original issue: Leading comments appeared in column names
-//     KRATOS_CHECK_EQUAL(expected, reader.get_col_names());
-// }
+// Reported in: https://github.com/vincentlaucsb/csv-parser/issues/67
+KRATOS_TEST_CASE_IN_SUITE(CommentsinHeaderRegression, KratosExternalLibrariesFastSuite)
+{
+    std::string csv_string(R"(# some extra metadata
+    # some extra metadata
+    timestamp,distance,angle,amplitude
+    22857782,30000,-3141.59,0
+    22857786,30000,-3141.09,0
+    )");
+
+    auto format = csv::CSVFormat();
+    format.header_row(2);
+
+    csv::CSVReader reader(format);
+    reader.feed(csv_string);
+    reader.end_feed();
+
+    std::vector<std::string> expected = {
+        "timestamp", "distance", "angle", "amplitude"
+    };
+
+    // Original issue: Leading comments appeared in column names
+    // Original issue: Leading comments appeared in column names
+    for (std::size_t i = 0; i < 4; ++i) {
+        KRATOS_CHECK_STRING_EQUAL(expected[i], StringUtilities::RemoveWhiteSpaces(reader.get_col_names()[i]));
+    }
+}
 
 // Reported in: https://github.com/vincentlaucsb/csv-parser/issues/92
 KRATOS_TEST_CASE_IN_SUITE(LongRowTest, KratosExternalLibrariesFastSuite)
