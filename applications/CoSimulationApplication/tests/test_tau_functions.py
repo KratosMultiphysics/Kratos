@@ -39,11 +39,20 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Outputs')
         os.rmdir('Mesh')
 
+    def test_CalculateDistanceVector(self):
+        # Define test file
+        test_file = 'test_tau_functions/test_CalculateDistanceVector.py'
+
+        # Run test
+        self.execute_test(test_file)
+
     def execute_test(self, test_file):
         full_command = ['python']
         full_command.extend([test_file])
 
-        p = subprocess.Popen(full_command, cwd=os.path.dirname(os.path.abspath(__file__)))
+        working_directory = os.path.dirname(os.path.abspath(__file__))
+
+        p = subprocess.Popen(full_command, cwd=working_directory)
         p.communicate()
 
 if __name__ == '__main__':
