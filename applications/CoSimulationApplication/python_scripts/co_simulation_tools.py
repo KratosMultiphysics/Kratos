@@ -57,3 +57,16 @@ def RecursiveCreateModelParts(model_part, model_part_name):
         model_part = model_part.CreateSubModelPart(model_part_name)
     if len(sub_model_part_names) > 0:
         RecursiveCreateModelParts(model_part, ".".join(sub_model_part_names))
+
+def CreateModelPartsFromCouplingData(data_list, model, solver_name):
+    '''This function creates the ModelParts-hierarchie that are used in the specified CouplingInterfaceDatas
+    '''
+    for data in data_list:
+        splitted_name = data.model_part_name.split(".")
+        main_model_part_name = splitted_name[0]
+        sub_model_part_names = splitted_name[1:]
+        if not model.HasModelPart(main_model_part_name):
+            main_model_part = model.CreateModelPart(main_model_part_name)
+            cs_print_info("CoSimTools", 'Created ModelPart "{}" for solver "{}"'.format(main_model_part_name, solver_name))
+            if len(sub_model_part_names) > 0:
+                RecursiveCreateModelParts(main_model_part, ".".join(sub_model_part_names))
