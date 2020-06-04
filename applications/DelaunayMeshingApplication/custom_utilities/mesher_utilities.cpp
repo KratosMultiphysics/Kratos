@@ -229,8 +229,6 @@ namespace Kratos
   double MesherUtilities::ComputeModelPartVolume(ModelPart& rModelPart)
   {
     KRATOS_TRY
-
-    std::cout<<"ComputeModelPartVolume "<<std::endl;
     const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
     double ModelPartVolume = 0;
     if( dimension == 2 ){
@@ -250,7 +248,6 @@ namespace Kratos
 	}
      }
 
-    std::cout<<" ModelPartVolume "<<ModelPartVolume<<std::endl;
 
     return ModelPartVolume;
 
