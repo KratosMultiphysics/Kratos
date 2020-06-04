@@ -97,7 +97,7 @@ RUN powershell.exe -Command \
 ENV CMAKE c:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe
 ENV SEVEN_ZIP c:\\7zip\\7z.exe
 ENV VCVARS  \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\"
-ENV BOOST c:\\boost\\boost_1_69_0
+ENV BOOST c:\\boost\\boost_1_71_0
 ENV BLAS c:\\libs\\libblas.lib
 ENV LAPACK c:\\libs\\liblapack.lib
 ENV PYTHONROOT c:\\python
