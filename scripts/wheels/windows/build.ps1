@@ -10,13 +10,13 @@ $wheelOutDir = "c:\out"
 
 function exec_build($python, $pythonPath) {
     cmd.exe /c "call configure.bat $( $pythonPath ) $( $kratosRoot ) OFF"
-    cmake --build "$( $kratosRoot )/build/Release" --target install -- /property:configuration = Release /p:Platform = x64
+    cmake --build "$( $kratosRoot )/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }
 
 function exec_build_cotire($python, $pythonPath) {
     cmd.exe /c "call configure.bat $( $pythonPath ) $( $kratosRoot ) ON"
-    cmake --build "$( $kratosRoot )/build/Release" --target all_unity -- /property:configuration = Release /p:Platform = x64
-    cmake --build "$( $kratosRoot )/build/Release" --target install -- /property:configuration = Release /p:Platform = x64
+    cmake --build "$( $kratosRoot )/build/Release" --target all_unity -- /property:configuration=Release /p:Platform=x64
+    cmake --build "$( $kratosRoot )/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }
 
 function build($python, $pythonPath) {
@@ -56,7 +56,7 @@ function create_core_wheel($pythonPath) {
 
 function create_application_wheel($pythonPath, $app) {
     setup_wheel_dir
-    cp "$( $kratosRoot )\scripts\wheels\windows\applications\$( $app )" c\wheel\wheel.json
+    cp "$( $kratosRoot )\scripts\wheels\windows\applications\$( $app )" c:\wheel\wheel.json
     cd $wheelRoot
     & $pythonPath setup.py bdist_wheel #pythonpath
     cp "$( $wheelRoot )\dist\*" $wheelOutDir
