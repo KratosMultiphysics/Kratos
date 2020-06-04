@@ -79,6 +79,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
                 "perturbation_period": 10,
                 "max_reaction_rate_factor": 2.0,
                 "stiffness_averaging_time_interval": 1.0,
+                "velocity_averaging_time_interval": 1.0,
                 "reaction_averaging_time_interval": 1.0,
                 "output_interval": 1,
                 "final_time": 1.0
@@ -93,18 +94,25 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     mCMStep = 0;
     mStep = 0;
     mCMTime = 0.0;
+    mKDeltaTime = rParameters["Parameters"]["stiffness_averaging_time_interval"].GetDouble();
+    mKStep = 0;
+    mKTime = 0.0;
     mActuatorCounter = 0;
     mPerturbationTolerance = rParameters["Parameters"]["perturbation_tolerance"].GetDouble();
     mPerturbationPeriod = rParameters["Parameters"]["perturbation_period"].GetInt();
     mMultiAxial = rParameters["Parameters"]["multi_axial"].GetBool();
     mMaxReactionCorrectionFraction = rParameters["Parameters"]["max_reaction_rate_factor"].GetDouble();
     mStiffnessAlpha = 1.0 - mCMDeltaTime / rParameters["Parameters"]["stiffness_averaging_time_interval"].GetDouble();
+    mVelocityAlpha = 1.0 - mCMDeltaTime / rParameters["Parameters"]["velocity_averaging_time_interval"].GetDouble();
     mReactionAlpha = 1.0 - mrDemModelPart.GetProcessInfo()[DELTA_TIME] / rParameters["Parameters"]["reaction_averaging_time_interval"].GetDouble();
 
     const unsigned int number_of_actuators = rParameters["list_of_actuators"].size();
     mVelocity.resize(number_of_actuators, false);
+    mAcceleration.resize(number_of_actuators, false);
     mReactionStress.resize(number_of_actuators, false);
     mReactionStressOld.resize(number_of_actuators, false);
+    mDisplacement.resize(number_of_actuators, false);
+    mDisplacementOld.resize(number_of_actuators, false);
     mElasticReactionStress.resize(number_of_actuators, false);
     mStiffness.resize(number_of_actuators,number_of_actuators,false);
     noalias(mStiffness) = ZeroMatrix(number_of_actuators,number_of_actuators);
@@ -158,8 +166,11 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         const double stiffness = rParameters["list_of_actuators"][i]["Parameters"]["young_modulus"].GetDouble()/compression_length; // mStiffness is actually a stiffness over an area
         mVelocity[i] = initial_velocity;
         mStiffness(i,i) = stiffness;
+        mAcceleration[i] = 0.0;
         mReactionStress[i] = 0.0;
         mReactionStressOld[i] = 0.0;
+        mDisplacement[i] = 0.0;
+        mDisplacementOld[i] = 0.0;
         mElasticReactionStress[i] = 0.0;
         mOrderedMapKeys.push_back(actuator_name);
     }
@@ -233,14 +244,18 @@ protected:
     ModelPart& mrFemModelPart;
     double mCMDeltaTime;
     double mCMTime;
-    unsigned int mCMStep;
+    double mKDeltaTime;
+    double mKTime;
     unsigned int mStep;
+    unsigned int mCMStep;
+    unsigned int mKStep;
     unsigned int mActuatorCounter;
     bool mMultiAxial;
     double mPerturbationTolerance;
     unsigned int mPerturbationPeriod;
     double mMaxReactionCorrectionFraction;
     double mStiffnessAlpha;
+    double mVelocityAlpha;
     double mReactionAlpha;
     double mCharacteristicReactionVariationRate;
     std::vector<std::string> mOrderedMapKeys; // TODO: we could have std::vectors instead of std::maps
@@ -250,13 +265,15 @@ protected:
     // std::map<std::string, std::vector<array_1d<double,3>>> mDEMOuterNormals; /// OuterNormal associated to each DEM boundary of every actuator. TODO: not used for now...
     std::map<std::string, unsigned int> mTargetStressTableIds; /// TargetStressTableIds associated to every actuator
     Vector mVelocity;
+    Vector mAcceleration;
     Vector mReactionStress;
+    Vector mReactionStressOld;
+    Vector mDisplacement;
+    Vector mDisplacementOld;
     Vector mElasticReactionStress;
     Matrix mStiffness;
     Matrix mDeltaDisplacement;
     Matrix mDeltaReactionStress;
-    Vector mReactionStressOld;
-
 
 ///@}
 ///@name Protected member r_variables
@@ -279,6 +296,8 @@ Vector GetPerturbations(const Vector& rTargetStress, const double& rTime);
 double GetConditionNumber(const Matrix& rInputMatrix, const Matrix& rInvertedMatrix);
 
 void CalculateVelocity(const Vector& r_next_target_stress, const double& r_current_time);
+
+void CalculateAcceleration(const Vector& r_next_target_stress, const double& r_current_time);
 
 void CalculateStiffness();
 

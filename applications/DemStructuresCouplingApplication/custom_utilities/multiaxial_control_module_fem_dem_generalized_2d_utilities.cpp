@@ -200,7 +200,16 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
     //                         ((1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress);
 
     // Update Stiffness matrix
-    if (current_time > (mCMTime - 0.5 * delta_time)) {
+    // if (current_time > (mCMTime - 0.5 * delta_time)) {
+
+    //     // Update K if DeltaDisplacement is invertible
+    //     this->CalculateStiffness();
+    // }
+
+    noalias(mDisplacement) += mVelocity * mCMDeltaTime;
+
+    // Update Stiffness matrix
+    if (current_time > (mKTime - 0.5 * delta_time)) {
 
         // Update K if DeltaDisplacement is invertible
         this->CalculateStiffness();
