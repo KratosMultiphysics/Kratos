@@ -18,6 +18,8 @@
 #if !defined(KRATOS_CURVE_TESSELLATION_H_INCLUDED )
 #define  KRATOS_CURVE_TESSELLATION_H_INCLUDED
 
+#include "tessellation.h"
+
 #include "utilities/math_utils.h"
 #include "geometries/geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
@@ -29,6 +31,7 @@ namespace Kratos {
 
 template <class TContainerPointType>
 class CurveTessellation
+    : Tessellation<TContainerPointType>
 {
 public:
 
@@ -42,33 +45,31 @@ public:
     typedef typename GeometryType::SizeType SizeType;
 
     ///@}
-private:
-    ///@name Private Static Methods
-    ///@{
-
-    static double DistanceToLine(
-        const typename GeometryType::CoordinatesArrayType& rPoint,
-        const typename GeometryType::CoordinatesArrayType& rLineA,
-        const typename GeometryType::CoordinatesArrayType& rLineB
-        )
-    {
-        typename GeometryType::CoordinatesArrayType vector_v = rLineA - rPoint;
-        typename GeometryType::CoordinatesArrayType vector_u = rLineB - rLineA;
-
-        return MathUtils<double>::Norm(MathUtils<double>::CrossProduct(vector_v, vector_u)) / MathUtils<double>::Norm(vector_u);
-    }
-
-    ///@}
-public:
     ///@name Private Static Methods
     ///@{
 
     /// Conctructor for tessellation of a nurbs curve
     CurveTessellation()
+        : Tessellation<TContainerPointType>()
     {
     }
 
-    /**
+    /// Copy Constructor
+    CurveTessellation(CurveTessellation const& rOther)
+        : Tessellation<TContainerPointType>(rOther)
+        , mTesselation(rOther.mTesselation)
+    {
+    }
+
+    /// Assignment Operator
+    CurveTessellation& operator=(const CurveTessellation& rOther)
+    {
+        Tessellation<TContainerPointType>::operator=(rOther);
+        mTesselation = rOther.mTesselation;
+        return *this;
+    }
+
+    /* INTERFACE FOR NURBS_CURVE_GEOMETRIES
     * @brief This method tessellates a curve and stores the tessellation in the class
     * @param rGeometry Reference to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
@@ -92,6 +93,49 @@ public:
             Tolerance);
     }
 
+    /* INTERFACE FOR ALL GEOMETRIES
+    * @brief This method tessellates a curve and stores the tessellation in the class
+    * @param rGeometry Reference to the geometry
+    * @param PolynomialDegree The polynomial degree of the curve
+    * @param DomainInterval The curve interval which is to be tessellated
+    * @param rKnotSpanIntervals Reference to the knot span intervals laying in the DomainInterval
+    * @param Tolerance Tolerance for the choral error
+    * @see ComputeTessellation
+    */
+    void Tessellate(
+        const GeometryType& rGeometry,
+        const double Tolerance,
+        const int NumberOfGuessesPerInterval = 1) override
+    {
+        std::vector<double> span_intervals;
+        rGeometry.Spans(span_intervals, 0);
+
+        NurbsInterval this_interval(
+            span_intervals[0], span_intervals[span_intervals.size() - 1]);
+
+        std::vector<NurbsInterval> KnotSpanIntervals(span_intervals.size() - 1);
+
+        for (IndexType i = 0; i < span_intervals.size() - 1; ++i) {
+            KnotSpanIntervals[i] = NurbsInterval(span_intervals[i], span_intervals[i + 1]);
+        }
+
+        mTesselation = ComputeTessellation(
+            rGeometry,
+            NumberOfGuessesPerInterval,
+            this_interval,
+            KnotSpanIntervals,
+            Tolerance);
+    }
+
+    /* INTERFACE FOR ALL GEOMETRIES
+    * @brief This method tessellates a curve and stores the tessellation in the class
+    * @param rGeometry Reference to the geometry
+    * @param PolynomialDegree The polynomial degree of the curve
+    * @param DomainInterval The curve interval which is to be tessellated
+    * @param rKnotSpanIntervals Reference to the knot span intervals laying in the DomainInterval
+    * @param Tolerance Tolerance for the choral error
+    * @see ComputeTessellation
+    */
     void Tessellate(
         const GeometryType& rGeometry,
         const double Start,
@@ -262,7 +306,7 @@ public:
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointLocalCoordinates,
-        TessellationType& Tesselation)
+        const TessellationType& Tesselation)
     {
         double distance = std::numeric_limits<double>::max();
         double new_distance;
@@ -283,7 +327,7 @@ public:
     void GetClosestPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointGlobalCoordinates,
-        CoordinatesArrayType& rClosestPointLocalCoordinates)
+        CoordinatesArrayType& rClosestPointLocalCoordinates) const override
     {
         GetClosestPoint(
             rPointGlobalCoordinates,
@@ -307,6 +351,23 @@ private:
     TessellationType mTesselation;
 
     ///@}
+    ///@name Private Static Methods
+    ///@{
+
+    static double DistanceToLine(
+        const typename GeometryType::CoordinatesArrayType& rPoint,
+        const typename GeometryType::CoordinatesArrayType& rLineA,
+        const typename GeometryType::CoordinatesArrayType& rLineB
+        )
+    {
+        typename GeometryType::CoordinatesArrayType vector_v = rLineA - rPoint;
+        typename GeometryType::CoordinatesArrayType vector_u = rLineB - rLineA;
+
+        return MathUtils<double>::Norm(MathUtils<double>::CrossProduct(vector_v, vector_u)) / MathUtils<double>::Norm(vector_u);
+    }
+
+    ///@}
+
 };
 
 } // namespace CurveTessellation
