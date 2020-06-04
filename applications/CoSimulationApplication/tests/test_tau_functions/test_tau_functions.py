@@ -4,12 +4,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os, subprocess
-# import execnet
-
-# import imp
-# foo = imp.load_source('module.name', '/path/to/file.py')
-# import KratosMultiphysics.CoSimulationApplication.helpers.tau_functions as tau_functions
-
 
 class TestTauFunctions(KratosUnittest.TestCase):
 
@@ -18,30 +12,37 @@ class TestTauFunctions(KratosUnittest.TestCase):
 
     def test_RemoveFilesFromPreviousSimulations(self):
         # Create dummy outputs and mesh directory
-        os.mkdir('Outputs')
-        os.mkdir('Mesh')
+        os.mkdir('test_tau_functions/Outputs')
+        os.mkdir('test_tau_functions/Mesh')
 
         # Create dummy empty output files
         for i in range(3):
-            output_file_name = 'Outputs/test_file_' + str(i)
+            output_file_name = 'test_tau_functions/Outputs/test_file_' + str(i)
             open(output_file_name,'w').close()
 
-            mesh_file_name = 'Mesh/airfoil_Structured_scaliert.grid.def' + str(i)
+            mesh_file_name = 'test_tau_functions/Mesh/airfoil_Structured_scaliert.grid.def' + str(i)
             open(mesh_file_name,'w').close()
 
         # Define test file
-        test_file = 'test_tau_functions/test_RemoveFilesFromPreviousSimulations.py'
+        test_file = 'test_RemoveFilesFromPreviousSimulations.py'
 
         # Run function
         self.execute_test(test_file)
 
         # Check if files have been successfully removed
-        os.rmdir('Outputs')
-        os.rmdir('Mesh')
+        os.rmdir('test_tau_functions/Outputs')
+        os.rmdir('test_tau_functions/Mesh')
+
+    def test_FindFilename(self):
+        # Define test file
+        test_file = 'test_FindFilename.py'
+
+        # Run test
+        self.execute_test(test_file)
 
     def test_CalculateDistanceVector(self):
         # Define test file
-        test_file = 'test_tau_functions/test_CalculateDistanceVector.py'
+        test_file = 'test_CalculateDistanceVector.py'
 
         # Run test
         self.execute_test(test_file)
