@@ -15,7 +15,7 @@
         },
         "formulation": {
             "element_type":"embedded_incompressible",
-            "penalty_coefficient": 1.0
+            "stabilization_factor": 1.0
          },
         "maximum_iterations"     : 10,
         "echo_level"             : 0,

@@ -85,7 +85,7 @@ public:
     {
         KRATOS_TRY;
         
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+        typedef Variable<double> component_type;
         component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
         
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
@@ -116,7 +116,7 @@ public:
     {
         KRATOS_TRY;
         
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+        typedef Variable<double> component_type;
         component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
         
         const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
