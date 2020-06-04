@@ -20,6 +20,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "utilities/string_utilities.h"
 #include "includes/kratos_filesystem.h"
 #include "csv-parser/include/csv.hpp"
 
@@ -31,35 +32,16 @@ using namespace csv;
 using std::vector;
 using std::string;
 
-/*
- * Erase First Occurrence of given  substring from main string.
- */
-std::string EraseSubStr(const std::string& rMainStrint, const std::string& rToErase)
-{
-    // Value to return
-    std::string sub_string = rMainStrint;
-
-    // Search for the substring in string
-    size_t pos = sub_string.find(rToErase);
-
-    if (pos != std::string::npos) {
-        // If found then erase it from string
-        sub_string.erase(pos, rToErase.length());
-    }
-
-    return sub_string;
-}
-
 KRATOS_TEST_CASE_IN_SUITE(col_posTest, KratosExternalLibrariesFastSuite)
 {
-    const std::string working_dir = EraseSubStr(__FILE__, "test_read_csv_file.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
     int pos = get_col_pos(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"}),"Entity Type");
     KRATOS_CHECK_EQUAL(pos, 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PreventColumnNamesFromBeingOverwritten, KratosExternalLibrariesFastSuite)
 {
-    const std::string working_dir = EraseSubStr(__FILE__, "test_read_csv_file.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
 
     std::vector<std::string> column_names = { "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10" };
 
@@ -87,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(PreventColumnNamesFromBeingOverwritten, KratosExternal
 // get_file_info()
 KRATOS_TEST_CASE_IN_SUITE(get_file_info, KratosExternalLibrariesFastSuite)
 {
-    const std::string working_dir = EraseSubStr(__FILE__, "test_read_csv_file.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
 
     CSVFileInfo info = get_file_info(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2009PowerStatus.txt"}));
 
@@ -116,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(NonExistentCSV, KratosExternalLibrariesFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(ReadCSVwithHeaderRow, KratosExternalLibrariesFastSuite )
 {
     // Header on first row
-    const std::string working_dir = EraseSubStr(__FILE__, "test_read_csv_file.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
     const std::string data_file = Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"});
     CSVReader reader(data_file, CSVFormat());
     CSVRow row;
@@ -155,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadCSVwithHeaderRow, KratosExternalLibrariesFastSuite
 KRATOS_TEST_CASE_IN_SUITE(read_rowCSVField_Easy, KratosExternalLibrariesFastSuite)
 {
     // Test that integers are type-casted properly
-    const std::string working_dir = EraseSubStr(__FILE__, "test_read_csv_file.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
     CSVReader reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
     CSVRow row;
 
@@ -169,7 +151,7 @@ KRATOS_TEST_CASE_IN_SUITE(read_rowCSVField_Easy, KratosExternalLibrariesFastSuit
 
 KRATOS_TEST_CASE_IN_SUITE(read_rowCSVField_PowerStatus, KratosExternalLibrariesFastSuite)
 {
-    const std::string working_dir = EraseSubStr(__FILE__, "test_read_csv_file.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
     CSVReader reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2009PowerStatus.txt"}));
     CSVRow row;
 
