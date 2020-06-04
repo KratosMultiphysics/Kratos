@@ -62,7 +62,6 @@ void EntityDatabase::SetValues(
     // Push values
     for (IndexType i = 0; i < rValuesX.size(); ++i) {
         p_table->PushBack(rValuesX[i], rValuesY[i]);
-//         p_table->insert(rValuesX[i], rValuesY[i]);
     }
 }
 
