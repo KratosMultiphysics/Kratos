@@ -84,6 +84,21 @@ void AssignPerturbationPotentialsToElement(Element& rElement) {
             potential[i];
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ComputePerturbedVelocity, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+
+    AssignPerturbationPotentialsToElement(*pElement);
+
+    array_1d<double, 2> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<2,3>(*pElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(perturbed_velocity[0], 303.0, 1e-15);
+    KRATOS_CHECK_RELATIVE_NEAR(perturbed_velocity[1], 50.0, 1e-15);
+}
+
 // checks the function ComputeVelocityMagnitude from utilities
 KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityMagnitude, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
