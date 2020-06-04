@@ -5,6 +5,8 @@ import KratosMultiphysics.FemToDemApplication as FEMDEM
 import KratosMultiphysics.PfemFluidDynamicsApplication as PFEM
 import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem_for_PFEM_coupling as MainCouplingFemDem_for_PFEM_coupling
 import KratosMultiphysics.FemToDemApplication.MainPFEM_for_coupling as MainPFEM_for_coupling
+import os
+import KratosMultiphysics.FemToDemApplication.fem_dem_coupled_gid_output as gid_output
 
 def Wait():
     input("PFEM-FEMDEM -> Press Something")
@@ -20,7 +22,9 @@ class MainCouplingPfemFemDem_Solution:
 
     def __init__(self, Model, PFEMparameters):
         # Initialize solutions of the FEMDEM and PFEM
+        self.model = Model
         self.FEMDEM_Solution = MainCouplingFemDem_for_PFEM_coupling.MainCoupledFemDem_for_PFEM_coupling_Solution(Model)
+        self.FEMDEM_Solution.is_slave = True
         self.FEMDEM_Solution.Initialize()
 
         self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, 
@@ -43,9 +47,18 @@ class MainCouplingPfemFemDem_Solution:
         # Now we storage the FEM modelpart in the PFEM_Solution
         self.PFEM_Solution.Initialize()
 
+        if self.FEMDEM_Solution.CreateInitialSkin:
+            self.FEMDEM_Solution.ComputeSkinSubModelPart()
+            if self.FEMDEM_Solution.DEMFEM_contact:
+                self.FEMDEM_Solution.TransferFEMSkinToDEM()
+            FEMDEM.GenerateInitialSkinDEMProcess(self.FEMDEM_Solution.FEM_Solution.main_model_part, self.FEMDEM_Solution.SpheresModelPart).Execute()
+
         # We copy the output params in the PFEM
         self.PFEM_Solution.graphical_output = self.PFEM_Solution.SetCustomGraphicalOutput(self.FEMDEM_Solution.FEM_Solution.ProjectParameters)
         self.PFEM_Solution.GraphicalOutputExecuteInitialize()
+
+        # Initialize the coupled post process
+        self.InitializePostProcess()
 
 #============================================================================================================================
     def RunMainTemporalLoop(self):
@@ -106,6 +119,8 @@ class MainCouplingPfemFemDem_Solution:
         self.PFEM_Solution.FinalizeSolutionStep()
         self.PFEM_Solution.OutputSolutionStep()
         self.FEMDEM_Solution.FinalizeSolutionStep()
+        KM.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.PFEM_Solution.post_process_model_part, self.PFEM_Solution.main_model_part)
+        self.PrintResults()
 
 #============================================================================================================================
     def Finalize(self):
@@ -114,6 +129,10 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def InitializeSolutionStep(self):
+        KratosPrintInfo("")
+        KratosPrintInfo("_____________________________________________________________________________________")
+        KratosPrintInfo("_____________________________________________________________________________________")
+        KratosPrintInfo("")
         self.UpdateDeltaTimeInSolutions()
         self.PFEM_Solution.time = self.PFEM_Solution._GetSolver().AdvanceInTime(self.PFEM_Solution.time)
         self.PFEM_Solution.InitializeSolutionStep()
@@ -166,4 +185,71 @@ class MainCouplingPfemFemDem_Solution:
         update_process = FEMDEM.UpdateFlagNoRemeshFemDemBoundaryProcess(self.FEMDEM_Solution.FEM_Solution.main_model_part)
         update_process.Execute()
 
+#============================================================================================================================
 
+    def InitializePostProcess(self):
+        mixed_fluid_solid_mp       = self.model.CreateModelPart('mixed_fluid_solid_mp')
+        mixed_fluid_solid_balls_mp = self.model.CreateModelPart('mixed_fluid_solid_balls_mp')
+        mixed_solid_balls_mp       = self.model.CreateModelPart('mixed_solid_balls_mp')
+
+        filename = os.path.join(self.FEMDEM_Solution.DEM_Solution.post_path, self.FEMDEM_Solution.DEM_Solution.DEM_parameters["problem_name"].GetString())
+        self.gid_output = gid_output.FemDemCoupledGiDOutput(
+                            filename,
+                            True,
+                            "Binary",
+                            "Multiples",
+                            True,
+                            True,
+                            self.FEMDEM_Solution.FEM_Solution.main_model_part,
+                            self.PFEM_Solution.main_model_part,
+                            self.FEMDEM_Solution.DEM_Solution.spheres_model_part,
+                            self.FEMDEM_Solution.DEM_Solution.cluster_model_part,
+                            self.FEMDEM_Solution.DEM_Solution.rigid_face_model_part,
+                            mixed_fluid_solid_mp,
+                            mixed_solid_balls_mp,
+                            mixed_fluid_solid_balls_mp)
+
+        solid_nodal_results = ["DISPLACEMENT", "ACCELERATION"]
+        dem_nodal_results = ["TOTAL_FORCES", "RADIUS"]
+        fluid_nodal_results = ["PRESSURE"]
+        clusters_nodal_results = []
+        rigid_faces_nodal_results = []
+        mixed_solid_fluid_nodal_results = ["VELOCITY"]
+        mixed_solid_balls_nodal_results = []
+        mixed_solid_balls_fluid_nodal_results = []
+
+        gauss_points_results = ["CAUCHY_STRESS_VECTOR", "DAMAGE_ELEMENT", "STRESS_VECTOR_INTEGRATED", "GREEN_LAGRANGE_STRAIN_VECTOR"]
+
+        self.gid_output.initialize_dem_fem_results(solid_nodal_results,
+                                                   fluid_nodal_results,
+                                                   dem_nodal_results,
+                                                   clusters_nodal_results,
+                                                   rigid_faces_nodal_results,
+                                                   mixed_solid_fluid_nodal_results,
+                                                   mixed_solid_balls_nodal_results,
+                                                   mixed_solid_balls_fluid_nodal_results,
+                                                   gauss_points_results)
+
+
+#PrintResults============================================================================================================================
+    def PrintResults(self):
+        print_parameters = self.FEMDEM_Solution.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]
+        if self.FEMDEM_Solution.FEM_Solution.step == 1: # always print the 1st step
+            self.gid_output.Writeresults(self.FEMDEM_Solution.FEM_Solution.time)
+            self.FEMDEM_Solution.FEM_Solution.time_old_print = self.FEMDEM_Solution.FEM_Solution.time
+            self.FEMDEM_Solution.FEM_Solution.step_old_print = self.FEMDEM_Solution.FEM_Solution.step
+        else:
+            time_to_print = 0
+            if print_parameters["output_control_type"].GetString() == "step":
+                time_to_print = self.FEMDEM_Solution.FEM_Solution.step - self.FEMDEM_Solution.FEM_Solution.step_old_print
+            else:
+                time_to_print = self.FEMDEM_Solution.FEM_Solution.time - self.FEMDEM_Solution.FEM_Solution.time_old_print
+
+            if print_parameters["output_control_type"].GetString() == "step":
+                if print_parameters["output_frequency"].GetInt() - time_to_print == 0:
+                    self.gid_output.Writeresults(self.FEMDEM_Solution.FEM_Solution.time)
+                    self.FEMDEM_Solution.FEM_Solution.step_old_print = self.FEMDEM_Solution.FEM_Solution.step
+            else:
+                if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEMDEM_Solution.FEM_Solution.delta_time:
+                    self.gid_output.Writeresults(self.FEMDEM_Solution.FEM_Solution.time)
+                    self.FEMDEM_Solution.FEM_Solution.time_old_print = self.FEMDEM_Solution.FEM_Solution.time

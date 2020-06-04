@@ -51,6 +51,21 @@ void GenerateTestingElement(ModelPart& rModelPart) {
     rModelPart.CreateNewElement("CompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 }
 
+void AssignFreeStreamValues(ModelPart& rModelPart) {
+    rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
+    rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
+    rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
+    rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
+    rModelPart.GetProcessInfo()[CRITICAL_MACH] = 0.99;
+    rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
+
+    BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+    free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
+                              rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
+    rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+}
+
 void AssignPotentialsToElement(Element& rElement) {
     // Define the nodal values
     std::array<double, 3> potential{0.0, 150.0, 350.0};
@@ -69,6 +84,36 @@ void AssignPerturbationPotentialsToElement(Element& rElement) {
             potential[i];
 }
 
+// checks the function ComputeVelocityMagnitude from utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityMagnitude, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    // velocity corresponding to squared mach number of 3.0
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(3.0, model_part.GetProcessInfo());
+
+    const double reference_velocity_squared = 232356.0;
+
+    KRATOS_CHECK_RELATIVE_NEAR(local_velocity_squared, reference_velocity_squared, 1e-15);
+}
+
+// Checks the function ComputeMaximumVelocitySquared from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeMaximumVelocitySquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double reference_max_velocity_squared = 232356.0;
+
+    // Max local Mach number = sqrt(3.0), from MACH_SQUARED_LIMIT
+    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2, 3>(model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(max_velocity_squared, reference_max_velocity_squared, 1e-15);
+}
+
 // Checks the function ComputeLocalSpeedOfSound from the utilities
 KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedOfSound, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
@@ -84,6 +129,28 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedOfSound, CompressiblePotentialApplica
     KRATOS_CHECK_NEAR(local_speed_of_sound, 333.801138, 1e-6);
 }
 
+// Checks ComputeLocalSpeedofSoundSquared in utilities, local velocity that should be clamped
+KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedofSoundSquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    // velocity corresponding to mach number 3.0
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> velocity(2, 0.0);
+    velocity[0] = std::sqrt(local_velocity_squared);
+
+    const double local_speed_sound_squared = PotentialFlowUtilities::ComputeLocalSpeedofSoundSquared<2,3>(velocity, model_part.GetProcessInfo());
+
+    const double reference_local_speed_sound_squared = 77452.0;
+
+    KRATOS_CHECK_RELATIVE_NEAR(local_speed_sound_squared, reference_local_speed_sound_squared, 1e-15);
+}
+
 // Checks the function ComputeLocalMachNumber from the utilities
 KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumber, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
@@ -97,6 +164,79 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumber, CompressiblePotentialApplicati
         PotentialFlowUtilities::ComputeLocalMachNumber<2, 3>(
             *pElement, model_part.GetProcessInfo());
     KRATOS_CHECK_NEAR(local_mach_number, 0.748948914, 1e-6);
+}
+
+// Checks ComputeLocalMachNumberSquared in utilities, local velocity that should be clamped
+KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumberSquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double reference_local_mach_squared = 3.0;
+
+    // velocity corresponding to mach number 3.0
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(reference_local_mach_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> velocity(2, 0.0);
+    velocity[0] = std::sqrt(local_velocity_squared);
+
+    // computes mach number with clamping
+    const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(local_mach_squared, reference_local_mach_squared, 1e-15);
+}
+
+// Checks the function ComputeDerivativeLocalMachSquaredWRTVelocitySquared from the utilities, transonic local Mach number
+KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredTransonicMach, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 1.0;
+
+    // velocity corresponding to mach number 1.0
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> velocity(2, 0.0);
+    velocity[0] = std::sqrt(local_velocity_squared);
+
+    // performs clamping on mach number
+    const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
+
+    const double mach_derivative = PotentialFlowUtilities::ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(velocity,
+                local_mach_squared, model_part.GetProcessInfo());
+
+    const double reference_derivative = 1.1620100191086091883e-05;
+
+    KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
+}
+
+// Checks the function ComputeDerivativeLocalMachSquaredWRTVelocitySquared from the utilities, supersonic local Mach number
+KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSupersonicMach, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    // velocity corresponding to mach number 3.0
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> velocity(2, 0.0);
+    velocity[0] = std::sqrt(local_velocity_squared);
+
+    // performs clamping on mach number
+    const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, model_part.GetProcessInfo());
+
+    const double mach_derivative = PotentialFlowUtilities::ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(velocity,
+                local_mach_squared, model_part.GetProcessInfo());
+
+    const double reference_derivative = 2.0657955895264163348e-05;
+
+    KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
 
 // Checks the function ComputeIncompressiblePerturbationPressureCoefficient from the utilities
@@ -161,6 +301,117 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalMachNumber, CompressiblePotent
             *pElement, model_part.GetProcessInfo());
 
     KRATOS_CHECK_NEAR(local_mach_number, 0.9474471158469713, 1e-16);
+}
+
+// tests the function ComputeUpwindFactor from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactor, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_squared = 3.0;
+
+    const double upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(local_mach_squared, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.6733, 1e-15);
+}
+
+// tests the function SelectMaxUpwindFactor from the utilities
+KRATOS_TEST_CASE_IN_SUITE(SelectMaxUpwindFactor, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    // velocity corresponding to mach number sqrt(3.0)
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> current_velocity(2, 0.0);
+    current_velocity[0] = std::sqrt(local_velocity_squared);
+
+    const double upwind_mach_number_squared = 0.7 * 0.7;
+
+    // velocity corresponding to mach number 0.7
+    const double upwind_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(upwind_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> upwind_velocity(2, 0.0);
+    upwind_velocity[0] = std::sqrt(upwind_velocity_squared);
+
+    // find max of current element upwind factor, upwind element upwind factor, and 0
+    const double upwind_factor = PotentialFlowUtilities::SelectMaxUpwindFactor<2, 3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.6733, 1e-15);
+}
+
+// tests the function ComputeUpwindFactorCase from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase0, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    array_1d<double, 3> upwind_factor_options(3, 0.0);
+
+    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.35, model_part.GetProcessInfo());
+    upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.49, model_part.GetProcessInfo());
+
+    const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
+}
+
+// tests the function ComputeUpwindFactorCase from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase1, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    array_1d<double, 3> upwind_factor_options(3, 0.0);
+
+    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(3.0, model_part.GetProcessInfo());
+    upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.49, model_part.GetProcessInfo());
+
+    const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 1.0, 1e-15);
+}
+
+// tests the function ComputeUpwindFactorCase from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase2, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    array_1d<double, 3> upwind_factor_options(3, 0.0);
+
+    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(1.3, model_part.GetProcessInfo());
+    upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(3.0, model_part.GetProcessInfo());
+
+    const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 2.0, 1e-15);
+}
+
+// tests the function ComputeUpwindFactorCase from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCaseSubsonicElement, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    array_1d<double, 3> upwind_factor_options(3, 0.0);
+
+    upwind_factor_options[1] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(0.49, model_part.GetProcessInfo());
+    upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(3.0, model_part.GetProcessInfo());
+
+    const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
 }
 
 } // namespace Testing

@@ -1,0 +1,17 @@
+# Spatial statistics process output
+# Kratos version               : not_given
+# Timestamp                    : not_specified
+# Method Name                  : max
+# Norm type                    : magnitude
+# Container type               : condition_non_historical
+# Modelpart name               : test_model_part
+# Output control variable name : STEP
+# ----------------------------------------------------------------------
+# Headers:
+# OutputControlVariableValue PRESSURE_Max PRESSURE_Id VELOCITY_Max VELOCITY_Id LOAD_MESHES_Max LOAD_MESHES_Id GREEN_LAGRANGE_STRAIN_TENSOR_Max GREEN_LAGRANGE_STRAIN_TENSOR_Id
+2 27.0 8 93.53074360871938 8 67.08203932499369 8 330.0 8
+4 45.0 8 155.88457268119896 8 111.80339887498948 8 550.0 8
+6 63.0 8 218.23840175367854 8 156.52475842498527 8 770.0 8
+8 81.0 8 280.59223082615813 8 201.24611797498108 8 990.0 8
+10 99.0 8 342.9460598986377 8 245.96747752497686 8 1210.0 8
+# End of file

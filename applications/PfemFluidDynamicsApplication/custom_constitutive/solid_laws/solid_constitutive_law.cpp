@@ -136,27 +136,21 @@ double PfemSolidConstitutiveLaw::GetValueFromTable(const Variable<double>& rInde
     // Get material properties from constitutive law parameters
     const Properties& r_properties = rParameters.GetMaterialProperties();
 
-    double dependent_at_gauss = 0;
-    if (r_properties.HasTable(rIndependentVariable, rDependentVariable)) {
-        // Get geometry and Gauss points data
-        const auto& r_geometry = rParameters.GetElementGeometry();
-        const auto& r_N = rParameters.GetShapeFunctionsValues();
+    // Get geometry and Gauss points data
+    const auto& r_geometry = rParameters.GetElementGeometry();
+    const auto& r_N = rParameters.GetShapeFunctionsValues();
 
-        // Compute the independent variable at the Gauss point
-        double independent_at_gauss = 0.0;
-        for (unsigned int i = 0; i < r_N.size(); ++i) {
-            const double& r_val = r_geometry[i].FastGetSolutionStepValue(rIndependentVariable);
-            independent_at_gauss += r_val * r_N[i];
-        }
-
-        // Retrieve the dependent variable from the table
-        const auto& r_table = r_properties.GetTable(rIndependentVariable, rDependentVariable);
-        dependent_at_gauss = r_table.GetValue(independent_at_gauss);
-
-    } else {
-        KRATOS_ERROR << "PfemFluidConstitutiveLaw " << this->Info() << " has no table with variables "
-                     << rIndependentVariable << " " << rDependentVariable << std::endl;
+    // Compute the independent variable at the Gauss point
+    double independent_at_gauss = 0.0;
+    double dependent_at_gauss = 0.0;
+    for (unsigned int i = 0; i < r_N.size(); ++i) {
+        const double& r_val = r_geometry[i].FastGetSolutionStepValue(rIndependentVariable);
+        independent_at_gauss += r_val * r_N[i];
     }
+
+    // Retrieve the dependent variable from the table
+    const auto& r_table = r_properties.GetTable(rIndependentVariable, rDependentVariable);
+    dependent_at_gauss = r_table.GetValue(independent_at_gauss);
 
     return dependent_at_gauss;
 }
