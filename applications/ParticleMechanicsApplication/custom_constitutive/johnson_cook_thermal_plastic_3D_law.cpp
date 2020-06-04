@@ -140,8 +140,11 @@ namespace Kratos
 			// Initial prediction of quantities
 			predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
 			predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
-			predicted_temperature = mTemperatureOld + MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY] / MaterialProperties[SPECIFIC_HEAT] *
-				(yield_stress + mYieldStressOld) * gamma;
+			predicted_temperature = mTemperatureOld;
+			if (MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] > 0.0) {
+				predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
+					/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
+			}
 
 			// Newton Raphson return mapping loop
 			while (!is_converged)
@@ -156,8 +159,10 @@ namespace Kratos
 				dYield_dGamma = CalculatePlasticStrainDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
 				dYield_dGamma += CalculatePlasticStrainRateDerivative(
 					MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature)/ CurrentProcessInfo[DELTA_TIME];
-				dYield_dGamma += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] * yield_stress/ MaterialProperties[DENSITY] / MaterialProperties[SPECIFIC_HEAT] * CalculateThermalDerivative(
-					MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
+				if (MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] > 0.0) {
+					dYield_dGamma += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] * yield_stress/ MaterialProperties[DENSITY] /
+						MaterialProperties[SPECIFIC_HEAT] * CalculateThermalDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
+				}
 				dYield_dGamma *= GetSqrt23();
 				yield_function_gradient = -1.0 * GetSqrt6() * shear_modulus_G - dYield_dGamma;
 
@@ -175,9 +180,11 @@ namespace Kratos
 				// Update of quantities
 				predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
 				predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
-				predicted_temperature = mTemperatureOld + MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY] / MaterialProperties[SPECIFIC_HEAT] *
-					(yield_stress + mYieldStressOld) * gamma;
-
+				predicted_temperature = mTemperatureOld;
+				if (MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] > 0.0) {
+					predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
+						/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
+				}
 
 				iteration += 1;
 				if (iteration == iteration_limit)
@@ -235,17 +242,22 @@ namespace Kratos
 	{
 		const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_A);
-		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_B);
-		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_C);
-		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_m);
-		KRATOS_CHECK_VARIABLE_KEY(JC_PARAMETER_n);
-		KRATOS_CHECK_VARIABLE_KEY(TAYLOR_QUINNEY_COEFFICIENT);
-		KRATOS_CHECK_VARIABLE_KEY(REFERENCE_STRAIN_RATE);
-		KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
-		KRATOS_CHECK_VARIABLE_KEY(REFERENCE_TEMPERATURE);
-		KRATOS_CHECK_VARIABLE_KEY(MELD_TEMPERATURE);
-		KRATOS_CHECK_VARIABLE_KEY(SPECIFIC_HEAT);
+		KRATOS_ERROR_IF (JC_PARAMETER_A.Key()==0 || rMaterialProperties[JC_PARAMETER_A] < 0.0) << "JC_PARAMETER_A has key zero or invalid value (expected positive number ~500MPa)" << std::endl;
+		KRATOS_ERROR_IF (JC_PARAMETER_B.Key()==0 || rMaterialProperties[JC_PARAMETER_B] < 0.0) << "JC_PARAMETER_B has key zero or invalid value (expected positive number ~500MPa)" << std::endl;
+		KRATOS_ERROR_IF (JC_PARAMETER_C.Key()==0 || rMaterialProperties[JC_PARAMETER_C] < 0.0) << "JC_PARAMETER_C has key zero or invalid value (expected positive number ~0.01)" << std::endl;
+		KRATOS_ERROR_IF (JC_PARAMETER_n.Key()==0 || rMaterialProperties[JC_PARAMETER_n] < 0.0) << "JC_PARAMETER_n has key zero or invalid value (expected positive number ~0.25)" << std::endl;
+		KRATOS_ERROR_IF (REFERENCE_STRAIN_RATE.Key()==0 || rMaterialProperties[REFERENCE_STRAIN_RATE] <= 0.0) << "REFERENCE_STRAIN_RATE has key zero or invalid value (expected positive number ~1.0)" << std::endl;
+		KRATOS_ERROR_IF (TAYLOR_QUINNEY_COEFFICIENT.Key()==0 || rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] < 0.0) << "TAYLOR_QUINNEY_COEFFICIENT has key zero or invalid value (expected positive number ~0.9)" << std::endl;
+
+		if (rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] > 0.0)
+		{
+			// Check parameters that affect thermal softening
+			KRATOS_ERROR_IF(JC_PARAMETER_m.Key() == 0 || rMaterialProperties[JC_PARAMETER_m] < 0.0) << "JC_PARAMETER_m has key zero or invalid value (expected positive number ~1.0)" << std::endl;
+			KRATOS_ERROR_IF(MELD_TEMPERATURE.Key() == 0 || rMaterialProperties[MELD_TEMPERATURE] <= 0.0) << "MELD_TEMPERATURE has key zero or invalid value (expected positive number ~1700K)" << std::endl;
+			KRATOS_ERROR_IF(REFERENCE_TEMPERATURE.Key() == 0 || rMaterialProperties[REFERENCE_TEMPERATURE] <= 0.0) << "REFERENCE_TEMPERATURE has key zero or invalid value (expected positive number ~293K)" << std::endl;
+			KRATOS_ERROR_IF(TEMPERATURE.Key() == 0 || rMaterialProperties[TEMPERATURE] <= 0.0) << "TEMPERATURE has key zero or invalid value (expected positive number ~293K)" << std::endl;
+			KRATOS_ERROR_IF(SPECIFIC_HEAT.Key() == 0 || rMaterialProperties[SPECIFIC_HEAT] < 0.0) << "SPECIFIC_HEAT has key zero or invalid value (expected positive number ~450.0)" << std::endl;
+		}
 
 		if (check_base > 1) return 1;
 		return 0;
