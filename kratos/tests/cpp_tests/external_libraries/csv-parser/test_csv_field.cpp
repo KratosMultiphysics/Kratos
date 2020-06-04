@@ -28,7 +28,7 @@ namespace Testing {
 
 using namespace csv;
 
-// TEMPLATE_TEST_CASE(CSVFieldget<>-StringValue, KratosExternalLibrariesFastSuite,
+// KRATOS_TEST_CASE_IN_SUITE(CSVFieldget<>-StringValue, KratosExternalLibrariesFastSuite,
 //     signed char, short int, int, long long int, double, long double) {
 //     CSVField field("applesauce");
 //     KRATOS_CHECK(field.get<>() == "applesauce");
@@ -96,7 +96,7 @@ using namespace csv;
 // }
 //
 // // Test converting a small integer to unsigned and signed integer types
-// TEMPLATE_TEST_CASE(CSVFieldget<>()-IntegralValuetoInt, KratosExternalLibrariesFastSuite,
+// KRATOS_TEST_CASE_IN_SUITE(CSVFieldget<>()-IntegralValuetoInt, KratosExternalLibrariesFastSuite,
 //     unsigned char, unsigned short, unsigned int, unsigned long long,
 //     char, short, int, long long int) {
 //     CSVField savage("21");
@@ -112,7 +112,7 @@ using namespace csv;
 //     KRATOS_CHECK(euler.get<long double>() == 2.718l);
 // }
 //
-// TEMPLATE_TEST_CASE(CSVFieldget<>()-DisallowFloattoInt, KratosExternalLibrariesFastSuite) {
+// KRATOS_TEST_CASE_IN_SUITE(CSVFieldget<>()-DisallowFloattoInt, KratosExternalLibrariesFastSuite) {
 //     CSVField euler("2.718");
 //     bool ex_caught = false;
 //
@@ -127,7 +127,7 @@ using namespace csv;
 //     KRATOS_CHECK(ex_caught);
 // }
 //
-// TEMPLATE_TEST_CASE(CSVFieldget<>()-DisallowNegativetoUnsigned, KratosExternalLibrariesFastSuite) {
+// KRATOS_TEST_CASE_IN_SUITE(CSVFieldget<>()-DisallowNegativetoUnsigned, KratosExternalLibrariesFastSuite) {
 //     CSVField neg("-1337");
 //     bool ex_caught = false;
 //
