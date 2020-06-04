@@ -405,7 +405,22 @@ void ExportData_RawValues(
     KRATOS_CATCH("")
 }
 
-} // helpers namespace
+CoSimIO::Info InfoFromParameters(Parameters rSettings)
+{
+    CoSimIO::Info info;
+
+    for (auto it = rSettings.begin(); it != rSettings.end(); ++it) {
+        if      (it->IsString()) info.Set<std::string>(it.name(), it->GetString());
+        else if (it->IsInt())    info.Set<int>(it.name(),    it->GetInt());
+        else if (it->IsBool())   info.Set<bool>(it.name(),   it->GetBool());
+        else if (it->IsDouble()) info.Set<double>(it.name(), it->GetDouble());
+        else KRATOS_WARNING("Kratos-CoSimIO") << "Setting with name \"" << it.name() << "\" cannot be converted to CoSimIO::Info and is ignored!" << std::endl;
+    }
+
+    return info;
+}
+
+} // CoSimIO_Wrappers namespace
 
 void  AddCoSimIOToPython(pybind11::module& m)
 {
@@ -446,6 +461,9 @@ void  AddCoSimIOToPython(pybind11::module& m)
     m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_ModelPart_Vector);
     m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_RawValues);
     m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_RawValues);
+    
+    
+    m_co_sim_io.def("InfoFromParameters", CoSimIO_Wrappers::InfoFromParameters);
 
     // // m_co_sim_io.def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry); // This is not yet implemented in the CoSimIO
     // // m_co_sim_io.def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry); // This is not yet implemented in the CoSimIO
