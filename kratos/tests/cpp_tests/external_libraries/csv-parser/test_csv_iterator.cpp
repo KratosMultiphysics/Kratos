@@ -120,41 +120,22 @@ KRATOS_TEST_CASE_IN_SUITE(CSVRowInterator, KratosExternalLibrariesFastSuite)
     }
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(BasicCSVReaderIteratorTest, KratosExternalLibrariesFastSuite)
-// {
-//     // A file with 100 rows and columns A, B, ... J
-//     // where every value in the ith row is the number i
-//     const std::string working_dir = EraseSubString(__FILE__, "test_csv_iterator.cpp");
-//     CSVReader reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
-//     std::vector<std::string> col_names = {
-//         "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"
-//     };
-//     std::size_t i = 1;
-//
-//     // Basic Iterator
-//     {
-//         for (auto it = reader.begin(); it != reader.end(); ++it) {
-//             KRATOS_CHECK_EQUAL((*it)[0].get<std::size_t>(), i);
-//             i++;
-//         }
-//     }
-//
-//     // Iterator Post-Increment
-//     {
-//         auto it = reader.begin();
-//         KRATOS_CHECK_EQUAL((it++)->operator[]("A").get<int>(), 1);
-//         KRATOS_CHECK_EQUAL(it->operator[]("A").get<int>(), 2);
-//     }
-//
-//     // Range-Based For Loop
-//     {
-//         for (auto& row : reader) {
-//             for (auto& j : col_names)
-//                 KRATOS_CHECK_EQUAL(row[j].get<std::size_t>(), i);
-//             i++;
-//         }
-//     }
-// }
+KRATOS_TEST_CASE_IN_SUITE(BasicCSVReaderIteratorTest, KratosExternalLibrariesFastSuite)
+{
+    // A file with 100 rows and columns A, B, ... J
+    // where every value in the ith row is the number i
+    const std::string working_dir = EraseSubString(__FILE__, "test_csv_iterator.cpp");
+    CSVReader reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
+    std::vector<std::string> col_names = {
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"
+    };
+    std::size_t i = 1;
+
+    for (auto it = reader.begin(); it != reader.end(); ++it) {
+        KRATOS_CHECK_EQUAL((*it)[0].get<std::size_t>(), i);
+        i++;
+    }
+}
 
 KRATOS_TEST_CASE_IN_SUITE(CSVReaderIteratorstdmax_elem, KratosExternalLibrariesFastSuite)
 {
