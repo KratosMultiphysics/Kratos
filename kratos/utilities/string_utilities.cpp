@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
+#include <string>
 
 // External includes
 
@@ -63,6 +64,23 @@ std::string ErasePartialString(
     }
 
     return sub_string;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string RemoveWhiteSpaces(const std::string& rString)
+{
+    // Value to return
+    std::string output;
+
+    for(char c : rString) {
+        if(!std::isspace(c)) {
+            output += c ;
+        }
+    }
+
+    return output;
 }
 
 } // namespace StringUtilities

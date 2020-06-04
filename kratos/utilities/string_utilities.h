@@ -66,6 +66,13 @@ namespace StringUtilities
         const std::string& rToErase
         );
 
+    /**
+     * @brief This method removes whitespaces
+     * @param rString The string to be transformed
+     * @return The string without white spaces
+     */
+    std::string KRATOS_API(KRATOS_CORE) RemoveWhiteSpaces(const std::string& rString);
+
 }; // namespace StringUtilities
 }  // namespace Kratos
 #endif /* KRATOS_STRING_UTILITIES defined */
