@@ -401,7 +401,8 @@ typedef Node<3> NodeType;
 
         // Check general information, input to ouput
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        curve_on_surface.CreateIntegrationPoints(integration_points, IntegrationInfo());
+        IntegrationInfo integration_info;
+        curve_on_surface.CreateIntegrationPoints(integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(integration_points.size(), 20);
         double length = 0;
@@ -419,7 +420,8 @@ typedef Node<3> NodeType;
 
         // Check general information, input to ouput
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        curve_on_surface.CreateIntegrationPoints(integration_points, IntegrationInfo());
+        IntegrationInfo integration_info;
+        curve_on_surface.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<Point>::GeometriesArrayType quadrature_points;
         curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);

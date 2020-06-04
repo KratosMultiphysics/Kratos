@@ -331,7 +331,8 @@ typedef Node<3> NodeType;
 
         // Check general information, input to ouput
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        curve.CreateIntegrationPoints(integration_points, IntegrationInfo());
+        IntegrationInfo integration_info;
+        curve.CreateIntegrationPoints(integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(integration_points.size(), 4);
         double area = 0;
@@ -349,7 +350,8 @@ typedef Node<3> NodeType;
         auto curve = GenerateReferenceCurve3d();
 
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        curve.CreateIntegrationPoints(integration_points, IntegrationInfo());
+        IntegrationInfo integration_info;
+        curve.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
         curve.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
