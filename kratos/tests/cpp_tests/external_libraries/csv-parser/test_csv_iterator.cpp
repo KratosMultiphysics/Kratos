@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "utilities/string_utilities.h"
 #include "includes/kratos_filesystem.h"
 #include "csv-parser/include/csv.hpp"
 
@@ -26,25 +27,6 @@ namespace Kratos {
 namespace Testing {
 
 using namespace csv;
-
-/**
- * Erase First Occurrence of given  substring from main string.
- */
-std::string EraseSubString(const std::string& rMainStrint, const std::string& rToErase)
-{
-    // Value to return
-    std::string sub_string = rMainStrint;
-
-    // Search for the substring in string
-    size_t pos = sub_string.find(rToErase);
-
-    if (pos != std::string::npos) {
-        // If found then erase it from string
-        sub_string.erase(pos, rToErase.length());
-    }
-
-    return sub_string;
-}
 
 KRATOS_TEST_CASE_IN_SUITE(CSVRowInterator, KratosExternalLibrariesFastSuite)
 {
@@ -124,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(BasicCSVReaderIteratorTest, KratosExternalLibrariesFas
 {
     // A file with 100 rows and columns A, B, ... J
     // where every value in the ith row is the number i
-    const std::string working_dir = EraseSubString(__FILE__, "test_csv_iterator.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_iterator.cpp");
     CSVReader reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
     std::vector<std::string> col_names = {
         "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"
@@ -142,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSVReaderIteratorstdmax_elem, KratosExternalLibrariesF
     // The first is such that each value in the ith row is the number i
     // There are 100 rows
     // The second file is a database of California state employee salaries
-    const std::string working_dir = EraseSubString(__FILE__, "test_csv_iterator.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_iterator.cpp");
     CSVReader r1(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/fake_data/ints.csv"}));
     CSVReader r2(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"}));
 
