@@ -1572,20 +1572,10 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     else if (rVariable == MP_TOTAL_ENERGY) {
         rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
     }
-    else if (rVariable == MP_HARDENING_RATIO) {
-        rValues[0] = mConstitutiveLawVector->GetValue(MP_HARDENING_RATIO, rValues[0]);
-    }
-    else if (rVariable == MP_EQUIVALENT_STRESS) {
-        rValues[0] = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_STRESS, rValues[0]);
-    }
-    else if (rVariable == MP_EQUIVALENT_PLASTIC_STRAIN) {
-        rValues[0] = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, rValues[0]);
-    }
-    else if (rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE) {
-        rValues[0] = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN_RATE, rValues[0]);
-    }
-    else if (rVariable == MP_TEMPERATURE) {
-        rValues[0] = mConstitutiveLawVector->GetValue(MP_TEMPERATURE, rValues[0]);
+    else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
+        rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||
+        rVariable == MP_TEMPERATURE) {
+        rValues[0] = mConstitutiveLawVector->GetValue(rVariable, rValues[0]);
     }
     else
     {
