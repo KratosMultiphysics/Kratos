@@ -17,6 +17,7 @@ from test_ping_pong_coupling import TestPingPong
 from test_processes import TestCreatePointBasedEntitiesProcess
 from test_co_sim_io_py_exposure import TestCoSimIOPyExposure
 from test_co_sim_io_py_exposure import TestCoSimIOPyExposure_aux_tests
+from test_kratos_co_sim_io import TestKratosCoSimIO
 
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
@@ -73,6 +74,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
     if not using_pykratos:
         nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
+        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosCoSimIO]))
 
     nightSuite.addTests(smallSuite)
 
