@@ -33,6 +33,13 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('test_tau_functions/Outputs')
         os.rmdir('test_tau_functions/Mesh')
 
+    def test_CalculateCellPressure(self):
+        # Define test file
+        test_file = 'test_CalculateCellPressure.py'
+
+        # Run test
+        self.execute_test(test_file)
+
     def test_CalculateCellArea(self):
         # Define test file
         test_file = 'test_CalculateCellArea.py'
