@@ -19,6 +19,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/kratos_filesystem.h"
+#include "utilities/string_utilities.h"
 #include "csv-parser/include/csv.hpp"
 
 namespace Kratos {
@@ -26,25 +27,6 @@ namespace Kratos {
 namespace Testing {
 
 using namespace csv;
-
-/**
- * Erase First Occurrence of given  substring from main string.
- */
-std::string ErasePartString(const std::string& rMainStrint, const std::string& rToErase)
-{
-    // Value to return
-    std::string sub_string = rMainStrint;
-
-    // Search for the substring in string
-    size_t pos = sub_string.find(rToErase);
-
-    if (pos != std::string::npos) {
-        // If found then erase it from string
-        sub_string.erase(pos, rToErase.length());
-    }
-
-    return sub_string;
-}
 
 KRATOS_TEST_CASE_IN_SUITE(CalculatingStatisticsfromDirectInput, KratosExternalLibrariesFastSuite )
 {
@@ -82,14 +64,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingStatisticsfromDirectInput, KratosExternalLi
 
 KRATOS_TEST_CASE_IN_SUITE(Statisticspersonscsv, KratosExternalLibrariesFastSuite )
 {
-    const std::string working_dir = ErasePartString(__FILE__, "test_csv_stat.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_stat.cpp");
     CSVStat reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/mimesis_data/persons.csv"}));
     KRATOS_CHECK_EQUAL( ceil(reader.get_mean()[1]), 42 );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypespersonscsv, KratosExternalLibrariesFastSuite)
 {
-    const std::string working_dir = ErasePartString(__FILE__, "test_csv_stat.cpp");
+    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_stat.cpp");
     auto dtypes = csv_data_types(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/mimesis_data/persons.csv"}));
 
     KRATOS_CHECK_EQUAL(dtypes["Full Name"], CSV_STRING);
