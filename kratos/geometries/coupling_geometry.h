@@ -60,11 +60,10 @@ public:
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef typename BaseType::PointsArrayType PointsArrayType;
-
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef std::vector<CoordinatesArrayType> CoordinatesArrayVectorType;
-
     typedef PointerVector<GeometryType> GeometriesArrayType;
 
     ///@}
