@@ -298,9 +298,9 @@ public:
     /* Creates integration points on the master considering all slave intersections.
      * @return integration points.
      */
-    virtual void CreateIntegrationPoints(
+    void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        IntegrationInfo& rIntegrationInfo = IntegrationInfo()) const
+        IntegrationInfo& rIntegrationInfo = IntegrationInfo()) const override
     {
         if (this->Dimension() == 1) {
             std::vector<double> intersection_master_spans;
@@ -352,10 +352,10 @@ public:
      *
      * @see quadrature_point_geometry.h
      */
-    virtual void CreateQuadraturePointGeometries(
+    void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints)
+        const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         const SizeType num_integration_points = rIntegrationPoints.size();
 
