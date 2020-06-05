@@ -258,6 +258,9 @@ public:
             rCurrentProcessInfo, true, true);
     }
 
+    void Calculate(const Variable<Matrix>& rVariable,
+      Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
@@ -295,6 +298,11 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step) override;
+
+    enum class ConfigurationType {
+      Current,
+      Reference
+    };
 
     ///@}
     ///@name Check
@@ -378,7 +386,8 @@ private:
 
     void CalculateKinematics(
         IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables);
+        KinematicVariables& rKinematicVariables,
+        const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration);
 
     // Computes transformation
     void CalculateTransformation(

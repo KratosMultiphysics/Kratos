@@ -33,38 +33,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const GeometryType& r_geometry = GetGeometry();
-
-        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
-
-        // Prepare memory
-        if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
-            m_A_ab_covariant_vector.resize(r_number_of_integration_points);
-        if (m_dA_vector.size() != r_number_of_integration_points)
-            m_dA_vector.resize(r_number_of_integration_points);
-        if (m_T_vector.size() != r_number_of_integration_points)
-            m_T_vector.resize(r_number_of_integration_points);
-        if (m_T_hat_vector.size() != r_number_of_integration_points)
-            m_T_hat_vector.resize(r_number_of_integration_points);
-        if (m_reference_contravariant_base.size() != r_number_of_integration_points)
-            m_reference_contravariant_base.resize(r_number_of_integration_points);
-
-        KinematicVariables kinematic_variables(
-            GetGeometry().WorkingSpaceDimension());
-
-        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
-        {
-            CalculateKinematics(
-                point_number,
-                kinematic_variables);
-
-            m_A_ab_covariant_vector[point_number] = kinematic_variables.a_ab_covariant;
-
-            m_dA_vector[point_number] = kinematic_variables.dA;
-
-            CalculateTransformation(kinematic_variables, m_T_vector[point_number], m_T_hat_vector[point_number], m_reference_contravariant_base[point_number]);
-        }
-
         InitializeMaterial();
 
         KRATOS_CATCH("")
@@ -113,15 +81,49 @@ namespace Kratos
         const SizeType number_of_nodes = r_geometry.size();
         const SizeType mat_size = number_of_nodes * 3;
 
-        const auto& r_integration_points = r_geometry.IntegrationPoints();       //KRATOS_WATCH(r_integration_points)
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+
+        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+        
+        // Prepare memory
+        if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
+            m_A_ab_covariant_vector.resize(r_number_of_integration_points);
+        if (m_dA_vector.size() != r_number_of_integration_points)
+            m_dA_vector.resize(r_number_of_integration_points);
+        if (m_T_vector.size() != r_number_of_integration_points)
+            m_T_vector.resize(r_number_of_integration_points);
+        if (m_T_hat_vector.size() != r_number_of_integration_points)
+            m_T_hat_vector.resize(r_number_of_integration_points);
+        if (m_reference_contravariant_base.size() != r_number_of_integration_points)
+            m_reference_contravariant_base.resize(r_number_of_integration_points);
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+            //Compute Kinematics Reference
+            KinematicVariables kinematic_variables_reference(
+                GetGeometry().WorkingSpaceDimension());
+
+            CalculateKinematics(
+                point_number,
+                kinematic_variables_reference,shape_functions_gradients_i, ConfigurationType::Reference);
+            
+            m_A_ab_covariant_vector[point_number] = kinematic_variables_reference.a_ab_covariant;
+
+            m_dA_vector[point_number] = kinematic_variables_reference.dA;
+
+            CalculateTransformation(kinematic_variables_reference, m_T_vector[point_number], m_T_hat_vector[point_number], m_reference_contravariant_base[point_number]);
+
             // Compute Kinematics and Metric
             KinematicVariables kinematic_variables(
                 GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(
                 point_number,
-                kinematic_variables);
+                kinematic_variables,shape_functions_gradients_i, ConfigurationType::Current);
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters(
@@ -199,14 +201,35 @@ namespace Kratos
 
     void IgaMembraneElement::CalculateKinematics(
         IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables
+        KinematicVariables& rKinematicVariables,
+        const Matrix& rShapeFunctionGradientValues,
+        const ConfigurationType& rConfiguration
     )
     {
-        Matrix J;
-        GetGeometry().Jacobian(J, IntegrationPointIndex);
+        // pass/call this ShapeFunctionsLocalGradients[pnt]
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType number_of_nodes = GetGeometry().size();
+        Vector g1 = ZeroVector(dimension);
+        Vector g2 = ZeroVector(dimension);
+        int step = 0;
 
-        rKinematicVariables.a1 = column(J, 0);
-        rKinematicVariables.a2 = column(J, 1);
+        Vector current_displacement = ZeroVector(dimension*number_of_nodes);
+        if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement,step);
+
+        KRATOS_WATCH(current_displacement)
+
+        for (SizeType i=0;i<number_of_nodes;++i){
+            g1[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 0);
+            g1[1] += (GetGeometry().GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 0);
+            g1[2] += (GetGeometry().GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 0);
+
+            g2[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 1);
+            g2[1] += (GetGeometry().GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 1);
+            g2[2] += (GetGeometry().GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 1);
+        }
+
+        rKinematicVariables.a1 = g1;
+        rKinematicVariables.a2 = g2;
 
         //not-normalized base vector 3
         MathUtils<double>::CrossProduct(rKinematicVariables.a3_tilde, rKinematicVariables.a1, rKinematicVariables.a2);
@@ -716,6 +739,9 @@ namespace Kratos
         const auto& r_geometry = GetGeometry();
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
+        const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+
         if (rValues.size() != r_integration_points.size())
         {
             rValues.resize(r_integration_points.size());
@@ -729,12 +755,13 @@ namespace Kratos
 
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
             {
+                const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
                 // Compute Kinematics and Metric
                 KinematicVariables kinematic_variables(
                     GetGeometry().WorkingSpaceDimension());
                 CalculateKinematics(
                     point_number,
-                    kinematic_variables);
+                    kinematic_variables,shape_functions_gradients_i, ConfigurationType::Current);
 
                 // Create constitutive law parameters:
                 ConstitutiveLaw::Parameters constitutive_law_parameters(
@@ -772,10 +799,9 @@ namespace Kratos
 
                 Vector n_pk2_ca = prod(constitutive_variables_membrane.ConstitutiveMatrix, constitutive_variables_membrane.StrainVector) + prestress_tensor;
                 
-                /*
                 //Transform PK2 stress into Cauchy stress
                 //Deformation Gradient F
-                Matrix deformation_gradient = ZeroMatrix(3);
+                Matrix deformation_gradient = ZeroMatrix(2);
                 double det_deformation_gradient;
 
                 array_1d<Vector,2> rCurrentCovariantBase;
@@ -785,19 +811,29 @@ namespace Kratos
                 array_1d< array_1d<double, 3>,2> rReferenceContraVariantBase = m_reference_contravariant_base[point_number];
 
                 for (SizeType i=0;i<2;++i){
-                    deformation_gradient += outer_prod(rCurrentCovariantBase[i],rReferenceContraVariantBase[i]);
+                    for (SizeType j=0;j<2;++j){
+                        for (SizeType k=0;k<2;++k){
+                            deformation_gradient(j,k) += rCurrentCovariantBase[i][j]*rReferenceContraVariantBase[i][k];
+                        }
+                    }
                 }
 
                 Matrix stress_matrix = MathUtils<double>::StressVectorToTensor(n_pk2_ca);
-                // Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
-                // Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
-                // Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
-                // Vector n_cau = MathUtils<double>::StressTensorToVector(cauchy_stress_matrix,3);
-                */
+                Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
+                Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
+                Matrix cauchy_stress_matrix = temp_stress_matrix_2 / detF;
+   
+                Vector n_cau = MathUtils<double>::StressTensorToVector(cauchy_stress_matrix,3);
                 
-                sigma_top(0) = n_pk2_ca[0];
-                sigma_top(1) = n_pk2_ca[1];
-                sigma_top(2) = n_pk2_ca[2];
+                //PK2 stress
+                // sigma_top(0) = n_pk2_ca[0];
+                // sigma_top(1) = n_pk2_ca[1];
+                // sigma_top(2) = n_pk2_ca[2];
+
+                //Cauchy stress
+                sigma_top(0) = n_cau[0];
+                sigma_top(1) = n_cau[1];
+                sigma_top(2) = n_cau[2];
 
                 rValues[point_number] = sigma_top;
             }
@@ -826,6 +862,54 @@ namespace Kratos
             { 
                 rValues[point_number] = ZeroVector(3);
             }
+        }
+    }
+
+    void IgaMembraneElement::Calculate(
+        const Variable<Matrix>& rVariable, 
+        Matrix& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
+            rOutput = ZeroMatrix(3);
+            array_1d<Vector,2> base_vectors_current_cov;
+            const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
+            const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+            const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
+
+            Vector base_1 = ZeroVector(3);
+            Vector base_2 = ZeroVector(3);
+            Vector base_3 = ZeroVector(3);
+
+            for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+                // const double integration_weight_i = r_integration_points[point_number].Weight();
+                const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+                // CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,ConfigurationType::Reference);
+                // base_1 += base_vectors_current_cov[0]*integration_weight_i;
+                // base_2 += base_vectors_current_cov[1]*integration_weight_i;
+
+                const double integration_weight_i = r_integration_points[point_number].Weight();
+
+                // Compute Kinematics and Metric
+                KinematicVariables kinematic_variables(
+                    GetGeometry().WorkingSpaceDimension());
+                CalculateKinematics(
+                    point_number,
+                    kinematic_variables,shape_functions_gradients_i, ConfigurationType::Current);
+                
+                base_1 += kinematic_variables.a1*integration_weight_i;
+                base_2 += kinematic_variables.a2*integration_weight_i;
+
+            }
+
+            MathUtils<double>::CrossProduct(base_3, base_1, base_2);
+            base_3 /= MathUtils<double>::Norm(base_3);
+
+            column(rOutput,0) = base_1;
+            column(rOutput,1) = base_2;
+            column(rOutput,2) = base_3;
         }
     }
 
