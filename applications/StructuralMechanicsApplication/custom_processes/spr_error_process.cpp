@@ -82,6 +82,9 @@ void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
     const auto it_node_begin = r_nodes_array.begin();
     const int num_nodes = static_cast<int>(r_nodes_array.size());
 
+    // Some initializations
+    VariableUtils().SetVariable(RECOVERED_STRESS, 0.0, r_nodes_array);
+
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
         auto it_node = it_node_begin + i_node;
