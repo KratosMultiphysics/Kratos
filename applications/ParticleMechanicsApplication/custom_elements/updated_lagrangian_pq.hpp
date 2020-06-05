@@ -8,7 +8,8 @@
 //					Kratos default license: kratos/license.txt
 //
 //  Main authors:    Peter Wilson
-//
+//  Pull request:    https://github.com/KratosMultiphysics/Kratos/pull/6927
+
 
 
 #if !defined(KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED )
