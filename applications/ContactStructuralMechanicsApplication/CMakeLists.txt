@@ -59,19 +59,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    ## The interface_preprocess is not compatible with cotire (solve problem with explicit instantations)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_search_wrapper_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpc_contact_search_wrapper_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/base_contact_search_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpc_contact_search_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/simple_contact_search_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_contact_search_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    cotire(KratosContactStructuralMechanicsCore)
-    cotire(KratosContactStructuralMechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
+# # Cotire
+# if(USE_COTIRE MATCHES ON)
+#     ## The interface_preprocess is not compatible with cotire (solve problem with explicit instantations)
+#     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+#     cotire(KratosContactStructuralMechanicsCore)
+#     cotire(KratosContactStructuralMechanicsApplication)
+# endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ContactStructuralMechanicsApplication.py KratosMultiphysics/ContactStructuralMechanicsApplication/__init__.py )
