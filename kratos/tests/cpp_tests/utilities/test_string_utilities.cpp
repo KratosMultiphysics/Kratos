@@ -40,9 +40,12 @@ KRATOS_TEST_CASE_IN_SUITE(ErasePartialString, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(RemoveWhiteSpaces, KratosCoreFastSuite)
 {
-    const std::string text_with_spaces = "textwithspaces                ";
-    const std::string text = StringUtilities::RemoveWhiteSpaces(text_with_spaces);
+    std::string text_with_spaces = "textwithspaces                ";
+    std::string text = StringUtilities::RemoveWhiteSpaces(text_with_spaces);
     KRATOS_CHECK_STRING_EQUAL(text, "textwithspaces");
+    text_with_spaces = "textwithspaces                jojobizarreadventure";
+    text = StringUtilities::RemoveWhiteSpaces(text_with_spaces);
+    KRATOS_CHECK_STRING_EQUAL(text, "textwithspacesjojobizarreadventure");
 }
 
 }   // namespace Testing
