@@ -31,6 +31,8 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
     def ExecuteFinalizeSolutionStep(self):
         self.cm_utility.ExecuteFinalizeSolutionStep()
 
+        if self.output_interval == 0:
+            return
         self.FillPrintVariables()
 
     def PrintResults(self):
