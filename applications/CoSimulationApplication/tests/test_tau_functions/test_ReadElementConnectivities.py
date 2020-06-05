@@ -6,7 +6,7 @@ sys.path.append(tau_functions_path)
 
 import tau_functions as TauFunctions
 
-class TestReadInterfaceFile(unittest.TestCase):
+class TestReadElementConnectivities(unittest.TestCase):
 
     def setUp(self):
         self.interface_filename = 'dummy_interface_file.dat'
@@ -20,7 +20,7 @@ class TestReadInterfaceFile(unittest.TestCase):
             self.WriteElementConnectivities(interface_file)
 
 
-    def test_ReadInterfaceFile(self):
+    def test_ReadElementConnectivities(self):
         # Read interface file
         with open(self.interface_filename, 'r') as interface_file:
             line = interface_file.readline()

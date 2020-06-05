@@ -6,7 +6,7 @@ sys.path.append(tau_functions_path)
 
 import tau_functions as TauFunctions
 
-class TestReadInterfaceFile(unittest.TestCase):
+class TestReadNodalData(unittest.TestCase):
 
     def setUp(self):
         # Defome dummy interface file name
@@ -20,7 +20,7 @@ class TestReadInterfaceFile(unittest.TestCase):
             self.WriteNodalData(interface_file)
 
 
-    def test_ReadInterfaceFile(self):
+    def test_ReadNodalData(self):
         # Read interface file
         with open(self.interface_filename, 'r') as interface_file:
             line = interface_file.readline()
