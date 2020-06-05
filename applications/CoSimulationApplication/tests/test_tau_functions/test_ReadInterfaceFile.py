@@ -32,16 +32,16 @@ class TestReadInterfaceFile(unittest.TestCase):
     def setReference(self):
         self.reference_position_info = ['VARIABLES', '=', '"x"', '"y"', '"z"', '"density"', '"pressure"']
         self.reference_mesh_info = [6, 2]
-        self.reference_X = [0.0, 1.0, 2.0, 2.0, 1.0, 0.0]
-        self.reference_Y = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
-        self.reference_Z = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.reference_density = [1.2, 1.2, 1.2, 1.2, 1.2, 1.2]
-        self.reference_pressure = [3.4, 3.4, 3.4, 3.4, 3.4, 3.4]
-        self.reference_nodal_data = self.reference_X
-        self.reference_nodal_data.extend(self.reference_Y)
-        self.reference_nodal_data.extend(self.reference_Z)
-        self.reference_nodal_data.extend(self.reference_density)
-        self.reference_nodal_data.extend(self.reference_pressure)
+        reference_X = [0.0, 1.0, 2.0, 2.0, 1.0, 0.0]
+        reference_Y = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+        reference_Z = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        reference_density = [1.2, 1.2, 1.2, 1.2, 1.2, 1.2]
+        reference_pressure = [3.4, 3.4, 3.4, 3.4, 3.4, 3.4]
+        self.reference_nodal_data = reference_X
+        self.reference_nodal_data.extend(reference_Y)
+        self.reference_nodal_data.extend(reference_Z)
+        self.reference_nodal_data.extend(reference_density)
+        self.reference_nodal_data.extend(reference_pressure)
         self.reference_elem_connectivities = np.array([1, 2, 5, 6, 2, 3, 4, 5], dtype=int)
 
 
