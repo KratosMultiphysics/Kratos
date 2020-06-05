@@ -300,7 +300,7 @@ public:
      */
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        IntegrationInfo& rIntegrationInfo = IntegrationInfo()) const override
+        IntegrationInfo& rIntegrationInfo) const override
     {
         if (this->Dimension() == 1) {
             std::vector<double> intersection_master_spans;
