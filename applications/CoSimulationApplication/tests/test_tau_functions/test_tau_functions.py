@@ -40,6 +40,13 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Run test
         self.execute_test(test_file)
 
+    def test_FindPrimaryGridFilename(self):
+        # Define test file
+        test_file = 'test_FindPrimaryGridFilename.py'
+
+        # Run test
+        self.execute_test(test_file)
+
     def test_FindOutputFilename(self):
         # Define test file
         test_file = 'test_FindOutputFilename.py'
