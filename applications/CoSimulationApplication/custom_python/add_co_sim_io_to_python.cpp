@@ -29,7 +29,7 @@
 #define CO_SIM_IO_ERROR         KRATOS_ERROR
 #define CO_SIM_IO_ERROR_IF      KRATOS_ERROR_IF
 #define CO_SIM_IO_ERROR_IF_NOT  KRATOS_ERROR_IF_NOT
-#include "co_sim_io.hpp"
+#include "custom_external_libraries/co_sim_io/co_sim_io.hpp"
 
 namespace Kratos {
 namespace Python {
