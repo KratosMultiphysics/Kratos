@@ -34,49 +34,34 @@
 namespace Kratos
 {
 
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
-
 UpdatedLagrangianPQ::UpdatedLagrangianPQ( )
     : UpdatedLagrangian( )
 {
     //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
+
 UpdatedLagrangianPQ::UpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry )
     : UpdatedLagrangian( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
 
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
-
 UpdatedLagrangianPQ::UpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : UpdatedLagrangian( NewId, pGeometry, pProperties )
 {
     mFinalizedStep = true;
 }
-//******************************COPY CONSTRUCTOR**************************************
-//************************************************************************************
 
 UpdatedLagrangianPQ::UpdatedLagrangianPQ(UpdatedLagrangianPQ const& rOther)
     :UpdatedLagrangian(rOther)
 {
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
-//************************************************************************************
-
 UpdatedLagrangianPQ& UpdatedLagrangianPQ::operator=(UpdatedLagrangianPQ const& rOther)
 {
     UpdatedLagrangian::operator=(rOther);
     return *this;
 }
-
-//*********************************OPERATIONS*****************************************
-//************************************************************************************
 
 Element::Pointer UpdatedLagrangianPQ::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
@@ -88,9 +73,6 @@ Element::Pointer UpdatedLagrangianPQ::Create(IndexType NewId, GeometryType::Poin
     return Kratos::make_intrusive< UpdatedLagrangianPQ >(NewId, pGeom, pProperties);
 }
 
-//************************************CLONE*******************************************
-//************************************************************************************
-
 Element::Pointer UpdatedLagrangianPQ::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
     UpdatedLagrangianPQ NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
@@ -98,16 +80,11 @@ Element::Pointer UpdatedLagrangianPQ::Clone( IndexType NewId, NodesArrayType con
     return Element::Pointer( new UpdatedLagrangianPQ(NewElement) );
 }
 
-//*******************************DESTRUCTOR*******************************************
-//************************************************************************************
 UpdatedLagrangianPQ::~UpdatedLagrangianPQ()
 {
 }
 
-//************************************************************************************
-//*********************Calculate the contribution of external force*******************
-
-void UpdatedLagrangianPQ::CalculateAndAddExternalForces( // TODO Merge into base element
+void UpdatedLagrangianPQ::CalculateAndAddExternalForces(
     VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
@@ -122,15 +99,18 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces( // TODO Merge into base
 
     for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
     {
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        for (IndexType i = 0; i < number_of_nodes; ++i)
         {
-            if (r_N(int_p, i) * GetGeometry().IntegrationPoints()[int_p].Weight() > std::numeric_limits<double>::epsilon()) // skip inactive nodes
+            if (r_N(int_p, i) > 0.0)// skip inactive nodes
             {
-                int index = dimension * i;
-
-                for (unsigned int j = 0; j < dimension; j++)
+                if (r_N(int_p, i) * GetGeometry().IntegrationPoints()[int_p].Weight() > std::numeric_limits<double>::epsilon())// skip minute contributions
                 {
-                    rRightHandSideVector[index + j] += r_N(int_p, i) * rVolumeForce[j] * GetGeometry().IntegrationPoints()[int_p].Weight();
+                    int index = dimension * i;
+
+                    for (unsigned int j = 0; j < dimension; ++j)
+                    {
+                        rRightHandSideVector[index + j] += r_N(int_p, i) * rVolumeForce[j] * GetGeometry().IntegrationPoints()[int_p].Weight();
+                    }
                 }
             }
         }
@@ -139,13 +119,8 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces( // TODO Merge into base
     KRATOS_CATCH( "" )
 }
 
-//*******************************************************************************************
-//*******************************************************************************************
-void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo ) // TODO merge this into normal element
+void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
-    /* NOTE:
-    In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
-    This function is called by the base scheme class.*/
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
@@ -166,36 +141,39 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
     {
         for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
         {
-            if (r_N(int_p, i)* GetGeometry().IntegrationPoints()[int_p].Weight() > std::numeric_limits<double>::epsilon())
+            if (r_N(int_p, i) > 0.0) // skip inactive nodes
             {
-                for (unsigned int j = 0; j < dimension; j++)
+                if (r_N(int_p, i) * GetGeometry().IntegrationPoints()[int_p].Weight() > std::numeric_limits<double>::epsilon()) // skip minute contributions
                 {
-                    nodal_momentum[j] = r_N(int_p, i) * mMP.velocity[j] * mMP.mass* GetGeometry().IntegrationPoints()[int_p].Weight();
-                    nodal_inertia[j] = r_N(int_p, i) * mMP.acceleration[j] * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
-                }
-
-                // Add in the predictor velocity increment for central difference explicit
-                // This is the 'previous grid acceleration', which is actually
-                // be the initial particle acceleration mapped to the grid.
-                if (is_explicit_central_difference) {
-                    const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-                    for (unsigned int j = 0; j < dimension; j++) {
-                        nodal_momentum[j] += 0.5 * delta_time * (r_N(int_p, i) * mMP.acceleration[j]) * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                    for (unsigned int j = 0; j < dimension; j++)
+                    {
+                        nodal_momentum[j] = r_N(int_p, i) * mMP.velocity[j] * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                        nodal_inertia[j] = r_N(int_p, i) * mMP.acceleration[j] * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
                     }
-                }
 
-                r_geometry[i].SetLock();
-                r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
-                r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
-                r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(int_p, i) * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
-                r_geometry[i].UnSetLock();
+                    // Add in the predictor velocity increment for central difference explicit
+                    // This is the 'previous grid acceleration', which is actually
+                    // be the initial particle acceleration mapped to the grid.
+                    if (is_explicit_central_difference) {
+                        const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
+                        for (unsigned int j = 0; j < dimension; j++) {
+                            nodal_momentum[j] += 0.5 * delta_time * (r_N(int_p, i) * mMP.acceleration[j]) * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                        }
+                    }
+
+                    r_geometry[i].SetLock();
+                    r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
+                    r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
+                    r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(int_p, i) * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                    r_geometry[i].UnSetLock();
+                }
             }
         }
     }
 }
 
 
-void UpdatedLagrangianPQ::InitializeMaterial() // TODO keep for clarity and error catching
+void UpdatedLagrangianPQ::InitializeMaterial()
 {
     KRATOS_TRY
     GeneralVariables Variables;
@@ -203,9 +181,8 @@ void UpdatedLagrangianPQ::InitializeMaterial() // TODO keep for clarity and erro
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-        Vector N_dummy; // send uninitialized dummy shape functions to throw error if actually needed
-        //N_dummy = row(GetGeometry().ShapeFunctionsValues(), 0);
-        mConstitutiveLawVector->InitializeMaterial( 
+        Vector N_dummy; // this is because the shape functions are not explicitly defined at the 'master' material point anymore
+        mConstitutiveLawVector->InitializeMaterial(
             GetProperties(), GetGeometry(), N_dummy);
 
         mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
@@ -221,22 +198,15 @@ void UpdatedLagrangianPQ::InitializeMaterial() // TODO keep for clarity and erro
 }
 
 
-
-///@}
-///@name Access Get Values
-///@{
-
 void UpdatedLagrangianPQ::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1) rValues.resize(1);
-    if (rVariable == MP_SUB_POINTS)   rValues[0] = GetGeometry().IntegrationPointsNumber();
+    if (rVariable == MP_SUB_POINTS) rValues[0] = GetGeometry().IntegrationPointsNumber();
     else UpdatedLagrangian::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
-
-///@}
 
 void UpdatedLagrangianPQ::save( Serializer& rSerializer ) const
 {
