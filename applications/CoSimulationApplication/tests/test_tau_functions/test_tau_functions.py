@@ -40,6 +40,13 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Run test
         self.execute_test(test_file)
 
+    def test_GetCellNodeIds(self):
+        # Define test file
+        test_file = 'test_GetCellNodeIds.py'
+
+        # Run test
+        self.execute_test(test_file)
+
     def test_CalculateCellForce(self):
         # Define test file
         test_file = 'test_CalculateCellForce.py'
