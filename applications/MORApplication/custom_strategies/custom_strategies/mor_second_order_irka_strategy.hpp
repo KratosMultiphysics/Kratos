@@ -148,7 +148,7 @@ class MorSecondOrderIRKAStrategy
     ///@{
 
     /**
-     * Default constructor
+     * Constructor for symmetric problems
      * @param rModelPart The model part of the problem
      * @param pScheme The integration schemed
      * @param MoveMeshFlag The flag that allows to move the mesh
@@ -192,6 +192,33 @@ class MorSecondOrderIRKAStrategy
         KRATOS_TRY;
 
         this->InitializeSamplingPoints(SamplingPoints);
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Constructor for frequency limited approximation of symmetric problems
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration schemed
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    MorSecondOrderIRKAStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
+        typename TLinearSolverType::Pointer pNewLinearSolver,
+        vector< std::complex<double> > SamplingPoints,
+        complex LimitLow,
+        complex LimitHigh,
+        size_t MaxIter,
+        double Tolerance)
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true),
+            mLimitLow(LimitLow), mLimitHigh(LimitHigh), mMaxIter(MaxIter), mTolerance(Tolerance)
+    {
+        KRATOS_TRY;
+
+        this->InitializeSamplingPoints(SamplingPoints);
+        this->mUseFrequencyLimits = true;
 
         KRATOS_CATCH("");
     }
@@ -463,7 +490,7 @@ class MorSecondOrderIRKAStrategy
                 std::stable_sort(eigenvalues.begin(), eigenvalues.end(),
                     [](complex z1, complex z2) {return std::abs(z1) < std::abs(z2);});
 
-                noalias(mSamplingPoints) = subrange(eigenvalues, 0, reduced_system_size);
+                this->UpdateSamplingPoints(eigenvalues, reduced_system_size);
             }
             else
             {
@@ -473,7 +500,7 @@ class MorSecondOrderIRKAStrategy
                 // use mirror images of first r eigenvalues as expansion points
                 eigenvalues *= -1.;
                 ComplexSortUtility::PairComplexConjugates(eigenvalues);
-                noalias(mSamplingPoints) = subrange(eigenvalues, 0, reduced_system_size);
+                this->UpdateSamplingPoints(eigenvalues, reduced_system_size);
             }
 
             // calculate error
@@ -503,6 +530,10 @@ class MorSecondOrderIRKAStrategy
 
         KRATOS_INFO_IF("IRKA Complete Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
             << irka_overall_time.ElapsedSeconds() << std::endl;
+
+        if( iter == mMaxIter ) {
+            this->MaxIterationsExceeded();
+        }
 
 		return true;
 
@@ -636,6 +667,52 @@ class MorSecondOrderIRKAStrategy
         KRATOS_ERROR_IF( (mTolerance >= 1.) || (mTolerance < 0.) ) << "Invalid tolerance provided" << std::endl;
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Update the used sampling points from the eigensolver's result
+     */
+    void UpdateSamplingPoints(vector<complex> eigenvalues, std::size_t reduced_system_size)
+    {
+        if( this->mUseFrequencyLimits ) {
+            std::vector<double> diff(eigenvalues.size());
+            std::vector<std::size_t> idx(eigenvalues.size());
+            std::iota(idx.begin(), idx.end(), 0);
+
+            double this_abs = 0;
+            const double low_abs = std::abs(mLimitLow);
+            const double high_abs = std::abs(mLimitHigh);
+
+            // determine which eigenvalues lie inside
+            for( std::size_t i=0; i<eigenvalues.size(); ++i ) {
+                this_abs = std::real(eigenvalues[i]);
+                if( low_abs <= this_abs && this_abs <= high_abs ) {
+                    diff[i] = 0;
+                } else if( this_abs < low_abs ) {
+                    diff[i] = low_abs - this_abs;
+                } else if( high_abs < this_abs ) {
+                    diff[i] = this_abs - high_abs;
+                }
+            }
+
+            // sort by smallest difference outside desired range
+            std::stable_sort(idx.begin(), idx.end(),
+                [&diff](std::size_t i1, std::size_t i2) {return diff[i1] < diff[i2];});
+
+            // update with the first r eigenvalues inside range
+            vector<complex> tmp_ev(reduced_system_size);
+            for( std::size_t i=0; i<reduced_system_size; ++i ) {
+                tmp_ev[i] = eigenvalues[idx[i]];
+            }
+
+            KRATOS_WARNING_IF( "Frequency limited IRKA", diff[idx[reduced_system_size]] == 0 ) << "Possibly too small subspace for interval" << std::endl;
+
+            // update sampling points
+            noalias(mSamplingPoints) = tmp_ev;
+
+        } else {
+            noalias(mSamplingPoints) = subrange(eigenvalues, 0, reduced_system_size);
+        }
     }
 
     ///@}
