@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
-#include <string>
 
 // External includes
 
