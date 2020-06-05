@@ -31,7 +31,7 @@
 #include "includes/model_part.h"
 
 #include "boost/geometry/geometry.hpp"
-#include "boost/geometry/geometries/register/point.hpp" 
+#include "boost/geometry/geometries/register/point.hpp"
 #include "boost/geometry/geometries/register/ring.hpp"
 
 namespace Kratos
@@ -119,31 +119,40 @@ namespace MPMSearchElementUtility
 
             double vol_frac_accum = 0.0;
 
-        KRATOS_ERROR_IF(rIntergrationSubPoints.size() != rN.size1())
-            << "Shape function rows must equal number of sub-points!";
+        if (rIntergrationSubPoints.size() != rN.size1()) {
+            KRATOS_INFO("MPMSearchElementUtility::Check - ") << "Shape function rows must equal number of sub-points!";
+            KRATOS_ERROR << "ERROR";
+        }
 
-        for (size_t i = 0; i < rIntergrationSubPoints.size(); i++)
-        {
-            KRATOS_ERROR_IF(rIntergrationSubPoints[i].Weight() < Tolerance)
-                << "Volume fraction of sub-points is too small!";
+        for (size_t i = 0; i < rIntergrationSubPoints.size(); ++i) {
+            if (rIntergrationSubPoints[i].Weight() < Tolerance) {
+                KRATOS_INFO("MPMSearchElementUtility::Check - ") << "Volume fraction of sub-points is too small!";
+                KRATOS_ERROR << "ERROR";
+            }
 
-            KRATOS_ERROR_IF(rIntergrationSubPoints[i].Weight() > 1.0)
-                << "Volume fraction of sub-points is too large!";
+            if (rIntergrationSubPoints[i].Weight() > 1.0) {
+                KRATOS_INFO("MPMSearchElementUtility::Check - ") << "Volume fraction of sub-points is too large!";
+                KRATOS_ERROR << "ERROR";
+            }
 
             vol_frac_accum += rIntergrationSubPoints[i].Weight();
         }
 
-        KRATOS_ERROR_IF(std::abs(vol_frac_accum - 1.0) < rIntergrationSubPoints.size() * Tolerance)
-            << "Volume fraction of sub-points does not approximately sum to 1.0."
-            << " This probably means the background grid is not big enough";
-        
-
-        for (size_t j = 0; j < rN.size2(); j++)
+        if (std::abs(vol_frac_accum - 1.0) < rIntergrationSubPoints.size() * Tolerance)
         {
+            KRATOS_INFO("MPMSearchElementUtility::Check - ")
+                << "Volume fraction of sub-points does not approximately sum to 1.0."
+                << " This probably means the background grid is not big enough";
+            KRATOS_ERROR << "ERROR";
+        }
+
+        for (size_t j = 0; j < rN.size2(); ++j) {
             SizeType nonzero_entries = 0;
             for (size_t i = 0; i < rIntergrationSubPoints.size(); i++) if (rN(i, j) != 0.0) nonzero_entries += 1;
-            KRATOS_ERROR_IF(nonzero_entries != 1)
-                << "There must be only one nonzero entry per shape function column!";
+            if (nonzero_entries != 1) {
+                KRATOS_INFO("MPMSearchElementUtility::Check - ") << "There must be only one nonzero entry per shape function column!";
+                KRATOS_ERROR << "ERROR";
+            }
         }
 
         KRATOS_CATCH("")
@@ -157,7 +166,7 @@ namespace MPMSearchElementUtility
     {
         KRATOS_TRY
 
-            array_1d<double, 3> dummy_local_coords;
+        array_1d<double, 3> dummy_local_coords;
         bool is_coincident;
         for (size_t i = 0; i < rPoints.size(); ++i) {
             if (!rReferenceGeom.IsInside(rPoints[i], dummy_local_coords, Tolerance)) {
@@ -186,14 +195,18 @@ namespace MPMSearchElementUtility
             NodeType point_low, point_high;
         for (size_t i = 0; i < rIntersectedGeometries.size(); ++i) {
             if (rIntersectedGeometries[i]->GetGeometryType() != GeometryData::Kratos_Hexahedra3D8) {
-                KRATOS_ERROR << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED CUBIC BACKGROUND GRIDS";
+                KRATOS_INFO("MPMSearchElementUtility::Check3DBackGroundMeshIsCubicAxisAligned - ")
+                    << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED RECTANGULAR-PRISM BACKGROUND GRIDS";
+                KRATOS_ERROR << "ERROR";
             }
             rIntersectedGeometries[i]->BoundingBox(point_low, point_high);
             for (size_t j = 0; j < rIntersectedGeometries[i]->PointsNumber(); ++j) {
                 for (size_t k = 0; k < 3; ++k) {
                     if (rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_low[k]) {
                         if (rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_high[k]) {
-                            KRATOS_ERROR << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED CUBIC BACKGROUND GRIDS";
+                            KRATOS_INFO("MPMSearchElementUtility::Check3DBackGroundMeshIsCubicAxisAligned - ")
+                                << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED RECTANGULAR-PRISM BACKGROUND GRIDS";
+                            KRATOS_ERROR << "ERROR";
                         }
                     }
                 }
@@ -221,7 +234,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    inline Boost2DPolygonType Create2DPolygonBoundingSquareFromPointsFast(const std::vector<array_1d<double, 3>>& rPoints, 
+    inline Boost2DPolygonType Create2DPolygonBoundingSquareFromPointsFast(const std::vector<array_1d<double, 3>>& rPoints,
         const bool XActive = true, const bool YActive = true, const bool ZActive = false)
     {
         KRATOS_TRY
@@ -229,12 +242,15 @@ namespace MPMSearchElementUtility
         Boost2DPolygonType rPolygon;
         std::vector<Boost2DPointType> rPolygonPoints(5);
 
-        if (!XActive || !YActive || ZActive)  if (rPoints.size() != 8)
-            KRATOS_ERROR << "ALL BOUNDING SQUARES SHOULD BE CONSTRUCTED IN XY SPACE EXCEPT FOR HEX BACKGROUND GRID";
+        if (!XActive || !YActive || ZActive)  if (rPoints.size() != 8) {
+            KRATOS_INFO("MPMSearchElementUtility::Create2DPolygonBoundingSquareFromPointsFast - ")
+                << "ALL BOUNDING SQUARES SHOULD BE CONSTRUCTED IN XY SPACE EXCEPT FOR HEX BACKGROUND GRID\n";
+            KRATOS_ERROR << "ERROR";
+        }
 
         if (XActive && YActive && !ZActive)
         {
-            for (size_t i = 0; i < rPolygonPoints.size(); ++i) {
+            for (size_t i = 0; i < 4; ++i) {
                 rPolygonPoints[i] = Boost2DPointType(rPoints[i][0], rPoints[i][1]);
             }
         }
@@ -254,7 +270,9 @@ namespace MPMSearchElementUtility
         }
         else
         {
-            KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
+            KRATOS_INFO("MPMSearchElementUtility::Create2DPolygonBoundingSquareFromPointsFast - ")
+                << "INVALID PLANE TO MAKE 2D POLYGON IN\n";
+            KRATOS_ERROR << "ERROR";
         }
         rPolygonPoints[4] = rPolygonPoints[0];
         rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
@@ -302,7 +320,9 @@ namespace MPMSearchElementUtility
             }
             else
             {
-                KRATOS_ERROR << "INVALID PLANE TO MAKE 2D POLYGON IN!";
+                KRATOS_INFO("MPMSearchElementUtility::Create2DPolygonFromGeometryFast - ")
+                    << "INVALID PLANE TO MAKE 2D POLYGON IN\n";
+                KRATOS_ERROR << "ERROR";
             }
             rPolygonPoints[4] = rPolygonPoints[0];
             rPolygon.outer().assign(rPolygonPoints.begin(), rPolygonPoints.end());
@@ -369,7 +389,11 @@ namespace MPMSearchElementUtility
             }
         }
         else
-            KRATOS_ERROR << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED!";
+        {
+            KRATOS_INFO("MPMSearchElementUtility::Determine2DSubPoint - ")
+                << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED\n";
+            KRATOS_ERROR << "ERROR";
+        }
 
         rSubPointCoord /= double(polygon_result_container.size());
 
@@ -382,7 +406,8 @@ namespace MPMSearchElementUtility
     {
         KRATOS_TRY
 
-            // NOTE: THIS FUNCTION ASSUMES THE BACKGROUND GRID ELEMENT IS PERFECTLY CUBIC AND THE RESULTING INTERSECTION VOLUME IS A RECTANGULAR PRISM
+        // NOTE: THIS FUNCTION ASSUMES THE BACKGROUND GRID ELEMENT IS PERFECTLY CUBIC
+        //    AND THE RESULTING INTERSECTION VOLUME IS A RECTANGULAR PRISM
 
         // make boost xy polygon of current background element geometry
         Boost2DPolygonType polygon_grid_xy = Create2DPolygonFromGeometryFast(rGridElement);
@@ -416,7 +441,11 @@ namespace MPMSearchElementUtility
             }
         }
         else
-            KRATOS_ERROR << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED!";
+        {
+            KRATOS_INFO("MPMSearchElementUtility::Determine3DSubPoint - ")
+                << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED\n";
+            KRATOS_ERROR << "ERROR";
+        }
 
         rSubPointCoord /= double(polygon_xy_result_container.size()); // at the moment this is just the xy coords!
 
@@ -441,7 +470,11 @@ namespace MPMSearchElementUtility
             }
         }
         else
-            KRATOS_ERROR << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED!";
+        {
+            KRATOS_INFO("MPMSearchElementUtility::Determine3DSubPoint - ")
+                << "BOOST INTERSECTION FAILED ALTHOUGH KRATOS INTERSECTION WORKED\n";
+            KRATOS_ERROR << "ERROR";
+        }
 
         rSubPointCoord[2] = 0.5 * (min_z + max_z);
         rSubPointVolume = sub_volume_area * (max_z - min_z);
@@ -502,10 +535,15 @@ namespace MPMSearchElementUtility
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC) : false;
         const double pqmpm_search_factor = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_SEARCH_FACTOR))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(PQMPM_SEARCH_FACTOR) : 0.0;
-        KRATOS_ERROR_IF(pqmpm_search_factor < 0.0)
-            << "The PQMPM search factor enables fast filtering of background grid intersections and must be positive."
-            << " It should be 2-5x larger the maximum aspect ratio of the most distorted background grid element."
-            << " If problems presist, disable the fast filtering by setting pqmpm_search_factor = 0.0";
+        if (pqmpm_search_factor < 0.0)
+        {
+            KRATOS_INFO("MPMSearchElementUtility::PartitionMasterMaterialPointsIntoSubPoints - ")
+                << "The PQMPM search factor enables fast filtering of background grid intersections and must be positive."
+                << " It should be 2-5x larger the maximum aspect ratio of the most distorted background grid element."
+                << " If problems presist, disable the fast filtering by setting pqmpm_search_factor = 0.0\n";
+            KRATOS_ERROR << "ERROR";
+        }
+
 
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
@@ -530,7 +568,7 @@ namespace MPMSearchElementUtility
                     pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
             }
         }
- 
+
         // we need to do splitting. Initially determine all grid elements we intersect with
         const double z_mod = (working_dim == 3) ? 1.0 : 0.0;
         const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2] - z_mod * side_half_length);
@@ -600,8 +638,8 @@ namespace MPMSearchElementUtility
                     bool is_fixed = false;
                     if (node_it->IsFixed(DISPLACEMENT_X)) is_fixed = true;
                     else if (node_it->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
-                    else if (node_it->HasDofFor(DISPLACEMENT_Z)) { 
-                        if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true; 
+                    else if (node_it->HasDofFor(DISPLACEMENT_Z)) {
+                        if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
                     }
                     if (is_fixed) {
                         const double fix_point_to_cog = norm_2(node_it->Coordinates() - rCoordinates);
@@ -725,7 +763,7 @@ namespace MPMSearchElementUtility
         // Search background grid and make element active
         Vector N;
         const int max_result = 1000;
-        
+
         #pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
@@ -847,7 +885,7 @@ namespace MPMSearchElementUtility
     }
 
 
-    
+
 } // end namespace MPMSearchElementUtility
 } // end namespace Kratos
 #endif // KRATOS_MPM_SEARCH_ELEMENT_UTILITY
