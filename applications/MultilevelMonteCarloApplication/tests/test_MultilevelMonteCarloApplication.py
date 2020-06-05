@@ -8,7 +8,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 from test_multilevel_montecarlo import KratosMultilevelMonteCarloGeneralTests
-
+from test_momentEstimator import TestMomentEstimator
+from test_momentEstimator import TestCombinedMomentEstimator
+from test_tools import TestTools
+from test_xmcAlgorithm import TestXMCAlgorithm
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -25,31 +28,29 @@ def AssembleTestSuites():
 
     suites = KratosUnittest.KratosSuites
 
-    # Create a test suit with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # -
-    smallSuite = suites['small']
-
     # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testMonteCarlo
-    # - testMultilevelMonteCarlo
+    smallSuite = suites['small']
+    smallSuite.addTest(TestMomentEstimator('test_update'))
+    smallSuite.addTest(TestMomentEstimator('test_value'))
+    smallSuite.addTest(TestCombinedMomentEstimator('test_update'))
+    smallSuite.addTest(TestCombinedMomentEstimator('test_value'))
+    smallSuite.addTest(TestTools('test_normalInverseCDF'))
+
+    # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
+    nightSuite.addTests(smallSuite)
+    nightSuite.addTest(TestXMCAlgorithm('test_mc_asynchronous_Kratos'))
     nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarlo'))
     if(hasattr(MeshingApplication,"MmgProcess2D")):
         nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarlo'))
+        nightSuite.addTest(TestXMCAlgorithm('test_mlmc_asynchronous_Kratos'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 
-    # Create a test suit that contains all the tests from every testCase
-    # in the list:
+    # Create a test suit that contains all the tests
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosMultilevelMonteCarloGeneralTests
-        ])
-    )
-
+    allSuite.addTests(nightSuite)
+    
     return suites
 
 if __name__ == '__main__':

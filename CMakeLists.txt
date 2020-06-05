@@ -260,6 +260,11 @@ include(pybind11Tools)
 set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
 set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 
+# check version of Python, needs to be done after including pybind
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
+    message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+endif()
+
 # Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
 if(DEFINED KRATOS_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )

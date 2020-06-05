@@ -49,8 +49,6 @@
 //---element
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
-#include "custom_elements/updated_lagrangian_quadrilateral.hpp"
-#include "custom_elements/updated_lagrangian_axisymmetry.hpp"
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
@@ -227,13 +225,17 @@ private:
     ///@{
 
     // Elements
+    const UpdatedLagrangian mUpdatedLagrangian;
+    const UpdatedLagrangianUP mUpdatedLagrangianUP;
+
+    // Deprecated Elements
     const UpdatedLagrangian mUpdatedLagrangian2D3N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
-    const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
-    const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
-    const UpdatedLagrangianQuadrilateral mUpdatedLagrangian3D8N;
-    const UpdatedLagrangianAxisymmetry mUpdatedLagrangianAxisymmetry2D3N;
-    const UpdatedLagrangianAxisymmetry mUpdatedLagrangianAxisymmetry2D4N;
+    const UpdatedLagrangian mUpdatedLagrangianUP2D3N;
+    const UpdatedLagrangian mUpdatedLagrangian2D4N;
+    const UpdatedLagrangian mUpdatedLagrangian3D8N;
+    const UpdatedLagrangian mUpdatedLagrangianAxisymmetry2D3N;
+    const UpdatedLagrangian mUpdatedLagrangianAxisymmetry2D4N;
 
     // Conditions
     // Grid Conditions:
