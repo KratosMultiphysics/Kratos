@@ -83,17 +83,17 @@ void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
     const int num_nodes = static_cast<int>(r_nodes_array.size());
 
     // Some initializations
-    Vector sigma_recovered = ZeroVector(SigmaSize);
-    VariableUtils().SetVariable(RECOVERED_STRESS, sigma_recovered, r_nodes_array);
+    Vector zero_vector = ZeroVector(SigmaSize);
+    VariableUtils().SetVariable(RECOVERED_STRESS, zero_vector, r_nodes_array);
 
-    #pragma omp parallel for firstprivate(sigma_recovered)
+    #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
         auto it_node = it_node_begin + i_node;
 
         KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_ELEMENTS)) << "SPRErrorProcess:: Search didn't work with elements" << std::endl;
         const SizeType neighbour_size = it_node->GetValue(NEIGHBOUR_ELEMENTS).size();
 
-        noalias(sigma_recovered) = ZeroVector(SigmaSize);
+        Vector sigma_recovered = ZeroVector(SigmaSize);
 
         if(neighbour_size > TDim) {
             CalculatePatch(it_node, it_node, neighbour_size,sigma_recovered);
