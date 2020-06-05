@@ -569,6 +569,7 @@ namespace MPMSearchElementUtility
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
         rMasterMaterialPoint.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume_vec, rBackgroundGridModelPart.GetProcessInfo());
+        if (is_axisymmetric) mp_volume_vec[0] /= (2.0 * Globals::Pi * rCoordinates[0]);
         const double side_half_length = std::pow(mp_volume_vec[0], 1.0 / double(working_dim)) / 2.0;
         const SizeType n_bounding_box_vertices = std::pow(2.0, working_dim);
         std::vector<array_1d<double, 3>> master_domain_points(n_bounding_box_vertices);
@@ -602,7 +603,7 @@ namespace MPMSearchElementUtility
         std::vector<typename GeometryType::Pointer> intersected_geometries;
         std::vector<typename Element::Pointer> intersected_elements;
 
-        for (auto ele_it : rBackgroundGridModelPart.Elements())
+        for (Element& ele_it : rBackgroundGridModelPart.Elements())
         {
             char_length = std::pow(ele_it.GetGeometry().DomainSize(), 1.0 / double(working_dim)) * pqmpm_search_factor + side_half_length;
             if (pqmpm_search_factor == 0.0 || std::abs(ele_it.GetGeometry().Center().X() - rCoordinates[0]) < char_length) {
@@ -630,7 +631,7 @@ namespace MPMSearchElementUtility
                 pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
 
         // If we are 3D, check background mesh are axis-aligned perfect cubes
-        if (working_dim == 3)  Check3DBackGroundMeshIsCubicAxisAligned(intersected_geometries);
+        if (working_dim == 3) Check3DBackGroundMeshIsCubicAxisAligned(intersected_geometries);
 
         // Prepare containers to hold all sub-points
         const SizeType number_of_sub_material_points = intersected_geometries.size();
@@ -655,14 +656,12 @@ namespace MPMSearchElementUtility
 
             if (CheckNoPointsAreInGeom(master_domain_points, *intersected_geometries[i], Tolerance)) {
                 // whole element is completely inside bounding box
-
                 trial_subpoint = CreateSubPoint(intersected_geometries[i]->Center(),
                     intersected_geometries[i]->DomainSize() / mp_volume_vec[0],
                     *intersected_geometries[i], N, DN_De);
             }
             else {
                 // only some of the background element is within the bounding box - most expensive check
-
                 if (working_dim == 2) {
                     Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
                     sub_point_position[2] = rCoordinates[2]; // set z coord of sub point to that of the master
@@ -786,7 +785,6 @@ namespace MPMSearchElementUtility
 
                 // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                 bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
-
 
                 if (is_found && is_explicit && !is_pqmpm) {
                     // check if MP is exactly on the edge of the element, this gives spurious strains in explicit
