@@ -27,11 +27,12 @@ class MPMExplicitSolver(MPMSolver):
             "scheme_type"   : "central_difference",
             "stress_update" : "usf",
             "is_pqmpm"      : false,
-            "pqmpm_search_factor"  : 0.0
+            "pqmpm_search_factor"  : 0.0,
+            "is_pqmpm_fallback_to_mpm" : true,
+            "pqmpm_min_fraction" : 0.0
         }""")
         this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultSettings())
         return this_defaults
-
 
     def AddVariables(self):
         super(MPMExplicitSolver, self).AddVariables()
@@ -60,8 +61,12 @@ class MPMExplicitSolver(MPMSolver):
         # Check whether the partitioned quadrature mpm (PQMPM) is used
         is_pqmpm = self.settings["is_pqmpm"].GetBool()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM, is_pqmpm)
+        is_pqmpm_fallback_to_mpm = self.settings["is_pqmpm_fallback_to_mpm"].GetBool()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM_FALLBACK_TO_MPM, is_pqmpm_fallback_to_mpm)
         pqmpm_search_factor = self.settings["pqmpm_search_factor"].GetDouble()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_SEARCH_FACTOR, pqmpm_search_factor)
+        pqmpm_min_fraction = self.settings["pqmpm_min_fraction"].GetDouble()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_MIN_FRACTION, pqmpm_min_fraction)
 
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()

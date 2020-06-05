@@ -117,8 +117,6 @@ namespace MPMSearchElementUtility
     {
         KRATOS_TRY
 
-            double vol_frac_accum = 0.0;
-
         if (rIntergrationSubPoints.size() != rN.size1()) {
             KRATOS_INFO("MPMSearchElementUtility::Check - ") << "Shape function rows must equal number of sub-points!";
             KRATOS_ERROR << "ERROR";
@@ -135,15 +133,6 @@ namespace MPMSearchElementUtility
                 KRATOS_ERROR << "ERROR";
             }
 
-            vol_frac_accum += rIntergrationSubPoints[i].Weight();
-        }
-
-        if (std::abs(vol_frac_accum - 1.0) < rIntergrationSubPoints.size() * Tolerance)
-        {
-            KRATOS_INFO("MPMSearchElementUtility::Check - ")
-                << "Volume fraction of sub-points does not approximately sum to 1.0."
-                << " This probably means the background grid is not big enough or that the PQMPM search factor is too small";
-            KRATOS_ERROR << "ERROR";
         }
 
         for (size_t j = 0; j < rN.size2(); ++j) {
@@ -556,6 +545,10 @@ namespace MPMSearchElementUtility
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC) : false;
         const double pqmpm_search_factor = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_SEARCH_FACTOR))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(PQMPM_SEARCH_FACTOR) : 0.0;
+        const double pqmpm_min_fraction = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_MIN_FRACTION))
+            ? std::max(rBackgroundGridModelPart.GetProcessInfo()[PQMPM_MIN_FRACTION], std::numeric_limits<double>::epsilon())
+            : std::numeric_limits<double>::epsilon();
+
         if (pqmpm_search_factor < 0.0)
         {
             KRATOS_INFO("MPMSearchElementUtility::PartitionMasterMaterialPointsIntoSubPoints - ")
@@ -564,7 +557,6 @@ namespace MPMSearchElementUtility
                 << " If problems presist, disable the fast filtering by setting pqmpm_search_factor = 0.0\n";
             KRATOS_ERROR << "ERROR";
         }
-
 
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
@@ -598,7 +590,6 @@ namespace MPMSearchElementUtility
         const double range_factor = (working_dim == 3) ? 2.0 : 1.414214; // 45 deg for each dim
         double center_to_center, maximum_contact_range, char_length;
         NodeType ele_point_low, ele_point_high;
-
         SizeType number_of_nodes = 0;
         std::vector<typename GeometryType::Pointer> intersected_geometries;
         std::vector<typename Element::Pointer> intersected_elements;
@@ -673,8 +664,7 @@ namespace MPMSearchElementUtility
             }
 
             // Transfer local data to containers
-            if (trial_subpoint.Weight() > std::numeric_limits<double>::epsilon())
-            {
+            if (trial_subpoint.Weight() > pqmpm_min_fraction) {
                 intersected_elements[i]->Set(ACTIVE);
                 ips[active_subpoint_index] = trial_subpoint;
                 DN_De_vector[active_subpoint_index] = DN_De;
@@ -693,21 +683,33 @@ namespace MPMSearchElementUtility
 
         IntegrationPointsArrayType ips_active(active_subpoint_index);
         PointerVector<Node<3>> nodes_list_active(active_node_index);
-        if (ips_active.size() == ips.size())
-        {
+        if (ips_active.size() == ips.size()) {
             ips_active = ips;
             nodes_list_active = nodes_list;
-        }
-        else
-        {
+        } else {
             N_matrix.resize(active_subpoint_index, active_node_index, true);
             DN_De_vector.resize(active_subpoint_index, true);
             for (size_t i = 0; i < active_subpoint_index; i++) ips_active[i] = ips[i];
             for (size_t i = 0; i < active_node_index; i++) nodes_list_active(i) = nodes_list(i);
         }
 
-        Check(ips_active, std::numeric_limits<double>::epsilon(), N_matrix, DN_De_vector);
+        // Check volume fractions sum to unity
+        double vol_sum = 0.0;
+        for (size_t i = 0; i < ips_active.size(); ++i) vol_sum += ips_active[i].Weight();
+        if (std::abs(vol_sum-1.0) > ips_active.size()* std::numeric_limits<double>::epsilon()) {
+            const bool is_pqmpm_fallback = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM_FALLBACK_TO_MPM))
+                ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM_FALLBACK_TO_MPM) : false;
+            if (is_pqmpm_fallback) return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                    pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+            else {
+                KRATOS_INFO("MPMSearchElementUtility::Check - ")
+                    << "Volume fraction of sub-points does not approximately sum to 1.0."
+                    << " This probably means the background grid is not big enough or that the PQMPM search factor is too small";
+                KRATOS_ERROR << "ERROR";
+            }
+        } else Check(ips_active, std::numeric_limits<double>::epsilon(), N_matrix, DN_De_vector);
 
+        // Transfer data over
         GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
         typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType ips_container;
         ips_container[ThisDefaultMethod] = ips_active;
