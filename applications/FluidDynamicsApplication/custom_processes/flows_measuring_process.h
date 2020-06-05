@@ -15,8 +15,6 @@
 #define KRATOS_FLOWS_MEASURING_PROCESS_H
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
@@ -24,11 +22,8 @@
 #include "processes/process.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/cfd_variables.h"
-#include "utilities/openmp_utils.h"
 
 // Application includes
-
 
 namespace Kratos
 {
@@ -68,30 +63,7 @@ public:
     ///@{
 
     /// Constructor.
-    FlowsMeasuringProcess(Model& rModel, Kratos::Parameters::Pointer pParameters) : mrModel(rModel)
-    {
-
-        Parameters default_parameters( R"(
-        {
-            "model_part_containing_time_name" : "default_model_part_name",
-            "list_of_outlet_submodelpart_names" : []
-        }  )" );
-
-        (*pParameters).ValidateAndAssignDefaults(default_parameters);
-
-        mpModelPartContainingTime = &mrModel.GetModelPart((*pParameters)["model_part_containing_time_name"].GetString());
-
-        std::ofstream outputfile(mFilename, std::ios_base::out | std::ios_base::app);
-
-        outputfile<<"       ";
-        for( unsigned int i=0; i<(*pParameters)["list_of_outlet_submodelpart_names"].size(); ++i) {
-            const std::string smp_name = (*pParameters)["list_of_outlet_submodelpart_names"][i].GetString();
-            mListOfSubmodelparts.push_back(&mrModel.GetModelPart(smp_name));
-            outputfile <<"  "<< smp_name;
-        }
-        outputfile<<"\n";
-
-    }
+    FlowsMeasuringProcess(Model& rModel, Kratos::Parameters::Pointer pParameters);
 
     /// Destructor.
     ~FlowsMeasuringProcess() override{}
@@ -108,44 +80,7 @@ public:
     ///@name Access
     ///@{
 
-    void ExecuteFinalizeSolutionStep() override {
-
-        const double one_third = 1.0/3.0;
-
-        const double& time = mpModelPartContainingTime->GetProcessInfo()[TIME];
-        std::ofstream outputfile(mFilename, std::ios_base::out | std::ios_base::app);
-        outputfile << time;
-
-        for(std::vector<ModelPart*>::iterator i_smp = mListOfSubmodelparts.begin(); i_smp != mListOfSubmodelparts.end(); ++i_smp) {
-            double flow_of_this_outlet = 0.0;
-            for(ModelPart::ConditionsContainerType::iterator i_cond = (*i_smp)->ConditionsBegin(); i_cond != (*i_smp)->ConditionsEnd(); ++i_cond) {
-                const auto& geom = i_cond->GetGeometry();
-                const array_1d<double, 3> tangent_xi  = geom.GetPoint(1) - geom.GetPoint(0);
-                const array_1d<double, 3> tangent_eta = geom.GetPoint(2) - geom.GetPoint(0);
-
-                array_1d<double, 3> area_normal;
-                MathUtils<double>::CrossProduct(area_normal, tangent_xi, tangent_eta);
-                area_normal *= 0.5;
-
-                const double area = MathUtils<double>::Norm3(area_normal);
-                array_1d<double,3> unitary_normal;
-                noalias(unitary_normal) = area_normal / area;
-
-                double average_velocity = 0.0;
-
-                for (int j=0; j<(int)geom.size(); j++) {
-                    average_velocity += one_third * MathUtils<double>::Dot(geom[j].FastGetSolutionStepValue(VELOCITY), unitary_normal);
-                }
-
-                const double condition_flow = area * average_velocity;
-
-                flow_of_this_outlet += condition_flow;
-            } //for conditions
-
-            outputfile << "  " << flow_of_this_outlet;
-        }// for  (submodelparts)
-        outputfile << "\n";
-    }
+    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Inquiry
