@@ -23,6 +23,8 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
     def ExecuteInitialize(self):
         self.cm_utility.ExecuteInitialize()
 
+        if self.output_interval == 0:
+            return
         self.InitializePrintVariables()
 
     def ExecuteInitializeSolutionStep(self):
@@ -44,7 +46,6 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
             return
 
         import matplotlib.pyplot as plt 
-        from matplotlib import colors as mcolors
 
         f = plt.figure()
 
@@ -118,6 +119,9 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         plt.close()
 
     def InitializePrintVariables(self):
+
+        import matplotlib.pyplot as plt 
+        from matplotlib import colors as mcolors
 
         self.times = []
         self.actuator_names = []
