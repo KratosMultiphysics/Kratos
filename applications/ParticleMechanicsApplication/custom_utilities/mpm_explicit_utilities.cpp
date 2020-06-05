@@ -293,9 +293,7 @@ namespace Kratos
         IndexType active_node_counter; // tracks the 'active' node index of the current integration
 
         //Calculate velocity gradients
-        Matrix velocityGradient = (StrainSize == 3)
-            ? Matrix(2, 2, 0.0) //2D
-            : Matrix(3, 3, 0.0); //3D and axisym
+        Matrix velocityGradient = (StrainSize == 3) ? Matrix(2, 2, 0.0) : Matrix(3, 3, 0.0);
 
         for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p)
         {
