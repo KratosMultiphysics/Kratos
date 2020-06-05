@@ -23,6 +23,7 @@ jobs:
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      options: --user 1001
 
     steps:
     - uses: actions/checkout@v2
