@@ -46,6 +46,11 @@ class GiDOutputProcess(gid_output_process.GiDOutputProcess):
         time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
         # self.printed_step_count += 1
         self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
+
+        tolerance=0.0000000000001
+        if (time<tolerance):
+            time=0
+
         if self.output_label_is_time:
             label = time
         else:
