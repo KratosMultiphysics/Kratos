@@ -11,27 +11,11 @@ class TestTauFunctions(KratosUnittest.TestCase):
         pass
 
     def test_RemoveFilesFromPreviousSimulations(self):
-        # Create dummy outputs and mesh directory
-        os.mkdir('test_tau_functions/Outputs')
-        os.mkdir('test_tau_functions/Mesh')
-
-        # Create dummy empty output files
-        for i in range(3):
-            output_file_name = 'test_tau_functions/Outputs/test_file_' + str(i)
-            open(output_file_name,'w').close()
-
-            mesh_file_name = 'test_tau_functions/Mesh/airfoil_Structured_scaliert.grid.def' + str(i)
-            open(mesh_file_name,'w').close()
-
         # Define test file
         test_file = 'test_RemoveFilesFromPreviousSimulations.py'
 
         # Run function
         self.execute_test(test_file)
-
-        # Check if files have been successfully removed
-        os.rmdir('test_tau_functions/Outputs')
-        os.rmdir('test_tau_functions/Mesh')
 
     def test_ReadInterfaceFile(self):
         # Define test file
