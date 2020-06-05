@@ -56,22 +56,6 @@ ContactMasterSlaveConstraint::ContactMasterSlaveConstraint(
 /***********************************************************************************/
 /***********************************************************************************/
 
-ContactMasterSlaveConstraint::ContactMasterSlaveConstraint(
-    IndexType Id,
-    NodeType& rMasterNode,
-    const VariableComponentType& rMasterVariable,
-    NodeType& rSlaveNode,
-    const VariableComponentType& rSlaveVariable,
-    const double Weight,
-    const double Constant
-    )
-{
-    KRATOS_ERROR << "ContactMasterSlaveConstraint :: Please don't use this constructor. A components variable is expected" << std::endl;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 ContactMasterSlaveConstraint::~ContactMasterSlaveConstraint()
 {
 
@@ -117,22 +101,6 @@ MasterSlaveConstraint::Pointer ContactMasterSlaveConstraint::Create(
     const VariableType& rMasterVariable,
     NodeType& rSlaveNode,
     const VariableType& rSlaveVariable,
-    const double Weight,
-    const double Constant
-    ) const
-{
-    return Kratos::make_shared<ContactMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-MasterSlaveConstraint::Pointer ContactMasterSlaveConstraint::Create(
-    IndexType Id,
-    NodeType& rMasterNode,
-    const VariableComponentType& rMasterVariable,
-    NodeType& rSlaveNode,
-    const VariableComponentType& rSlaveVariable,
     const double Weight,
     const double Constant
     ) const
