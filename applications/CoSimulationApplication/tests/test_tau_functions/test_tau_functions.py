@@ -40,6 +40,13 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Run test
         self.execute_test(test_file)
 
+    def test_ReadHeader(self):
+        # Define test file
+        test_file = 'test_ReadHeader.py'
+
+        # Run test
+        self.execute_test(test_file)
+
     def test_CalculateCellPressure(self):
         # Define test file
         test_file = 'test_CalculateCellPressure.py'
