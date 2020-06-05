@@ -209,6 +209,11 @@ public:
         Vector& rValues,
         int Step) override;
 
+    enum class ConfigurationType {
+      Current,
+      Reference
+    };
+
     ///@}
     ///@name Check
     ///@{
@@ -256,7 +261,7 @@ private:
 
     //Vector3 GetReferenceBaseVector() const;
 
-    array_1d<double, 3> GetActualBaseVector(const Matrix& r_DN_De);
+    array_1d<double, 3> GetActualBaseVector(const Matrix& r_DN_De, const ConfigurationType& rConfiguration);
 
     ///@}
     ///@name Operations

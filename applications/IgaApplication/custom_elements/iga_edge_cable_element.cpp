@@ -34,56 +34,37 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const GeometryType& r_geometry = GetGeometry();
-
-        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
-
-        // Prepare memory
-        if (mReferenceBaseVector.size() != r_number_of_integration_points)
-            mReferenceBaseVector.resize(r_number_of_integration_points);
-
-        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
-        {
-            const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
-
-            mReferenceBaseVector[point_number] = GetActualBaseVector(r_DN_De);          
-        }
-
         KRATOS_CATCH("")
     }
 
 
-    array_1d<double, 3> IgaEdgeCableElement::GetActualBaseVector(const Matrix& r_DN_De) 
+    array_1d<double, 3> IgaEdgeCableElement::GetActualBaseVector(const Matrix& r_DN_De, const ConfigurationType& rConfiguration) 
     {
         const GeometryType& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
 
         const Vector& t = GetProperties()[TANGENTS];
-       
-        array_1d<double, 3> actual_base_vector = ZeroVector(3);
 
-        Matrix jacobian = ZeroMatrix(3, 2);
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            for (unsigned int k = 0; k<3; k++)
-            {
-                for (unsigned int m = 0; m<2; m++)
-                {
-                    jacobian(k, m) += (r_geometry[i]).Coordinates()[k] * r_DN_De(i, m);
-                }
-            }
-        }
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        array_1d<double, 3> actual_base_vector = ZeroVector(dimension);
+
+        int step = 0;
+        Vector current_displacement = ZeroVector(dimension*number_of_nodes);
+        if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement,step);
 
         //basis vectors g1 and g2
-        array_1d<double, 3> g1;
-        array_1d<double, 3> g2;
+        Vector g1 = ZeroVector(dimension);
+        Vector g2 = ZeroVector(dimension);
 
-        g1[0] = jacobian(0, 0);
-        g2[0] = jacobian(0, 1);
-        g1[1] = jacobian(1, 0);
-        g2[1] = jacobian(1, 1);
-        g1[2] = jacobian(2, 0);
-        g2[2] = jacobian(2, 1);    
+        for (SizeType i=0;i<number_of_nodes;++i){
+            g1[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * r_DN_De(i, 0);
+            g1[1] += (GetGeometry().GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * r_DN_De(i, 0);
+            g1[2] += (GetGeometry().GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * r_DN_De(i, 0);
+
+            g2[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * r_DN_De(i, 1);
+            g2[1] += (GetGeometry().GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * r_DN_De(i, 1);
+            g2[2] += (GetGeometry().GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * r_DN_De(i, 1);
+        }
 
         actual_base_vector = g1 * t[0] + g2 * t[1];
 
@@ -112,6 +93,12 @@ namespace Kratos
 
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
+        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+
+        // Prepare memory
+        if (mReferenceBaseVector.size() != r_number_of_integration_points)
+            mReferenceBaseVector.resize(r_number_of_integration_points);
+        
         //get properties
         const Vector& t = GetProperties()[TANGENTS];
         const double E = GetProperties()[YOUNG_MODULUS];
@@ -124,8 +111,10 @@ namespace Kratos
             const double& integration_weight = r_integration_points[point_number].Weight();
             const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
 
+            mReferenceBaseVector[point_number] = GetActualBaseVector(r_DN_De, ConfigurationType::Reference);  
+
             // compute base vectors
-            const array_1d<double, 3> actual_base_vector = GetActualBaseVector(r_DN_De);
+            const array_1d<double, 3> actual_base_vector = GetActualBaseVector(r_DN_De, ConfigurationType::Current);
     
             const double reference_a = norm_2(mReferenceBaseVector[point_number]);
             const double actual_a = norm_2(actual_base_vector);
@@ -223,7 +212,7 @@ namespace Kratos
                 const double& integration_weight = r_integration_points[point_number].Weight();
                 const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
 
-                const array_1d<double, 3> actual_base_vector = GetActualBaseVector(r_DN_De);
+                const array_1d<double, 3> actual_base_vector = GetActualBaseVector(r_DN_De, ConfigurationType::Current);
                 const double reference_a = norm_2(mReferenceBaseVector[point_number]);
                 const double actual_a = norm_2(actual_base_vector);
 
