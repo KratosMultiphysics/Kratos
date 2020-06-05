@@ -1,6 +1,3 @@
-import matplotlib.pyplot as plt 
-from matplotlib import colors as mcolors
-
 import KratosMultiphysics
 import KratosMultiphysics.DEMApplication as Dem
 
@@ -29,7 +26,6 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         self.InitializePrintVariables()
 
     def ExecuteInitializeSolutionStep(self):
-        self.cm_step += 1
         self.cm_utility.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
@@ -38,10 +34,16 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         self.FillPrintVariables()
 
     def PrintResults(self):
+        self.cm_step += 1
 
+        if self.output_interval == 0:
+            return
         if self.cm_step % self.output_interval != 0:
             return
-        
+
+        import matplotlib.pyplot as plt 
+        from matplotlib import colors as mcolors
+
         f = plt.figure()
 
         for name in self.actuator_names:
