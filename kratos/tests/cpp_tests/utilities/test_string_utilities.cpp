@@ -32,8 +32,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConvertCammelCaseToSnakeCase, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(ErasePartialString, KratosCoreFastSuite)
 {
     const std::string text_with_stuff = "textwithstuff";
-    const std::string text = StringUtilities::ErasePartialString(text_with_stuff, "withstuff");
+    std::string text = StringUtilities::ErasePartialString(text_with_stuff, "withstuff");
     KRATOS_CHECK_STRING_EQUAL(text, "text");
+    text = StringUtilities::ErasePartialString(text_with_stuff, "with");
+    KRATOS_CHECK_STRING_EQUAL(text, "textstuff");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RemoveWhiteSpaces, KratosCoreFastSuite)
