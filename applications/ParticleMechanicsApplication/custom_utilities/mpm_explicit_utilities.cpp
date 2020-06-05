@@ -20,10 +20,10 @@ namespace Kratos
         const Vector& rMPStress,
         const double rMPVolume,
         const SizeType StrainSize,
-        Vector& rRightHandSideVector)
+        Vector& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
 
         // Add in explicit internal force calculation (f_i = V * Sum_j [s_ij N_,j])
         // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
@@ -31,6 +31,9 @@ namespace Kratos
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
         array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3);
+        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+            : false;
 
         const Matrix& r_N = rGeom.ShapeFunctionsValues();
         std::vector<Matrix> DN_DX_vec(rGeom.IntegrationPointsNumber());
@@ -41,16 +44,16 @@ namespace Kratos
             const double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
             active_node_counter = 0;
 
-            for (IndexType i = 0; i < number_of_nodes; i++)
+            for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 if (r_N(int_p,i) > 0.0) // skip inactive nodes
                 {
-                    if (r_N(int_p, i)*weight > std::numeric_limits<double>::epsilon())
+                    if (r_N(int_p, i)*weight > std::numeric_limits<double>::epsilon()) // skip minute quantities
                     {
-                        if (dimension == 2 && StrainSize == 3)
+                        if (dimension == 2 && StrainSize == 3) //2D
                         {
                             // StressVec = s00 s11  s01
-                            // Index        0   1   2 
+                            // Index        0   1   2
                             //f_x = V*(s_xx*dNdX + s_xy*dNdY)
                             nodal_force_internal_normal[0] = rMPVolume * weight *
                                 (rMPStress[0] * DN_DX_vec[int_p](active_node_counter, 0) +
@@ -60,13 +63,19 @@ namespace Kratos
                                 (rMPStress[1] * DN_DX_vec[int_p](active_node_counter, 1) +
                                     rMPStress[2] * DN_DX_vec[int_p](active_node_counter, 0));
                         }
-                        else if (dimension == 2 && StrainSize == 4)
+                        else if (dimension == 2 && StrainSize == 4) // Axisym
                         {
-                            KRATOS_ERROR
-                                << "Call CalcuateAndAddAxisymmetricExplicitInternalForce instead of CalcuateAndAddExplicitInternalForce"
-                                << std::endl;
+                            nodal_force_internal_normal[0] = rMPVolume * weight *
+                                (rMPStress[0] * DN_DX_vec[int_p](active_node_counter, 0) +
+                                    rMPStress[2] * r_N(int_p, i) /
+                                    ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, rGeom, Current, int_p) +
+                                    rMPStress[3] * DN_DX_vec[int_p](active_node_counter, 1));
+
+                            nodal_force_internal_normal[1] = rMPVolume * weight *
+                                (rMPStress[1] * DN_DX_vec[int_p](active_node_counter, 1) +
+                                    rMPStress[3] * DN_DX_vec[int_p](active_node_counter, 0));
                         }
-                        else if (dimension == 3 && StrainSize == 6)
+                        else if (dimension == 3 && StrainSize == 6) // 3D
                         {
                             // StressVec = s00 s11 s22   s01   s12   s02
                             // Index        0   1   2     3     4      5
@@ -95,7 +104,7 @@ namespace Kratos
                         rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
                         rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
                     }
-                    
+
                     active_node_counter += 1;
                 }
             }
@@ -105,61 +114,6 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    void MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(
-        Element& rElement, 
-        const Vector& rMPStress, 
-        const double rMPVolume, 
-        const SizeType StrainSize, 
-        const double AxisymmetricRadius,
-        Vector& rRightHandSideVector)
-    {
-        KRATOS_TRY
-
-        // Add in explicit internal force calculation (Fint = Volume*divergence(sigma))
-        // Refer to link for notation https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-the-Constitutive-Law-class
-        GeometryType& rGeom = rElement.GetGeometry();
-        const SizeType dimension = rGeom.WorkingSpaceDimension();
-        const SizeType number_of_nodes = rGeom.PointsNumber();
-        array_1d<double, 3> nodal_force_internal_normal = ZeroVector(3);
-        const Matrix& r_N = rElement.GetGeometry().ShapeFunctionsValues();
-
-        KRATOS_ERROR_IF_NOT(dimension == 2 && StrainSize == 4)
-            << "Call CalcuateAndAddExplicitInternalForce instead of CalcuateAndAddAxisymmetricExplicitInternalForce"
-            << std::endl;
-
-        std::vector<Matrix> DN_DX_vec(rGeom.IntegrationPointsNumber());
-        GetCartesianDerivatives(DN_DX_vec, rGeom);
-
-        for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p) {
-            const double weight = (rGeom.IntegrationPointsNumber() > 1)
-                ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
-            const Matrix& DN_DX = DN_DX_vec[int_p];
-
-            for (IndexType i = 0; i < number_of_nodes; i++) {
-                if (r_N(int_p, i) > std::numeric_limits<double>::epsilon()) // skip inactive nodes
-                {
-                    // StressVec = srr szz  sthetatheta srz
-                    // Index        0   1   2           3
-
-                    nodal_force_internal_normal[0] = rMPVolume * weight *
-                        (rMPStress[0] * DN_DX(i, 0) +
-                            rMPStress[2] * r_N(int_p, i) / AxisymmetricRadius +
-                            rMPStress[3] * DN_DX(i, 1));
-
-                    nodal_force_internal_normal[1] = rMPVolume * weight *
-                        (rMPStress[1] * DN_DX(i, 1) +
-                            rMPStress[3] * DN_DX(i, 0));
-
-                    rRightHandSideVector[dimension * i] -= nodal_force_internal_normal[0]; //minus sign, internal forces
-                    rRightHandSideVector[dimension * i + 1] -= nodal_force_internal_normal[1]; //minus sign, internal forces
-                }
-            }
-        }
-        KRATOS_CATCH("")
-    }
 
     void MPMExplicitUtilities::UpdateGaussPointExplicit(
         const ProcessInfo& rCurrentProcessInfo,
@@ -175,24 +129,24 @@ namespace Kratos
         const Matrix& r_N = rElement.GetGeometry().ShapeFunctionsValues();
 
 
-        // False for stability (typical across research papers). 
+        // False for stability (typical across research papers).
         // One may set to true to reduces energy lost from kinematic aliasing
-        bool isUpdateMPPositionFromUpdatedMPVelocity = false; 
+        bool isUpdateMPPositionFromUpdatedMPVelocity = false;
 
 
         const ProcessInfo& rProcessInfo = ProcessInfo();
         std::vector<array_1d<double, 3 > > MP_PreviousVelocity;
-        std::vector<array_1d<double, 3 > > MP_PreviousAcceleration; 
+        std::vector<array_1d<double, 3 > > MP_PreviousAcceleration;
         array_1d<double, 3> MP_Velocity = ZeroVector(3);
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_PreviousVelocity,rProcessInfo);
         rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, MP_PreviousAcceleration, rProcessInfo);
 
         const double gamma = (isCentralDifference) ? 0.5 : 1.0; // 0.5 for central difference, 1.0 for forward euler
         if (isCentralDifference) isUpdateMPPositionFromUpdatedMPVelocity = false;
-        
+
 
         // Advance the material point predictor velocity
-        for (IndexType i = 0; i < dimension; i++) {
+        for (IndexType i = 0; i < dimension; ++i) {
             MP_Velocity[i] = MP_PreviousVelocity[0][i] + (1.0 - gamma) * rDeltaTime * MP_PreviousAcceleration[0][i];
         }
 
@@ -202,7 +156,7 @@ namespace Kratos
         array_1d<double, 3> MP_Acceleration = ZeroVector(3);
         for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p) {
             const double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
-            for (IndexType i = 0; i < number_of_nodes; i++)  {
+            for (IndexType i = 0; i < number_of_nodes; ++i)  {
                 if (r_N(int_p,i)* weight > std::numeric_limits<double>::epsilon())
                 {
                     const double nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
@@ -215,7 +169,7 @@ namespace Kratos
                         // predicted (middle) grid velocity
                         const array_1d<double, 3>& r_middle_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
-                        for (IndexType j = 0; j < dimension; j++)
+                        for (IndexType j = 0; j < dimension; ++j)
                         {
                             // Update MP acceleration regardless of explicit method
                             MP_Acceleration[j] += r_N(int_p, i) * r_current_residual[j] / nodal_mass * weight;
@@ -239,7 +193,7 @@ namespace Kratos
         rElement.SetValuesOnIntegrationPoints(MP_ACCELERATION, { MP_Acceleration }, rProcessInfo);
 
         // Update the MP Velocity corrector
-        for (IndexType j = 0; j < dimension; j++)
+        for (IndexType j = 0; j < dimension; ++j)
         {
             MP_Velocity[j] += gamma * rDeltaTime * MP_Acceleration[j];
         }
@@ -248,7 +202,7 @@ namespace Kratos
         // Update the MP Position
         if (isUpdateMPPositionFromUpdatedMPVelocity)
         {
-            for (IndexType j = 0; j < dimension; j++)
+            for (IndexType j = 0; j < dimension; ++j)
             {
                 delta_xg[j] = rDeltaTime * MP_Velocity[j];
             }
@@ -291,20 +245,22 @@ namespace Kratos
         for (IndexType int_p = 0; int_p < integration_points.size(); ++int_p)
         {
             const double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
-            for (IndexType i = 0; i < number_of_nodes; i++)
+            for (IndexType i = 0; i < number_of_nodes; ++i)
             {
-                if (r_N(int_p, i)*weight > std::numeric_limits<double>::epsilon())
+                if (r_N(int_p,i) > 0.0) // skip inactive nodes
                 {
-                    const double& r_nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
-
-                    if (r_nodal_mass > std::numeric_limits<double>::epsilon())
+                    if (r_N(int_p, i) * weight > std::numeric_limits<double>::epsilon()) // skip minute quantities
                     {
-                        array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-                        for (IndexType j = 0; j < dimension; j++)
-                        {
-                            r_current_velocity[j] += r_N(int_p, i) * MP_Mass[0] * weight * MP_Velocity[0][j] / r_nodal_mass;
-                        }
-                        DecimalCorrection(r_current_velocity);
+                        const double& r_nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
+
+                            if (r_nodal_mass > std::numeric_limits<double>::epsilon())
+                            {
+                                array_1d<double, 3>& r_current_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                                    for (IndexType j = 0; j < dimension; ++j)
+                                    {
+                                        r_current_velocity[j] += r_N(int_p, i) * MP_Mass[0] * weight * MP_Velocity[0][j] / r_nodal_mass;
+                                    }
+                            }
                     }
                 }
             }
@@ -313,8 +269,6 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     void MPMExplicitUtilities::CalculateExplicitKinematics(
         const ProcessInfo& rCurrentProcessInfo,
@@ -329,31 +283,44 @@ namespace Kratos
         const double deltaTime = rCurrentProcessInfo[DELTA_TIME];
         const SizeType dimension = rGeom.WorkingSpaceDimension();
         const SizeType number_of_nodes = rGeom.PointsNumber();
+        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+            : false;
 
         const Matrix& r_N = rGeom.ShapeFunctionsValues();
         std::vector<Matrix> DN_DX_vec(rGeom.IntegrationPointsNumber());
         GetCartesianDerivatives(DN_DX_vec, rGeom);
+        IndexType active_node_counter; // tracks the 'active' node index of the current integration
 
         //Calculate velocity gradients
-        Matrix velocityGradient = Matrix(dimension, dimension, 0.0);
+        Matrix velocityGradient = (StrainSize == 3)
+            ? Matrix(2, 2, 0.0) //2D
+            : Matrix(3, 3, 0.0); //3D and axisym
 
-        for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); int_p++)
+        for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p)
         {
-            const double weight = (rGeom.IntegrationPointsNumber() > 1)
-                ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
-            IndexType active_node_counter = 0.0;
-            for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; nodeIndex++)
+            const double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
+            active_node_counter = 0.0;
+            for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; ++nodeIndex)
             {
                 if (r_N(int_p,nodeIndex) > 0.0) // skip inactive nodes)
                 {
-                    const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
-
-                    for (IndexType i = 0; i < dimension; i++)
+                    if (r_N(int_p, nodeIndex) * weight > std::numeric_limits<double>::epsilon()) // skip minute quantities
                     {
-                        for (IndexType j = 0; j < dimension; j++)
+                        const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
+
+                        for (IndexType i = 0; i < dimension; ++i)
                         {
-                            velocityGradient(i, j) += 
-                                nodal_velocity[i] * DN_DX_vec[int_p](active_node_counter, j)* weight;
+                            for (IndexType j = 0; j < dimension; ++j)
+                            {
+                                velocityGradient(i, j) +=
+                                    nodal_velocity[i] * DN_DX_vec[int_p](active_node_counter, j) * weight;
+                            }
+                        }
+
+                        if (is_axisymmetric) {
+                            velocityGradient(2, 2) += nodal_velocity[0] * r_N(int_p, nodeIndex) /
+                                ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, rGeom, Current, int_p) * weight;
                         }
                     }
                     active_node_counter += 1;
@@ -382,7 +349,12 @@ namespace Kratos
         if (dimension == 2 && StrainSize == 3)
         {
             rMPStrain(2) += 2.0 * strainIncrement(0, 1); //e_xy
-        }        
+        }
+        else if (dimension == 2 && StrainSize == 4) // axisym
+        {
+            rMPStrain(2) += strainIncrement(2, 2); //e_theta theta
+            rMPStrain(3) += 2.0 * strainIncrement(0, 1); //e_xy
+        }
         else if((dimension == 3 && StrainSize == 6))
         {
             rMPStrain(2) += strainIncrement(2, 2); //e_zz
@@ -390,7 +362,7 @@ namespace Kratos
             rMPStrain(3) += 2.0 * strainIncrement(0, 1); //e_xy
             rMPStrain(4) += 2.0 * strainIncrement(1, 2); //e_yz
             rMPStrain(5) += 2.0 * strainIncrement(0, 2); //e_xz
-        }  
+        }
         else
         {
             KRATOS_ERROR << "Dimension = " << dimension << " and strain size = " << StrainSize
@@ -399,78 +371,6 @@ namespace Kratos
 
         // Model compressibility
         rDeformationGradientIncrement = IdentityMatrix(dimension);
-        if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE)) rDeformationGradientIncrement += strainIncrement;
-
-        KRATOS_CATCH("")
-    }
-
-    void MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(
-        const ProcessInfo& rCurrentProcessInfo,
-        Element& rElement,
-        const Matrix& rDN_DX,
-        Vector& rMPStrain,
-        Matrix& rDeformationGradientIncrement,
-        const SizeType StrainSize,
-        const double AxisymmetricRadius)
-    {
-        KRATOS_TRY
-
-        const GeometryType& rGeom = rElement.GetGeometry();
-        const double deltaTime = rCurrentProcessInfo[DELTA_TIME];
-        const SizeType dimension = rGeom.WorkingSpaceDimension();
-        const SizeType number_of_nodes = rGeom.PointsNumber();
-        const Matrix& r_N = rElement.GetGeometry().ShapeFunctionsValues();
-
-        //Calculate velocity gradients
-        Matrix velocityGradient = Matrix(3, 3, 0.0); // for axisymmetric case
-
-        for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; nodeIndex++)
-        {
-            const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
-
-            for (IndexType i = 0; i < dimension; i++)
-            {
-                for (IndexType j = 0; j < dimension; j++)
-                {
-                    velocityGradient(i, j) += nodal_velocity[i] * rDN_DX(nodeIndex, j);
-                }
-            }
-        }
-        if (dimension == 2 && StrainSize == 4) // axisymmetric case
-        {
-            for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; nodeIndex++)
-            {
-                const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
-                velocityGradient(2, 2) += nodal_velocity[0] * r_N(0,nodeIndex) / AxisymmetricRadius;
-            }
-        }
-
-        //Calculate rate of deformation and spin tensors
-        const Matrix rateOfDeformation = 0.5 * (velocityGradient + trans(velocityGradient));
-        const Matrix spinTensor = velocityGradient - rateOfDeformation;
-
-        //Calculate objective Jaumann strain rate
-        const Matrix jaumannRate = rateOfDeformation -
-            (prod(spinTensor, rateOfDeformation)) * deltaTime +
-            prod((rateOfDeformation * deltaTime), spinTensor);
-        const Matrix strainIncrement = deltaTime * jaumannRate;
-
-        // Apply strain increment to strain vector
-        rMPStrain(0) += strainIncrement(0, 0); //e_xx
-        rMPStrain(1) += strainIncrement(1, 1); //e_yy
-        if (dimension == 2 && StrainSize == 4)
-        {
-            rMPStrain(2) += strainIncrement(2, 2); //e_theta theta
-            rMPStrain(3) += 2.0 * strainIncrement(0, 1); //e_xy
-        }
-        else
-        {
-            KRATOS_ERROR << "Dimension = " << dimension << " and strain size = " << StrainSize
-                << " are invalid for MPM explicit asymmetric kinematic calculation." << std::endl;
-        }
-
-        // Model compressibility
-        rDeformationGradientIncrement = IdentityMatrix(3);
         if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE)) rDeformationGradientIncrement += strainIncrement;
 
         KRATOS_CATCH("")

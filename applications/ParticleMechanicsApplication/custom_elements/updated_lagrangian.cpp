@@ -469,20 +469,9 @@ void UpdatedLagrangian::CalculateAndAddRHS(
         : false;
     if (is_explicit)
     {
-        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-            : false;
-
-        if (is_axisymmetric) {
-            const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(
-                GetGeometry().ShapeFunctionsValues(), GetGeometry());
-            MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
-                mMP.cauchy_stress_vector, mMP.volume,
-                mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
-        }
-        else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
+        MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
             mMP.cauchy_stress_vector, mMP.volume,
-            mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
+            mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector, rCurrentProcessInfo);
     }
     else
     {
@@ -536,7 +525,7 @@ void UpdatedLagrangian::CalculateAndAddInternalForces(VectorType& rRightHandSide
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo, 
+void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
     GeneralVariables& rVariables)
 {
     KRATOS_TRY
@@ -569,23 +558,15 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
     rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
 
-    if (is_axisymmetric)
-    {
-        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
-        MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
-            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
-    }
-    else
-    {
-        MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, 
-            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
-    }
+    MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this,
+        mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
+
     rVariables.StressVector = mMP.cauchy_stress_vector;
     rVariables.StrainVector = mMP.almansi_strain_vector;
 
     // Update gradient deformation
-    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment    
-    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment    
+    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment
+    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment
     rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
     rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
     rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
@@ -718,7 +699,7 @@ double& UpdatedLagrangian::CalculateVolumeChange( double& rVolumeChange, General
     KRATOS_CATCH( "" )
 }
 
-void UpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDisplacement, 
+void UpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDisplacement,
     const bool IsAxisymmetric)
 {
     KRATOS_TRY
@@ -1039,7 +1020,7 @@ void UpdatedLagrangian::InitializeMaterial()
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
-        mConstitutiveLawVector->InitializeMaterial( 
+        mConstitutiveLawVector->InitializeMaterial(
             GetProperties(), GetGeometry(), N);
 
         mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
@@ -1352,7 +1333,7 @@ void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, const Proc
     if ( rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size)
         rMassMatrix.resize( matrix_size, matrix_size, false );
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
-    
+
     if (!is_lumped_mass_matrix) {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             for (IndexType j = 0; j < number_of_nodes; ++j) {
