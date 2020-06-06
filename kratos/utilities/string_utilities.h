@@ -14,6 +14,7 @@
 #define KRATOS_STRING_UTILITIES
 
 // System includes
+#include <string>
 
 // External includes
 
