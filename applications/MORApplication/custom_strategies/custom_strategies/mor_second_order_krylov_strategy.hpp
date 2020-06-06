@@ -192,9 +192,9 @@ class MorSecondOrderKrylovStrategy
         typename BaseType::TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-        TSystemMatrixType& r_K = this->GetSystemMatrix();
-        TSystemMatrixType& r_M = this->GetMassMatrix();
-        TSystemMatrixType& r_D = this->GetDampingMatrix();
+        TSystemMatrixType& r_K = this->GetK();
+        TSystemMatrixType& r_M = this->GetM();
+        TSystemMatrixType& r_D = this->GetC();
         TSystemVectorType& r_RHS = this->GetSystemVector();
         TReducedDenseMatrixType& r_basis = this->GetBasis();
 

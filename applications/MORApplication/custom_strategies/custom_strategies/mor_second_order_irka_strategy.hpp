@@ -258,12 +258,12 @@ class MorSecondOrderIRKAStrategy
     ~MorSecondOrderIRKAStrategy() override
     {
 
-        if (this->mpM != nullptr)
-            TSparseSpace::Clear(this->mpM);
-        if (this->mpA != nullptr)
-            TSparseSpace::Clear(this->mpA);
-        if (this->mpS != nullptr)
-            TSparseSpace::Clear(this->mpS);
+        if (this->pGetM() != nullptr)
+            TSparseSpace::Clear(this->pGetM());
+        if (this->pGetK() != nullptr)
+            TSparseSpace::Clear(this->pGetK());
+        if (this->pGetC() != nullptr)
+            TSparseSpace::Clear(this->pGetC());
         // if (this->mp != nullptr)
         //     TSparseSpace::Clear(mpb);
 
@@ -325,9 +325,9 @@ class MorSecondOrderIRKAStrategy
         complex z(0,1);
 
         // get the full system size matrices
-        TSystemMatrixType& r_K = this->GetSystemMatrix();
-        TSystemMatrixType& r_M = this->GetMassMatrix();
-        TSystemMatrixType& r_D = this->GetDampingMatrix();
+        TSystemMatrixType& r_K = this->GetK();
+        TSystemMatrixType& r_M = this->GetM();
+        TSystemMatrixType& r_D = this->GetC();
         TSystemVectorType& r_RHS = this->GetSystemVector();
         TSystemVectorType& r_ov = this->GetOutputVector();
         TReducedDenseMatrixType& r_basis = this->GetBasis();
