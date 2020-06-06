@@ -919,7 +919,8 @@ private:
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainOrthotropicDamageSimoJu2D;
 
     // Rules of mixtures
-    const RuleOfMixturesLaw mRuleOfMixturesLaw;
+    const ParallelRuleOfMixturesLaw<3> mParallelRuleOfMixturesLaw3D;
+	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
     // Anisotropic law
     
