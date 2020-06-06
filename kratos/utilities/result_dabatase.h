@@ -50,7 +50,6 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 class EntityDatabase
-    : public std::vector<std::vector<Table<double, double>*>>
 {
 public:
     ///@name Type Definitions
@@ -63,7 +62,7 @@ public:
     typedef std::vector<Table<double, double>*> GPDatabaseType;
 
     /// Base type definition
-    typedef std::vector<GPDatabaseType> BaseType;
+    typedef std::vector<GPDatabaseType> DataType;
 
     /// The definition of the index type
     typedef std::size_t IndexType;
@@ -81,30 +80,76 @@ public:
     EntityDatabase(
         const SizeType SizeVector,
         const GPDatabaseType& rBaseData
-        ) : BaseType(SizeVector, rBaseData)
+        ) : mData(SizeVector, rBaseData)
     {
     }
 
     /// Destructor.
-    virtual ~EntityDatabase() {}
+    virtual ~EntityDatabase()
+    {
+        this->Clear();
+    }
+
+    /// Copy constructor.
+    EntityDatabase(EntityDatabase const& rOther)
+        : mData(rOther.mData)
+    {
+    }
 
     ///@}
     ///@name Operators
     ///@{
+
+    /**
+     * @brief The [] operator
+     * @param i The index of the value to access
+     */
+    GPDatabaseType& operator[](const std::size_t i)
+    {
+        return mData[i];
+    }
 
     ///@}
     ///@name Operations
     ///@{
 
     /**
+     * @brief The begin iterator
+     */
+    DataType::iterator begin()
+    {
+        return mData.begin();
+    }
+
+    /**
+     * @brief The const begin iterator
+     */
+    DataType::const_iterator begin() const
+    {
+        return mData.begin();
+    }
+
+    /**
+     * @brief The end iterator
+     */
+    DataType::iterator end()
+    {
+        return mData.end();
+    }
+
+    /**
+     * @brief The const end iterator
+     */
+    DataType::const_iterator end() const
+    {
+        return mData.end();
+    }
+
+    /**
      * @brief This method retrieves the entity database
      * @param EntityIndex The index of the entity (not the entity Id, the index in the database)
      */
-    const GPDatabaseType& GetResultaData(const SizeType GPIndex = 0) const
-    {
-        KRATOS_DEBUG_ERROR_IF(GPIndex == this->size()) << "Incompatible size. GPIndex: " << GPIndex << ". Size: " << this->size() << std::endl;
-        return operator[](GPIndex);
-    }
+    const GPDatabaseType& GetResultaData(const SizeType GPIndex = 0) const;
 
     /**
      * @brief This method retrieves the interpolated value from the database
@@ -116,11 +161,7 @@ public:
         const double Time,
         const SizeType ComponentIndex = 0,
         const SizeType GPIndex = 0
-        ) const
-    {
-        KRATOS_DEBUG_ERROR_IF(ComponentIndex == GetResultaData(GPIndex).size()) << "Incompatible size. ComponentIndex: " << ComponentIndex << ". Size: " << GetResultaData(GPIndex).size() << std::endl;
-        return operator[](GPIndex)[ComponentIndex]->GetValue(Time);
-    }
+        ) const;
 
     /**
      * @brief This method set the values into the tables
@@ -134,24 +175,12 @@ public:
         const Vector& rValuesY,
         const SizeType ComponentIndex = 0,
         const SizeType GPIndex = 0
-        )
-    {
-        auto& p_table = GetResultaData(GPIndex)[ComponentIndex];
+        );
 
-        KRATOS_DEBUG_ERROR_IF(p_table == nullptr) << "No table defined for ComponentIndex: " << ComponentIndex << " GPIndex: " << GPIndex << std::endl;
-
-        if (p_table->Data().size() > 0) {
-            p_table->Clear(); // We clear to avoid reassign
-        }
-
-        KRATOS_ERROR_IF_NOT(rValuesX.size() == rValuesY.size()) << "The input vectors don't have the same size" << std::endl;
-
-        // Push values
-        for (IndexType i = 0; i < rValuesX.size(); ++i) {
-            p_table->PushBack(rValuesX[i], rValuesY[i]);
-//             p_table->insert(rValuesX[i], rValuesY[i]);
-        }
-    }
+    /**
+     * @brief This function is designed for clear all the databases
+     */
+    void Clear();
 
     ///@}
     ///@name Input and output
@@ -173,6 +202,17 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    DataType mData; // The database storing the values
+
+    ///@}
 
 }; // Class EntityDatabase
 
@@ -183,7 +223,6 @@ public:
  * @author Vicente Mataix Ferrandiz
 */
 class VariableDatabase
-    : public std::vector<EntityDatabase>
 {
 public:
     ///@name Type Definitions
@@ -193,7 +232,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(VariableDatabase);
 
     /// Base type definition
-    typedef std::vector<EntityDatabase> BaseType;
+    typedef std::vector<EntityDatabase> DataType;
 
     /// The definition of the index type
     typedef std::size_t IndexType;
@@ -211,30 +250,76 @@ public:
     VariableDatabase(
         const SizeType SizeVector,
         const EntityDatabase& rBaseData
-        ) : BaseType(SizeVector, rBaseData)
+        ) : mData(SizeVector, rBaseData)
     {
     }
 
     /// Destructor.
-    virtual ~VariableDatabase() {}
+    virtual ~VariableDatabase()
+    {
+        this->Clear();
+    }
+
+    /// Copy constructor.
+    VariableDatabase(VariableDatabase const& rOther)
+        : mData(rOther.mData)
+    {
+    }
 
     ///@}
     ///@name Operators
     ///@{
+
+    /**
+     * @brief The [] operator
+     * @param i The index of the value to access
+     */
+    EntityDatabase& operator[](const std::size_t i)
+    {
+        return mData[i];
+    }
 
     ///@}
     ///@name Operations
     ///@{
 
     /**
+     * @brief The begin iterator
+     */
+    DataType::iterator begin()
+    {
+        return mData.begin();
+    }
+
+    /**
+     * @brief The const begin iterator
+     */
+    DataType::const_iterator begin() const
+    {
+        return mData.begin();
+    }
+
+    /**
+     * @brief The end iterator
+     */
+    DataType::iterator end()
+    {
+        return mData.end();
+    }
+
+    /**
+     * @brief The const end iterator
+     */
+    DataType::const_iterator end() const
+    {
+        return mData.end();
+    }
+
+    /**
      * @brief This method retrieves the entity database
      * @param EntityIndex The index of the entity (not the entity Id, the index in the database)
      */
-    const EntityDatabase& GetEntityData(const IndexType EntityIndex) const
-    {
-        KRATOS_DEBUG_ERROR_IF(EntityIndex == this->size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << this->size() << std::endl;
-        return operator[](EntityIndex);
-    }
+    const EntityDatabase& GetEntityData(const IndexType EntityIndex) const;
 
     /**
      * @brief This method retrieves the interpolated value from the database
@@ -248,11 +333,7 @@ public:
         const double Time,
         const SizeType ComponentIndex = 0,
         const SizeType GPIndex = 0
-        ) const
-    {
-        KRATOS_DEBUG_ERROR_IF(EntityIndex == this->size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << this->size() << std::endl;
-        return operator[](EntityIndex).GetValue(Time, ComponentIndex, GPIndex);
-    }
+        ) const;
 
     /**
      * @brief This method set the values into the tables
@@ -268,11 +349,12 @@ public:
         const IndexType EntityIndex,
         const SizeType ComponentIndex = 0,
         const SizeType GPIndex = 0
-        )
-    {
-        auto& r_database = operator[](EntityIndex);
-        r_database.SetValues(rValuesX, rValuesY, ComponentIndex, GPIndex);
-    }
+        );
+
+    /**
+     * @brief This function is designed for clear all the databases
+     */
+    void Clear();
 
     ///@}
     ///@name Input and output
@@ -294,7 +376,17 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    DataType mData; // The database storing the values
+
+    ///@}
 }; // Class VariableDatabase
 
 /**
@@ -308,7 +400,6 @@ public:
  * @author Vicente Mataix Ferrandiz
 */
 class ResultDatabase
-    : public std::unordered_map<IndexType, VariableDatabase>
 {
 public:
     ///@name Type Definitions
@@ -333,7 +424,17 @@ public:
     ResultDatabase(){}
 
     /// Destructor.
-    virtual ~ResultDatabase() {}
+    virtual ~ResultDatabase()
+    {
+        this->Clear();
+    }
+
+    /// Copy constructor.
+    ResultDatabase(ResultDatabase const& rOther)
+        : mData(rOther.mData),
+          mCommonColumn(rOther.mCommonColumn)
+    {
+    }
 
     ///@}
     ///@name Operators
@@ -353,25 +454,7 @@ public:
         const std::vector<IndexType>& rValuesSizes,
         const SizeType NumberOfEntites,
         const SizeType NumberOfGP = 1
-        )
-    {
-        // If no variables we skip
-        if (rVariablesIndexes.size() == 0) {
-            return void();
-        }
-
-        KRATOS_ERROR_IF_NOT(rVariablesIndexes.size() == rValuesSizes.size()) << "Inconsistent sizes in the values sizes and the variable indexes" << std::endl;
-
-        // Auxiliar lambda to generate vectors of tables
-        auto table_generator =[](const SizeType NumberOfEntites, const SizeType NumberOfComponents, const SizeType NumberOfGP){std::vector<Table<double, double>*> aux_1(NumberOfComponents, nullptr); EntityDatabase aux_2(NumberOfGP, aux_1); VariableDatabase data(NumberOfEntites, aux_2); for (IndexType k = 0; k < NumberOfEntites; ++k){for (IndexType j = 0; j < NumberOfGP; ++j){ for (IndexType i = 0; i < NumberOfComponents; ++i){ data[k][j][i] = new Table<double, double>();}}}; return data;};
-
-        // Fill the inner map of tables
-        for (IndexType i = 0; i < rVariablesIndexes.size(); ++i) {
-            const IndexType index = rVariablesIndexes[i];
-            const SizeType size = rValuesSizes[i];
-            this->insert(std::pair<IndexType, VariableDatabase>(index, table_generator(NumberOfEntites, size, NumberOfGP)));
-        }
-    }
+        );
 
     /**
      * @brief This method retrieves the variable database
@@ -381,8 +464,8 @@ public:
     template<class TVariableType>
     VariableDatabase& GetVariableData(const TVariableType& rVariable)
     {
-        const auto it = find(rVariable.Key());
-        if (it != end()) {
+        const auto it = mData.find(rVariable.Key());
+        if (it != mData.end()) {
             return it->second;
         } else {
             KRATOS_ERROR << "Not allocated Variable: " << rVariable.Name() << std::endl;
@@ -397,8 +480,8 @@ public:
     template<class TVariableType>
     const VariableDatabase& GetVariableData(const TVariableType& rVariable) const
     {
-        const auto it = find(rVariable.Key());
-        if (it != end()) {
+        const auto it = mData.find(rVariable.Key());
+        if (it != mData.end()) {
             return it->second;
         } else {
             KRATOS_ERROR << "Not allocated Variable: " << rVariable.Name() << std::endl;
@@ -425,8 +508,8 @@ public:
         const SizeType GPIndex = 0
         )
     {
-        auto it = find(rVariable.Key());
-        if (it != end()) {
+        auto it = mData.find(rVariable.Key());
+        if (it != mData.end()) {
             auto& r_database = it->second;
             r_database.SetValues(rValuesX, rValuesY, EntityIndex, ComponentIndex, GPIndex);
         } else {
@@ -437,31 +520,12 @@ public:
     /**
      * @brief This function is designed for clear all the databases
      */
-    void Clear()
-    {
-        this->clear();
-        mCommonColumn.clear();
-    }
+    void Clear();
 
     /**
      * @brief This function is designed for being called after ExecuteInitialize ONCE to verify that the input is correct.
      */
-    int Check()
-    {
-        // Doing check in the table size
-        for (const auto& r_pair : *this) {
-            const auto& r_table_vector_vector_vector = r_pair.second;
-            for (const auto& r_table_vector_vector : r_table_vector_vector_vector) {
-                for (const auto& r_table_vector : r_table_vector_vector) {
-                    for (const auto& p_table : r_table_vector) {
-                        KRATOS_ERROR_IF(p_table == nullptr) << "Table not created" << std::endl;
-                        KRATOS_ERROR_IF_NOT(p_table->Data().size() == mCommonColumn.size()) << "Inconsistent size of the tables. Time vector size: " << mCommonColumn.size() << " vs table size " << p_table->Data().size() << std::endl;
-                    }
-                }
-            }
-        }
-        return 0;
-    }
+    int Check();
 
     ///@}
     ///@name Access
@@ -517,6 +581,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    std::unordered_map<IndexType, VariableDatabase> mData; // The database storing the values
 
     Vector mCommonColumn; /// This vector stores the common column (usually TIME), so it needs to be initialized at the begining
 
