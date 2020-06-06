@@ -20,6 +20,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "includes/define.h"
 #include "utilities/string_utilities.h"
 #include "csv-parser/include/csv.hpp"
 
@@ -51,6 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestReadingCSVFromDirectInput, KratosExternalLibraries
     KRATOS_CHECK_EQUAL( vector<string>(row), first_row );
 }
 
+#ifndef KRATOS_COMPILED_IN_WINDOWS
 KRATOS_TEST_CASE_IN_SUITE(AssertUTF8HandlingWorks, KratosExternalLibrariesFastSuite)
 {
     // TODO: Actually check to see if flag is set
@@ -65,6 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(AssertUTF8HandlingWorks, KratosExternalLibrariesFastSu
     vector<string> first_row = { "123", "234", "345" };
     KRATOS_CHECK_EQUAL(vector<string>(row), first_row);
 }
+#endif
 
 KRATOS_TEST_CASE_IN_SUITE(TestEscapedComma, KratosExternalLibrariesFastSuite )
 {
