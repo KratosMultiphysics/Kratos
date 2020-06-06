@@ -12,6 +12,8 @@
 //
 //
 
+#ifdef KRATOS_BUILD_CSV_TESTING
+
 // System includes
 
 // External includes
@@ -140,3 +142,5 @@ KRATOS_TEST_CASE_IN_SUITE(CSVRowto_jsonwithWrongColumns, KratosExternalLibraries
 
 } // namespace Testing.
 } // namespace Kratos.
+
+#endif

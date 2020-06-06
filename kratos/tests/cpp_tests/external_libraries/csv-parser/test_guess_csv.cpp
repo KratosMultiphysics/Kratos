@@ -12,6 +12,8 @@
 //
 //
 
+#ifdef KRATOS_BUILD_CSV_TESTING
+
 // System includes
 #include <stdio.h> // remove()
 #include <sstream>
@@ -58,3 +60,5 @@ KRATOS_TEST_CASE_IN_SUITE(guess_delimCSVwithComments, KratosExternalLibrariesFas
 
 } // namespace Testing.
 } // namespace Kratos.
+
+#endif

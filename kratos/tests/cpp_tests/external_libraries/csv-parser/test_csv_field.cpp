@@ -12,6 +12,8 @@
 //
 //
 
+#ifdef KRATOS_BUILD_CSV_TESTING
+
 // System includes
 #include <cmath>
 #include <iostream>
@@ -156,3 +158,5 @@ KRATOS_TEST_CASE_IN_SUITE(CSVFieldEqualityOperator, KratosExternalLibrariesFastS
 
 } // namespace Testing.
 } // namespace Kratos.
+
+#endif
