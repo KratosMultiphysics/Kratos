@@ -55,6 +55,9 @@ public:
     /// Pointer definition of AssignScalarInputToEntitiesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarInputToEntitiesProcess);
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( GEOMETRIC_DEFINITION ); /// This flag is used in order to check if the definition is defined in the geometry or in the entities
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -177,6 +180,10 @@ private:
     ModelPart& mrModelPart;                       /// The model part where to assign the values
     const Variable<double>* mpVariable = nullptr; /// The pointer of the variable
     ResultDatabase mDatabase;                     /// The database containing the information to assign the values
+
+    ModelPart* mpDataModelPart = nullptr;         /// The auxiliar model part defining the database
+
+    std::size_t mDimension;                       /// The working dimension
 
     ///@}
     ///@name Private Operators

@@ -16,10 +16,19 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
+#include "utilities/string_utilities.h"
 #include "processes/assign_scalar_input_to_entities_process.h"
 
 namespace Kratos
 {
+
+/// Local Flags
+template<class TEntity>
+const Kratos::Flags AssignScalarInputToEntitiesProcess<TEntity>::GEOMETRIC_DEFINITION(Kratos::Flags::Create(0));
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<class TEntity>
 AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
@@ -38,9 +47,21 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Get(r_variable_name)) << "The variable " << r_variable_name << " does not exist" << std::endl;
     mpVariable = &KratosComponents<Variable<double>>::Get(r_variable_name);
 
-    // Read json string in materials file, create Parameters
-    const std::string& r_filename = rParameters["file"].GetString();
+    // Define the working dimension
+    mDimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
+    // We have two options, or the values are defined in the entities or in a geometry, we don't know until we read the database
+    mpDataModelPart = &mrModelPart.GetModel().CreateModelPart("AUXILIAR_MODEL_PART_INPUT_VARIABLE_" + r_variable_name);
+
+    // Read the input file
+    const std::string& r_filename = rParameters["file"].GetString();
+    if (StringUtilities::SearchPartialString(r_filename, ".txt")) {
+        ReadDataTXT(r_filename);
+    } else if (StringUtilities::SearchPartialString(r_filename, ".json")) {
+        ReadDataJSON(r_filename);
+    } else {
+        KRATOS_ERROR << "The process is only compatible with JSON and TXT" << std::endl;
+    }
 
     KRATOS_CATCH("");
 }
