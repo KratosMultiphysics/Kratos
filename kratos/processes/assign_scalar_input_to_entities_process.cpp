@@ -70,12 +70,22 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
 /***********************************************************************************/
 
 template<class TEntity>
-void AssignScalarInputToEntitiesProcess<TEntity>::Execute()
+void AssignScalarInputToEntitiesProcess<TEntity>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
-    // TODO
-    InternalAssignValue<>(*mpVariable, 0.0);
+    // Get time
+    const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
+
+    // Case of only one entity defined
+    const auto& r_ent_array = GetEntitiesContainerAuxiliarModelPart();
+    const SizeType number_of_entities = r_ent_array.size();
+    const auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
+    if (number_of_entities == 1) {
+        InternalAssignValue<>(*mpVariable, r_var_database.GetValue(0, time));
+    } else {
+        // TODO
+    }
 
     KRATOS_CATCH("");
 }
@@ -94,6 +104,42 @@ const Parameters AssignScalarInputToEntitiesProcess<TEntity>::GetDefaultParamete
         "file"            : ""
     }  )" );
     return default_parameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+const std::string AssignScalarInputToEntitiesProcess<Node<3>>::GetEntitiesLabel()
+{
+    return "NODE_";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+const std::string AssignScalarInputToEntitiesProcess<Condition>::GetEntitiesLabel()
+{
+    return "CONDITION_";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+const std::string AssignScalarInputToEntitiesProcess<Element>::GetEntitiesLabel()
+{
+    return "ELEMENT_";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+const std::string AssignScalarInputToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesLabel()
+{
+    return "CONSTRAINT";
 }
 
 /***********************************************************************************/
@@ -135,6 +181,42 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarInputToEntit
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+PointerVectorSet<Node<3>, IndexedObject>& AssignScalarInputToEntitiesProcess<Node<3>>::GetEntitiesContainerAuxiliarModelPart()
+{
+    return mpDataModelPart->GetMesh().Nodes();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>& AssignScalarInputToEntitiesProcess<Condition>::GetEntitiesContainerAuxiliarModelPart()
+{
+    return mpDataModelPart->GetMesh().Conditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Element>::GetEntitiesContainerAuxiliarModelPart()
+{
+    return mpDataModelPart->GetMesh().Elements();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarInputToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainerAuxiliarModelPart()
+{
+    return mpDataModelPart->GetMesh().MasterSlaveConstraints();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<class TEntity>
 void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string& rFileName)
 {
@@ -159,7 +241,29 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
     buffer << infile.rdbuf();
     Parameters json_input(buffer.str());
 
-    // TODO
+    // Initialize the databases
+    std::vector<IndexType> variables_ids(1);
+    variables_ids[0] = mpVariable->Key();
+    std::vector<IndexType> values_sizes(1, 1);
+    const auto& r_ent_array = GetEntitiesContainerAuxiliarModelPart();
+    const SizeType number_of_entities = r_ent_array.size();
+    mDatabase.Initialize(variables_ids, values_sizes, number_of_entities);
+
+    // Get the time vector
+    const Vector& r_time = json_input["TIME"].GetVector();
+    mDatabase.SetCommonColumn(r_time);
+
+    // Fill database
+    const std::string ent_label = GetEntitiesLabel();
+    const auto it_ent_begin = r_ent_array.begin();
+    auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
+    const std::string& r_variable_name = mpVariable->Name();
+    for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
+        auto it_ent = it_ent_begin + i;
+        const std::string identifier = ent_label + std::to_string(it_ent->Id());
+        const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
+        r_var_database.SetValues(r_time, r_vector, i);
+    }
 }
 
 /***********************************************************************************/

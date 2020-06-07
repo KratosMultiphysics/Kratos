@@ -49,6 +49,12 @@ public:
     /// Node type definition
     typedef Node<3> NodeType;
 
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
 
@@ -73,34 +79,23 @@ public:
         );
 
     /// Destructor.
-    ~AssignScalarInputToEntitiesProcess() override {}
+    ~AssignScalarInputToEntitiesProcess() override
+    {
+        mpDataModelPart = nullptr;
+    }
 
     ///@}
     ///@name Operators
     ///@{
-
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
 
     ///@}
     ///@name Operations
     ///@{
 
     /**
-     * @brief Execute method is used to execute the AssignScalarInputToEntitiesProcess algorithms.
-     */
-    void Execute() override;
-
-    /**
      * @brief This function will be executed at every time step BEFORE performing the solve phase
      */
-    void ExecuteInitializeSolutionStep() override
-    {
-        Execute();
-    }
+    void ExecuteInitializeSolutionStep() override;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -153,8 +148,6 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
-    /// Copy constructor.
     ///@}
     ///@name Protected Operations
     ///@{
@@ -183,7 +176,7 @@ private:
 
     ModelPart* mpDataModelPart = nullptr;         /// The auxiliar model part defining the database
 
-    std::size_t mDimension;                       /// The working dimension
+    std::size_t mDimension = 3;                   /// The working dimension
 
     ///@}
     ///@name Private Operators
@@ -247,10 +240,22 @@ private:
     }
 
     /**
+     * @brief This method returns the current entity label
+     * @return The current entity label
+     */
+    const std::string GetEntitiesLabel();
+
+    /**
      * @brief This method returns the current entity container
      * @return The current entity container
      */
     EntityContainerType& GetEntitiesContainer();
+
+    /**
+     * @brief This method returns the entity container in the auxiliar model part
+     * @return The entity container in the auxiliar model part
+     */
+    EntityContainerType& GetEntitiesContainerAuxiliarModelPart();
 
     ///@}
     ///@name Private Operations
