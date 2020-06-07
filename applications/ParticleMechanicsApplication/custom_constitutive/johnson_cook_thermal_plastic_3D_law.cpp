@@ -146,10 +146,8 @@ namespace Kratos
 			predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
 			predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
 			predicted_temperature = mTemperatureOld;
-			if (MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] > 0.0) {
-				predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
-					/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
-			}
+			predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
+				/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
 
 			// Newton Raphson return mapping loop
 			while (!is_converged)
@@ -164,10 +162,8 @@ namespace Kratos
 				dYield_dGamma = CalculatePlasticStrainDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
 				dYield_dGamma += CalculatePlasticStrainRateDerivative(
 					MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature)/ CurrentProcessInfo[DELTA_TIME];
-				if (MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] > 0.0) {
-					dYield_dGamma += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] * yield_stress/ MaterialProperties[DENSITY] /
-						MaterialProperties[SPECIFIC_HEAT] * CalculateThermalDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
-				}
+				dYield_dGamma += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] * yield_stress/ MaterialProperties[DENSITY] /
+					MaterialProperties[SPECIFIC_HEAT] * CalculateThermalDerivative(MaterialProperties, predicted_eps, predicted_eps_rate, predicted_temperature);
 				dYield_dGamma *= GetSqrt23();
 				yield_function_gradient = -1.0 * GetSqrt6() * shear_modulus_G - dYield_dGamma;
 
@@ -186,10 +182,8 @@ namespace Kratos
 				predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
 				predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
 				predicted_temperature = mTemperatureOld;
-				if (MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] > 0.0) {
-					predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
-						/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
-				}
+				predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
+					/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
 
 				iteration += 1;
 				if (iteration == iteration_limit)
