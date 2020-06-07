@@ -55,7 +55,7 @@ std::string ErasePartialString(
     std::string sub_string = rMainString;
 
     // Search for the substring in string
-    size_t pos = sub_string.find(rToErase);
+    std::size_t pos = sub_string.find(rToErase);
 
     if (pos != std::string::npos) {
         // If found then erase it from string
@@ -63,6 +63,28 @@ std::string ErasePartialString(
     }
 
     return sub_string;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool SearchPartialString(
+    const std::string& rMainString,
+    const std::string& rToCheck
+    )
+{
+    // Value to return
+    std::string sub_string = rMainString;
+
+    // Search for the substring in string
+    std::size_t pos = sub_string.find(rToCheck);
+
+    // Return true if found
+    if (pos != std::string::npos) {
+        return true;
+    }
+
+    return false;
 }
 
 /***********************************************************************************/
