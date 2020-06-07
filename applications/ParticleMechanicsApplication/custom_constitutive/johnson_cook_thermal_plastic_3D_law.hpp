@@ -155,19 +155,6 @@ protected:
 
     virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput);
 
-    double CalculateMatrixDoubleContraction(const Matrix& rInput)
-    {
-        double result = 0.0;
-        for (size_t i = 0; i < rInput.size1(); ++i)
-        {
-            for (size_t j = 0; j < rInput.size2(); ++j)
-            {
-                result += rInput(i, j) * rInput(i, j);
-            }
-        }
-        return result;
-    }
-
     void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo);
 
 private:
@@ -187,14 +174,6 @@ private:
 
     double CalculatePlasticStrainDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
         const double PlasticStrainRate, const double Temperature);
-
-    double CalculateMatrixTrace(const Matrix& rInput)
-    {
-        KRATOS_ERROR_IF(rInput.size1() != rInput.size2()) << "Can only calculate trace of square matrices";
-        double trace = 0.0;
-        for (size_t i = 0; i < rInput.size1(); ++i) trace += rInput(i, i);
-        return trace;
-    }
 
     inline double GetSqrt32() { return 1.2247448713915900000; } //sqrt(3.0/2.0)
 

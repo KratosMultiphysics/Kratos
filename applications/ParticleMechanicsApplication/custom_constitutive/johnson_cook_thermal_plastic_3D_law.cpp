@@ -17,6 +17,7 @@
 // Project includes
 
 #include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
+#include "custom_utilities/mpm_stress_principal_invariants_utility.h"
 #include "particle_mechanics_application_variables.h"
 
 namespace Kratos
@@ -104,15 +105,19 @@ namespace Kratos
 		// Material moduli
 		const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
 		const double bulk_modulus_K = MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
-
+		
 		// Calculate deviatoric quantities
-		const Matrix strain_increment_deviatoric = strain_increment - CalculateMatrixTrace(strain_increment) / 3.0 * identity;
-		const Matrix stress_deviatoric_old = stress_old - CalculateMatrixTrace(stress_old) / 3.0 * identity;
+		const Matrix strain_increment_deviatoric = strain_increment - 
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment) / 3.0 * identity;
+		const Matrix stress_deviatoric_old = stress_old - 
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 * identity;
 
 		// Calculate trial (predicted) j2 stress
-		double stress_hydrostatic_new = CalculateMatrixTrace(stress_old) / 3.0 + bulk_modulus_K * CalculateMatrixTrace(strain_increment);
+		double stress_hydrostatic_new = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 +
+			bulk_modulus_K * MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment);
 		Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
-		const double j2_stress_trial = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_trial));
+		const double j2_stress_trial = std::sqrt(3.0 / 2.0 * 
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
 		// Declare deviatoric stress matrix to be used later
 		Matrix stress_deviatoric_converged = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
@@ -223,7 +228,8 @@ namespace Kratos
 		}
 		// Update equivalent stress
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
-		mEquivalentStress = std::sqrt(3.0 / 2.0 * CalculateMatrixDoubleContraction(stress_deviatoric_converged));
+		mEquivalentStress = std::sqrt(3.0 / 2.0 * 
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_converged));
 
 		// Store stresses and strains
 		MakeStrainStressVectorFromMatrix(stress_converged, StressVector);
