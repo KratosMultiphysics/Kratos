@@ -12,6 +12,7 @@
 
 // System includes
 #include <functional>
+#include <limits>
 
 // External includes
 
@@ -27,32 +28,12 @@
 
 namespace Kratos
 {
-void CFDUtilities::ReactionBasedYPlus::CalculateData(ModelPart::ConditionType& rCondition)
+namespace CFDUtilities
 {
-}
-
-void CFDUtilities::ReactionBasedYPlus::CalculateYPlusAndUTau(
-    double& rYPlus, array_1d<double, 3>& rUTau, const array_1d<double, 3>& rNormal)
-{
-    rUTau = ZeroVector(3);
-    for (unsigned int i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node)
-    {
-        const NodeType& r_node = rGeometry[i_node];
-        noalias(rUTau) += r_node.FastGetSolutionStepValue(rReactionVariable) /
-                          r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
-    }
-    // calculate shear stress
-    noalias(rUTau) = rUTau / norm_2(rNormal);
-    const double reaction_magnitude = norm_2(rUTau);
-
-    noalias(rUTau) = rUTau / std::sqrt(reaction_magnitude * Density);
-    rYPlus = norm_2(rUTau) * WallHeight / KinematicViscosity;
-}
-
-void CFDUtilities::CalculateConditionGeometryData(const GeometryType& rGeometry,
-                                                  const GeometryData::IntegrationMethod& rIntegrationMethod,
-                                                  Vector& rGaussWeights,
-                                                  Matrix& rNContainer)
+void CalculateConditionGeometryData(const GeometryType& rGeometry,
+                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                    Vector& rGaussWeights,
+                                    Matrix& rNContainer)
 {
     const GeometryType::IntegrationPointsArrayType& integration_points =
         rGeometry.IntegrationPoints(rIntegrationMethod);
@@ -78,7 +59,7 @@ void CFDUtilities::CalculateConditionGeometryData(const GeometryType& rGeometry,
 }
 
 template <>
-void CFDUtilities::CalculateNormal<2>(array_1d<double, 3>& rNormal, const ConditionType& rCondition)
+void CalculateConditionNormal<2>(array_1d<double, 3>& rNormal, const ConditionType& rCondition)
 {
     const GeometryType& pGeometry = rCondition.GetGeometry();
 
@@ -88,7 +69,7 @@ void CFDUtilities::CalculateNormal<2>(array_1d<double, 3>& rNormal, const Condit
 }
 
 template <>
-void CFDUtilities::CalculateNormal<3>(array_1d<double, 3>& rNormal, const ConditionType& rCondition)
+void CalculateConditionNormal<3>(array_1d<double, 3>& rNormal, const ConditionType& rCondition)
 {
     const GeometryType& pGeometry = rCondition.GetGeometry();
 
@@ -105,8 +86,8 @@ void CFDUtilities::CalculateNormal<3>(array_1d<double, 3>& rNormal, const Condit
     rNormal *= 0.5;
 }
 
-double CFDUtilities::CalculateWallHeight(const ConditionType& rCondition,
-                                         const array_1d<double, 3>& rNormal)
+double CalculateConditionWallHeight(const ConditionType& rCondition,
+                                    const array_1d<double, 3>& rNormal)
 {
     KRATOS_TRY
 
@@ -140,41 +121,10 @@ double CFDUtilities::CalculateWallHeight(const ConditionType& rCondition,
     KRATOS_CATCH("");
 }
 
-template <>
-double CFDUtilities::EvaluateInPoint<double>(const GeometryType& rGeometry,
-                                             const Variable<double>& rVariable,
-                                             const Vector& rShapeFunction,
-                                             const int Step)
+void CalculateNumberOfNeighbourConditions(ModelPart& rModelPart)
 {
-    const unsigned int number_of_nodes = rGeometry.PointsNumber();
-    double value = 0.0;
-    for (unsigned int c = 0; c < number_of_nodes; ++c)
-    {
-        value += rShapeFunction[c] * rGeometry[c].FastGetSolutionStepValue(rVariable, Step);
-    }
+    KRATOS_TRY
 
-    return value;
-}
-
-template <>
-array_1d<double, 3> CFDUtilities::EvaluateInPoint<array_1d<double, 3>>(
-    const GeometryType& rGeometry,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step)
-{
-    const unsigned int number_of_nodes = rGeometry.PointsNumber();
-    array_1d<double, 3> value = ZeroVector(3);
-    for (unsigned int c = 0; c < number_of_nodes; ++c)
-    {
-        value += rShapeFunction[c] * rGeometry[c].FastGetSolutionStepValue(rVariable, Step);
-    }
-
-    return value;
-}
-
-void CFDUtilities::CalculateNumberOfNeighbourConditions(ModelPart& rModelPart)
-{
     ModelPart::NodesContainerType& r_nodes = rModelPart.Nodes();
 
     // reseting all nodal variables which needs to be calculated
@@ -197,67 +147,146 @@ void CFDUtilities::CalculateNumberOfNeighbourConditions(ModelPart& rModelPart)
     }
 
     rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_CONDITIONS);
+
+    KRATOS_CATCH("");
 }
 
-void CFDUtilities::CalculateReactionBasedUTau(double& YPlus,
-                                              array_1d<double, 3>& rUTau,
-                                              const GeometryType& rGeometry,
-                                              const double Density,
-                                              const double KinematicViscosity,
-                                              const double WallHeight,
-                                              const double Area,
-                                              const Variable<array_1d<double, 3>>& rReactionVariable)
+double CalculateReactionBasedYPlusUTau(array_1d<double, 3>& rFrictionVelocity,
+                                       const array_1d<double, 3>& rReaction,
+                                       const array_1d<double, 3>& rNormal,
+                                       const double Density,
+                                       const double KinematicViscosity,
+                                       const double WallHeight)
 {
+    KRATOS_TRY
+
+    // calculating unit normal since rNormal contains surface area of the condition
+    const double surface_area = norm_2(rNormal);
+    const array_1d<double, 3>& unit_normal = rNormal / surface_area;
+
+    // calculate tangential stress
+    noalias(rFrictionVelocity) =
+        (rReaction - unit_normal * inner_prod(rReaction, unit_normal)) / surface_area;
+    const double shear_stress = norm_2(rFrictionVelocity);
+
+    // calculate y_plus
+    const double y_plus = std::sqrt(shear_stress / Density) * WallHeight / KinematicViscosity;
+
+    // calculate u_tau
+    noalias(rFrictionVelocity) =
+        rFrictionVelocity /
+        std::sqrt((shear_stress <= std::numeric_limits<double>::epsilon() ? 1.0 : shear_stress) *
+                  Density);
+
+    return y_plus;
+
+    KRATOS_CATCH("");
 }
 
-void CFDUtilities::CalculateWallFunctionBasedYPlusUTau(double& YPlus,
-                                                       array_1d<double, 3>& rUTau,
-                                                       const GeometryType& rGeometry,
-                                                       const double Density,
-                                                       const double KinematicViscosity,
-                                                       const double WallHeight,
-                                                       const double VonKarman,
-                                                       const double Smoothness,
-                                                       const Vector& GaussPointShapeFunctions)
+double CalculateLinearLogarithmicWallFunctionBasedYPlusLimit(const double VonKarman,
+                                                             const double WallSmoothness,
+                                                             const int MaxIterations,
+                                                             const double Tolerance)
 {
-    const array_1d<double, 3>& r_wall_velocity =
-        CFDUtilities::EvaluateInPoint(rGeometry, VELOCITY, GaussPointShapeFunctions);
-    const array_1d<double, 3>& r_mesh_velocity = CFDUtilities::EvaluateInPoint(
-        rGeometry, MESH_VELOCITY, GaussPointShapeFunctions);
-    const array_1d<double, 3>& r_effective_velocity = r_wall_velocity - r_mesh_velocity;
-    const double wall_velocity_magnitude = norm_2(r_effective_velocity);
-
-    double u_tau{0.0};
-    CFDUtilities::CalculateYPlusAndUtau(YPlus, u_tau, wall_velocity_magnitude, WallHeight,
-                                        KinematicViscosity, VonKarman, Smoothness);
-
-    if (wall_velocity_magnitude > 0.0)
+    double y_plus = 11.06;
+    const double inv_kappa = 1.0 / VonKarman;
+    double dx = 0.0;
+    for (int i = 0; i < MaxIterations; ++i)
     {
-        noalias(rUTau) = r_effective_velocity * u_tau / wall_velocity_magnitude;
+        const double value = inv_kappa * std::log(y_plus) + WallSmoothness;
+        dx = value - y_plus;
+
+        if (std::abs(dx) < Tolerance)
+            return y_plus;
+
+        y_plus = value;
     }
-    else
-    {
-        rUTau = ZeroVector(3);
-    }
+
+    KRATOS_WARNING("CalculateLinearLogarithmicWallFunctionBasedYPlusLimit")
+        << "Logarithmic y_plus limit reached max iterations with dx > "
+           "Tolerance [ "
+        << dx << " > " << Tolerance << ", MaxIterations = " << MaxIterations << " ].\n";
+    return y_plus;
 }
 
-void CFDUtilities::CalculateReactionBasedYPlus(ModelPart& rModelPart,
-                                               const Variable<double>& rKinematicViscosityVariable,
-                                               const Variable<array_1d<double, 3>>& rReactionVariable)
+double CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
+    array_1d<double, 3>& rFrictionVelocity,
+    const array_1d<double, 3>& rWallVelocity,
+    const array_1d<double, 3>& rNormal,
+    const double KinematicViscosity,
+    const double WallHeight,
+    const double VonKarman,
+    const double WallSmoothness,
+    const int MaxIterations,
+    const double Tolerance)
 {
-    ModelPart::NodesContainerType& r_nodes = rModelPart.Nodes();
+    KRATOS_TRY
 
-    // reseting all nodal variables which needs to be calculated
-    VariableUtils().SetNonHistoricalVariableToZero(Y_PLUS, r_nodes);
-    VariableUtils().SetNonHistoricalVariableToZero(FRICTION_VELOCITY, r_nodes);
+    // calculating unit normal since rNormal contains surface area of the condition
+    const double surface_area = norm_2(rNormal);
+    const array_1d<double, 3>& unit_normal = rNormal / surface_area;
 
-    // calculate number of neighour conditions
-    CFDUtilities::CalculateNumberOfNeighbourConditions(rModelPart);
+    // calculate tangential velocity
+    noalias(rFrictionVelocity) =
+        rWallVelocity - unit_normal * inner_prod(rWallVelocity, unit_normal);
+    const double wall_velocity = norm_2(rFrictionVelocity);
+
+    // calculate linear log region limit
+    const double limit_y_plus = CalculateLinearLogarithmicWallFunctionBasedYPlusLimit(
+        VonKarman, WallSmoothness, MaxIterations, Tolerance);
+
+    // linear region
+    double u_tau = std::sqrt(wall_velocity * KinematicViscosity / WallHeight);
+    double y_plus = u_tau * WallHeight / KinematicViscosity;
+    const double inv_kappa = 1.0 / VonKarman;
+
+    // log region
+    if (y_plus > limit_y_plus)
+    {
+        int iter = 0;
+        double dx = 1e10;
+        double u_plus = inv_kappa * std::log(y_plus) + WallSmoothness;
+
+        while (iter < MaxIterations && std::fabs(dx) > Tolerance * u_tau)
+        {
+            // Newton-Raphson iteration
+            double f = u_tau * u_plus - wall_velocity;
+            double df = u_plus + inv_kappa;
+            dx = f / df;
+
+            // Update variables
+            u_tau -= dx;
+            y_plus = WallHeight * u_tau / KinematicViscosity;
+            u_plus = inv_kappa * std::log(y_plus) + WallSmoothness;
+            ++iter;
+        }
+
+        KRATOS_WARNING_IF("CFDUtilities", iter >= MaxIterations)
+            << "CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau "
+               "couldn't converge Newton-Raphson. Residual is "
+            << dx << std::endl;
+    }
+
+    noalias(rFrictionVelocity) =
+        rFrictionVelocity *
+        (u_tau / (wall_velocity <= std::numeric_limits<double>::epsilon() ? 1.0 : wall_velocity));
+
+    return y_plus;
+
+    KRATOS_CATCH("");
+}
+
+void CalculateYPlusAndUTauForConditions(
+    ModelPart& rModelPart,
+    const Variable<double>& rKinematicViscosityVariable,
+    const std::function<double(
+        array_1d<double, 3>&, const GeometryType&, const array_1d<double, 3>&, const Vector&, const double, const double, const double)>& rYPlusAndUTauCalculationMethod)
+{
+    KRATOS_TRY
 
     const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const std::function<void(array_1d<double, 3>&, const ConditionType&)> normal_calculation_method =
-        (domain_size == 2) ? CFDUtilities::CalculateNormal<2>
-                           : CFDUtilities::CalculateNormal<3>;
+        (domain_size == 2) ? CalculateConditionNormal<2> : CalculateConditionNormal<3>;
 
     const int number_of_conditions = rModelPart.NumberOfConditions();
 #pragma omp parallel
@@ -273,152 +302,143 @@ void CFDUtilities::CalculateReactionBasedYPlus(ModelPart& rModelPart,
 
             Vector gauss_weights;
             Matrix shape_functions;
-            CFDUtilities::CalculateConditionGeometryData(
-                r_condition.GetGeometry(), GeometryData::GI_GAUSS_1,
-                gauss_weights, shape_functions);
+            CalculateConditionGeometryData(r_condition.GetGeometry(), GeometryData::GI_GAUSS_1,
+                                           gauss_weights, shape_functions);
 
             const Vector& gauss_shape_functions = row(shape_functions, 0);
 
             // calculate normal for the condition
             normal_calculation_method(normal, r_condition);
-            const double normal_area = norm_2(normal);
 
-            const double y_wall = CFDUtilities::CalculateWallHeight(r_condition, normal);
-            const double nu = CFDUtilities::EvaluateInPoint(
+            const double y_wall = CalculateConditionWallHeight(r_condition, normal);
+            const double nu = EvaluateInPoint(
                 r_geometry, rKinematicViscosityVariable, gauss_shape_functions);
-            const double rho = CFDUtilities::EvaluateInPoint(
-                r_geometry, DENSITY, gauss_shape_functions);
+            const double rho = EvaluateInPoint(r_geometry, DENSITY, gauss_shape_functions);
 
-            // calculate appropriate reaction force for condition
-            reaction = ZeroVector(3);
-            for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            {
-                const NodeType& r_node = r_geometry[i_node];
-                noalias(reaction) += r_node.FastGetSolutionStepValue(rReactionVariable) /
-                                     r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
-            }
-            // calculate shear stress
-            noalias(reaction) = reaction / normal_area;
-            const double reaction_magnitude = norm_2(reaction);
-
-            noalias(u_tau) = reaction / std::sqrt(reaction_magnitude * rho);
-            const double y_plus = norm_2(u_tau) * y_wall / nu;
+            const double y_plus = rYPlusAndUTauCalculationMethod(
+                u_tau, r_geometry, normal, gauss_shape_functions, rho, nu, y_wall);
 
             r_condition.SetValue(FRICTION_VELOCITY, u_tau);
             r_condition.SetValue(Y_PLUS, y_plus);
+        }
+    }
 
-            // distribute calculated values to nodes of the condition
-            for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+    KRATOS_CATCH("");
+}
+
+void CalculateYPlusAndUTauForConditionsBasedOnReaction(
+    ModelPart& rModelPart,
+    const Variable<double>& rKinematicViscosityVariable,
+    const Variable<array_1d<double, 3>>& rReactionVariable)
+{
+    KRATOS_TRY
+
+    CalculateNumberOfNeighbourConditions(rModelPart);
+
+    const std::function<double(array_1d<double, 3>&, const GeometryType&, const array_1d<double, 3>&,
+                               const Vector&, const double, const double, const double)>
+        method = [rReactionVariable](
+                     array_1d<double, 3>& rFrictionVelocity,
+                     const GeometryType& rGeometry, const array_1d<double, 3>& rNormal,
+                     const Vector& rGaussShapeFunctions, const double Density,
+                     const double KinematicViscosity, const double WallHeight) {
+            array_1d<double, 3> reaction =
+                rGeometry[0].FastGetSolutionStepValue(rReactionVariable) /
+                rGeometry[0].GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
+            for (unsigned int i_node = 1; i_node < rGeometry.PointsNumber(); ++i_node)
             {
-                NodeType& r_node = r_geometry[i_node];
-
-                const double nodal_y_plus = r_node.GetValue(Y_PLUS);
-                const array_1d<double, 3>& nodal_u_tau = r_node.GetValue(FRICTION_VELOCITY);
-
-                r_node.SetLock();
-                r_node.SetValue(Y_PLUS, nodal_y_plus + y_plus);
-                r_node.SetValue(FRICTION_VELOCITY, nodal_u_tau + u_tau);
-                r_node.UnSetLock();
+                const NodeType& r_node = rGeometry[i_node];
+                noalias(reaction) += r_node.FastGetSolutionStepValue(rReactionVariable) /
+                                     r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
             }
-        }
-    }
 
-    rModelPart.GetCommunicator().AssembleNonHistoricalData(Y_PLUS);
-    rModelPart.GetCommunicator().AssembleNonHistoricalData(FRICTION_VELOCITY);
+            return CalculateReactionBasedYPlusUTau(
+                rFrictionVelocity, reaction, rNormal, Density, KinematicViscosity, WallHeight);
+        };
 
-    const int number_of_nodes = r_nodes.size();
+    CalculateYPlusAndUTauForConditions(rModelPart, rKinematicViscosityVariable, method);
+
+    KRATOS_CATCH("");
+}
+
+void CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
+    ModelPart& rModelPart,
+    const Variable<double>& rKinematicViscosityVariable,
+    const double VonKarman,
+    const double WallSmoothness,
+    const int MaxIterations,
+    const double Tolerance)
+{
+    KRATOS_TRY
+
+    const std::function<double(array_1d<double, 3>&, const GeometryType&, const array_1d<double, 3>&,
+                               const Vector&, const double, const double, const double)>
+        method = [VonKarman, WallSmoothness, MaxIterations, Tolerance](
+                     array_1d<double, 3>& rFrictionVelocity,
+                     const GeometryType& rGeometry, const array_1d<double, 3>& rNormal,
+                     const Vector& rGaussShapeFunctions, const double Density,
+                     const double KinematicViscosity, const double WallHeight) {
+            const array_1d<double, 3>& r_wall_velocity =
+                EvaluateInPoint(rGeometry, VELOCITY, rGaussShapeFunctions);
+            const array_1d<double, 3>& r_mesh_velocity =
+                EvaluateInPoint(rGeometry, MESH_VELOCITY, rGaussShapeFunctions);
+
+            return CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
+                rFrictionVelocity, r_wall_velocity - r_mesh_velocity, rNormal, KinematicViscosity,
+                WallHeight, VonKarman, WallSmoothness, MaxIterations, Tolerance);
+        };
+
+    CalculateYPlusAndUTauForConditions(rModelPart, rKinematicViscosityVariable, method);
+
+    KRATOS_CATCH("");
+}
+
+template <typename TDataType>
+void DistributeConditionDataToNodes(ModelPart& rModelPart, const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY
+
+    CalculateNumberOfNeighbourConditions(rModelPart);
+
+    ModelPart::NodesContainerType& r_nodes = rModelPart.Nodes();
+    VariableUtils().SetNonHistoricalVariableToZero(rVariable, r_nodes);
+
+    const int number_of_conditions = rModelPart.NumberOfConditions();
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
     {
-        NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
-        const double inv_number_of_neighbour_conditions =
-            1.0 / static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
+        ConditionType& r_condition = *(rModelPart.ConditionsBegin() + i_cond);
+        GeometryType& r_geometry = r_condition.GetGeometry();
 
-        const double nodal_y_plus = r_node.GetValue(Y_PLUS);
-        const array_1d<double, 3>& nodal_u_tau = r_node.GetValue(FRICTION_VELOCITY);
-
-        r_node.SetValue(Y_PLUS, nodal_y_plus * inv_number_of_neighbour_conditions);
-        r_node.SetValue(FRICTION_VELOCITY, nodal_u_tau * inv_number_of_neighbour_conditions);
-    }
-}
-
-double CFDUtilities::CalculateLogarithmicYPlusLimit(const double VonKarman,
-                                                    const double Smoothness,
-                                                    const int MaxIterations,
-                                                    const double Tolerance)
-{
-    double y_plus = 11.06;
-    const double inv_kappa = 1.0 / VonKarman;
-    double dx = 0.0;
-    for (int i = 0; i < MaxIterations; ++i)
-    {
-        const double value = inv_kappa * std::log(y_plus) + Smoothness;
-        dx = value - y_plus;
-
-        if (std::abs(dx) < Tolerance)
-            return y_plus;
-
-        y_plus = value;
-    }
-
-    KRATOS_WARNING("LogarithmicYPlusLimit")
-        << "Logarithmic y_plus limit reached max iterations with dx > "
-           "Tolerance [ "
-        << dx << " > " << Tolerance << ", MaxIterations = " << MaxIterations << " ].\n";
-    return y_plus;
-}
-
-void CFDUtilities::CalculateYPlusAndUtau(double& rYPlus,
-                                         double& rUTau,
-                                         const double WallVelocity,
-                                         const double WallHeight,
-                                         const double KinematicViscosity,
-                                         const double VonKarman,
-                                         const double Smoothness,
-                                         const int MaxIterations,
-                                         const double Tolerance)
-{
-    const double limit_y_plus = CalculateLogarithmicYPlusLimit(
-        VonKarman, Smoothness, MaxIterations, Tolerance);
-
-    // linear region
-    rUTau = std::sqrt(WallVelocity * KinematicViscosity / WallHeight);
-    rYPlus = rUTau * WallHeight / KinematicViscosity;
-    const double inv_kappa = 1.0 / VonKarman;
-
-    // log region
-    if (rYPlus > limit_y_plus)
-    {
-        int iter = 0;
-        double dx = 1e10;
-        double u_plus = inv_kappa * std::log(rYPlus) + Smoothness;
-
-        while (iter < MaxIterations && std::fabs(dx) > Tolerance * rUTau)
+        const TDataType& r_value = r_condition.GetValue(rVariable);
+        for (unsigned int i_node = 0; i_node <= r_geometry.PointsNumber(); ++i_node)
         {
-            // Newton-Raphson iteration
-            double f = rUTau * u_plus - WallVelocity;
-            double df = u_plus + inv_kappa;
-            dx = f / df;
+            NodeType& r_node = r_geometry[i_node];
+            const TDataType& r_current_value = r_node.GetValue(rVariable);
+            const double number_of_neighbour_conditions =
+                static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
 
-            // Update variables
-            rUTau -= dx;
-            rYPlus = WallHeight * rUTau / KinematicViscosity;
-            u_plus = inv_kappa * std::log(rYPlus) + Smoothness;
-            ++iter;
-        }
-        if (iter == MaxIterations)
-        {
-            std::cout << "Warning: wall condition Newton-Raphson did not "
-                         "converge. Residual is "
-                      << dx << std::endl;
+            r_node.SetLock();
+            r_node.SetValue(rVariable, r_current_value + r_value * (1.0 / number_of_neighbour_conditions));
+            r_node.UnSetLock();
         }
     }
+
+    rModelPart.GetCommunicator().AssembleNonHistoricalData(rVariable);
+
+    KRATOS_CATCH("");
 }
 
-void CFDUtilities::CalculateWallFunctionBasedYPlus(ModelPart& rModelPart,
-                                                   const double VonKarman = 0.41,
-                                                   const double Smoothness = 5.2)
-{
-}
+// template instantiations
+template void CalculateConditionNormal<2>(array_1d<double, 3>& rNormal,
+                                          const ConditionType& rCondition);
+template void CalculateConditionNormal<3>(array_1d<double, 3>& rNormal,
+                                          const ConditionType& rCondition);
+
+template void DistributeConditionDataToNodes<double>(ModelPart&, const Variable<double>&);
+template void DistributeConditionDataToNodes<array_1d<double, 3>>(
+    ModelPart&, const Variable<array_1d<double, 3>>&);
+
+} // namespace CFDUtilities
 
 } // namespace Kratos.

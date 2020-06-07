@@ -16,6 +16,7 @@
 // System includes
 #include <iostream>
 #include <string>
+#include <tuple>
 
 // External includes
 
@@ -28,212 +29,92 @@
 
 namespace Kratos
 {
-///@addtogroup FluidDynamicsApplication
-///@{
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) CFDUtilities
+namespace CFDUtilities
 {
-    class ReactionBasedYPlus
+using NodeType = ModelPart::NodeType;
+using ElementType = ModelPart::ElementType;
+using ConditionType = ModelPart::ConditionType;
+using GeometryType = Geometry<NodeType>;
+
+void CalculateConditionGeometryData(const GeometryType& rGeometry,
+                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                    Vector& rGaussWeights,
+                                    Matrix& rNContainer);
+
+template <unsigned int TDim>
+void CalculateConditionNormal(array_1d<double, 3>& rNormal, const ConditionType& rCondition);
+
+double CalculateConditionWallHeight(const ConditionType& rCondition,
+                                    const array_1d<double, 3>& rNormal);
+
+template <typename TDataType>
+TDataType EvaluateInPoint(const GeometryType& rGeometry,
+                          const Variable<TDataType>& rVariable,
+                          const Vector& rShapeFunction,
+                          const int Step = 0)
+{
+    const unsigned int number_of_nodes = rGeometry.PointsNumber();
+    TDataType value =
+        rGeometry[0].FastGetSolutionStepValue(rVariable, Step) * rShapeFunction[0];
+    for (unsigned int c = 1; c < number_of_nodes; ++c)
     {
-    public:
-        void CalculateData(ModelPart::ConditionType& rCondition);
+        value += rGeometry[c].FastGetSolutionStepValue(rVariable, Step) *
+                 rShapeFunction[c];
+    }
 
-        void CalculateYPlusAndUTau(double& rYPlus,
-                                   array_1d<double, 3>& rUTau,
-                                   const array_1d<double, 3>& rNormal);
-    };
+    return value;
+}
 
-    class WallFunctionBasedYPlus
-    {
-    public:
-        void CalculateData(ModelPart::ConditionType& rCondition);
+void CalculateNumberOfNeighbourConditions(ModelPart& rModelPart);
 
-        void CalculateYPlusAndUTau(double& rYPlus,
-                                   array_1d<double, 3>& rUTau,
-                                   const array_1d<double, 3>& rNormal);
-    };
+double CalculateLinearLogarithmicWallFunctionBasedYPlusLimit(const double VonKarman = 0.41,
+                                                             const double WallSmoothness = 5.2,
+                                                             const int MaxIterations = 20,
+                                                             const double Tolerance = 1e-6);
 
-public:
-    ///@name Type Definitions
-    ///@{
+double CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
+    array_1d<double, 3>& rFrictionVelocity,
+    const array_1d<double, 3>& rWallVelocity,
+    const array_1d<double, 3>& rNormal,
+    const double KinematicViscosity,
+    const double WallHeight,
+    const double VonKarman = 0.41,
+    const double WallSmoothness = 5.2,
+    const int MaxIterations = 20,
+    const double Tolerance = 1e-6);
 
-    using NodeType = ModelPart::NodeType;
-    using ElementType = ModelPart::ElementType;
-    using ConditionType = ModelPart::ConditionType;
-    using GeometryType = Geometry<NodeType>;
+double CalculateReactionBasedYPlusUTau(array_1d<double, 3>& rFrictionVelocity,
+                                       const array_1d<double, 3>& rReaction,
+                                       const array_1d<double, 3>& rNormal,
+                                       const double Density,
+                                       const double KinematicViscosity,
+                                       const double WallHeight);
 
-    /// Pointer definition of CFDUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(CFDUtilities);
+void CalculateYPlusAndUTauForConditions(
+    ModelPart& rModelPart,
+    const Variable<double>& rKinematicViscosityVariable,
+    const std::function<double(
+        array_1d<double, 3>&, const GeometryType&, const array_1d<double, 3>&, const Vector&, const double, const double, const double)>&
+        rYPlusAndUTauCalculationMethod);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+void CalculateYPlusAndUTauForConditionsBasedOnReaction(
+    ModelPart& rModelPart,
+    const Variable<double>& rKinematicViscosityVariable,
+    const Variable<array_1d<double, 3>>& rReactionVariable);
 
-    /// Constructor
-    CFDUtilities(){};
+void CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
+    ModelPart& rModelPart,
+    const Variable<double>& rKinematicViscosityVariable,
+    const double VonKarman = 0.41,
+    const double WallSmoothness = 5.2,
+    const int MaxIterations = 20,
+    const double Tolerance = 1e-6);
 
-    /// Destructor.
-    ~CFDUtilities() = default;
+template <typename TDataType>
+void DistributeConditionDataToNodes(ModelPart& rModelPart,
+                                    const Variable<TDataType>& rVariable);
 
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    void static CalculateReactionBasedYPlus(ModelPart& rModelPart,
-                                            const Variable<double>& rKinematicViscosityVariable,
-                                            const Variable<array_1d<double, 3>>& rReactionVariable);
-
-    double static CalculateLogarithmicYPlusLimit(const double VonKarman,
-                                                 const double Smoothness,
-                                                 const int MaxIterations = 20,
-                                                 const double Tolerance = 1e-6);
-
-    void static CalculateYPlusAndUtau(double& rYPlus,
-                                      double& rUTau,
-                                      const double WallVelocity,
-                                      const double WallHeight,
-                                      const double KinematicViscosity,
-                                      const double VonKarman,
-                                      const double Smoothness,
-                                      const int MaxIterations = 20,
-                                      const double Tolerance = 1e-6);
-
-    void static CalculateWallFunctionBasedYPlus(ModelPart& rModelPart,
-                                                const double VonKarman = 0.41,
-                                                const double Smoothness = 5.2);
-
-    void static CalculateNumberOfNeighbourConditions(ModelPart& rModelPart);
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    void static CalculateConditionGeometryData(const GeometryType& rGeometry,
-                                               const GeometryData::IntegrationMethod& rIntegrationMethod,
-                                               Vector& rGaussWeights,
-                                               Matrix& rNContainer);
-
-    template <unsigned int TDim>
-    void static CalculateNormal(array_1d<double, 3>& rNormal, const ConditionType& rCondition);
-
-    double static CalculateWallHeight(const ConditionType& rCondition,
-                                      const array_1d<double, 3>& rNormal);
-
-    template <typename TDataType>
-    TDataType static EvaluateInPoint(const GeometryType& rGeometry,
-                                     const Variable<TDataType>& rVariable,
-                                     const Vector& rShapeFunction,
-                                     const int Step = 0);
-
-    void static CalculateReactionBasedUTau(double& YPlus,
-                                           array_1d<double, 3>& rUTau,
-                                           const GeometryType& rGeometry,
-                                           const double Density,
-                                           const double KinematicViscosity,
-                                           const double WallHeight,
-                                           const double Area,
-                                           const Variable<array_1d<double, 3>>& rReactionVariable);
-
-    void static CalculateWallFunctionBasedYPlusUTau(double& YPlus,
-                                                    array_1d<double, 3>& rUTau,
-                                                    const GeometryType& rGeometry,
-                                                    const double Density,
-                                                    const double KinematicViscosity,
-                                                    const double WallHeight,
-                                                    const double VonKarman,
-                                                    const double Smoothness,
-                                                    const Vector& GaussPointShapeFunctions);
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    CFDUtilities& operator=(CFDUtilities const& rOther);
-
-    /// Copy constructor.
-    CFDUtilities(CFDUtilities const& rOther);
-
-    ///@}
-
-}; // Class CFDUtilities
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-/// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream, const CFDUtilities& rThis);
-
-///@}
-
-///@} addtogroup block
+} // namespace CFDUtilities
 
 } // namespace Kratos.
 
