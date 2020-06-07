@@ -14,25 +14,18 @@ Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and make sure 
 ``` cmake
 -DMULTILEVEL_MONTE_CARLO_APPLICATION=ON
 -DMESHING_APPLICATION=ON
--DEXAQUTE_SANDBOX_APPLICATION=ON
 ```
 
 in the compilation configuration, in order to compile the MultilevelMonteCarloApplication along with other required auxiliary Kratos applications.
-
-Additionally, you need to add
-``` cmake
-export PYTHONPATH=$PYTHONPATH:/path/to/Kratos/bin/Release/KratosMultiphysics/MultilevelMonteCarloApplication
-```
-to use the local (empty) PyCOMPSs libraries.
 
 ## Algorithms
 
 ### Monte Carlo
 
 * Monte Carlo (MC) is the reference method in the stochastic analysis of multiphysics problems with uncertainties in the data parameters.
-* The idea is to repeatedly generate the random input and to solve numerically the associated deterministic problem, in order to perform a statistical analysis.
+* The idea is to repeatedly generate the random input and to solve numerically the associated deterministic problem, in order to perform statistical analysis.
 * Convergence to the exact statistics as the number of samples grows.
-* Level of parallelism:
+* Levels of parallelism:
     * Between samples,
     * On each sample at solver level.
 * Hierarchy update:
@@ -53,13 +46,13 @@ to use the local (empty) PyCOMPSs libraries.
 * Multilevel Monte Carlo (MLMC) consists in the simultaneous computation of MC QoI samples on a hierarchy of levels with increasing accuracy.
 * Computation of a large number of cheap and lower accuracy QoI samples with few expensive high accuracy samples.
     * Low accuracy levels: capture satistical variability,
-    * High acuracy levels: capture bias.
+    * High acuracy levels: capture discretization error.
 * Example of hierarchy of computational grids, showing increasing accuracy levels (by decreasing mesh size):
 <p align="center">
   <img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Readme_files/MultilevelMonteCarloApplication/mesh012.PNG" alt="Solution" style="width: 600px;"/>
 </p>
 
-* Level of parallelism:
+* Levels of parallelism:
     * Between levels,
     * Between samples,
     * On each sample at solver level.
@@ -70,13 +63,17 @@ to use the local (empty) PyCOMPSs libraries.
 ### Continuation Multilevel Monte Carlo
 
 * Evolution of the MLMC algorithm: set of decreasing tolerances to reach gradually the final one. Updating on the fly the tolerance hierarchy.
+* Levels of parallelism:
+    * Between levels,
+    * Between samples,
+    * On each sample at solver level.
 * Hierarchy update:
     * Adaptive.
 
 ### Asynchronous Monte Carlo
 
-* This algorithm fills the machine when running the problem in distributed environments, avoiding idle times and keeping at maximum the computational efficiency.
-* Level of parallelism:
+* This algorithm is a standard MC method designed for running in distributed environments. It avoids idle times and keeps at maximum the computational efficiency.
+* Levels of parallelism:
     * Between batches,
     * Between samples,
     * On each sample at solver level.
@@ -85,8 +82,8 @@ to use the local (empty) PyCOMPSs libraries.
 
 ### Asynchronous Multilevel Monte Carlo
 
-* This algorithm fills the machine when running the problem in distributed environments, avoiding idle times and keeping at maximum the computational efficiency.
-* Level of parallelism:
+* This algorithm is a standard MLMC method designed for running in distributed environments. It avoids idle times and keeps at maximum the computational efficiency.
+* Levels of parallelism:
     * Between batches,
     * Betweenn levels,
     * Between samples,
@@ -108,36 +105,37 @@ to use the local (empty) PyCOMPSs libraries.
 
 * The h-statistic of order p is the unbiased estimator with minimal variance of the central moment of order p.
 * h-statistic is computed as: <p align="center">
-  <img src="https://latex.codecogs.com/svg.latex?h_P:=h_P(S_p,N),p\in[1,P]" alt="Solution"/>
+  <img src="https://latex.codecogs.com/svg.latex?h_P:=f(S_p,N),p\in[1,P]" alt="Solution"/>
 </p>
 
 
 ## Convergence criteria
 
-* Convergence is achieved if the estimator of the QoI reaches a desired tolerance with respect ot the true estimator with a given confidence.
+* Convergence is achieved if the estimator of the QoI reaches a desired tolerance with respect to the true estimator with a given confidence.
 * The failure probability to satisfy is
 <p align="center">
-  <img src="https://latex.codecogs.com/svg.latex?\mathbb{P}[\abs{\mathbb{E}[QoI_M]-\mathbb{E}[QoI]}>\varepsilon]<\phi" alt="Solution"/>
+  <img src="https://latex.codecogs.com/svg.latex?\mathbb{P}[\left|\mathbb{E}[QoI_H]-\mathbb{E}[QoI]\right|>\varepsilon]<\phi" alt="Solution"/>
 </p>
 
-* Available convergence criteria:
-    * Sample variance criteria,
-    * Higher order (up to the fourth) moments criteria,
-    * Total error criteria,
-    * Relative total error criteria.
+* Other convergence criteria available:
+    * Mean square error,
+    * Sample variance criteria (MC only),
+    * Higher order (up to the fourth) moments criteria (MC only).
 
 
-## Adaptive refinement
 
-The choice is to build the hierarchy of levels for MLMC refining in space, performing solution-oriented adaptive space refinement.
+## Hierarchy strategies
+
+* Hierarchy strategies:
+   * stochastic adaptive refinement: hierarchy of levels built refining in space, performing solution-oriented adaptive space refinement. The coarsest mesh is shared, and for each realization, different meshes are generated.
+   * deterministic adaptive refinement: hierarchy of levels built refining in space, performing solution-oriented adaptive space refinement. All meshes are shared, and adaptive refinement is done exploiting pre-definied random variable values.
+   * standard: the user takes care of building the hierarchy, using the strategy he prefers (such as uniform refinement).
+
 * Metric strategies:
     * geometric error estimate: computation of the hessian of the numerical solution, which gives
 information about where the mesh needs to be refined more,
     * divergence-free error estimate: the analysis of the mass conservation controls the mesh
-refinement (suitable only for CFD cases).
-* Refinement approaches:
-    * concurrent adaptive refinement: mesh generation and simulation running one after the other for each simulation,
-    * single refinement: storage of the mesh for each accuracy level.
+refinement (suitable only for CFD cases). Requires compiling `EXAQUTE_SANDBOX_APPLICATION`.
 
 The [MeshingApplication](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/MeshingApplication) and the [ExaquteSandboxApplication](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ExaquteSandboxApplication) are exploited to achieve the first and the second desired metric, respectively.
 
@@ -156,15 +154,18 @@ Informations for installing MMG can be found in the [Kratos wiki](https://github
 
 PyCOMPSs is the python library required in order to use [COMPSs](https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar) in a python environment.
 By default PyCOMPSs is not required in order to run the application.
-In case you want to run using this library, you will need to remove
+In case one wants to run using this library, Kratos needs to be compiled adding the flag `-DUSING_PYCOMPSS = ON \ `.
+
+The instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs). The current version is able to run several thousands of samples at once exploiting PyCOMPSs and maximizing parallelism.
+
+Finally, wherever required, it is needed to switch from:
 ``` cmake
-export PYTHONPATH=$PYTHONPATH:/path/to/Kratos/bin/Release/KratosMultiphysics/MultilevelMonteCarloApplication
+# Import PyCOMPSs
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 ```
-since you need to use the path given by the installation.
-
-The instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs). The current version is able to run several thousands of samples at once exploiting PyCOMPSs.
-
-Finally, in the files [mc_utilities.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MultilevelMonteCarloApplication/python_scripts/mc_utilities.py), [mlmc_utilities.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MultilevelMonteCarloApplication/python_scripts/mlmc_utilities.py) and [statistical_variable_utilities.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MultilevelMonteCarloApplication/python_scripts/statistical_variable_utilities.py) you need to switch to:
+to:
 ``` cmake
 # Import PyCOMPSs
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
@@ -173,9 +174,13 @@ from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 ```
 to use the distributed computing capabilities.
 
+### XMC
+
+[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a python library, with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is the default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, needs to add the flag `-DUSING_INTERNAL_XMC=OFF \ ` when compiling Kratos.
+
 ## License
 
-The MultilelvelMonteCarloApplication is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+The MultilelvelMonteCarloApplication is OPEN SOURCE. The main code and program structure are available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
 ## References
 - Dadvand, P., Rossi, R., & Oñate, E. (2010). An object-oriented environment for developing finite element codes for multi-disciplinary applications. *Archives of Computational Methods in Engineering*, 17(3), 253–297.
@@ -185,9 +190,11 @@ The MultilelvelMonteCarloApplication is OPEN SOURCE. The main code and program s
 - C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stopping criteria in Monte Carlo simulations; *SIAM Journal on Scientific Computing*, 2014, Vol. 36, No. 2 : pp. A869-A885
 - P. Pébay, T. B. Terriberry, H. Kolla, J. Bennett; Stable, Scalable Formulas for Parallel and Online Computation of Higher-order Multivariate Central Moments with Arbitrary Weights; *Computational Statistics*, 2016, 31:1305-1325
 - Dapogny, C., Dobrzynski, C., & Frey, P. (2014). Three-dimensional adaptive domain remeshing, implicit domain meshing, and applications to free and moving boundary problems. *Journal of Computational Physics*, 262, 358–378.
+- Amela, R., Ayoul-Guilmard, Q., Badia, R. M., Ganesh, S., Nobile, F., Rossi, R., & Tosi, R. (2019). ExaQUte XMC. https://doi.org/10.5281/zenodo.3235833
 
 ## Contact
 
 * **Riccardo Rossi** - *Group Leader* - [rrossi@cimne.upc.edu](mailto:rrossi@cimne.upc.edu)
 * **Riccardo Tosi** - *Developer* - [rtosi@cimne.upc.edu](mailto:rtosi@cimne.upc.edu)
+* **Marc Núñez** - *Developer* - [mnunez@cimne.upc.edu](mailto:mnunez@cimne.upc.edu)
 * **Ramon Amela** - *Developer* - [ramon.amela@bsc.es](mailto:ramon.amela@bsc.es)

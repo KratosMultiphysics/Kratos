@@ -66,8 +66,6 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
-
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -78,19 +76,19 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    virtual void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void CheckLoadingFunction(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    void CheckLoadingFunction(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+    void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                             ConstitutiveLawVariables& rVariables,
-                                            Parameters& rValues);
+                                            Parameters& rValues) override;
 
-    virtual void ComputeStressVector(Vector& rStressVector,
+    void ComputeStressVector(Vector& rStressVector,
                                         ConstitutiveLawVariables& rVariables,
-                                        Parameters& rValues);
+                                        Parameters& rValues) override;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

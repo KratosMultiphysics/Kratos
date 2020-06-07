@@ -77,11 +77,15 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     rOStream << std::endl;
     rOStream << "Geometries:" << std::endl;
     KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+    rOStream << std::endl;
     rOStream << "Elements:" << std::endl;
     KratosComponents<Element>().PrintData(rOStream);
     rOStream << std::endl;
     rOStream << "Conditions:" << std::endl;
     KratosComponents<Condition>().PrintData(rOStream);
+    rOStream << std::endl;
+    rOStream << "Modelers:" << std::endl;
+    KratosComponents<Modeler>().PrintData(rOStream);
 
     rOStream << "Loaded applications:" << std::endl;
 

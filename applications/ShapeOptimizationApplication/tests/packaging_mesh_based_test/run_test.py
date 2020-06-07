@@ -97,9 +97,4 @@ check_process.ExecuteInitializeSolutionStep()
 check_process.ExecuteFinalizeSolutionStep()
 check_process.ExecuteFinalize()
 
-# Cleaning
-kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-kratos_utilities.DeleteDirectoryIfExisting(output_directory)
-kratos_utilities.DeleteFileIfExisting(os.path.basename(os.getcwd())+".post.lst")
-
 # =======================================================================================================
