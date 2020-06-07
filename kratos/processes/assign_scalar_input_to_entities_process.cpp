@@ -34,15 +34,13 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
     const Parameters default_parameters = GetDefaultParameters();
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mpVariable = &KratosComponents<Variable<double>>::Get(rParameters["variable_name"].GetString());
+    const std::string& r_variable_name = rParameters["variable_name"].GetString();
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Get(r_variable_name)) << "The variable " << r_variable_name << " does not exist" << std::endl;
+    mpVariable = &KratosComponents<Variable<double>>::Get(r_variable_name);
 
-//     // Read json string in materials file, create Parameters
-//     const std::string& materials_filename = Params["Parameters"]["materials_filename"].GetString();
-//     std::ifstream infile(materials_filename);
-//     KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << materials_filename << " cannot be found" << std::endl;
-//     std::stringstream buffer;
-//     buffer << infile.rdbuf();
-//     Parameters json_input(buffer.str());
+    // Read json string in materials file, create Parameters
+    const std::string& r_filename = rParameters["file"].GetString();
+
 
     KRATOS_CATCH("");
 }
@@ -55,6 +53,7 @@ void AssignScalarInputToEntitiesProcess<TEntity>::Execute()
 {
     KRATOS_TRY;
 
+    // TODO
     InternalAssignValue<>(*mpVariable, 0.0);
 
     KRATOS_CATCH("");
@@ -110,6 +109,36 @@ template<>
 PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarInputToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh().MasterSlaveConstraints();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string& rFileName)
+{
+    std::ifstream infile(rFileName);
+    KRATOS_ERROR_IF_NOT(infile.good()) << "TXT file: " << rFileName << " cannot be found" << std::endl;
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    const std::string& r_string_file = buffer.str();
+
+    // TODO
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string& rFileName)
+{
+    std::ifstream infile(rFileName);
+    KRATOS_ERROR_IF_NOT(infile.good()) << "JSON file: " << rFileName << " cannot be found" << std::endl;
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    Parameters json_input(buffer.str());
+
+    // TODO
 }
 
 /***********************************************************************************/

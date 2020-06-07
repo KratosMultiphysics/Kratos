@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/result_dabatase.h"
 
 namespace Kratos
 {
@@ -173,12 +174,25 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                  /// The model part where to assign the values
-    const Variable<double>* mpVariable = nullptr;  /// The pointer of the variable
+    ModelPart& mrModelPart;                       /// The model part where to assign the values
+    const Variable<double>* mpVariable = nullptr; /// The pointer of the variable
+    ResultDatabase mDatabase;                     /// The database containing the information to assign the values
 
     ///@}
     ///@name Private Operators
     ///@{
+
+    /**
+     * @brief This method reads the database from a TXT
+     * @param rFileName The name of the TXT file name
+     */
+    void ReadDataTXT(const std::string& rFileName);
+
+    /**
+     * @brief This method reads the database from a JSON
+     * @param rFileName The name of the JSON file name
+     */
+    void ReadDataJSON(const std::string& rFileName);
 
     /**
      * @brief This method assigns the value (with OMP)
@@ -237,11 +251,10 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-
-    /// Assignment operator.
     ///@}
     ///@name Serialization
     ///@{
+    ///@}
     ///@name Private Inquiry
     ///@{
     ///@}
