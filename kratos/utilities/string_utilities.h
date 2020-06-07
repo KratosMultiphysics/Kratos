@@ -57,7 +57,7 @@ namespace StringUtilities
     std::string KRATOS_API(KRATOS_CORE) ConvertCammelCaseToSnakeCase(const std::string& rString);
 
     /**
-     * @brief Erase First Occurrence of given  substring from main string.
+     * @brief Erase first occurrence of given  substring from main string.
      * @param rMainString The string to be transformed
      * @param rToErase The string to remove
      * @return The string without the part to remove
@@ -65,6 +65,17 @@ namespace StringUtilities
     std::string KRATOS_API(KRATOS_CORE) ErasePartialString(
         const std::string& rMainString,
         const std::string& rToErase
+        );
+
+    /**
+     * @brief Checks the existence of a substring from main string.
+     * @param rMainString The string to be transformed
+     * @param rToCheck The string to search
+     * @return True if the substring is found and false otherwise
+     */
+    bool KRATOS_API(KRATOS_CORE) SearchPartialString(
+        const std::string& rMainString,
+        const std::string& rToCheck
         );
 
     /**
