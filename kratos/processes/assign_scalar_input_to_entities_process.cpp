@@ -53,8 +53,17 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
     // We have two options, or the values are defined in the entities or in a geometry, we don't know until we read the database
     mpDataModelPart = &mrModelPart.GetModel().CreateModelPart("AUXILIAR_MODEL_PART_INPUT_VARIABLE_" + r_variable_name);
 
-    // Read the input file
+    // Get the geometry or entities
     const std::string& r_filename = rParameters["file"].GetString();
+//     if (StringUtilities::SearchPartialString(r_filename, ".txt")) {
+//
+//     } else if (StringUtilities::SearchPartialString(r_filename, ".json")) {
+//
+//     } else {
+//         KRATOS_ERROR << "The process is only compatible with JSON and TXT" << std::endl;
+//     }
+
+    // Read the input file
     if (StringUtilities::SearchPartialString(r_filename, ".txt")) {
         ReadDataTXT(r_filename);
     } else if (StringUtilities::SearchPartialString(r_filename, ".json")) {
@@ -220,13 +229,69 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarInputToEntit
 template<class TEntity>
 void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string& rFileName)
 {
+    // Initialize the databases
+    std::vector<IndexType> variables_ids(1);
+    variables_ids[0] = mpVariable->Key();
+    std::vector<IndexType> values_sizes(1, 1);
+    const auto& r_ent_array = GetEntitiesContainerAuxiliarModelPart();
+    const SizeType number_of_entities = r_ent_array.size();
+    mDatabase.Initialize(variables_ids, values_sizes, number_of_entities);
+
+    // Read txt
     std::ifstream infile(rFileName);
     KRATOS_ERROR_IF_NOT(infile.good()) << "TXT file: " << rFileName << " cannot be found" << std::endl;
     std::stringstream buffer;
     buffer << infile.rdbuf();
-    const std::string& r_string_file = buffer.str();
 
-    // TODO
+    // First line
+    std::string line;
+    std::getline(buffer, line);
+
+//     std::size_t number_of_entities = std::count(line.begin(), line.end(), "\t");
+
+    // The other lines
+    SizeType number_time_steps = 0;
+    while(std::getline(buffer, line)) {
+        ++number_time_steps;
+    }
+
+    Vector time = ZeroVector(number_time_steps);
+    std::vector<Vector> values(number_of_entities, time);
+
+    // Reset buffer
+    buffer.str("");
+    buffer << infile.rdbuf();
+
+    // First line
+    std::getline(buffer, line);
+
+    // The other lines
+    SizeType counter = 0;
+    SizeType sub_counter = 0;
+    std::string::size_type sz;     // alias of size_t
+    while(std::getline(buffer, line)) {
+        std::istringstream iss(line);
+        std::string token;
+        sub_counter = 0;
+        while(std::getline(iss, token, '\t')) {
+            if (sub_counter == 0) {
+                time[counter] = std::stod(token, &sz);
+            } else {
+                values[sub_counter - 1][counter] = std::stod(token, &sz);
+            }
+            ++sub_counter;
+        }
+        ++counter;
+    }
+
+    // Set the time table
+    mDatabase.SetCommonColumn(time);
+
+    // Set the entities values
+    auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
+    for (IndexType i = 0; i < values.size(); ++i) {
+        r_var_database.SetValues(time, values[i], i);
+    }
 }
 
 /***********************************************************************************/
