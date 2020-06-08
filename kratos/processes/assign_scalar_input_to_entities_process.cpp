@@ -55,18 +55,18 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
 
     // Get the geometry or entities
     const std::string& r_filename = rParameters["file"].GetString();
-//     if (StringUtilities::SearchPartialString(r_filename, ".txt")) {
+//     if (StringUtilities::ContainsPartialString(r_filename, ".txt")) {
 //
-//     } else if (StringUtilities::SearchPartialString(r_filename, ".json")) {
+//     } else if (StringUtilities::ContainsPartialString(r_filename, ".json")) {
 //
 //     } else {
 //         KRATOS_ERROR << "The process is only compatible with JSON and TXT" << std::endl;
 //     }
 
     // Read the input file
-    if (StringUtilities::SearchPartialString(r_filename, ".txt")) {
+    if (StringUtilities::ContainsPartialString(r_filename, ".txt")) {
         ReadDataTXT(r_filename);
-    } else if (StringUtilities::SearchPartialString(r_filename, ".json")) {
+    } else if (StringUtilities::ContainsPartialString(r_filename, ".json")) {
         ReadDataJSON(r_filename);
     } else {
         KRATOS_ERROR << "The process is only compatible with JSON and TXT" << std::endl;
