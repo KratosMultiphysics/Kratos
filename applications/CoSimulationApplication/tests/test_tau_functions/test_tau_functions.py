@@ -17,6 +17,13 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Run function
         self.execute_test(test_file)
 
+    def test_FindInterfaceFilename(self):
+        # Define test file
+        test_file = 'test_FindInterfaceFilename.py'
+
+        # Run test
+        self.execute_test(test_file)
+
     def test_ReadInterfaceFile(self):
         # Define test file
         test_file = 'test_ReadInterfaceFile.py'
