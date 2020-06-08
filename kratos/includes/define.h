@@ -731,7 +731,11 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<ConstitutiveLaw >::Add(name, reference); \
     Serializer::Register(name, reference);
 
-#if __cplusplus >= 201402L
+#if __INTEL_COMPILER
+#pragma message ("WARNING: Pending Deprecated implementation for Intel Compiler")
+#define KRATOS_DEPRECATED
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
+#elif __cplusplus >= 201402L
 #define KRATOS_DEPRECATED [[deprecated]]
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
 #elif __GNUC__
