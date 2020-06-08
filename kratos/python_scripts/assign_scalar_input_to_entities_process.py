@@ -38,7 +38,7 @@ class AssignScalarInputToEntitiesProcess(KratosMultiphysics.Process):
             "variable_name"      : "SPECIFY_VARIABLE_NAME",
             "interval"           : [0.0, 1e30],
             "file"               : "",
-            "transfer_algorithm" : "nearest_neighbour"
+            "transfer_algorithm" : "nearest_neighbour",
             "entities"           : []
         }
         """
