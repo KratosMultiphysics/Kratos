@@ -426,10 +426,10 @@ public:
                 TSparseSpace::SetToZero(rb);
                 TSparseSpace::SetToZero(rDx);
 
-                // Compute RHS and solve
+                // Build RHS for static derivative contribution
                 r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
                 this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
-
+                // Build RHS for dynamic derivative contribution
                 if (mDerivativeType)
                 {
                     KRATOS_ERROR <<"Invalid DerivativeType" << std::endl;
@@ -437,9 +437,19 @@ public:
                     // this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
                 }
 
+                if(r_model_part.MasterSlaveConstraints().size() != 0) {
+                    this->pGetBuilderAndSolver()->ApplyRHSConstraints(p_scheme, r_model_part, rb);
+                }
+
+                this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
+
+                // Apply dynamic derivative constraint
+                // this->ApplyDynamicDerivativeConstraint();
+
                 // Solve the system
                 this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
-
+                // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
+                
                 // Assign solution to ROM_BASIS
                 this->AssignVariables(rDx);
             }

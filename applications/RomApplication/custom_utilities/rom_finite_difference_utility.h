@@ -54,29 +54,64 @@ public:
         
         #pragma omp critical
         {
-            // define working variables
-            Matrix LHS;
-            Matrix LHS_perturbed;
-            Vector dummy;
 
-            // compute LHS before perturbation
-            rElement.CalculateLocalSystem(LHS, dummy, rCurrentProcessInfo);
-            
-            // perturb the design variable and update the element internal values (especially necessary for shell elements with corotational frame)
-            rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            Matrix LHS_p_perturbed;
+            Matrix LHS_m_perturbed;
+
+            // Positive perturbation
+            // // rElement.InitializeSolutionStep(rCurrentProcessInfo);
+            // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
             rDof.GetSolutionStepValue() += rPertubationMag;
-            rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            // // rElement.FinalizeSolutionStep(rCurrentProcessInfo);
+            rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
+            
+            // Reset perturbation
+            rDof.GetSolutionStepValue() -= rPertubationMag;
+            // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
 
-            // compute LHS after perturbation
-            rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
+            // Negative perturbation
+            // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            rDof.GetSolutionStepValue() -= rPertubationMag;
+            // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            rElement.CalculateLeftHandSide(LHS_m_perturbed, rCurrentProcessInfo);
+            
+            // Reset perturbation
+            rDof.GetSolutionStepValue() += rPertubationMag;
+            // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
 
             //compute derivative of RHS w.r.t. design variable with finite differences
-            rOutput = (LHS_perturbed - LHS) / rPertubationMag;
+            rOutput = (LHS_p_perturbed - LHS_m_perturbed) / (2.0*rPertubationMag);
+            // KRATOS_WATCH(rOutput)
+
+            // Matrix LHS;
+            // Matrix LHS_perturbed;
+
+            // // compute LHS before perturbation
+            // rElement.CalculateLeftHandSide(LHS, rCurrentProcessInfo);
             
-            // unperturb the design variable and update the element internal values (especially necessary for shell elements with corotational frame)
-            rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
-            rDof.GetSolutionStepValue() -= rPertubationMag;
-            rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            // // perturb the design variable and update the element internal values (especially necessary for shell elements with corotational frame)
+            // // rElement.InitializeSolutionStep(rCurrentProcessInfo);
+            // // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            // rDof.GetSolutionStepValue() += rPertubationMag;
+            // // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            // // rElement.FinalizeSolutionStep(rCurrentProcessInfo);
+
+            // // compute LHS after perturbation
+            // rElement.CalculateLeftHandSide(LHS_perturbed, rCurrentProcessInfo);
+
+            // //compute derivative of RHS w.r.t. design variable with finite differences
+            // rOutput = (LHS_perturbed - LHS) / rPertubationMag;
+            // // KRATOS_WATCH(rOutput)
+            
+            // // unperturb the design variable and update the element internal values (especially necessary for shell elements with corotational frame)
+            // // rElement.InitializeSolutionStep(rCurrentProcessInfo);
+            // // rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+            // rDof.GetSolutionStepValue() -= rPertubationMag;
+            // // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+            // // rElement.FinalizeSolutionStep(rCurrentProcessInfo);
             
         }
         KRATOS_CATCH("");

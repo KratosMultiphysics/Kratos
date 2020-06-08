@@ -266,8 +266,11 @@ public:
         KRATOS_TRY
         
         Matrix element_LHS_derivative;
+        
         int eigenvalue_i = rCurrentProcessInfo[EIGENVALUE_I];
         int eigenvalue_j = rCurrentProcessInfo[EIGENVALUE_J];
+        // KRATOS_WATCH(eigenvalue_i)
+        // KRATOS_WATCH(eigenvalue_j)
         //const double eigenvalue = rCurrentProcessInfo[EIGENVALUE_VECTOR](eigenvalue_i); // This will be used for dynamic derivatives
 
         // Get PhiElemental
@@ -290,10 +293,9 @@ public:
             }
             dof_ctr += node_i_dofs.size();
         }
-
-        rRHS_Contribution.resize(num_element_dofs);
-        for (std::size_t iRHS = 0; iRHS < rRHS_Contribution.size(); iRHS++)
-            rRHS_Contribution[iRHS] = 0.0;
+        
+        rRHS_Contribution.clear();
+        rRHS_Contribution.resize(0);
 
         // Build RHS contributions
         if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
@@ -302,11 +304,11 @@ public:
             // Loop over element nodes
             for (auto& node_i : rElement.GetGeometry()) {
                 auto& node_i_dofs = node_i.GetDofs();
-                
                 // Loop over nodal DOFs
                 auto dof_i = node_i_dofs.begin();
                 for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
-                    const double perturbationMag = node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j);
+                    const double perturbationMag = node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j)*1e-3;
+                    // std::cout << "EID: " << rElement.Id() << " NID: " << node_i.Id() << " DOF: " << (*dof_i)->GetVariable().Name() << std::endl;
                     if (abs(perturbationMag) > 0.0)
                     {
                         RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative(rElement,
@@ -314,13 +316,16 @@ public:
                                                                             perturbationMag,
                                                                             element_LHS_derivative,
                                                                             rCurrentProcessInfo);
-
-                        if (rRHS_Contribution.size() != element_LHS_derivative.size1()){
+                        
+                        if (rRHS_Contribution.size() == 0){
+                            // std::cout << "Resizing rRHS_Contribution" << std::endl;
                             rRHS_Contribution.resize(element_LHS_derivative.size1());
                             for (std::size_t iRHS = 0; iRHS < rRHS_Contribution.size(); iRHS++)
                                 rRHS_Contribution[iRHS] = 0.0;
-                        }   
+                        }
 
+                        // KRATOS_WATCH(element_LHS_derivative)
+                        
                         if (element_LHS_derivative.size1() != PhiElemental.size()){
                             // retrieve only relevant dofs from PhiElemental
                             Vector tmpPhiElemental;
@@ -330,11 +335,13 @@ public:
                                     tmpPhiElemental[iNode*3+iXYZ] = PhiElemental[iNode*6+3+iXYZ];
                                 }                                
                             }
-                            rRHS_Contribution += prod(element_LHS_derivative, tmpPhiElemental);
+                            // KRATOS_WATCH(tmpPhiElemental)
+                            rRHS_Contribution -= prod(element_LHS_derivative, tmpPhiElemental);
                         }
-                        else
-                            rRHS_Contribution += prod(element_LHS_derivative, PhiElemental);
-                            
+                        else{
+                            // KRATOS_WATCH(PhiElemental)
+                            rRHS_Contribution -= prod(element_LHS_derivative, PhiElemental);
+                        }   
                     }
                     dof_i++;
                 }
@@ -350,41 +357,43 @@ public:
             KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
         }
 
+        // KRATOS_WATCH(rRHS_Contribution)
+
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
     // Condition contributions
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        // pCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+        //rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
 
-    void Condition_Calculate_LHS_Contribution(
-        Condition::Pointer pCurrentCondition,
+    void CalculateLHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        // pCurrentCondition->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
+        //rCurrentCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
 
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer pCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        // pCurrentCondition->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        //rCurrentCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
 
     ///@}
