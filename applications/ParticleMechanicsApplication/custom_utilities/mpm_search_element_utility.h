@@ -185,8 +185,8 @@ namespace MPMSearchElementUtility
         for (size_t i = 0; i < rIntersectedGeometries.size(); ++i) {
             if (rIntersectedGeometries[i]->GetGeometryType() != GeometryData::Kratos_Hexahedra3D8) {
                 KRATOS_INFO("MPMSearchElementUtility::Check3DBackGroundMeshIsCubicAxisAligned - ")
-                    << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED RECTANGULAR-PRISM BACKGROUND GRIDS";
-                KRATOS_ERROR << "ERROR";
+                    << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED RECTANGULAR-PRISM BACKGROUND GRIDS" << std::endl;
+                KRATOS_ERROR << "ERROR" << std::endl;
             }
             rIntersectedGeometries[i]->BoundingBox(point_low, point_high);
             for (size_t j = 0; j < rIntersectedGeometries[i]->PointsNumber(); ++j) {
@@ -194,8 +194,8 @@ namespace MPMSearchElementUtility
                     if (rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_low[k]) {
                         if (rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_high[k]) {
                             KRATOS_INFO("MPMSearchElementUtility::Check3DBackGroundMeshIsCubicAxisAligned - ")
-                                << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED RECTANGULAR-PRISM BACKGROUND GRIDS";
-                            KRATOS_ERROR << "ERROR";
+                                << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED RECTANGULAR-PRISM BACKGROUND GRIDS" << std::endl;
+                            KRATOS_ERROR << "ERROR" << std::endl;
                         }
                     }
                 }
@@ -696,12 +696,13 @@ namespace MPMSearchElementUtility
         // Check volume fractions sum to unity
         double vol_sum = 0.0;
         for (size_t i = 0; i < ips_active.size(); ++i) vol_sum += ips_active[i].Weight();
-        if (std::abs(vol_sum-1.0) > ips_active.size()* std::numeric_limits<double>::epsilon()) {
+        if (std::abs(vol_sum-1.0) > Tolerance) {
             const bool is_pqmpm_fallback = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM_FALLBACK_TO_MPM))
                 ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM_FALLBACK_TO_MPM) : false;
             if (is_pqmpm_fallback) return CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                     pGeometry, rCoordinates, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
             else {
+                #pragma omp critical
                 KRATOS_INFO("MPMSearchElementUtility::Check - ")
                     << "Volume fraction of sub-points does not approximately sum to 1.0."
                     << " This probably means the background grid is not big enough or that the PQMPM search factor is too small";
