@@ -202,9 +202,9 @@ public:
 
         // compute axis intersection with external limits
         std::vector<double> intersection_spans;
-        CurveAxisIntersection<2, NodeType>::ComputeAxisIntersection(
+        CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
             intersection_spans,
-            *this, external_start, external_end,
+            *(mpNurbsCurve.get()), external_start, external_end,
             surface_spans_u, surface_spans_v,
             1e-6);
 
@@ -228,24 +228,6 @@ public:
         auto nb_unique = std::distance(std::begin(rIntersectionParameters), last);
 
         rIntersectionParameters.resize(nb_unique);
-    }
-
-    /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
-     * @return vector of interval limitations.
-     */
-    void Spans(std::vector<double>& rSpans,
-        double Start, double End) const
-    {
-        std::vector<double> surface_spans_u;
-        std::vector<double> surface_spans_v;
-        mpNurbsSurface->Spans(surface_spans_u, 0);
-        mpNurbsSurface->Spans(surface_spans_v, 1);
-
-        CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
-            rSpans,
-            *(mpNurbsCurve.get()), Start, End,
-            surface_spans_u, surface_spans_v,
-            1e-6);
     }
 
     ///@}
@@ -311,11 +293,11 @@ public:
         if (rIntegrationInfo.HasSpansInDirection(0)) {
             spans = rIntegrationInfo.GetSpans(0);
             if (spans.size() < 1) {
-                Spans(spans);
+                this->Spans(spans);
             }
         }
         else {
-            Spans(spans);
+            this->Spans(spans);
         }
 
         mpNurbsCurve->CreateIntegrationPoints(
@@ -333,8 +315,10 @@ public:
         const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
             + mpNurbsSurface->PolynomialDegreeV() + 1;
 
-        std::vector<double> spans;
-        Spans(spans, StartParameter, EndParameter);
+        std::vector<double> spans(2);
+        spans[0] = StartParameter;
+        spans[1] = EndParameter;
+        Spans(spans);
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);

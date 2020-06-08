@@ -383,7 +383,6 @@ typedef Node<3> NodeType;
         // Test size
         KRATOS_CHECK_EQUAL(spans.size(), 5);
 
-
         const double scaling_factor = 23.313708498984759 / 2;
         // Compare each value
         KRATOS_CHECK_NEAR(spans[0], 0, TOLERANCE);
