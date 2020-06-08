@@ -24,6 +24,13 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Run test
         self.execute_test(test_file)
 
+    def test_SaveCoordinatesList(self):
+        # Define test file
+        test_file = 'test_SaveCoordinatesList.py'
+
+        # Run test
+        self.execute_test(test_file)
+
     def test_SavePressure(self):
         # Define test file
         test_file = 'test_SavePressure.py'
