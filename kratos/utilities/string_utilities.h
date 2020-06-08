@@ -73,7 +73,7 @@ namespace StringUtilities
      * @param rToCheck The string to search
      * @return True if the substring is found and false otherwise
      */
-    bool KRATOS_API(KRATOS_CORE) SearchPartialString(
+    bool KRATOS_API(KRATOS_CORE) ContainsPartialString(
         const std::string& rMainString,
         const std::string& rToCheck
         );
