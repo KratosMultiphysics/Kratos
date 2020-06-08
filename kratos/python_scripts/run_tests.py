@@ -49,7 +49,7 @@ class Commander(object):
         t.start()
         t.join(timeout)
 
-        if t.isAlive():
+        if t.is_alive():
             self.process.terminate()
             t.join()
             print('\n[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
