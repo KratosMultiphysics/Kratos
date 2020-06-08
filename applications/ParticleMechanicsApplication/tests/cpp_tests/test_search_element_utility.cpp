@@ -470,80 +470,82 @@ namespace Testing
         }
     }
 
-    /// PQMPM test 6 - Check pqmpm fails with unstructured 3D mesh
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM3DHexError, KratosParticleMechanicsFastSuite)
-    {
-        const double int_weight_test_tolerance = 1e-5;
+    // TEST DISABLED - KRATOS_CHECK_EXCEPTION_IS_THROWN doesn't work in parallel!
+    ///// PQMPM test 6 - Check pqmpm fails with unstructured 3D mesh
+    //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM3DHexError, KratosParticleMechanicsFastSuite)
+    //{
+    //    const double int_weight_test_tolerance = 1e-5;
+    //
+    //    // First Coordinates of Material Point
+    //    array_1d<double, 3> mp_coordinate;
+    //    mp_coordinate[0] = 0.8;
+    //    mp_coordinate[1] = 0.8;
+    //    mp_coordinate[2] = 0.5;
+    //    const double int_weight = 1.0;
+    //    std::vector<double> mp_volume(1);
+    //    mp_volume[0] = 0.8;
+    //
+    //    // Case of background grid( 0=quad, 10=tri, 20=hex. +1 = skew)
+    //    const IndexType grid_case = 21;
+    //
+    //    Model current_model;
+    //    ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
+    //
+    //    ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
+    //    PrepareGeneralBackgroundModelPart(r_background_model_part, grid_case);
+    //    PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
+    //
+    //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
+    //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+    //
+    //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+    //        MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+    //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+    //        MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+    //    #pragma omp single
+    //    KRATOS_CHECK_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
+    //        r_background_model_part, r_mpm_model_part, 1000, 1e-6) ,
+    //        "Error: ERROR")
+    //}
 
-        // First Coordinates of Material Point
-        array_1d<double, 3> mp_coordinate;
-        mp_coordinate[0] = 0.8;
-        mp_coordinate[1] = 0.8;
-        mp_coordinate[2] = 0.5;
-        const double int_weight = 1.0;
-        std::vector<double> mp_volume(1);
-        mp_volume[0] = 0.8;
+    // TEST DISABLED - KRATOS_CHECK_EXCEPTION_IS_THROWN doesn't work in parallel!
+    ///// PQMPM test 7 - Check pqmpm fails if point tries to split outside mesh
+    //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DOutsideSplit, KratosParticleMechanicsFastSuite)
+    //{
+    //    const double int_weight_test_tolerance = 1e-5;
+    //
+    //    // First Coordinates of Material Point
+    //    array_1d<double, 3> mp_coordinate;
+    //    mp_coordinate[0] = 0.1;
+    //    mp_coordinate[1] = 1.1;
+    //    mp_coordinate[2] = 0.0;
+    //    const double int_weight = 1.0;
+    //    std::vector<double> mp_volume(1);
+    //    mp_volume[0] = 1.0;
+    //
+    //    // Case of background grid( 0=quad, 10=tri, 20=hex. +1 = skew)
+    //    const IndexType grid_case = 0;
+    //
+    //    Model current_model;
+    //    ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
+    //
+    //    ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
+    //    PrepareGeneralBackgroundModelPart(r_background_model_part, grid_case);
+    //    PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
+    //
+    //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
+    //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+    //
+    //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+    //        MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+    //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+    //        MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+    //
+    //    KRATOS_CHECK_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
+    //        r_background_model_part, r_mpm_model_part, 1000, 1e-6) ,
+    //        "Error: ERROR")
+    //}
 
-        // Case of background grid( 0=quad, 10=tri, 20=hex. +1 = skew)
-        const IndexType grid_case = 21;
-
-        Model current_model;
-        ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
-
-        ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
-        PrepareGeneralBackgroundModelPart(r_background_model_part, grid_case);
-        PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
-
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
-
-        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
-        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
-        #pragma omp single
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
-            r_background_model_part, r_mpm_model_part, 1000, 1e-6) ,
-            "Error: ERROR")
-    }
-    /*
-    /// PQMPM test 7 - Check pqmpm fails if point tries to split outside mesh
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DOutsideSplit, KratosParticleMechanicsFastSuite)
-    {
-        const double int_weight_test_tolerance = 1e-5;
-
-        // First Coordinates of Material Point
-        array_1d<double, 3> mp_coordinate;
-        mp_coordinate[0] = 0.1;
-        mp_coordinate[1] = 1.1;
-        mp_coordinate[2] = 0.0;
-        const double int_weight = 1.0;
-        std::vector<double> mp_volume(1);
-        mp_volume[0] = 1.0;
-
-        // Case of background grid( 0=quad, 10=tri, 20=hex. +1 = skew)
-        const IndexType grid_case = 0;
-
-        Model current_model;
-        ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
-
-        ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
-        PrepareGeneralBackgroundModelPart(r_background_model_part, grid_case);
-        PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
-
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
-
-        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
-        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
-
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
-            r_background_model_part, r_mpm_model_part, 1000, 1e-6) ,
-            "Error: ERROR")
-    }
-    */
     /// PQMPM test 8 - Check pqmpm falls back to normal mpm if point tries to split outside mesh
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DFallbackToMPM, KratosParticleMechanicsFastSuite)
     {
