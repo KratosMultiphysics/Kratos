@@ -38,6 +38,15 @@ KRATOS_TEST_CASE_IN_SUITE(ErasePartialString, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(text, "textstuff");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ContainsPartialString, KratosCoreFastSuite)
+{
+    const std::string text_with_stuff = "textwithstuff";
+    bool found = StringUtilities::ContainsPartialString(text_with_stuff, "withstuff");
+    KRATOS_CHECK_EQUAL(found, true);
+    found = StringUtilities::ContainsPartialString(text_with_stuff, "daleatucuerpoalegriamacarena");
+    KRATOS_CHECK_EQUAL(found, false);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(RemoveWhiteSpaces, KratosCoreFastSuite)
 {
     std::string text_with_spaces = "textwithspaces                ";
