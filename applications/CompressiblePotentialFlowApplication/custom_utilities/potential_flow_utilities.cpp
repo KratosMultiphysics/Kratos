@@ -424,6 +424,9 @@ double ComputeSquaredSpeedofSoundFactor(
     const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
 
+    KRATOS_ERROR_IF(free_stream_velocity_squared < std::numeric_limits<double>::epsilon())
+        << "ComputeSquaredSpeedofSoundFactor: free_stream_velocity_squared must be larger than zero." << std::endl;
+
     return 1.0 + 0.5*(heat_capacity_ratio - 1.0)*
             free_stream_mach_squared*(1.0 - (localVelocitySquared/free_stream_velocity_squared));
 }
