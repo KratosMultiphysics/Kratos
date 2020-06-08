@@ -88,9 +88,6 @@ public:
     /// The variable type definition (double)
     typedef BaseType::VariableType VariableType;
 
-    /// The component variable type definition
-    typedef BaseType::VariableComponentType VariableComponentType;
-
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(LinearMasterSlaveConstraint);
 
@@ -149,41 +146,6 @@ public:
         const VariableType& rMasterVariable,
         NodeType& rSlaveNode,
         const VariableType& rSlaveVariable,
-        const double Weight,
-        const double Constant
-        ) : MasterSlaveConstraint(Id)
-    {
-        // Resizing the memeber variables
-        mRelationMatrix.resize(1,1,false);
-        mConstantVector.resize(1,false);
-
-        // Obtaining the dofs from the variables
-        mSlaveDofsVector.push_back(rSlaveNode.pGetDof(rSlaveVariable));
-        mMasterDofsVector.push_back(rMasterNode.pGetDof(rMasterVariable));
-
-        mRelationMatrix(0,0) = Weight;
-        mConstantVector(0) = Constant;
-
-        // Setting the slave flag on the node
-        rSlaveNode.Set(SLAVE);
-    }
-
-    /**
-     * @brief Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
-     * @param IndexType The Id of the new created constraint
-     * @param rMasterNode The node of master side
-     * @param rMasterVariable The variable of the master DoF
-     * @param rSlaveNode The node of slave side
-     * @param rSlaveVariable The variable of the slave DoF
-     * @param Weight The relation between the master/slave DoF
-     * @param Constant The additional kinematic relationship
-     */
-    LinearMasterSlaveConstraint(
-        IndexType Id,
-        NodeType& rMasterNode,
-        const VariableComponentType& rMasterVariable,
-        NodeType& rSlaveNode,
-        const VariableComponentType& rSlaveVariable,
         const double Weight,
         const double Constant
         ) : MasterSlaveConstraint(Id)
@@ -277,32 +239,6 @@ public:
         const VariableType& rMasterVariable,
         NodeType& rSlaveNode,
         const VariableType& rSlaveVariable,
-        const double Weight,
-        const double Constant
-        ) const override
-    {
-        KRATOS_TRY
-        return Kratos::make_shared<LinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Create method by passing a single Master and slave dofs and corresponding weight and constant for a variable component
-     * @param IndexType The Id of the new created constraint
-     * @param rMasterNode The node of master side
-     * @param rMasterVariable The variable of the master DoF
-     * @param rSlaveNode The node of slave side
-     * @param rSlaveVariable The variable of the slave DoF
-     * @param Weight The relation between the master/slave DoF
-     * @param Constant The additional kinematic relationship
-     * @return A Pointer to the new constraint
-     */
-    MasterSlaveConstraint::Pointer Create(
-        IndexType Id,
-        NodeType& rMasterNode,
-        const VariableComponentType& rMasterVariable,
-        NodeType& rSlaveNode,
-        const VariableComponentType& rSlaveVariable,
         const double Weight,
         const double Constant
         ) const override

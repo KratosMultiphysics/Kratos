@@ -1,14 +1,13 @@
-﻿from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.MetisApplication as KratosMetis
+import KratosMultiphysics.MetisApplication as KratosMetis # TODO refactor this by using the "distributed_import_model_part_utility"
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
+import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestMPICommunicator(KratosUnittest.TestCase):
@@ -36,7 +35,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         ## Serial partition of the original .mdpa file
-        input_filename = "test_mpi_communicator"
+        input_filename = GetFilePath("test_mpi_communicator")
         if self.communicator.Rank() == 0 :
 
             # Original .mdpa file reading
