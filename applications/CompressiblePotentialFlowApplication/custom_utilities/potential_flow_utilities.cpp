@@ -204,6 +204,9 @@ double ComputeVelocityMagnitude(
     const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
+    KRATOS_ERROR_IF(free_stream_mach < std::numeric_limits<double>::epsilon())
+        << "ComputeVelocityMagnitude: free_stream_mach must be larger than zero." << std::endl;
+
     // make squares of values
     const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
@@ -212,6 +215,9 @@ double ComputeVelocityMagnitude(
     const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
     const double denominator = (2.0 + (heat_capacity_ratio - 1) * localMachNumberSquared );
     const double factor = free_stream_velocity_squared * localMachNumberSquared / free_stream_mach_squared;
+
+    KRATOS_ERROR_IF(denominator < std::numeric_limits<double>::epsilon())
+        << "ComputeVelocityMagnitude: denominator must be larger than zero." << std::endl;
 
     return factor * numerator / denominator;
 }
