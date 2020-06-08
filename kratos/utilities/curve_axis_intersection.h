@@ -22,7 +22,7 @@
 
 namespace Kratos
 {
-    template<std::size_t TWorkingSpaceDimension, class TNodeType>
+    template<class TNodeType>
     class CurveAxisIntersection
     {
     public:
