@@ -29,6 +29,18 @@ class TestTauFunctionsImpl(unittest.TestCase):
         os.rmdir('Outputs')
         os.rmdir('Mesh')
 
+
+    def test_CheckIfPathExists(self):
+        # Define exception
+        test_filename = os.getcwd() + '/test_file.dat'
+        exception = 'Path: "{}" not found'.format(test_filename)
+
+        with self.assertRaises(Exception) as context:
+            TauFunctions.CheckIfPathExists(test_filename)
+
+        self.assertTrue(exception in context.exception)
+
+
     def test_WriteTautoplt(self):
         self.createTautopltTestFiles()
         self.setTautopltReferences()
