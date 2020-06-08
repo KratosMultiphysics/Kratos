@@ -210,11 +210,20 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::str
     std::istringstream iss(line);
     std::string token;
     SizeType counter = 0;
-    while(std::getline(iss, token, '\t')) {
-        if (counter > 0) {
-//             std::stod(token, &sz);
+    if (this->Is(GEOMETRIC_DEFINITION)) {
+        while(std::getline(iss, token, '\t')) {
+            if (counter > 0) {
+//                 std::stod(token, &sz);
+            }
+            ++counter;
         }
-        ++counter;
+    } else {
+        while(std::getline(iss, token, '\t')) {
+            if (counter > 0) {
+//                 std::stod(token, &sz);
+            }
+            ++counter;
+        }
     }
 }
 
@@ -346,6 +355,5 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
 template class AssignScalarInputToEntitiesProcess<Node<3>>;
 template class AssignScalarInputToEntitiesProcess<Condition>;
 template class AssignScalarInputToEntitiesProcess<Element>;
-template class AssignScalarInputToEntitiesProcess<MasterSlaveConstraint>;
 
 }  // namespace Kratos.

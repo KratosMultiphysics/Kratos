@@ -58,7 +58,7 @@ class AssignScalarInputToEntitiesProcess(KratosMultiphysics.Process):
 
         # Define entities
         if settings["entities"].size() == 0:
-           raise Exception("This process requires a list of entities. The options are: nodes, conditions, elements and constraints")
+           raise Exception("This process requires a list of entities. The options are: nodes, conditions and elements")
         self.entities = []
         for i in range(settings["entities"].size()):
             self.entities.append(settings["entities"][i].GetString())
@@ -80,8 +80,6 @@ class AssignScalarInputToEntitiesProcess(KratosMultiphysics.Process):
                 self.aux_processes.append( KratosMultiphysics.AssignScalarInputToConditionsProcess(self.model_part, params))
             elif self.entities[i] == "elements":
                 self.aux_processes.append( KratosMultiphysics.AssignScalarInputToElementsProcess(self.model_part, params))
-            elif self.entities[i] == "constraints":
-                self.aux_processes.append( KratosMultiphysics.AssignScalarInputToMasterSlaveConstraintsProcess(self.model_part, params))
 
         # construct a variable_utils object to speedup fixing
         self.step_is_active = False
