@@ -276,6 +276,26 @@ private:
         const bool CalculateResidualVectorFlag
     );
 
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+    * @param rMassMatrix The elemental mass matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @param rDampingMatrix The elemental damping matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 

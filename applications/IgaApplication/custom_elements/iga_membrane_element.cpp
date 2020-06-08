@@ -216,8 +216,6 @@ namespace Kratos
         Vector current_displacement = ZeroVector(dimension*number_of_nodes);
         if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement,step);
 
-        KRATOS_WATCH(current_displacement)
-
         for (SizeType i=0;i<number_of_nodes;++i){
             g1[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 0);
             g1[1] += (GetGeometry().GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 0);
@@ -430,6 +428,116 @@ namespace Kratos
                 }
             }
         }
+    }
+
+    void IgaMembraneElement::CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY;
+
+        const auto& r_geometry = GetGeometry();
+
+        // definition of problem size
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = number_of_nodes * 3;
+
+        if (rDampingMatrix.size1() != mat_size)
+            rDampingMatrix.resize(mat_size, mat_size, false);
+
+        noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+        double alpha = 0.0;
+        if (GetProperties().Has(RAYLEIGH_ALPHA))
+            alpha = GetProperties()[RAYLEIGH_ALPHA];
+        else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
+            alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+
+        double beta = 0.0;
+        if (GetProperties().Has(RAYLEIGH_BETA))
+            beta = GetProperties()[RAYLEIGH_BETA];
+        else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
+            beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+
+        // Rayleigh Damping Matrix: alpha*M + beta*K
+
+        // 2.-Calculate StiffnessMatrix:
+        if (beta > 0.0)
+        {
+            //MatrixType StiffnessMatrix = Matrix();
+            Element::MatrixType StiffnessMatrix;
+
+            if (StiffnessMatrix.size1() != mat_size)
+                StiffnessMatrix.resize(mat_size, mat_size);
+            noalias(StiffnessMatrix) = ZeroMatrix(mat_size, mat_size);
+
+            // //VectorType ResidualVector = Vector();
+            Element::VectorType ResidualVector;
+
+            if (ResidualVector.size() != mat_size)
+                ResidualVector.resize(mat_size);
+            noalias(ResidualVector) = ZeroVector(mat_size);
+
+            this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+            noalias(rDampingMatrix) += beta * StiffnessMatrix;
+        }
+
+        // 3.-Calculate MassMatrix:
+        if (alpha > 0.0)
+        {
+            MatrixType MassMatrix = Matrix();
+            this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += alpha * MassMatrix;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void IgaMembraneElement::CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY;
+
+        const auto& r_geometry = GetGeometry();
+
+        // definition of problem size
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = number_of_nodes * 3;
+
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        // Shape function values for all integration points
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+            double integration_weight = r_integration_points[point_number].Weight();
+            const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(point_number);
+
+            double thickness = this->GetProperties().GetValue(THICKNESS);
+            double density = this->GetProperties().GetValue(DENSITY);
+            double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
+
+            if (rMassMatrix.size1() != mat_size)
+                rMassMatrix.resize(mat_size, mat_size, false);
+
+            rMassMatrix = ZeroMatrix(mat_size, mat_size);
+
+            for (unsigned int r = 0; r<number_of_nodes; r++)
+            {
+                for (unsigned int s = 0; s<number_of_nodes; s++)
+                {
+                    rMassMatrix(3 * s, 3 * r) = r_N(point_number, s)*r_N(point_number, r) * mass;
+                    rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
+                    rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
+                }
+            }
+        }
+        KRATOS_CATCH("")
     }
 
     //Prestress Transformation Matrix

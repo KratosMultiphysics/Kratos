@@ -258,6 +258,27 @@ public:
             rCurrentProcessInfo, true, true);
     }
 
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+    * @param rMassMatrix The elemental mass matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @param rDampingMatrix The elemental damping matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+
     void Calculate(const Variable<Matrix>& rVariable,
       Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
