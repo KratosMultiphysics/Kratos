@@ -47,11 +47,11 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Get(r_variable_name)) << "The variable " << r_variable_name << " does not exist" << std::endl;
     mpVariable = &KratosComponents<Variable<double>>::Get(r_variable_name);
 
-    // Define the working dimension
-    mDimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
     // We have two options, or the values are defined in the entities or in a geometry, we don't know until we read the database
     mpDataModelPart = &mrModelPart.GetModel().CreateModelPart("AUXILIAR_MODEL_PART_INPUT_VARIABLE_" + r_variable_name);
+
+    // Getting algorithm
+    mAlgorithm = ConvertAlgorithmString(rParameters["transfer_algorithm"].GetString());
 
     // Get the geometry or entities
     const std::string& r_filename = rParameters["file"].GetString();

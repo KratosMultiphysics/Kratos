@@ -181,13 +181,15 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                       /// The model part where to assign the values
-    const Variable<double>* mpVariable = nullptr; /// The pointer of the variable
-    ResultDatabase mDatabase;                     /// The database containing the information to assign the values
+    ModelPart& mrModelPart;                              /// The model part where to assign the values
 
-    ModelPart* mpDataModelPart = nullptr;         /// The auxiliar model part defining the database
+    const Variable<double>* mpVariable = nullptr;        /// The pointer of the variable
 
-    std::size_t mDimension = 3;                   /// The working dimension
+    ResultDatabase mDatabase;                            /// The database containing the information to assign the values
+
+    ModelPart* mpDataModelPart = nullptr;                /// The auxiliar model part defining the database
+
+    Algorithm mAlgorithm = Algorithm::NEAREST_NEIGHBOUR; /// The algorithm considered
 
     ///@}
     ///@name Private Operators
@@ -248,6 +250,19 @@ private:
                 it_entity->SetValue(rVar, Value);
             }
         }
+    }
+
+    /**
+     * @brief This converts the algorithm string to an enum
+     * @param Str The string that you want to convert in the equivalent enum
+     * @return Algorithm: The equivalent enum (this requires less memmory and is eassier to compare than a std::string)
+     */
+    Algorithm ConvertAlgorithmString(const std::string& Str)
+    {
+        if(Str == "NEAREST_NEIGHBOUR" || Str == "nearest_neighbour")
+            return Algorithm::NEAREST_NEIGHBOUR;
+        else
+            return Algorithm::NEAREST_NEIGHBOUR;
     }
 
     /**
