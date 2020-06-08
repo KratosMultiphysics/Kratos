@@ -276,6 +276,13 @@ private:
 
     /**
      * @brief This method returns the current entity label
+     * @param Id The id of the entity
+     * @return The current entity label
+     */
+    array_1d<double, 3> GetCoordinatesEntity(const IndexType Id);
+
+    /**
+     * @brief This method returns the current entity label
      * @return The current entity label
      */
     const std::string GetEntitiesLabel();

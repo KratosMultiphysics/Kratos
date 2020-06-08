@@ -143,9 +143,27 @@ const std::string AssignScalarInputToEntitiesProcess<Element>::GetEntitiesLabel(
 /***********************************************************************************/
 
 template<>
-const std::string AssignScalarInputToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesLabel()
+array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node<3>>:: GetCoordinatesEntity(const IndexType Id)
 {
-    return "CONSTRAINT";
+    return mrModelPart.pGetNode(Id)->Coordinates();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+array_1d<double, 3> AssignScalarInputToEntitiesProcess<Condition>:: GetCoordinatesEntity(const IndexType Id)
+{
+    return mrModelPart.pGetCondition(Id)->GetGeometry().Center().Coordinates();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+array_1d<double, 3> AssignScalarInputToEntitiesProcess<Element>:: GetCoordinatesEntity(const IndexType Id)
+{
+    return mrModelPart.pGetElement(Id)->GetGeometry().Center().Coordinates();
 }
 
 /***********************************************************************************/
@@ -178,15 +196,6 @@ PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Ele
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarInputToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainer()
-{
-    return mrModelPart.GetMesh().MasterSlaveConstraints();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TEntity>
 void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::string& rFileName)
 {
@@ -210,17 +219,30 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::str
     std::istringstream iss(line);
     std::string token;
     SizeType counter = 0;
+    std::string::size_type sz;     // alias of size_t
     if (this->Is(GEOMETRIC_DEFINITION)) {
+        array_1d<double, 3> aux_array;
         while(std::getline(iss, token, '\t')) {
             if (counter > 0) {
-//                 std::stod(token, &sz);
+                std::string aux_string = StringUtilities::ErasePartialString(token, "(");
+                aux_string = StringUtilities::ErasePartialString(aux_string, ")");
+                std::stringstream s_stream(aux_string); // Create string stream from the string
+                SizeType sub_counter = 0;
+                std::string substr;
+                while(s_stream.good()) {
+                    std::getline(s_stream, substr, ','); // Get first string delimited by comma
+                    aux_array[sub_counter] = std::stod(substr, &sz);
+                    ++sub_counter;
+                }
+                mCoordinates.push_back(aux_array);
             }
             ++counter;
         }
     } else {
         while(std::getline(iss, token, '\t')) {
             if (counter > 0) {
-//                 std::stod(token, &sz);
+                const IndexType id = std::stod(token, &sz);
+                mCoordinates.push_back(GetCoordinatesEntity(id));
             }
             ++counter;
         }
