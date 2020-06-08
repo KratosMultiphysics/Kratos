@@ -196,6 +196,18 @@ private:
     ///@{
 
     /**
+     * @brief This method identifies the database from a TXT
+     * @param rFileName The name of the TXT file name
+     */
+    void IdentifyDataTXT(const std::string& rFileName);
+
+    /**
+     * @brief This method identifies the database from a JSON
+     * @param rFileName The name of the JSON file name
+     */
+    void IdentifyDataJSON(const std::string& rFileName);
+
+    /**
      * @brief This method reads the database from a TXT
      * @param rFileName The name of the TXT file name
      */

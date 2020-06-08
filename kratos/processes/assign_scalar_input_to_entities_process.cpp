@@ -55,13 +55,13 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
 
     // Get the geometry or entities
     const std::string& r_filename = rParameters["file"].GetString();
-//     if (StringUtilities::ContainsPartialString(r_filename, ".txt")) {
-//
-//     } else if (StringUtilities::ContainsPartialString(r_filename, ".json")) {
-//
-//     } else {
-//         KRATOS_ERROR << "The process is only compatible with JSON and TXT" << std::endl;
-//     }
+    if (StringUtilities::ContainsPartialString(r_filename, ".txt")) {
+        IdentifyDataTXT(r_filename);
+    } else if (StringUtilities::ContainsPartialString(r_filename, ".json")) {
+        IdentifyDataJSON(r_filename);
+    } else {
+        KRATOS_ERROR << "The process is only compatible with JSON and TXT" << std::endl;
+    }
 
     // Read the input file
     if (StringUtilities::ContainsPartialString(r_filename, ".txt")) {
@@ -228,6 +228,24 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarInputToEntit
 /***********************************************************************************/
 
 template<class TEntity>
+void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::string& rFileName)
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataJSON(const std::string& rFileName)
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
 void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string& rFileName)
 {
     // Initialize the databases
@@ -324,11 +342,21 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
     const auto it_ent_begin = r_ent_array.begin();
     auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
     const std::string& r_variable_name = mpVariable->Name();
-    for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
-        auto it_ent = it_ent_begin + i;
-        const std::string identifier = ent_label + std::to_string(it_ent->Id());
-        const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
-        r_var_database.SetValues(r_time, r_vector, i);
+    if (this->Is(GEOMETRIC_DEFINITION)) {
+        // TODO: UPDATE
+        for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
+            auto it_ent = it_ent_begin + i;
+            const std::string identifier = ent_label + std::to_string(it_ent->Id());
+            const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
+            r_var_database.SetValues(r_time, r_vector, i);
+        }
+    } else {
+        for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
+            auto it_ent = it_ent_begin + i;
+            const std::string identifier = ent_label + std::to_string(it_ent->Id());
+            const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
+            r_var_database.SetValues(r_time, r_vector, i);
+        }
     }
 }
 
