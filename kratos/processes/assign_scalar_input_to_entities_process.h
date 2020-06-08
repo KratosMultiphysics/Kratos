@@ -90,10 +90,7 @@ public:
         );
 
     /// Destructor.
-    ~AssignScalarInputToEntitiesProcess() override
-    {
-        mpDataModelPart = nullptr;
-    }
+    ~AssignScalarInputToEntitiesProcess() override {}
 
     ///@}
     ///@name Operators
@@ -187,7 +184,7 @@ private:
 
     ResultDatabase mDatabase;                            /// The database containing the information to assign the values
 
-    ModelPart* mpDataModelPart = nullptr;                /// The auxiliar model part defining the database
+    std::vector<array_1d<double, 3>> mCoordinates;       /// The coordinates of the database
 
     Algorithm mAlgorithm = Algorithm::NEAREST_NEIGHBOUR; /// The algorithm considered
 
@@ -288,12 +285,6 @@ private:
      * @return The current entity container
      */
     EntityContainerType& GetEntitiesContainer();
-
-    /**
-     * @brief This method returns the entity container in the auxiliar model part
-     * @return The entity container in the auxiliar model part
-     */
-    EntityContainerType& GetEntitiesContainerAuxiliarModelPart();
 
     ///@}
     ///@name Private Operations

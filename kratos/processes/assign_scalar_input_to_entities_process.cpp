@@ -47,9 +47,6 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Get(r_variable_name)) << "The variable " << r_variable_name << " does not exist" << std::endl;
     mpVariable = &KratosComponents<Variable<double>>::Get(r_variable_name);
 
-    // We have two options, or the values are defined in the entities or in a geometry, we don't know until we read the database
-    mpDataModelPart = &mrModelPart.GetModel().CreateModelPart("AUXILIAR_MODEL_PART_INPUT_VARIABLE_" + r_variable_name);
-
     // Getting algorithm
     mAlgorithm = ConvertAlgorithmString(rParameters["transfer_algorithm"].GetString());
 
@@ -87,8 +84,7 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ExecuteInitializeSolutionStep(
     const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
 
     // Case of only one entity defined
-    const auto& r_ent_array = GetEntitiesContainerAuxiliarModelPart();
-    const SizeType number_of_entities = r_ent_array.size();
+    const SizeType number_of_entities = mCoordinates.size();
     const auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
     if (number_of_entities == 1) {
         InternalAssignValue<>(*mpVariable, r_var_database.GetValue(0, time));
@@ -191,46 +187,35 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarInputToEntit
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-PointerVectorSet<Node<3>, IndexedObject>& AssignScalarInputToEntitiesProcess<Node<3>>::GetEntitiesContainerAuxiliarModelPart()
-{
-    return mpDataModelPart->GetMesh().Nodes();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>& AssignScalarInputToEntitiesProcess<Condition>::GetEntitiesContainerAuxiliarModelPart()
-{
-    return mpDataModelPart->GetMesh().Conditions();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Element>::GetEntitiesContainerAuxiliarModelPart()
-{
-    return mpDataModelPart->GetMesh().Elements();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarInputToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainerAuxiliarModelPart()
-{
-    return mpDataModelPart->GetMesh().MasterSlaveConstraints();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<class TEntity>
 void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::string& rFileName)
 {
+    // Read txt
+    std::ifstream infile(rFileName);
+    KRATOS_ERROR_IF_NOT(infile.good()) << "TXT file: " << rFileName << " cannot be found" << std::endl;
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
 
+    // First line
+    std::string line;
+    std::getline(buffer, line);
+
+    // Checking if geometric definition or entity identifier
+    if (StringUtilities::ContainsPartialString(line, "(") && StringUtilities::ContainsPartialString(line, ")")) {
+        this->Set(GEOMETRIC_DEFINITION, true);
+    } else {
+        this->Set(GEOMETRIC_DEFINITION, false);
+    }
+
+    std::istringstream iss(line);
+    std::string token;
+    SizeType counter = 0;
+    while(std::getline(iss, token, '\t')) {
+        if (counter > 0) {
+//             std::stod(token, &sz);
+        }
+        ++counter;
+    }
 }
 
 /***********************************************************************************/
@@ -252,8 +237,7 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string&
     std::vector<IndexType> variables_ids(1);
     variables_ids[0] = mpVariable->Key();
     std::vector<IndexType> values_sizes(1, 1);
-    const auto& r_ent_array = GetEntitiesContainerAuxiliarModelPart();
-    const SizeType number_of_entities = r_ent_array.size();
+    const SizeType number_of_entities = mCoordinates.size();
     mDatabase.Initialize(variables_ids, values_sizes, number_of_entities);
 
     // Read txt
@@ -265,8 +249,6 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string&
     // First line
     std::string line;
     std::getline(buffer, line);
-
-//     std::size_t number_of_entities = std::count(line.begin(), line.end(), "\t");
 
     // The other lines
     SizeType number_time_steps = 0;
@@ -329,8 +311,7 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
     std::vector<IndexType> variables_ids(1);
     variables_ids[0] = mpVariable->Key();
     std::vector<IndexType> values_sizes(1, 1);
-    const auto& r_ent_array = GetEntitiesContainerAuxiliarModelPart();
-    const SizeType number_of_entities = r_ent_array.size();
+    const SizeType number_of_entities = mCoordinates.size();
     mDatabase.Initialize(variables_ids, values_sizes, number_of_entities);
 
     // Get the time vector
@@ -339,25 +320,24 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
 
     // Fill database
     const std::string ent_label = GetEntitiesLabel();
-    const auto it_ent_begin = r_ent_array.begin();
     auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
     const std::string& r_variable_name = mpVariable->Name();
-    if (this->Is(GEOMETRIC_DEFINITION)) {
-        // TODO: UPDATE
-        for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
-            auto it_ent = it_ent_begin + i;
-            const std::string identifier = ent_label + std::to_string(it_ent->Id());
-            const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
-            r_var_database.SetValues(r_time, r_vector, i);
-        }
-    } else {
-        for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
-            auto it_ent = it_ent_begin + i;
-            const std::string identifier = ent_label + std::to_string(it_ent->Id());
-            const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
-            r_var_database.SetValues(r_time, r_vector, i);
-        }
-    }
+//     if (this->Is(GEOMETRIC_DEFINITION)) {
+//         // TODO: UPDATE
+//         for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
+//             auto it_ent = it_ent_begin + i;
+//             const std::string identifier = ent_label + std::to_string(it_ent->Id());
+//             const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
+//             r_var_database.SetValues(r_time, r_vector, i);
+//         }
+//     } else {
+//         for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
+//             auto it_ent = it_ent_begin + i;
+//             const std::string identifier = ent_label + std::to_string(it_ent->Id());
+//             const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
+//             r_var_database.SetValues(r_time, r_vector, i);
+//         }
+//     }
 }
 
 /***********************************************************************************/
