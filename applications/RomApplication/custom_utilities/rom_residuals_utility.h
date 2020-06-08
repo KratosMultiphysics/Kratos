@@ -61,11 +61,6 @@ namespace Kratos
                 const auto& var = KratosComponents<Variable<double>>::Get(mNodalVariablesNames[k]);
                 MapPhi[var.Key()] = k;
             }
-            else if(KratosComponents<ModelPart::VariableComponentType>::Has(mNodalVariablesNames[k]))
-            {
-                const auto& var = KratosComponents<ModelPart::VariableComponentType>::Get(mNodalVariablesNames[k]);
-                MapPhi[var.Key()] = k;
-            }
             else
                 KRATOS_ERROR << "variable \""<< mNodalVariablesNames[k] << "\" not valid" << std::endl;
 
