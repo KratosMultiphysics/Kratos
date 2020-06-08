@@ -211,17 +211,11 @@ void UpdatedLagrangianPQ::CalculateOnIntegrationPoints(const Variable<int>& rVar
 void UpdatedLagrangianPQ::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
-    rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
-    rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-    rSerializer.save("DeterminantF0",mDeterminantF0);
 }
 
 void UpdatedLagrangianPQ::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
-    rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
-    rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-    rSerializer.load("DeterminantF0",mDeterminantF0);
 }
 } // Namespace Kratos
 
