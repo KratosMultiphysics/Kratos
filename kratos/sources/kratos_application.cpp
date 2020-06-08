@@ -176,7 +176,6 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex3D4N", mLevelSetConvectionElementSimplex3D4N)
 
     KRATOS_REGISTER_MODELER("Modeler", mModeler);
-    KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("CadIoModeler", mCadIoModeler);
 
     //Register general geometries:
