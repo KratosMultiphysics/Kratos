@@ -151,12 +151,12 @@ double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
         << "ComputeMaximumVelocitySquared: free_stream_mach must be larger than zero." << std::endl;
 
     // make squares of values
-    const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
+    const double free_stream_mach_squared = std::pow(free_stream_mach, 2.0);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
 
     // calculate velocity
-    const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
-    const double denominator = (2.0 + (heat_capacity_ratio - 1) * max_local_mach_squared );
+    const double numerator = (2.0 + (heat_capacity_ratio - 1.0) * free_stream_mach_squared );
+    const double denominator = (2.0 + (heat_capacity_ratio - 1.0) * max_local_mach_squared );
     const double factor = free_stream_velocity_squared * max_local_mach_squared / free_stream_mach_squared;
 
     KRATOS_ERROR_IF(denominator < std::numeric_limits<double>::epsilon())
@@ -653,6 +653,53 @@ bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodal
     // Elements with nodes above and below the wake are wake elements
     return number_of_nodes_with_negative_distance > 0 &&
            number_of_nodes_with_positive_distance > 0;
+}
+
+template <int Dim, int NumNodes>
+double ComputeDensity(
+    const double localMachNumberSquared, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Implemented according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+
+    // reading free stream values
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+
+    // density calculation
+    const double numerator = 1.0 + (0.5 * (heat_capacity_ratio - 1.0)) * std::pow(free_stream_mach, 2.0);
+    const double denominator = 1.0 + (0.5 * (heat_capacity_ratio - 1.0)) * localMachNumberSquared;
+
+    KRATOS_ERROR_IF(denominator < std::numeric_limits<double>::epsilon())
+        << "ComputeDensity: denominatior must be larger than zero." << std::endl;
+
+    KRATOS_ERROR_IF((heat_capacity_ratio - 1.0) < std::numeric_limits<double>::epsilon())
+        << "ComputeDensity: heat capacity ratio is smaller than 1." << std::endl;
+
+    return free_stream_density * std::pow((numerator/denominator), 1.0/(heat_capacity_ratio - 1.0));
+}
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensity(
+    const array_1d<double, Dim>& rCurrentVelocity, 
+    const array_1d<double, Dim>& rUpwindVelocity, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Equation 2.12
+
+    const double upwind_factor = SelectMaxUpwindFactor<Dim,NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+
+    const double current_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
+    const double upwind_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+
+    const double current_element_density = ComputeDensity<Dim,NumNodes>(current_element_mach_squared, rCurrentProcessInfo);
+    const double upwind_element_density = ComputeDensity<Dim,NumNodes>(upwind_element_mach_squared, rCurrentProcessInfo);
+
+    return current_element_density - upwind_factor * (current_element_density - upwind_element_density);
 }
 
 bool CheckIfElementIsTrailingEdge(const Element& rElement)
