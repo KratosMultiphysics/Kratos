@@ -48,7 +48,7 @@ namespace Kratos
             {
                 if (r_N(int_p,i) > 0.0) // skip inactive nodes
                 {
-                    if (r_N(int_p, i)*weight > std::numeric_limits<double>::epsilon()) // skip minute quantities
+                    if (r_N(int_p, i)*weight > 0.0) // skip minute quantities
                     {
                         if (dimension == 2 && StrainSize == 3) //2D
                         {
@@ -109,7 +109,7 @@ namespace Kratos
                 }
             }
         }
-        DecimalCorrection(rRightHandSideVector);
+        //DecimalCorrection(rRightHandSideVector);
 
         KRATOS_CATCH("")
     }
@@ -157,7 +157,7 @@ namespace Kratos
         for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p) {
             const double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
             for (IndexType i = 0; i < number_of_nodes; ++i)  {
-                if (r_N(int_p,i)* weight > std::numeric_limits<double>::epsilon())
+                if (r_N(int_p,i)* weight > 0.0)
                 {
                     const double nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
                     if (nodal_mass* weight > std::numeric_limits<double>::epsilon())
@@ -249,7 +249,7 @@ namespace Kratos
             {
                 if (r_N(int_p,i) > 0.0) // skip inactive nodes
                 {
-                    if (r_N(int_p, i) * weight > std::numeric_limits<double>::epsilon()) // skip minute quantities
+                    if (r_N(int_p, i) * weight > 0.0) // skip minute quantities
                     {
                         const double& r_nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS);
 
@@ -303,7 +303,7 @@ namespace Kratos
             {
                 if (r_N(int_p,nodeIndex) > 0.0) // skip inactive nodes)
                 {
-                    if (r_N(int_p, nodeIndex) * weight > std::numeric_limits<double>::epsilon()) // skip minute quantities
+                    if (r_N(int_p, nodeIndex) * weight > 0.0) // skip minute quantities
                     {
                         const array_1d<double, 3 >& nodal_velocity = rGeom[nodeIndex].FastGetSolutionStepValue(VELOCITY);
 
@@ -337,7 +337,7 @@ namespace Kratos
         Matrix strainIncrement = deltaTime * jaumannRate;
         for (size_t i = 0; i < strainIncrement.size1(); ++i) {
             for (size_t j = 0; j < strainIncrement.size2(); ++j) {
-                if (strainIncrement(i, j) * strainIncrement(i, j) < 1e-24) strainIncrement(i, j) = 0.0;
+                //if (strainIncrement(i, j) * strainIncrement(i, j) < 1e-24) strainIncrement(i, j) = 0.0;
             }
         }
 
@@ -396,7 +396,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        for (size_t i = 0; i < rVector.size(); ++i) if (rVector[i] * rVector[i] < ToleranceNorm) rVector[i] = 0.0;
+        //for (size_t i = 0; i < rVector.size(); ++i) if (rVector[i] * rVector[i] < ToleranceNorm) rVector[i] = 0.0;
 
         KRATOS_CATCH("")
     }
@@ -405,7 +405,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        for (size_t i = 0; i < 3; ++i) if (rArray[i] * rArray[i] < ToleranceNorm) rArray[i] = 0.0;
+        //for (size_t i = 0; i < 3; ++i) if (rArray[i] * rArray[i] < ToleranceNorm) rArray[i] = 0.0;
 
         KRATOS_CATCH("")
     }
