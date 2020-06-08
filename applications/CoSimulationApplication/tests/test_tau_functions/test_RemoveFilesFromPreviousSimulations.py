@@ -6,6 +6,10 @@ sys.path.append(tau_functions_path)
 import tau_functions as TauFunctions
 
 # Create dummy outputs and mesh directory
+TauFunctions.RemoveFilesFromPreviousSimulations()
+path = os.getcwd() + '/'
+if os.path.exists(path + "Outputs"):
+    os.rmdir(path + "Outputs")
 os.mkdir('Outputs')
 os.mkdir('Mesh')
 

@@ -11,6 +11,10 @@ class TestFindOutputFilename(unittest.TestCase):
 
     def test_FindOutputFilename(self):
         # Create dummy file
+        TauFunctions.RemoveFilesFromPreviousSimulations()
+        path = os.getcwd() + '/'
+        if os.path.exists(path + "Outputs"):
+            os.rmdir(path + "Outputs")
         os.mkdir('Outputs')
         path = os.getcwd() + '/'
         pattern = 'airfoilSol.pval.unsteady_i='
