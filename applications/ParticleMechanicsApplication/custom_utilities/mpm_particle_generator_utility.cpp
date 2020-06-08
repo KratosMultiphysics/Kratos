@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_utilities/mpm_particle_generator_utility.h"
-
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 
 namespace Kratos
@@ -72,7 +72,7 @@ namespace MPMParticleGeneratorUtility
                 // For regular conditions: straight copy all conditions
                 if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
                     if (submodelpart.NodesBegin()->Is(SLIP)){
-                        // Do nothing, this is a slip condition applied directly 
+                        // Do nothing, this is a slip condition applied directly
                         // to the background grid nodes.
                         // Check 'apply_mpm_slip_boundary_process.py'
                     }

@@ -19,7 +19,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/model_part.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include "utilities/quadrature_points_utility.h"
 #include "particle_mechanics_application_variables.h"
 
 #include "includes/define.h"

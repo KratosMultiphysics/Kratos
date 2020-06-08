@@ -33,4 +33,5 @@ class MainCoupledFemDemSubstepping_for_PFEM_coupling_Solution(MainCouplingFemDem
             self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
         self.InitializePlotsFiles()
         self.echo_level = 0
+        self.is_slave = False
         self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

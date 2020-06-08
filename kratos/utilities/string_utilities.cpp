@@ -46,5 +46,41 @@ std::string ConvertCammelCaseToSnakeCase(const std::string& rString)
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::string ErasePartialString(
+    const std::string& rMainString,
+    const std::string& rToErase
+    )
+{
+    // Value to return
+    std::string sub_string = rMainString;
+
+    // Search for the substring in string
+    size_t pos = sub_string.find(rToErase);
+
+    if (pos != std::string::npos) {
+        // If found then erase it from string
+        sub_string.erase(pos, rToErase.length());
+    }
+
+    return sub_string;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string RemoveWhiteSpaces(const std::string& rString)
+{
+    // Value to return
+    std::string output;
+
+    for(char c : rString) {
+        if(!std::isspace(c)) {
+            output += c ;
+        }
+    }
+
+    return output;
+}
+
 } // namespace StringUtilities
 } // namespace Kratos
