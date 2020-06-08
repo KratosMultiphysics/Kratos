@@ -68,7 +68,7 @@ std::string ErasePartialString(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SearchPartialString(
+bool ContainsPartialString(
     const std::string& rMainString,
     const std::string& rToCheck
     )
