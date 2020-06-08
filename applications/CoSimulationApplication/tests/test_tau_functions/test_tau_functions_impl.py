@@ -29,6 +29,58 @@ class TestTauFunctionsImpl(unittest.TestCase):
         os.rmdir('Outputs')
         os.rmdir('Mesh')
 
+    def test_WriteTautoplt(self):
+        self.createTautopltTestFiles()
+        self.setTautopltReferences()
+
+        self.tautoplt_filename = TauFunctions.WriteTautoplt(self.path, self.step, self.para_path_mod, self.start_step)
+
+        self.assertMultiLineEqual(self.tautoplt_filename, self.reference_tautoplt_filename)
+        self.assertTautopltFile()
+
+        TauFunctions.RemoveFilesFromPreviousSimulations()
+        os.remove(self.reference_primary_grid_file_name)
+        os.rmdir('Mesh')
+        os.remove(self.initial_tautoplt_filename)
+        os.remove(self.tautoplt_filename)
+
+
+    def test_ModifyFilesIOLines(self):
+        self.createTautopltTestFiles()
+        self.setTautopltReferences()
+
+        with open(self.initial_tautoplt_filename, 'r+') as tautoplt_file_reading:
+            for line in tautoplt_file_reading:
+                # Check if line is from IO section and test it
+                line = TauFunctions.ModifyFilesIOLines(line, self.path, self.step, self.para_path_mod, self.start_step)
+                if 'Primary grid filename:' in line:
+                    self.assertMultiLineEqual(line, self.reference_grid_line)
+                elif 'Boundary mapping filename:' in line:
+                    self.assertMultiLineEqual(line, self.reference_parameter_line)
+                elif 'Restart-data prefix:' in line:
+                    self.assertMultiLineEqual(line, self.reference_restart_line)
+
+            tautoplt_file_reading.close()
+
+        TauFunctions.RemoveFilesFromPreviousSimulations()
+        os.remove(self.reference_primary_grid_file_name)
+        os.remove(self.initial_tautoplt_filename)
+        os.rmdir('Mesh')
+
+    def test_FindInterfaceFilename(self):
+        self.createOutputsDirectory()
+        self.createInterfaceFile()
+
+        # Retrive the file
+        file_name = TauFunctions.FindInterfaceFilename(self.path, self.step)
+
+        # Check
+        self.assertMultiLineEqual(file_name, self.reference_interface_file_name)
+
+        # Remove dummy file and directory
+        TauFunctions.RemoveFilesFromPreviousSimulations()
+        os.rmdir('Outputs')
+
 
     def test_ReadInterfaceFile(self):
         self.setReference()
@@ -46,21 +98,6 @@ class TestTauFunctionsImpl(unittest.TestCase):
 
         # Remove interface file
         os.remove(self.interface_filename)
-
-
-    def test_FindInterfaceFilename(self):
-        self.createOutputsDirectory()
-        self.createInterfaceFile()
-
-        # Retrive the file
-        file_name = TauFunctions.FindInterfaceFilename(self.path, self.step)
-
-        # Check
-        self.assertMultiLineEqual(file_name, self.reference_interface_file_name)
-
-        # Remove dummy file and directory
-        TauFunctions.RemoveFilesFromPreviousSimulations()
-        os.rmdir('Outputs')
 
 
     def test_SaveCoordinatesList(self):
@@ -117,20 +154,15 @@ class TestTauFunctionsImpl(unittest.TestCase):
 
 
     def test_FindPrimaryGridFilename(self):
-        # Create dummy file
-        os.mkdir('Mesh')
-        path = os.getcwd() + '/'
-        pattern = 'airfoil_Structured_scaliert.grid'
-        reference_file_name = path + 'Mesh/' + pattern
-        open(reference_file_name, 'w').close()
+        self.createPrimaryGridFile()
 
         # Retrive the file
         step = 200
         start_step = step
-        file_name = TauFunctions.FindPrimaryGridFilename(path, step, start_step)
+        file_name = TauFunctions.FindPrimaryGridFilename(self.path, step, start_step)
 
         # Check
-        self.assertMultiLineEqual(file_name, reference_file_name)
+        self.assertMultiLineEqual(file_name, self.reference_primary_grid_file_name)
 
         # Remove dummy file and directory
         os.remove(file_name)
@@ -308,6 +340,57 @@ class TestTauFunctionsImpl(unittest.TestCase):
         np.testing.assert_almost_equal(reference_distance, distance, decimal=16)
 
 
+    def createTautopltTestFiles(self):
+        self.createOutputsDirectory()
+        self.createInterfaceFile()
+        self.createPrimaryGridFile()
+
+        self.tautoplt_filename = self.path + 'Tautoplt.cntl'
+        self.createInitialTautopltFile()
+        self.step = 304
+        self.para_path_mod = 'airfoil_Structured.cntl'
+        self.start_step = 304
+
+
+    def createInitialTautopltFile(self):
+        TauFunctions.RemoveFileIfExists(self.tautoplt_filename)
+        self.initial_tautoplt_filename = self.path + 'Tautoplt_initial.cntl'
+
+        with open(self.initial_tautoplt_filename, 'w') as initial_tautoplt_file:
+            initial_tautoplt_file.write('Primary grid filename:\n')
+            initial_tautoplt_file.write('Boundary mapping filename:\n')
+            initial_tautoplt_file.write('Restart-data prefix:\n')
+
+
+    def setTautopltReferences(self):
+        self.reference_tautoplt_filename = self.path + 'Tautoplt.cntl'
+
+        primary_grid_filename = TauFunctions.FindPrimaryGridFilename(self.path, self.step, self.start_step)
+        self.reference_grid_line = 'Primary grid filename:' + primary_grid_filename + ' \n'
+
+        parameter_filename = self.path + self.para_path_mod
+        self.reference_parameter_line = 'Boundary mapping filename:' + parameter_filename + ' \n'
+
+        output_filename = TauFunctions.FindOutputFilename(self.path, self.step)
+        self.reference_restart_line = 'Restart-data prefix:' + output_filename + ' \n'
+
+
+    def assertTautopltFile(self):
+        with open(self.tautoplt_filename, 'r+') as tautoplt_file_reading:
+            # Loop over lines
+            for line in tautoplt_file_reading:
+                # Check if line is from IO section and modify it
+                if 'Primary grid filename:' in line:
+                    self.assertMultiLineEqual(line, self.reference_grid_line)
+                elif 'Boundary mapping filename:' in line:
+                    self.assertMultiLineEqual(line, self.reference_parameter_line)
+                elif 'Restart-data prefix:' in line:
+                    self.assertMultiLineEqual(line, self.reference_restart_line)
+
+            # Close file
+            tautoplt_file_reading.close()
+
+
     def setReference(self):
         self.reference_position_info = ['VARIABLES', '=', '"x"', '"y"', '"z"', '"density"', '"cp"']
         self.reference_mesh_info = [6, 2]
@@ -385,6 +468,15 @@ class TestTauFunctionsImpl(unittest.TestCase):
         # Create dummy files
         open(self.reference_file_name, 'w').close()
         open(self.reference_interface_file_name, 'w').close()
+
+
+    def createPrimaryGridFile(self):
+        # Create dummy file
+        os.mkdir('Mesh')
+        self.path = os.getcwd() + '/'
+        pattern = 'airfoil_Structured_scaliert.grid'
+        self.reference_primary_grid_file_name = self.path + 'Mesh/' + pattern
+        open(self.reference_primary_grid_file_name, 'w').close()
 
 
     def create_dummy_cell(self):

@@ -266,7 +266,6 @@ def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step):
         line = 'Boundary mapping filename:' + parameter_filename + ' \n'
     elif 'Restart-data prefix:' in line:
         output_filename = FindOutputFilename(working_path, step)
-        print 'output_filename = ', output_filename
         CheckIfPathExists(output_filename)
         line = 'Restart-data prefix:' + output_filename + ' \n'
 
