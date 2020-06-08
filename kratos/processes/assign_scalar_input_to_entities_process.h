@@ -65,6 +65,17 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( GEOMETRIC_DEFINITION ); /// This flag is used in order to check if the definition is defined in the geometry or in the entities
 
     ///@}
+    ///@name  Enum's
+    ///@{
+
+    /**
+     * @brief This enum helps us to identify the algorithm considered
+     */
+    enum class Algorithm {
+        NEAREST_NEIGHBOUR = 0
+    };
+
+    ///@}
     ///@name Life Cycle
     ///@{
 
