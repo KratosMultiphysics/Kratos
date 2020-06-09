@@ -173,7 +173,7 @@
                 "Parameters": {
                     "model_part_name": "MainModelPart",
                     "function_settings": {
-                        "function_name": "DistributeConditionDataToNodes",
+                        "function_name": "DistributeConditionVariableToNodes",
                         "variable_name": "FRICTION_VELOCITY"
                     }
                 }
@@ -185,7 +185,7 @@
                 "Parameters": {
                     "model_part_name": "MainModelPart",
                     "function_settings": {
-                        "function_name": "DistributeConditionDataToNodes",
+                        "function_name": "DistributeConditionVariableToNodes",
                         "variable_name": "Y_PLUS"
                     }
                 }
@@ -195,7 +195,10 @@
                 "python_module": "json_output_process",
                 "Parameters": {
                     "help": "This process generates a json file containing the solution of a list of variables from a given submodelpart",
-                    "output_variables": ["FRICTION_VELOCITY", "Y_PLUS"],
+                    "output_variables": [
+                        "FRICTION_VELOCITY",
+                        "Y_PLUS"
+                    ],
                     "output_file_name": "cfd_function_process_output.json",
                     "model_part_name": "MainModelPart",
                     "sub_model_part_name": "",
@@ -207,16 +210,16 @@
                 }
             },
             {
-                "python_module"   : "compare_two_files_check_process",
-                "kratos_module"   : "KratosMultiphysics",
-                "help"            : "",
-                "process_name"    : "CompareTwoFilesCheckProcess",
-                "Parameters" :{
-                    "output_file_name"    : "cfd_function_process_output.json",
-                    "reference_file_name" : "cfd_function_process_output_ref.json",
-                    "comparison_type"     : "deterministic",
-                    "remove_output_file"  : true,
-                    "tolerance"           : 1e-5
+                "python_module": "compare_two_files_check_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "CompareTwoFilesCheckProcess",
+                "Parameters": {
+                    "output_file_name": "cfd_function_process_output.json",
+                    "reference_file_name": "cfd_function_process_output_ref.json",
+                    "comparison_type": "deterministic",
+                    "remove_output_file": true,
+                    "tolerance": 1e-5
                 }
             }
         ]

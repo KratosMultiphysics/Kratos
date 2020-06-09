@@ -28,10 +28,10 @@ class CFDFunctions:
         return getattr(CFDFunctions, function_name)(params)
 
     @staticmethod
-    def FunctionDistributeConditionDataToNodes(params):
+    def FunctionDistributeConditionVariableToNodes(params):
         default_settings = Kratos.Parameters("""
         {
-            "function_name": "DistributeConditionDataToNodes",
+            "function_name": "DistributeConditionVariableToNodes",
             "variable_name": "PLEASE_PROVIDE_A_VARIABLE_NAME"
         }""")
 
@@ -42,7 +42,7 @@ class CFDFunctions:
         variable_type = Kratos.KratosGlobals.GetVariableType(variable_name)
         variable = Kratos.KratosGlobals.GetVariable(variable_name)
         if (variable_type in ["Double", "Array"]):
-            return lambda model_part: KratosCFD.CFDUtilities.DistributeConditionDataToNodes(
+            return lambda model_part: KratosCFD.CFDUtilities.DistributeConditionVariableToNodes(
                 model_part, variable)
         else:
             raise Exception("Unsupported variable type " + variable_type +

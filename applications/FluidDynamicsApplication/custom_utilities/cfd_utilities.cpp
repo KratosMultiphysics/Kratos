@@ -269,7 +269,8 @@ double CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
 
     noalias(rFrictionVelocity) =
         rFrictionVelocity *
-        (-1.0 * u_tau / (wall_velocity <= std::numeric_limits<double>::epsilon() ? 1.0 : wall_velocity));
+        (-1.0 * u_tau /
+         (wall_velocity <= std::numeric_limits<double>::epsilon() ? 1.0 : wall_velocity));
 
     return y_plus;
 
@@ -394,7 +395,8 @@ void CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
 }
 
 template <typename TDataType>
-void DistributeConditionDataToNodes(ModelPart& rModelPart, const Variable<TDataType>& rVariable)
+void DistributeConditionVariableToNodes(ModelPart& rModelPart,
+                                        const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY
 
@@ -435,8 +437,9 @@ template void CalculateConditionNormal<2>(array_1d<double, 3>& rNormal,
 template void CalculateConditionNormal<3>(array_1d<double, 3>& rNormal,
                                           const ConditionType& rCondition);
 
-template void DistributeConditionDataToNodes<double>(ModelPart&, const Variable<double>&);
-template void DistributeConditionDataToNodes<array_1d<double, 3>>(
+template void DistributeConditionVariableToNodes<double>(ModelPart&,
+                                                         const Variable<double>&);
+template void DistributeConditionVariableToNodes<array_1d<double, 3>>(
     ModelPart&, const Variable<array_1d<double, 3>>&);
 
 } // namespace CFDUtilities

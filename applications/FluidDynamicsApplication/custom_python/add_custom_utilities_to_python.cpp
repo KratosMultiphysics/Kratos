@@ -208,8 +208,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             py::arg("wall_smoothness") = 5.2,
             py::arg("max_iterations") = 20,
             py::arg("tolerance") = 1e-6)
-        .def("DistributeConditionDataToNodes", &CFDUtilities::DistributeConditionDataToNodes<double>)
-        .def("DistributeConditionDataToNodes", &CFDUtilities::DistributeConditionDataToNodes<array_1d<double,3>>)
+        .def("DistributeConditionVariableToNodes", &CFDUtilities::DistributeConditionVariableToNodes<double>)
+        .def("DistributeConditionVariableToNodes", &CFDUtilities::DistributeConditionVariableToNodes<array_1d<double,3>>)
         ;
 }
 

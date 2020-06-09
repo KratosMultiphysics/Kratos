@@ -5,8 +5,8 @@ from fluid_analysis_without_solution import FluidAnalysisWithoutSolution
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-class CFDFunctionProcessTest(UnitTest.TestCase):
 
+class CFDFunctionProcessTest(UnitTest.TestCase):
     def setUp(self):
         # Set to true to get post-process files for the test
         self.print_output = True
@@ -20,14 +20,16 @@ class CFDFunctionProcessTest(UnitTest.TestCase):
 
             kratos_utilities.DeleteFileIfExisting("square5.time")
 
-    def _runTest(self,settings_file_name):
+    def _runTest(self, settings_file_name):
         model = km.Model()
-        with open(settings_file_name,'r') as settings_file:
+        with open(settings_file_name, 'r') as settings_file:
             settings = km.Parameters(settings_file.read())
 
         # to check the results: add output settings block if needed
         if self.print_output:
-            settings.AddValue("output_processes", km.Parameters(r'''{
+            settings.AddValue(
+                "output_processes",
+                km.Parameters(r'''{
                 "gid_output" : [{
                     "python_module" : "gid_output_process",
                     "kratos_module" : "KratosMultiphysics",
@@ -59,8 +61,9 @@ class CFDFunctionProcessTest(UnitTest.TestCase):
                 }]
             }'''))
 
-        analysis = FluidAnalysisWithoutSolution(model,settings)
+        analysis = FluidAnalysisWithoutSolution(model, settings)
         analysis.Run()
+
 
 if __name__ == '__main__':
     UnitTest.main()

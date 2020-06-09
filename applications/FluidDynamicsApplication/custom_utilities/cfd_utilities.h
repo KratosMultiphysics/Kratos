@@ -111,8 +111,8 @@ void CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
     const double Tolerance = 1e-6);
 
 template <typename TDataType>
-void DistributeConditionDataToNodes(ModelPart& rModelPart,
-                                    const Variable<TDataType>& rVariable);
+void DistributeConditionVariableToNodes(ModelPart& rModelPart,
+                                        const Variable<TDataType>& rVariable);
 
 } // namespace CFDUtilities
 
