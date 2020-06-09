@@ -109,11 +109,11 @@ class CFDFunctions:
 
 
 def Factory(settings, model):
-    if (type(settings) != Kratos.Parameters):
+    if (not isinstance(settings, Kratos.Parameters)):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
         )
-    if (type(model) != Kratos.Model):
+    if (not isinstance(model, Kratos.Model)):
         raise Exception(
             "expected input shall be a Model object, encapsulating a json string"
         )
