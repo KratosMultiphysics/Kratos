@@ -647,7 +647,7 @@ double ComputeUpwindFactorDerivativeWRTVelocitySquared(
     }
     else {
         KRATOS_WARNING("ComputeUpwindFactorDerivativeWRTVelocitySquared") <<
-        "upwind factor case option computed as:" << case_option << std::endl;
+        "upwind factor case option computed as:" << upwindFactorCase << std::endl;
         return 0.0;
     }
 }
