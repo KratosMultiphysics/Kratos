@@ -395,18 +395,21 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ComputeExtrapolationWeight()
 {
     KRATOS_TRY;
 
+    // Some definitions
+    const auto& r_entities_array = GetEntitiesContainer();
+    const auto it_ent_begin = r_entities_array.begin();
+    const SizeType number_of_entities = r_entities_array.size();
+
     // Resize the weight extrapolation vector
-    const SizeType number_of_definitions = mCoordinates.size();
-    if (mWeightExtrapolation.size() != number_of_definitions) {
-        mWeightExtrapolation.resize(number_of_definitions);
+    if (mWeightExtrapolation.size() != number_of_entities) {
+        mWeightExtrapolation.resize(number_of_entities);
     }
 
     // Considering different algorithms to fill the weights
+    const SizeType number_of_definitions = mCoordinates.size();
     if (mAlgorithm == Algorithm::NEAREST_NEIGHBOUR) {
-        const auto& r_entities_array = GetEntitiesContainer();
-        const auto it_ent_begin = r_entities_array.begin();
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(r_entities_array.size()); ++i) {
+        for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
             auto it_ent = it_ent_begin + i;
             const IndexType id = it_ent->Id();
             const array_1d<double, 3> coordinates = GetCoordinatesEntity(id);
