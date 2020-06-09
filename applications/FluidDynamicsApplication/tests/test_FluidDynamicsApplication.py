@@ -29,6 +29,8 @@ from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
 from cfl_output_process_test import CFLOutputProcessTest
+from cfd_function_process_test import CFDFunctionProcessTest
+from cfd_utilities_test import CFDUtilitiesTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -60,6 +62,7 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationSymbolic2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFDUtilitiesTest]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -101,6 +104,7 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFDFunctionProcessTest]))
 
 
     # For very long tests that should not be in nighly and you can use to validate
