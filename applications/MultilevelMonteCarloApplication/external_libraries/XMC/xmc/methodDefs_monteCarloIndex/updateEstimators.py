@@ -4,7 +4,6 @@ import xmc.tools as tools
 # from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 from exaqute.ExaquteTaskLocal import *      # to execute with python3
-from pycompss.api.parameter import *
 
 #TODO When MomentEstimator is updated to specs, one level of nesting will have to be added above solver level: each element of sampleGroup is to be a list of sample components; as of now, it is just a single component.
 
