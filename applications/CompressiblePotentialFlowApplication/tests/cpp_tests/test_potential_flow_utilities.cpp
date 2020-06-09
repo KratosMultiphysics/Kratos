@@ -84,6 +84,21 @@ void AssignPerturbationPotentialsToElement(Element& rElement) {
             potential[i];
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ComputePerturbedVelocity, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
+
+    AssignPerturbationPotentialsToElement(*pElement);
+
+    array_1d<double, 2> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<2,3>(*pElement, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(perturbed_velocity[0], 303.0, 1e-15);
+    KRATOS_CHECK_RELATIVE_NEAR(perturbed_velocity[1], 50.0, 1e-15);
+}
+
 // checks the function ComputeVelocityMagnitude from utilities
 KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityMagnitude, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
@@ -412,6 +427,34 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCaseSubsonicElement, CompressiblePo
     const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
 
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
+}
+
+// tests the function ComputeDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensity, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    // velocity corresponding to mach number sqrt(3.0)
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> current_velocity(2, 0.0);
+    current_velocity[0] = std::sqrt(local_velocity_squared);
+
+    const double upwind_mach_number_squared = 0.7 * 0.7;
+
+    // velocity corresponding to mach number 0.7
+    const double upwind_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(upwind_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> upwind_velocity(2, 0.0);
+    upwind_velocity[0] = std::sqrt(upwind_velocity_squared);
+
+    const double upwinded_density = PotentialFlowUtilities::ComputeUpwindedDensity<2,3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwinded_density, 0.92388212928098, 1e-15);
 }
 
 } // namespace Testing
