@@ -214,9 +214,10 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_THROW_ERROR(std::logic_error,"method not implemented yet","");
+        MatrixType temp = Matrix();
+        CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("Error in StokesTwoFluid Element Symbolic CalculateRightHandSide")
 
     }
 
