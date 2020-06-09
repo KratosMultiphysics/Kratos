@@ -269,7 +269,7 @@ double CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
 
     noalias(rFrictionVelocity) =
         rFrictionVelocity *
-        (u_tau / (wall_velocity <= std::numeric_limits<double>::epsilon() ? 1.0 : wall_velocity));
+        (-1.0 * u_tau / (wall_velocity <= std::numeric_limits<double>::epsilon() ? 1.0 : wall_velocity));
 
     return y_plus;
 
