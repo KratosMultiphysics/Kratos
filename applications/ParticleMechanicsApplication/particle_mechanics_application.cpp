@@ -187,6 +187,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( TAYLOR_QUINNEY_COEFFICIENT)
         KRATOS_REGISTER_VARIABLE( MP_HARDENING_RATIO)
 
+        // Mesh variables
+        KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS )
 
         // Registering condition variables
         // Essential Boundary Conditions
