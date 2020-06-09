@@ -25,7 +25,6 @@
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/pmmg_utilities.h"
 #include "meshing_application_variables.h"
-#include "mpi/utilities/parallel_fill_communicator.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
@@ -2093,8 +2092,6 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
         std::copy(node_ids.begin(), node_ids.end(), std::back_inserter(vector_ids));
         r_sub_model_part.AddNodes(vector_ids);
     }
-    // rModelPart.GetCommunicator().SetLocalMesh(rModelPart.pGetMesh());
-    ParallelFillCommunicator(rModelPart.GetRootModelPart()).Execute();
 }
 
 /***********************************************************************************/
@@ -2112,7 +2109,7 @@ void ParMmgUtilities<TPMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPar
     // Auxilia metric
     TensorArrayType metric;
 
-    #pragma omp parallel for firstprivate(metric)
+    // #pragma omp parallel for firstprivate(metric)
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = it_node_begin + i;
 

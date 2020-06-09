@@ -27,6 +27,7 @@
 #include "spatial_containers/spatial_containers.h" // kd-tree
 #include "includes/gid_io.h"
 #include "includes/model_part_io.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 
 // NOTE: The following contains the license of the PMMG library
@@ -291,6 +292,10 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteFinalize()
     // Save the mesh in an .mdpa format
     const bool save_mdpa_file = mThisParameters["save_mdpa_file"].GetBool();
     if(save_mdpa_file) OutputMdpa();
+
+
+    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+    ParallelFillCommunicator(mrThisModelPart).Execute();
 
     KRATOS_CATCH("");
 }
