@@ -18,6 +18,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 
 // Application includes
@@ -131,11 +132,7 @@ void CalculateNumberOfNeighbourConditions(ModelPart& rModelPart)
     VariableUtils().SetNonHistoricalVariableToZero(NUMBER_OF_NEIGHBOUR_CONDITIONS, r_nodes);
 
     // updating
-    const int number_of_conditions = rModelPart.NumberOfConditions();
-#pragma omp parallel for
-    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-    {
-        ConditionType& r_cond = *(rModelPart.ConditionsBegin() + i_cond);
+    block_for_each(rModelPart.Conditions(), [](ConditionType& r_cond) {
         ConditionType::GeometryType& r_geometry = r_cond.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
@@ -144,7 +141,7 @@ void CalculateNumberOfNeighbourConditions(ModelPart& rModelPart)
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1;
             r_node.UnSetLock();
         }
-    }
+    });
 
     rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_CONDITIONS);
 
@@ -289,39 +286,33 @@ void CalculateYPlusAndUTauForConditions(
     const std::function<void(array_1d<double, 3>&, const ConditionType&)> normal_calculation_method =
         (domain_size == 2) ? CalculateConditionNormal<2> : CalculateConditionNormal<3>;
 
-    const int number_of_conditions = rModelPart.NumberOfConditions();
-#pragma omp parallel
-    {
+    block_for_each(rModelPart.Conditions(), [normal_calculation_method, rKinematicViscosityVariable,
+                                             rYPlusAndUTauCalculationMethod](ConditionType& r_condition) {
+        GeometryType& r_geometry = r_condition.GetGeometry();
+
+        Vector gauss_weights;
+        Matrix shape_functions;
+        CalculateConditionGeometryData(r_condition.GetGeometry(), GeometryData::GI_GAUSS_1,
+                                       gauss_weights, shape_functions);
+
+        const Vector& gauss_shape_functions = row(shape_functions, 0);
+
+        // calculate normal for the condition
         array_1d<double, 3> normal;
+        normal_calculation_method(normal, r_condition);
+
+        const double y_wall = CalculateConditionWallHeight(r_condition, normal);
+        const double nu = EvaluateInPoint(
+            r_geometry, rKinematicViscosityVariable, gauss_shape_functions);
+        const double rho = EvaluateInPoint(r_geometry, DENSITY, gauss_shape_functions);
+
         array_1d<double, 3> u_tau;
-#pragma omp for
-        for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-        {
-            ConditionType& r_condition = *(rModelPart.ConditionsBegin() + i_cond);
-            GeometryType& r_geometry = r_condition.GetGeometry();
+        const double y_plus = rYPlusAndUTauCalculationMethod(
+            u_tau, r_geometry, normal, gauss_shape_functions, rho, nu, y_wall);
 
-            Vector gauss_weights;
-            Matrix shape_functions;
-            CalculateConditionGeometryData(r_condition.GetGeometry(), GeometryData::GI_GAUSS_1,
-                                           gauss_weights, shape_functions);
-
-            const Vector& gauss_shape_functions = row(shape_functions, 0);
-
-            // calculate normal for the condition
-            normal_calculation_method(normal, r_condition);
-
-            const double y_wall = CalculateConditionWallHeight(r_condition, normal);
-            const double nu = EvaluateInPoint(
-                r_geometry, rKinematicViscosityVariable, gauss_shape_functions);
-            const double rho = EvaluateInPoint(r_geometry, DENSITY, gauss_shape_functions);
-
-            const double y_plus = rYPlusAndUTauCalculationMethod(
-                u_tau, r_geometry, normal, gauss_shape_functions, rho, nu, y_wall);
-
-            r_condition.SetValue(FRICTION_VELOCITY, u_tau);
-            r_condition.SetValue(Y_PLUS, y_plus);
-        }
-    }
+        r_condition.SetValue(FRICTION_VELOCITY, u_tau);
+        r_condition.SetValue(Y_PLUS, y_plus);
+    });
 
     KRATOS_CATCH("");
 }
@@ -404,11 +395,7 @@ void DistributeConditionVariableToNodes(ModelPart& rModelPart,
     ModelPart::NodesContainerType& r_nodes = rModelPart.Nodes();
     VariableUtils().SetNonHistoricalVariableToZero(rVariable, r_nodes);
 
-    const int number_of_conditions = rModelPart.NumberOfConditions();
-#pragma omp parallel for
-    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-    {
-        ConditionType& r_condition = *(rModelPart.ConditionsBegin() + i_cond);
+    block_for_each(rModelPart.Conditions(), [rVariable](ConditionType& r_condition) {
         GeometryType& r_geometry = r_condition.GetGeometry();
 
         const TDataType& r_value = r_condition.GetValue(rVariable);
@@ -423,7 +410,7 @@ void DistributeConditionVariableToNodes(ModelPart& rModelPart,
             r_node.SetValue(rVariable, r_current_value + r_value * (1.0 / number_of_neighbour_conditions));
             r_node.UnSetLock();
         }
-    }
+    });
 
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rVariable);
 
