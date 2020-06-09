@@ -188,8 +188,9 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
 
                                 // If required, save sub tetra faces
                                 if (compute_faces) {
+                                    const auto faces = p_sub_tetra->GenerateFaces();
                                     for (unsigned int i_face = 0; i_face < 4; ++i_face) {
-                                       sub_tetras_faces[i_elem * 4 + i_face] = (p_sub_tetra->Faces())[i_face];
+                                       sub_tetras_faces[i_elem * 4 + i_face] = faces[i_face];
                                     }
                                 }
 

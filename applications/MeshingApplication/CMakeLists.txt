@@ -44,6 +44,7 @@ if(${INCLUDE_PMMG} MATCHES ON)
 set( KRATOS_MESHING_APPLICATION_CORE_PMMG ${KRATOS_MESHING_APPLICATION_CORE_PMMG}
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/pmmg_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/pmmg_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/pmmg_io.cpp
 )
 endif(${INCLUDE_PMMG} MATCHES ON)
 
@@ -58,12 +59,8 @@ set( KRATOS_MESHING_APPLICATION_CORE_MMG ${KRATOS_MESHING_APPLICATION_CORE_MMG}
 )
 endif(${INCLUDE_MMG} MATCHES ON)
 
-set (KRATOS_MESHING_APPLICATION_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -73,6 +70,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_PMMG} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt)
 set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
+# add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
 
 if(${INCLUDE_PMMG} MATCHES ON)
     add_definitions( -DINCLUDE_PMMG )
@@ -81,7 +79,7 @@ if(${INCLUDE_PMMG} MATCHES ON)
    	message("USE_METIS_5 not defined. Setting to ON")
    	SET (USE_METIS_5 ON)
    endif(NOT DEFINED USE_METIS_5)
-   
+
    if(${USE_METIS_5} MATCHES ON)
        message("using metis (and not Parmetis) version 5")
        add_definitions(-DKRATOS_USE_METIS_5)
@@ -100,10 +98,84 @@ if(${INCLUDE_PMMG} MATCHES ON)
     INCLUDE_DIRECTORIES(${PMMG_INCLUDE_DIR})
     INCLUDE_DIRECTORIES(${MMG3D_INCLUDE_DIR})
 
-    target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt ${METIS_LIBRARY} ${PMMG_LIBRARY} ${MMG3D_LIBRARY})
+    target_link_libraries(KratosMeshingCore PUBLIC KratosCore KratosMPICore triangle tetMeshOpt ${METIS_LIBRARY} ${PMMG_LIBRARY} ${MMG3D_LIBRARY})
 endif(${INCLUDE_PMMG} MATCHES ON)
 
 if(${INCLUDE_MMG} MATCHES ON)
+    # Define includes and libraries with just one include
+    IF (MMG_ROOT)
+        IF(NOT DEFINED MMG_INCLUDE_DIR)
+            SET(MMG_INCLUDE_DIR ${MMG_ROOT}/include/)
+        ENDIF(NOT DEFINED MMG_INCLUDE_DIR)
+        IF(NOT DEFINED MMG2D_INCLUDE_DIR)
+            SET(MMG2D_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmg2d/)
+        ENDIF(NOT DEFINED MMG2D_INCLUDE_DIR)
+        IF(NOT DEFINED MMG3D_INCLUDE_DIR)
+            SET(MMG3D_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmg3d/)
+        ENDIF(NOT DEFINED MMG3D_INCLUDE_DIR)
+        IF(NOT DEFINED MMGS_INCLUDE_DIR)
+            SET(MMGS_INCLUDE_DIR ${MMG_ROOT}/include/mmg/mmgs/)
+        ENDIF(NOT DEFINED MMGS_INCLUDE_DIR)
+        IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            IF(EXISTS "${MMG_ROOT}/lib/libmmg.dll") # Dynamic library
+                IF(NOT DEFINED MMG_LIBRARY)
+                    SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.dll)
+                ENDIF(NOT DEFINED MMG_LIBRARY)
+                IF(NOT DEFINED MMG2D_LIBRARY)
+                    SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.dll)
+                ENDIF(NOT DEFINED MMG2D_LIBRARY)
+                IF(NOT DEFINED MMG3D_LIBRARY)
+                    SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.dll)
+                ENDIF(NOT DEFINED MMG3D_LIBRARY)
+                IF(NOT DEFINED MMGS_LIBRARY)
+                    SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.dll)
+                ENDIF(NOT DEFINED MMGS_LIBRARY)
+            ELSE(EXISTS "${MMG_ROOT}/lib/libmmg.dll") # Static library
+                IF(NOT DEFINED MMG_LIBRARY)
+                    SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.lib)
+                ENDIF(NOT DEFINED MMG_LIBRARY)
+                IF(NOT DEFINED MMG2D_LIBRARY)
+                    SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.lib)
+                ENDIF(NOT DEFINED MMG2D_LIBRARY)
+                IF(NOT DEFINED MMG3D_LIBRARY)
+                    SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.lib)
+                ENDIF(NOT DEFINED MMG3D_LIBRARY)
+                IF(NOT DEFINED MMGS_LIBRARY)
+                    SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.lib)
+                ENDIF(NOT DEFINED MMGS_LIBRARY)
+            ENDIF(EXISTS "${MMG_ROOT}/lib/libmmg.dll")
+        ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            IF(EXISTS "${MMG_ROOT}/lib/libmmg.so") # Dynamic library
+                IF(NOT DEFINED MMG_LIBRARY)
+                    SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.so)
+                ENDIF(NOT DEFINED MMG_LIBRARY)
+                IF(NOT DEFINED MMG2D_LIBRARY)
+                    SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.so)
+                ENDIF(NOT DEFINED MMG2D_LIBRARY)
+                IF(NOT DEFINED MMG3D_LIBRARY)
+                    SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.so)
+                ENDIF(NOT DEFINED MMG3D_LIBRARY)
+                IF(NOT DEFINED MMGS_LIBRARY)
+                    SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.so)
+                ENDIF(NOT DEFINED MMGS_LIBRARY)
+            ELSE(EXISTS "${MMG_ROOT}/lib/libmmg.so") # Static library
+                IF(NOT DEFINED MMG_LIBRARY)
+                    SET(MMG_LIBRARY ${MMG_ROOT}/lib/libmmg.a)
+                ENDIF(NOT DEFINED MMG_LIBRARY)
+                IF(NOT DEFINED MMG2D_LIBRARY)
+                    SET(MMG2D_LIBRARY ${MMG_ROOT}/lib/libmmg2d.a)
+                ENDIF(NOT DEFINED MMG2D_LIBRARY)
+                IF(NOT DEFINED MMG3D_LIBRARY)
+                    SET(MMG3D_LIBRARY ${MMG_ROOT}/lib/libmmg3d.a)
+                ENDIF(NOT DEFINED MMG3D_LIBRARY)
+                IF(NOT DEFINED MMGS_LIBRARY)
+                    SET(MMGS_LIBRARY ${MMG_ROOT}/lib/libmmgs.a)
+                ENDIF(NOT DEFINED MMGS_LIBRARY)
+            ENDIF(EXISTS "${MMG_ROOT}/lib/libmmg.so")
+        ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    ENDIF (MMG_ROOT)
+
+    # Add definitions
     add_definitions( -DINCLUDE_MMG )
 
     INCLUDE_DIRECTORIES(${MMG_INCLUDE_DIR})
@@ -112,7 +184,21 @@ if(${INCLUDE_MMG} MATCHES ON)
     INCLUDE_DIRECTORIES(${MMGS_INCLUDE_DIR})
 
     target_link_libraries(KratosMeshingCore PUBLIC KratosCore KratosMPICore triangle tetMeshOpt ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
+#     target_link_libraries(KratosMeshingCore PUBLIC KratosCore tetMeshOpt ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
+
+#     message("Installed MMG = " ${MMG_LIBRARY})
+#     install(FILES ${MMG_LIBRARY} DESTINATION libs)
+#     message("Installed MMG2D = " ${MMG2D_LIBRARY})
+#     install(FILES ${MMG2D_LIBRARY} DESTINATION libs)
+#     message("Installed MMG3D = " ${MMG3D_LIBRARY})
+#     install(FILES ${MMG3D_LIBRARY} DESTINATION libs)
+#     message("Installed MMGS = " ${MMGS_LIBRARY})
+#     install(FILES ${MMGS_LIBRARY} DESTINATION libs)
+# else(${INCLUDE_MMG} MATCHES ON)
+#     target_link_libraries(KratosMeshingCore PUBLIC KratosCore tetMeshOpt)
 endif(${INCLUDE_MMG} MATCHES ON)
+
+set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     target_link_libraries(KratosMeshingCore PUBLIC ${TETGEN_LIBRARIES})
@@ -134,6 +220,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Cotire
 if(USE_COTIRE MATCHES ON)
     ## The MMG is not compatibel with cotire
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
@@ -141,25 +228,25 @@ if(USE_COTIRE MATCHES ON)
     cotire(KratosMeshingApplication)
 endif(USE_COTIRE MATCHES ON)
 
-install(TARGETS KratosMeshingCore DESTINATION libs )
-install(TARGETS KratosMeshingApplication DESTINATION libs )
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MeshingApplication.py KratosMultiphysics/MeshingApplication/__init__.py )
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MeshingApplication.py" DESTINATION "KratosMultiphysics/MeshingApplication" RENAME "__init__.py")
+# Install targets
+install(TARGETS KratosMeshingCore DESTINATION libs )
+install(TARGETS KratosMeshingApplication DESTINATION libs )

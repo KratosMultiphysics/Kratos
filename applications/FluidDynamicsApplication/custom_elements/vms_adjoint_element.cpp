@@ -6,17 +6,11 @@ namespace Kratos {
 ///@{
 
 template<>
-void VMSAdjointElement<2>::GetDofList(DofsVectorType& rElementalDofList,
+void VMSAdjointElement<2>::GetDofArray(DofsArrayType& rElementalDofList,
                                       ProcessInfo& /*rCurrentProcessInfo*/)
 {
-  const unsigned int NumNodes(3), LocalSize(9);
-
-  if (rElementalDofList.size() != LocalSize)
-    rElementalDofList.resize(LocalSize);
-
   unsigned int LocalIndex = 0;
-
-  for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+  for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
   {
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
         ADJOINT_FLUID_VECTOR_1_X);
@@ -28,17 +22,11 @@ void VMSAdjointElement<2>::GetDofList(DofsVectorType& rElementalDofList,
 }
 
 template<>
-void VMSAdjointElement<3>::GetDofList(DofsVectorType& rElementalDofList,
+void VMSAdjointElement<3>::GetDofArray(DofsArrayType& rElementalDofList,
                                       ProcessInfo& /*rCurrentProcessInfo*/)
 {
-  const SizeType NumNodes(4), LocalSize(16);
-
-  if (rElementalDofList.size() != LocalSize)
-    rElementalDofList.resize(LocalSize);
-
   IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
+  for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
   {
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
         ADJOINT_FLUID_VECTOR_1_X);
@@ -51,52 +39,38 @@ void VMSAdjointElement<3>::GetDofList(DofsVectorType& rElementalDofList,
   }
 }
 
-template<>
-void VMSAdjointElement<2>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    ProcessInfo& /*rCurrentProcessInfo*/)
+template <>
+void VMSAdjointElement<2>::EquationIdArray(EquationIdArrayType& rResult,
+                                           ProcessInfo& /*rCurrentProcessInfo*/)
 {
-  const SizeType NumNodes(3), LocalSize(9);
-
-  if (rResult.size() != LocalSize)
-    rResult.resize(LocalSize, false);
-
-  IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1)
-        .EquationId();
-  }
+    IndexType LocalIndex = 0;
+    for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
+    {
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1).EquationId();
+    }
 }
 
-template<>
-void VMSAdjointElement<3>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    ProcessInfo& /*rCurrentProcessInfo*/)
+template <>
+void VMSAdjointElement<3>::EquationIdArray(EquationIdArrayType& rResult,
+                                           ProcessInfo& /*rCurrentProcessInfo*/)
 {
-  const SizeType NumNodes(4), LocalSize(16);
-
-  if (rResult.size() != LocalSize)
-    rResult.resize(LocalSize, false);
-
-  IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Z)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1)
-        .EquationId();
-  }
+    IndexType LocalIndex = 0;
+    for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
+    {
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Z).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1).EquationId();
+    }
 }
 
 template<>
@@ -144,17 +118,17 @@ void VMSAdjointElement<3>::CalculateDeterminantOfJacobianDerivatives(
   const double x1 = this->GetGeometry()[1].X();
   const double x2 = this->GetGeometry()[2].X();
   const double x3 = this->GetGeometry()[3].X();
-  
+
   const double y0 = this->GetGeometry()[0].Y();
   const double y1 = this->GetGeometry()[1].Y();
   const double y2 = this->GetGeometry()[2].Y();
   const double y3 = this->GetGeometry()[3].Y();
-  
+
   const double z0 = this->GetGeometry()[0].Z();
   const double z1 = this->GetGeometry()[1].Z();
   const double z2 = this->GetGeometry()[2].Z();
   const double z3 = this->GetGeometry()[3].Z();
-        
+
   rDetJDerivatives[0] =-z1*y3 + z1*y2 + y3*z2 - y2*z3 + y1*z3 - y1*z2;
   rDetJDerivatives[1] =-z1*x2 + z1*x3 + x1*z2 - z2*x3 + x2*z3 - x1*z3;
   rDetJDerivatives[2] =-x2*y3 + y2*x3 - y1*x3 + x1*y3 + y1*x2 - x1*y2;
@@ -212,7 +186,7 @@ void VMSAdjointElement<3>::CalculateStabilizationParametersDerivative(
 
 template<>
 void VMSAdjointElement<2>::AddViscousTerm(
-    MatrixType& rResult,
+    BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rResult,
     const VMSAdjointElement<2>::ShapeFunctionDerivativesType& rDN_DX,
     const double Weight)
 {
@@ -249,7 +223,7 @@ void VMSAdjointElement<2>::AddViscousTerm(
 
 template<>
 void VMSAdjointElement<3>::AddViscousTerm(
-    MatrixType& rResult,
+    BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rResult,
     const VMSAdjointElement<3>::ShapeFunctionDerivativesType& rDN_DX,
     const double Weight)
 {

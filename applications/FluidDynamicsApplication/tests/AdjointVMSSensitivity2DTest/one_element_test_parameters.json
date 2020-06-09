@@ -83,8 +83,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Inlet",
+                "model_part_name" : "MainModelPart.Inlet",
                 "variable_name"   : "VELOCITY",
                 "modulus"         : 1.4142135623730951,
                 "direction"       : [0.70710678118654746,-0.70710678118654746,0.0]
@@ -94,8 +93,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet",
+                "model_part_name" : "MainModelPart.Outlet",
                 "variable_name"   : "PRESSURE",
                 "value"           : 0
             }
@@ -104,16 +102,14 @@
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ApplyNoSlipProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Boundary"
+                "model_part_name" : "MainModelPart.Boundary"
             }
         },{
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet",
+                "model_part_name" : "MainModelPart.Outlet",
                 "variable_name"   : "VELOCITY",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0, 0.0, 0.0]
@@ -139,7 +135,7 @@
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ComputeBodyFittedDragProcess",
             "Parameters" : {
-                "model_part_name"           : "Structure",
+                "model_part_name"           : "MainModelPart.Structure",
                 "interval"                  : [0.0, 1e30],
                 "write_drag_output_file"    : true,
                 "print_drag_to_screen"      : false,

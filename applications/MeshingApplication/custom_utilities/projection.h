@@ -1,40 +1,33 @@
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2008-10-13 08:56:42 $
-//   Revision:            $Revision: 1.5 $
+//  License:		 BSD License
+//                       license: MeshingApplication/license.txt
 //
+//  Main authors:    Antonia Larese de Tetto
 //
-//README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 
 #if !defined(KRATOS_PROJECTION )
 #define  KRATOS_PROJECTION
 
-// /* External includes */
-#include <boost/timer.hpp>
+// External includes
 
 // System includes
 #include <string>
 #include <iostream>
 #include <stdlib.h>
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"
+#include "utilities/timer.h"
 #include "geometries/triangle_2d_3.h"
-
-// #include "geometries/tetrahedra_3d_4.h"
-
 #include "meshing_application_variables.h"
-
-// #include "containers/kratos_spacial_search.h"
-
-
-//Database includes
 #include "spatial_containers/spatial_containers.h"
-
 
 namespace Kratos
 {
@@ -157,7 +150,7 @@ public:
 
 // 			KRATOS_WATCH("STARTING KDTREE CONSTRUCTION");
         //starting calculating time of construction of the kdtree
-        boost::timer kdtree_construction;
+        auto inital_time = std::chrono::steady_clock::now();
 
         //*************
         // Bucket types
@@ -188,7 +181,7 @@ public:
             list_of_new_nodes.push_back( pnode );
         }
 
-        std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
+        std::cout << "kdt construction time " << Timer::ElapsedSeconds(inital_time) << std::endl;
         //finishing calculating time of construction of the kdtree
 // 			KRATOS_WATCH("FINISHING KDTREE CONSTRUCTION");
 
@@ -211,7 +204,7 @@ public:
             //Setting to zero the whole model part
             Clear(node_it,  step_data_size );
         }
-        boost::timer search_and_interpolation_time;
+        inital_time = std::chrono::steady_clock::now();
         //loop over all of the elements in the "old" list to perform the interpolation
         for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
                 el_it != rOrigin_ModelPart.ElementsEnd(); el_it++)
@@ -290,7 +283,7 @@ public:
             }
 
         }
-        std::cout << "search and interpolation time " << search_and_interpolation_time.elapsed() << std::endl;
+        std::cout << "search and interpolation time " << Timer::ElapsedSeconds(inital_time) << std::endl;
         KRATOS_CATCH("")
     }
 
@@ -334,7 +327,7 @@ public:
 
 // 			KRATOS_WATCH("STARTING KDTREE CONSTRUCTION");
         //starting calculating time of construction of the kdtree
-        boost::timer kdtree_construction;
+        auto inital_time = std::chrono::steady_clock::now();
 
         //*************
         // Bucket types
@@ -377,7 +370,7 @@ public:
 
         }
 
-        std::cout << "kdt construction time " << kdtree_construction.elapsed() << std::endl;
+        std::cout << "kdt construction time " << Timer::ElapsedSeconds(inital_time) << std::endl;
         //finishing calculating time of construction of the kdtree
 // 			KRATOS_WATCH("FINISHING KDTREE CONSTRUCTION");
 
@@ -394,7 +387,7 @@ public:
         //int step_data_size = rDestination_ModelPart.GetNodalSolutionStepDataSize();
         //unsigned int TDim = 3;
 // KRATOS_WATCH("line 359")
-        boost::timer search_and_interpolation_time;
+        inital_time = std::chrono::steady_clock::now();
         //loop over all of the elements in the "old" list to perform the interpolation
         for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
                 el_it != rOrigin_ModelPart.ElementsEnd(); el_it++)
@@ -477,7 +470,7 @@ public:
             }
 
         }
-        std::cout << "search and interpolation time " << search_and_interpolation_time.elapsed() << std::endl;
+        std::cout << "search and interpolation time " << Timer::ElapsedSeconds(inital_time) << std::endl;
         KRATOS_CATCH("")
     }
 
@@ -1048,5 +1041,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_PROJECTION  defined
-
-

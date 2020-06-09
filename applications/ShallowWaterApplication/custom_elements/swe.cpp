@@ -31,14 +31,12 @@ template< size_t TNumNodes, ElementFramework TFramework >
 int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     // Base class checks for positive Jacobian and Id > 0
-    int ierr = Element::Check(rCurrentProcessInfo);
-    if(ierr != 0) return ierr;
+    int err = Element::Check(rCurrentProcessInfo);
+    if(err != 0) return err;
 
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(MOMENTUM)
     KRATOS_CHECK_VARIABLE_KEY(FREE_SURFACE_ELEVATION)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_SCALAR1)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_VECTOR1)
     KRATOS_CHECK_VARIABLE_KEY(TOPOGRAPHY)
     KRATOS_CHECK_VARIABLE_KEY(RAIN)
     KRATOS_CHECK_VARIABLE_KEY(MANNING)
@@ -55,8 +53,6 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FREE_SURFACE_ELEVATION, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TOPOGRAPHY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
 
@@ -65,7 +61,7 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_CHECK_DOF_IN_NODE(FREE_SURFACE_ELEVATION, node)
     }
 
-    return ierr;
+    return err;
 }
 
 
@@ -76,7 +72,7 @@ void SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResult,
     if(rResult.size() != element_size)
         rResult.resize(element_size,false);                         // False says not to preserve existing storage!!
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
 
     int counter=0;
     for (size_t i = 0; i < TNumNodes; i++)
@@ -95,7 +91,7 @@ void SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList, P
     if(rElementalDofList.size() != element_size)
         rElementalDofList.resize(element_size);
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
 
     int counter=0;
     for (size_t i = 0; i < TNumNodes; i++)
@@ -181,8 +177,11 @@ void SWE<TNumNodes, TFramework>::GetValueOnIntegrationPoints(
 {
     if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM)
     {
-        for (size_t PointNumber = 0; PointNumber < 1; PointNumber++)
-            rValues[PointNumber] = double(this->GetValue(rVariable));
+        if (rValues.size() != TNumNodes)
+            rValues.resize(TNumNodes);
+
+        for (size_t PointNumber = 0; PointNumber < TNumNodes; PointNumber++)
+            rValues[PointNumber] = this->GetValue(rVariable);
     }
 }
 
@@ -201,8 +200,10 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.manning2 = 0.0;
     rVariables.porosity = 0.0;
     rVariables.height_units = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
+    rVariables.permeability = rCurrentProcessInfo[PERMEABILITY];
+    rVariables.discharge_penalty = rCurrentProcessInfo[DRY_DISCHARGE_PENALTY];
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     for (size_t i = 0; i < TNumNodes; i++)
     {
         rVariables.manning2 += rGeom[i].FastGetSolutionStepValue(EQUIVALENT_MANNING);
@@ -212,6 +213,9 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.manning2 = std::pow(rVariables.manning2, 2);
 
     rVariables.porosity *= rVariables.lumping_factor;
+    if (rVariables.porosity < 1.0) {
+        rVariables.porosity = 0.0;
+    }
 }
 
 
@@ -234,31 +238,24 @@ void SWE<TNumNodes, TFramework>::CalculateGeometry(BoundedMatrix<double, TNumNod
 template< size_t TNumNodes, ElementFramework TFramework >
 void SWE<TNumNodes, TFramework>::GetNodalValues(ElementVariables& rVariables)
 {
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     size_t counter = 0;
     for (size_t i = 0; i < TNumNodes; i++)
     {
         rVariables.rain[counter]  = 0;
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X);
         rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X, 1);
-        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X);
         counter++;
 
         rVariables.rain[counter]  = 0;
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y);
         rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y, 1);
-        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y);
         counter++;
 
         rVariables.rain[counter]  = rGeom[i].FastGetSolutionStepValue(RAIN);
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
         rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1);
-        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
         counter++;
-    }
-    if (TFramework == PFEM2)
-    {
-        rVariables.prev_unk = rVariables.proj_unk;
     }
 }
 
@@ -270,29 +267,33 @@ void SWE<TNumNodes, TFramework>::CalculateElementValues(
 {
     // Initialize outputs
     rVariables.projected_momentum = ZeroVector(2);
-    rVariables.height = 0;
+    rVariables.height = 0.0;
     rVariables.surface_grad = ZeroVector(2);
     rVariables.velocity = ZeroVector(2);
-    rVariables.momentum_div = 0;
+    rVariables.momentum_div = 0.0;
+    rVariables.velocity_div = 0.0;
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
 
     // integrate over the element
     for (size_t i = 0; i < TNumNodes; i++)
     {
         rVariables.velocity += rGeom[i].FastGetSolutionStepValue(VELOCITY);
-        double h = rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - rGeom[i].FastGetSolutionStepValue(TOPOGRAPHY);
-        rVariables.height += h;
-        rVariables.surface_grad[0] += rDN_DX(i,0) * rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
-        rVariables.surface_grad[1] += rDN_DX(i,1) * rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+        const double z = rGeom[i].FastGetSolutionStepValue(TOPOGRAPHY);
+        const double f = rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+        rVariables.height += f - z;
+        rVariables.surface_grad[0] += rDN_DX(i,0) * f;
+        rVariables.surface_grad[1] += rDN_DX(i,1) * f;
         rVariables.momentum_div += rDN_DX(i,0) * rGeom[i].FastGetSolutionStepValue(MOMENTUM_X);
         rVariables.momentum_div += rDN_DX(i,1) * rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y);
-        rVariables.projected_momentum += rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1);
+        rVariables.velocity_div += rDN_DX(i,0) * rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
+        rVariables.velocity_div += rDN_DX(i,1) * rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
+        rVariables.projected_momentum += rGeom[i].FastGetSolutionStepValue(MOMENTUM, 1);
     }
 
     rVariables.velocity *= rVariables.lumping_factor;
     rVariables.height *= rVariables.lumping_factor * rVariables.height_units;
-    rVariables.height = std::max(rVariables.height, rVariables.epsilon);
+    rVariables.height = std::max(rVariables.height, 0.0);
     rVariables.surface_grad *= rVariables.height_units;
     rVariables.projected_momentum *= rVariables.lumping_factor;
 
@@ -312,7 +313,7 @@ void SWE<TNumNodes, TFramework>::ComputeStabilizationParameters(
 
     // Wave mixed form stabilization
     rTauU = CTau * elem_size * std::sqrt(rVariables.wave_vel_2);
-    rTauF = CTau * elem_size / std::sqrt(rVariables.wave_vel_2);
+    rTauF = CTau * elem_size / (std::sqrt(rVariables.wave_vel_2) + rVariables.epsilon);
 
     // Discontinuity capturing
     const double mom_div_norm = std::abs(rVariables.momentum_div);
@@ -350,12 +351,12 @@ void SWE<TNumNodes, TFramework>::BuildAuxiliaryMatrices(
         const BoundedMatrix<double, TNumNodes, 2>& rDN_DX,
         ElementVariables& rVariables)
 {
-    rVariables.N_q     = ZeroMatrix(2, rVariables.LocalSize); // Momentum balance test function
-    rVariables.N_h     = ZeroVector(rVariables.LocalSize);   // Mass balance test function
+    rVariables.N_q     = ZeroMatrix(2, rVariables.LocalSize); // Momentum balance test functions
+    rVariables.N_h     = ZeroVector(rVariables.LocalSize);   // Mass balance test functions
     rVariables.DN_DX_q = ZeroVector(rVariables.LocalSize);
     rVariables.DN_DX_h = ZeroMatrix(2, rVariables.LocalSize);
-    rVariables.Grad_q1 = ZeroMatrix(1, rVariables.LocalSize);
-    rVariables.Grad_q2 = ZeroMatrix(1, rVariables.LocalSize);
+    rVariables.Grad_q1 = ZeroMatrix(2, rVariables.LocalSize);
+    rVariables.Grad_q2 = ZeroMatrix(2, rVariables.LocalSize);
 
     // Build the shape and derivatives functions at the Gauss point
     for(size_t node = 0; node < TNumNodes; ++node)
@@ -408,19 +409,13 @@ void SWE<TNumNodes, TFramework>::AddConvectiveTerms(
 
         // Convective term
         rLeftHandSideMatrix += prod(trans(rVariables.N_q), convection_operator); // q * u * grad_q
-        const double vel2 = inner_prod(rVariables.velocity, rVariables.velocity);
-        const LocalMatrixType aux_convect = vel2 * prod(trans(rVariables.N_q), rVariables.DN_DX_h); // w * u * u * grad_h
-        rLeftHandSideMatrix += aux_convect;
-        rRightHandSideVector += prod(aux_convect, rVariables.unknown);
+        rLeftHandSideMatrix += rVariables.velocity_div * prod(trans(rVariables.N_q), rVariables.N_q); // q * div_u * q
 
         // Convection stabilization term
         double tau;
         this->ComputeConvectionStabilizationParameters(rVariables, tau);
         rLeftHandSideMatrix += tau * prod(trans(convection_operator), convection_operator);
-        const double vel1 = std::sqrt(vel2);
-        const LocalMatrixType aux_stab = tau * vel1 * prod(trans(convection_operator), rVariables.DN_DX_h);
-        rLeftHandSideMatrix += aux_stab;
-        rRightHandSideVector += prod(aux_stab, rVariables.unknown);
+        rLeftHandSideMatrix += tau * rVariables.velocity_div * prod(trans(convection_operator), rVariables.N_q);
     }
 }
 
@@ -431,8 +426,9 @@ void SWE<TNumNodes, TFramework>::AddWaveTerms(
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
 {
-    rLeftHandSideMatrix += rVariables.wave_vel_2 * prod(trans(rVariables.N_q), rVariables.DN_DX_h); // q * grad_h (momentum balance)
-    rLeftHandSideMatrix += outer_prod(rVariables.N_h, rVariables.DN_DX_q); // h * div_q (mass balance)
+    const double p = rVariables.porosity;
+    rLeftHandSideMatrix += p * rVariables.wave_vel_2 * prod(trans(rVariables.N_q), rVariables.DN_DX_h); // q * grad_h (momentum balance)
+    rLeftHandSideMatrix += p * outer_prod(rVariables.N_h, rVariables.DN_DX_q); // h * div_q (mass balance)
 }
 
 
@@ -442,10 +438,10 @@ void SWE<TNumNodes, TFramework>::AddFrictionTerms(
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
 {
-    const double abs_momentum = norm_2(rVariables.projected_momentum);
-    const double height73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
+    const double q = norm_2(rVariables.projected_momentum) + rVariables.epsilon;
+    const double h73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
     LocalMatrixType vector_mass_matrix = prod(trans(rVariables.N_q), rVariables.N_q);
-    rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * abs_momentum / height73 * vector_mass_matrix;
+    rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * q / h73 * vector_mass_matrix;
 }
 
 
@@ -458,10 +454,42 @@ void SWE<TNumNodes, TFramework>::AddStabilizationTerms(
     double tau_u;
     double tau_f;
     this->ComputeStabilizationParameters(rVariables, tau_u, tau_f);
+
+    // Wave term stabilization
     LocalMatrixType vector_diffusion = outer_prod(rVariables.DN_DX_q, rVariables.DN_DX_q);
     LocalMatrixType scalar_diffusion = prod(trans(rVariables.DN_DX_h), rVariables.DN_DX_h);
-    rLeftHandSideMatrix += tau_u * vector_diffusion;
-    rLeftHandSideMatrix += tau_f * scalar_diffusion;
+    const double p = rVariables.porosity;
+    rLeftHandSideMatrix += p * tau_u * vector_diffusion;
+    rLeftHandSideMatrix += p * tau_f * rVariables.wave_vel_2 * scalar_diffusion;
+
+    // Dry domain stabilization
+    LocalMatrixType vector_lumped_mass = ZeroMatrix(rVariables.LocalSize, rVariables.LocalSize);
+    for (size_t i = 0; i < TNumNodes; ++i)
+    {
+        vector_lumped_mass(  3*i,  3*i) = 1.0;
+        vector_lumped_mass(1+3*i,1+3*i) = 1.0;
+    }
+    vector_lumped_mass *= rVariables.lumping_factor;
+    rLeftHandSideMatrix += (1 - p) * rVariables.discharge_penalty * vector_lumped_mass;
+    rLeftHandSideMatrix += (1 - p) * rVariables.permeability * scalar_diffusion;
+
+    bool full_subscales = false;
+    if (full_subscales) {
+        // Friction stabilization
+        const double q = norm_2(rVariables.projected_momentum) + rVariables.epsilon;
+        const double h73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
+        LocalMatrixType friction_stab = prod(trans(rVariables.DN_DX_h), rVariables.N_q);
+        rLeftHandSideMatrix += p * tau_f * rVariables.gravity * rVariables.manning2 * q / h73 * friction_stab;
+
+        // Dynamic stabilization
+        const double dt_inv = rVariables.dt_inv;
+        LocalMatrixType vector_dyn_stab = prod(trans(rVariables.DN_DX_h), rVariables.N_q);
+        LocalMatrixType scalar_dyn_stab = outer_prod(rVariables.DN_DX_q, rVariables.N_h);
+        rLeftHandSideMatrix += p * tau_f * dt_inv * vector_dyn_stab;
+        rLeftHandSideMatrix += p * tau_f * dt_inv * scalar_dyn_stab;
+        rRightHandSideVector += p * tau_f * dt_inv * prod(vector_dyn_stab, rVariables.prev_unk);
+        rRightHandSideVector += p * tau_f * dt_inv * prod(scalar_dyn_stab, rVariables.prev_unk);
+    }
 }
 
 

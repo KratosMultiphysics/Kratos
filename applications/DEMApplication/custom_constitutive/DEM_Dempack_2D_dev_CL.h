@@ -15,7 +15,7 @@ namespace Kratos {
 
         DEM_Dempack2D_dev() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_Dempack2D_dev() {}
 

@@ -82,46 +82,9 @@ Matrix& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& rThisParameters, Mat
 const Matrix& GetDeformationGradientF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeformationGradientF();}
 Matrix& GetDeformationGradientF2(ConstitutiveLaw::Parameters& rThisParameters, Matrix& F){ return rThisParameters.GetDeformationGradientF(F);}
 
-void DeprecatedInitializeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
-                                       const Properties& rMaterialProperties,
-                                       const ConstitutiveLaw::GeometryType& rElementGeometry,
-                                       const Vector& rShapeFunctionsValues,
-                                       const ProcessInfo& rCurrentProcessInfo )
-{
-    // function wrapper to issue a deprecation-warning when called from python
-    KRATOS_WARNING_FIRST_N("ConstitutiveLaw-Python Interface", 10) << "\"InitializeSolutionStep\" "
-        << "is deprecated, please don't use it" << std::endl;
+ConstitutiveLaw::Pointer CreateWithoutProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters){ return rThisConstitutiveLaw.Create(NewParameters);}
+ConstitutiveLaw::Pointer CreateWithProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters, const Properties& rProperties){ return rThisConstitutiveLaw.Create(NewParameters, rProperties);}
 
-    KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-    rThisConstitutiveLaw.InitializeSolutionStep(rMaterialProperties,
-                                                rElementGeometry,
-                                                rShapeFunctionsValues,
-                                                rCurrentProcessInfo);
-
-    KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-}
-
-void DeprecatedFinalizeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
-                                     const Properties& rMaterialProperties,
-                                     const ConstitutiveLaw::GeometryType& rElementGeometry,
-                                     const Vector& rShapeFunctionsValues,
-                                     const ProcessInfo& rCurrentProcessInfo )
-{
-    // function wrapper to issue a deprecation-warning when called from python
-    KRATOS_WARNING_FIRST_N("ConstitutiveLaw-Python Interface", 10) << "\"FinalizeSolutionStep\" "
-        << "is deprecated, please don't use it.\nUse \"FinalizeMaterialResponse\" instead" << std::endl;
-
-    KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-
-    rThisConstitutiveLaw.FinalizeSolutionStep(rMaterialProperties,
-                                              rElementGeometry,
-                                              rShapeFunctionsValues,
-                                              rCurrentProcessInfo);
-
-   KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-}
 
 void  AddConstitutiveLawToPython(pybind11::module& m)
 {
@@ -199,7 +162,8 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
 
     py::class_< ConstitutiveLaw, ConstitutiveLaw::Pointer , Flags >(m,"ConstitutiveLaw")
     .def(py::init<>() )
-    .def("Create",&ConstitutiveLaw::Create)
+    .def("Create",CreateWithoutProperties)
+    .def("Create",CreateWithProperties)
     .def("Clone",&ConstitutiveLaw::Clone)
     .def("WorkingSpaceDimension",&ConstitutiveLaw::WorkingSpaceDimension)
     .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)
@@ -245,8 +209,6 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     .def("FinalizeMaterialResponsePK2",&ConstitutiveLaw::FinalizeMaterialResponsePK2)
     .def("FinalizeMaterialResponseKirchhoff",&ConstitutiveLaw::FinalizeMaterialResponseKirchhoff)
     .def("FinalizeMaterialResponseCauchy",&ConstitutiveLaw::FinalizeMaterialResponseCauchy)
-    .def("FinalizeSolutionStep",DeprecatedFinalizeSolutionStep)
-    .def("InitializeSolutionStep",DeprecatedInitializeSolutionStep)
     .def("InitializeMaterial",&ConstitutiveLaw::InitializeMaterial)
     .def("ResetMaterial",&ConstitutiveLaw::ResetMaterial)
     .def("TransformStrains",&ConstitutiveLaw::TransformStrains, py::return_value_policy::reference_internal)

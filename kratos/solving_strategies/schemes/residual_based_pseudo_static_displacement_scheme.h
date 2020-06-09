@@ -106,7 +106,7 @@ public:
     /**
      * @brief Default constructor. The pseudo static scheme
      */
-    explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double> RayleighBetaVariable)
+    explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double>& RayleighBetaVariable)
         :DerivedBaseType(0.0),
         mRayleighBeta(RayleighBetaVariable)
     {
@@ -352,7 +352,7 @@ protected:
         LocalSystemMatrixType& rLHSContribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         // Adding  damping contribution
@@ -366,47 +366,47 @@ protected:
 
     /**
      * @brief It adds the dynamic RHS contribution of the elements b - D*v
-     * @param pElement The element to compute
+     * @param rElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Element::Pointer pElement,
+        Element& rElement,
         LocalSystemVectorType& rRHSContribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         // Adding damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) {
-            pElement->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
+            rElement.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[mRayleighBeta];
-            pElement->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
+            rElement.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
     }
 
     /**
      * @brief It adds the dynamic RHS contribution of the condition b - M*a - D*v
-     * @param pCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param rRHSContribution The dynamic contribution for the RHS
      * @param rD The damping matrix
      * @param rM The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToRHS(
-        Condition::Pointer pCondition,
+        Condition& rCondition,
         LocalSystemVectorType& rRHSContribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
@@ -414,11 +414,11 @@ protected:
         // Adding damping contribution
         // Damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) {
-            pCondition->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
+            rCondition.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[mRayleighBeta];
-            pCondition->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
+            rCondition.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
     }

@@ -22,8 +22,6 @@
         "material_import_settings"           : {
             "materials_filename" : "cantilever_beam_material.json"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load_point", "Parts_structure"],
         "rotation_dofs"                      : false
     },
     "processes": {

@@ -21,6 +21,7 @@
 
 // Project includes
 #include "testing/test_case.h"
+#include "testing/test_skipped_exception.h"
 #include "includes/exception.h"
 
 
@@ -54,6 +55,10 @@ namespace Kratos
 				TestFunction();
 				TearDown();
 				mResult.SetToSucceed();
+			}
+			catch (TestSkippedException& e) {
+				mResult.SetToSkipped();
+				mResult.SetErrorMessage(e.what());
 			}
 			catch (Exception& e) {
 				mResult.SetToFailed();
@@ -89,6 +94,10 @@ namespace Kratos
 				mResult.SetRunElapsedTime(run_elapsed.count());
 				mResult.SetTearDownElapsedTime(tear_down_elapsed.count());
 				mResult.SetElapsedTime(elapsed.count());
+			}
+			catch (TestSkippedException& e) {
+				mResult.SetToSkipped();
+				mResult.SetErrorMessage(e.what());
 			}
 			catch (Exception& e) {
 				mResult.SetToFailed();

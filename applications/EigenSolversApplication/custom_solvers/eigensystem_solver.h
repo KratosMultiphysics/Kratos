@@ -16,13 +16,13 @@
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
-#if defined EIGEN_USE_MKL_ALL
-#include <Eigen/PardisoSupport>
-#endif
-#include <Eigen/Sparse>
 
 // Project includes
 #include "includes/define.h"
+#if defined EIGEN_USE_MKL_ALL
+#include "eigen_pardiso_ldlt_solver.h"
+#endif // defined EIGEN_USE_MKL_ALL
+#include "eigen_sparse_lu_solver.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
@@ -32,9 +32,8 @@ namespace Kratos
 {
 
 template<
-    class TSolverType,
-    class TSparseSpaceType = typename TSolverType::TGlobalSpace,
-    class TDenseSpaceType = typename TSolverType::TLocalSpace,
+    class TSparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>,
+    class TDenseSpaceType = UblasSpace<double, Matrix, Vector>,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigensystemSolver
@@ -62,6 +61,7 @@ class EigensystemSolver
             "solver_type": "eigen_eigensystem",
             "number_of_eigenvalues": 1,
             "normalize_eigenvectors": false,
+            "use_mkl_if_available": true,
             "max_iteration": 1000,
             "tolerance": 1e-6,
             "echo_level": 1
@@ -176,8 +176,19 @@ class EigensystemSolver
             r(ij, j) = 1.0;
         }
 
-        typename TSolverType::TSolver solver;
-        solver.compute(a);
+        Kratos::unique_ptr<DirectSolverWrapperBase> p_solver;
+
+        #if defined USE_EIGEN_MKL
+        if (mParam["use_mkl_if_available"].GetBool()) {
+            p_solver = Kratos::make_unique<DirectSolverWrapper<EigenPardisoLDLTSolver<double>>>();
+        } else {
+            p_solver = Kratos::make_unique<DirectSolverWrapper<EigenSparseLUSolver<double>>>();
+        }
+        #else  // defined USE_EIGEN_MKL
+        p_solver = Kratos::make_unique<DirectSolverWrapper<EigenSparseLUSolver<double>>>();
+        #endif // defined USE_EIGEN_MKL
+
+        p_solver->Compute(a);
 
         int iteration = 0;
 
@@ -190,7 +201,7 @@ class EigensystemSolver
 
             for (int j = 0; j != nc; ++j) {
                 tmp = r.col(j);
-                tt = solver.solve(tmp);
+                p_solver->Solve(tmp, tt);
 
                 for (int i = j; i != nc; ++i) {
                     ar(i, j) = r.col(i).dot(tt);
@@ -257,7 +268,8 @@ class EigensystemSolver
 
         for (int i = 0; i != nroot; ++i) {
             tmp = r.col(i);
-            eigvecs.row(i) = solver.solve(tmp).normalized();
+            p_solver->Solve(tmp, eigvecs.row(i));
+            eigvecs.row(i).normalize();
         }
 
         // --- normalization
@@ -300,6 +312,34 @@ class EigensystemSolver
     void PrintData(std::ostream &rOStream) const override
     {
     }
+
+private:
+
+    struct DirectSolverWrapperBase
+    {
+        typedef Eigen::Map<const Eigen::SparseMatrix<double, Eigen::RowMajor, int>> MatrixMapType;
+        typedef Eigen::Matrix<double, Eigen::Dynamic, 1> EigenVectorType;
+        typedef Eigen::Ref<const EigenVectorType> ConstVectorRefType;
+        typedef Eigen::Ref<EigenVectorType> VectorRefType;
+
+        virtual ~DirectSolverWrapperBase() = default;
+        virtual void Compute(MatrixMapType a) = 0;
+        virtual void Solve(ConstVectorRefType b, VectorRefType x) = 0;
+    };
+
+    template<class TSolver>
+    struct DirectSolverWrapper : DirectSolverWrapperBase
+    {
+        typedef DirectSolverWrapperBase BaseType;
+        typedef typename BaseType::MatrixMapType MatrixMapType;
+        typedef typename BaseType::VectorRefType VectorRefType;
+        typedef typename BaseType::ConstVectorRefType ConstVectorRefType;
+
+        void Compute(MatrixMapType a) override {mSolver.Compute(a);}
+        void Solve(ConstVectorRefType b, VectorRefType x) override {mSolver.Solve(b, x);}
+        private:
+            TSolver mSolver;
+    };
 
 }; // class EigensystemSolver
 

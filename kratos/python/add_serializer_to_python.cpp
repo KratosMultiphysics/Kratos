@@ -28,10 +28,10 @@
 
 namespace Kratos
 {
-    
+
 namespace Python
 {
-    
+
 namespace py = pybind11;
 
 template< class TObjectType >
@@ -46,7 +46,12 @@ void SerializerLoad(Serializer& rSerializer, std::string const & rName, TObjectT
     return rSerializer.load(rName, rObject);
 }
 
-
+template< class TObjectType >
+void SerializerLoadFromBeginning(Serializer& rSerializer, std::string const & rName, TObjectType& rObject)
+{
+    rSerializer.SetLoadState();
+    return rSerializer.load(rName, rObject);
+}
 
 void SerializerPrint(Serializer& rSerializer)
 {
@@ -69,12 +74,15 @@ void  AddSerializerToPython(pybind11::module& m)
                     return std::make_shared<FileSerializer>(FileName,rTraceType);
                 }
             )
-        ) 
+        )
     .def("Load",SerializerLoad<ModelPart>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<ModelPart>)
     .def("Save",SerializerSave<ModelPart>)
     .def("Load",SerializerLoad<Parameters>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<Parameters>)
     .def("Save",SerializerSave<Parameters>)
     .def("Load",SerializerLoad<Model>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<Model>)
     .def("Save",SerializerSave<Model>)
     .def("Print", SerializerPrint)
     ;
@@ -83,7 +91,7 @@ void  AddSerializerToPython(pybind11::module& m)
     .def(py::init<std::string const&>())
     .def(py::init<std::string const&, Serializer::TraceType>())
     ;
-    
+
     py::class_<StreamSerializer, StreamSerializer::Pointer, Serializer >(m,"StreamSerializer")
     .def(py::init<>())
     .def(py::init<std::string const&>())
@@ -105,6 +113,15 @@ void  AddSerializerToPython(pybind11::module& m)
     .def(py::init<std::string const&>())
     .def(py::init<Serializer::TraceType>())
     .def(py::init<std::string const&, Serializer::TraceType>())
+    .def(py::pickle(
+            [](MpiSerializer &self) { // __getstate__
+                return py::make_tuple(py::bytes(self.GetStringRepresentation()),self.GetTraceType());
+            },
+            [](py::tuple t) { // __setstate__, note: no `self` argument
+                return Kratos::make_shared<MpiSerializer>(t[0].cast<std::string>(), t[1].cast<Serializer::TraceType>());
+            }
+        )
+    )
     ;
 
     py::enum_<Serializer::TraceType>(m,"SerializerTraceType")

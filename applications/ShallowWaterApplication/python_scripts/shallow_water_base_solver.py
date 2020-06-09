@@ -53,9 +53,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KM.POROSITY)
-        # Projection variables
-        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
         # Auxiliary variables
         self.main_model_part.AddNodalSolutionStepVariable(KM.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
@@ -134,13 +131,13 @@ class ShallowWaterBaseSolver(PythonSolver):
         # self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
         #                                                                                      domain_size+1) # BlockSize
 
-        builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
         self.solver = KM.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
                                                             self.time_scheme,
                                                             self.linear_solver,
                                                             self.conv_criteria,
-                                                            builder_and_solver,
+                                                            self.builder_and_solver,
                                                             self.settings["maximum_iterations"].GetInt(),
                                                             self.settings["compute_reactions"].GetBool(),
                                                             self.settings["reform_dofs_at_each_step"].GetBool(),

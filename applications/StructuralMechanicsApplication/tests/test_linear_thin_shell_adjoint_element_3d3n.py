@@ -65,8 +65,8 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
         self._assign_solution_step_data(0)
 
-        self.shell_element.Initialize()
-        self.adjoint_shell_element.Initialize()
+        self.shell_element.Initialize(self.model_part.ProcessInfo)
+        self.adjoint_shell_element.Initialize(self.model_part.ProcessInfo)
 
     def _create_shape_perturbed_elements(self,mp,delta):
         dim=3
@@ -109,7 +109,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.model_part_1.CreateNewElement("ShellThinElement3D3N", 9, [1, 5, 12], prop)
 
         for element in self.model_part_1.Elements:
-            element.Initialize()
+            element.Initialize(self.model_part.ProcessInfo)
 
         index = 1
         for i in range(3):
@@ -136,7 +136,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         for i in range(3):
             copy_solution_step_data_of_node(self.model_part_2.Nodes[i+1], self.model_part, i+1, 0)
 
-        self.property_perturbed_shell_element.Initialize()
+        self.property_perturbed_shell_element.Initialize(self.model_part.ProcessInfo)
 
     def _assign_solution_step_data(self, step=0):
         # generate nodal solution step test data
@@ -177,13 +177,6 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         l = l/3
         return l
 
-    def _assert_matrix_almost_equal(self, matrix1, matrix2, prec=4):
-        self.assertEqual(matrix1.Size1(), matrix2.Size1())
-        self.assertEqual(matrix1.Size2(), matrix2.Size2())
-        for i in range(matrix1.Size1()):
-            for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
-
     def test_CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
@@ -213,7 +206,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
         self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
+        self.assertMatrixAlmostEqual(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
     def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
@@ -241,7 +234,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
         self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.THICKNESS, PseudoLoadMatrix, self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
+        self.assertMatrixAlmostEqual(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
 if __name__ == '__main__':
     KratosUnittest.main()

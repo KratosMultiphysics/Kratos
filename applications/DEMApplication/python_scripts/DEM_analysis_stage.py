@@ -74,6 +74,10 @@ class DEMAnalysisStage(AnalysisStage):
         self.FixParametersInconsistencies()
 
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
+        if not "WriteMdpaFromResults" in self.DEM_parameters.keys():
+            self.write_mdpa_from_results = False
+        else:
+            self.write_mdpa_from_results = self.DEM_parameters["WriteMdpaFromResults"].GetBool()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
@@ -320,6 +324,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
 
+        self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
+
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
 
@@ -478,13 +484,6 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInitialNodalValues(self):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
-    def InitializeTimeStep(self): # deprecated
-        message = 'Warning!'
-        message += '\nFunction \'InitializeTimeStep\' is deprecated.'
-        message += '\nIt will be removed after 09/28/2019.\n'
-        Logger.PrintWarning("DEM_analysis_stage.py", message)
-        self.InitializeSolutionStep()
-
     def InitializeSolutionStep(self):
         super(DEMAnalysisStage, self).InitializeSolutionStep()
         if self.post_normal_impact_velocity_option:
@@ -493,17 +492,13 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
 
-    def _BeforeSolveOperations(self, time):
-        message = 'Warning!'
-        message += '\nFunction \'_BeforeSolveOperations\' is deprecated.'
-        message += '\nIt will be removed after 09/28/2019.\n'
-        Logger.PrintWarning("DEM_analysis_stage.py", message)
+        if self.DEM_parameters["Dimension"].GetInt() == 2:
+            self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
+            if not self.DEM_parameters["ImposeZStrainIn2DWithControlModule"].GetBool():
+                if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
+                    t = self.time
+                    self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
-        if self.post_normal_impact_velocity_option:
-            if self.IsCountStep():
-                self.FillAnalyticSubModelPartsWithNewParticles()
-        if self.DEM_parameters["ContactMeshOption"].GetBool():
-            self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
 
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
         self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)
@@ -554,12 +549,10 @@ class DEMAnalysisStage(AnalysisStage):
             if output_process.IsOutputStep():
                 output_process.PrintOutput()
 
-        self.FinalizeTimeStep(self.time)
-
     def AfterSolveOperations(self):
         message = 'Warning!'
         message += '\nFunction \'AfterSolveOperations\' is deprecated.'
-        message += '\nIt will be removed after 09/28/2019.\n'
+        message += '\nIt will be removed after 10/31/2019.\n'
         Logger.PrintWarning("DEM_analysis_stage.py", message)
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
@@ -570,8 +563,6 @@ class DEMAnalysisStage(AnalysisStage):
         #Phantom Walls
         self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
 
-    def FinalizeTimeStep(self, time):
-        pass
 
     def BreakSolutionStepsLoop(self):
         return False
@@ -589,15 +580,21 @@ class DEMAnalysisStage(AnalysisStage):
         self.model.DeleteModelPart(self.spheres_model_part.Name)
 
     def Finalize(self):
-
         self.KratosPrintInfo("Finalizing execution...")
+        super(DEMAnalysisStage, self).Finalize()
         if self.do_print_results_option:
             self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
+
+        self.AdditionalFinalizeOperations()
+
         self.CleanUpOperations()
+
+    def AdditionalFinalizeOperations(self):
+        pass
 
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)
@@ -664,6 +661,9 @@ class DEMAnalysisStage(AnalysisStage):
             if self.DEM_parameters["post_vtk_option"].GetBool():
                 self.vtk_output.WriteResults(self.time)
 
+        self.file_msh = self.demio.GetMultiFileListName(self.problem_name + "_" + "%.12g"%time + ".post.msh")
+        self.file_res = self.demio.GetMultiFileListName(self.problem_name + "_" + "%.12g"%time + ".post.res")
+
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
@@ -677,7 +677,7 @@ class DEMAnalysisStage(AnalysisStage):
     def FinalizeSingleTimeStep(self):
         message = 'Warning!'
         message += '\nFunction \'FinalizeSingleTimeStep\' is deprecated. Use FinalizeSolutionStep instead.'
-        message += '\nIt will be removed after 10/15/2019.\n'
+        message += '\nIt will be removed after 10/31/2019.\n'
         Logger.PrintWarning("DEM_analysis_stage.py", message)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -701,8 +701,6 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self._GetSolver().dt:
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
-        self.FinalizeTimeStep(self.time)
-
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:

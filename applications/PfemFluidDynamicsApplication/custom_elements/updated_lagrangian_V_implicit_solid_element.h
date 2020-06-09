@@ -101,6 +101,12 @@ public:
 
   typedef typename BaseType::ElementalVariables ElementalVariables;
 
+  ///Reference type definition for constitutive laws
+  typedef ConstitutiveLaw ConstitutiveLawType;
+
+  ///Pointer type for constitutive laws
+  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -274,6 +280,8 @@ protected:
   ///@name Protected member Variables
   ///@{
 
+  ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -295,9 +303,9 @@ protected:
   /* 				const ShapeFunctionDerivativesType& rDN_DX, */
   /* 				unsigned int g); */
 
-  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
-                                        double TimeStep,
-                                        unsigned int g) override;
+  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
+                                        const ProcessInfo &rCurrentProcessInfo, double &Density,
+                                        double &DeviatoricCoeff, double &VolumetricCoeff) override;
 
   double GetThetaMomentum() override { return 1.0; };
 
@@ -317,7 +325,7 @@ protected:
 
   ///@}
 
-private:
+ private:
   ///@name Static Member Variables
   ///@{
 

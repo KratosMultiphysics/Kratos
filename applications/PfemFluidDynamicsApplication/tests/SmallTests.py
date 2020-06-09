@@ -21,8 +21,7 @@ def SetTestSuite(suites):
 
     small_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-           MuIrheology_Dam_Break_2D_Test,
-           Water_Sloshing_2D_Test
+           MuIrheology_Dam_Break_2D_Test
         ])
     )
 

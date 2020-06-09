@@ -28,7 +28,7 @@ std::size_t ComputePenaltyFrictionlessActiveSet(ModelPart& rModelPart)
     IndexType is_converged = 0;
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
@@ -85,7 +85,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
     std::size_t& is_converged_1 = is_converged[1];
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
@@ -186,7 +186,7 @@ std::size_t ComputeALMFrictionlessActiveSet(ModelPart& rModelPart)
     IndexType is_converged = 0;
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
@@ -233,7 +233,7 @@ std::size_t ComputeALMFrictionlessComponentsActiveSet(ModelPart& rModelPart)
     IndexType is_converged = 0;
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
@@ -297,7 +297,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
     std::size_t& is_converged_1 = is_converged[1];
 
     // We get the process info
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {

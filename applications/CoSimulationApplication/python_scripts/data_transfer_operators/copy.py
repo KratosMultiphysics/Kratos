@@ -7,25 +7,25 @@ def Create(settings):
     return CopyDataTransferOperator(settings)
 
 class CopyDataTransferOperator(CoSimulationDataTransferOperator):
-    def TransferData(self, from_solver_data, to_solver_data, transfer_options):
-        self._CheckAvailabilityTransferOptions(transfer_options)
-
+    """DataTransferOperator that copies values from one interface to another, without any checks
+    """
+    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         from_solver_data_size = from_solver_data.Size()
         to_solver_data_size = to_solver_data.Size()
         if not from_solver_data_size == to_solver_data_size:
-            raise Exception('The sizes of the data are not matching: {} != {}!'.format(from_solver_data_size, to_solver_data_size))
+            raise Exception('The sizes of the data are not matching: {} != {} for interface data "{}" of solver "{}" and interface data "{}" of solver "{}"!'.format(from_solver_data_size, to_solver_data_size, from_solver_data.name, from_solver_data.solver_name, to_solver_data.name, to_solver_data.solver_name))
 
         from_solver_data_array = from_solver_data.GetData()
 
         transfer_options_list = transfer_options.GetStringArray()
 
+        # the order is IMPORTANT here!
         if "swap_sign" in transfer_options_list:
             from_solver_data_array *= (-1)
+        if "add_values" in transfer_options.GetStringArray():
+            from_solver_data_array += to_solver_data.GetData()
 
-        if "add_values" in transfer_options_list:
-            to_solver_data.SetData(to_solver_data.GetData() + from_solver_data_array)
-        else:
-            to_solver_data.SetData(from_solver_data_array)
+        to_solver_data.SetData(from_solver_data_array)
 
     @classmethod
     def _GetListAvailableTransferOptions(cls):

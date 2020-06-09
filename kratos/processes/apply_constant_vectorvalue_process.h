@@ -129,7 +129,7 @@ public:
         {
             KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name);
         }
-        Variable<array_1d<double,3> > rVariable = KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name);
+        const Variable<array_1d<double,3> >& rVariable = KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name);
        
         
         if(mmesh_id >= model_part.NumberOfMeshes())
@@ -148,7 +148,7 @@ public:
             KRATOS_THROW_ERROR(std::runtime_error,"Direction vector is expected to have size 3. Direction vector currently passed",mdirection);
         }
             
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+        typedef Variable<double> component_type;
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_X")) == false)
         {
             KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_X"));
@@ -207,7 +207,7 @@ public:
             KRATOS_THROW_ERROR(std::runtime_error,"Direction vector is expected to have size 3. Direction vector currently passed",mdirection);
         }
             
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+        typedef Variable<double> component_type;
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_X")) == false)
         {
             KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_X"));
@@ -255,7 +255,7 @@ public:
     {       
         //compute the value to be applied
         array_1d<double,3> value = mmodulus*mdirection;
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+        typedef Variable<double> component_type;
         
         component_type varx = KratosComponents< component_type >::Get(mvariable_name+std::string("_X"));
         component_type vary = KratosComponents< component_type >::Get(mvariable_name+std::string("_Y"));

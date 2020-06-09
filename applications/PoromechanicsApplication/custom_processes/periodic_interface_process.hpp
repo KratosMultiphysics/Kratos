@@ -11,7 +11,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp" //from SolidMechanics
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "utilities/math_utils.h"
 
 #include "poromechanics_application_variables.h"

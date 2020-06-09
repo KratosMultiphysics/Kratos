@@ -730,7 +730,7 @@ public:
         int nint = 0;
         int aux[6];
 
-        ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
         PointerVector< Element > Old_Elements;
 
         unsigned int current_id = (this_model_part.Elements().end() - 1)->Id() + 1;
@@ -766,7 +766,7 @@ public:
                     Element::Pointer p_element;
                     p_element = it->Create(current_id, geom, it->pGetProperties());
                     p_element->SetFlags(*it);
-                    p_element->Initialize();
+                    p_element->Initialize(rCurrentProcessInfo);
                     p_element->InitializeSolutionStep(rCurrentProcessInfo);
                     p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -985,10 +985,10 @@ protected:
     void InterpolateInternalVariables(const int& nel,
                                       const Element::Pointer father_elem,
                                       Element::Pointer child_elem,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo)
     {
         std::vector<Vector> values;
-        father_elem->GetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        father_elem->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
         /* /// WARNING =  Calculando la longitud ponderada de fractura del elemento. Solo valido para isotropic_damage
          Element::GeometryType& geom_father = father_elem->GetGeometry();
          Element::GeometryType& geom_child  = child_elem->GetGeometry();
@@ -996,7 +996,7 @@ protected:
          double area_child  = geom_child.Area();
          values[0][4]       = (area_child/area_father) * values[0][4];
          */
-        child_elem->SetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        child_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
 
     }
 
@@ -1050,7 +1050,7 @@ protected:
             unsigned int current_id = local_existing_elements + 1;
             bool create_element = false;
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
             int edge_ids[6];
             int t[56];
             for (unsigned int i = 0; i < 56; i++)
@@ -1132,7 +1132,7 @@ protected:
 
                         //generate new element by cloning the base one
                         Element::Pointer p_element = it->Create(current_id, geom, it->pGetProperties());
-                        p_element->Initialize();
+                        p_element->Initialize(rCurrentProcessInfo);
                         p_element->InitializeSolutionStep(rCurrentProcessInfo);
                         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
                         New_Elements.push_back(p_element);
@@ -1331,7 +1331,7 @@ protected:
             int nint = 0;
             int aux[6];
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
             PointerVector< Condition > Old_Conditions;
 
             unsigned int current_id = (this_model_part.Conditions().end() - 1)->Id() + 1;
@@ -1369,7 +1369,7 @@ protected:
                         Condition::Pointer p_Condition;
                         p_Condition = it->Create(current_id, geom, it->pGetProperties());
                         p_Condition->SetFlags(*it);
-                        p_Condition->Initialize();
+                        p_Condition->Initialize(rCurrentProcessInfo);
                         p_Condition->InitializeSolutionStep(rCurrentProcessInfo);
                         p_Condition->FinalizeSolutionStep(rCurrentProcessInfo);
 

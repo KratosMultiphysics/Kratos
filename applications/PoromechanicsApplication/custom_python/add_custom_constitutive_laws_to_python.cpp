@@ -18,6 +18,8 @@
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_3D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_2D_law.hpp"
+#include "custom_constitutive/simplified_bilinear_3D_law.hpp"
+#include "custom_constitutive/simplified_bilinear_2D_law.hpp"
 
 #include "custom_constitutive/simo_ju_local_damage_3D_law.hpp"
 #include "custom_constitutive/simo_ju_local_damage_plane_strain_2D_law.hpp"
@@ -33,6 +35,11 @@
 #include "custom_constitutive/history_linear_elastic_3D_law.hpp"
 #include "custom_constitutive/history_linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/history_linear_elastic_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
@@ -55,6 +62,25 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( py::init<>() );
     py::class_< ExponentialCohesive2DLaw, ExponentialCohesive2DLaw::Pointer, ConstitutiveLaw >
     (m, "ExponentialCohesive2DLaw")
+    .def( py::init<>() );
+    py::class_< SimplifiedBilinear3DLaw, SimplifiedBilinear3DLaw::Pointer, ConstitutiveLaw >
+    (m, "SimplifiedBilinear3DLaw")
+    .def( py::init<>() );
+    py::class_< SimplifiedBilinear2DLaw, SimplifiedBilinear2DLaw::Pointer, ConstitutiveLaw >
+    (m, "SimplifiedBilinear2DLaw")
+    .def( py::init<>() );
+
+    py::class_< LinearElastic3DLaw, LinearElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticSolid3DLaw")
+    .def( py::init<>() );
+    py::class_< LinearElasticPlaneStrain2DLaw, LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStrainSolid2DLaw")
+    .def(py::init<>() );
+    py::class_< LinearElasticPlaneStress2DLaw, LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStressSolid2DLaw")
+    .def(py::init<>() );
+    py::class_< HyperElastic3DLaw, HyperElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticSolid3DLaw")
     .def( py::init<>() );
 
     py::class_< SimoJuLocalDamage3DLaw, SimoJuLocalDamage3DLaw::Pointer, ConstitutiveLaw >

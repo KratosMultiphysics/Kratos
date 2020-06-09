@@ -72,8 +72,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         if(settings.Has("tolerance")):
             tolerance = settings["tolerance"].GetDouble()
 
-
-        nproc = KratosMultiphysics.mpi.mpi.size
+        nproc = KratosMultiphysics.DataCommunicator.GetDefault().Size()
         target_norm = tolerance*space.TwoNorm(pboriginal.GetReference())*nproc #multiplying by nproc the target tolerance to give some slack. Not really nice :-(
 
         if(achieved_norm > target_norm):

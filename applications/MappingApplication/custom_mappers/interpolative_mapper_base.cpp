@@ -26,7 +26,7 @@
 #include "input_output/vtk_output.h"
 #include "utilities/variable_utils.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "custom_searching/interface_communicator_mpi.h"
+#include "custom_searching/mpi/interface_communicator_mpi.h"
 #endif
 
 namespace Kratos {
@@ -231,11 +231,7 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::PrintPairingInfo(const 
             "output_control_type"                : "step",
             "custom_name_prefix"                 : "",
             "save_output_files_in_folder"        : false,
-            "nodal_solution_step_data_variables" : [],
-            "nodal_data_value_variables"         : ["PAIRING_STATUS"],
-            "element_data_value_variables"       : [],
-            "condition_data_value_variables"     : [],
-            "gauss_point_variables"              : []
+            "nodal_data_value_variables"         : ["PAIRING_STATUS"]
         })");
 
         vtk_params["custom_name_prefix"].SetString(prefix);

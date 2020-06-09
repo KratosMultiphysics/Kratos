@@ -1,8 +1,4 @@
 Begin Properties 1
- DENSITY 1
- YOUNG_MODULUS 1
- THICKNESS 1
- POISSON_RATIO 1
 End Properties
 
 Begin Nodes

@@ -1,0 +1,158 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Spring_structure",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "solver_settings"             : {
+        "solver_type"             : "adjoint_static",
+        "analysis_type"           : "linear",
+        "model_part_name"         : "Structure",
+        "domain_size"             : 3,
+        "time_stepping"           : {
+            "time_step"           : 1.1
+        },
+        "compute_reactions"       : false,
+        "move_mesh_flag"          : false,
+        "echo_level"              : 0,
+        "rotation_dofs"           : true,
+        "model_import_settings"   : {
+            "input_type"          : "mdpa",
+            "input_filename"      : "adjoint_sensitivity_analysis_tests/adjoint_spring_damper_element_3d2n/Spring_structure"
+        },
+        "response_function_settings" : {
+            "response_type"       : "adjoint_nodal_displacement",
+            "analyzer"            : "kratos",
+            "gradient_mode"       : "semi_analytic",
+            "step_size"           : 1.0e-6,
+            "adapt_step_size"     : true,
+            "traced_node_id"      : 2,
+            "traced_dof"          : "DISPLACEMENT_Z"
+        },
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name" :"Parts_spring",
+            "nodal_solution_step_sensitivity_variables"  : [],
+            "element_data_value_sensitivity_variables"   : ["NODAL_DISPLACEMENT_STIFFNESS"],
+            "condition_data_value_sensitivity_variables" : [],
+            "build_mode": "static"
+        }
+    },
+    "processes" : {
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.DISPLACEMENT_X_Y_Z_support",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+    {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.DISPLACEMENT_X_Y_support",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
+            "constrained"     : [true,true,false],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+    {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.ROTATION_X_Y_Z_support",
+            "variable_name"   : "ADJOINT_ROTATION",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }
+    ],
+    "loads_process_list"       : [{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "check"                 : "DirectorVectorNonZero direction",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.PointLoad3D_load",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         :  1,
+            "direction"       : [0.0,0.0,1.0]
+        }
+    }],
+    "list_other_processes" :[{
+        "python_module"   : "assign_vector_variable_to_elements_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignVectorVariableToElementProcess",
+        "Parameters"            : {
+            "model_part_name"   : "Structure.Parts_spring",
+            "variable_name"     : "NODAL_DISPLACEMENT_STIFFNESS",
+            "value"             : [0.0,0.0,10.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+    {
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_temporal_input_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+            "model_part_name" : "Structure",
+            "file_settings" : {
+                "file_access_mode" : "read_only"
+            },
+            "nodal_solution_step_data_settings" : {
+                "list_of_variables": ["DISPLACEMENT", "ROTATION"]
+            }
+        }
+    }],
+    "json_check_process":[{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["ADJOINT_DISPLACEMENT"],
+                "gauss_points_check_variables" : ["NODAL_DISPLACEMENT_STIFFNESS_SENSITIVITY"],
+                "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_spring_damper_element_3d2n/spring_structure_adjoint_results.json",
+                "model_part_name"  : "Structure",
+                "tolerance"            : 1e-5,
+                "time_frequency"   : -2.0
+            }
+        }]
+    },
+     "_json_output_process" : [
+        {
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables" : ["ADJOINT_DISPLACEMENT"],
+                "gauss_points_output_variables" : ["NODAL_DISPLACEMENT_STIFFNESS_SENSITIVITY"],
+                "output_file_name" : "spring_structure_adjoint_results.json",
+                "model_part_name"  : "Structure",
+                "time_frequency"   : -2.0
+            }
+        }]
+}
+
+
+

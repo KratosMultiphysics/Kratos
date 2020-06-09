@@ -63,6 +63,16 @@ public:
     DistributedTestCase& operator=(DistributedTestCase const& rOther) = delete;
 
     ///@}
+    ///@name Operations
+    ///@{
+
+    void Run() override;
+
+
+    void Profile() override;
+
+
+    ///@}
     ///@name Inquiry
     ///@{
 
@@ -75,6 +85,13 @@ public:
 
     /// Turn back information as a string.
     std::string Info() const override;
+
+    ///@}
+private:
+    ///@name Private Operations
+    ///@{
+
+    void CheckRemoteFailure();
 
     ///@}
 };

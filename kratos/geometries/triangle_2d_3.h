@@ -691,6 +691,22 @@ public:
     }
 
     /**
+     * @brief It returns a vector that is normal to its corresponding geometry in the given local point
+     * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
+     * @return The normal in the given point
+     */
+    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const override
+    {
+        const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
+        const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
+
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+
+        return 0.5 * normal;
+    }
+
+    /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates

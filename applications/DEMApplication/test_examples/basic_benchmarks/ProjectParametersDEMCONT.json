@@ -43,16 +43,17 @@
 "FinalTime"                        : 0.01,
 "ControlTime"                      : 100.0,
 "NeighbourSearchFrequency"         : 1000,
-
-"TestType"                         : "None",
-"ConfinementPressure"              : 0.0,
-"LoadingVelocityTop"               : 0.0,
-"LoadingVelocityBot"               : 0.0,
-"MeshType"                         : "Current",
-"MeshPath"                         : "0",
-"SpecimenLength"                   : 0.30,
-"SpecimenDiameter"                 : 0.15,
-"MeasuringSurface"                 : 0.01767145867644375,
+"material_test_settings": {
+    "TestType"                         : "None",
+    "ConfinementPressure"              : 0.0,
+    "LoadingVelocityTop"               : 0.0,
+    "LoadingVelocityBot"               : 0.0,
+    "MeshType"                         : "Current",
+    "MeshPath"                         : "0",
+    "SpecimenLength"                   : 0.30,
+    "SpecimenDiameter"                 : 0.15,
+    "MeasuringSurface"                 : 0.01767145867644375
+},
 "MaxAmplificationRatioOfSearchRadius" : 1000,
 
 "ElementType"                      : "SphericContPartDEMElement3D",

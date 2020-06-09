@@ -31,7 +31,7 @@
 /* QUADRILATERALS */
 #include "geometries/quadrilateral_3d_4.h"
 
-// /* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
+// /* The integration points (we clip triangles in 3D, so with line and triangle is enough)*/
 // #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 
@@ -155,11 +155,13 @@ public:
         const SizeType IntegrationOrder = 0,
         const double DistanceThreshold = std::numeric_limits<double>::max(),
         const SizeType EchoLevel = 0,
-        const double ZeroToleranceFactor = 1.0
+        const double ZeroToleranceFactor = 1.0,
+        const bool ConsiderDelaunator = false
         ) :mIntegrationOrder(IntegrationOrder),
            mDistanceThreshold(DistanceThreshold),
            mEchoLevel(EchoLevel),
-           mZeroToleranceFactor(ZeroToleranceFactor)
+           mZeroToleranceFactor(ZeroToleranceFactor),
+           mConsiderDelaunator(ConsiderDelaunator)
     {
         GetIntegrationMethod();
     }
@@ -265,76 +267,12 @@ public:
     /**
      * @brief This method is used for debugging purposes. Generates a GiD mesh to check
      * @param rMainModelPart The main model part
+     * @param IOConsidered The IO considered
      */
-    void TestGiDDebug(ModelPart& rMainModelPart);
-
-    /**
-    * @brief This method is used for debugging purposes. Generates a mesh of Mathematica
-    * @param IndexSlave The index of the slave geometry
-    * @param rSlaveGeometry The slave geometry
-    * @param IndexMaster The index of the master geometry
-    * @param rMasterGeometry The master geometry
-    * @param rConditionsPointSlave The triangular decomposition
-    */
-    static inline void MathematicaDebug(
-        const IndexType IndexSlave,
-        const GeometryType& rSlaveGeometry,
-        const IndexType IndexMaster,
-        const GeometryType& rMasterGeometry,
-        ConditionArrayListType& rConditionsPointSlave
-        )
-    {
-        typedef Triangle3D3<PointType> TriangleType;
-
-        std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{";
-
-        for (IndexType i = 0; i < TNumNodes; ++i) {
-            std::cout << rSlaveGeometry[i].X() << "," << rSlaveGeometry[i].Y() << "," << rSlaveGeometry[i].Z();
-
-            if (i < TNumNodes - 1)
-                std::cout << "},{";
-        }
-        std::cout << "}}],Text[Style[" << IndexSlave << ", Tiny],{"
-                  << rSlaveGeometry.Center().X() << ","
-                  << rSlaveGeometry.Center().Y() << ","
-                  << rSlaveGeometry.Center().Z() << "}]}],";  // << std::endl;
-
-        std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{";
-
-        for (IndexType i = 0; i < TNumNodes; ++i) {
-            std::cout << rMasterGeometry[i].X() << "," << rMasterGeometry[i].Y()  << "," << rMasterGeometry[i].Z();
-
-            if (i < TNumNodes - 1)
-                std::cout << "},{";
-        }
-
-        std::cout << "}}],Text[Style[" << IndexMaster << ", Tiny],{"
-                  << rMasterGeometry.Center().X() << ","
-                  << rMasterGeometry.Center().Y() << ","
-                  << rMasterGeometry.Center().Z() << "}]}],";  // << std::endl;
-
-        for (IndexType i_geom = 0; i_geom < rConditionsPointSlave.size(); ++i_geom) {
-            std::vector<PointType::Pointer> points_array(3);  // The points are stored as local coordinates, we calculate the global coordinates of this points
-            for (IndexType i_node = 0; i_node < 3; ++i_node) {
-                PointType global_point;
-                rSlaveGeometry.GlobalCoordinates(global_point, rConditionsPointSlave[i_geom][i_node]);
-                points_array[i_node] = Kratos::make_shared<PointType>(global_point);
-            }
-
-            TriangleType decomp_geom(TriangleType::PointsArrayType{points_array});
-
-            std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{";
-            for (IndexType i = 0; i < 3; ++i) {
-                std::cout << std::setprecision(16) << decomp_geom[i].X() << "," << decomp_geom[i].Y() << "," << decomp_geom[i].Z();
-
-                if (i < 2)
-                    std::cout << "},{";
-            }
-            std::cout << "}}]}],";  // << std::endl;
-        }
-
-        std::cout << std::endl;
-    }
+    void TestIODebug(
+        ModelPart& rMainModelPart,
+        const std::string IOConsidered = "GiD"
+        );
 
     ///@}
     ///@name  Access
@@ -749,11 +687,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mIntegrationOrder;        /// The integration order to consider
-    double mDistanceThreshold;         /// The distance where we directly  consider out of integration limits
-    SizeType mEchoLevel;               /// The echo level considered
-    double mZeroToleranceFactor;       /// The zero tolerance factor considered
+    SizeType mIntegrationOrder;              /// The integration order to consider
+    double mDistanceThreshold;               /// The distance where we directly  consider out of integration limits
+    SizeType mEchoLevel;                     /// The echo level considered
+    double mZeroToleranceFactor;             /// The zero tolerance factor considered
     IntegrationMethod mAuxIntegrationMethod; /// The auxiliar list of Gauss Points taken from the geometry
+    bool mConsiderDelaunator;                /// If consider the DelaunatorUtilities in 3D in order to construct the triangles
 
     ///@}
     ///@name Private Operators

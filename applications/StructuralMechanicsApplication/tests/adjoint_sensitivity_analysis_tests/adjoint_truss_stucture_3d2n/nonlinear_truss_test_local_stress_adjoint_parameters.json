@@ -35,19 +35,13 @@
                 "build_mode": "static"
             },
         "echo_level"                   : 0,
-        "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN","Structure"],
-        "computing_model_part_name" : "computing_domain",
-        "rotation_dofs"                      : false,
-        "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
-        },
+        "rotation_dofs"                : false,
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "nonlinear_truss_structure"
+            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/nonlinear_truss_structure"
         },
         "material_import_settings" :{
-            "materials_filename": "StructuralMaterials.json"
+            "materials_filename": "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/StructuralMaterials.json"
         }
     },
     "processes" : {
@@ -57,7 +51,7 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_BC_DIRICHLET_X_Y_Z",
+            "model_part_name" : "Structure.DISPLACEMENT_BC_DIRICHLET_X_Y_Z",
             "variable_name"   : "ADJOINT_DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -70,7 +64,7 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_BC_DIRICHLET_Z",
+            "model_part_name" : "Structure.DISPLACEMENT_BC_DIRICHLET_Z",
             "variable_name"   : "ADJOINT_DISPLACEMENT",
             "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -85,7 +79,7 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "model_part_name" : "PointLoad3D_BC_NEUMANN",
+            "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 40.0,
             "direction"       : [0.0,-1.0,0.0],
@@ -116,7 +110,7 @@
             "Parameters"            : {
                 "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
                 "gauss_points_check_variables" : ["CROSS_AREA_SENSITIVITY"],
-                "input_file_name"  : "nonlinear_truss_test_local_stress_results.json",
+                "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/nonlinear_truss_test_local_stress_results.json",
                 "model_part_name"  : "Structure",
                 "tolerance"            : 1e-4,
                 "time_frequency"   : -2.0

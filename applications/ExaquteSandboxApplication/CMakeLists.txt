@@ -16,6 +16,7 @@ set( KRATOS_EXAQUTE_SANDBOX_APPLICATION_SOURCES
     # processes
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/weighted_divergence_calculation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_divergencefree_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calculate_divergence_process.cpp
 )
 
 ## define python interface sources
@@ -38,13 +39,6 @@ pybind11_add_module(KratosExaquteSandboxApplication MODULE THIN_LTO ${KRATOS_EXA
 target_link_libraries(KratosExaquteSandboxApplication PRIVATE KratosExaquteSandboxCore )
 set_target_properties(KratosExaquteSandboxApplication PROPERTIES PREFIX "")
 
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosExaquteSandboxApplication)
-endif(USE_COTIRE MATCHES ON)
-
-install(TARGETS KratosExaquteSandboxCore DESTINATION libs )
-install(TARGETS KratosExaquteSandboxApplication DESTINATION libs )
-
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosExaquteSandboxApplication PROPERTIES SUFFIX .pyd)
@@ -55,11 +49,30 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosExaquteSandboxApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# install the python files
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Cotire
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosExaquteSandboxApplication)
+endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ExaquteSandboxApplication.py" DESTINATION "KratosMultiphysics/ExaquteSandboxApplication" RENAME "__init__.py")
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ExaquteSandboxApplication.py KratosMultiphysics/ExaquteSandboxApplication/__init__.py )
+
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+# Install targets
+install(TARGETS KratosExaquteSandboxCore DESTINATION libs )
+install(TARGETS KratosExaquteSandboxApplication DESTINATION libs )

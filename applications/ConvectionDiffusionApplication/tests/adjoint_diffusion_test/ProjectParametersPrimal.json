@@ -71,16 +71,6 @@
                 "value"           : 0.0,
                 "constrained"     : false
             }
-        },{
-            "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignScalarVariableProcess",
-            "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.Parts_solid",
-                "variable_name"   : "HEAT_FLUX",
-                "value"           : 0.0,
-                "constrained"     : false
-            }
         }]
     },
     "output_processes" : {

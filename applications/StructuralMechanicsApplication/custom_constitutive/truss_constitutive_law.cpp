@@ -134,7 +134,7 @@ void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     Vector& stress_vector = rValues.GetStressVector();
     if (stress_vector.size() != 1) stress_vector.resize(1, false);
-    stress_vector[0] = rValues.GetMaterialProperties()[YOUNG_MODULUS]*rValues.GetStrainVector()[0];
+    stress_vector[0] = this->CalculateStressElastic(rValues);
 }
 //************************************************************************************
 //************************************************************************************
@@ -159,7 +159,7 @@ int TrussConstitutiveLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
+    KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] < 0.00)
      << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
 
     KRATOS_ERROR_IF(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.00)

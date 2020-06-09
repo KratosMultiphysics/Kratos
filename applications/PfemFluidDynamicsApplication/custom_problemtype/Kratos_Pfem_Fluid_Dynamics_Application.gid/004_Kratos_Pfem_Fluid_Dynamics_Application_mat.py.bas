@@ -1,7 +1,6 @@
 
 # Importing the Kratos Library
 from KratosMultiphysics import **
-from KratosMultiphysics.SolidMechanicsApplication import **
 from KratosMultiphysics.PfemFluidDynamicsApplication import **
 from beam_sections_python_utility import SetProperties
 

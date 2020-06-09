@@ -24,7 +24,7 @@
 #include "utilities/math_utils.h"
 #include "includes/convection_diffusion_settings.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 
 // Application includes
 #include "fluid_transport_application_variables.h"
@@ -115,7 +115,11 @@ protected:
         double lv;
         double lsc;
         double OmegaV;
+        double OmegaVt;
+        double OmegaVBarra;
         double SigmaV;
+        double SigmaVt;
+        double SigmaVBarra;
         double LambdaV;
         double XiV;
         double Residual;

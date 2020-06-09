@@ -39,6 +39,13 @@ class Communicator:
         self.__deleteAllReportedValues()
 
     # --------------------------------------------------------------------------
+    def updateRequest(self, response_id, **kwargs):
+        if "request_value" in kwargs.keys():
+            self.list_of_requests[response_id]["calculateValue"] = kwargs["request_value"]
+        if "request_gradient" in kwargs.keys():
+            self.list_of_requests[response_id]["calculateGradient"] = kwargs["request_gradient"]
+
+    # --------------------------------------------------------------------------
     def requestValueOf(self, response_id):
         self.list_of_requests[response_id]["calculateValue"] = True
 

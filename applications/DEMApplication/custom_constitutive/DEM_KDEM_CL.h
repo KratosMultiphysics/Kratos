@@ -16,7 +16,7 @@ namespace Kratos {
         DEM_KDEM() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
         void Check(Properties::Pointer pProp) const override;
 
         ~DEM_KDEM() {
@@ -24,8 +24,8 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
-        double CalculateContactArea(double radius, double other_radius, Vector& v) override;
+        virtual void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
+        virtual double CalculateContactArea(double radius, double other_radius, Vector& v) override;
         void GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                        double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
@@ -79,10 +79,10 @@ namespace Kratos {
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
-                int time_steps) override;
+                int time_steps,
+            const ProcessInfo& r_process_info) override;
 
-
-
+        double GetContactSigmaMax(SphericContinuumParticle* element);
 
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
@@ -139,6 +139,9 @@ namespace Kratos {
                                     double& normal_force,
                                     double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor, SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) override;
+
+        virtual void AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor);
+
     protected:
 
         virtual double GetTauZero(SphericContinuumParticle* element1);

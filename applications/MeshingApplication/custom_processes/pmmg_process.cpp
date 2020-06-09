@@ -27,6 +27,7 @@
 #include "spatial_containers/spatial_containers.h" // kd-tree
 #include "includes/gid_io.h"
 #include "includes/model_part_io.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 
 // NOTE: The following contains the license of the PMMG library
@@ -192,13 +193,18 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteInitializeSolutionStep()
     }
 
     // Check if the number of given entities match with mesh size
-    //mPMmmgUtilities.CheckMeshData();
+    //mPMmmgUtilities.CheckMeshData(); //not implemented
 
     // Save to file
-    // if (safe_to_file) SaveSolutionToFile(false);
+     if (safe_to_file) SaveSolutionToFile(false);
 
+
+    KRATOS_INFO_IF("", mEchoLevel > 0) << "EXECUTING REMESHING" << std::endl;
     // We execute the remeshing
     ExecuteRemeshing();
+
+    KRATOS_INFO_IF("", mEchoLevel > 0) << "EXECUTING REMESHING FINISHED" << std::endl;
+
 
     /* We print the resulting model part */
     KRATOS_INFO_IF("", mEchoLevel > 0) <<
@@ -286,6 +292,10 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteFinalize()
     // Save the mesh in an .mdpa format
     const bool save_mdpa_file = mThisParameters["save_mdpa_file"].GetBool();
     if(save_mdpa_file) OutputMdpa();
+
+
+    mrThisModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+    ParallelFillCommunicator(mrThisModelPart).Execute();
 
     KRATOS_CATCH("");
 }
@@ -448,16 +458,25 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
         r_old_auxiliar_model_part.AddNodes( r_auxiliar_model_part.NodesBegin(), r_auxiliar_model_part.NodesEnd() );
         r_old_auxiliar_model_part.AddElements( r_auxiliar_model_part.ElementsBegin(), r_auxiliar_model_part.ElementsEnd() );
     }
+    KRATOS_INFO_IF("", mEchoLevel > 0) << "HEY 1" << std::endl;
 
     // Calling the library functions
     mPMmmgUtilities.PMMGLibCallMetric(mThisParameters);
 
+    KRATOS_INFO_IF("", mEchoLevel > 0) << "HEY 2" << std::endl;
+
+
     /* Save to file */
-    // if (save_to_file) SaveSolutionToFile(true);
+     if (save_to_file) SaveSolutionToFile(true);
+
+    KRATOS_INFO_IF("", mEchoLevel > 0) << "HEY 3" << std::endl;
 
     // Some information
     PMMGMeshInfo<TPMMGLibrary> mmg_mesh_info;
     mPMmmgUtilities.PrintAndGetParMmgMeshInfo(mmg_mesh_info);
+
+    KRATOS_INFO_IF("", mEchoLevel > 0) << "HEY 4" << std::endl;
+
 
     // We clear the OLD_ENTITY flag
     if (collapse_prisms_elements) {
@@ -517,6 +536,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     }
     r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+    KRATOS_INFO_IF("", mEchoLevel > 0) << "HEY 5" << std::endl;
 
     // Writing the new mesh data on the model part
     mPMmmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
@@ -555,7 +575,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     // }
 
     /* After that we reorder nodes, conditions and elements: */
-    mPMmmgUtilities.ReorderAllIds(mrThisModelPart);
+    // mPMmmgUtilities.ReorderAllIds(mrThisModelPart);
 
     /* We assign flags and clear the auxiliar model parts created to reassing the flags */
     if (mThisParameters["preserve_flags"].GetBool()) {
@@ -590,8 +610,8 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
     interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
 
-    NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
-    interpolate_nodal_values_process.Execute();
+    // NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
+    // interpolate_nodal_values_process.Execute();
 
     /* We initialize elements and conditions */
     if (mThisParameters["initialize_entities"].GetBool()) {
@@ -696,9 +716,9 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
     mPMmmgUtilities.OutputSol(file_name);
 
     // The current displacement
-    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-        mPMmmgUtilities.OutputDisplacement(file_name);
-    }
+//    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+//        mPMmmgUtilities.OutputDisplacement(file_name);//not implemented
+//    }
 
     if (mThisParameters["save_colors_files"].GetBool()) {
         // Output the reference files
@@ -1169,7 +1189,7 @@ Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters()
             "meshSize"                            : 30000,
             "metisRatio"                          : 82,
             "hgradreq"                            : 5.0,
-            "APImode"                             : 0  
+            "APImode"                             : 0
         },
         "collapse_prisms_elements"             : false,
         "save_external_files"                  : false,

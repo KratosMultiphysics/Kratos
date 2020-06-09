@@ -1,0 +1,10 @@
+{
+	"wheel_name": "KratosStructuralMechanicsApplication",
+	"included_modules": ["StructuralMechanicsApplication"],
+	"included_binaries": ["KratosStructuralMechanicsApplication.pyd", "KratosStructuralMechanicsCore.dll"],
+	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
+	"author": "Kratos Team",
+	"author_email": "kratos@listas.cimne.upc.edu",
+	"description": "KRATOS Multiphysics (\"Kratos\") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface.",
+	"readme": "applications/StructuralMechanicsApplication/README.md"
+}

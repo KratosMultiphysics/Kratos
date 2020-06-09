@@ -26,10 +26,9 @@
             "number_of_eigenvalues": 2,
             "max_iteration": 1000,
             "tolerance": 1e-6,
-            "echo_level": 1
+            "echo_level": 1,
+            "normalize_eigenvectors" : true
         },
-        "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load_point"],
         "rotation_dofs"                      : false
     },
     "processes": {

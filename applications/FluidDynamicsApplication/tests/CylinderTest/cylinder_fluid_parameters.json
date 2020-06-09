@@ -141,7 +141,8 @@
                 "print_drag_to_screen"   : true,
                 "interval"               : [0.0,"End"]
             }
-        },{
+        },
+        {
             "python_module"   : "compare_two_files_check_process",
             "kratos_module"   : "KratosMultiphysics",
             "help"            : "",

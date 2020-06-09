@@ -106,6 +106,13 @@ public:
     }
 
     // --------------------------------------------------------------------------
+    void RevertMeshUpdateAccordingInputVariable( const Variable<array_1d<double,3>> &rInputVariable )
+    {
+        for(auto & node_i: mrModelPart.Nodes())
+            noalias(node_i.Coordinates()) -= node_i.FastGetSolutionStepValue(rInputVariable);
+    }
+
+    // --------------------------------------------------------------------------
     void LogMeshChangeAccordingInputVariable( Variable<array_1d<double,3>> &rInputVariable )
     {
         for(auto & node_i: mrModelPart.Nodes())
@@ -133,6 +140,31 @@ public:
             VariableUtils().SetHistoricalVariableToZero(DISPLACEMENT,mrModelPart.Nodes());
         if(mrModelPart.GetNodalSolutionStepVariablesList().Has(ROTATION))
             VariableUtils().SetHistoricalVariableToZero(ROTATION,mrModelPart.Nodes());
+    }
+
+    // --------------------------------------------------------------------------
+    void WriteCoordinatesToVariable( const Variable<array_1d<double,3>> &rVariable )
+    {
+        for(auto & node_i: mrModelPart.Nodes())
+            noalias(node_i.FastGetSolutionStepValue(rVariable)) = node_i.Coordinates();
+    }
+
+    // --------------------------------------------------------------------------
+    void SubtractCoordinatesFromVariable( const Variable<array_1d<double,3>> &rInputVariable,
+        const Variable<array_1d<double,3>> &rDistanceVariable )
+    {
+        for(auto & node_i: mrModelPart.Nodes()){
+            noalias(node_i.FastGetSolutionStepValue(rDistanceVariable)) =
+                node_i.FastGetSolutionStepValue(rInputVariable) - node_i.Coordinates();
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    void AddFirstVariableToSecondVariable( const Variable<array_1d<double,3>> &rFirstVariable, const Variable<array_1d<double,3>> &rSecondVariable )
+    {
+        // TODO this is a copy from optimization_utilities
+        for (auto & node_i : mrModelPart.Nodes())
+            noalias(node_i.FastGetSolutionStepValue(rSecondVariable)) += node_i.FastGetSolutionStepValue(rFirstVariable);
     }
 
     // --------------------------------------------------------------------------

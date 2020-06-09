@@ -21,6 +21,16 @@
 namespace Kratos
 {
 
+PostProcessUtilities::PostProcessUtilities(ModelPart& rModelPart) : mrModelPart(rModelPart) {
+    KRATOS_TRY
+
+    KRATOS_CATCH("")
+}
+
+/// Destructor.
+
+PostProcessUtilities::~PostProcessUtilities(){}
+
 void PostProcessUtilities::GetStickyStatus(pybind11::list& is_sticky_list)
 {
     ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
@@ -102,5 +112,21 @@ void PostProcessUtilities::Clear(pybind11::list& my_list){
 
 }
 
+std::string PostProcessUtilities::Info() const
+{
+    return "";
+}
 
-}  // namespace Python.
+/// Print information about this object.
+
+void PostProcessUtilities::PrintInfo(std::ostream& rOStream) const
+{
+}
+
+/// Print object's data.
+
+void PostProcessUtilities::PrintData(std::ostream& rOStream) const
+{
+}
+
+}  // namespace Kratos.
