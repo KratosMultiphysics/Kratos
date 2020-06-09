@@ -18,6 +18,7 @@
 // Project includes
 #include "containers/model.h"
 #include "utilities/string_utilities.h"
+#include "utilities/variable_utils.h"
 #include "processes/assign_scalar_input_to_entities_process.h"
 
 namespace Kratos
@@ -87,11 +88,31 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ExecuteInitializeSolutionStep(
     const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
 
     // Case of only one entity defined
-    const SizeType number_of_entities = mCoordinates.size();
+    const SizeType number_of_databases = mCoordinates.size();
     const auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
-    if (number_of_entities == 1) {
+    if (number_of_databases == 1) {
         InternalAssignValue<>(*mpVariable, r_var_database.GetValue(0, time));
     } else {
+        // Getting entities array
+        auto& r_entities_array = GetEntitiesContainer();
+        const int number_of_entities = static_cast<int>(r_entities_array.size());
+
+        // Initialize values
+        VariableUtils().SetNonHistoricalVariable(*mpVariable, 0.0, r_entities_array);
+
+        if(number_of_entities != 0) {
+            const auto it_begin = r_entities_array.begin();
+
+            #pragma omp parallel for
+            for(int i = 0; i < number_of_entities; i++) {
+                auto it_entity = it_begin + i;
+
+                const auto& r_weights = mWeightExtrapolation[i];
+                for (auto& r_weight : r_weights) {
+                    it_entity->GetValue(*mpVariable) += r_weight.second * r_var_database.GetValue(r_weight.first, time);
+                }
+            }
+        }
     }
 
     KRATOS_CATCH("");
@@ -263,6 +284,13 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataJSON(const std::st
 {
     KRATOS_TRY;
 
+    // Reading json file
+    std::ifstream infile(rFileName);
+    KRATOS_ERROR_IF_NOT(infile.good()) << "JSON file: " << rFileName << " cannot be found" << std::endl;
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    Parameters json_input(buffer.str());
+
     KRATOS_CATCH("");
 }
 
@@ -278,8 +306,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string&
     std::vector<IndexType> variables_ids(1);
     variables_ids[0] = mpVariable->Key();
     std::vector<IndexType> values_sizes(1, 1);
-    const SizeType number_of_entities = mCoordinates.size();
-    mDatabase.Initialize(variables_ids, values_sizes, number_of_entities);
+    const SizeType number_of_definitions = mCoordinates.size();
+    mDatabase.Initialize(variables_ids, values_sizes, number_of_definitions);
 
     // Read txt
     std::ifstream infile(rFileName);
@@ -298,7 +326,7 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string&
     }
 
     Vector time = ZeroVector(number_time_steps);
-    std::vector<Vector> values(number_of_entities, time);
+    std::vector<Vector> values(number_of_definitions, time);
 
     // Reset buffer
     buffer.str("");
@@ -346,6 +374,7 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
 {
     KRATOS_TRY;
 
+    // Reading json file
     std::ifstream infile(rFileName);
     KRATOS_ERROR_IF_NOT(infile.good()) << "JSON file: " << rFileName << " cannot be found" << std::endl;
     std::stringstream buffer;
@@ -356,8 +385,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
     std::vector<IndexType> variables_ids(1);
     variables_ids[0] = mpVariable->Key();
     std::vector<IndexType> values_sizes(1, 1);
-    const SizeType number_of_entities = mCoordinates.size();
-    mDatabase.Initialize(variables_ids, values_sizes, number_of_entities);
+    const SizeType number_of_definitions = mCoordinates.size();
+    mDatabase.Initialize(variables_ids, values_sizes, number_of_definitions);
 
     // Get the time vector
     const Vector& r_time = json_input["TIME"].GetVector();
@@ -369,14 +398,14 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
     const std::string& r_variable_name = mpVariable->Name();
 //     if (this->Is(GEOMETRIC_DEFINITION)) {
 //         // TODO: UPDATE
-//         for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
+//         for (int i = 0; i < static_cast<int>(number_of_definitions); ++i) {
 //             auto it_ent = it_ent_begin + i;
 //             const std::string identifier = ent_label + std::to_string(it_ent->Id());
 //             const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
 //             r_var_database.SetValues(r_time, r_vector, i);
 //         }
 //     } else {
-//         for (int i = 0; i < static_cast<int>(number_of_entities); ++i) {
+//         for (int i = 0; i < static_cast<int>(number_of_definitions); ++i) {
 //             auto it_ent = it_ent_begin + i;
 //             const std::string identifier = ent_label + std::to_string(it_ent->Id());
 //             const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
