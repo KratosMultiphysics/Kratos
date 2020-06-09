@@ -178,17 +178,17 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                                                    /// The model part where to assign the values
+    ModelPart& mrModelPart;                                                  /// The model part where to assign the values
 
-    const Variable<double>* mpVariable = nullptr;                                              /// The pointer of the variable
+    const Variable<double>* mpVariable = nullptr;                            /// The pointer of the variable
 
-    ResultDatabase mDatabase;                                                                  /// The database containing the information to assign the values
+    ResultDatabase mDatabase;                                                /// The database containing the information to assign the values
 
-    std::unordered_map<IndexType, std::unordered_map<IndexType, double>> mWeightExtrapolation; /// This maps specifies the extrapolation weights for each entity
+    std::vector<std::unordered_map<IndexType, double>> mWeightExtrapolation; /// This maps specifies the extrapolation weights for each entity
 
-    std::vector<array_1d<double, 3>> mCoordinates;                                             /// The coordinates of the database
+    std::vector<array_1d<double, 3>> mCoordinates;                           /// The coordinates of the database
 
-    Algorithm mAlgorithm = Algorithm::NEAREST_NEIGHBOUR;                                       /// The algorithm considered
+    Algorithm mAlgorithm = Algorithm::NEAREST_NEIGHBOUR;                     /// The algorithm considered
 
     ///@}
     ///@name Private Operators
