@@ -432,11 +432,6 @@ void DistributeConditionVariableToNodes(ModelPart& rModelPart,
 }
 
 // template instantiations
-template void CalculateConditionNormal<2>(array_1d<double, 3>& rNormal,
-                                          const ConditionType& rCondition);
-template void CalculateConditionNormal<3>(array_1d<double, 3>& rNormal,
-                                          const ConditionType& rCondition);
-
 template void DistributeConditionVariableToNodes<double>(ModelPart&,
                                                          const Variable<double>&);
 template void DistributeConditionVariableToNodes<array_1d<double, 3>>(
