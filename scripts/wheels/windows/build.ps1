@@ -82,6 +82,7 @@ foreach ($python in $pythons) {
     $applications = Get-ChildItem "$( $kratosRoot )\scripts\wheels\windows\applications"
 
     foreach ($app in $applications) {
+        if($app.StartsWith("_")) { Continue }
         create_application_wheel $pythonPath $app
     }
 
