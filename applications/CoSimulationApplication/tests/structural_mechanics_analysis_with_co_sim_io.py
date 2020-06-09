@@ -85,7 +85,8 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
                     self.__InnerLoop()
                     info = CoSimIO.Info()
                     info.SetString("connection_name", self.connection_name)
-                    is_converged = CoSimIO.IsConverged(info)
+                    is_converged_info = CoSimIO.IsConverged(info)
+                    is_converged = is_converged_info.GetBool("is_converged")
             else:
                 self.__InnerLoop()
 
