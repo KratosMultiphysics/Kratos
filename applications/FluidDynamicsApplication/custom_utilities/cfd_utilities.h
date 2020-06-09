@@ -65,30 +65,34 @@ TDataType EvaluateInPoint(const GeometryType& rGeometry,
     return value;
 }
 
-void CalculateNumberOfNeighbourConditions(ModelPart& rModelPart);
+void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    CalculateNumberOfNeighbourConditions(ModelPart& rModelPart);
 
-double CalculateLinearLogarithmicWallFunctionBasedYPlusLimit(const double VonKarman = 0.41,
-                                                             const double WallSmoothness = 5.2,
-                                                             const int MaxIterations = 20,
-                                                             const double Tolerance = 1e-6);
+double KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    CalculateLinearLogarithmicWallFunctionBasedYPlusLimit(const double VonKarman = 0.41,
+                                                          const double WallSmoothness = 5.2,
+                                                          const int MaxIterations = 20,
+                                                          const double Tolerance = 1e-6);
 
-double CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
-    array_1d<double, 3>& rFrictionVelocity,
-    const array_1d<double, 3>& rWallVelocity,
-    const array_1d<double, 3>& rNormal,
-    const double KinematicViscosity,
-    const double WallHeight,
-    const double VonKarman = 0.41,
-    const double WallSmoothness = 5.2,
-    const int MaxIterations = 20,
-    const double Tolerance = 1e-6);
+double KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
+        array_1d<double, 3>& rFrictionVelocity,
+        const array_1d<double, 3>& rWallVelocity,
+        const array_1d<double, 3>& rNormal,
+        const double KinematicViscosity,
+        const double WallHeight,
+        const double VonKarman = 0.41,
+        const double WallSmoothness = 5.2,
+        const int MaxIterations = 20,
+        const double Tolerance = 1e-6);
 
-double CalculateReactionBasedYPlusUTau(array_1d<double, 3>& rFrictionVelocity,
-                                       const array_1d<double, 3>& rReaction,
-                                       const array_1d<double, 3>& rNormal,
-                                       const double Density,
-                                       const double KinematicViscosity,
-                                       const double WallHeight);
+double KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    CalculateReactionBasedYPlusUTau(array_1d<double, 3>& rFrictionVelocity,
+                                    const array_1d<double, 3>& rReaction,
+                                    const array_1d<double, 3>& rNormal,
+                                    const double Density,
+                                    const double KinematicViscosity,
+                                    const double WallHeight);
 
 void CalculateYPlusAndUTauForConditions(
     ModelPart& rModelPart,
@@ -97,22 +101,24 @@ void CalculateYPlusAndUTauForConditions(
         array_1d<double, 3>&, const GeometryType&, const array_1d<double, 3>&, const Vector&, const double, const double, const double)>&
         rYPlusAndUTauCalculationMethod);
 
-void CalculateYPlusAndUTauForConditionsBasedOnReaction(
+void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateYPlusAndUTauForConditionsBasedOnReaction(
     ModelPart& rModelPart,
     const Variable<double>& rKinematicViscosityVariable,
     const Variable<array_1d<double, 3>>& rReactionVariable);
 
-void CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
-    ModelPart& rModelPart,
-    const Variable<double>& rKinematicViscosityVariable,
-    const double VonKarman = 0.41,
-    const double WallSmoothness = 5.2,
-    const int MaxIterations = 20,
-    const double Tolerance = 1e-6);
+void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
+        ModelPart& rModelPart,
+        const Variable<double>& rKinematicViscosityVariable,
+        const double VonKarman = 0.41,
+        const double WallSmoothness = 5.2,
+        const int MaxIterations = 20,
+        const double Tolerance = 1e-6);
 
 template <typename TDataType>
-void DistributeConditionVariableToNodes(ModelPart& rModelPart,
-                                        const Variable<TDataType>& rVariable);
+void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    DistributeConditionVariableToNodes(ModelPart& rModelPart,
+                                       const Variable<TDataType>& rVariable);
 
 } // namespace CFDUtilities
 
