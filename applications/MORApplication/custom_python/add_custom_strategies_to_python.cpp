@@ -141,7 +141,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetM", &MorSecondOrderRealInRealOutOfflineStrategyType::GetM)
         .def("GetBasis", &MorSecondOrderRealInRealOutOfflineStrategyType::GetBasis)
         .def("GetKr", &MorSecondOrderRealInRealOutOfflineStrategyType::GetKr)
-        .def("ImportSystem", &MorSecondOrderRealInRealOutOfflineStrategyType::ImportSystem)
+        // .def("ImportSystem", &MorSecondOrderRealInRealOutOfflineStrategyType::ImportSystem)
         ;
     py::class_< MorSecondOrderRealInComplexOutOfflineStrategyType, typename MorSecondOrderRealInComplexOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderRealInComplexOutOfflineStrategy")
         .def("EchoInfo", &MorSecondOrderRealInComplexOutOfflineStrategyType::EchoInfo)
@@ -156,7 +156,21 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetMr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetMr)
         .def("GetRHSr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetRHSr)
         .def("GetOutputVectorR", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetOVr)
-        .def("ImportSystem", &MorSecondOrderRealInComplexOutOfflineStrategyType::ImportSystem)
+        .def("ImportSystem", (void (MorSecondOrderRealInComplexOutOfflineStrategyType::*)
+            (typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemMatrixType&,
+             typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemMatrixType&,
+             typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemMatrixType&,
+             typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemVectorType&,
+             typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemVectorType&))
+            &MorSecondOrderRealInComplexOutOfflineStrategyType::ImportSystem)
+        .def("ImportSystem", (void (MorSecondOrderRealInComplexOutOfflineStrategyType::*)
+            (typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemMatrixType&,
+             typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemMatrixType&,
+             typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemMatrixType&,
+             typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemMatrixType&,
+             typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemVectorType&,
+             typename MorSecondOrderRealInComplexOutOfflineStrategyType::TSystemVectorType&))
+            &MorSecondOrderRealInComplexOutOfflineStrategyType::ImportSystem)
         ;
     // py::class_< MorSecondOrderComplexInComplexOutOfflineStrategyType, typename MorSecondOrderComplexInComplexOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderComplexInComplexOutOfflineStrategy");
 

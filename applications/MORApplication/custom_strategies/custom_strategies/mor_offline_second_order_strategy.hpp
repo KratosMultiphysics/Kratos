@@ -168,19 +168,21 @@ class MorOfflineSecondOrderStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(0);
 
-        mpK = TSparseSpace::CreateEmptyMatrixPointer();
-        mpC = TSparseSpace::CreateEmptyMatrixPointer();
-        mpM = TSparseSpace::CreateEmptyMatrixPointer();
-        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
-        mpOV = TSparseSpace::CreateEmptyVectorPointer();
+        // mpK = TSparseSpace::CreateEmptyMatrixPointer();
+        // mpKi = TSparseSpace::CreateEmptyMatrixPointer();
+        // mpC = TSparseSpace::CreateEmptyMatrixPointer();
+        // mpM = TSparseSpace::CreateEmptyMatrixPointer();
+        // mpMi = TSparseSpace::CreateEmptyMatrixPointer();
+        // mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+        // mpOV = TSparseSpace::CreateEmptyVectorPointer();
 
-        mpKr = TReducedDenseSpace::CreateEmptyMatrixPointer();
-        mpCr = TReducedDenseSpace::CreateEmptyMatrixPointer();
-        mpMr = TReducedDenseSpace::CreateEmptyMatrixPointer();
-        mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
-        mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
-        mpBasis = TReducedDenseSpace::CreateEmptyMatrixPointer();
-        mpBasisLeft = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        // mpKr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        // mpCr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        // mpMr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        // mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
+        // mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
+        // mpBasis = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        // mpBasisLeft = TReducedDenseSpace::CreateEmptyMatrixPointer();
 
         KRATOS_CATCH("");
     }
@@ -226,20 +228,6 @@ class MorOfflineSecondOrderStrategy
 
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(0);
-
-        mpK = TSparseSpace::CreateEmptyMatrixPointer();
-        mpC = TSparseSpace::CreateEmptyMatrixPointer();
-        mpM = TSparseSpace::CreateEmptyMatrixPointer();
-        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
-        mpOV = TSparseSpace::CreateEmptyVectorPointer();
-
-        mpKr = TReducedDenseSpace::CreateEmptyMatrixPointer();
-        mpMr = TReducedDenseSpace::CreateEmptyMatrixPointer();
-        mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
-        mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
-        mpBasis = TReducedDenseSpace::CreateEmptyMatrixPointer();
-        mpBasisLeft = TReducedDenseSpace::CreateEmptyMatrixPointer();
-        mpCr = TReducedDenseSpace::CreateEmptyMatrixPointer();
 
         KRATOS_CATCH("");
     }
@@ -372,6 +360,23 @@ class MorOfflineSecondOrderStrategy
 
         if (mInitializeWasPerformed == false)
         {
+            std::cout << "Hello I am initializing the offline strategy" << std::endl;
+
+            mpK = TSparseSpace::CreateEmptyMatrixPointer();
+            mpKi = TSparseSpace::CreateEmptyMatrixPointer();
+            mpC = TSparseSpace::CreateEmptyMatrixPointer();
+            mpM = TSparseSpace::CreateEmptyMatrixPointer();
+            mpMi = TSparseSpace::CreateEmptyMatrixPointer();
+            mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+            mpOV = TSparseSpace::CreateEmptyVectorPointer();
+
+            mpKr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+            mpMr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+            mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
+            mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
+            mpBasis = TReducedDenseSpace::CreateEmptyMatrixPointer();
+            mpBasisLeft = TReducedDenseSpace::CreateEmptyMatrixPointer();
+            mpCr = TReducedDenseSpace::CreateEmptyMatrixPointer();
 
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -407,8 +412,12 @@ class MorOfflineSecondOrderStrategy
 
         if (mpK != nullptr)
             SparseSpaceType::Clear(mpK);
+        if (mpKi != nullptr)
+            SparseSpaceType::Clear(mpKi);
         if (mpM != nullptr)
             SparseSpaceType::Clear(mpM);
+        if (mpMi != nullptr)
+            SparseSpaceType::Clear(mpMi);
         if (mpC != nullptr)
             SparseSpaceType::Clear(mpC);
         if (mpRHS != nullptr)
@@ -438,6 +447,7 @@ class MorOfflineSecondOrderStrategy
 
         if (mSolutionStepIsInitialized == false)
         {
+            KRATOS_WATCH(mUseDamping)
             // std::cout << "offline initialize base class perform\n";
             ModelPart& r_model_part = BaseType::GetModelPart();
 
@@ -448,7 +458,9 @@ class MorOfflineSecondOrderStrategy
             const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
             TSystemMatrixType& r_K  = *mpK;
+            TSystemMatrixType& r_Ki  = *mpKi;
             TSystemMatrixType& r_M = *mpM;
+            TSystemMatrixType& r_Mi = *mpMi;
             TSystemMatrixType& r_C = *mpC;
             TSystemVectorType& r_RHS  = *mpRHS;
             TSystemVectorType& r_OV  = *mpOV;
@@ -482,6 +494,10 @@ class MorOfflineSecondOrderStrategy
                 {
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpC, mpOV, mpRHS,
                                                                     BaseType::GetModelPart());
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpKi, mpOV, mpRHS,
+                                                                    BaseType::GetModelPart());
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMi, mpOV, mpRHS,
+                                                                    BaseType::GetModelPart());
                 }
 
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
@@ -504,12 +520,21 @@ class MorOfflineSecondOrderStrategy
                 p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_M, tmp);
                 DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_M, tmp, fixed_dofs, 0.0);
 
-                //set up the damping matrix
+                //set up the damping matrix and imaginary components of stiffness and mass
                 if( mUseDamping )
                 {
                     r_model_part.GetProcessInfo()[BUILD_LEVEL] = 101;
                     p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_C, tmp);
                     DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_C, tmp, fixed_dofs, 0.0);
+
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 111;
+                    p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_Ki, tmp);
+                    KRATOS_WATCH(r_Ki)
+                    DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_Ki, tmp, fixed_dofs, 0.0);
+
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 121;
+                    p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_Mi, tmp);
+                    DirichletUtility::ApplyDirichletConditions<TSparseSpace>(r_Mi, tmp, fixed_dofs, 0.0);
                 }
 
                 //create output vector
@@ -643,18 +668,57 @@ class MorOfflineSecondOrderStrategy
 
     }
 
-    void ImportSystem(TSystemMatrixType& rK, TSystemMatrixType& rD, TSystemMatrixType& rM, TSystemVectorType& rRHS, TSystemVectorType& rOV)
+    void ImportSystem(TSystemMatrixType& rK,
+        TSystemMatrixType& rC,
+        TSystemMatrixType& rM,
+        TSystemVectorType& rRHS,
+        TSystemVectorType& rOV)
     {
         Initialize();
 
-        TSystemMatrixType& A = *mpK;
-        A = TSystemMatrixType(rK);
+        TSystemMatrixType& K = *mpK;
+        K = TSystemMatrixType(rK);
+        mpKi->resize(K.size1(), K.size2(), false);
 
-        TSystemMatrixType& D = *mpC;
-        D = TSystemMatrixType(rD);
+        TSystemMatrixType& C = *mpC;
+        C = TSystemMatrixType(rC);
 
         TSystemMatrixType& M = *mpM;
         M = TSystemMatrixType(rM);
+        mpMi->resize(M.size1(), M.size2(), false);
+
+        TSystemVectorType& RHS = *mpRHS;
+        RHS = TSystemVectorType(rRHS);
+
+        TSystemVectorType& OV = *mpOV;
+        OV = TSystemVectorType(rOV);
+
+        mImportedSystem = true;
+    }
+
+    void ImportSystem(TSystemMatrixType& rK,
+        TSystemMatrixType& rKi,
+        TSystemMatrixType& rC,
+        TSystemMatrixType& rM,
+        TSystemVectorType& rRHS,
+        TSystemVectorType& rOV)
+    {
+        Initialize();
+        std::cout << "hallo?\n";
+        TSystemMatrixType& K = *mpK;
+        K = TSystemMatrixType(rK);
+
+        TSystemMatrixType& Ki = *mpKi;
+        Ki = TSystemMatrixType(rKi);
+
+        TSystemMatrixType& C = *mpC;
+        C = TSystemMatrixType(rC);
+
+        TSystemMatrixType& M = *mpM;
+        M = TSystemMatrixType(rM);
+
+        TSystemMatrixType& Mi = *mpMi;
+        Mi.resize(M.size1(), M.size2(), false);
 
         TSystemVectorType& RHS = *mpRHS;
         RHS = TSystemVectorType(rRHS);
@@ -739,6 +803,18 @@ class MorOfflineSecondOrderStrategy
         return mpK;
     }
 
+    virtual TSystemMatrixType& GetKi()
+    {
+        TSystemMatrixType& mKi = *mpKi;
+
+        return mKi;
+    }
+
+    virtual TSystemMatrixPointerType& pGetKi()
+    {
+        return mpKi;
+    }
+
     virtual TSystemMatrixType& GetM()
     {
         TSystemMatrixType& mM = *mpM;
@@ -749,6 +825,18 @@ class MorOfflineSecondOrderStrategy
     virtual TSystemMatrixPointerType& pGetM()
     {
         return mpM;
+    }
+
+    virtual TSystemMatrixType& GetMi()
+    {
+        TSystemMatrixType& mMi = *mpMi;
+
+        return mMi;
+    }
+
+    virtual TSystemMatrixPointerType& pGetMi()
+    {
+        return mpMi;
     }
 
     virtual TSystemMatrixType& GetC()
@@ -940,7 +1028,9 @@ class MorOfflineSecondOrderStrategy
 
     TSystemVectorPointerType mpRHS; /// The RHS vector of the system of equations
     TSystemMatrixPointerType mpK; /// The Stiffness matrix of the system of equations
+    TSystemMatrixPointerType mpKi; /// The imaginary part of the stiffness matrix of the system of equations
     TSystemMatrixPointerType mpM; /// The Mass matrix of the system of equations
+    TSystemMatrixPointerType mpMi; /// The imaginary part of the Mass matrix of the system of equations
     TSystemMatrixPointerType mpC; /// The Damping matrix of the system of equations
     TSystemVectorPointerType mpOV; /// The output vector for single output
 
