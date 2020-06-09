@@ -219,6 +219,11 @@ private:
     void ReadDataJSON(const std::string& rFileName);
 
     /**
+     * @brief It computes the extrapolation weights
+     */
+    void ComputeExtrapolationWeight();
+
+    /**
      * @brief This method assigns the value (with OMP)
      * @param rVar The variable to be assigned
      * @param Value The value to assign

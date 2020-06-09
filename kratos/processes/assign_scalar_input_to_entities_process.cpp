@@ -69,6 +69,9 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
         KRATOS_ERROR << "The process is only compatible with JSON and TXT" << std::endl;
     }
 
+    // Compute the extrpolation weights
+    ComputeExtrapolationWeight();
+
     KRATOS_CATCH("");
 }
 
@@ -89,7 +92,6 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ExecuteInitializeSolutionStep(
     if (number_of_entities == 1) {
         InternalAssignValue<>(*mpVariable, r_var_database.GetValue(0, time));
     } else {
-        // TODO
     }
 
     KRATOS_CATCH("");
@@ -199,6 +201,8 @@ PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Ele
 template<class TEntity>
 void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::string& rFileName)
 {
+    KRATOS_TRY;
+
     // Read txt
     std::ifstream infile(rFileName);
     KRATOS_ERROR_IF_NOT(infile.good()) << "TXT file: " << rFileName << " cannot be found" << std::endl;
@@ -247,6 +251,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::str
             ++counter;
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -255,7 +261,9 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::str
 template<class TEntity>
 void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataJSON(const std::string& rFileName)
 {
+    KRATOS_TRY;
 
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -264,6 +272,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataJSON(const std::st
 template<class TEntity>
 void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string& rFileName)
 {
+    KRATOS_TRY;
+
     // Initialize the databases
     std::vector<IndexType> variables_ids(1);
     variables_ids[0] = mpVariable->Key();
@@ -324,6 +334,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string&
     for (IndexType i = 0; i < values.size(); ++i) {
         r_var_database.SetValues(time, values[i], i);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -332,6 +344,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string&
 template<class TEntity>
 void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string& rFileName)
 {
+    KRATOS_TRY;
+
     std::ifstream infile(rFileName);
     KRATOS_ERROR_IF_NOT(infile.good()) << "JSON file: " << rFileName << " cannot be found" << std::endl;
     std::stringstream buffer;
@@ -369,6 +383,50 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
 //             r_var_database.SetValues(r_time, r_vector, i);
 //         }
 //     }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void AssignScalarInputToEntitiesProcess<TEntity>::ComputeExtrapolationWeight()
+{
+    KRATOS_TRY;
+
+    // Resize the weight extrapolation vector
+    const SizeType number_of_definitions = mCoordinates.size();
+    if (mWeightExtrapolation.size() != number_of_definitions) {
+        mWeightExtrapolation.resize(number_of_definitions);
+    }
+
+    // Considering different algorithms to fill the weights
+    if (mAlgorithm == Algorithm::NEAREST_NEIGHBOUR) {
+        const auto& r_entities_array = GetEntitiesContainer();
+        const auto it_ent_begin = r_entities_array.begin();
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_entities_array.size()); ++i) {
+            auto it_ent = it_ent_begin + i;
+            const IndexType id = it_ent->Id();
+            const array_1d<double, 3> coordinates = GetCoordinatesEntity(id);
+            double distance = 1.0e24;
+            IndexType index = 0;
+            for (IndexType i = 0; i < number_of_definitions; ++i) {
+                const double aux_distance = norm_2(coordinates - mCoordinates[i]);
+                if (aux_distance < distance) {
+                    distance = aux_distance;
+                    index = i;
+                }
+            }
+            std::unordered_map<IndexType, double> aux_map({{index, 1.0}});
+            mWeightExtrapolation[i] = aux_map;
+        }
+    } else {
+        KRATOS_ERROR << "Algorithm not defined" << std::endl;
+    }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
