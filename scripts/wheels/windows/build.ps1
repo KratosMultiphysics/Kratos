@@ -33,7 +33,7 @@ function build($python, $pythonPath) {
 
 function  setup_wheel_dir {
     cd $kratosRoot
-    mkdir c\wheel
+    mkdir c:\wheel
     cp scripts\wheels\setup.py c:\wheel\setup.py
     mkdir c:\wheel\KratosMultiphysics
     mkdir c:\wheel\KratosMultiphysics\.libs
