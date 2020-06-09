@@ -291,6 +291,11 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataJSON(const std::st
     buffer << infile.rdbuf();
     Parameters json_input(buffer.str());
 
+    // Getting label
+    const std::string ent_label = GetEntitiesLabel();
+
+    // TODO
+
     KRATOS_CATCH("");
 }
 
@@ -393,25 +398,13 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
     mDatabase.SetCommonColumn(r_time);
 
     // Fill database
-    const std::string ent_label = GetEntitiesLabel();
     auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
     const std::string& r_variable_name = mpVariable->Name();
-//     if (this->Is(GEOMETRIC_DEFINITION)) {
-//         // TODO: UPDATE
-//         for (int i = 0; i < static_cast<int>(number_of_definitions); ++i) {
-//             auto it_ent = it_ent_begin + i;
-//             const std::string identifier = ent_label + std::to_string(it_ent->Id());
-//             const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
-//             r_var_database.SetValues(r_time, r_vector, i);
-//         }
-//     } else {
-//         for (int i = 0; i < static_cast<int>(number_of_definitions); ++i) {
-//             auto it_ent = it_ent_begin + i;
-//             const std::string identifier = ent_label + std::to_string(it_ent->Id());
-//             const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
-//             r_var_database.SetValues(r_time, r_vector, i);
-//         }
-//     }
+    for (IndexType i = 0; i < number_of_definitions; ++i) {
+        const std::string identifier = "VALUE_" + std::to_string(i);
+        const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
+        r_var_database.SetValues(r_time, r_vector, i);
+    }
 
     KRATOS_CATCH("");
 }
