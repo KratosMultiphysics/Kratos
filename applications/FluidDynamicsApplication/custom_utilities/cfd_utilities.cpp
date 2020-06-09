@@ -411,7 +411,7 @@ void DistributeConditionDataToNodes(ModelPart& rModelPart, const Variable<TDataT
         GeometryType& r_geometry = r_condition.GetGeometry();
 
         const TDataType& r_value = r_condition.GetValue(rVariable);
-        for (unsigned int i_node = 0; i_node <= r_geometry.PointsNumber(); ++i_node)
+        for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
             NodeType& r_node = r_geometry[i_node];
             const TDataType& r_current_value = r_node.GetValue(rVariable);
