@@ -80,7 +80,7 @@ foreach ($python in $pythons) {
 
     create_core_wheel $pythonPath
 
-    $applications = Get-ChildItem "$( $kratosRoot )\scripts\wheels\windows\applications"
+    $applications = Get-ChildItem "$( $kratosRoot )\scripts\wheels\windows\applications" | select -expand Name
 
     foreach ($app in $applications) {
         if($app.StartsWith("_")) { Continue }
