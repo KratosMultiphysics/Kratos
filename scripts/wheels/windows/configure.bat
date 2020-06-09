@@ -37,7 +37,8 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 -DLAPACK_LIBRARIES=%LAPACK%                                                                         ^
 -DBLAS_LIBRARIES=%BLAS%                                                                             ^
 -DINSTALL_RUNKRATOS=OFF                                                                             ^
--DUSE_COTIRE=%USE_COTIRE%
+-DUSE_COTIRE=%USE_COTIRE%                                                                           ^
+-DKRATOS_BUILD_TESTING=OFF
 
 :add_app
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
