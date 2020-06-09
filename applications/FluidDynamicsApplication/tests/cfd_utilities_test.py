@@ -3,7 +3,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-
+import math
 
 class CFDUtilitiesTest(UnitTest.TestCase):
     def testCalculateLinearLogarithmicWallFunctionBasedYPlusLimit(self):

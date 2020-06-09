@@ -191,35 +191,25 @@
                 }
             },
             {
+                "python_module": "from_json_check_result_process",
                 "kratos_module": "KratosMultiphysics",
-                "python_module": "json_output_process",
                 "Parameters": {
-                    "help": "This process generates a json file containing the solution of a list of variables from a given submodelpart",
-                    "output_variables": [
+                    "help": "This process checks the solution obtained from a given json file. It can be used for generating tests for a problem",
+                    "check_variables": [
                         "FRICTION_VELOCITY",
                         "Y_PLUS"
                     ],
-                    "output_file_name": "cfd_function_process_output.json",
+                    "gauss_points_check_variables": [],
+                    "input_file_name": "cfd_function_process_output_ref.json",
                     "model_part_name": "MainModelPart",
                     "sub_model_part_name": "",
                     "check_for_flag": "",
-                    "time_frequency": 1.00,
                     "historical_value": false,
-                    "resultant_solution": false,
-                    "use_node_coordinates": false
-                }
-            },
-            {
-                "python_module": "compare_two_files_check_process",
-                "kratos_module": "KratosMultiphysics",
-                "help": "",
-                "process_name": "CompareTwoFilesCheckProcess",
-                "Parameters": {
-                    "output_file_name": "cfd_function_process_output.json",
-                    "reference_file_name": "cfd_function_process_output_ref.json",
-                    "comparison_type": "deterministic",
-                    "remove_output_file": true,
-                    "tolerance": 1e-5
+                    "tolerance": 1e-5,
+                    "relative_tolerance": 1e-9,
+                    "time_frequency": 1.00,
+                    "use_node_coordinates": false,
+                    "check_only_local_entities": false
                 }
             }
         ]
