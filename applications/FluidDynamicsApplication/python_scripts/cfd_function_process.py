@@ -42,7 +42,7 @@ class CFDFunctions:
         variable_type = Kratos.KratosGlobals.GetVariableType(variable_name)
         variable = Kratos.KratosGlobals.GetVariable(variable_name)
         if (variable_type in ["Double", "Array"]):
-            return lambda model_part: KratosCFD.DistributeConditionDataToNodes(
+            return lambda model_part: KratosCFD.CFDUtilities.DistributeConditionDataToNodes(
                 model_part, variable)
         else:
             raise Exception("Unsupported variable type " + variable_type +
