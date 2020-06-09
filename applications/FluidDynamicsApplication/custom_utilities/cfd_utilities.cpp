@@ -293,7 +293,6 @@ void CalculateYPlusAndUTauForConditions(
 #pragma omp parallel
     {
         array_1d<double, 3> normal;
-        array_1d<double, 3> reaction;
         array_1d<double, 3> u_tau;
 #pragma omp for
         for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
