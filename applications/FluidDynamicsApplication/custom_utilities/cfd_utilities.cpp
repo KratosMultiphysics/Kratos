@@ -431,10 +431,11 @@ void DistributeConditionVariableToNodes(ModelPart& rModelPart,
 }
 
 // template instantiations
-template void DistributeConditionVariableToNodes<double>(ModelPart&,
-                                                         const Variable<double>&);
-template void DistributeConditionVariableToNodes<array_1d<double, 3>>(
-    ModelPart&, const Variable<array_1d<double, 3>>&);
+template void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    DistributeConditionVariableToNodes<double>(ModelPart&, const Variable<double>&);
+template void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    DistributeConditionVariableToNodes<array_1d<double, 3>>(
+        ModelPart&, const Variable<array_1d<double, 3>>&);
 
 } // namespace CFDUtilities
 
