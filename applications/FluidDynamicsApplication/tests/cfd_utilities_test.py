@@ -3,7 +3,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-import random, math
 
 
 class CFDUtilitiesTest(UnitTest.TestCase):
