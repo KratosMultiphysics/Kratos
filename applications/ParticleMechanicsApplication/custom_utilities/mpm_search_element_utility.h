@@ -36,6 +36,40 @@ namespace MPMSearchElementUtility
 
     typedef typename ModelPart::GeometryType GeometryType;
 
+    double CrossProductDet2D(array_1d<double, 3> VectorA, array_1d<double, 3> VectorB)
+    {
+        return (VectorA[0] * VectorB[1] - VectorB[0] * VectorA[1]);
+    }
+
+    bool CheckIsInside(const GeometryType& rGeom, array_1d<double, 3>& LocalCoords, const array_1d<double, 3>& Coords, const double Tolerance)
+    {
+        bool is_inside = true;
+        if (rGeom.Dimension() == 2)
+        {
+            is_inside = true;
+            // Do walk around method
+            Vector cross_products(rGeom.PointsNumber());
+            for (size_t i = 0; i < rGeom.PointsNumber(); ++i)
+            {
+                cross_products[i] = CrossProductDet2D(Coords - rGeom.Points()[i].Coordinates(),
+                    rGeom.Points()[(i+1)% rGeom.PointsNumber()].Coordinates()- rGeom.Points()[i].Coordinates());
+            }
+            for (size_t i = 1; i < cross_products.size(); ++i)
+            {
+                if (cross_products[i] * cross_products[0] < 0.0)
+                {
+                    is_inside = false;
+                    break;
+                }
+            }
+
+        }
+
+        if (is_inside) return rGeom.IsInside(Coords, LocalCoords, Tolerance);
+
+        return false;
+    }
+
     void ConstructNeighbourRelations(ModelPart& rBackgroundGridModelPart)
     {
         #pragma omp parallel for
@@ -73,13 +107,14 @@ namespace MPMSearchElementUtility
             GeometryType& r_parent_geometry = element_itr->GetGeometry().GetGeometryParent(0);
 
             array_1d<double, 3> local_coordinates;
-            bool is_found = r_parent_geometry.IsInside(xg[0], local_coordinates, Tolerance);
+            //bool is_found = r_parent_geometry.IsInside(xg[0], local_coordinates, Tolerance);
+            bool is_found = CheckIsInside(r_parent_geometry,local_coordinates,xg[0],Tolerance);
             if (!is_found)
             {
                 auto& geometry_neighbours = r_parent_geometry.GetValue(GEOMETRY_NEIGHBOURS);
                 for (IndexType k = 0; k < geometry_neighbours.size(); k++)
                 {
-                    if (geometry_neighbours[k]->IsInside(xg[0], local_coordinates, Tolerance))
+                    if (CheckIsInside(*geometry_neighbours[k], local_coordinates, xg[0], Tolerance))
                     {
                         is_found = true;
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
@@ -130,13 +165,15 @@ namespace MPMSearchElementUtility
                 GeometryType& r_parent_geometry = condition_itr->GetGeometry();
 
                 array_1d<double, 3> local_coordinates;
-                bool is_found = r_parent_geometry.IsInside(xg[0], local_coordinates, Tolerance);
+                //bool is_found = r_parent_geometry.IsInside(xg[0], local_coordinates, Tolerance);
+                bool is_found = CheckIsInside(r_parent_geometry, local_coordinates, xg[0], Tolerance);
                 if (!is_found)
                 {
                     auto& geometry_neighbours = r_parent_geometry.GetValue(GEOMETRY_NEIGHBOURS);
                     for (IndexType k = 0; k < geometry_neighbours.size(); k++)
                     {
-                        if (geometry_neighbours[k]->IsInside(xg[0], local_coordinates, Tolerance))
+                        //if (geometry_neighbours[k]->IsInside(xg[0], local_coordinates, Tolerance))
+                        if (CheckIsInside(*geometry_neighbours[k], local_coordinates, xg[0], Tolerance))
                         {
                             is_found = true;
 
