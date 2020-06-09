@@ -177,7 +177,10 @@ namespace MPMParticleGeneratorUtility
                                 xg[0][dimension] = xg[0][dimension] + shape_functions_values(PointNumber, j) * r_geometry[j].Coordinates()[dimension];
                             }
                         }
-                        if (IsAxisSymmetry)  mp_mass[0] = mp_volume[0] * 2.0 * Globals::Pi * xg[0][0] * density;
+                        if (IsAxisSymmetry) {
+                            mp_volume[0] *= 2.0 * Globals::Pi * xg[0][0];
+                            mp_mass[0] = mp_volume[0] * density;
+                        }
 
                         typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                         Element::Pointer pelem;
