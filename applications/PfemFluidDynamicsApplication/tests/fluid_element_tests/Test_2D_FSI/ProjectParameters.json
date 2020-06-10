@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI",
         "start_time"      : 0.0,
-        "end_time"        : 0.005,
+        "end_time"        : 0.003,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP",
         "threads"         : 1,
@@ -14,7 +14,7 @@
         "domain_size": 2,
         "time_stepping"               : {
             "automatic_time_step" : false,
-            "time_step"           : 0.0005
+            "time_step"           : 0.001
         },
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -304,18 +304,18 @@
                 "check_variables"     : ["VELOCITY_X","VELOCITY_Y"],
                 "input_file_name"     : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI_results.json",
                 "model_part_name"      : "PfemFluidModelPart",
-                "time_frequency"       : 0.001
+                "time_frequency"       : 0.003
             }
         }]
     },
     "_json_output_process": [{
-        "python_module" : "json_output_process",
+        "python_module" : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
             "output_variables"     : ["VELOCITY_X","VELOCITY_Y"],
             "output_file_name"     : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI_results.json",
             "model_part_name"      : "PfemFluidModelPart",
-            "time_frequency"       : 0.001
+            "time_frequency"       : 0.003
         }
     }]
 }
