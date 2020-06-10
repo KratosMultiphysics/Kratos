@@ -80,6 +80,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.remove(self.initial_tautoplt_filename)
         os.rmdir('Mesh')
 
+
     def test_FindInterfaceFilename(self):
         self.createOutputsDirectory()
         self.createInterfaceFile()
@@ -93,6 +94,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Remove dummy file and directory
         TauFunctions.RemoveFilesFromPreviousSimulations()
         os.rmdir('Outputs')
+
 
     def test_ReadInterfaceFile(self):
         self.setReference()
@@ -135,6 +137,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
 
         # Check
         np.testing.assert_almost_equal(nodal_pressure, reference_nodal_pressure, decimal=16)
+
 
     def test_GetCellNodeIds(self):
         # Define elem_connectivities
@@ -179,6 +182,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.remove(file_name)
         os.rmdir('Mesh')
 
+
     def test_FindOutputFilename(self):
         self.createOutputsDirectory()
         self.createInterfaceFile()
@@ -215,6 +219,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
 
         # Remove interface file
         os.remove(self.interface_filename)
+
 
     def test_ReadNodalData(self):
         # Set reference
@@ -259,6 +264,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Remove interface file
         os.remove(self.interface_filename)
 
+
     def test_CalculateCellPressure(self):
         # Define nodal pressure and node ids
         nodal_pressures = [1.4, 3.6, 5.7, 7.9]
@@ -298,6 +304,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Check
         np.testing.assert_almost_equal(cell_normal, reference_normal, decimal=16)
 
+
     def test_FindInitialMeshFilename(self):
         # Create dummy file
         path = os.getcwd() + '/'
@@ -314,6 +321,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Remove dummy file
         os.remove(file_name)
 
+
     def test_FindFilename(self):
         self.createOutputsDirectory()
         self.createInterfaceFile()
@@ -327,6 +335,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
         # Remove dummy file and directory
         TauFunctions.RemoveFilesFromPreviousSimulations()
         os.rmdir('Outputs')
+
 
     def test_CalculateDistanceVector(self):
         # Populate two nodes with random coordinates
