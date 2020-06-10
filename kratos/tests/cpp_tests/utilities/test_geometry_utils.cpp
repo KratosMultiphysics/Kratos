@@ -363,7 +363,7 @@ namespace Testing {
         const double check_pressure = N[0] + 2.0 * N[1] + 3.0 * N[2] + 4.0 * N[3];
         double pressure;
         GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(pressure, tetrahedra, PRESSURE, N);
-        KRATOS_CHECK_NEAR(check_pressure, pressure, 1e-7);
+        KRATOS_CHECK_NEAR(check_pressure, pressure, 1e-15);
 
         // testing for previous step
         tetrahedra[0].FastGetSolutionStepValue(PRESSURE, 1) = 10.0;
@@ -374,7 +374,7 @@ namespace Testing {
         const double check_old_pressure = 10.0 * N[0] + 20.0 * N[1] + 30.0 * N[2] + 40.0 * N[3];
         double old_pressure;
         GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(old_pressure, tetrahedra, PRESSURE, N, 1);
-        KRATOS_CHECK_NEAR(check_old_pressure, old_pressure, 1e-7);
+        KRATOS_CHECK_NEAR(check_old_pressure, old_pressure, 1e-15);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EvaluateHistoricalVariableValueAtGaussPointArray, KratosCoreFastSuite)
@@ -414,7 +414,7 @@ namespace Testing {
         const array_1d<double, 3> check_velocity = n0 * N[0] + n1* N[1] + n2 * N[2] + n3 * N[3];
         array_1d<double, 3> velocity;
         GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(velocity, tetrahedra, VELOCITY, N);
-        KRATOS_CHECK_VECTOR_NEAR(check_velocity, velocity, 1e-7);
+        KRATOS_CHECK_VECTOR_NEAR(check_velocity, velocity, 1e-15);
 
         // testing for previous step
         array_1d<double, 3> n0_old(3, 10.0);
@@ -428,7 +428,7 @@ namespace Testing {
         const array_1d<double, 3> check_old_velocity = n0_old * N[0] + n1_old* N[1] + n2_old * N[2] + n3_old * N[3];
         array_1d<double, 3> old_velocity;
         GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(old_velocity, tetrahedra, VELOCITY, N, 1);
-        KRATOS_CHECK_VECTOR_NEAR(check_old_velocity, old_velocity, 1e-7);
+        KRATOS_CHECK_VECTOR_NEAR(check_old_velocity, old_velocity, 1e-15);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EvaluateHistoricalVariableGradientAtGaussPointDouble, KratosCoreFastSuite)
@@ -468,7 +468,7 @@ namespace Testing {
 
         array_1d<double, 3> pressure_gradient;
         GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(pressure_gradient, tetrahedra, PRESSURE, DN_DX);
-        KRATOS_CHECK_VECTOR_NEAR(check_pressure_gradient, pressure_gradient, 1e-7);
+        KRATOS_CHECK_VECTOR_NEAR(check_pressure_gradient, pressure_gradient, 1e-15);
 
         // testing for previous step
         tetrahedra[0].FastGetSolutionStepValue(PRESSURE, 1) = 10.0;
@@ -483,7 +483,7 @@ namespace Testing {
 
         array_1d<double, 3> old_pressure_gradient;
         GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(old_pressure_gradient, tetrahedra, PRESSURE, DN_DX, 1);
-        KRATOS_CHECK_VECTOR_NEAR(check_old_pressure_gradient, old_pressure_gradient, 1e-7);
+        KRATOS_CHECK_VECTOR_NEAR(check_old_pressure_gradient, old_pressure_gradient, 1e-15);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EvaluateHistoricalVariableGradientAtGaussPointArray, KratosCoreFastSuite)
@@ -535,7 +535,7 @@ namespace Testing {
 
         BoundedMatrix<double, 3, 3> velocity_gradient;
         GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(velocity_gradient, tetrahedra, VELOCITY, DN_DX);
-        KRATOS_CHECK_MATRIX_NEAR(check_velocity_gradient, velocity_gradient, 1e-7);
+        KRATOS_CHECK_MATRIX_NEAR(check_velocity_gradient, velocity_gradient, 1e-15);
 
         // testing for previous step
         array_1d<double, 3> n0_old(3, 1.0);
@@ -562,7 +562,7 @@ namespace Testing {
 
         BoundedMatrix<double, 3, 3> old_velocity_gradient;
         GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(old_velocity_gradient, tetrahedra, VELOCITY, DN_DX, 1);
-        KRATOS_CHECK_MATRIX_NEAR(check_old_velocity_gradient, old_velocity_gradient, 1e-7);
+        KRATOS_CHECK_MATRIX_NEAR(check_old_velocity_gradient, old_velocity_gradient, 1e-15);
     }
 }  // namespace Testing.
 }  // namespace Kratos.
