@@ -26,6 +26,9 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
 #include "utilities/curve_axis_intersection.h"
+#include "integration/integration_info.h"
+
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 namespace Kratos {
 
@@ -164,28 +167,110 @@ public:
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        auto interval = mpNurbsCurve->DomainInterval();
-        this->Spans(rSpans, interval.GetT0(), interval.GetT1());
-    }
+        double external_start;
+        double external_end;
+        NurbsInterval this_interval = mpNurbsCurve->DomainInterval();
+        if (rSpans.size() > 0) {
+            external_start = rSpans[0];
+            external_end = rSpans[rSpans.size() - 1];
+            NurbsInterval this_interval = mpNurbsCurve->DomainInterval();
+            this_interval.IsInside(external_start);
+            this_interval.IsInside(external_end);
 
-    /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
-     * @return vector of interval limitations.
-     */
-    void Spans(std::vector<double>& rSpans,
-        double Start, double End) const
-    {
+            NurbsInterval external_interval(external_start, external_end);
+
+            std::vector<double> new_spans;
+            for (IndexType i = 0; i < rSpans.size(); i++) {
+                double temp = rSpans[i];
+                if (external_interval.IsInside(temp)) {
+                    new_spans.push_back(temp);
+                }
+            }
+            rSpans = new_spans;
+        }
+        else {
+            external_start = this_interval.GetT0();
+            external_end = this_interval.GetT1();
+        }
+
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
         mpNurbsSurface->Spans(surface_spans_u, 0);
         mpNurbsSurface->Spans(surface_spans_v, 1);
 
-        CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
-            rSpans,
-            *(mpNurbsCurve.get()), Start, End,
+        // compute axis intersection with external limits
+        std::vector<double> intersection_spans;
+        CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
+            intersection_spans,
+            *(mpNurbsCurve.get()), external_start, external_end,
             surface_spans_u, surface_spans_v,
             1e-6);
+
+        // Add all intersections
+        for (IndexType i = 0; i < intersection_spans.size(); ++i)
+        {
+            rSpans.push_back(intersection_spans[i]);
+        }
+        SortUnique(rSpans, 1e-6);
+    }
+
+    static void SortUnique(
+        std::vector<double>& rIntersectionParameters,
+        const double Tolerance)
+    {
+        std::sort(std::begin(rIntersectionParameters), std::end(rIntersectionParameters));
+
+        auto last = std::unique(std::begin(rIntersectionParameters), std::end(rIntersectionParameters),
+            [=](double a, double b) { return b - a < Tolerance; });
+
+        auto nb_unique = std::distance(std::begin(rIntersectionParameters), last);
+
+        rIntersectionParameters.resize(nb_unique);
+    }
+
+    ///@}
+    ///@name IsInside
+    ///@{
+
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mpNurbsCurve->IsInsideLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+    int SetInsideLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mpNurbsCurve->SetInsideLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+    /////@}
+    /////@name Spatial Operations
+    /////@{
+
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const bool success = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            rProjectedPointGlobalCoordinates,
+            *this,
+            20, Tolerance);
+
+        return (success)
+            ? 1
+            : 0;
     }
 
     ///@}
@@ -197,15 +282,23 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        mpNurbsSurface->PolynomialDegreeU();
-
-        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
-            + mpNurbsSurface->PolynomialDegreeV() + 1;
+        const SizeType points_per_span = (rIntegrationInfo.NumberOfIntegrationPointsPerSpan() != 0)
+            ? rIntegrationInfo.NumberOfIntegrationPointsPerSpan()
+            : mpNurbsSurface->PolynomialDegreeU() + mpNurbsSurface->PolynomialDegreeV() + 1;
 
         std::vector<double> spans;
-        Spans(spans);
+        if (rIntegrationInfo.HasSpansInDirection(0)) {
+            spans = rIntegrationInfo.GetSpans(0);
+            if (spans.size() < 1) {
+                this->Spans(spans);
+            }
+        }
+        else {
+            this->Spans(spans);
+        }
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);
@@ -219,13 +312,13 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         double StartParameter, double EndParameter) const
     {
-        mpNurbsSurface->PolynomialDegreeU();
-
         const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
             + mpNurbsSurface->PolynomialDegreeV() + 1;
 
-        std::vector<double> spans;
-        Spans(spans, StartParameter, EndParameter);
+        std::vector<double> spans(2);
+        spans[0] = StartParameter;
+        spans[1] = EndParameter;
+        Spans(spans);
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);

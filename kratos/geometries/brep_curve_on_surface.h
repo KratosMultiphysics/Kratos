@@ -248,10 +248,32 @@ public:
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        mpCurveOnSurface->Spans(rSpans, DirectionIndex,
-            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+        if (rSpans.size() > 0) {
+            double external_start = rSpans[0];
+            double external_end = rSpans[rSpans.size() - 1];
+            mCurveNurbsInterval.IsInside(external_start);
+            mCurveNurbsInterval.IsInside(external_end);
+
+            NurbsInterval trimmed_external_interval(external_start, external_end);
+
+            std::vector<double> new_spans;
+            for (IndexType i = 0; i < rSpans.size(); i++) {
+                double temp = rSpans[i];
+                if (trimmed_external_interval.IsInside(temp)) {
+                    new_spans.push_back(temp);
+                }
+            }
+            rSpans = new_spans;
+        }
+        else {
+            rSpans.resize(2);
+            rSpans[0] = mCurveNurbsInterval.GetT0();
+            rSpans[1] = mCurveNurbsInterval.GetT1();
+        }
+
+        mpCurveOnSurface->Spans(rSpans);
     }
 
     ///@}
@@ -298,7 +320,8 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
@@ -321,10 +344,11 @@ public:
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) override
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo) override
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
     }
 
     ///@}

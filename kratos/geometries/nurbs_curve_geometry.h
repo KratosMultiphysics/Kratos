@@ -22,7 +22,10 @@
 
 #include "utilities/quadrature_points_utility.h"
 
+#include "integration/integration_info.h"
 #include "integration/integration_point_utilities.h"
+
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 namespace Kratos {
 
@@ -281,19 +284,141 @@ public:
      * @param resulting vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
+        if (rSpans.size() > 0) {
+            double external_start = rSpans[0];
+            double external_end = rSpans[rSpans.size() - 1];
+            NurbsInterval this_interval = DomainInterval();
+            this_interval.IsInside(external_start);
+            this_interval.IsInside(external_end);
 
-        rSpans[0] = mKnots[0];
+            NurbsInterval external_interval(external_start, external_end);
 
-        IndexType counter = 1;
-        for (IndexType i = 0; i < mKnots.size() - 1; i++) {
-            if (std::abs(mKnots[i] - mKnots[i + 1]) > 1e-6) {
-                rSpans[counter] = mKnots[i + 1];
-                counter++;
+            std::vector<double> new_spans;
+            for (IndexType i = 0; i < rSpans.size(); i++) {
+                double temp = rSpans[i];
+                if (external_interval.IsInside(temp)) {
+                    new_spans.push_back(temp);
+                }
+            }
+            rSpans = new_spans;
+
+            double test = mKnots[0];
+            if (external_interval.IsInside(test)) {
+                rSpans.push_back(mKnots[0]);
+            }
+
+            for (IndexType i = 0; i < mKnots.size() - 1; i++) {
+                if (std::abs(mKnots[i] - mKnots[i + 1]) > 1e-6) {
+                    test = mKnots[i + 1];
+                    if (external_interval.IsInside(test)) {
+                        rSpans.push_back(mKnots[i + 1]);
+                    }
+                }
+            }
+            SortUnique(rSpans, 1e-6);
+        }
+        else {
+            rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
+
+            rSpans[0] = mKnots[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnots.size() - 1; i++) {
+                if (std::abs(mKnots[i] - mKnots[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnots[i + 1];
+                    counter++;
+                }
             }
         }
+    }
+
+    static void SortUnique(
+        std::vector<double>& rIntersectionParameters,
+        const double Tolerance)
+    {
+        std::sort(std::begin(rIntersectionParameters), std::end(rIntersectionParameters));
+
+        auto last = std::unique(std::begin(rIntersectionParameters), std::end(rIntersectionParameters),
+            [=](double a, double b) { return b - a < Tolerance; });
+
+        auto nb_unique = std::distance(std::begin(rIntersectionParameters), last);
+
+        rIntersectionParameters.resize(nb_unique);
+    }
+
+    ///@}
+    ///@name IsInside
+    ///@{
+
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const double min_parameter =
+            std::min(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter =
+            std::max(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    int SetInsideLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const double min_parameter =
+            std::min(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            rPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        }
+
+        const double max_parameter =
+            std::max(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            rPointLocalCoordinates[0] = max_parameter;
+            return 0;
+        }
+
+        return 1;
+    }
+
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const bool success = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            rProjectedPointGlobalCoordinates,
+            *this,
+            20, Tolerance);
+
+        return (success)
+            ? 1
+            : 0;
     }
 
     ///@}
@@ -304,12 +429,23 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = PolynomialDegree() + 1;
+        const SizeType points_per_span = (rIntegrationInfo.NumberOfIntegrationPointsPerSpan() != 0)
+            ? rIntegrationInfo.NumberOfIntegrationPointsPerSpan()
+            : PolynomialDegree() + 1;
 
         std::vector<double> spans;
-        Spans(spans);
+        if (rIntegrationInfo.HasSpansInDirection(0)) {
+            spans = rIntegrationInfo.GetSpans(0);
+            if (spans.size() < 1) {
+                Spans(spans);
+            }
+        }
+        else {
+            Spans(spans);
+        }
 
         this->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);
