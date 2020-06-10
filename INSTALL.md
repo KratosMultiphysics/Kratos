@@ -407,14 +407,14 @@ Enables colored output of the Logger. If switched on, e.g. warning level message
 
 `-DUSE_METIS_5=ON/OFF`
 
-Specifies if the metis version is 5 or greater (OFF by default).
+Specifies if the metis version is 5 or greater (ON by default). Note that using metis 4 is deprecated and will be removed in the future.
 
 `-DMETIS_ROOT_DIR=String`
 
 Root directory for Metis library
 
 #### Trilinos
-On Ubuntu 18.04, the following command installs the necessary files:
+From Ubuntu 18.04 onwards, the following command installs the necessary files:
 
 ```Shell
 sudo apt-get install trilinos-all-dev
@@ -438,3 +438,10 @@ Indicates the prefix of the trilinos libraries in case they have:
 libepetra.so          -> No prefix
 libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
 ```
+If trilinos was installed using the package manager usually the following lines have to be used:
+```
+-DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
+-DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
+-DTRILINOS_LIBRARY_PREFIX="trilinos_" \
+```
+
