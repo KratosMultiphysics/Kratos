@@ -469,8 +469,8 @@ void UpdatedLagrangian::CalculateAndAddRHS(
         : false;
     if (is_explicit)
     {
-        MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
-            mMP.cauchy_stress_vector, mMP.volume,
+        MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(rCurrentProcessInfo ,
+            *this, mMP.cauchy_stress_vector, mMP.volume,
             mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
     }
     else

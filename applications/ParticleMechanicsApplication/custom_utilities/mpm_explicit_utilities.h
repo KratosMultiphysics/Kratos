@@ -44,8 +44,8 @@ namespace Kratos
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateAndAddExplicitInternalForce(Element& rElement,
-            const Vector& rMPStress, const double rMPVolume,
+        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateAndAddExplicitInternalForce(const ProcessInfo& rProcessInfo,
+            Element& rElement, const Vector& rMPStress, const double rMPVolume,
             const SizeType StrainSize, Vector& rRightHandSideVector);
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(const ProcessInfo& rCurrentProcessInfo,
