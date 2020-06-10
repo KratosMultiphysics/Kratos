@@ -4500,9 +4500,9 @@ bool& ModelPartIO::ExtractValue(std::string rWord, bool & rValue)
 
     if (rWord == "1" || rWord == "true" || rWord == "True") {
         rValue = true;
+    } else {
+          rValue = false;
     }
-
-    else rValue = false;
 
     return rValue;
 }
