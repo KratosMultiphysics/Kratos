@@ -569,7 +569,7 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ReadDataJSON(cons
     const std::string& r_variable_name = mpVariable->Name();
     for (IndexType i = 0; i < number_of_definitions; ++i) {
         const std::string identifier = std::to_string(i + 1);
-        const auto& r_vector = json_input[identifier]["VALUE"][r_variable_name].GetVector();
+        const auto& r_vector = json_input[identifier]["VALUES"][r_variable_name].GetVector();
         r_var_database.SetValues(r_time, r_vector, i);
     }
 
