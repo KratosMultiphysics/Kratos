@@ -321,6 +321,17 @@ public:
     }
 
     ///@}
+    ///@name Geometry Shape Function Conatiner
+    ///@{
+
+    void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<IntegrationMethod>&
+            rGeometryShapeFunctionContainer)
+    {
+        mGeometryShapeFunctionContainer = rGeometryShapeFunctionContainer;
+    }
+
+    ///@}
     ///@name Informations
     ///@{
 
