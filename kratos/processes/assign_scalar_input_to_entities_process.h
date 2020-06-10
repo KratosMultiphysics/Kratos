@@ -31,6 +31,16 @@ namespace Kratos
 ///@{
 
 /**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct AssignScalarInputToEntitiesProcessSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
+
+/**
  * @class AssignScalarInputToEntitiesProcess
  * @ingroup KratosCore
  * @brief This function assigns a value from an input to a variable belonging to all of the entities in a given mesh
@@ -38,7 +48,7 @@ namespace Kratos
  * @tparam TEntity The entity type
  * @author Vicente Mataix Ferrandiz
 */
-template<class TEntity>
+template<class TEntity, bool THistorical = false>
 class KRATOS_API(KRATOS_CORE) AssignScalarInputToEntitiesProcess
     : public Process
 {
@@ -265,6 +275,15 @@ private:
      * @return The current entity label
      */
     array_1d<double, 3> GetCoordinatesEntity(const IndexType Id);
+
+//     /**
+//      * @brief This method set values
+//      */
+//     void SetValue(
+//         TEntity& rEntity,
+//         const Variable<double>& rVariable,
+//         const double Value
+//         );
 
     /**
      * @brief This method returns the current entity container

@@ -25,14 +25,14 @@ namespace Kratos
 {
 
 /// Local Flags
-template<class TEntity>
-const Kratos::Flags AssignScalarInputToEntitiesProcess<TEntity>::GEOMETRIC_DEFINITION(Kratos::Flags::Create(0));
+template<class TEntity, bool THistorical>
+const Kratos::Flags AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GEOMETRIC_DEFINITION(Kratos::Flags::Create(0));
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
+template<class TEntity, bool THistorical>
+AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEntitiesProcess(
     ModelPart& rModelPart,
     Parameters rParameters
     ) : Process(Flags()) ,
@@ -79,8 +79,8 @@ AssignScalarInputToEntitiesProcess<TEntity>::AssignScalarInputToEntitiesProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void AssignScalarInputToEntitiesProcess<TEntity>::ExecuteInitializeSolutionStep()
+template<class TEntity, bool THistorical>
+void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
@@ -121,8 +121,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ExecuteInitializeSolutionStep(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-const Parameters AssignScalarInputToEntitiesProcess<TEntity>::GetDefaultParameters() const
+template<class TEntity, bool THistorical>
+const Parameters AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {
@@ -139,7 +139,7 @@ const Parameters AssignScalarInputToEntitiesProcess<TEntity>::GetDefaultParamete
 /***********************************************************************************/
 
 template<>
-array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node<3>>:: GetCoordinatesEntity(const IndexType Id)
+array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>:: GetCoordinatesEntity(const IndexType Id)
 {
     return mrModelPart.pGetNode(Id)->Coordinates();
 }
@@ -148,7 +148,16 @@ array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node<3>>:: GetCoordinates
 /***********************************************************************************/
 
 template<>
-array_1d<double, 3> AssignScalarInputToEntitiesProcess<Condition>:: GetCoordinatesEntity(const IndexType Id)
+array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>:: GetCoordinatesEntity(const IndexType Id)
+{
+    return mrModelPart.pGetNode(Id)->Coordinates();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+array_1d<double, 3> AssignScalarInputToEntitiesProcess<Condition, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>:: GetCoordinatesEntity(const IndexType Id)
 {
     return mrModelPart.pGetCondition(Id)->GetGeometry().Center().Coordinates();
 }
@@ -157,7 +166,7 @@ array_1d<double, 3> AssignScalarInputToEntitiesProcess<Condition>:: GetCoordinat
 /***********************************************************************************/
 
 template<>
-array_1d<double, 3> AssignScalarInputToEntitiesProcess<Element>:: GetCoordinatesEntity(const IndexType Id)
+array_1d<double, 3> AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>:: GetCoordinatesEntity(const IndexType Id)
 {
     return mrModelPart.pGetElement(Id)->GetGeometry().Center().Coordinates();
 }
@@ -166,7 +175,7 @@ array_1d<double, 3> AssignScalarInputToEntitiesProcess<Element>:: GetCoordinates
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Node<3>, IndexedObject>& AssignScalarInputToEntitiesProcess<Node<3>>::GetEntitiesContainer()
+PointerVectorSet<Node<3>, IndexedObject>& AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh().Nodes();
 }
@@ -175,7 +184,16 @@ PointerVectorSet<Node<3>, IndexedObject>& AssignScalarInputToEntitiesProcess<Nod
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Condition, IndexedObject>& AssignScalarInputToEntitiesProcess<Condition>::GetEntitiesContainer()
+PointerVectorSet<Node<3>, IndexedObject>& AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh().Nodes();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>& AssignScalarInputToEntitiesProcess<Condition, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh().Conditions();
 }
@@ -184,7 +202,7 @@ PointerVectorSet<Condition, IndexedObject>& AssignScalarInputToEntitiesProcess<C
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Element>::GetEntitiesContainer()
+PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh().Elements();
 }
@@ -192,8 +210,8 @@ PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Ele
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::string& rFileName)
+template<class TEntity, bool THistorical>
+void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::IdentifyDataTXT(const std::string& rFileName)
 {
     KRATOS_TRY;
 
@@ -252,8 +270,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataTXT(const std::str
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataJSON(const std::string& rFileName)
+template<class TEntity, bool THistorical>
+void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::IdentifyDataJSON(const std::string& rFileName)
 {
     KRATOS_TRY;
 
@@ -302,8 +320,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataJSON(const std::st
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string& rFileName)
+template<class TEntity, bool THistorical>
+void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ReadDataTXT(const std::string& rFileName)
 {
     KRATOS_TRY;
 
@@ -374,8 +392,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataTXT(const std::string&
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string& rFileName)
+template<class TEntity, bool THistorical>
+void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ReadDataJSON(const std::string& rFileName)
 {
     KRATOS_TRY;
 
@@ -412,8 +430,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void AssignScalarInputToEntitiesProcess<TEntity>::ComputeExtrapolationWeight()
+template<class TEntity, bool THistorical>
+void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ComputeExtrapolationWeight()
 {
     KRATOS_TRY;
 
@@ -457,7 +475,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ComputeExtrapolationWeight()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AssignScalarInputToEntitiesProcess<Node<3>>;
+template class AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
+template class AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>;
 template class AssignScalarInputToEntitiesProcess<Condition>;
 template class AssignScalarInputToEntitiesProcess<Element>;
 

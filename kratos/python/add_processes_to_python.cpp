@@ -405,15 +405,19 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters >())
     ;
 
-    py::class_<AssignScalarInputToEntitiesProcess<NodeType>, AssignScalarInputToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarInputToNodesProcess")
+    py::class_<AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>, AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"AssignScalarInputToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
 
-    py::class_<AssignScalarInputToEntitiesProcess<Condition>, AssignScalarInputToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarInputToConditionsProcess")
+    py::class_<AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>, AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"AssignScalarInputHistoricalToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
 
-    py::class_<AssignScalarInputToEntitiesProcess<Element>, AssignScalarInputToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarInputToElementsProcess")
+    py::class_<AssignScalarInputToEntitiesProcess<Condition, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>, AssignScalarInputToEntitiesProcess<Condition, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"AssignScalarInputToConditionsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>, AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"AssignScalarInputToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
 
