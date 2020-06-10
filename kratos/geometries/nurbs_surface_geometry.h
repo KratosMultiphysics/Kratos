@@ -192,6 +192,24 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the surface in direction 0 or 1
+    SizeType PolynomialDegree(IndexType DirectionIndex = 0) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(DirectionIndex > 1)
+            << "Trying to access polynomial degree in direction " << DirectionIndex
+            << " from NurbsSurfaceGeometry #" << Id() << ". However, nurbs surfaces have only two directions."
+            << std::endl;
+
+        if (DirectionIndex == 0)
+            return mPolynomialDegreeU;
+        else
+            return mPolynomialDegreeV;
+    }
+
+    ///@}
     ///@name Get and Set functions
     ///@{
 

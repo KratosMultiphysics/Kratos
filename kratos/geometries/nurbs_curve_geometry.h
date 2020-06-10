@@ -174,7 +174,7 @@ public:
     ///@name Mathematical Informations
     ///@{
 
-    /// Return polynomial degree of the geometry in a certain direction
+    /// Return polynomial degree of the curve
     SizeType PolynomialDegree(IndexType DirectionIndex = 0) const override
     {
         KRATOS_DEBUG_ERROR_IF(DirectionIndex != 0)
@@ -182,7 +182,7 @@ public:
             << " from NurbsCurveGeometry #" << Id() << ". However, nurbs curves have only one direction."
             << std::endl;
 
-        return this->mPolynomialDegree();
+        return mPolynomialDegree;
     }
 
     ///@}
