@@ -69,7 +69,8 @@ void Bingham2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues) {
                   4.0 * r_strain_vector[2] * r_strain_vector[2]);
 
     // Ensuring that the case of equivalent_strain_rate = 0 is not problematic
-    if (equivalent_strain_rate <= 1e-8) {
+    const double tolerance=1e-8;
+    if (equivalent_strain_rate < tolerance) {
         effective_dynamic_viscosity = yield_shear * adaptive_exponent;
     } else {
         double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
@@ -128,21 +129,15 @@ double Bingham2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParamet
 }
 
 double Bingham2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_prop = rParameters.GetMaterialProperties();
-    const double effective_density = r_prop[DENSITY];
-    return effective_density;
+    return rParameters.GetMaterialProperties()[DENSITY];
 }
 
 double Bingham2DLaw::GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_prop = rParameters.GetMaterialProperties();
-    const double effective_dynamic_viscosity = r_prop[DYNAMIC_VISCOSITY];
-    return effective_dynamic_viscosity;
+    return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
 }
 
 double Bingham2DLaw::GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_prop = rParameters.GetMaterialProperties();
-    const double effective_yield_shear = r_prop[YIELD_SHEAR];
-    return effective_yield_shear;
+    return rParameters.GetMaterialProperties()[YIELD_SHEAR];
 }
 
 void Bingham2DLaw::save(Serializer& rSerializer) const {

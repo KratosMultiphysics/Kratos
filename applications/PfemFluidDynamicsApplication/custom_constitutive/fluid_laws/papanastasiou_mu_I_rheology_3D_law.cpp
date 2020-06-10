@@ -181,9 +181,7 @@ double PapanastasiouMuIRheology3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Par
 }
 
 double PapanastasiouMuIRheology3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_properties = rParameters.GetMaterialProperties();
-    const double effective_density = r_properties[DENSITY];
-    return effective_density;
+    return rParameters.GetMaterialProperties()[DENSITY];
 }
 
 void PapanastasiouMuIRheology3DLaw::save(Serializer& rSerializer) const {

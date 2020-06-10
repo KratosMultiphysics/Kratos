@@ -177,9 +177,7 @@ double PapanastasiouMuIRheology2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Par
 }
 
 double PapanastasiouMuIRheology2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_properties = rParameters.GetMaterialProperties();
-    const double effective_density = r_properties[DENSITY];
-    return effective_density;
+    return rParameters.GetMaterialProperties()[DENSITY];
 }
 
 void PapanastasiouMuIRheology2DLaw::save(Serializer& rSerializer) const {

@@ -196,9 +196,7 @@ double BarkerMuIRheology3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
 }
 
 double BarkerMuIRheology3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_prop = rParameters.GetMaterialProperties();
-    const double effective_density = r_prop[DENSITY];
-    return effective_density;
+    return rParameters.GetMaterialProperties()[DENSITY];
 }
 
 void BarkerMuIRheology3DLaw::save(Serializer& rSerializer) const {

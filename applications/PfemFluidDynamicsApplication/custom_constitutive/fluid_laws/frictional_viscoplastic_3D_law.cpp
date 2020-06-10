@@ -74,7 +74,7 @@ namespace Kratos
         const double theta_momentum = r_geometry[0].GetValue(THETA_MOMENTUM);
         double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
 
-        if (mean_pressure > 0.0) // in case of tractions
+        if (mean_pressure > 0.0) // cutoff for tractions
         {
             mean_pressure = 0;
         }
@@ -85,13 +85,14 @@ namespace Kratos
                       4.0 * r_strain_vector[4] * r_strain_vector[4] + 4.0 * r_strain_vector[5] * r_strain_vector[5]);
 
         // Ensuring that the case of equivalent_strain_rate = 0 is not problematic
-        if (equivalent_strain_rate == 0)
+        const double tolerance=1e-12;
+        if (equivalent_strain_rate < tolerance)
         {
             effective_dynamic_viscosity = dynamic_viscosity;
         }
         else
         {
-            const double friction_angle_rad= friction_angle*3.14159265359/180;
+            const double friction_angle_rad= friction_angle*Globals::Pi/180.0;
             const double tanFi=std::tan(friction_angle_rad);
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
             effective_dynamic_viscosity = dynamic_viscosity + regularization * (cohesion + tanFi * fabs(mean_pressure) / equivalent_strain_rate); 
@@ -168,30 +169,22 @@ namespace Kratos
 
     double FrictionalViscoplastic3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const
     {
-        const Properties &r_prop = rParameters.GetMaterialProperties();
-        const double effective_density = r_prop[DENSITY];
-        return effective_density;
+        return rParameters.GetMaterialProperties()[DENSITY];
     }
 
     double FrictionalViscoplastic3DLaw::GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters &rParameters) const
     {
-        const Properties &r_prop = rParameters.GetMaterialProperties();
-        const double effective_dynamic_viscosity = r_prop[DYNAMIC_VISCOSITY];
-        return effective_dynamic_viscosity;
+        return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
     }
 
     double FrictionalViscoplastic3DLaw::GetEffectiveFrictionAngle(ConstitutiveLaw::Parameters &rParameters) const
     {
-        const Properties &r_prop = rParameters.GetMaterialProperties();
-        const double effective_friction_angle = r_prop[FRICTION_ANGLE];
-        return effective_friction_angle;
+        return rParameters.GetMaterialProperties()[FRICTION_ANGLE];
     }
 
     double FrictionalViscoplastic3DLaw::GetEffectiveCohesion(ConstitutiveLaw::Parameters &rParameters) const
     {
-        const Properties &r_prop = rParameters.GetMaterialProperties();
-        const double effective_cohesion = r_prop[COHESION];
-        return effective_cohesion;
+        return rParameters.GetMaterialProperties()[COHESION];
     }
 
     void FrictionalViscoplastic3DLaw::save(Serializer &rSerializer) const
