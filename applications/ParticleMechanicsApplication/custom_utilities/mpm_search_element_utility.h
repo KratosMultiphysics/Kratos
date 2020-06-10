@@ -51,6 +51,10 @@ namespace MPMSearchElementUtility
             Vector cross_products(rGeom.PointsNumber());
             for (size_t i = 0; i < rGeom.PointsNumber(); ++i)
             {
+                if (rGeom.Points()[i].Coordinates()[2] != 0.0) {
+                    return rGeom.IsInside(Coords, LocalCoords, Tolerance);
+                    break;
+                }
                 cross_products[i] = CrossProductDet2D(Coords - rGeom.Points()[i].Coordinates(),
                     rGeom.Points()[(i+1)% rGeom.PointsNumber()].Coordinates()- rGeom.Points()[i].Coordinates());
             }
