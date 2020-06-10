@@ -369,7 +369,7 @@ namespace MPMSearchElementUtility
     {
         ResetElementsAndNodes(rBackgroundGridModelPart);
 
-        const bool use_neighbour_search = false; //TODO delete - for testing only
+        const bool use_neighbour_search = true; //TODO delete - for testing only
 
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
