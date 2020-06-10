@@ -32,6 +32,18 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Mesh')
 
 
+    def test_ReadNodalCoordinates(self):
+        # Set referemce nodal coordinates
+        self.setReference()
+        reference_nodal_coor = self.setReferenceNodalCoordinates()
+
+        # Function call
+        nodal_coords = TauFunctions.ReadNodalCoordinates(self.reference_X, self.reference_Y, self.reference_Z)
+
+        # Check
+        np.testing.assert_almost_equal(nodal_coords, reference_nodal_coor, decimal=16)
+
+
     def test_ReadElementTypes(self):
         number_of_elements = 20
         reference_elem_type = np.full(number_of_elements, 9, dtype=int)
@@ -436,6 +448,18 @@ class TestTauFunctions(KratosUnittest.TestCase):
         self.reference_nodal_data.extend(reference_density)
         self.reference_nodal_data.extend(reference_cp)
         self.reference_elem_connectivities = np.array([1, 2, 5, 6, 2, 3, 4, 5], dtype=int)
+
+
+    def setReferenceNodalCoordinates(self):
+        nodal_coords = np.zeros(3*len(self.reference_X))
+
+        # Loop over nodes
+        for node in range(len(self.reference_X)):
+            nodal_coords[3*node+0] = self.reference_X[node]
+            nodal_coords[3*node+1] = self.reference_Y[node]
+            nodal_coords[3*node+2] = self.reference_Z[node]
+
+        return nodal_coords
 
 
     def createDummyInterfaceFile(self):
