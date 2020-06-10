@@ -487,8 +487,7 @@ void KratosDEMApplication::Register() {
                     << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      \n"
                     << "            | |_| | |___| |  | |  __/ (_| | (__|   <       \n"
                     << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      \n"
-                    << "Importing DEMApplication "
-                    << "( compiled in mode \"" << Kernel::BuildType() << "\" ) ...";
+                    << "Importing DEMApplication... ";                    
 
     KRATOS_REGISTER_VARIABLE(CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
     KRATOS_REGISTER_VARIABLE(NODE_TO_NEIGH_ELEMENT_POINTER)
