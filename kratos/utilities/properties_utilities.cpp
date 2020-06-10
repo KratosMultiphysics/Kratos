@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "includes/properties.h"
 #include "utilities/properties_utilities.h"
 
 namespace Kratos

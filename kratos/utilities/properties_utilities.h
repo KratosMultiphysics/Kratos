@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/properties.h"
 
 namespace Kratos
 {
@@ -39,8 +40,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-// forward declaring Properties to be avoid including heavy header here
-class Properties;
     
 /**
  * @namespace PropertiesUtilities
