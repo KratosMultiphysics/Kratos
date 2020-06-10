@@ -283,7 +283,6 @@ namespace Kratos
             }
         }
 
-
         //Calculate rate of deformation and spin tensors
         const Matrix rateOfDeformation = 0.5 * (velocityGradient + trans(velocityGradient));
         const Matrix spinTensor = velocityGradient - rateOfDeformation;
@@ -311,8 +310,8 @@ namespace Kratos
         }
         else
         {
-            KRATOS_ERROR << "Dimension = " << dimension << " and strain size = " << StrainSize
-                << " are invalid for MPM explicit kinematic calculation." << std::endl;
+            rMPStrain(2) += strainIncrement(2, 2); //e_zz
+            rMPStrain(3) += 2.0 * strainIncrement(0, 1); //e_xy
         }
 
         // Model compressibility
