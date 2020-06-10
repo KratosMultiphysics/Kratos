@@ -17,7 +17,6 @@ from test_mok_fsi import TestMokFSI
 from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
 from test_co_sim_io_dummy_solvers import TestCoSimIODummySolvers
-from test_tau_functions.test_tau_functions import TestTauFunctions
 
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
@@ -30,6 +29,7 @@ if numpy_available:
     from test_convergence_criteria import TestConvergenceCriteriaWrapper
     from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
     from test_co_simulation_coupled_solver import TestCoupledSolverGetSolver
+    from test_tau_functions import TestTauFunctions
 
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API

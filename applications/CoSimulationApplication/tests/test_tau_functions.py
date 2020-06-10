@@ -1,15 +1,17 @@
-import sys, os, unittest
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
+import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+import os, subprocess, sys
 import numpy as np
 
-tau_functions_path = os.path.join(os.path.dirname(__file__), '../../python_scripts/helpers')
+tau_functions_path = os.path.join(os.path.dirname(__file__), '../python_scripts/helpers')
 sys.path.append(tau_functions_path)
 
 import tau_functions as TauFunctions
 
-# Please run this file with python2. This file contains
-# the implementation of the tau functions' tests
-
-class TestTauFunctionsImpl(unittest.TestCase):
+class TestTauFunctions(KratosUnittest.TestCase):
 
     def test_RemoveFilesFromPreviousSimulations(self):
         self.createOutputsDirectory()
@@ -33,12 +35,10 @@ class TestTauFunctionsImpl(unittest.TestCase):
     def test_CheckIfPathExists(self):
         # Define exception
         test_filename = os.getcwd() + '/test_file.dat'
-        exception = 'Path: "{}" not found'.format(test_filename)
+        exp_error = 'Path: "{}" not found'.format(test_filename)
 
-        with self.assertRaises(Exception) as context:
+        with self.assertRaisesRegex(Exception, exp_error):
             TauFunctions.CheckIfPathExists(test_filename)
-
-        self.assertTrue(exception in context.exception)
 
 
     def test_WriteTautoplt(self):
@@ -93,7 +93,6 @@ class TestTauFunctionsImpl(unittest.TestCase):
         TauFunctions.RemoveFilesFromPreviousSimulations()
         os.rmdir('Outputs')
 
-
     def test_ReadInterfaceFile(self):
         self.setReference()
         self.createDummyInterfaceFile()
@@ -106,7 +105,7 @@ class TestTauFunctionsImpl(unittest.TestCase):
         self.assertListEqual(mesh_info, self.reference_mesh_info)
         self.assertListEqual(nodal_data, self.reference_nodal_data)
         np.testing.assert_almost_equal(elem_connectivities, self.reference_elem_connectivities, decimal=16)
-        self.assertIsInstance(elem_connectivities[0], int)
+        self.assertIs(type(elem_connectivities[0]), np.int64)
 
         # Remove interface file
         os.remove(self.interface_filename)
@@ -135,7 +134,6 @@ class TestTauFunctionsImpl(unittest.TestCase):
 
         # Check
         np.testing.assert_almost_equal(nodal_pressure, reference_nodal_pressure, decimal=16)
-
 
     def test_GetCellNodeIds(self):
         # Define elem_connectivities
@@ -180,7 +178,6 @@ class TestTauFunctionsImpl(unittest.TestCase):
         os.remove(file_name)
         os.rmdir('Mesh')
 
-
     def test_FindOutputFilename(self):
         self.createOutputsDirectory()
         self.createInterfaceFile()
@@ -217,7 +214,6 @@ class TestTauFunctionsImpl(unittest.TestCase):
 
         # Remove interface file
         os.remove(self.interface_filename)
-
 
     def test_ReadNodalData(self):
         # Set reference
@@ -257,11 +253,10 @@ class TestTauFunctionsImpl(unittest.TestCase):
 
         # Check
         np.testing.assert_almost_equal(elem_connectivities, self.reference_elem_connectivities, decimal=16)
-        self.assertIsInstance(elem_connectivities[0], int)
+        self.assertIs(type(elem_connectivities[0]), np.int64)
 
         # Remove interface file
         os.remove(self.interface_filename)
-
 
     def test_CalculateCellPressure(self):
         # Define nodal pressure and node ids
@@ -290,7 +285,6 @@ class TestTauFunctionsImpl(unittest.TestCase):
         # Check
         np.testing.assert_almost_equal(cell_area, reference_area, decimal=16)
 
-
     def test_CalculateCellNormal(self):
         X, Y, Z, node_ids = self.create_dummy_cell()
 
@@ -302,7 +296,6 @@ class TestTauFunctionsImpl(unittest.TestCase):
 
         # Check
         np.testing.assert_almost_equal(cell_normal, reference_normal, decimal=16)
-
 
     def test_FindInitialMeshFilename(self):
         # Create dummy file
@@ -320,7 +313,6 @@ class TestTauFunctionsImpl(unittest.TestCase):
         # Remove dummy file
         os.remove(file_name)
 
-
     def test_FindFilename(self):
         self.createOutputsDirectory()
         self.createInterfaceFile()
@@ -334,7 +326,6 @@ class TestTauFunctionsImpl(unittest.TestCase):
         # Remove dummy file and directory
         TauFunctions.RemoveFilesFromPreviousSimulations()
         os.rmdir('Outputs')
-
 
     def test_CalculateDistanceVector(self):
         # Populate two nodes with random coordinates
@@ -502,7 +493,5 @@ class TestTauFunctionsImpl(unittest.TestCase):
         return X, Y, Z, node_ids
 
 
-
 if __name__ == '__main__':
-    unittest.main()
-
+    KratosUnittest.main()

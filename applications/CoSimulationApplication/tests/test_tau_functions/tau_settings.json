@@ -1,7 +1,0 @@
-{
-    "start_step"  : 200,
-    "tau_path"    : "/home/inigo/software/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/taubin_svn19618.OPENMPI1.6.4_Python2.7.5/bin/",
-    "kratos_path" : "/home/inigo/software/kratosMerge/Kratos/applications/CoSimulationApplication/python_scripts/helpers/",
-    "echo_level"  : 0,
-    "rotate"  : false
-}
