@@ -10,9 +10,9 @@ import os
 import xmc
 
 # Import PyCOMPSs
-from exaqute.ExaquteTaskPyCOMPSs import get_value_from_remote   # to execute with runcompss
+# from exaqute.ExaquteTaskPyCOMPSs import get_value_from_remote   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import get_value_from_remote  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import get_value_from_remote      # to execute with python3
+from exaqute.ExaquteTaskLocal import get_value_from_remote      # to execute with python3
 
 
 class TestXMCAlgorithm(unittest.TestCase):
