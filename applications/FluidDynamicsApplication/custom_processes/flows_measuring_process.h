@@ -49,7 +49,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class FlowsMeasuringProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FlowsMeasuringProcess : public Process
 {
 public:
     ///@name Type Definitions
