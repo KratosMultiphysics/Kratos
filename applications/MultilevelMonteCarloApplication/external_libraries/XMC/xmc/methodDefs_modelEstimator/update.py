@@ -2,16 +2,14 @@
 # from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 from exaqute.ExaquteTaskLocal import *      # to execute with python3
-from xmc.tools import packedList
 
 import numpy as np
 
-def updatePredictorGeometric(*data):
+def updatePredictorGeometric(data):
     """
     Fit a model of the form y = C*exp(-w.x) where x is the antecedent
     and y is the corresponding image.
     """
-    data = packedList(data)
     points = [data[i][0] for i in range(len(data))]
     values = [data[i][1] for i in range(len(data))]
 
@@ -34,11 +32,11 @@ def updatePredictorGeometric(*data):
         parameters.append(-x[i+1])
     return parameters
 
-@ExaquteTask(returns=1)
-def updatePredictorGeometric_Task(*data):
+@ExaquteTask(returns=1, data={Type: COLLECTION_IN, Depth: 2})
+def updatePredictorGeometric_Task(data):
     """
     Fit a model of the form y = C*exp(-w.x) where x is the antecedent
     and y is the corresponding image.
     """
     # TODO do we really need list packing and unpacking here?
-    return updatePredictorGeometric(*data)
+    return updatePredictorGeometric(data)
