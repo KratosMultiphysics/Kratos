@@ -10,7 +10,8 @@ from KratosMultiphysics.sympy_fe_utilities import *
 ## Symbolic generation settings
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-ASGS_stabilization = True           # Consider ASGS stabilization terms
+ASGS_stabilization = False           # Consider ASGS stabilization terms
+OSS_stabilization = True            # Consider OSS stabilization terms (together with ASGS)
 mode = "c"                          # Output mode to a c++ file
 
 if (dim_to_compute == "2D"):
@@ -82,7 +83,7 @@ for dim in dim_vector:
     rhs_convective_2 = - q_gauss * phi_gauss * div_v
     rhs_galerkin = rhs_forcing + rhs_diffusion + rhs_convective_1 + rhs_convective_2
 
-    ##  Stabilization functional terms
+    ##  Stabilization ASGS functional terms
     # Convective term
     rhs_stab_1_forcing = tau * (v_gauss.transpose() * grad_q) * f_gauss
     rhs_stab_1_mass = - tau * (v_gauss.transpose() * grad_q) * (phi_gauss-phi_old_gauss)/(RK_time_coefficient*delta_time)
@@ -94,6 +95,15 @@ for dim in dim_vector:
 
     # Compute the ASGS stabilization terms using the momentum and mass conservation residuals above
     rhs_stabilization = rhs_stab_1
+
+    ## Stabilization OSS funtional terms
+    # with lhs we refer to the fact we take the strong equation on the left side
+    lhs_OSS_forcing = -q_gauss.transpose() * f_gauss
+    lhs_OSS_mass = q_gauss.transpose() * (phi_gauss-phi_old_gauss)/(RK_time_coefficient*delta_time)
+    lhs_OSS_diffusion = k * grad_phi.transpose() * grad_q
+    lhs_OSS_convective_1 = q_gauss * (v_gauss.transpose() * grad_phi)
+    lhs_OSS_convective_2 = q_gauss * phi_gauss * div_v
+    res_OSS = lhs_OSS_forcing + lhs_OSS_mass + lhs_OSS_diffusion + lhs_OSS_convective_1 + lhs_OSS_convective_2
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
@@ -110,7 +120,7 @@ for dim in dim_vector:
         dofs[i*(1)] = phi[i,0]
         testfunc[i*(1)] = q[i,0]
 
-    ## Compute LHS and RHS
+    ## Compute RHS
     rhs = Compute_RHS(res.copy(), testfunc, do_simplifications)
     rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
 
@@ -125,6 +135,17 @@ for dim in dim_vector:
     elif(dim == 3):
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
+
+    if OSS_stabilization:
+        # Compute OSS residual
+        rhs = Compute_RHS(res_OSS.copy(), testfunc, do_simplifications)
+        rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+
+        ## Replace the computed OSS in the template outstring
+        if(dim == 2):
+            outstring = outstring.replace("//substitute_oss_2D", rhs_out)
+        elif(dim == 3):
+            outstring = outstring.replace("//substitute_oss_3D", rhs_out)
 
 ## Write the modified template
 out = open(output_filename,'w')

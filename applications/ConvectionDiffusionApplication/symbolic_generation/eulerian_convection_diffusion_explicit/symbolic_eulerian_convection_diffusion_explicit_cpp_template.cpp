@@ -114,8 +114,17 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocal
         // Compute tau
         this->CalculateTau(rVariables);
 
-        // Update rhs and lhs
-        this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+        // Execute standard RHS-LHS build or OSS step
+        if (rCurrentProcessInfo.GetValue(ACTIVATION_LEVEL) == 1)
+        {
+            // Update OSS additional term
+            this->ComputeOSSGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+        }
+        else
+        {
+            // Update rhs and lhs
+            this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+        }
     }
 }
 
@@ -196,14 +205,29 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitCon
 
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
-    // Calculate the explicit residual vector
-    VectorType rhs;
-    this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
-    // Add the residual contribution
-    // Note that the reaction is indeed the formulation residual
-    for (unsigned int i_node = 0; i_node < local_size; i_node++) {
-        #pragma omp atomic
-        r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
+    // Execute RK4 or OSS step
+    if (r_process_info.GetValue(ACTIVATION_LEVEL) == 1)
+    {
+        // Calculate the OSS additional term
+        VectorType res;
+        this->CalculateRightHandSide(res,rCurrentProcessInfo);
+        // Add the oss contribution to the forcing
+        for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+            #pragma omp atomic
+            r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += res[i_node];
+        }
+    }
+    else
+    {
+        // Calculate the explicit residual vector
+        VectorType rhs;
+        this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
+        // Add the residual contribution
+        // Note that the reaction is indeed the formulation residual
+        for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+            #pragma omp atomic
+            r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
+        }
     }
 }
 
@@ -303,21 +327,24 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     //   RK step 4: evaluated at current time step
     // * convective_velocity = velocity - velocity_mesh
     //   velocity_mesh = 0 in eulerian framework
-    if(r_process_info.GetValue(RUNGE_KUTTA_STEP)==1){
+    if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==1)
+    {
         rVariables.RK_time_coefficient = 0.5;
         rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1);
         rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0];
         rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1];
         rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2];
     }
-    else if(r_process_info.GetValue(RUNGE_KUTTA_STEP)==2 || r_process_info.GetValue(RUNGE_KUTTA_STEP)==3){
+    else if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==2 || r_process_info.GetValue(RUNGE_KUTTA_STEP)==3)
+    {
         rVariables.RK_time_coefficient = 0.5;
         rVariables.forcing[node_element] = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable()) + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1));
         rVariables.convective_velocity(node_element,0) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0]);
         rVariables.convective_velocity(node_element,1) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1]);
         rVariables.convective_velocity(node_element,2) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2]);
     }
-    else{
+    else
+    {
         rVariables.RK_time_coefficient = 1.0;
         rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
         rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
@@ -397,6 +424,61 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContributi
     //substitute_rhs_3D
 
     noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
+    noalias(rRightHandSideVector) += rhs * rVariables.weight;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussPointContribution(
+    ElementVariables& rVariables,
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector)
+{
+    // Retrieve element variables
+    const auto N = rVariables.N;
+    const auto DN = rVariables.DN;
+    const auto k = rVariables.diffusivity;
+    const auto f = rVariables.forcing;
+    const auto phi = rVariables.unknown;
+    const auto phi_old = rVariables.unknown_old;
+    const auto delta_time = rVariables.delta_time;
+    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto v = rVariables.convective_velocity;
+    const auto tau = rVariables.tau;
+    auto lhs = rVariables.lhs;
+    auto rhs = rVariables.rhs;
+
+    //substitute_oss_2D
+
+    noalias(rRightHandSideVector) += rhs * rVariables.weight;
+}
+
+/***********************************************************************************/
+
+template <>
+void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussPointContribution(
+    ElementVariables& rVariables,
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector)
+{
+    // Retrieve element variables
+    const auto N = rVariables.N;
+    const auto DN = rVariables.DN;
+    const auto k = rVariables.diffusivity;
+    const auto f = rVariables.forcing;
+    const auto phi = rVariables.unknown;
+    const auto phi_old = rVariables.unknown_old;
+    const auto delta_time = rVariables.delta_time;
+    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto v = rVariables.convective_velocity;
+    const auto tau = rVariables.tau;
+    auto lhs = rVariables.lhs;
+    auto rhs = rVariables.rhs;
+
+    //substitute_oss_3D
+
     noalias(rRightHandSideVector) += rhs * rVariables.weight;
 }
 
