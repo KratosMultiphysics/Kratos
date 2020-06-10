@@ -10,12 +10,12 @@ def noBlending(parameters,newLevels,inputDict):
     for level in newLevels:
         variance_list.append( variance_model(variance_parameters,level) )
     return variance_list
- 
+
 def bayesianUpdate(parameters, newLevels, inputDict):
     """
     Use bayesian estimation to blend the variance estimations and variance
     model such that the value of the estimation is used if there are a large
-    number of samples and the value of the model is used if there is a small 
+    number of samples and the value of the model is used if there is a small
     number of samples.
     """
     k0 = parameters[0]
@@ -23,18 +23,12 @@ def bayesianUpdate(parameters, newLevels, inputDict):
 
     old_hierarchy = inputDict['oldHierarchy']
     bias_model = inputDict['models'][0]
-    if inputDict['parametersForModelOld'][0] is None:
-        bias_parameters = inputDict['parametersForModel'][0]
-    else:
-        bias_parameters = inputDict['parametersForModelOld'][0]
+    bias_parameters = inputDict['parametersForModel'][0]
     bias_estimations = inputDict['estimations'][0]
     variance_model = inputDict['models'][1]
-    if inputDict['parametersForModelOld'][1] is None:
-        variance_parameters = inputDict['parametersForModel'][1]
-    else:   
-        variance_parameters = inputDict['parametersForModelOld'][1]
-    variance_estimations = [inputDict['estimations'][1][i]*old_hierarchy[i][1] for i in range(len(old_hierarchy))]
-
+    variance_parameters = inputDict['parametersForModel'][1]
+    variance_estimations = [inputDict['estimations'][1][i]*old_hierarchy[i][1]
+                            for i in range(len(old_hierarchy))]
 
     bayesianVariance = []
     for level in newLevels:
