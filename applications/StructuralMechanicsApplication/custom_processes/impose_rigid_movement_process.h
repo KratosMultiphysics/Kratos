@@ -28,16 +28,16 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/** 
+
+/**
  * @class ImposeRigidMovementProcess
  * @ingroup StructuralMechanicsApplication
  * @brief This method assign linear kinematic constrains to a certain submodelpart
@@ -53,15 +53,12 @@ public:
 
     /// Pointer definition of ImposeRigidMovementProcess
     KRATOS_CLASS_POINTER_DEFINITION(ImposeRigidMovementProcess);
-    
+
     /// General type definitions
     typedef Node<3>                                                      NodeType;
 
     /// General containers type definitions
     typedef ModelPart::MasterSlaveConstraintContainerType ConstraintContainerType;
-
-    /// Component definition
-    typedef VectorComponentAdaptor< array_1d< double, 3 > >         ComponentType;
 
     /// Definitions of the integers
     typedef std::size_t                                                 IndexType;
@@ -100,7 +97,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -109,11 +106,11 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief Execute method is used to execute the Process algorithms.
      */
@@ -123,7 +120,12 @@ public:
      * @brief This function is designed for being called at the beginning of the computations right after reading the model and the groups
      */
     void ExecuteInitialize() override;
-    
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -180,7 +182,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -206,7 +208,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart; /// The model part to compute
     Parameters mThisParameters; /// The parameters (can be used for general pourposes)
 

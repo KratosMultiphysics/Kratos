@@ -22,8 +22,6 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/define.h"
-#include "includes/variables.h"
-#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -35,7 +33,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class WeakSlidingElement3D3N : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) WeakSlidingElement3D3N : public Element
     {
     protected:
         //const values
@@ -97,61 +95,59 @@ namespace Kratos
 
         void EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         void GetDofList(
             DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo) override;
-
-        void Initialize() override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         /**
          * @brief This function calculates the total stiffness matrix for the element
          */
         virtual BoundedMatrix<double,msLocalSize,msLocalSize>
-         CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+         CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
 
 
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void AddExplicitContribution(
             const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-            Variable<array_1d<double, 3>>& rDestinationVariable,
+            const Variable<array_1d<double, 3>>& rDestinationVariable,
             const ProcessInfo& rCurrentProcessInfo) override;
 
         void AddExplicitContribution(
             const VectorType& rRHSVector,
             const Variable<VectorType>& rRHSVariable,
-            Variable<double >& rDestinationVariable,
+            const Variable<double >& rDestinationVariable,
             const ProcessInfo& rCurrentProcessInfo) override;
 
 
         void GetValuesVector(
             Vector& rValues,
-            int Step = 0) override;
+            int Step = 0) const override;
 
         void GetSecondDerivativesVector(
             Vector& rValues,
-            int Step = 0) override;
+            int Step = 0) const override;
 
         void GetFirstDerivativesVector(
             Vector& rValues,
-            int Step = 0) override;
+            int Step = 0) const override;
 
-        int  Check(
-            const ProcessInfo& rCurrentProcessInfo) override;
+        int Check(
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
 

@@ -22,8 +22,6 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/define.h"
-#include "includes/variables.h"
-#include "includes/kratos_flags.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -36,7 +34,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class SlidingCableElement3D : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) SlidingCableElement3D : public Element
     {
     protected:
 
@@ -96,28 +94,28 @@ namespace Kratos
 
         void EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         void GetDofList(
             DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
-        void Initialize() override;
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
             VectorType &rRightHandSideVector,
-            ProcessInfo &rCurrentProcessInfo) override;
+            const ProcessInfo &rCurrentProcessInfo) override;
 
         void CalculateRightHandSide(VectorType &rRightHandSideVector,
-            ProcessInfo &rCurrentProcessInfo) override;
+            const ProcessInfo &rCurrentProcessInfo) override;
 
-        void GetValuesVector(Vector& rValues,int Step = 0) override;
-        void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-        void GetFirstDerivativesVector(Vector& rValues,int Step = 0) override;
+        void GetValuesVector(Vector& rValues,int Step = 0) const override;
+        void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
+        void GetFirstDerivativesVector(Vector& rValues,int Step = 0) const override;
 
         Vector GetCurrentLengthArray(int Step = 0) const;
         Vector GetRefLengthArray() const;
@@ -139,6 +137,7 @@ namespace Kratos
 
         double GetPK2PrestressValue() const
         {
+            // TODO move this to the cpp then the include of "structural_mechanics_application_variables.h" can be moved to the cpp tpp
             double prestress = 0.00;
             if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
                 prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
@@ -150,36 +149,30 @@ namespace Kratos
 
         void CalculateMassMatrix(
             MatrixType& rMassMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
         void AddExplicitContribution(
             const VectorType& rRHSVector,
             const Variable<VectorType>& rRHSVariable,
-            Variable<double >& rDestinationVariable,
+            const Variable<double >& rDestinationVariable,
             const ProcessInfo& rCurrentProcessInfo
             ) override;
 
         void AddExplicitContribution(const VectorType& rRHSVector,
             const Variable<VectorType>& rRHSVariable,
-            Variable<array_1d<double, 3> >& rDestinationVariable,
+            const Variable<array_1d<double, 3> >& rDestinationVariable,
             const ProcessInfo& rCurrentProcessInfo
             ) override;
 
-        int Check(const ProcessInfo& rCurrentProcessInfo) override;
+        int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
-        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-
-        void GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo);
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function checks if self weight is present

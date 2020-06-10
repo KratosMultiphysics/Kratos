@@ -6,7 +6,6 @@ from importlib import import_module
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 
@@ -145,6 +144,11 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             process.ExecuteBeforeSolutionLoop()
 
         self.GraphicalOutputExecuteBeforeSolutionLoop()
+
+        self._solver.InitializeSolutionStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        self.GraphicalOutputPrintOutput()
 
         # Set time settings
         self.step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]

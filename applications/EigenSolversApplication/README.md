@@ -45,7 +45,7 @@ The application provides the following direct solvers for dense systems of equat
 
 *SPD = Symmetric Positive Definite
 
-## Generalized eigensystem solver
+## Generalized eigensystem solvers
 
 The application provides a generalized eigensystem solver for sparse matrices. It gives the eigenvalues and eigenvectors for the smallest eigenvalues. MKL routines are used automatically if they are available.
 
@@ -58,6 +58,22 @@ The application provides a generalized eigensystem solver for sparse matrices. I
     "max_iteration": 1000,
     "tolerance": 1e-6,
     "echo_level": 1
+}
+```
+If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~polizzi/feast/) can be used to solve the generalized eigenvalue problem for real and complex systems (symmetric or unsymmetric). The cmake switch `USE_EIGEN_FEAST` must be set to `ON` with
+```batch
+-DUSE_EIGEN_FEAST=ON \
+```
+
+**Example:**
+```json
+{
+    "solver_type": "feast",
+    "symmetric": true,
+    "number_of_eigenvalues": 3,
+    "search_lowest_eigenvalues": true,
+    "e_min" : 0.0,
+    "e_max" : 0.2
 }
 ```
 
@@ -112,13 +128,13 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
 2. Add the following flag to CMake to your configure script:
 
     **Windows:**
-    
+
     ```batch
     -DUSE_EIGEN_MKL=ON ^
     ```
-    
+
     **Linux:**
-    
+
     ```bash
     -DUSE_EIGEN_MKL=ON \
     ```
@@ -168,7 +184,7 @@ rm GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
 sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
 apt-get update -y
 # install specific version of intel-mkl
-apt-get install -y intel-mkl-2020.0-088 
+apt-get install -y intel-mkl-2020.0-088
 exit
 ```
 

@@ -172,7 +172,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        rVariables.theta = rCurrentProcessInfo[THETA]; //Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+        rVariables.theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA]; //Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         rVariables.dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
         rVariables.dt_inv = 1.0 / delta_t;
