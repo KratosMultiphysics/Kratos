@@ -238,14 +238,19 @@ public:
 
         if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
         {   
-            // Stiffness matrix contribution   
+            // Stiffness contribution   
             rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
         } 
         else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) 
         {   
-            // Mass matrix contribution is going to be implemented here
+            // Mass contribution is going to be implemented here
             KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << "\nDynamic derivatives not implemented yet!" << std::endl;
         } 
+        else if (rCurrentProcessInfo[BUILD_LEVEL] == 3)
+        {
+            // Mass matrix alone
+            rElement.CalculateMassMatrix(rLHS_Contribution, rCurrentProcessInfo);
+        }
         else 
         {
             KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
@@ -269,31 +274,28 @@ public:
         
         int eigenvalue_i = rCurrentProcessInfo[EIGENVALUE_I];
         int eigenvalue_j = rCurrentProcessInfo[EIGENVALUE_J];
-        // KRATOS_WATCH(eigenvalue_i)
-        // KRATOS_WATCH(eigenvalue_j)
         //const double eigenvalue = rCurrentProcessInfo[EIGENVALUE_VECTOR](eigenvalue_i); // This will be used for dynamic derivatives
-
+        KRATOS_WATCH(eigenvalue_i)
+        KRATOS_WATCH(eigenvalue_j)
+        
         // Get PhiElemental
         Vector PhiElemental;
-        std::size_t num_element_dofs = 0;
+        std::size_t num_element_nodal_dofs = 0;
         for (auto& node_i : rElement.GetGeometry())
-            num_element_dofs += node_i.GetDofs().size();
-        PhiElemental.resize(num_element_dofs);
+            num_element_nodal_dofs += node_i.GetDofs().size();
+        
+        PhiElemental.resize(num_element_nodal_dofs);
         
         std::size_t dof_ctr = 0;
         for (auto& node_i : rElement.GetGeometry()) {
             auto& node_i_dofs = node_i.GetDofs();
             
-            const Matrix *pPhiNodal = &node_i.GetValue(ROM_BASIS);
-            auto dof_i = node_i_dofs.begin();
+            const Matrix *pPhiNodal = &(node_i.GetValue(ROM_BASIS));
             for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
-                dof_i = dof_i + dof_idx;
-
                 PhiElemental[dof_ctr + dof_idx] = (*pPhiNodal)(dof_idx, eigenvalue_i);
             }
             dof_ctr += node_i_dofs.size();
         }
-        
         rRHS_Contribution.clear();
         rRHS_Contribution.resize(0);
 
@@ -305,45 +307,40 @@ public:
             for (auto& node_i : rElement.GetGeometry()) {
                 auto& node_i_dofs = node_i.GetDofs();
                 // Loop over nodal DOFs
-                auto dof_i = node_i_dofs.begin();
+                auto it_dof_i = node_i_dofs.begin();
                 for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
                     const double perturbationMag = node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j)*1e-3;
-                    // std::cout << "EID: " << rElement.Id() << " NID: " << node_i.Id() << " DOF: " << (*dof_i)->GetVariable().Name() << std::endl;
                     if (abs(perturbationMag) > 0.0)
                     {
                         RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative(rElement,
-                                                                            *(*dof_i),
+                                                                            *(*it_dof_i),
                                                                             perturbationMag,
                                                                             element_LHS_derivative,
                                                                             rCurrentProcessInfo);
                         
                         if (rRHS_Contribution.size() == 0){
-                            // std::cout << "Resizing rRHS_Contribution" << std::endl;
                             rRHS_Contribution.resize(element_LHS_derivative.size1());
                             for (std::size_t iRHS = 0; iRHS < rRHS_Contribution.size(); iRHS++)
                                 rRHS_Contribution[iRHS] = 0.0;
                         }
 
-                        // KRATOS_WATCH(element_LHS_derivative)
-                        
                         if (element_LHS_derivative.size1() != PhiElemental.size()){
-                            // retrieve only relevant dofs from PhiElemental
+                            // retrieve only displacement dofs from PhiElemental
+                            unsigned int disp_shifter = 3;
                             Vector tmpPhiElemental;
                             tmpPhiElemental.resize(PhiElemental.size()/2);
                             for (std::size_t iNode = 0; iNode < rElement.GetGeometry().size(); iNode++){
                                 for (std::size_t iXYZ = 0; iXYZ < 3; iXYZ++){
-                                    tmpPhiElemental[iNode*3+iXYZ] = PhiElemental[iNode*6+3+iXYZ];
+                                    tmpPhiElemental[iNode*3+iXYZ] = PhiElemental[iNode*6+disp_shifter+iXYZ];
                                 }                                
                             }
-                            // KRATOS_WATCH(tmpPhiElemental)
                             rRHS_Contribution -= prod(element_LHS_derivative, tmpPhiElemental);
                         }
                         else{
-                            // KRATOS_WATCH(PhiElemental)
                             rRHS_Contribution -= prod(element_LHS_derivative, PhiElemental);
                         }   
                     }
-                    dof_i++;
+                    ++it_dof_i;
                 }
             }
         }
@@ -351,13 +348,17 @@ public:
         {   
             // Mass matrix contribution is going to be implemented here
             KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << "\nDynamic derivatives not implemented yet!" << std::endl;
-        } 
-        else 
+        }
+        else if (rCurrentProcessInfo[BUILD_LEVEL] == 3) 
+        {
+            KRATOS_WARNING("\"else if (rCurrentProcessInfo[BUILD_LEVEL] == 3)\" should be erased after merging PR #7022");
+            rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
+            rRHS_Contribution.resize(EquationId.size());
+        }
+        else
         {
             KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
         }
-
-        // KRATOS_WATCH(rRHS_Contribution)
 
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 

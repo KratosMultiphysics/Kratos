@@ -287,10 +287,12 @@ public:
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  BaseType::GetModelPart());
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpInitialVariables, mpb,
+                                                                 BaseType::GetModelPart());
 
                 //setting up initial SolutionStepValue
-                TSparseSpace::Resize(*mpInitialVariables, mpA->size1());
-                TSparseSpace::SetToZero(*mpInitialVariables);
+                // TSparseSpace::Resize(*mpInitialVariables, mpA->size1());
+                // TSparseSpace::SetToZero(*mpInitialVariables);
                 this->StoreVariables();
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
@@ -365,7 +367,6 @@ public:
         // Implementation of this function considers only the static derivatives
 
         ModelPart& r_model_part = BaseType::GetModelPart();
-
         TSchemePointerType& p_scheme = this->pGetScheme();
         TSystemMatrixType& rA = *mpA;
         TSystemVectorType& rb = *mpb;
@@ -386,6 +387,7 @@ public:
             KRATOS_ERROR <<"Invalid DerivativeType" << std::endl;
         }
         
+        // derivative of basis_i
         unsigned int basis_j_start_index;
         for (unsigned int basis_i = 0; basis_i < num_eigenvalues; basis_i++)
         {
@@ -417,6 +419,7 @@ public:
                 // basis_j_start_index = 0;
             }
 
+            // derivative wrt basis_j
             for (unsigned int basis_j = basis_j_start_index; basis_j < num_eigenvalues; basis_j++)
             {
                 // Set the EIGENVALUE_J counter for use in the scheme
@@ -426,32 +429,53 @@ public:
                 TSparseSpace::SetToZero(rb);
                 TSparseSpace::SetToZero(rDx);
 
-                // Build RHS for static derivative contribution
-                r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
-                this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
-                // Build RHS for dynamic derivative contribution
-                if (mDerivativeType)
-                {
-                    KRATOS_ERROR <<"Invalid DerivativeType" << std::endl;
-                    // r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
-                    // this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
+                if (!mDerivativeType){
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
+                    this->pGetBuilderAndSolver()->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+                } else {
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
+                    this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
+
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
+                    this->pGetBuilderAndSolver()->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                 }
+                
+                // /////////////////////////////////
+                // // Build RHS for static derivative contribution
+                // r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
+                // this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
 
-                if(r_model_part.MasterSlaveConstraints().size() != 0) {
-                    this->pGetBuilderAndSolver()->ApplyRHSConstraints(p_scheme, r_model_part, rb);
-                }
+                // // Build RHS for dynamic derivative contribution
+                // if (mDerivativeType)
+                // {
+                //     KRATOS_ERROR <<"Invalid DerivativeType" << std::endl;
+                //     // r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
+                //     // this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
+                // }
 
-                this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
+                // // Apply RHS constraints in case of MasterSlaveConstraints
+                // if(r_model_part.MasterSlaveConstraints().size() != 0) {
+                //     this->pGetBuilderAndSolver()->ApplyRHSConstraints(p_scheme, r_model_part, rb);
+                // }
 
-                // Apply dynamic derivative constraint
-                // this->ApplyDynamicDerivativeConstraint();
+                // // Apply Dirichlet conditions
+                // this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
 
-                // Solve the system
-                this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
-                // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
+                // // Apply dynamic derivative constraint
+                // // this->ApplyDynamicDerivativeConstraint();
+
+                // // Solve the system
+                // this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
+                // /////////////////////////////////
+                
+                // Mass orthonormalization
+                this->MassOrthonormalize(rDx);
                 
                 // Assign solution to ROM_BASIS
                 this->AssignVariables(rDx);
+
+                // Update the derivative index
+                r_model_part.GetProcessInfo()[DERIVATIVE_INDEX] += 1;
             }
         }
 
@@ -464,10 +488,10 @@ public:
      * @details
      * { 
      * If an a priori analysis (e.g. a nonlinear analysis) is performed 
-     * the last equilibrium state is stored as the equilibrium state at which the 
-     * linearization of the nonlinear problem is performed and a starting point
-     * to compute modal derivatives.
-     * } 
+     * the last equilibrium state is stored as the equilibrium state and 
+     * a starting point to compute modal derivatives,
+     * at which the linearization of the nonlinear problem is performed.
+     * }
      */
     void StoreVariables()
     {
@@ -500,6 +524,62 @@ public:
         KRATOS_CATCH("")
     }
 
+    void MassOrthonormalize(TSystemVectorType& rDx)
+    {
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        TSchemePointerType& p_scheme = this->pGetScheme();
+        TSystemMatrixType& rMassMatrix = *mpMassMatrix;
+        TSystemVectorType basis;
+        TSparseSpace::Resize(basis, mpA->size1());
+        TSparseSpace::SetToZero(basis);        
+        
+        std::size_t derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
+        
+        r_model_part.GetProcessInfo()[BUILD_LEVEL] = 3;
+        this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rMassMatrix);
+        r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
+        
+        // Mass-Orthogonalization using modified Gramm-Schmidt method
+        for (std::size_t basis_index = 0; basis_index < derivative_index; basis_index++){
+
+            this->GetBasis(basis_index, basis);
+
+            rDx -= prec_inner_prod(prec_prod(rMassMatrix, basis), rDx) * basis;
+
+        }
+
+        // Mass-Normalization
+        rDx /= sqrt(prec_inner_prod(prec_prod(rMassMatrix, rDx), rDx));
+        
+    }
+
+    void GetBasis(std::size_t basis_index, TSystemVectorType& rBasis)
+    {
+        ModelPart& r_model_part = BaseType::GetModelPart();
+
+        const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+
+        for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++) {
+            ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
+            const std::size_t NumNodeDofs = NodeDofs.size();
+            Matrix& rRomBasis = itNode->GetValue(ROM_BASIS);
+
+            // fill the basis vector
+            for (std::size_t iDOF = 0; iDOF < NumNodeDofs; iDOF++)
+            {
+                const auto itDof = std::begin(NodeDofs) + iDOF;
+                bool is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
+                if ((*itDof)->IsFree() && is_active) {
+                   rBasis((*itDof)->EquationId()) = rRomBasis(iDOF,basis_index);
+                }
+                else {
+                   rBasis((*itDof)->EquationId()) = 0.0;
+                }
+            }            
+        }
+
+    }
+
     void AssignVariables(TSystemVectorType& rDx)
     {
         KRATOS_TRY
@@ -528,8 +608,6 @@ public:
                 }
             }            
         }
-
-        r_model_part.GetProcessInfo()[DERIVATIVE_INDEX] += 1;
 
         KRATOS_CATCH("")
 
