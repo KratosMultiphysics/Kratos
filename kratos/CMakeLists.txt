@@ -104,6 +104,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/delaunator_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/properties_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/string_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/result_dabatase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
