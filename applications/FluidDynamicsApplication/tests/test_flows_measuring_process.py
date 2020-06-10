@@ -50,12 +50,12 @@ class FlowsMeasuringProcessTest(UnitTest.TestCase):
         flow_measurer = Fluid.FlowsMeasuringProcess(self.current_model, self.settings)
         flow_measurer.ExecuteFinalizeSolutionStep()
 
-        f = open(self.filename, "r")
-        f.readline()
-        interesting_line = f.readline()
-        splitted_line = interesting_line.split()
-        self.assertEqual(splitted_line[1], "-2")
-        self.assertEqual(splitted_line[2], "-1")
+        with open(self.filename, "r") as f:
+            f.readline()
+            interesting_line = f.readline()
+            splitted_line = interesting_line.split()
+            self.assertEqual(splitted_line[1], "-2")
+            self.assertEqual(splitted_line[2], "-1")
 
     def testFlowsMeasuring3D_1(self):
         vel = Kratos.Array3()
@@ -93,12 +93,12 @@ class FlowsMeasuringProcessTest(UnitTest.TestCase):
         flow_measurer = Fluid.FlowsMeasuringProcess(self.current_model, self.settings)
         flow_measurer.ExecuteFinalizeSolutionStep()
 
-        f = open(self.filename, "r")
-        f.readline()
-        interesting_line = f.readline()
-        splitted_line = interesting_line.split()
-        self.assertEqual(splitted_line[1], "1")
-        self.assertEqual(splitted_line[2], "-0.5")
+        with open(self.filename, "r") as f:
+            f.readline()
+            interesting_line = f.readline()
+            splitted_line = interesting_line.split()
+            self.assertEqual(splitted_line[1], "1")
+            self.assertEqual(splitted_line[2], "-0.5")
 
     def tearDown(self):
 
