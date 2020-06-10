@@ -31,6 +31,20 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Outputs')
         os.rmdir('Mesh')
 
+    def test_CalculateNodalFluidForces(self):
+        self.setReference()
+        nodal_pressures = np.array([336.0, 816.0, 1056.0, 1728.0, 1440.0, 1944.0])
+
+        nodal_forces = TauFunctions.CalculateNodalFluidForces(
+            self.reference_X, self.reference_Y, self.reference_Z, nodal_pressures, self.reference_elem_connectivities)
+
+        ref_nodal_forces = [0.0, 0.0, 283.5, 0.0, 0.0, 598.5, 0.0, 0.0,
+                            315.0, 0.0, 0.0, 315.0, 0.0, 0.0, 598.5, 0.0, 0.0, 283.5]
+
+        reference_nodal_forces = np.asarray(ref_nodal_forces)
+
+        np.testing.assert_almost_equal(nodal_forces, reference_nodal_forces, decimal=16)
+
 
     def test_ReadNodalCoordinates(self):
         # Set referemce nodal coordinates
