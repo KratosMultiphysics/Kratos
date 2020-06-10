@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# make script backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division
+
 import re, glob, subprocess, time, os, warnings, json
 import numpy as np
 try:
@@ -12,6 +15,12 @@ except:
 
 from scipy.io import netcdf
 
+# Assign default settings
+start_step = 200
+echo_level = 0
+rotate = False
+
+# Read settings
 try:
     with open('tau_settings.json') as json_file:
         tau_settings = json.load(json_file)
@@ -91,7 +100,7 @@ def GetFluidMesh(working_path, step, para_path_mod):
     nodal_coords = ReadNodalCoordinates(X, Y, Z)
 
     # Save element types in a numpy array
-    element_types = ReadElementTypes(len(elem_connectivities)/4)
+    element_types = ReadElementTypes(int(len(elem_connectivities)/4))
 
     # In vtk format element connectivities start from 0, not from 1
     elem_connectivities -= 1
@@ -131,7 +140,7 @@ def ComputeRelativeDisplacements(total_displacements, step, start_step):
         previous_total_displacements = np.zeros(len(total_displacements))
 
     # Declaring and initializing relative_displacements vector
-    number_of_nodes = len(total_displacements)/3
+    number_of_nodes = int(len(total_displacements)/3)
     relative_displacements = np.zeros([number_of_nodes, 3])
 
     # Loop over nodes
@@ -200,7 +209,7 @@ def ReadTauOutput(working_path, step, velocity):
 def CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities):
     nodal_forces = np.zeros(3*len(X))
     # Loop over cells
-    for cell in range(len(elem_connectivities)/4):
+    for cell in range(int(len(elem_connectivities)/4)):
         # Get the node ids of the cell
         node_ids = GetCellNodeIds(elem_connectivities, cell)
 
@@ -461,7 +470,7 @@ def FindInitialMeshFilename(mesh_path, pattern):
 def FindFilename(path, pattern, step):
     files_list = glob.glob(path + "*")
     if echo_level > 0:
-        print 'files_list =', files_list
+        print('files_list = ', files_list)
     for file in files_list:
         if file.startswith('%s' % path + '%s' % pattern + '%s' % step):
             return file
