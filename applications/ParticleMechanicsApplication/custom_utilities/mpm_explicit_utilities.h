@@ -44,26 +44,28 @@ namespace Kratos
         typedef Geometry<NodeType> GeometryType;
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateAndAddExplicitInternalForce(Element& rElement,
-            const Matrix& rDN_DX, const Vector& rMPStress, const double rMPVolume, 
+            const Vector& rMPStress, const double rMPVolume,
             const SizeType StrainSize, Vector& rRightHandSideVector);
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateAndAddAxisymmetricExplicitInternalForce(Element& rElement,
-            const Matrix& rDN_DX, const Vector& rMPStress, const double rMPVolume,
+            const Vector& rMPStress, const double rMPVolume,
             const SizeType StrainSize, const double AxisymmetricRadius, Vector& rRightHandSideVector);
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(const ProcessInfo& rCurrentProcessInfo, 
+        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(const ProcessInfo& rCurrentProcessInfo,
             Element& rElement);
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateMUSLGridVelocity(const ProcessInfo& rCurrentProcessInfo, 
+        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateMUSLGridVelocity(const ProcessInfo& rCurrentProcessInfo,
             Element& rElement);
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitKinematics(const ProcessInfo& rCurrentProcessInfo,
-            Element& rElement, const Matrix& rDN_DX, Vector& rMPStrain, Matrix& rDeformationGradient,
+            Element& rElement, Vector& rMPStrain, Matrix& rDeformationGradient,
             const SizeType StrainSize);
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitAsymmetricKinematics(const ProcessInfo& rCurrentProcessInfo,
-            Element& rElement, const Matrix& rDN_DX, Vector& rMPStrain, Matrix& rDeformationGradient,
+            Element& rElement, Vector& rMPStrain, Matrix& rDeformationGradient,
             const SizeType StrainSize, const double AxisymmetricRadius);
+
+        inline void GetCartesianDerivatives(std::vector<Matrix>& rDN_DXVec, const GeometryType& rGeom);
     }; // namespace ExplicitIntegrationUtilities
 }  // namespace Kratos
 #endif /* KRATOS_MPM_EXPLICIT_UTILITIES defined */

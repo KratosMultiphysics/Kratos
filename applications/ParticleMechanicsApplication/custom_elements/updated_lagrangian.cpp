@@ -469,14 +469,6 @@ void UpdatedLagrangian::CalculateAndAddRHS(
         : false;
     if (is_explicit)
     {
-        Matrix Jacobian;
-        GetGeometry().Jacobian(Jacobian, 0);
-        Matrix InvJ;
-        double detJ;
-        MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-        rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
-
         const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
             ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
             : false;
@@ -485,11 +477,11 @@ void UpdatedLagrangian::CalculateAndAddRHS(
             const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(
                 GetGeometry().ShapeFunctionsValues(), GetGeometry());
             MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
-                rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
+                mMP.cauchy_stress_vector, mMP.volume,
                 mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
         }
         else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
-            rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
+            mMP.cauchy_stress_vector, mMP.volume,
             mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
     }
     else
@@ -580,12 +572,12 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     if (is_axisymmetric)
     {
         const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
-        MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+        MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this,
             mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
     }
     else
     {
-        MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+        MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this,
             mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
     }
     rVariables.StressVector = mMP.cauchy_stress_vector;
