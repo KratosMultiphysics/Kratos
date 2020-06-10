@@ -75,30 +75,27 @@ namespace MPMSearchElementUtility
         return false;
     }
 
-    inline void ConstructNeighbourRelations(ModelPart& rBackgroundGridModelPart)
+
+    inline void ConstructNeighbourRelations(GeometryType& rGeom, const ModelPart& rBackgroundGridModelPart)
     {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.NumberOfElements()); ++i)
+        std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours;
+        for (IndexType j = 0; j < rBackgroundGridModelPart.NumberOfElements(); j++)
         {
-            auto& r_geometry = (rBackgroundGridModelPart.ElementsBegin() + i)->GetGeometry();
-            std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours;
-            for (IndexType j = 0; j < rBackgroundGridModelPart.NumberOfElements(); j++)
+            auto p_geometry_neighbour = (rBackgroundGridModelPart.ElementsBegin() + j)->pGetGeometry();
+            for (IndexType n = 0; n < p_geometry_neighbour->size(); n++)
             {
-                auto p_geometry_neighbour = (rBackgroundGridModelPart.ElementsBegin() + j)->pGetGeometry();
-                for (IndexType n = 0; n < p_geometry_neighbour->size(); n++)
+                for (IndexType k = 0; k < rGeom.size(); k++)
                 {
-                    for (IndexType k = 0; k < r_geometry.size(); k++)
-                    {
-                        if (r_geometry[k].Id() == (*p_geometry_neighbour)[n].Id()) {
-                            geometry_neighbours.push_back(p_geometry_neighbour);
-                            break;
-                        }
+                    if (rGeom[k].Id() == (*p_geometry_neighbour)[n].Id()) {
+                        geometry_neighbours.push_back(p_geometry_neighbour);
+                        break;
                     }
                 }
             }
-            r_geometry.SetValue(GEOMETRY_NEIGHBOURS, geometry_neighbours);
         }
+        rGeom.SetValue(GEOMETRY_NEIGHBOURS, geometry_neighbours);
     }
+
 
     inline bool IsExplicitAndNeedsCorrection(GeometryType::Pointer pQuadraturePoint, const ProcessInfo& rProcessInfo)
     {
@@ -117,8 +114,11 @@ namespace MPMSearchElementUtility
         return false;
     }
 
-    inline void NeighbourSearchElements(ModelPart& rMPMModelPart, std::vector<typename Element::Pointer>& rMissingElements,
-        const double Tolerance, const ProcessInfo& rProcessInfo)
+    inline void NeighbourSearchElements(const ModelPart& rMPMModelPart,
+        const ModelPart& rBackgroundGridModelPart,
+        std::vector<typename Element::Pointer>& rMissingElements,
+        const double Tolerance,
+        const ProcessInfo& rProcessInfo)
     {
         #pragma omp for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
@@ -133,6 +133,9 @@ namespace MPMSearchElementUtility
             bool is_found = CheckIsInside(r_parent_geometry,local_coordinates,xg[0],Tolerance);
             if (!is_found)
             {
+                if (!r_parent_geometry.Has(GEOMETRY_NEIGHBOURS))
+                    ConstructNeighbourRelations(r_parent_geometry, rBackgroundGridModelPart);
+
                 auto& geometry_neighbours = r_parent_geometry.GetValue(GEOMETRY_NEIGHBOURS);
                 for (IndexType k = 0; k < geometry_neighbours.size(); k++)
                 {
@@ -178,8 +181,11 @@ namespace MPMSearchElementUtility
         }
     }
 
-    inline void NeighbourSearchConditions(ModelPart& rMPMModelPart, std::vector<typename Condition::Pointer>& rMissingConditions,
-        const double Tolerance, const ProcessInfo& rProcessInfo)
+    inline void NeighbourSearchConditions(const ModelPart& rMPMModelPart,
+        const ModelPart& rBackgroundGridModelPart,
+        std::vector<typename Condition::Pointer>& rMissingConditions,
+        const double Tolerance,
+        const ProcessInfo& rProcessInfo)
     {
         #pragma omp for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i) {
@@ -196,6 +202,8 @@ namespace MPMSearchElementUtility
                 bool is_found = CheckIsInside(r_parent_geometry, local_coordinates, xg[0], Tolerance);
                 if (!is_found)
                 {
+                    if (!r_parent_geometry.Has(GEOMETRY_NEIGHBOURS))
+                        ConstructNeighbourRelations(r_parent_geometry, rBackgroundGridModelPart);
                     auto& geometry_neighbours = r_parent_geometry.GetValue(GEOMETRY_NEIGHBOURS);
                     for (IndexType k = 0; k < geometry_neighbours.size(); k++)
                     {
@@ -402,12 +410,8 @@ namespace MPMSearchElementUtility
 
         if (use_neighbour_search)
         {
-
-            if (!rBackgroundGridModelPart.ElementsBegin()->GetGeometry().Has(GEOMETRY_NEIGHBOURS))
-                ConstructNeighbourRelations(rBackgroundGridModelPart);
-
-            NeighbourSearchElements(rMPMModelPart, missing_elements, Tolerance, r_process_info);
-            NeighbourSearchConditions(rMPMModelPart, missing_conditions, Tolerance, r_process_info);
+            NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements, Tolerance, r_process_info);
+            NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, missing_conditions, Tolerance, r_process_info);
         }
         else
         {
