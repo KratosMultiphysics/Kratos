@@ -3,8 +3,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as Fluid
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.FluidDynamicsApplication import flows_measuring_process
 
 class FlowsMeasuringProcessTest(UnitTest.TestCase):
 
@@ -14,6 +12,7 @@ class FlowsMeasuringProcessTest(UnitTest.TestCase):
         self.fluid_model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
 
         properties = Kratos.Properties(0)
+        self.fluid_model_part.AddProperties(properties)
 
         self.settings = Kratos.Parameters("""
         {
@@ -105,7 +104,7 @@ class FlowsMeasuringProcessTest(UnitTest.TestCase):
 
         try:
             os.remove(self.filename)
-        except:
+        except OSError:
             pass
 
 if __name__ == '__main__':

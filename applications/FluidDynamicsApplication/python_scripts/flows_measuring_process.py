@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 def Factory(settings, model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
     if not settings["Parameters"].Has("model_part_name"):
