@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "modeler.h"
+#include "modeler/modeler.h"
 #include "includes/properties.h"
 #include "includes/define.h"
 
