@@ -197,7 +197,6 @@ def ReadTauOutput(working_path, step, velocity):
 
     # Read mesh info
     NodesNr = mesh_info[0]
-    ElemsNr = mesh_info[1]
 
     X, Y, Z = SaveCoordinatesList(nodal_data, position_info, NodesNr)
     P = SavePressure(nodal_data, position_info, NodesNr, velocity)
@@ -362,6 +361,7 @@ def FindOutputFilename(working_path, step):
         ouput_file_pattern = "airfoilSol.pval.deform_i="
     else:
         ouput_file_pattern = "airfoilSol.pval.unsteady_i="
+    CheckIfPathExists(FindFilename(outputs_path, ouput_file_pattern, step + 1))
     return FindFilename(outputs_path, ouput_file_pattern, step + 1)
 
 

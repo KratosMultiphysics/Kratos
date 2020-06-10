@@ -31,6 +31,29 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Outputs')
         os.rmdir('Mesh')
 
+
+    def test_ReadTauOutput(self):
+        self.setReference()
+        self.writeTestInterfaceFile()
+
+        X, Y, Z, P, elem_connectivities = TauFunctions.ReadTauOutput(self.path, self.step, 20)
+
+        # Define reference nodal_pressure
+        reference_nodal_pressure = np.array([336.0, 816.0, 1056.0, 1728.0, 1440.0, 1944.0])
+
+        # Check
+        self.assertListEqual(X, self.reference_X)
+        self.assertListEqual(Y, self.reference_Y)
+        self.assertListEqual(Z, self.reference_Z)
+        np.testing.assert_almost_equal(P, reference_nodal_pressure, decimal=16)
+        np.testing.assert_almost_equal(elem_connectivities, self.reference_elem_connectivities, decimal=16)
+        self.assertIs(type(elem_connectivities[0]), np.int64)
+
+        # Remove interface file
+        TauFunctions.RemoveFilesFromPreviousSimulations()
+        os.rmdir('Outputs')
+
+
     def test_CalculateNodalFluidForces(self):
         self.setReference()
         nodal_pressures = np.array([336.0, 816.0, 1056.0, 1728.0, 1440.0, 1944.0])
@@ -141,10 +164,10 @@ class TestTauFunctions(KratosUnittest.TestCase):
 
     def test_ReadInterfaceFile(self):
         self.setReference()
-        self.createDummyInterfaceFile()
+        self.writeTestInterfaceFile()
 
         # Read interface file
-        position_info, mesh_info, nodal_data, elem_connectivities = TauFunctions.ReadInterfaceFile(self.interface_filename)
+        position_info, mesh_info, nodal_data, elem_connectivities = TauFunctions.ReadInterfaceFile(self.reference_interface_file_name)
 
         # Check
         self.assertListEqual(position_info, self.reference_position_info)
@@ -154,7 +177,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
         self.assertIs(type(elem_connectivities[0]), np.int64)
 
         # Remove interface file
-        os.remove(self.interface_filename)
+        os.remove(self.reference_interface_file_name)
 
 
     def test_SaveCoordinatesList(self):
@@ -476,9 +499,10 @@ class TestTauFunctions(KratosUnittest.TestCase):
         return nodal_coords
 
 
-    def createDummyInterfaceFile(self):
-        self.interface_filename = 'dummy_interface_file.dat'
-        with open(self.interface_filename, 'w') as interface_file:
+    def writeTestInterfaceFile(self):
+        self.createOutputsDirectory()
+        self.createInterfaceFile()
+        with open(self.reference_interface_file_name, 'w') as interface_file:
             self.WriteHeader(interface_file)
             self.WriteNodalData(interface_file)
             self.WriteElementConnectivities(interface_file)
