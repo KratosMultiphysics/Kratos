@@ -32,6 +32,24 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Mesh')
 
 
+    def test_ComputeFluidForces(self):
+        self.setReference()
+        self.writeTestInterfaceFile()
+
+        nodal_forces = TauFunctions.ComputeFluidForces(self.path, self.step)
+
+        ref_nodal_forces = [0.0, 0.0, 283.5, 0.0, 0.0, 598.5, 0.0, 0.0,
+                            315.0, 0.0, 0.0, 315.0, 0.0, 0.0, 598.5, 0.0, 0.0, 283.5]
+
+        reference_nodal_forces = np.asarray(ref_nodal_forces)
+
+        np.testing.assert_almost_equal(nodal_forces, reference_nodal_forces, decimal=16)
+
+        # Remove interface file
+        TauFunctions.RemoveFilesFromPreviousSimulations()
+        os.rmdir('Outputs')
+
+
     def test_GetFluidMesh(self):
         self.setReference()
         self.writeTestInterfaceFile()
