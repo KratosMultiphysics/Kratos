@@ -3307,7 +3307,7 @@ public:
             rGeometryShapeFunctionContainer)
     {
         mpGeometryData = new GeometryData(
-            &GeometryDataInstance(),
+            &msGeometryDimension,
             rGeometryShapeFunctionContainer);
     }
 
