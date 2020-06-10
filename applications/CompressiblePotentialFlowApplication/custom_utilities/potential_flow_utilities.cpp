@@ -620,36 +620,17 @@ double ComputeUpwindFactorDerivativeWRTMachSquared(
 
 template <int Dim, int NumNodes>
 double ComputeUpwindFactorDerivativeWRTVelocitySquared(
-    const size_t upwindFactorCase, 
-    const array_1d<double, Dim>& rCurrentVelocity, 
-    const array_1d<double, Dim>& rUpwindVelocity,
+    const array_1d<double, Dim>& rVelocity,
     const ProcessInfo& rCurrentProcessInfo)
 {
 
     // Following Fully Simulataneous Coupling of the Full Potential Equation
     //           and the Integral Boundary Layer Equations in Three Dimensions
     //           by Brian Nishida (1996), section A.2
-    const double current_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
-    const double upwind_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
-
-    if (upwindFactorCase == 0.0) {
-        return 0.0;
-    }
-    else if (upwindFactorCase == 1.0) {
-        const double upwind_factor_derivative = ComputeUpwindFactorDerivativeWRTMachSquared<Dim, NumNodes>(current_element_mach_squared,rCurrentProcessInfo);
-        const double mach_number_derivative = ComputeDerivativeLocalMachSquaredWRTVelocitySquared<Dim, NumNodes>(rCurrentVelocity, current_element_mach_squared,rCurrentProcessInfo);
-        return upwind_factor_derivative * mach_number_derivative;
-    }
-    else if (upwindFactorCase == 2.0) {
-        const double upwind_factor_derivative = ComputeUpwindFactorDerivativeWRTMachSquared<Dim, NumNodes>(upwind_element_mach_squared,rCurrentProcessInfo);
-        const double mach_number_derivative = ComputeDerivativeLocalMachSquaredWRTVelocitySquared<Dim, NumNodes>(rUpwindVelocity, upwind_element_mach_squared,rCurrentProcessInfo);
-        return upwind_factor_derivative * mach_number_derivative;
-    }
-    else {
-        KRATOS_WARNING("ComputeUpwindFactorDerivativeWRTVelocitySquared") <<
-        "upwind factor case option computed as:" << upwindFactorCase << std::endl;
-        return 0.0;
-    }
+    const double mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rVelocity, rCurrentProcessInfo);
+    const double upwind_factor_derivative = ComputeUpwindFactorDerivativeWRTMachSquared<Dim, NumNodes>(mach_squared,rCurrentProcessInfo);
+    const double mach_number_derivative = ComputeDerivativeLocalMachSquaredWRTVelocitySquared<Dim, NumNodes>(rVelocity, mach_squared, rCurrentProcessInfo);
+    return upwind_factor_derivative * mach_number_derivative;
 }
 
 template <int Dim, int NumNodes>
@@ -838,7 +819,7 @@ template double ComputeUpwindFactor<2,3>(double localMachNumberSquared,const Pro
 template double SelectMaxUpwindFactor<2, 3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template size_t ComputeUpwindFactorCase<2, 3>(array_1d<double, 3>& rUpwindFactorOptions);
 template double ComputeUpwindFactorDerivativeWRTMachSquared<2,3>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindFactorDerivativeWRTVelocitySquared<2,3>(const size_t upwindFactorCase, const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity,const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindFactorDerivativeWRTVelocitySquared<2,3>(const array_1d<double, 2>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensity<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensity<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
@@ -879,7 +860,7 @@ template double ComputeUpwindFactor<3, 4>(double localMachNumberSquared,const Pr
 template double SelectMaxUpwindFactor<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template size_t ComputeUpwindFactorCase<3, 4>(array_1d<double, 3>& rUpwindFactorOptions);
 template double ComputeUpwindFactorDerivativeWRTMachSquared<3,4>(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindFactorDerivativeWRTVelocitySquared<3,4>(const size_t upwindFactorCaseconst, const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity,const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindFactorDerivativeWRTVelocitySquared<3,4>(const array_1d<double, 3>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensity<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensity<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
