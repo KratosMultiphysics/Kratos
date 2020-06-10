@@ -32,6 +32,23 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Mesh')
 
 
+    def test_WriteTautoplt(self):
+        self.createTautopltTestFiles()
+        self.setTautopltReferences()
+
+        self.tautoplt_filename = TauFunctions.WriteTautoplt(self.path, self.step, self.para_path_mod, self.start_step)
+
+        self.assertMultiLineEqual(self.tautoplt_filename, self.reference_tautoplt_filename)
+        self.assertTautopltFile()
+
+        TauFunctions.RemoveFilesFromPreviousSimulations()
+        os.remove(self.reference_primary_grid_file_name)
+        os.rmdir('Outputs')
+        os.rmdir('Mesh')
+        os.remove(self.initial_tautoplt_filename)
+        os.remove(self.tautoplt_filename)
+
+
     def test_ComputeRelativeDisplacements(self):
         # Set reference and function input
         self.setReferenceRelativeDisplacements()
@@ -116,23 +133,6 @@ class TestTauFunctions(KratosUnittest.TestCase):
 
         with self.assertRaisesRegex(Exception, exp_error):
             TauFunctions.CheckIfPathExists(test_filename)
-
-
-    def test_WriteTautoplt(self):
-        self.createTautopltTestFiles()
-        self.setTautopltReferences()
-
-        self.tautoplt_filename = TauFunctions.WriteTautoplt(self.path, self.step, self.para_path_mod, self.start_step)
-
-        self.assertMultiLineEqual(self.tautoplt_filename, self.reference_tautoplt_filename)
-        self.assertTautopltFile()
-
-        TauFunctions.RemoveFilesFromPreviousSimulations()
-        os.remove(self.reference_primary_grid_file_name)
-        os.rmdir('Outputs')
-        os.rmdir('Mesh')
-        os.remove(self.initial_tautoplt_filename)
-        os.remove(self.tautoplt_filename)
 
 
     def test_ModifyFilesIOLines(self):
