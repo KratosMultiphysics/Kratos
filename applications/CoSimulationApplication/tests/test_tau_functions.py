@@ -32,6 +32,17 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Mesh')
 
 
+    def test_ComputeRelativeDisplacements(self):
+        # Set reference and function input
+        self.setReferenceRelativeDisplacements()
+        step = 305
+        start_step = 304
+
+        relative_displacements = TauFunctions.ComputeRelativeDisplacements(self.total_displacements, step, start_step)
+
+        np.testing.assert_almost_equal(relative_displacements, self.reference_relative_displacements, decimal=16)
+
+
     def test_ReadTauOutput(self):
         self.setReference()
         self.writeTestInterfaceFile()
@@ -417,6 +428,26 @@ class TestTauFunctions(KratosUnittest.TestCase):
 
         # Check
         np.testing.assert_almost_equal(reference_distance, distance, decimal=16)
+
+
+    def setReferenceRelativeDisplacements(self):
+        self.total_displacements = [3.5, 6.4, 1.4, 2.4, 3.1, 4.6]
+        previous_total_displacements = [1.3, 8.9, 5.3, 1.3, 8.9, 5.3]
+
+        # Assign previous displacements to global variable
+        TauFunctions.previous_total_displacements = previous_total_displacements
+
+        # Compute reference displacements
+        number_of_nodes = int(len(self.total_displacements)/3)
+        self.reference_relative_displacements = np.zeros([number_of_nodes, 3])
+
+        # Loop over nodes
+        for node in range(number_of_nodes):
+            # Loop over xyz components
+            for j in range(3):
+                # Compute relative displacement
+                self.reference_relative_displacements[node, j] = self.total_displacements[3*node+j]
+                self.reference_relative_displacements[node, j] -= previous_total_displacements[3*node+j]
 
 
     def createTautopltTestFiles(self):
