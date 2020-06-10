@@ -234,27 +234,14 @@ private:
     void ComputeExtrapolationWeight();
 
     /**
-     * @brief This method assigns the value (with OMP)
-     * @param rVar The variable to be assigned
+     * @brief This method assigns the value
+     * @param rVariable The variable to be assigned
      * @param Value The value to assign
      */
-    template< class TVarType, class TDataType >
-    void InternalAssignValue(TVarType& rVar, const TDataType Value)
-    {
-        auto& r_entities_array = GetEntitiesContainer();
-        const int number_of_entities = static_cast<int>(r_entities_array.size());
-
-        if(number_of_entities != 0) {
-            const auto it_begin = r_entities_array.begin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<number_of_entities; i++) {
-                auto it_entity = it_begin + i;
-
-                it_entity->SetValue(rVar, Value);
-            }
-        }
-    }
+    void InternalAssignValue(
+        const Variable<double>& rVariable,
+        const double Value
+        );
 
     /**
      * @brief This converts the algorithm string to an enum
@@ -276,20 +263,34 @@ private:
      */
     array_1d<double, 3> GetCoordinatesEntity(const IndexType Id);
 
-//     /**
-//      * @brief This method set values
-//      */
-//     void SetValue(
-//         TEntity& rEntity,
-//         const Variable<double>& rVariable,
-//         const double Value
-//         );
-
     /**
      * @brief This method returns the current entity container
      * @return The current entity container
      */
     EntityContainerType& GetEntitiesContainer();
+
+    /**
+     * @brief This method sets values in a entity
+     * @param rEntity The entity reference
+     * @param rVariable The variable to set
+     * @param Value The value to set
+     */
+    void SetValue(
+        TEntity& rEntity,
+        const Variable<double>& rVariable,
+        const double Value
+        );
+
+    /**
+     * @brief This method gets values in a entity
+     * @param rEntity The entity reference
+     * @param rVariable The variable to set
+     * @return The value to get
+     */
+    double& GetValue(
+        TEntity& rEntity,
+        const Variable<double>& rVariable
+        );
 
     ///@}
     ///@name Private Operations

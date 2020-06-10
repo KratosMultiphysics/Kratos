@@ -91,7 +91,7 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ExecuteInitialize
     const SizeType number_of_databases = mCoordinates.size();
     const auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
     if (number_of_databases == 1) {
-        InternalAssignValue<>(*mpVariable, r_var_database.GetValue(0, time));
+        InternalAssignValue(*mpVariable, r_var_database.GetValue(0, time));
     } else {
         // Getting entities array
         auto& r_entities_array = GetEntitiesContainer();
@@ -109,7 +109,8 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ExecuteInitialize
 
                 const auto& r_weights = mWeightExtrapolation[i];
                 for (auto& r_weight : r_weights) {
-                    it_entity->GetValue(*mpVariable) += r_weight.second * r_var_database.GetValue(r_weight.first, time);
+                    double& r_value = GetValue(*it_entity, *mpVariable);
+                    r_value += r_weight.second * r_var_database.GetValue(r_weight.first, time);
                 }
             }
         }
@@ -205,6 +206,106 @@ template<>
 PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh().Elements();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::SetValue(
+    Node<3>& rEntity,
+    const Variable<double>& rVariable,
+    const double Value
+    )
+{
+    rEntity.SetValue(rVariable, Value);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::SetValue(
+    Node<3>& rEntity,
+    const Variable<double>& rVariable,
+    const double Value
+    )
+{
+    rEntity.FastGetSolutionStepValue(rVariable) = Value;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AssignScalarInputToEntitiesProcess<Condition, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::SetValue(
+    Condition& rEntity,
+    const Variable<double>& rVariable,
+    const double Value
+    )
+{
+    rEntity.SetValue(rVariable, Value);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::SetValue(
+    Element& rEntity,
+    const Variable<double>& rVariable,
+    const double Value
+    )
+{
+    rEntity.SetValue(rVariable, Value);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double& AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetValue(
+    Node<3>& rEntity,
+    const Variable<double>& rVariable
+    )
+{
+    return rEntity.GetValue(rVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double& AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetValue(
+    Node<3>& rEntity,
+    const Variable<double>& rVariable
+    )
+{
+    return rEntity.FastGetSolutionStepValue(rVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double& AssignScalarInputToEntitiesProcess<Condition, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetValue(
+    Condition& rEntity,
+    const Variable<double>& rVariable
+    )
+{
+    return rEntity.GetValue(rVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double& AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetValue(
+    Element& rEntity,
+    const Variable<double>& rVariable
+    )
+{
+    return rEntity.GetValue(rVariable);
 }
 
 /***********************************************************************************/
@@ -467,6 +568,33 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ComputeExtrapolat
         }
     } else {
         KRATOS_ERROR << "Algorithm not defined" << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
+void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::InternalAssignValue(
+    const Variable<double>& rVariable,
+    const double Value
+    )
+{
+    KRATOS_TRY;
+
+    auto& r_entities_array = GetEntitiesContainer();
+    const int number_of_entities = static_cast<int>(r_entities_array.size());
+
+    if(number_of_entities != 0) {
+        const auto it_begin = r_entities_array.begin();
+
+        #pragma omp parallel for
+        for(int i = 0; i<number_of_entities; i++) {
+            auto it_entity = it_begin + i;
+            SetValue(*it_entity, rVariable, Value);
+        }
     }
 
     KRATOS_CATCH("");
