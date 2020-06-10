@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/quadrature_points_utility.h"
+#include "custom_geometries/quadrature_point_partitioned_geometry.h"
 
 #include "particle_mechanics_application_variables.h"
 
