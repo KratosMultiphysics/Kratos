@@ -59,34 +59,6 @@ void CalculateConditionGeometryData(const GeometryType& rGeometry,
     }
 }
 
-template <>
-void CalculateConditionNormal<2>(array_1d<double, 3>& rNormal, const ConditionType& rCondition)
-{
-    const GeometryType& pGeometry = rCondition.GetGeometry();
-
-    rNormal[0] = pGeometry[1].Y() - pGeometry[0].Y();
-    rNormal[1] = -(pGeometry[1].X() - pGeometry[0].X());
-    rNormal[2] = 0.00;
-}
-
-template <>
-void CalculateConditionNormal<3>(array_1d<double, 3>& rNormal, const ConditionType& rCondition)
-{
-    const GeometryType& pGeometry = rCondition.GetGeometry();
-
-    array_1d<double, 3> v1, v2;
-    v1[0] = pGeometry[1].X() - pGeometry[0].X();
-    v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
-    v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
-
-    v2[0] = pGeometry[2].X() - pGeometry[0].X();
-    v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
-    v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
-
-    MathUtils<double>::CrossProduct(rNormal, v1, v2);
-    rNormal *= 0.5;
-}
-
 double CalculateConditionWallHeight(const ConditionType& rCondition,
                                     const array_1d<double, 3>& rNormal)
 {
@@ -282,11 +254,9 @@ void CalculateYPlusAndUTauForConditions(
 {
     KRATOS_TRY
 
-    const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    const std::function<void(array_1d<double, 3>&, const ConditionType&)> normal_calculation_method =
-        (domain_size == 2) ? CalculateConditionNormal<2> : CalculateConditionNormal<3>;
+    const array_1d<double, 3> local_point = ZeroVector(3);
 
-    block_for_each(rModelPart.Conditions(), [normal_calculation_method, rKinematicViscosityVariable,
+    block_for_each(rModelPart.Conditions(), [local_point, rKinematicViscosityVariable,
                                              rYPlusAndUTauCalculationMethod](ConditionType& r_condition) {
         GeometryType& r_geometry = r_condition.GetGeometry();
 
@@ -298,9 +268,7 @@ void CalculateYPlusAndUTauForConditions(
         const Vector& gauss_shape_functions = row(shape_functions, 0);
 
         // calculate normal for the condition
-        array_1d<double, 3> normal;
-        normal_calculation_method(normal, r_condition);
-
+        const array_1d<double, 3> normal = r_geometry.Normal(local_point);
         const double y_wall = CalculateConditionWallHeight(r_condition, normal);
         const double nu = EvaluateInPoint(
             r_geometry, rKinematicViscosityVariable, gauss_shape_functions);

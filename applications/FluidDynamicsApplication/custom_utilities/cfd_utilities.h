@@ -52,25 +52,6 @@ void CalculateConditionGeometryData(const GeometryType& rGeometry,
                                     Matrix& rNContainer);
 
 /**
- * @brief Calculates outwards pointing normal for a condition
- *
- * This method calculates outward pointing normal. The geometry should be
- * oriented properly to have outwards pointing normal. Use
- * TetrahedralMeshOrientationCheck before using this method to calculate normal
- * since this process checks and corrects orientation of geometry nodes.
- * Magnitude of normal contains area(in 3D), length (in 2D) of the condition.
- *
- * @tparam TDim       Dimensionality of condition. Either 2 or 3
- * @param rNormal     Calculated normal
- * @param rCondition  Condition
- *
- * @see TetrahedralMeshOrientationCheck
- */
-
-template <unsigned int TDim>
-void CalculateConditionNormal(array_1d<double, 3>& rNormal, const ConditionType& rCondition);
-
-/**
  * @brief Calculates wall height for condition
  *
  * Wall height is for given condition is calculated. Wall height is the wall normal distance
