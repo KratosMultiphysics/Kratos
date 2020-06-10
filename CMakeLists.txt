@@ -135,104 +135,64 @@ else( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
   set (KratosMultiphysics_BUILD_SUFFIX "-${CMAKE_BUILD_TYPE}" )
 endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
-# Set compiler flags
-if(${CMAKE_COMPILER_IS_GNUCXX})
+
+# Setting compiler flags depending on system and compiler
+message(STATUS "Compiling under ${CMAKE_SYSTEM_NAME} operating system")
+if(CMAKE_COMPILER_IS_GNUCXX) #If the compiler is GCC
+  message(STATUS "Compiler detected as GCC. version ${CMAKE_CXX_COMPILER_VERSION}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
-  endif()
+  endif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
-  set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
-  message(STATUS "additional default options were set for gcc")
-  message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-  message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-endif(${CMAKE_COMPILER_IS_GNUCXX})
-
-message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wno-unknown-pragmas  ")
-		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-		message("additional default options were set for clang compiler")
-		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-		message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-  else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
-		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-		message("additional default options were set for clang compiler")
-		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-		message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-		if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
-		  # pybind requires min. version 17, but we need at least 18:
-		  message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
-		  message( FATAL_ERROR "Please use Version 18 or greater")
-		endif()
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -lpthread -wd654 -wd10010  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010  ")
-		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-		message("additional default options were set for intel compiler")
-		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-		message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-  endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
+  set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+else(CMAKE_COMPILER_IS_GNUCXX) #If it is not, we check for the rest.
+  #We are using this weird structure because CMAKE_CXX_COMPILER_ID is only available in CMAKE>3.0 and we need to support some CentOS7 machines that comes with CMake 2.x
+  message(STATUS "Compiler found ${CMAKE_CXX_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
+  # Intel Compiler
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Intel") #Intel Compiler
+    # Checking for unsupported version
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+      # pybind requires min. version 17, but we need at least 18:
+      message( FATAL_ERROR "Intel ${CMAKE_CXX_COMPILER_VERSION} not supported. Please use Version 18 or greater.")
+    endif(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #For some reason OSX flags are different.
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -wd654 -wd10010 /Qstd=c++14") #It needs C++14
+      set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -wd654 -wd10010 /Qstd=c++14")
+    else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010 -std=c++14 ") #It needs C++14
+      set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010  -std=c++14")
+    endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-    message("additional default options were set for intel compiler")
-    message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-    message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-  endif(${CMAKE_C_COMPILER} MATCHES "icc.*$")
-endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  # Clang
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang") #Clang
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #Windows
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas -std=c++11")
+      set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wno-unknown-pragmas")
+    else(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #Other OS need to have also -fPIC defined
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas -std=c++11")
+      set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas ")
+    endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+  # Visual Studio
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC") #Visual Studio
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.0)
+      message(FATAL_ERROR "MSVC version is not compatible. Please use at least Visual Studio 2015")
+    endif(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.0)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+    string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
+    string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+  else(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    message( FATAL_ERROR "Unsupported compiler found ${CMAKE_CXX_COMPILER_ID}")
+  endif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
-# Old non-compatible versions of VS
-if(${MSVC80})
-  message( "DEPRECATED: detected compiler as MSVC80")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC80})
-
-if(${MSVC90})
-  message( "DEPRECATED: detected compiler as MSVC90")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC90})
-
-if(${MSVC10})
-  message( "DEPRECATED: detected compiler as MSVC10")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC10})
-
-if(${MSVC11})
-  message( "DEPRECATED: detected compiler as MSVC11")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC11})
-
-if(${MSVC12})
-  message( "DEPRECATED: detected compiler as MSVC12")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC12})
-
-# Common flags for MSVC
-if(${MSVC})
-  message("Detected compiler as MSVC")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
-  string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
-  string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
-endif(${MSVC})
-
-# Specific flags for different versions of MSVC
-if(${MSVC14})
-  # message("Adding additional flags for MSVC14")
-  # Nothing needed right now
-endif(${MSVC14})
+# Plot the information.
+message(STATUS "Additional compiler default options added:")
+message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+message(STATUS "CMAKE_SHARED_LINKER_FLAGS = ${CMAKE_SHARED_LINKER_FLAGS}")
 
 # If install prefix is set, install all the files.
 SET(INSTALL_TESTING_FILES ON)
