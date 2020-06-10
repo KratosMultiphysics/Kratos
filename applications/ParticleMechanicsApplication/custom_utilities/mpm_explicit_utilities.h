@@ -18,6 +18,7 @@
 #include "includes/element.h"
 #include "includes/variables.h"
 #include "particle_mechanics_application_variables.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos
 {
@@ -47,10 +48,6 @@ namespace Kratos
             const Vector& rMPStress, const double rMPVolume,
             const SizeType StrainSize, Vector& rRightHandSideVector);
 
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateAndAddAxisymmetricExplicitInternalForce(Element& rElement,
-            const Vector& rMPStress, const double rMPVolume,
-            const SizeType StrainSize, const double AxisymmetricRadius, Vector& rRightHandSideVector);
-
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) UpdateGaussPointExplicit(const ProcessInfo& rCurrentProcessInfo,
             Element& rElement);
 
@@ -60,10 +57,6 @@ namespace Kratos
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitKinematics(const ProcessInfo& rCurrentProcessInfo,
             Element& rElement, Vector& rMPStrain, Matrix& rDeformationGradient,
             const SizeType StrainSize);
-
-        void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateExplicitAsymmetricKinematics(const ProcessInfo& rCurrentProcessInfo,
-            Element& rElement, Vector& rMPStrain, Matrix& rDeformationGradient,
-            const SizeType StrainSize, const double AxisymmetricRadius);
 
         inline void GetCartesianDerivatives(std::vector<Matrix>& rDN_DXVec, const GeometryType& rGeom);
     }; // namespace ExplicitIntegrationUtilities
