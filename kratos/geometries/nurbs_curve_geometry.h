@@ -171,17 +171,23 @@ public:
     }
 
     ///@}
-    ///@name Get and Set functions
+    ///@name Mathematical Informations
     ///@{
 
-    /*
-    * @brief Polynomial degree of this curve.
-    * @return the polynomial degree.
-    */
-    SizeType PolynomialDegree() const
+    /// Return polynomial degree of the geometry in a certain direction
+    SizeType PolynomialDegree(IndexType DirectionIndex = 0) const override
     {
-        return mPolynomialDegree;
+        KRATOS_DEBUG_ERROR_IF(DirectionIndex != 0)
+            << "Trying to access polynomial degree in direction " << DirectionIndex
+            << " from NurbsCurveGeometry #" << Id() << ". However, nurbs curves have only one direction."
+            << std::endl;
+
+        return this->mPolynomialDegree();
     }
+
+    ///@}
+    ///@name Get and Set functions
+    ///@{
 
     /* 
     * @brief Knot vector is defined to have a multiplicity of p
