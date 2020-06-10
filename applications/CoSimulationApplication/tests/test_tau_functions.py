@@ -52,6 +52,7 @@ class TestTauFunctions(KratosUnittest.TestCase):
 
         TauFunctions.RemoveFilesFromPreviousSimulations()
         os.remove(self.reference_primary_grid_file_name)
+        os.rmdir('Outputs')
         os.rmdir('Mesh')
         os.remove(self.initial_tautoplt_filename)
         os.remove(self.tautoplt_filename)
