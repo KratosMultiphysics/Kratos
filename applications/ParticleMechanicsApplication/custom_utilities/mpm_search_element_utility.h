@@ -36,7 +36,7 @@ namespace MPMSearchElementUtility
 
     typedef typename ModelPart::GeometryType GeometryType;
 
-    double CrossProductDet2D(array_1d<double, 3> VectorA, array_1d<double, 3> VectorB)
+    inline double CrossProductDet2D(array_1d<double, 3> VectorA, array_1d<double, 3> VectorB)
     {
         return (VectorA[0] * VectorB[1] - VectorB[0] * VectorA[1]);
     }
