@@ -289,12 +289,6 @@ private:
     array_1d<double, 3> GetCoordinatesEntity(const IndexType Id);
 
     /**
-     * @brief This method returns the current entity label
-     * @return The current entity label
-     */
-    const std::string GetEntitiesLabel();
-
-    /**
      * @brief This method returns the current entity container
      * @return The current entity container
      */

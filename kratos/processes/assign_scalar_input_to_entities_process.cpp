@@ -139,33 +139,6 @@ const Parameters AssignScalarInputToEntitiesProcess<TEntity>::GetDefaultParamete
 /***********************************************************************************/
 
 template<>
-const std::string AssignScalarInputToEntitiesProcess<Node<3>>::GetEntitiesLabel()
-{
-    return "NODE_";
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-const std::string AssignScalarInputToEntitiesProcess<Condition>::GetEntitiesLabel()
-{
-    return "CONDITION_";
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-const std::string AssignScalarInputToEntitiesProcess<Element>::GetEntitiesLabel()
-{
-    return "ELEMENT_";
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
 array_1d<double, 3> AssignScalarInputToEntitiesProcess<Node<3>>:: GetCoordinatesEntity(const IndexType Id)
 {
     return mrModelPart.pGetNode(Id)->Coordinates();
