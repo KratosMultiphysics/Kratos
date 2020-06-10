@@ -247,28 +247,6 @@ private:
     }
 
     /**
-     * @brief This method assigns the value (without OMP)
-     * @param rVar The variable to be assigned
-     * @param Value The value to assign
-     */
-    template< class TVarType, class TDataType >
-    void InternalAssignValueSerial(TVarType& rVar, const TDataType Value)
-    {
-        auto& r_entities_array = GetEntitiesContainer();
-        const int number_of_entities = static_cast<int>(r_entities_array.size());
-
-        if(number_of_entities != 0) {
-            const auto it_begin = r_entities_array.begin();
-
-            for(int i = 0; i<number_of_entities; i++) {
-                auto it_entity = it_begin + i;
-
-                it_entity->SetValue(rVar, Value);
-            }
-        }
-    }
-
-    /**
      * @brief This converts the algorithm string to an enum
      * @param Str The string that you want to convert in the equivalent enum
      * @return Algorithm: The equivalent enum (this requires less memmory and is eassier to compare than a std::string)
