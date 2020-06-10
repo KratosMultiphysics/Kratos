@@ -172,6 +172,7 @@ def GetDefaultInputParameters():
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
             "PostControlModule"                : false,
+            "PostNumberOfNeighboursHistogramOption" : false,
             "post_vtk_option"                  : false,
 
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
