@@ -328,7 +328,7 @@ public:
                     mpGeometries[i]->GlobalCoordinates(global_coords, local_coords_slave);
                     curve_tesselation.GetClosestPoint(global_coords, global_coords_master, local_coords_master);
                     mpGeometries[0]->ProjectionPoint(global_coords, global_coords_master, local_coords_master);
-                    KRATOS_DEBUG_ERROR_IF(norm_2(global_coords - global_coords_master) < 1e-6)
+                    KRATOS_DEBUG_ERROR_IF(norm_2(global_coords - global_coords_master) > 1e-6)
                         << "Projection of intersection spans failed. Global Coordinates on slave: "
                         << global_coords << ", and global coordinates on master: "
                         << global_coords_master << ". Difference large than 1e-6." << std::endl;
