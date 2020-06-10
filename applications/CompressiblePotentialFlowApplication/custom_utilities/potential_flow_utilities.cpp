@@ -118,6 +118,21 @@ array_1d<double, Dim> ComputeVelocity(const Element& rElement)
 }
 
 template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputePerturbedVelocity(
+    const Element& rElement, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++)
+    {
+        velocity[i] += free_stream_velocity[i];
+    }
+
+    return velocity;
+}
+
+template <int Dim, int NumNodes>
 double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -132,14 +147,20 @@ double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
     const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
+    KRATOS_ERROR_IF(free_stream_mach < std::numeric_limits<double>::epsilon())
+        << "ComputeMaximumVelocitySquared: free_stream_mach must be larger than zero." << std::endl;
+
     // make squares of values
-    const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
+    const double free_stream_mach_squared = std::pow(free_stream_mach, 2.0);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
 
     // calculate velocity
-    const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
-    const double denominator = (2.0 + (heat_capacity_ratio - 1) * max_local_mach_squared );
+    const double numerator = (2.0 + (heat_capacity_ratio - 1.0) * free_stream_mach_squared );
+    const double denominator = (2.0 + (heat_capacity_ratio - 1.0) * max_local_mach_squared );
     const double factor = free_stream_velocity_squared * max_local_mach_squared / free_stream_mach_squared;
+
+    KRATOS_ERROR_IF(denominator < std::numeric_limits<double>::epsilon())
+        << "ComputeMaximumVelocitySquared: denominatior must be larger than zero." << std::endl;
 
     return factor * numerator / denominator;
 }
@@ -183,6 +204,9 @@ double ComputeVelocityMagnitude(
     const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
+    KRATOS_ERROR_IF(free_stream_mach < std::numeric_limits<double>::epsilon())
+        << "ComputeVelocityMagnitude: free_stream_mach must be larger than zero." << std::endl;
+
     // make squares of values
     const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
@@ -191,6 +215,9 @@ double ComputeVelocityMagnitude(
     const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
     const double denominator = (2.0 + (heat_capacity_ratio - 1) * localMachNumberSquared );
     const double factor = free_stream_velocity_squared * localMachNumberSquared / free_stream_mach_squared;
+
+    KRATOS_ERROR_IF(denominator < std::numeric_limits<double>::epsilon())
+        << "ComputeVelocityMagnitude: denominator must be larger than zero." << std::endl;
 
     return factor * numerator / denominator;
 }
@@ -507,6 +534,71 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
 }
 
 template <int Dim, int NumNodes>
+double ComputeUpwindFactor(
+        double localMachNumberSquared, 
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Equation 2.13
+
+    // read free stream values
+    // default CRITICAL_MACH - 0.99 and default UPWIND_FACTOR_CONSTANT - 1.0
+    const double critical_mach = rCurrentProcessInfo[CRITICAL_MACH];
+    const double upwind_factor_constant = rCurrentProcessInfo[UPWIND_FACTOR_CONSTANT];
+
+    if(localMachNumberSquared < 1e-3){
+        localMachNumberSquared = 1e-3;
+        KRATOS_WARNING("ComputeUpwindFactor") << "localMachNumberSquared is smaller than 1-3 and is being clamped to 1e-3"  <<  std::endl;
+    }
+
+    return upwind_factor_constant * (1.0 - std::pow(critical_mach, 2.0) / localMachNumberSquared);
+}
+
+template <int Dim, int NumNodes>
+double SelectMaxUpwindFactor(
+        const array_1d<double, Dim>& rCurrentVelocity, 
+        const array_1d<double, Dim>& rUpwindVelocity, 
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Equation 2.13
+    const double current_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
+    const double upwind_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+
+    array_1d<double, 3> upwind_factor_options(3, 0.0);
+
+    upwind_factor_options[1] = ComputeUpwindFactor<Dim, NumNodes>(current_element_mach_squared, rCurrentProcessInfo);
+    upwind_factor_options[2] = ComputeUpwindFactor<Dim, NumNodes>(upwind_element_mach_squared, rCurrentProcessInfo);
+
+    const auto case_option = ComputeUpwindFactorCase<Dim, NumNodes>(upwind_factor_options);
+    return upwind_factor_options[case_option];
+}
+
+template <int Dim, int NumNodes>
+size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Equation 2.13
+
+    // a subsonic current element should always return case 0
+    if (rUpwindFactorOptions[1] < 0.0)
+    {
+        rUpwindFactorOptions[1] = 0.0;
+        rUpwindFactorOptions[2] = 0.0;
+    }
+    const auto max_upwind_factor_opt = std::max_element(rUpwindFactorOptions.begin(), rUpwindFactorOptions.end());
+    
+    // Case 0: Subsonic flow
+    // Case 1: Supersonic and accelerating flow (M^2 > M^2_up)
+    // Case 2: Supersonic and decelerating flow (M^2 < M^2_up)
+    // If Case 1 = Case 2, returns Case 1
+    return std::distance(rUpwindFactorOptions.begin(), max_upwind_factor_opt);
+}
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
@@ -526,6 +618,53 @@ bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodal
     // Elements with nodes above and below the wake are wake elements
     return number_of_nodes_with_negative_distance > 0 &&
            number_of_nodes_with_positive_distance > 0;
+}
+
+template <int Dim, int NumNodes>
+double ComputeDensity(
+    const double localMachNumberSquared, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Implemented according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+
+    // reading free stream values
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+
+    // density calculation
+    const double numerator = 1.0 + (0.5 * (heat_capacity_ratio - 1.0)) * std::pow(free_stream_mach, 2.0);
+    const double denominator = 1.0 + (0.5 * (heat_capacity_ratio - 1.0)) * localMachNumberSquared;
+
+    KRATOS_ERROR_IF(denominator < std::numeric_limits<double>::epsilon())
+        << "ComputeDensity: denominatior must be larger than zero." << std::endl;
+
+    KRATOS_ERROR_IF((heat_capacity_ratio - 1.0) < std::numeric_limits<double>::epsilon())
+        << "ComputeDensity: heat capacity ratio is smaller than 1." << std::endl;
+
+    return free_stream_density * std::pow((numerator/denominator), 1.0/(heat_capacity_ratio - 1.0));
+}
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensity(
+    const array_1d<double, Dim>& rCurrentVelocity, 
+    const array_1d<double, Dim>& rUpwindVelocity, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Equation 2.12
+
+    const double upwind_factor = SelectMaxUpwindFactor<Dim,NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+
+    const double current_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
+    const double upwind_element_mach_squared = ComputeLocalMachNumberSquared<Dim,NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+
+    const double current_element_density = ComputeDensity<Dim,NumNodes>(current_element_mach_squared, rCurrentProcessInfo);
+    const double upwind_element_density = ComputeDensity<Dim,NumNodes>(upwind_element_mach_squared, rCurrentProcessInfo);
+
+    return current_element_density - upwind_factor * (current_element_density - upwind_element_density);
 }
 
 bool CheckIfElementIsTrailingEdge(const Element& rElement)
@@ -625,6 +764,7 @@ template array_1d<double, 2> ComputeVelocityNormalElement<2, 3>(const Element& r
 template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
+template array_1d<double, 2> ComputePerturbedVelocity<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<2, 3>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
@@ -640,6 +780,11 @@ template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const Proc
 template double ComputeLocalMachNumberSquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindFactor<2,3>(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+template double SelectMaxUpwindFactor<2, 3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template size_t ComputeUpwindFactorCase<2, 3>(array_1d<double, 3>& rUpwindFactorOptions);
+template double ComputeDensity<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensity<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -658,6 +803,7 @@ template array_1d<double, 3> ComputeVelocityNormalElement<3, 4>(const Element& r
 template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
+template array_1d<double, 3> ComputePerturbedVelocity<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<3, 4>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
@@ -673,6 +819,11 @@ template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const Proc
 template double ComputeLocalMachNumberSquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDerivativeLocalMachSquaredWRTVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputePerturbationLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindFactor<3, 4>(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+template double SelectMaxUpwindFactor<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template size_t ComputeUpwindFactorCase<3, 4>(array_1d<double, 3>& rUpwindFactorOptions);
+template double ComputeDensity<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensity<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
