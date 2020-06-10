@@ -422,9 +422,10 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::IdentifyDataJSON(
     // Getting number of definitions
     SizeType number_of_definitions = 0;
     for (auto& r_param : json_input) {
-        ++number_of_definitions;
+        if (!r_param.IsVector()) {  // Removing TIME
+            ++number_of_definitions;
+        }
     }
-    number_of_definitions -= 1; // Removing TIME
 
     // Check number of definitions
     KRATOS_ERROR_IF(number_of_definitions == 0) << "Definitions must be superior to 0" << std::endl;
