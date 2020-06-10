@@ -4495,6 +4495,19 @@ TValueType& ModelPartIO::ExtractValue(std::string rWord, TValueType & rValue)
     return rValue;
 }
 
+bool& ModelPartIO::ExtractValue(std::string rWord, bool & rValue)
+{
+    KRATOS_WATCH(rWord)
+
+    if (rWord == "1" || rWord == "true" || rWord == "True") {
+        rValue = true;
+    }
+
+    else rValue = false;
+
+    return rValue;
+}
+
 void ModelPartIO::ReadConstitutiveLawValue(ConstitutiveLaw::Pointer& rValue) {
     std::string value;
     ReadWord(value);

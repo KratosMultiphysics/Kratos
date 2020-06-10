@@ -84,7 +84,7 @@ End NodalData
 
 Begin SubModelPart Inlets
 	Begin SubModelPartData
-	IS_RESTARTED 1
+	IS_RESTARTED True
 	COMPUTE_DYNAMIC_TANGENT 0
 	End SubModelPartData
 
