@@ -17,6 +17,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
+//elements
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/iga_truss_element.h"
@@ -28,6 +29,8 @@
 #include "custom_conditions/penalty_coupling_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 
+//modelers
+#include "custom_modelers/iga_modeler.h"
 
 namespace Kratos {
 
@@ -112,6 +115,9 @@ private:
     const LoadCondition mLoadCondition;
     const PenaltyCouplingCondition mPenaltyCouplingCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
+
+    // Modelers
+    const IgaModeler mIgaModeler;
 
     ///@}
     ///@name Private methods

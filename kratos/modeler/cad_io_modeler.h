@@ -45,26 +45,22 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
-
-    typedef typename Properties::Pointer PropertiesPointerType;
-
-    typedef typename ModelPart::ElementsContainerType ElementsContainerType;
-    typedef typename ModelPart::ConditionsContainerType ConditionsContainerType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    CadIoModeler(const Parameters ModelerParameters = Parameters())
-        : Modeler(ModelerParameters)
-        , mEchoLevel(
-            ModelerParameters.Has("echo_level")
-            ? ModelerParameters["echo_level"].GetInt()
-            : 0)
+    CadIoModeler()
+        : Modeler()
+    {
+    }
+
+    /// Constructor.
+    CadIoModeler(
+        Model& rModel,
+        Parameters ModelerParameters = Parameters())
+        : Modeler(rModel, ModelerParameters)
+        , mpModel(&rModel)
     {
     }
 
@@ -72,17 +68,17 @@ public:
     virtual ~CadIoModeler() = default;
 
     /// Creates the Modeler Pointer
-    Modeler::Pointer Create(const Parameters ModelParameters) const override
+    Modeler::Pointer Create(
+        Model& rModel, const Parameters ModelParameters) const override
     {
-        return Kratos::make_shared<CadIoModeler>(ModelParameters);
+        return Kratos::make_shared<CadIoModeler>(rModel, ModelParameters);
     }
 
     ///@}
     ///@name Stages
     ///@{
 
-    void ImportGeometryModel(
-        Model& rModel) const override;
+    void SetupGeometryModel() override;
 
     ///@}
     ///@name Input and output
@@ -111,10 +107,15 @@ private:
     ///@name Iga functionalities
     ///@{
 
-    SizeType mEchoLevel;
+    Model* mpModel = nullptr;
 
     ///@}
+    ///@name Serializer
+    ///@{
 
+    friend class Serializer;
+
+    ///@}
 }; // Class CadIoModeler
 
 ///@}

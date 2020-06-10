@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from KratosMultiphysics import IsDistributedRun
-import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 # Import KratosUnittest
