@@ -431,7 +431,7 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::IdentifyDataJSON(
 
     // Reserve
     if (mCoordinates.size() != number_of_definitions) {
-        mCoordinates.reserve(number_of_definitions);
+        mCoordinates.resize(number_of_definitions);
     }
 
     KRATOS_ERROR_IF_NOT(json_input.Has("1")) << "Input not properly defined. Input must have values defined ordered" << std::endl;
