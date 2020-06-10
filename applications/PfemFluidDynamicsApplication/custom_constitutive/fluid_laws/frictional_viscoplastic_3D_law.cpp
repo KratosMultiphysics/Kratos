@@ -74,9 +74,9 @@ namespace Kratos
         const double theta_momentum = r_geometry[0].GetValue(THETA_MOMENTUM);
         double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
 
-        if (mean_pressure > 0.0)
+        if (mean_pressure > 0.0) // in case of tractions
         {
-            mean_pressure = 0.0000001;
+            mean_pressure = 0;
         }
 
         const double equivalent_strain_rate =
