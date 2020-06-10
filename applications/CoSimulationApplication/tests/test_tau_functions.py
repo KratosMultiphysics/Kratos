@@ -32,6 +32,14 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Mesh')
 
 
+    def test_RemoveFileIfExists(self):
+        test_filename = os.getcwd() + '/test_file.dat'
+        exp_warning = 'The file {} does not exist.'.format(test_filename)
+
+        with self.assertWarnsRegex(Warning, exp_warning):
+            TauFunctions.RemoveFileIfExists(test_filename)
+
+
     def test_CheckIfPathExists(self):
         # Define exception
         test_filename = os.getcwd() + '/test_file.dat'
