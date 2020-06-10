@@ -241,13 +241,7 @@ def ReadNodalCoordinates(X, Y, Z):
 
 # Save element types in a numpy array
 def ReadElementTypes(ElemsNr):
-    # array to store the element types
-    element_types = np.zeros(ElemsNr, dtype=int)
-
-    for i in xrange(0, ElemsNr):
-        element_types[i] = 9
-
-    return element_types
+    return np.full(ElemsNr, 9, dtype=int)
 
 
 # Check if file exist and remove it, otherwise print a warning

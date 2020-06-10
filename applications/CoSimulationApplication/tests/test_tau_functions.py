@@ -32,6 +32,15 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Mesh')
 
 
+    def test_ReadElementTypes(self):
+        number_of_elements = 20
+        reference_elem_type = np.full(number_of_elements, 9, dtype=int)
+
+        element_types = TauFunctions.ReadElementTypes(number_of_elements)
+        np.testing.assert_almost_equal(element_types, reference_elem_type, decimal=16)
+        self.assertIs(type(element_types[0]), np.int64)
+
+
     def test_RemoveFileIfExists(self):
         test_filename = os.getcwd() + '/test_file.dat'
         exp_warning = 'The file {} does not exist.'.format(test_filename)
