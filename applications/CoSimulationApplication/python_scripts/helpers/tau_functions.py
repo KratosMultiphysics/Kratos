@@ -92,7 +92,7 @@ def ComputeFluidForces(working_path, step):
 
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
-def GetFluidMesh(working_path, step, para_path_mod):
+def GetFluidMesh(working_path, step):
     # Read mesh from interface file
     X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, 20)
 

@@ -32,6 +32,30 @@ class TestTauFunctions(KratosUnittest.TestCase):
         os.rmdir('Mesh')
 
 
+    def test_GetFluidMesh(self):
+        self.setReference()
+        self.writeTestInterfaceFile()
+
+        nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(self.path, self.step)
+
+        # Check
+        reference_nodal_coor = self.setReferenceNodalCoordinates()
+        np.testing.assert_almost_equal(nodal_coords, reference_nodal_coor, decimal=16)
+
+        # In vtk format element connectivities start from 0, not from 1
+        self.reference_elem_connectivities -= 1
+        np.testing.assert_almost_equal(elem_connectivities, self.reference_elem_connectivities, decimal=16)
+        self.assertIs(type(elem_connectivities[0]), np.int64)
+
+        reference_elem_type = np.full(self.reference_mesh_info[1], 9, dtype=int)
+        np.testing.assert_almost_equal(element_types, reference_elem_type, decimal=16)
+        self.assertIs(type(element_types[0]), np.int64)
+
+        # Remove interface file
+        TauFunctions.RemoveFilesFromPreviousSimulations()
+        os.rmdir('Outputs')
+
+
     def test_WriteTautoplt(self):
         self.createTautopltTestFiles()
         self.setTautopltReferences()
