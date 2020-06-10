@@ -41,7 +41,7 @@ namespace MPMSearchElementUtility
         return (VectorA[0] * VectorB[1] - VectorB[0] * VectorA[1]);
     }
 
-    bool CheckIsInside(const GeometryType& rGeom, array_1d<double, 3>& LocalCoords, const array_1d<double, 3>& Coords, const double Tolerance)
+    inline bool CheckIsInside(const GeometryType& rGeom, array_1d<double, 3>& LocalCoords, const array_1d<double, 3>& Coords, const double Tolerance)
     {
         bool is_inside = true;
         if (rGeom.Dimension() == 2)
@@ -74,7 +74,7 @@ namespace MPMSearchElementUtility
         return false;
     }
 
-    void ConstructNeighbourRelations(ModelPart& rBackgroundGridModelPart)
+    inline void ConstructNeighbourRelations(ModelPart& rBackgroundGridModelPart)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.NumberOfElements()); ++i)
@@ -116,7 +116,7 @@ namespace MPMSearchElementUtility
         return false;
     }
 
-    void NeighbourSearchElements(ModelPart& rMPMModelPart, std::vector<typename Element::Pointer>& rMissingElements,
+    inline void NeighbourSearchElements(ModelPart& rMPMModelPart, std::vector<typename Element::Pointer>& rMissingElements,
         const double Tolerance, const ProcessInfo& rProcessInfo)
     {
         #pragma omp for
@@ -177,7 +177,7 @@ namespace MPMSearchElementUtility
         }
     }
 
-    void NeighbourSearchConditions(ModelPart& rMPMModelPart, std::vector<typename Condition::Pointer>& rMissingConditions,
+    inline void NeighbourSearchConditions(ModelPart& rMPMModelPart, std::vector<typename Condition::Pointer>& rMissingConditions,
         const double Tolerance, const ProcessInfo& rProcessInfo)
     {
         #pragma omp for
@@ -361,8 +361,7 @@ namespace MPMSearchElementUtility
         }
     }
 
-
-    void ResetElementsAndNodes(ModelPart& rBackgroundGridModelPart)
+    inline void ResetElementsAndNodes(ModelPart& rBackgroundGridModelPart)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
