@@ -3299,6 +3299,18 @@ public:
     }
 
     ///@}
+    ///@name Geometry Shape Function Container
+    ///@{
+
+    void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>&
+            rGeometryShapeFunctionContainer)
+    {
+        mpGeometryData->SetGeometryShapeFunctionContainer(
+            rGeometryShapeFunctionContainer);
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
