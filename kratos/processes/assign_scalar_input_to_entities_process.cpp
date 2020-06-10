@@ -433,27 +433,37 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ReadDataTXT(const
     const SizeType number_of_definitions = mCoordinates.size();
     mDatabase.Initialize(variables_ids, values_sizes, number_of_definitions);
 
-    // Read txt
-    std::ifstream infile(rFileName);
-    KRATOS_ERROR_IF_NOT(infile.good()) << "TXT file: " << rFileName << " cannot be found" << std::endl;
-    std::stringstream buffer;
-    buffer << infile.rdbuf();
-
-    // First line
-    std::string line;
-    std::getline(buffer, line);
-
-    // The other lines
+    // Define the number of time steps
     SizeType number_time_steps = 0;
-    while(std::getline(buffer, line)) {
-        ++number_time_steps;
+
+    // Definition of auxiliar line
+    std::string line;
+
+    // Initial read
+    {
+        // Read txt
+        std::ifstream infile(rFileName);
+        KRATOS_ERROR_IF_NOT(infile.good()) << "TXT file: " << rFileName << " cannot be found" << std::endl;
+
+        std::stringstream buffer;
+        buffer << infile.rdbuf();
+
+        // First line
+        std::getline(buffer, line);
+
+        // The other lines
+        while(std::getline(buffer, line)) {
+            ++number_time_steps;
+        }
     }
 
     Vector time = ZeroVector(number_time_steps);
     std::vector<Vector> values(number_of_definitions, time);
 
-    // Reset buffer
-    buffer.str("");
+    // Second read txt
+    std::ifstream infile(rFileName);
+    KRATOS_ERROR_IF_NOT(infile.good()) << "TXT file: " << rFileName << " cannot be found" << std::endl;
+    std::stringstream buffer;
     buffer << infile.rdbuf();
 
     // First line
@@ -467,11 +477,13 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ReadDataTXT(const
         std::istringstream iss(line);
         std::string token;
         sub_counter = 0;
+
         while(std::getline(iss, token, '\t')) {
+            const double value = std::stod(token, &sz);
             if (sub_counter == 0) {
-                time[counter] = std::stod(token, &sz);
+                time[counter] = value;
             } else {
-                values[sub_counter - 1][counter] = std::stod(token, &sz);
+                values[sub_counter - 1][counter] = value;
             }
             ++sub_counter;
         }
