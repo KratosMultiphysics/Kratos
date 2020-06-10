@@ -200,7 +200,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(DirectionIndex > 1)
             << "Trying to access polynomial degree in direction " << DirectionIndex
-            << " from NurbsSurfaceGeometry #" << Id() << ". However, nurbs surfaces have only two directions."
+            << " from NurbsSurfaceGeometry #" << this->Id() << ". However, nurbs surfaces have only two directions."
             << std::endl;
 
         if (DirectionIndex == 0)
