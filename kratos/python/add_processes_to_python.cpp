@@ -416,15 +416,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters >())
     ;
 
-    //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
-    //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
-
-    //py::class_<AddDofsNodalProcess<Variable<double> >, AddDofsNodalProcess<Variable<double> >::Pointer, Process>(m,"AddDoubleDofsNodalProcess")
-    // .def(py::init<Variable<double>, NodesContainerType&, DofsContainerType&>())
-    // ;
-    //py::class_<AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >, AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >::Pointer, Process>(m,"AddArrayComponentDofsNodalProcess")
-    // ;
-
     /* Simple Mortar mapper */
     // Wrapper
     py::class_<SimpleMortarMapperProcessWrapper, SimpleMortarMapperProcessWrapper::Pointer, Process>(m, "SimpleMortarMapperProcess")
