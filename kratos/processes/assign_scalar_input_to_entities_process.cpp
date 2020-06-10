@@ -98,7 +98,7 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ExecuteInitialize
         const int number_of_entities = static_cast<int>(r_entities_array.size());
 
         // Initialize values
-        VariableUtils().SetNonHistoricalVariable(*mpVariable, 0.0, r_entities_array);
+        ResetValues();
 
         if(number_of_entities != 0) {
             const auto it_begin = r_entities_array.begin();
@@ -108,8 +108,8 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ExecuteInitialize
                 auto it_entity = it_begin + i;
 
                 const auto& r_weights = mWeightExtrapolation[i];
+                double& r_value = GetValue(*it_entity, *mpVariable);
                 for (auto& r_weight : r_weights) {
-                    double& r_value = GetValue(*it_entity, *mpVariable);
                     r_value += r_weight.second * r_var_database.GetValue(r_weight.first, time);
                 }
             }
@@ -206,6 +206,42 @@ template<>
 PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh().Elements();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::ResetValues()
+{
+    VariableUtils().SetNonHistoricalVariable(*mpVariable, 0.0, GetEntitiesContainer());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AssignScalarInputToEntitiesProcess<Node<3>, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::ResetValues()
+{
+    VariableUtils().SetVariable(*mpVariable, 0.0, GetEntitiesContainer());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AssignScalarInputToEntitiesProcess<Condition, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::ResetValues()
+{
+    VariableUtils().SetNonHistoricalVariable(*mpVariable, 0.0, GetEntitiesContainer());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::ResetValues()
+{
+    VariableUtils().SetNonHistoricalVariable(*mpVariable, 0.0, GetEntitiesContainer());
 }
 
 /***********************************************************************************/

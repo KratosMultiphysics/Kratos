@@ -270,6 +270,11 @@ private:
     EntityContainerType& GetEntitiesContainer();
 
     /**
+     * @brief This method resets values in the entities
+     */
+    void ResetValues();
+
+    /**
      * @brief This method sets values in a entity
      * @param rEntity The entity reference
      * @param rVariable The variable to set
