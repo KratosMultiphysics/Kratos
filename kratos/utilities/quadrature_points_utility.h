@@ -48,6 +48,47 @@ namespace Kratos
         ///@name Operations
         ///@{
 
+        static typename GeometryType::Pointer CreateFromCoordinates(
+            typename GeometryType::Pointer pGeometry,
+            const array_1d<double, 3>& rCoordinates,
+            double integration_weight)
+        {
+            KRATOS_TRY;
+
+            array_1d<double, 3> local_coordinates;
+            pGeometry->PointLocalCoordinates(local_coordinates, rCoordinates);
+
+            IntegrationPoint<3> int_p(local_coordinates, integration_weight);
+
+            Vector N;
+            pGeometry->ShapeFunctionsValues(N, local_coordinates);
+            Matrix N_matrix(1, N.size());
+            for (IndexType i = 0; i < N.size(); ++i)
+            {
+                N_matrix(0, i) = N[i];
+            }
+
+            Matrix DN_De;
+            pGeometry->ShapeFunctionsLocalGradients(DN_De, local_coordinates);
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                pGeometry->GetDefaultIntegrationMethod(),
+                int_p,
+                N_matrix,
+                DN_De);
+
+            return CreateQuadraturePoint(
+                pGeometry->WorkingSpaceDimension(),
+                pGeometry->LocalSpaceDimension(),
+                data_container,
+                pGeometry->Points(),
+                pGeometry.get());
+
+            KRATOS_CATCH("");
+        }
+
+
+
         static GeometryPointerType CreateQuadraturePointCurveOnSurface(
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
             PointsArrayType rPoints,
@@ -91,7 +132,13 @@ namespace Kratos
                         rPoints,
                         rShapeFunctionContainer,
                         pGeometryParent);
-            if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
+            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
+                return Kratos::make_shared<
+                    QuadraturePointGeometry<TPointType, 2, 1>>(
+                        rPoints,
+                        rShapeFunctionContainer,
+                        pGeometryParent);
+            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
                 return Kratos::make_shared<
                     QuadraturePointGeometry<TPointType, 2>>(
                         rPoints,
@@ -110,8 +157,8 @@ namespace Kratos
                         rShapeFunctionContainer,
                         pGeometryParent);
             else{
-                KRATOS_ERROR << "Working/ Local space dimension combinations are "
-                    << "not provieded for QuadraturePointGeometry. WorkingSpaceDimension: "
+                KRATOS_ERROR << "Working/Local space dimension combinations are "
+                    << "not provided for QuadraturePointGeometry. WorkingSpaceDimension: "
                     << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
                     <<  std::endl;
             }
@@ -128,7 +175,12 @@ namespace Kratos
                 QuadraturePointGeometry<TPointType, 1>>(
                     rPoints,
                     rShapeFunctionContainer);
-            if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
+            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
+                return Kratos::make_shared<
+                QuadraturePointGeometry<TPointType, 2, 1>>(
+                    rPoints,
+                    rShapeFunctionContainer);
+            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
                 return Kratos::make_shared<
                 QuadraturePointGeometry<TPointType, 2>>(
                     rPoints,
@@ -144,8 +196,8 @@ namespace Kratos
                     rPoints,
                     rShapeFunctionContainer);
             else {
-                KRATOS_ERROR << "Working/ Local space dimension combinations are "
-                    << "not provieded for QuadraturePointGeometry. WorkingSpaceDimension: "
+                KRATOS_ERROR << "Working/Local space dimension combinations are "
+                    << "not provided for QuadraturePointGeometry. WorkingSpaceDimension: "
                     << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
                     << std::endl;
             }
@@ -166,7 +218,7 @@ namespace Kratos
                 Matrix N_i = ZeroMatrix(1, pGeometry->size());
                 for (IndexType j = 0; j < pGeometry->size(); ++j)
                 {
-                    N_i(0, j) = r_N(0, j);
+                    N_i(0, j) = r_N(i, j);
                 }
 
                 GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
@@ -199,7 +251,7 @@ namespace Kratos
                 Matrix N_i = ZeroMatrix(1, pGeometry->size());
                 for (IndexType j = 0; j < pGeometry->size(); ++j)
                 {
-                    N_i(0, j) = r_N(0, j);
+                    N_i(0, j) = r_N(i, j);
                 }
 
                 GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(

@@ -29,6 +29,7 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.5"
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+add_app ${KRATOS_APP_DIR}/DEMApplication
 
 # Clean
 clear
