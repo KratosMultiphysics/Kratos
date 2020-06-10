@@ -99,7 +99,25 @@ namespace MPMSearchElementUtility
         }
     }
 
-    void NeighbourSearchElements(ModelPart& rMPMModelPart, std::vector<typename Element::Pointer>& rMissingElements, const double Tolerance)
+    bool IsExplicitAndNeedsCorrection(GeometryType::Pointer pQuadraturePoint, const ProcessInfo& rProcessInfo)
+    {
+        if (rProcessInfo.Has(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)) {
+            if (rProcessInfo.GetValue(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)) {
+                if (pQuadraturePoint->IntegrationPointsNumber() == 1)
+                {
+                    for (size_t i = 0; i < pQuadraturePoint->ShapeFunctionsValues().size2(); ++i)
+                    {
+                        if (pQuadraturePoint->ShapeFunctionsValues()(0, i) < std::numeric_limits<double>::epsilon()) return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    void NeighbourSearchElements(ModelPart& rMPMModelPart, std::vector<typename Element::Pointer>& rMissingElements,
+        const double Tolerance, const ProcessInfo& rProcessInfo)
     {
         #pragma omp for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
@@ -111,7 +129,6 @@ namespace MPMSearchElementUtility
             GeometryType& r_parent_geometry = element_itr->GetGeometry().GetGeometryParent(0);
 
             array_1d<double, 3> local_coordinates;
-            //bool is_found = r_parent_geometry.IsInside(xg[0], local_coordinates, Tolerance);
             bool is_found = CheckIsInside(r_parent_geometry,local_coordinates,xg[0],Tolerance);
             if (!is_found)
             {
@@ -120,17 +137,19 @@ namespace MPMSearchElementUtility
                 {
                     if (CheckIsInside(*geometry_neighbours[k], local_coordinates, xg[0], Tolerance))
                     {
-                        is_found = true;
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
                             *(geometry_neighbours[k].get()), local_coordinates,
                             element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
-                        // Update geometry of particle element
-                        element_itr->SetGeometry(p_new_geometry);
+                        if (!IsExplicitAndNeedsCorrection(p_new_geometry, rProcessInfo)) {
+                            is_found = true;
+                            // Update geometry of particle element
+                            element_itr->SetGeometry(p_new_geometry);
 
-                        for (IndexType j = 0; j < geometry_neighbours[k]->PointsNumber(); ++j)
-                            geometry_neighbours[k]->Points()[j].Set(ACTIVE);
-                        break;
+                            for (IndexType j = 0; j < geometry_neighbours[k]->PointsNumber(); ++j)
+                                geometry_neighbours[k]->Points()[j].Set(ACTIVE);
+                            break;
+                        }
                     }
                 }
             }
@@ -141,13 +160,15 @@ namespace MPMSearchElementUtility
                     r_parent_geometry, local_coordinates,
                     element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
-                // Update geometry of particle element
-                element_itr->SetGeometry(p_new_geometry);
+                if (IsExplicitAndNeedsCorrection(p_new_geometry, rProcessInfo)) is_found = false;
+                else
+                {
+                    // Update geometry of particle element
+                    element_itr->SetGeometry(p_new_geometry);
 
-
-
-                for (IndexType j = 0; j < r_parent_geometry.PointsNumber(); ++j)
-                    r_parent_geometry[j].Set(ACTIVE);
+                    for (IndexType j = 0; j < r_parent_geometry.PointsNumber(); ++j)
+                        r_parent_geometry[j].Set(ACTIVE);
+                }
             }
             if (!is_found) {
                 #pragma omp critical
@@ -156,7 +177,8 @@ namespace MPMSearchElementUtility
         }
     }
 
-    void NeighbourSearchConditions(ModelPart& rMPMModelPart, std::vector<typename Condition::Pointer>& rMissingConditions, const double Tolerance)
+    void NeighbourSearchConditions(ModelPart& rMPMModelPart, std::vector<typename Condition::Pointer>& rMissingConditions,
+        const double Tolerance, const ProcessInfo& rProcessInfo)
     {
         #pragma omp for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i) {
@@ -213,7 +235,9 @@ namespace MPMSearchElementUtility
         const std::size_t MaxNumberOfResults, const double Tolerance)
     {
         const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
-        const bool is_explicit = r_process_info.GetValue(IS_EXPLICIT);
+        const bool is_fix_explicit_mp_on_grid_edge = (r_process_info.Has(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE))
+            ? r_process_info.GetValue(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)
+            : false;
 
         // Search background grid and make element active
         Vector N;
@@ -241,7 +265,7 @@ namespace MPMSearchElementUtility
                 bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
 
-                if (is_found && is_explicit) {
+                if (is_found && is_fix_explicit_mp_on_grid_edge) {
                     // check if MP is exactly on the edge of the element, this gives spurious strains in explicit
                     bool isOnEdge = false;
                     for (SizeType i = 0; i < N.size(); ++i) {
@@ -367,6 +391,8 @@ namespace MPMSearchElementUtility
     void SearchElement(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
         const double Tolerance)
     {
+        const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
+
         ResetElementsAndNodes(rBackgroundGridModelPart);
 
         const bool use_neighbour_search = true; //TODO delete - for testing only
@@ -380,8 +406,8 @@ namespace MPMSearchElementUtility
             if (!rBackgroundGridModelPart.ElementsBegin()->GetGeometry().Has(GEOMETRY_NEIGHBOURS))
                 ConstructNeighbourRelations(rBackgroundGridModelPart);
 
-            NeighbourSearchElements(rMPMModelPart, missing_elements, Tolerance);
-            NeighbourSearchConditions(rMPMModelPart, missing_conditions, Tolerance);
+            NeighbourSearchElements(rMPMModelPart, missing_elements, Tolerance, r_process_info);
+            NeighbourSearchConditions(rMPMModelPart, missing_conditions, Tolerance, r_process_info);
         }
         else
         {
