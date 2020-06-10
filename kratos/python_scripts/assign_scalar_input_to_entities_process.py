@@ -38,6 +38,7 @@ class AssignScalarInputToEntitiesProcess(KratosMultiphysics.Process):
             "variable_name"      : "SPECIFY_VARIABLE_NAME",
             "interval"           : [0.0, 1e30],
             "file"               : "",
+            "historical"         : false,
             "transfer_algorithm" : "nearest_neighbour",
             "entities"           : []
         }
@@ -75,7 +76,10 @@ class AssignScalarInputToEntitiesProcess(KratosMultiphysics.Process):
         self.aux_processes = []
         for i in range(len(self.entities)):
             if self.entities[i] == "nodes":
-                self.aux_processes.append( KratosMultiphysics.AssignScalarInputToNodesProcess(self.model_part, params))
+                if settings["historical"].GetBool():
+                    self.aux_processes.append( KratosMultiphysics.AssignScalarInputHistoricalToNodesProcess(self.model_part, params))
+                else:
+                    self.aux_processes.append( KratosMultiphysics.AssignScalarInputToNodesProcess(self.model_part, params))
             elif self.entities[i] == "conditions":
                 self.aux_processes.append( KratosMultiphysics.AssignScalarInputToConditionsProcess(self.model_part, params))
             elif self.entities[i] == "elements":

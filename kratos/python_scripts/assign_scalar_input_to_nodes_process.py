@@ -38,6 +38,7 @@ class AssignScalarInputToNodesProcess(assign_scalar_input_to_entities_process.As
             "variable_name"      : "SPECIFY_VARIABLE_NAME",
             "interval"           : [0.0, 1e30],
             "file"               : "",
+            "historical"         : false,
             "transfer_algorithm" : "nearest_neighbour",
             "entities"           : ["nodes"]
         }
