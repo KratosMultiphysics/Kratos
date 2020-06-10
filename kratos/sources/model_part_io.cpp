@@ -4497,7 +4497,6 @@ TValueType& ModelPartIO::ExtractValue(std::string rWord, TValueType & rValue)
 
 bool& ModelPartIO::ExtractValue(std::string rWord, bool & rValue)
 {
-    KRATOS_WATCH(rWord)
 
     if (rWord == "1" || rWord == "true" || rWord == "True") {
         rValue = true;
