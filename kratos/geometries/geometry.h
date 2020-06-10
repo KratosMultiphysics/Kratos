@@ -3306,7 +3306,8 @@ public:
         const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>&
             rGeometryShapeFunctionContainer)
     {
-        mpGeometryData->SetGeometryShapeFunctionContainer(
+        mpGeometryData = new GeometryData(
+            &GeometryDataInstance(),
             rGeometryShapeFunctionContainer);
     }
 
