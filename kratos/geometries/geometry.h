@@ -988,6 +988,20 @@ public:
         return mpGeometryData->LocalSpaceDimension();
     }
 
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the geometry in a certain direction
+    virtual SizeType PolynomialDegree(IndexType DirectionIndex = 0) const
+    {
+        return 1;
+    }
+
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
+
     /** This method calculate and return Length or charactereistic
      * length of this geometry depending to it's dimension. For one
      * dimensional geometry for example Line it returns length of it
