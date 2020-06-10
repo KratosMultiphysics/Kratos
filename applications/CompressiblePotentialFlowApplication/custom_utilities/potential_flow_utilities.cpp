@@ -396,7 +396,7 @@ double ComputeLocalSpeedofSoundSquared(
     const double free_stream_speed_sound = rCurrentProcessInfo[SOUND_VELOCITY];
 
     // make squares of value
-    const double free_stream_speed_sound_squared = std::pow(free_stream_speed_sound,2);
+    const double free_stream_speed_sound_squared = std::pow(free_stream_speed_sound,2.0);
 
     // computes square of velocity including clamping according to MACH_SQUARED_LIMIT
     const double local_velocity_squared = ComputeClampedVelocitySquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
@@ -421,7 +421,7 @@ double ComputeSquaredSpeedofSoundFactor(
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
     // make squares of values
-    const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
+    const double free_stream_mach_squared = std::pow(free_stream_mach, 2.0);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
 
     return 1.0 + 0.5*(heat_capacity_ratio - 1.0)*
@@ -480,6 +480,9 @@ double ComputeLocalMachNumberSquared(
 
     const double local_speed_of_sound_squared = ComputeLocalSpeedofSoundSquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
 
+    KRATOS_ERROR_IF(local_speed_of_sound_squared < std::numeric_limits<double>::epsilon())
+        << "ComputeLocalMachNumberSquared: local speed of sound squared squared is less than zero." << std::endl;
+
     // computes square of velocity including clamping according to MACH_SQUARED_LIMIT
     const double local_velocity_squared = ComputeClampedVelocitySquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
 
@@ -505,8 +508,14 @@ double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(
     const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
 
+    KRATOS_ERROR_IF(free_stream_velocity_squared < std::numeric_limits<double>::epsilon())
+        << "ComputeDerivativeLocalMachSquaredWRTVelocitySquared: free stream velocity squared squared is less than zero." << std::endl;
+
     // computes square of velocity including clamping according to MACH_SQUARED_LIMIT
     const double local_velocity_squared = ComputeClampedVelocitySquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
+
+    KRATOS_ERROR_IF(local_velocity_squared < std::numeric_limits<double>::epsilon())
+        << "ComputeDerivativeLocalMachSquaredWRTVelocitySquared: local velocity squared squared is less than zero." << std::endl;
 
     // square bracket term
     const double speed_of_sound_factor = ComputeSquaredSpeedofSoundFactor<Dim, NumNodes>(local_velocity_squared, rCurrentProcessInfo);
