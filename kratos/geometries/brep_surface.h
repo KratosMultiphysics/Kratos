@@ -285,6 +285,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the nurbs surface
+    SizeType PolynomialDegree(IndexType DirectionIndex = 0) const override
+    {
+        return mpNurbsSurface->PolynomialDegree(DirectionIndex);
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
