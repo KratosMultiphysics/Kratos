@@ -424,6 +424,7 @@ public:
             Matrix PhiElemental;
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
             Vector tempb = ZeroVector(mRomDofs);
+            Matrix aux;
 
             #pragma omp for nowait
             for (int k = 0; k < nelements; k++)
@@ -443,8 +444,10 @@ public:
                     const auto &geom = it_el->GetGeometry();
                     if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
+                    if(aux.size1() != dofs.size() || aux.size2() != mRomDofs)
+                        aux.resize(dofs.size(), mRomDofs,false);
                     GetPhiElemental(PhiElemental, dofs, geom);
-                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+                    aux = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
@@ -471,8 +474,10 @@ public:
                     const auto &geom = it->GetGeometry();
                     if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
+                    if(aux.size1() != dofs.size() || aux.size2() != mRomDofs)
+                        aux.resize(dofs.size(), mRomDofs,false);
                     GetPhiElemental(PhiElemental, dofs, geom);
-                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+                    aux = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
