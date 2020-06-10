@@ -264,10 +264,37 @@ void AssignScalarInputToEntitiesProcess<TEntity>::IdentifyDataJSON(const std::st
     buffer << infile.rdbuf();
     Parameters json_input(buffer.str());
 
-    // Getting label
-    const std::string ent_label = GetEntitiesLabel();
+    // Getting number of definitions
+    SizeType number_of_definitions = 0;
+    for (auto& r_param : json_input) {
+        ++number_of_definitions;
+    }
+    number_of_definitions -= 1; // Removing TIME
 
-    // TODO
+    // Reserve
+    if (mCoordinates.size() != number_of_definitions) {
+        mCoordinates.reserve(number_of_definitions);
+    }
+
+    KRATOS_ERROR_IF_NOT(json_input.Has("1")) << "Input not properly defined. Input must have values defined ordered" << std::endl;
+    if (json_input["1"].Has("ID")) {
+        this->Set(GEOMETRIC_DEFINITION, false);
+    } else if (json_input["1"].Has("COORDINATES")) {
+        this->Set(GEOMETRIC_DEFINITION, true);
+    } else {
+        KRATOS_ERROR << "ID or COORDINATES must be defined" << std::endl;
+    }
+
+    // Iterate over parameters
+    for (IndexType i = 0; i < number_of_definitions; ++i) {
+        const std::string identifier = std::to_string(i + 1);
+        if (this->Is(GEOMETRIC_DEFINITION)) {
+            mCoordinates[i] =  array_1d<double, 3>(json_input[identifier]["COORDINATES"].GetVector());
+        } else {
+            const IndexType id = static_cast<IndexType>(json_input[identifier]["ID"].GetInt());
+            mCoordinates[i] = GetCoordinatesEntity(id);
+        }
+    }
 
     KRATOS_CATCH("");
 }
@@ -374,8 +401,8 @@ void AssignScalarInputToEntitiesProcess<TEntity>::ReadDataJSON(const std::string
     auto& r_var_database = mDatabase.GetVariableData(*mpVariable);
     const std::string& r_variable_name = mpVariable->Name();
     for (IndexType i = 0; i < number_of_definitions; ++i) {
-        const std::string identifier = "VALUE_" + std::to_string(i);
-        const auto& r_vector = json_input[identifier][r_variable_name].GetVector();
+        const std::string identifier = std::to_string(i + 1);
+        const auto& r_vector = json_input[identifier]["VALUE"][r_variable_name].GetVector();
         r_var_database.SetValues(r_time, r_vector, i);
     }
 
