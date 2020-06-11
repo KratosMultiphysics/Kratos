@@ -324,7 +324,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
 
-        if self.DEM_parameters["PostNumberOfNeighboursHistogramOption"].GetBool():
+        if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
 
     def SetSearchStrategy(self):
