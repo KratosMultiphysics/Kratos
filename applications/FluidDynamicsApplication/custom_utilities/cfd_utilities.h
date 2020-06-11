@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:             BSD License
-//                            Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_CFD_UTILITIES_H_INCLUDED)
@@ -46,10 +46,11 @@ using GeometryType = Geometry<NodeType>;
  * @param rGaussWeights
  * @param rNContainer
  */
-void CalculateConditionGeometryData(const GeometryType& rGeometry,
-                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
-                                    Vector& rGaussWeights,
-                                    Matrix& rNContainer);
+void CalculateConditionGeometryData(
+    const GeometryType& rGeometry,
+    const GeometryData::IntegrationMethod& rIntegrationMethod,
+    Vector& rGaussWeights,
+    Matrix& rNContainer);
 
 /**
  * @brief Calculates wall height for condition
@@ -65,8 +66,7 @@ void CalculateConditionGeometryData(const GeometryType& rGeometry,
  *
  * @see TetrahedralMeshOrientationCheck
  */
-double CalculateConditionWallHeight(const ConditionType& rCondition,
-                                    const array_1d<double, 3>& rNormal);
+double CalculateConditionWallHeight(const ConditionType& rCondition, const array_1d<double, 3>& rNormal);
 
 /**
  * @brief Evaluates variable value at gauss point
@@ -83,10 +83,11 @@ double CalculateConditionWallHeight(const ConditionType& rCondition,
  * @return TDataType        variable value evaluated at gauss point
  */
 template <typename TDataType>
-TDataType EvaluateInPoint(const GeometryType& rGeometry,
-                          const Variable<TDataType>& rVariable,
-                          const Vector& rShapeFunction,
-                          const int Step = 0)
+TDataType EvaluateInPoint(
+    const GeometryType& rGeometry,
+    const Variable<TDataType>& rVariable,
+    const Vector& rShapeFunction,
+    const int Step = 0)
 {
     const unsigned int number_of_nodes = rGeometry.PointsNumber();
     TDataType value =
@@ -139,10 +140,11 @@ void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
  * @return double               $y^+_{limit}$ limit at the boundary
  */
 double KRATOS_API(FLUID_DYNAMICS_APPLICATION)
-    CalculateLinearLogarithmicWallFunctionBasedYPlusLimit(const double VonKarman = 0.41,
-                                                          const double WallSmoothness = 5.2,
-                                                          const int MaxIterations = 20,
-                                                          const double Tolerance = 1e-6);
+    CalculateLinearLogarithmicWallFunctionBasedYPlusLimit(
+        const double VonKarman = 0.41,
+        const double WallSmoothness = 5.2,
+        const int MaxIterations = 20,
+        const double Tolerance = 1e-6);
 
 /**
  * @brief Calculate $y^+$ and $u_\tau$ based on log and linear laws
@@ -231,13 +233,13 @@ double KRATOS_API(FLUID_DYNAMICS_APPLICATION)
  * @param WallHeight            Wall height at center of the parent element
  * @return double               Output $y^+$ at center of the parent element
  */
-double KRATOS_API(FLUID_DYNAMICS_APPLICATION)
-    CalculateReactionBasedYPlusUTau(array_1d<double, 3>& rFrictionVelocity,
-                                    const array_1d<double, 3>& rReaction,
-                                    const array_1d<double, 3>& rNormal,
-                                    const double Density,
-                                    const double KinematicViscosity,
-                                    const double WallHeight);
+double KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateReactionBasedYPlusUTau(
+    array_1d<double, 3>& rFrictionVelocity,
+    const array_1d<double, 3>& rReaction,
+    const array_1d<double, 3>& rNormal,
+    const double Density,
+    const double KinematicViscosity,
+    const double WallHeight);
 
 /**
  * @brief Calculates $y^+$ and $u_\tau$ for given method
@@ -255,8 +257,14 @@ void CalculateYPlusAndUTauForConditions(
     ModelPart& rModelPart,
     const Variable<double>& rKinematicViscosityVariable,
     const std::function<double(
-        array_1d<double, 3>&, const GeometryType&, const array_1d<double, 3>&, const Vector&, const double, const double, const double)>&
-        rYPlusAndUTauCalculationMethod);
+        array_1d<double, 3>&,
+        const GeometryType&,
+        const array_1d<double, 3>&,
+        const Vector&,
+        const double,
+        const double,
+        const double
+        )>& rYPlusAndUTauCalculationMethod);
 /**
  * @brief Calculates $y^+$ and $u_\tau$ based on reaction for conditions
  *
@@ -318,8 +326,7 @@ void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
  * @param rVariable     Variable to be distributed
  */
 template <typename TDataType>
-void DistributeConditionVariableToNodes(ModelPart& rModelPart,
-                                        const Variable<TDataType>& rVariable);
+void DistributeConditionVariableToNodes(ModelPart& rModelPart, const Variable<TDataType>& rVariable);
 
 } // namespace CFDUtilities
 
