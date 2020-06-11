@@ -165,6 +165,7 @@ protected:
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
         array_1d<double,TNumNodes> unknown_old;
+        array_1d<double,TNumNodes> oss_projection;
         // matrices
         BoundedMatrix<double,TNumNodes,3> convective_velocity;
         // auxiliary containers for the symbolically-generated matrices

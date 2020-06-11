@@ -10,8 +10,8 @@ from KratosMultiphysics.sympy_fe_utilities import *
 ## Symbolic generation settings
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-ASGS_stabilization = False           # Consider ASGS stabilization terms
-OSS_stabilization = True            # Consider OSS stabilization terms (together with ASGS)
+ASGS_stabilization = True           # Consider ASGS stabilization terms
+OSS_stabilization = True            # Consider OSS stabilization terms (together with ASGS: requires ASGS stabilization to be true)
 mode = "c"                          # Output mode to a c++ file
 
 if (dim_to_compute == "2D"):
@@ -58,7 +58,8 @@ for dim in dim_vector:
     v = DefineMatrix('v',nnodes,dim)   # convective velocity
     tau = Symbol('tau',positive= True) # stabilization coefficient
     delta_time = Symbol('delta_time',positive= True) # time current time step
-    RK_time_coefficient = Symbol('RK_time_coefficient',positive= True) # time coefficient for RK scheme.
+    RK_time_coefficient = Symbol('RK_time_coefficient',positive= True) # time coefficient for RK scheme
+    prj = DefineVector('prj',nnodes)       # OSS projection term
 
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
@@ -67,6 +68,7 @@ for dim in dim_vector:
     v_gauss = v.transpose()*N
     phi_gauss = phi.transpose()*N
     phi_old_gauss = phi_old.transpose()*N
+    prj_gauss = prj.transpose()*N
 
     ## Gradient and divergence computation
     grad_w = DfjDxi(DN,w)
@@ -90,6 +92,10 @@ for dim in dim_vector:
     rhs_stab_1_convection_1 = - tau * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
     rhs_stab_1_convection_2 = - tau * (v_gauss.transpose() * grad_q) * phi_gauss * div_v
     rhs_stab_1 = rhs_stab_1_forcing + rhs_stab_1_convection_1 + rhs_stab_1_convection_2 + rhs_stab_1_mass
+    # OSS term
+    rhs_stab_1_oss = tau * (v_gauss.transpose() * grad_q) * prj_gauss
+    if OSS_stabilization:
+        rhs_stab_1 += rhs_stab_1_oss
 
     # Mass conservation residual
 

@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
+#include "includes/convection_diffusion_settings.h"
 
 namespace Kratos
 {
@@ -245,6 +246,18 @@ protected:
         auto& r_process_info = r_model_part.GetProcessInfo();
         r_process_info.GetValue(ACTIVATION_LEVEL) = 1;
         p_explicit_bs->BuildRHS(r_model_part);
+
+        ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+        auto& r_settings = *p_settings;
+
+        for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); i_node++)
+        {
+            auto& current_node = r_model_part.GetNode(i_node+1);
+            const double mass = r_lumped_mass_vector(i_node);
+            current_node.FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = current_node.FastGetSolutionStepValue(r_settings.GetReactionVariable()) / mass;
+        }
+
+        // End OSS step
         r_process_info.GetValue(ACTIVATION_LEVEL) = 0;
     };
 
