@@ -63,10 +63,10 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         # We get the model part and the corresponding mesh (NOTE: Mesh ID is deprecated, will be eventually removed)
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
-        
+
         # If the value imposed is fixed or not
         self.is_fixed = settings["constrained"].GetBool()
-        
+
         # To know if we will fill the buffer of the solution
         self.fill_buffer = settings["fill_buffer"].GetBool()
 
@@ -96,23 +96,23 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             buffer_size = self.model_part.GetBufferSize()
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            
+
             if self.is_fixed:
                 self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
 
             step = buffer_size
             time = current_time - delta_time * buffer_size
-    
+
             for i in range(0, buffer_size):
                 step = step - 1
                 time = time + delta_time
 
                 if self.value_is_numeric:
-                    self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes, step)
+                    self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes, step)
                 else:
                     if not self.aux_function.DependsOnSpace(): #depends on time only
                         self.value = self.aux_function.CallFunction(0.0,0.0,0.0,time)
-                        self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes, step)
+                        self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes, step)
                     else: #most general case - space varying function (possibly also time varying)
                         self.cpp_apply_function_utility.ApplyFunction(self.variable, time, step)
 
