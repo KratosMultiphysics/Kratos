@@ -113,6 +113,41 @@ namespace MPMSearchElementUtility
         return false;
     }
 
+    inline GeometryType& FindGridGeom(GeometryType& rParentGeom,
+        const ModelPart& rBackgroundGridModelPart,
+        const double Tolerance,
+        const array_1d<double, 3>& xg,
+        array_1d<double, 3>& rLocalCoords,
+        const ProcessInfo& rProcessInfo,
+        bool& IsFound)
+    {
+        IsFound = false;
+
+        if (CheckIsInside(rParentGeom, rLocalCoords, xg, Tolerance))
+        {
+            IsFound = true;
+            return rParentGeom;
+        }
+        else
+        {
+            if (!rParentGeom.Has(GEOMETRY_NEIGHBOURS))
+                ConstructNeighbourRelations(rParentGeom, rBackgroundGridModelPart);
+            std::cout << "neighbour\n";
+
+            auto& geometry_neighbours = rParentGeom.GetValue(GEOMETRY_NEIGHBOURS);
+            for (IndexType k = 0; k < geometry_neighbours.size(); k++)
+            {
+                if (CheckIsInside(*geometry_neighbours[k], rLocalCoords, xg, Tolerance))
+                {
+                    IsFound = true;
+                    return *(geometry_neighbours[k].get());
+                }
+            }
+        }
+
+        return rParentGeom;
+    }
+
     inline void NeighbourSearchElements(const ModelPart& rMPMModelPart,
         const ModelPart& rBackgroundGridModelPart,
         std::vector<typename Element::Pointer>& rMissingElements,
@@ -121,61 +156,39 @@ namespace MPMSearchElementUtility
     {
         #pragma omp for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
-            auto element_itr = rMPMModelPart.Elements().begin() + i;
-
-            std::vector<array_1d<double, 3>> xg;
-            element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rMPMModelPart.GetProcessInfo());
-
-            GeometryType& r_parent_geometry = element_itr->GetGeometry().GetGeometryParent(0);
-
+            auto element_itr = (rMPMModelPart.ElementsBegin() + i);
             array_1d<double, 3> local_coordinates;
-            bool is_found = CheckIsInside(r_parent_geometry,local_coordinates,xg[0],Tolerance);
+            bool is_found = false;
+            std::vector<array_1d<double, 3>> xg;
+            element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rProcessInfo);
+
+            GeometryType& r_found_geom = FindGridGeom(element_itr->GetGeometry().GetGeometryParent(0),
+                rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
+                rMPMModelPart.GetProcessInfo(), is_found);
+
+            if (r_found_geom.Id() != element_itr->GetGeometry().GetGeometryParent(0).Id())
+            {
+                KRATOS_WATCH(r_found_geom.PointsNumber())
+            }
+
             if (!is_found)
             {
-                if (!r_parent_geometry.Has(GEOMETRY_NEIGHBOURS))
-                    ConstructNeighbourRelations(r_parent_geometry, rBackgroundGridModelPart);
-
-                auto& geometry_neighbours = r_parent_geometry.GetValue(GEOMETRY_NEIGHBOURS);
-                for (IndexType k = 0; k < geometry_neighbours.size(); k++)
-                {
-                    if (CheckIsInside(*geometry_neighbours[k], local_coordinates, xg[0], Tolerance))
-                    {
-                        auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                            *(geometry_neighbours[k].get()), local_coordinates,
-                            element_itr->GetGeometry().IntegrationPoints()[0].Weight());
-
-                        if (!IsExplicitAndNeedsCorrection(p_new_geometry, rProcessInfo)) {
-                            is_found = true;
-                            // Update geometry of particle element
-                            element_itr->SetGeometry(p_new_geometry);
-
-                            for (IndexType j = 0; j < geometry_neighbours[k]->PointsNumber(); ++j)
-                                geometry_neighbours[k]->Points()[j].Set(ACTIVE);
-                            break;
-                        }
-                    }
-                }
+                #pragma omp critical
+                rMissingElements.push_back(&*element_itr);
             }
-            else {
-                //pelem->Set(ACTIVE);
-
+            else
+            {
                 auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                    r_parent_geometry, local_coordinates,
+                    r_found_geom, local_coordinates,
                     element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
-                if (IsExplicitAndNeedsCorrection(p_new_geometry, rProcessInfo)) is_found = false;
-                else
-                {
+                if (!IsExplicitAndNeedsCorrection(p_new_geometry, rProcessInfo)) {
                     // Update geometry of particle element
                     element_itr->SetGeometry(p_new_geometry);
 
-                    for (IndexType j = 0; j < r_parent_geometry.PointsNumber(); ++j)
-                        r_parent_geometry[j].Set(ACTIVE);
+                    for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
+                        r_found_geom.Points()[j].Set(ACTIVE);
                 }
-            }
-            if (!is_found) {
-                #pragma omp critical
-                rMissingElements.push_back(&*element_itr);
             }
         }
     }
