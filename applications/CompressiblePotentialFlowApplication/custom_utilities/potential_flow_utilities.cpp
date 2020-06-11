@@ -690,6 +690,37 @@ double ComputeUpwindedDensity(
 }
 
 template <int Dim, int NumNodes>
+double ComputeDensityDerivativeWRTVelocitySquared(
+    const double localVelocitySquared, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section A.2.5
+
+    // read free stream values
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const BoundedVector<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    KRATOS_ERROR_IF(free_stream_mach < std::numeric_limits<double>::epsilon())
+        << "ComputeDensityDerivativeWRTVelocitySquared: free stream mach number must be larger than zero." << std::endl;
+
+    // ratio of speed of sound to free stream speed of sound
+    const double speed_of_sound_ratio = ComputeSquaredSpeedofSoundFactor<Dim, NumNodes>(localVelocitySquared, rCurrentProcessInfo);
+
+    const double free_stream_values_const = -0.5 * free_stream_density * std::pow(free_stream_mach,2.0) / inner_prod(free_stream_velocity, free_stream_velocity);;
+    const double speed_of_sound_power = (2.0 - heat_capacity_ratio) / (heat_capacity_ratio - 1.0);
+
+    KRATOS_ERROR_IF((heat_capacity_ratio - 1.0) < std::numeric_limits<double>::epsilon())
+        << "ComputeDensityDerivativeWRTVelocitySquared: heat capacity ratio must not be 1.0." << std::endl;
+
+    return free_stream_values_const * std::pow(speed_of_sound_ratio, speed_of_sound_power);
+}
+
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
@@ -831,6 +862,7 @@ template double ComputeUpwindFactorDerivativeWRTMachSquared<2,3>(const double lo
 template double ComputeUpwindFactorDerivativeWRTVelocitySquared<2,3>(const array_1d<double, 2>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensity<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensity<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDensityDerivativeWRTVelocitySquared<2,3>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -872,6 +904,7 @@ template double ComputeUpwindFactorDerivativeWRTMachSquared<3,4>(const double lo
 template double ComputeUpwindFactorDerivativeWRTVelocitySquared<3,4>(const array_1d<double, 3>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensity<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensity<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeDensityDerivativeWRTVelocitySquared<3,4>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);

@@ -508,5 +508,22 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensity, CompressiblePotentialApplicati
     KRATOS_CHECK_RELATIVE_NEAR(upwinded_density, 0.92388212928098, 1e-15);
 }
 
+// tests the function ComputeDensityDerivativeWRTVelocitySquared from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeDensityDerivativeWRTVelocitySquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    // velocity corresponding to mach number sqrt(3.0)
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    const double density_derivative = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<2,3>(local_velocity_squared, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative, -2.905764830239754E-06, 1e-15);
+}
+
 } // namespace Testing
 } // namespace Kratos.
