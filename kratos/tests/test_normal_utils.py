@@ -10,7 +10,7 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class TestMortarUtilities(KratosUnittest.TestCase):
+class TestNormalUtils(KratosUnittest.TestCase):
 
     def test_ComputeNodesMeanNormalModelPart(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
