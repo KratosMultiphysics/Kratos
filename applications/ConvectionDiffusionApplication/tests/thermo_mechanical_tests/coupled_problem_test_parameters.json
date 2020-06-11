@@ -71,6 +71,7 @@
             "Parameters"    : {
                 "model_part_name" : "ThermalModelPart.TEMPERATURE_Temperature_Auto1",
                 "variable_name"   : "TEMPERATURE",
+                "fill_buffer"     : true,
                 "constrained"     : false,
                 "value"           : 25.0,
                 "interval"        : [0.0,0.0]
@@ -82,6 +83,7 @@
             "Parameters"    : {
                 "model_part_name" : "ThermalModelPart.HeatFlux2D_External_heat_flux_Auto1",
                 "variable_name"   : "FACE_HEAT_FLUX",
+                "fill_buffer"     : true,
                 "constrained"     : false,
                 "value"           : 50.0,
                 "interval"        : [0.0,0.0]
@@ -92,6 +94,7 @@
             "Parameters"    : {
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
+                "fill_buffer"     : true,
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
