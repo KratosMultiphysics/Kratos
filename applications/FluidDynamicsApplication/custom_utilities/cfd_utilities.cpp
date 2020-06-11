@@ -241,6 +241,13 @@ void CalculateYPlusAndUTauForConditions(
 
     const array_1d<double, 3> local_point = ZeroVector(3);
 
+    KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(rKinematicViscosityVariable))
+        << rModelPart.Name() << " doesn't have " << rKinematicViscosityVariable.Name()
+        << " in nodal solution step variable list. Please add it first.\n";
+    KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(DENSITY))
+        << rModelPart.Name() << " doesn't have " << DENSITY.Name()
+        << " in nodal solution step variable list. Please add it first.\n";
+
     block_for_each(rModelPart.Conditions(), [local_point, rKinematicViscosityVariable,
                                              rYPlusAndUTauCalculationMethod](ConditionType& r_condition) {
         GeometryType& r_geometry = r_condition.GetGeometry();
@@ -276,6 +283,10 @@ void CalculateYPlusAndUTauForConditionsBasedOnReaction(
     const Variable<array_1d<double, 3>>& rReactionVariable)
 {
     KRATOS_TRY
+
+    KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(rReactionVariable))
+        << rModelPart.Name() << " doesn't have " << rReactionVariable.Name()
+        << " in nodal solution step variable list. Please add it first.\n";
 
     CalculateNumberOfNeighbourConditions(rModelPart);
 
@@ -314,6 +325,24 @@ void CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
     const double Tolerance)
 {
     KRATOS_TRY
+
+    KRATOS_ERROR_IF(VonKarman <= 0.0)
+        << "Von Karman constant needs to be greater than zero. [ " << VonKarman
+        << " !> 0.0 ].\n";
+    KRATOS_ERROR_IF(WallSmoothness <= 0.0)
+        << "Wall smoothness parameter needs to be greater than zero. [ "
+        << WallSmoothness << " !> 0.0 ].\n";
+    KRATOS_ERROR_IF(MaxIterations < 0)
+        << "Max iterations needs to be greater than zero. [ " << MaxIterations
+        << " !> 0 ].\n";
+    KRATOS_ERROR_IF(Tolerance < 0.0)
+        << "Tolerance needs to be greater than zero. [ " << Tolerance << " !> 0.0 ].\n";
+    KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(VELOCITY))
+        << rModelPart.Name() << " doesn't have " << VELOCITY.Name()
+        << " in nodal solution step variable list. Please add it first.\n";
+    KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(MESH_VELOCITY))
+        << rModelPart.Name() << " doesn't have " << MESH_VELOCITY.Name()
+        << " in nodal solution step variable list. Please add it first.\n";
 
     const std::function<double(array_1d<double, 3>&, const GeometryType&, const array_1d<double, 3>&,
                                const Vector&, const double, const double, const double)>
