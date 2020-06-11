@@ -54,7 +54,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
  */
-class NormalCalculationUtils
+class KRATOS_API(KRATOS_CORE) NormalCalculationUtils
 {
 public:
     ///@name Type Definitions
