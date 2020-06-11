@@ -69,39 +69,6 @@ void CalculateConditionGeometryData(
 double CalculateConditionWallHeight(const ConditionType& rCondition, const array_1d<double, 3>& rNormal);
 
 /**
- * @brief Evaluates variable value at gauss point
- *
- * This method evaluates a variable for a given geometry at a given gauss point.
- * The gauss point is chosen by providing proper shape function values at that
- * gauss point via rShapeFunction.
- *
- * @tparam TDataType        Data type
- * @param rGeometry         Geometry for gauss point evaluation
- * @param rVariable         Variable
- * @param rShapeFunction    Shape function values evaluated at gauss point
- * @param Step              Step
- * @return TDataType        variable value evaluated at gauss point
- */
-template <typename TDataType>
-TDataType EvaluateInPoint(
-    const GeometryType& rGeometry,
-    const Variable<TDataType>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step = 0)
-{
-    const unsigned int number_of_nodes = rGeometry.PointsNumber();
-    TDataType value =
-        rGeometry[0].FastGetSolutionStepValue(rVariable, Step) * rShapeFunction[0];
-    for (unsigned int c = 1; c < number_of_nodes; ++c)
-    {
-        value += rGeometry[c].FastGetSolutionStepValue(rVariable, Step) *
-                 rShapeFunction[c];
-    }
-
-    return value;
-}
-
-/**
  * @brief Calculates neighbour conditions
  *
  * @param rModelPart

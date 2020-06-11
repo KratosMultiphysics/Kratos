@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
@@ -269,9 +270,12 @@ void CalculateYPlusAndUTauForConditions(
             // calculate normal for the condition
             const array_1d<double, 3> normal = r_geometry.Normal(local_point);
             const double y_wall = CalculateConditionWallHeight(r_condition, normal);
-            const double nu = EvaluateInPoint(
-                r_geometry, rKinematicViscosityVariable, gauss_shape_functions);
-            const double rho = EvaluateInPoint(r_geometry, DENSITY, gauss_shape_functions);
+            double nu;
+            GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(
+                nu, r_geometry, rKinematicViscosityVariable, gauss_shape_functions);
+            double rho;
+            GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(
+                rho, r_geometry, DENSITY, gauss_shape_functions);
 
             array_1d<double, 3> u_tau;
             const double y_plus = rYPlusAndUTauCalculationMethod(
@@ -360,10 +364,12 @@ void CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
                      const GeometryType& rGeometry, const array_1d<double, 3>& rNormal,
                      const Vector& rGaussShapeFunctions, const double Density,
                      const double KinematicViscosity, const double WallHeight) {
-            const array_1d<double, 3>& r_wall_velocity =
-                EvaluateInPoint(rGeometry, VELOCITY, rGaussShapeFunctions);
-            const array_1d<double, 3>& r_mesh_velocity =
-                EvaluateInPoint(rGeometry, MESH_VELOCITY, rGaussShapeFunctions);
+            array_1d<double, 3> r_wall_velocity;
+            GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(
+                r_wall_velocity, rGeometry, VELOCITY, rGaussShapeFunctions);
+            array_1d<double, 3> r_mesh_velocity;
+            GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(
+                r_mesh_velocity, rGeometry, MESH_VELOCITY, rGaussShapeFunctions);
 
             return CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
                 rFrictionVelocity, r_wall_velocity - r_mesh_velocity, rNormal, KinematicViscosity,
