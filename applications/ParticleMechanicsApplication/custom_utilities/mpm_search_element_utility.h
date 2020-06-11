@@ -78,6 +78,7 @@ namespace MPMSearchElementUtility
     inline void ConstructNeighbourRelations(GeometryType& rGeom, const ModelPart& rBackgroundGridModelPart)
     {
         std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours;
+        bool add_entry;
         for (IndexType j = 0; j < rBackgroundGridModelPart.NumberOfElements(); j++)
         {
             auto p_geometry_neighbour = (rBackgroundGridModelPart.ElementsBegin() + j)->pGetGeometry();
@@ -86,8 +87,21 @@ namespace MPMSearchElementUtility
                 for (IndexType k = 0; k < rGeom.size(); k++)
                 {
                     if (rGeom[k].Id() == (*p_geometry_neighbour)[n].Id()) {
-                        geometry_neighbours.push_back(p_geometry_neighbour);
-                        break;
+                        // check we aren't adding duplicate entries
+                        add_entry = true;
+                        for (IndexType i = 0; i < geometry_neighbours.size(); i++)
+                        {
+                            if (p_geometry_neighbour->Id() == geometry_neighbours[i]->Id())
+                            {
+                                add_entry = false;
+                                break;
+                            }
+                        }
+                        if (add_entry)
+                        {
+                            geometry_neighbours.push_back(p_geometry_neighbour);
+                            break;
+                        }
                     }
                 }
             }
