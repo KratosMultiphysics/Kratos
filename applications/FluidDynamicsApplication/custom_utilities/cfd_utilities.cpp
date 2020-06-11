@@ -201,7 +201,7 @@ double CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
         double dx = 1e10;
         double u_plus = inv_kappa * std::log(y_plus) + WallSmoothness;
 
-        while (iter < MaxIterations && std::fabs(dx) > Tolerance * u_tau)
+        while (iter < MaxIterations && std::abs(dx) > Tolerance * u_tau)
         {
             // Newton-Raphson iteration
             double f = u_tau * u_plus - wall_velocity;
