@@ -206,28 +206,14 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitCon
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
     // Execute RK4 or OSS step
-    if (r_process_info.GetValue(ACTIVATION_LEVEL) == 1)
-    {
-        // Calculate the OSS additional term
-        VectorType res;
-        this->CalculateRightHandSide(res,rCurrentProcessInfo);
-        // Add the oss contribution to the forcing
-        for (unsigned int i_node = 0; i_node < local_size; i_node++) {
-            #pragma omp atomic
-            r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += res[i_node];
-        }
-    }
-    else
-    {
-        // Calculate the explicit residual vector
-        VectorType rhs;
-        this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
-        // Add the residual contribution
-        // Note that the reaction is indeed the formulation residual
-        for (unsigned int i_node = 0; i_node < local_size; i_node++) {
-            #pragma omp atomic
-            r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
-        }
+    VectorType rhs;
+    this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
+    KRATOS_WATCH(rhs);
+    // Add the residual contribution
+    // Note that the reaction is indeed the formulation residual
+    for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+        #pragma omp atomic
+        r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
     }
 }
 
@@ -550,13 +536,12 @@ const double crhs1 =             DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2
 const double crhs2 =             crhs1*k;
 const double crhs3 =             DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2];
 const double crhs4 =             crhs3*k;
-const double crhs5 =             N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2];
-const double crhs6 =             (-N[0]*phi_old[0] - N[1]*phi_old[1] - N[2]*phi_old[2] + crhs5)/(RK_time_coefficient*delta_time);
-const double crhs7 =             crhs5*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1));
-const double crhs8 =             crhs1*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0)) + crhs3*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1));
-            rhs[0]=DN(0,0)*crhs2 + DN(0,1)*crhs4 - N[0]*crhs0 + N[0]*crhs6 + N[0]*crhs7 + N[0]*crhs8;
-            rhs[1]=DN(1,0)*crhs2 + DN(1,1)*crhs4 - N[1]*crhs0 + N[1]*crhs6 + N[1]*crhs7 + N[1]*crhs8;
-            rhs[2]=DN(2,0)*crhs2 + DN(2,1)*crhs4 - N[2]*crhs0 + N[2]*crhs6 + N[2]*crhs7 + N[2]*crhs8;
+const double crhs5 =             (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]))/(RK_time_coefficient*delta_time);
+const double crhs6 =             (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1));
+const double crhs7 =             crhs1*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0)) + crhs3*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1));
+            rhs[0]=DN(0,0)*crhs2 + DN(0,1)*crhs4 - N[0]*crhs0 + N[0]*crhs5 + N[0]*crhs6 + N[0]*crhs7;
+            rhs[1]=DN(1,0)*crhs2 + DN(1,1)*crhs4 - N[1]*crhs0 + N[1]*crhs5 + N[1]*crhs6 + N[1]*crhs7;
+            rhs[2]=DN(2,0)*crhs2 + DN(2,1)*crhs4 - N[2]*crhs0 + N[2]*crhs5 + N[2]*crhs6 + N[2]*crhs7;
 
 
     noalias(rRightHandSideVector) += rhs * rVariables.weight;
@@ -591,14 +576,13 @@ const double crhs3 =             DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2
 const double crhs4 =             crhs3*k;
 const double crhs5 =             DN(0,2)*phi[0] + DN(1,2)*phi[1] + DN(2,2)*phi[2] + DN(3,2)*phi[3];
 const double crhs6 =             crhs5*k;
-const double crhs7 =             N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2] + N[3]*phi[3];
-const double crhs8 =             (-N[0]*phi_old[0] - N[1]*phi_old[1] - N[2]*phi_old[2] - N[3]*phi_old[3] + crhs7)/(RK_time_coefficient*delta_time);
-const double crhs9 =             crhs7*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(0,2)*v(0,2) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(1,2)*v(1,2) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1) + DN(2,2)*v(2,2) + DN(3,0)*v(3,0) + DN(3,1)*v(3,1) + DN(3,2)*v(3,2));
-const double crhs10 =             crhs1*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) + crhs3*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) + crhs5*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2));
-            rhs[0]=DN(0,0)*crhs2 + DN(0,1)*crhs4 + DN(0,2)*crhs6 - N[0]*crhs0 + N[0]*crhs10 + N[0]*crhs8 + N[0]*crhs9;
-            rhs[1]=DN(1,0)*crhs2 + DN(1,1)*crhs4 + DN(1,2)*crhs6 - N[1]*crhs0 + N[1]*crhs10 + N[1]*crhs8 + N[1]*crhs9;
-            rhs[2]=DN(2,0)*crhs2 + DN(2,1)*crhs4 + DN(2,2)*crhs6 - N[2]*crhs0 + N[2]*crhs10 + N[2]*crhs8 + N[2]*crhs9;
-            rhs[3]=DN(3,0)*crhs2 + DN(3,1)*crhs4 + DN(3,2)*crhs6 - N[3]*crhs0 + N[3]*crhs10 + N[3]*crhs8 + N[3]*crhs9;
+const double crhs7 =             (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]))/(RK_time_coefficient*delta_time);
+const double crhs8 =             (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2] + N[3]*phi[3])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(0,2)*v(0,2) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(1,2)*v(1,2) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1) + DN(2,2)*v(2,2) + DN(3,0)*v(3,0) + DN(3,1)*v(3,1) + DN(3,2)*v(3,2));
+const double crhs9 =             crhs1*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) + crhs3*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) + crhs5*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2));
+            rhs[0]=DN(0,0)*crhs2 + DN(0,1)*crhs4 + DN(0,2)*crhs6 - N[0]*crhs0 + N[0]*crhs7 + N[0]*crhs8 + N[0]*crhs9;
+            rhs[1]=DN(1,0)*crhs2 + DN(1,1)*crhs4 + DN(1,2)*crhs6 - N[1]*crhs0 + N[1]*crhs7 + N[1]*crhs8 + N[1]*crhs9;
+            rhs[2]=DN(2,0)*crhs2 + DN(2,1)*crhs4 + DN(2,2)*crhs6 - N[2]*crhs0 + N[2]*crhs7 + N[2]*crhs8 + N[2]*crhs9;
+            rhs[3]=DN(3,0)*crhs2 + DN(3,1)*crhs4 + DN(3,2)*crhs6 - N[3]*crhs0 + N[3]*crhs7 + N[3]*crhs8 + N[3]*crhs9;
 
 
     noalias(rRightHandSideVector) += rhs * rVariables.weight;

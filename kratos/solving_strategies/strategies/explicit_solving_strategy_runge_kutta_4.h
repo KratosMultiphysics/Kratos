@@ -246,12 +246,6 @@ protected:
         r_process_info.GetValue(ACTIVATION_LEVEL) = 1;
         p_explicit_bs->BuildRHS(r_model_part);
         r_process_info.GetValue(ACTIVATION_LEVEL) = 0;
-
-        for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); i_node++)
-        {
-            KRATOS_WATCH(i_node);
-        }
-
     };
 
     /**

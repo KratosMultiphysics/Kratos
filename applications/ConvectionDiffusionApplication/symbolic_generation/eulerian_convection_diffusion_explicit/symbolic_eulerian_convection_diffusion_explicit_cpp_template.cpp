@@ -206,28 +206,14 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitCon
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
     // Execute RK4 or OSS step
-    if (r_process_info.GetValue(ACTIVATION_LEVEL) == 1)
-    {
-        // Calculate the OSS additional term
-        VectorType res;
-        this->CalculateRightHandSide(res,rCurrentProcessInfo);
-        // Add the oss contribution to the forcing
-        for (unsigned int i_node = 0; i_node < local_size; i_node++) {
-            #pragma omp atomic
-            r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += res[i_node];
-        }
-    }
-    else
-    {
-        // Calculate the explicit residual vector
-        VectorType rhs;
-        this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
-        // Add the residual contribution
-        // Note that the reaction is indeed the formulation residual
-        for (unsigned int i_node = 0; i_node < local_size; i_node++) {
-            #pragma omp atomic
-            r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
-        }
+    VectorType rhs;
+    this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
+    KRATOS_WATCH(rhs);
+    // Add the residual contribution
+    // Note that the reaction is indeed the formulation residual
+    for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+        #pragma omp atomic
+        r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
     }
 }
 
