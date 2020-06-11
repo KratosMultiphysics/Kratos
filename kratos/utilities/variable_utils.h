@@ -322,15 +322,16 @@ public:
     void SetVariable(
         const TVarType& rVariable,
         const TDataType& rValue,
-        NodesContainerType& rNodes
+        NodesContainerType& rNodes,
+        const IndexType BuffStep = 0
         )
     {
         KRATOS_TRY
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
             NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->FastGetSolutionStepValue(rVariable) = rValue;
+            it_node->FastGetSolutionStepValue(rVariable, BuffStep) = rValue;
         }
 
         KRATOS_CATCH("")
@@ -352,17 +353,17 @@ public:
         const TDataType &rValue,
         NodesContainerType &rNodes,
         const Flags Flag,
-        const bool CheckValue = true)
+        const bool CheckValue = true,
+        const IndexType BuffStep = 0
+        )
     {
         KRATOS_TRY
 
-#pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
-        {
+        #pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(rNodes.size()); ++k) {
             auto it_node = rNodes.begin() + k;
-            if (it_node->Is(Flag) == CheckValue)
-            {
-                it_node->FastGetSolutionStepValue(rVariable) = rValue;
+            if (it_node->Is(Flag) == CheckValue) {
+                it_node->FastGetSolutionStepValue(rVariable, BuffStep) = rValue;
             }
         }
 
