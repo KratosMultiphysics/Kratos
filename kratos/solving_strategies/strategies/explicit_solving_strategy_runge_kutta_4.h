@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
-#include "includes/convection_diffusion_settings.h"
 
 namespace Kratos
 {
@@ -221,7 +220,6 @@ protected:
             if (!it_dof->IsFixed()) {
                 const double mass = r_lumped_mass_vector(i_dof);
                 r_u = r_u_old + (dt / mass) * (mB1 * rk_k1(i_dof) + mB2 * rk_k2(i_dof) + mB3 * rk_k3(i_dof) + mB4 * rk_k4(i_dof));
-                // r_u = r_u_old + (dt / mass) * rk_k1(i_dof);
             } else {
                 r_u = u_n(i_dof);
             }
@@ -232,34 +230,7 @@ protected:
      * @brief Initialize the Runge-Kutta substep
      * This method is intended to implement all the operations required before each Runge-Kutta substep
      */
-    virtual void InitializeRungeKuttaSubStep()
-    {
-        // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
-        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
-
-        // Perform Orthogonal Subgrid Scale step
-        // ACTIVATION_LEVEL stands for auxiliary OSS_SWITCH variable, which is in cfd_variables.h
-        auto& r_model_part = BaseType::GetModelPart();
-        auto& r_process_info = r_model_part.GetProcessInfo();
-        r_process_info.GetValue(ACTIVATION_LEVEL) = 1;
-        p_explicit_bs->BuildRHS(r_model_part);
-
-        ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
-        auto& r_settings = *p_settings;
-
-        for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); i_node++)
-        {
-            auto& current_node = r_model_part.GetNode(i_node+1);
-            const double mass = r_lumped_mass_vector(i_node);
-            current_node.FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = current_node.FastGetSolutionStepValue(r_settings.GetReactionVariable()) / mass;
-        }
-
-        // End OSS step
-        r_process_info.GetValue(ACTIVATION_LEVEL) = 0;
-    };
+    virtual void InitializeRungeKuttaSubStep() {};
 
     /**
      * @brief Finalize the Runge-Kutta substep
