@@ -49,10 +49,10 @@ class Commander(object):
         t.start()
         t.join(timeout)
 
-        if t.isAlive():
+        if t.is_alive():
             self.process.terminate()
             t.join()
-            print('\n[Error]: Tests for {} took to long. Process Killed.'.format(application), file=sys.stderr)
+            print('\n[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
 
     def RunTestSuit(self, application, applicationPath, path, level, verbose, command):
         ''' Calls the script that will run the tests.
@@ -172,6 +172,22 @@ class Commander(object):
             self.exitCode = 1
 
 
+def print_test_header(application):
+    print("\nRunning {} tests".format(application), file=sys.stderr, flush=True)
+
+def print_test_footer(application, exit_code):
+    appendix = " with exit code {}!".format(exit_code) if exit_code != 0 else "."
+    print("Completed {} tests{}\n".format(application, appendix), file=sys.stderr, flush=True)
+
+def print_summary(exit_codes):
+    print("Test results summary:", file=sys.stderr)
+    max_test_name_length = len(max(exit_codes.keys(), key=len))
+    for test, exit_code in exit_codes.items():
+        result_string = "OK" if exit_code == 0 else "FAILED"
+        pretty_name = test.ljust(max_test_name_length)
+        print("  {}: {}".format(pretty_name, result_string), file=sys.stderr)
+    sys.stderr.flush()
+
 def main():
 
     # Define the command
@@ -269,8 +285,10 @@ def main():
     # Create the commands
     commander = Commander()
 
+    exit_codes = {}
+
     # KratosCore must always be runned
-    print('Running tests for KratosCore', file=sys.stderr)
+    print_test_header("KratosCore")
 
     with KtsUt.SupressConsoleOutput():
         commander.RunTestSuitInTime(
@@ -283,12 +301,12 @@ def main():
             signalTime
         )
 
-    exit_code = max(exit_code, commander.exitCode)
+    print_test_footer("KratosCore", commander.exitCode)
+    exit_codes["KratosCore"] = commander.exitCode
 
     # Run the tests for the rest of the Applications
     for application in applications:
-        print('Running tests for {}'.format(application), file=sys.stderr)
-        sys.stderr.flush()
+        print_test_header(application)
 
         with KtsUt.SupressConsoleOutput():
             commander.RunTestSuitInTime(
@@ -301,17 +319,18 @@ def main():
                 signalTime
             )
 
-        exit_code = max(exit_code, commander.exitCode)
+        print_test_footer(application, commander.exitCode)
+        exit_codes[application] = commander.exitCode
 
     # Run the cpp tests (does the same as run_cpp_tests.py)
-    print('Running cpp tests', file=sys.stderr)
+    print_test_header("cpp")
     with KtsUt.SupressConsoleOutput():
         commander.RunCppTests(applications)
+    print_test_footer("cpp", commander.exitCode)
+    exit_codes["cpp"] = commander.exitCode
 
-    exit_code = max(exit_code, commander.exitCode)
-
-    sys.exit(exit_code)
-
+    print_summary(exit_codes)
+    sys.exit(max(exit_codes.values()))
 
 if __name__ == "__main__":
     main()

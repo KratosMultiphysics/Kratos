@@ -98,9 +98,6 @@ namespace Kratos
 
  	void KratosShapeOptimizationApplication::Register()
  	{
- 		// calling base class register to register Kratos components
- 		KratosApplication::Register();
-
         KRATOS_INFO("") << "    KRATOS   __| |  |   \\   _ \\ __|\n"
                         << "           \\__ \\ __ |  _ \\  __/ _|\n"
                         << "           ____/_| _|_/  _\\_|  ___| OPTIMIZATION\n"

@@ -283,7 +283,7 @@ int ElasticIsotropic3D::Check(
     )
 {
     KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is null or negative." << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] < 0.0) << "YOUNG_MODULUS is negative." << std::endl;
 
     KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
     const double tolerance = 1.0e-12;

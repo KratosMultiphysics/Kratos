@@ -95,25 +95,23 @@ public:
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void Initialize() override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
@@ -138,10 +136,10 @@ public:
 
     void AddExplicitContribution(const VectorType& rRHSVector,
                                  const Variable<VectorType>& rRHSVariable,
-                                 Variable<array_1d<double, 3> >& rDestinationVariable,
+                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
                                  const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /////////////////////////////////////////////////
     ///////////// CUSTOM FUNCTIONS --->>
@@ -262,11 +260,6 @@ public:
     /**
      * @brief This function calculates the element contributions to an explicit time integration
      */
-
-    void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,

@@ -70,10 +70,12 @@ public:
      * @brief The constructor of the search utility uses the following inputs:
      * @param rMainModelPart The model part to be considered
      * @param ThisParameters The configuration parameters
+     * @param pPairedProperties Properties of the pair
      */
     ContactSearchWrapperProcess(
         ModelPart& rMainModelPart,
-        Parameters ThisParameters =  Parameters(R"({})")
+        Parameters ThisParameters =  Parameters(R"({})"),
+        Properties::Pointer pPairedProperties = nullptr
         );
 
     virtual ~ContactSearchWrapperProcess()= default;;
@@ -127,6 +129,11 @@ public:
         mpContactProcess->ExecuteFinalizeSolutionStep();
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -179,11 +186,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Protected  Access

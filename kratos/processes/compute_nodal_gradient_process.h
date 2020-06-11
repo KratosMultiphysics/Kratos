@@ -34,8 +34,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -97,15 +95,6 @@ public:
         const bool NonHistoricalVariable = false
         );
 
-    /// Default constructor. (component)
-    ComputeNodalGradientProcess(
-        ModelPart& rModelPart,
-        const ComponentType& rOriginVariable,
-        const Variable<array_1d<double,3> >& rGradientVariable,
-        const Variable<double>& rAreaVariable = NODAL_AREA,
-        const bool NonHistoricalVariable = false
-        );
-
     /// Destructor.
     ~ComputeNodalGradientProcess() override
     {
@@ -132,6 +121,11 @@ public:
      * In this process the gradient of a scalar variable will be computed
      */
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -219,10 +213,9 @@ private:
     ///@{
 
     ModelPart& mrModelPart;                                           /// The main model part
-    std::vector<const Variable<double>*> mpOriginVariableDoubleList;  /// The scalar variable list to compute
-    std::vector<const ComponentType*> mpOriginVariableComponentsList; /// The scalar variable list to compute (components)
+    const Variable<double>* mpOriginVariable = nullptr;               /// The scalar variable list to compute
     const Variable<array_1d<double,3>>* mpGradientVariable;           /// The resultant gradient variable
-    const Variable<double>* mpAreaVariable;                           /// The auxiliar area variable
+    const Variable<double>* mpAreaVariable = nullptr;                 /// The auxiliar area variable
     bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
 
     ///@}
@@ -254,11 +247,6 @@ private:
      * @brief This divides the gradient value by the nodal area
      */
     void PonderateGradient();
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters() const;
 
     ///@}
     ///@name Private  Access

@@ -15,7 +15,7 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
 
         # Set the element and condition names for the replace settings
         self.element_name = "SWE"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
         self.advection_epsilon = self.settings["advection_epsilon"].GetDouble()
 
@@ -33,7 +33,8 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
     def FinalizeSolutionStep(self):
         super(ShallowWaterSolver, self).FinalizeSolutionStep()
         epsilon = max(self.advection_epsilon, self.main_model_part.ProcessInfo[SW.DRY_HEIGHT])
-        SW.ShallowWaterUtilities().UpdatePrimitiveVariables(self.main_model_part, epsilon)
+        SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.main_model_part)
+        SW.ComputeVelocityProcess(self.main_model_part, 1e-3).Execute()
         SW.ShallowWaterUtilities().ComputeAccelerations(self.main_model_part)
 
     @classmethod

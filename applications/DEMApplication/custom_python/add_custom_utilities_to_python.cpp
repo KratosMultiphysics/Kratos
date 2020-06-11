@@ -290,6 +290,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateCartesianSpecimenMdpa", &PreUtilities::CreateCartesianSpecimenMdpa)
         .def("BreakBondUtility", &PreUtilities::BreakBondUtility)
         .def("FillAnalyticSubModelPartUtility", &PreUtilities::FillAnalyticSubModelPartUtility)
+        .def("MarkToEraseParticlesOutsideRadius", &PreUtilities::MarkToEraseParticlesOutsideRadius)
+        .def("ApplyConcentricForceOnParticles", &PreUtilities::ApplyConcentricForceOnParticles)
+        .def("ResetSkinParticles", &PreUtilities::ResetSkinParticles)
+        .def("SetSkinParticlesInnerCircularBoundary", &PreUtilities::SetSkinParticlesInnerCircularBoundary)
+        .def("SetSkinParticlesOuterCircularBoundary", &PreUtilities::SetSkinParticlesOuterCircularBoundary)
+        .def("SetSkinParticlesOuterSquaredBoundary", &PreUtilities::SetSkinParticlesOuterSquaredBoundary)
+        .def("PrintNumberOfNeighboursHistogram", &PreUtilities::PrintNumberOfNeighboursHistogram)
         ;
 
     py::class_<PostUtilities, PostUtilities::Pointer>(m, "PostUtilities")

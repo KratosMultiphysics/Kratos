@@ -28,6 +28,8 @@
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
+#include "custom_processes/impose_z_strain_process.h"
+#include "custom_processes/distribute_load_on_surface_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -87,6 +89,14 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
         ;
+
+    py::class_<ImposeZStrainProcess, ImposeZStrainProcess::Pointer, Process>(m, "ImposeZStrainProcess")
+        .def(py::init< ModelPart&, Parameters >())
+        ;
+
+    py::class_<DistributeLoadOnSurfaceProcess, DistributeLoadOnSurfaceProcess::Pointer, Process>(m,"DistributeLoadOnSurfaceProcess")
+        .def(py::init<ModelPart&, Parameters>());
+
 }
 
 }  // namespace Python.

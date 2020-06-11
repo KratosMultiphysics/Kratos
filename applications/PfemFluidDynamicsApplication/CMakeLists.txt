@@ -37,11 +37,33 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_implicit_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_explicit_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_explicit_solid_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_explicit_fluid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_pfem_entities_process.cpp
+
+    # Fluid constitutive laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/fluid_constitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/frictional_viscoplastic_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/frictional_viscoplastic_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_temperature_dependent_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bingham_temperature_dependent_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_temperature_dependent_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/newtonian_temperature_dependent_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/barker_mu_I_rheology_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/bercovier_mu_I_rheology_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/barker_bercovier_mu_I_rheology_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_laws/jop_mu_I_rheology_3D_law.cpp
+
+    # Solid constitutive laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/solid_constitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/hypoelastic_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/hypoelastic_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/hypoelastic_temperature_dependent_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/solid_laws/hypoelastic_temperature_dependent_3D_law.cpp
 )
 
 set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_PYTHON_INTERFACE

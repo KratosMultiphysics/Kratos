@@ -36,6 +36,16 @@ namespace Kratos {
 
             // Variables addition
             rModelPart.AddNodalSolutionStepVariable(PRESSURE);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_1);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_2);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_3);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_4);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_5);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_6);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_7);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_8);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_9);
+	    rModelPart.AddNodalSolutionStepVariable(POWER_SUM_10);
 
             // Element creation
             rModelPart.CreateNewNode(1, 1.0, 1.0, 0.0);
@@ -53,10 +63,22 @@ namespace Kratos {
                 it_node->AddDof(POWER_SUM_2);
                 it_node->AddDof(POWER_SUM_3);
                 it_node->AddDof(POWER_SUM_4);
+                it_node->AddDof(POWER_SUM_5);
+                it_node->AddDof(POWER_SUM_6);
+                it_node->AddDof(POWER_SUM_7);
+                it_node->AddDof(POWER_SUM_8);
+                it_node->AddDof(POWER_SUM_9);
+                it_node->AddDof(POWER_SUM_10);
                 it_node->SetValue(POWER_SUM_1,1.0 * i_node);
                 it_node->SetValue(POWER_SUM_2,1.0 * i_node);
                 it_node->SetValue(POWER_SUM_3,1.0 * i_node);
                 it_node->SetValue(POWER_SUM_4,1.0 * i_node);
+                it_node->SetValue(POWER_SUM_5,1.0 * i_node);
+                it_node->SetValue(POWER_SUM_6,1.0 * i_node);
+                it_node->SetValue(POWER_SUM_7,1.0 * i_node);
+                it_node->SetValue(POWER_SUM_8,1.0 * i_node);
+                it_node->SetValue(POWER_SUM_9,1.0 * i_node);
+                it_node->SetValue(POWER_SUM_10,1.0 * i_node);
                 it_node->FastGetSolutionStepValue(PRESSURE) = 10.0;
             }
         }
@@ -93,10 +115,23 @@ namespace Kratos {
                 double S2_value = it_node->GetValue(POWER_SUM_2);
                 double S3_value = it_node->GetValue(POWER_SUM_3);
                 double S4_value = it_node->GetValue(POWER_SUM_4);
+                double S5_value = it_node->GetValue(POWER_SUM_5);
+                double S6_value = it_node->GetValue(POWER_SUM_6);
+                double S7_value = it_node->GetValue(POWER_SUM_7);
+                double S8_value = it_node->GetValue(POWER_SUM_8);
+                double S9_value = it_node->GetValue(POWER_SUM_9);
+                double S10_value = it_node->GetValue(POWER_SUM_10);
+
                 KRATOS_CHECK_NEAR(S1_value, (11 + i_node), 1e-10);
                 KRATOS_CHECK_NEAR(S2_value, (101 + i_node), 1e-10);
                 KRATOS_CHECK_NEAR(S3_value, (1001 + i_node), 1e-10);
                 KRATOS_CHECK_NEAR(S4_value, (10001 + i_node), 1e-10);
+                KRATOS_CHECK_NEAR(S5_value, (100001 + i_node), 1e-10);
+                KRATOS_CHECK_NEAR(S6_value, (1000001 + i_node), 1e-10);
+                KRATOS_CHECK_NEAR(S7_value, (10000001 + i_node), 1e-10);
+                KRATOS_CHECK_NEAR(S8_value, (100000001 + i_node), 1e-10);
+                KRATOS_CHECK_NEAR(S9_value, (1000000001 + i_node), 1e-10);
+                KRATOS_CHECK_NEAR(S10_value, (10000000001 + i_node), 1e-10);
             }
         }
 

@@ -8,10 +8,11 @@
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Fernando Rastellini
+//                   Alejandro Cornejo Velazquez
 //
 
-#if !defined (KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED)
-#define  KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED
+#if !defined (KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED)
+#define  KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED
 
 // System includes
 
@@ -19,6 +20,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -41,7 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class RuleOfMixturesLaw
+ * @class ParallelRuleOfMixturesLaw
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines a parallel rule of mixture (classic law of mixture)
  * @details The constitutive law show have defined a subproperties in order to work properly
@@ -51,8 +53,10 @@ namespace Kratos
  *  - The constitutive tensor is the addition of the constitutive tensor of each layer
  * @author Vicente Mataix Ferrandiz
  * @author Fernando Rastellini
+ * @author Alejandro Cornejo Velazquez
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RuleOfMixturesLaw
+template<unsigned int TDim>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ParallelRuleOfMixturesLaw
     : public ConstitutiveLaw
 {
 public:
@@ -72,8 +76,17 @@ public:
     /// The definition of the index type
     typedef std::size_t       IndexType;
 
-    /// Pointer definition of RuleOfMixturesLaw
-    KRATOS_CLASS_POINTER_DEFINITION( RuleOfMixturesLaw );
+    /// The define the working dimension size, already defined in the integrator
+    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
+
+    /// The define the Voigt size, already defined in the  integrator
+    static constexpr SizeType Dimension = TDim;
+
+    /// Definition of the machine precision tolerance
+    static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
+
+    /// Pointer definition of ParallelRuleOfMixturesLaw
+    KRATOS_CLASS_POINTER_DEFINITION( ParallelRuleOfMixturesLaw );
 
     ///@name Lyfe Cycle
     ///@{
@@ -81,23 +94,23 @@ public:
     /**
      * @brief Default constructor.
      */
-    RuleOfMixturesLaw();
+    ParallelRuleOfMixturesLaw();
 
     /**
      * @brief Constructor with values
      * @param rCombinationFactors The list of subproperties combination factors
      */
-    RuleOfMixturesLaw(const std::vector<double>& rCombinationFactors);
+    ParallelRuleOfMixturesLaw(const std::vector<double>& rCombinationFactors);
 
     /**
      * @brief Copy constructor.
      */
-    RuleOfMixturesLaw (const RuleOfMixturesLaw& rOther);
+    ParallelRuleOfMixturesLaw (const ParallelRuleOfMixturesLaw& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~RuleOfMixturesLaw() override;
+    ~ParallelRuleOfMixturesLaw() override;
 
     ///@}
     ///@name Operators
@@ -130,6 +143,22 @@ public:
      * @details This is not used, so 0 is returned
      */
     SizeType GetStrainSize() override;
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return true;
+    }
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)
@@ -340,32 +369,6 @@ public:
         const Variable<array_1d<double, 6 > >& rThisVariable,
         const array_1d<double, 6 > & rValue,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Calculates the value of a specified variable (bool)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    bool& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<bool>& rThisVariable,
-        bool& rValue
-        ) override;
-
-    /**
-     * @brief Calculates the value of a specified variable (int)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    int& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<int>& rThisVariable,
-        int& rValue
         ) override;
 
     /**
@@ -637,6 +640,26 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief This function computes the rotation matrix T-> E_loc = T*E_glob in order to rotate the strain
+     * or S_glob = trans(T)S_loc for the stresses
+     */
+    void CalculateRotationMatrix(
+        const Properties& rMaterialProperties,
+        BoundedMatrix<double, VoigtSize, VoigtSize>& rRotationMatrix,
+        const IndexType Layer
+    );
+
+
+    /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateTangentTensor(
+        ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure
+    );
+
 protected:
 
     ///@name Protected static Member Variables
@@ -702,6 +725,6 @@ private:
     }
 
 
-}; // Class RuleOfMixturesLaw
+}; // Class ParallelRuleOfMixturesLaw
 }  // namespace Kratos.
 #endif // KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED  defined

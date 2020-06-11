@@ -141,11 +141,15 @@ class GenericConstitutiveLawIntegratorDamage
         case static_cast<int>(SofteningType::Exponential):
             CalculateExponentialDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
             break;
+        case static_cast<int>(SofteningType::HardeningDamage):
+            CalculateHardeningDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
+            break;
         default:
             KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
             break;
         }
         rDamage = (rDamage > 0.999) ? 0.999 : rDamage;
+        rDamage = (rDamage < 0.0) ? 0.0 : rDamage;
         rPredictiveStressVector *= (1.0 - rDamage);
     }
 
@@ -170,6 +174,51 @@ class GenericConstitutiveLawIntegratorDamage
         TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
         rDamage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter * 
                  (1.0 - UniaxialStress / initial_threshold));
+    }
+
+    /**
+     * @brief This computes the damage variable according to parabolic hardening and exponential 
+     * softening
+     * @param UniaxialStress The equivalent uniaxial stress
+     * @param Threshold The maximum uniaxial stress achieved previously
+     * @param rDamage The internal variable of the damage model
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     */
+    static void CalculateHardeningDamage(
+        const double UniaxialStress,
+        const double Threshold,
+        const double DamageParameter,
+        const double CharacteristicLength,
+        ConstitutiveLaw::Parameters& rValues,
+        double& rDamage
+        )
+    {
+        const auto &r_mat_props = rValues.GetMaterialProperties();
+        const double max_stress = r_mat_props[MAXIMUM_STRESS];
+        const double Gf = r_mat_props[FRACTURE_ENERGY];
+        const double E = r_mat_props[YOUNG_MODULUS];
+        const bool has_symmetric_yield_stress = r_mat_props.Has(YIELD_STRESS);
+        const double yield_compression = has_symmetric_yield_stress ? r_mat_props[YIELD_STRESS] : r_mat_props[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = has_symmetric_yield_stress ? r_mat_props[YIELD_STRESS] : r_mat_props[YIELD_STRESS_TENSION];
+        const double n = yield_compression / yield_tension;
+
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
+
+        const double re = max_stress / initial_threshold;
+        const double rp = 1.5 * re;
+        const double Ad = (rp - re) / re;
+        const double Ad_tilda = Ad * (std::pow(rp, 3) - 3.0 * rp + 2.0 / 3.0) / (6.0 * re * std::pow((rp - 1.0), 2));
+        const double Hd = 1.0 / (2.0 * (E * Gf * n * n / max_stress / max_stress / CharacteristicLength - 0.5 * rp / re - Ad_tilda));
+
+        const double r = UniaxialStress / initial_threshold;
+
+        if (r <= rp) {
+            rDamage = Ad * re / r * std::pow(((r - 1.0) / (rp - 1.0)), 2);            
+        } else {
+            rDamage = 1.0 - re / r + Hd * (1.0 - rp / r);
+        } 
     }
 
     /**

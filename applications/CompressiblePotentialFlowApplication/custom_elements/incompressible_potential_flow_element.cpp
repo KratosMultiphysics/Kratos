@@ -13,6 +13,7 @@
 #include "incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
@@ -199,6 +200,16 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     {
         rValues[0] = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     }
+    else if (rVariable == MACH)
+    {
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
+        const double velocity_module = sqrt(inner_prod(velocity, velocity));
+        rValues[0] = velocity_module / rCurrentProcessInfo[SOUND_VELOCITY];
+    }
+    else if (rVariable == SOUND_VELOCITY)
+    {
+        rValues[0] = rCurrentProcessInfo[SOUND_VELOCITY];
+    }
     else if (rVariable == WAKE)
     {
         const IncompressiblePotentialFlowElement& r_this = *this;
@@ -240,6 +251,15 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
         array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
+        rValues[0] = v;
+    }
+    else if (rVariable == PERTURBATION_VELOCITY)
+    {
+        const array_1d<double, Dim>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k] - free_stream_velocity[k];
         rValues[0] = v;
     }
 }

@@ -79,7 +79,7 @@ void ShallowElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo
     if(rResult.size() != msElemSize)
         rResult.resize(msElemSize,false); // False says not to preserve existing storage!!
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     int counter=0;
     for (unsigned int i = 0; i < msNodes; i++)
     {
@@ -100,7 +100,7 @@ void ShallowElement::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& r
     if(rElementalDofList.size() != msElemSize)
         rElementalDofList.resize(msElemSize);
     
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     int counter=0;
     for (unsigned int i = 0; i < msNodes; i++)
     {
@@ -287,7 +287,7 @@ void ShallowElement::InitializeElement(ElementData& rData, const ProcessInfo& rC
     rData.manning2 = 0.0;//std::pow( GetProperties()[MANNING], 2);
 
     // Nodal data
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     unsigned int counter = 0;
     for (unsigned int i = 0; i < msNodes; i++)
     {

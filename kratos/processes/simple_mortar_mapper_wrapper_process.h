@@ -90,7 +90,7 @@ public:
         )
     {
         // The default parameters
-        Parameters default_parameters = GetDefaultParameters();
+        const Parameters default_parameters = GetDefaultParameters();
         const bool origin_are_conditions_is_defined = ThisParameters.Has("origin_are_conditions");
         const bool destination_are_conditions_is_defined = ThisParameters.Has("destination_are_conditions");
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -227,6 +227,43 @@ public:
         mpMapperProcess->ExecuteInitializeSolutionStep();
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "echo_level"                       : 0,
+            "consider_tessellation"            : false,
+            "using_average_nodal_normal"       : true,
+            "discontinuous_interface"          : false,
+            "discontinous_interface_factor"    : 1.0e-4,
+            "absolute_convergence_tolerance"   : 1.0e-9,
+            "relative_convergence_tolerance"   : 1.0e-4,
+            "max_number_iterations"            : 10,
+            "integration_order"                : 2,
+            "distance_threshold"               : 1.0e24,
+            "zero_tolerance_factor"            : 1.0e0,
+            "remove_isolated_conditions"       : false,
+            "mapping_coefficient"              : 1.0e0,
+            "origin_variable"                  : "TEMPERATURE",
+            "destination_variable"             : "",
+            "origin_variable_historical"       : true,
+            "origin_are_conditions"            : true,
+            "destination_variable_historical"  : true,
+            "destination_are_conditions"       : true,
+            "update_interface"                 : true,
+            "search_parameters"                : {
+                "allocation_size"                  : 1000,
+                "bucket_size"                      : 4,
+                "search_factor"                    : 3.5
+            }
+        })" );
+
+        return default_parameters;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -279,41 +316,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters()
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "echo_level"                       : 0,
-            "using_average_nodal_normal"       : true,
-            "discontinuous_interface"          : false,
-            "discontinous_interface_factor"    : 1.0e-4,
-            "absolute_convergence_tolerance"   : 1.0e-9,
-            "relative_convergence_tolerance"   : 1.0e-4,
-            "max_number_iterations"            : 10,
-            "integration_order"                : 2,
-            "distance_threshold"               : 1.0e24,
-            "zero_tolerance_factor"            : 1.0e0,
-            "remove_isolated_conditions"       : false,
-            "mapping_coefficient"              : 1.0e0,
-            "origin_variable"                  : "TEMPERATURE",
-            "destination_variable"             : "",
-            "origin_variable_historical"       : true,
-            "origin_are_conditions"            : true,
-            "destination_variable_historical"  : true,
-            "destination_are_conditions"       : true,
-            "update_interface"                 : true,
-            "search_parameters"                : {
-                "allocation_size"                  : 1000,
-                "bucket_size"                      : 4,
-                "search_factor"                    : 3.5
-            }
-        })" );
-
-        return default_parameters;
-    }
 
     ///@}
     ///@name Protected  Access

@@ -74,15 +74,17 @@ namespace Kratos {
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_cons_law);
 
             // Element creation
-            rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-            rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-            rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            auto p_node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            auto p_node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            auto p_node_3 = rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
             std::vector<ModelPart::IndexType> cond_nodes {1, 2};
             std::vector<ModelPart::IndexType> elem_nodes {1, 2, 3};
+            Element::Pointer p_elem_1, p_elem_2;
             if (is_embedded){
-                rModelPart.CreateNewElement("EmbeddedNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
+                p_elem_1 = rModelPart.CreateNewElement("EmbeddedSymbolicNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
+                p_elem_2 = rModelPart.CreateNewElement("EmbeddedSymbolicNavierStokesDiscontinuous2D3N", 2, elem_nodes, p_elem_prop);
             } else {
-                rModelPart.CreateNewElement("NavierStokes2D3N", 1, elem_nodes, p_elem_prop);
+                p_elem_1 = rModelPart.CreateNewElement("SymbolicNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
             }
             rModelPart.CreateNewCondition("NavierStokesWallCondition2D2N", 1, cond_nodes, p_elem_prop);
 
@@ -114,12 +116,12 @@ namespace Kratos {
             v_2[0] = 2.0;
             v_3[0] = 3.0;
             v_3[1] = 0.5;
-            (rModelPart.GetNode(1)).GetSolutionStepValue(VELOCITY) = v_1;
-            (rModelPart.GetNode(1)).GetSolutionStepValue(PRESSURE) = p_1;
-            (rModelPart.GetNode(2)).GetSolutionStepValue(VELOCITY) = v_2;
-            (rModelPart.GetNode(2)).GetSolutionStepValue(PRESSURE) = p_2;
-            (rModelPart.GetNode(3)).GetSolutionStepValue(VELOCITY) = v_3;
-            (rModelPart.GetNode(3)).GetSolutionStepValue(PRESSURE) = p_3;
+            p_node_1->GetSolutionStepValue(VELOCITY) = v_1;
+            p_node_1->GetSolutionStepValue(PRESSURE) = p_1;
+            p_node_2->GetSolutionStepValue(VELOCITY) = v_2;
+            p_node_2->GetSolutionStepValue(PRESSURE) = p_2;
+            p_node_3->GetSolutionStepValue(VELOCITY) = v_3;
+            p_node_3->GetSolutionStepValue(PRESSURE) = p_3;
 
             // Set the DENSITY and DYNAMIC_VISCOSITY nodal values
             for (ModelPart::NodeIterator it_node = rModelPart.NodesBegin(); it_node < rModelPart.NodesEnd(); ++it_node){
@@ -129,9 +131,16 @@ namespace Kratos {
 
             // If proceeds, set the DISTANCE function
             if (is_embedded){
-                (rModelPart.GetNode(1)).GetSolutionStepValue(DISTANCE) = 1.0;
-                (rModelPart.GetNode(2)).GetSolutionStepValue(DISTANCE) = 1.0;
-                (rModelPart.GetNode(3)).GetSolutionStepValue(DISTANCE) = -1.0;
+                // Continuous distance values
+                p_node_1->GetSolutionStepValue(DISTANCE) = 1.0;
+                p_node_2->GetSolutionStepValue(DISTANCE) = 1.0;
+                p_node_3->GetSolutionStepValue(DISTANCE) = -1.0;
+                // Discontinuous distance values
+                array_1d<double,3> elem_dist;
+                elem_dist(0) = 1.0;
+                elem_dist(1) = 1.0;
+                elem_dist(2) = -1.0;
+                p_elem_2->SetValue(ELEMENTAL_DISTANCES, elem_dist);
             }
 
         }
@@ -148,7 +157,8 @@ namespace Kratos {
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the fluid element
-            p_element->Initialize();
+            const auto& r_process_info = model_part.GetProcessInfo();
+            p_element->Initialize(r_process_info);
 
             // Set the reaction values manually. Note that the body fitted drag utilities assume
             // that the REACTION has been already computed. Since this is assumed to be done by
@@ -179,19 +189,51 @@ namespace Kratos {
             Model model;
             ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTestModelPart(model_part, is_embedded);
-            Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the fluid element
-            p_element->Initialize();
+            const auto& r_process_info = model_part.GetProcessInfo();
+            for (auto& r_elem : model_part.Elements()) {
+                r_elem.Initialize(r_process_info);
+            }
 
             // Call the embedded drag utility
             DragUtilities drag_utilities;
             array_1d<double, 3> drag_force = drag_utilities.CalculateEmbeddedDrag(model_part);
 
             // Check computed values
-            KRATOS_CHECK_NEAR(drag_force[0], -0.03, 1e-2);
-            KRATOS_CHECK_NEAR(drag_force[1], 0.4375, 1e-4);
+            KRATOS_CHECK_NEAR(drag_force[0], -0.06, 1e-2);
+            KRATOS_CHECK_NEAR(drag_force[1], 0.8325, 1e-4);
             KRATOS_CHECK_NEAR(drag_force[2], 0.0, 1e-6);
 	    }
+
+	    /**
+	     * Checks the embedded drag center computation utility.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedDragCenter, FluidDynamicsApplicationFastSuite)
+		{
+            bool is_embedded = true;
+
+            // Create a test element inside a modelpart
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
+            GenerateTestModelPart(model_part, is_embedded);
+
+            // Initialize the fluid element
+            const auto& r_process_info = model_part.GetProcessInfo();
+            for (auto& r_elem : model_part.Elements()) {
+                r_elem.Initialize(r_process_info);
+            }
+
+            // Call the embedded drag utility
+            DragUtilities drag_utilities;
+            array_1d<double, 3> drag_force_center = drag_utilities.CalculateEmbeddedDragCenter(model_part);
+
+            // Check computed values
+            KRATOS_CHECK_NEAR(drag_force_center[0], 0.25, 1e-2);
+            KRATOS_CHECK_NEAR(drag_force_center[1], 0.5, 1e-4);
+            KRATOS_CHECK_NEAR(drag_force_center[2], 0.0, 1e-6);
+	    }
+
+
     } // namespace Testing
 }  // namespace Kratos.

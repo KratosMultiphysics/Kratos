@@ -262,7 +262,7 @@ protected:
 
     template< class TVariableType >
     void EvaluateInPoint(TVariableType& rResult,
-                         const Kratos::Variable<TVariableType> Var,
+                         const Kratos::Variable<TVariableType>& Var,
                          const ShapeFunctionsType& rShapeFunc,
                          GeometryType& rGeom)
     {

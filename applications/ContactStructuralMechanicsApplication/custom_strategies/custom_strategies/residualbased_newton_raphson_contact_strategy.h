@@ -223,9 +223,9 @@ public:
 
         // We predict contact pressure in case of contact problem
         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
             if (frictional) {
-                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, nodes_array);
             }
 
             // Compute the current gap
@@ -260,7 +260,7 @@ public:
 //
 //         // We predict contact pressure in case of contact problem
 //         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-//             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+//             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
 //
 //             // Compute the current gap
 //             ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
@@ -818,7 +818,7 @@ protected:
 
             // We check now the deformation gradient
             std::vector<Matrix> deformation_gradient_matrices;
-            it_elem->GetValueOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
+            it_elem->CalculateOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
 
             for (IndexType i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
                 const double det_f = MathUtils<double>::DetMat(deformation_gradient_matrices[i_gp]);

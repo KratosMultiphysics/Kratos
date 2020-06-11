@@ -26,15 +26,16 @@ namespace Kratos
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::MPCContactSearchProcess(
     ModelPart & rMainModelPart,
-    Parameters ThisParameters
-    ) : BaseType(rMainModelPart, ThisParameters)
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
+    ) : BaseType(rMainModelPart, ThisParameters, pPairedProperties)
 {
     // If we are going to consider multple searchs
     const std::string& id_name = BaseType::mThisParameters["id_name"].GetString();
 
     // We get the contact model part
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = BaseType::mOptions.IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + id_name);
+    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + id_name);
 
     // Iterate in the constraints
     auto& r_constraints_array = r_sub_contact_model_part.MasterSlaveConstraints();
@@ -57,7 +58,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMode
 
     // Iterate in the constraints
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = BaseType::mOptions.IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
     auto& r_constraints_array = r_sub_contact_model_part.MasterSlaveConstraints();
 
     const SizeType total_number_constraints = BaseType::mrMainModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
@@ -135,12 +136,13 @@ Condition::Pointer MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Ad
     if (p_cond.get() != nullptr) {
         MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<ContactMasterSlaveConstraint>(GetMaximumConstraintsIds() + 1);
         p_new_const->Set(ACTIVE);
-        p_new_const->Initialize(rComputingModelPart.GetProcessInfo());
+        const auto& r_process_info = rComputingModelPart.GetProcessInfo();
+        p_new_const->Initialize(r_process_info);
         rComputingModelPart.AddMasterSlaveConstraint(p_new_const);
         p_cond->SetValue(CONSTRAINT_POINTER, p_new_const);
         if (is_frictional) p_cond->Set(SLIP);
         if (is_rigid) p_cond->Set(RIGID);
-        p_cond->Initialize();
+        p_cond->Initialize(r_process_info);
     }
 
     return p_cond;
@@ -192,7 +194,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOper
 
     // We iterate over the master nodes
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = BaseType::mOptions.IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     if (BaseType::mrMainModelPart.Is(MODIFIED)) { // It has been remeshed. We remove everything
@@ -212,7 +214,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOper
         // We remove all the computing constraints
         const std::string sub_computing_model_part_name = "ComputingContactSub" + BaseType::mThisParameters["id_name"].GetString();
         ModelPart& r_computing_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("ComputingContact");
-        ModelPart& r_sub_computing_contact_model_part = BaseType::mOptions.IsNot(BaseType::MULTIPLE_SEARCHS) ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
+        ModelPart& r_sub_computing_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
         auto& r_computing_constraints_array = r_sub_computing_contact_model_part.MasterSlaveConstraints();
         const int num_computing_constraints = static_cast<int>(r_computing_constraints_array.size());
 
