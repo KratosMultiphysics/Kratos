@@ -35,6 +35,7 @@ class StatisticalEstimator():
         """
         Update the estimation with new observations.
         """
+        
     def sampleNumber(self):
         """
         Returns the current number of samples known to the estimator.
