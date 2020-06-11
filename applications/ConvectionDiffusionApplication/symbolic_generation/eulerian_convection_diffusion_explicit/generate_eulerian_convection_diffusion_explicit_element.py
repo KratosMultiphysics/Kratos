@@ -86,7 +86,7 @@ for dim in dim_vector:
     ##  Stabilization ASGS functional terms
     # Convective term
     rhs_stab_1_forcing = tau * (v_gauss.transpose() * grad_q) * f_gauss
-    rhs_stab_1_mass = - tau * (v_gauss.transpose() * grad_q) * (phi_gauss-phi_old_gauss)/(RK_time_coefficient*delta_time)
+    rhs_stab_1_mass = - tau * (grad_q.transpose() * v_gauss) * N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time)
     rhs_stab_1_convection_1 = - tau * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
     rhs_stab_1_convection_2 = - tau * (v_gauss.transpose() * grad_q) * phi_gauss * div_v
     rhs_stab_1 = rhs_stab_1_forcing + rhs_stab_1_convection_1 + rhs_stab_1_convection_2 + rhs_stab_1_mass

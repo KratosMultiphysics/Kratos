@@ -193,6 +193,11 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector);
 
+    void ComputeOSSGaussPointContribution(
+        ElementVariables& rVariables,
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector);
+
     double ComputeH(
         BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
 

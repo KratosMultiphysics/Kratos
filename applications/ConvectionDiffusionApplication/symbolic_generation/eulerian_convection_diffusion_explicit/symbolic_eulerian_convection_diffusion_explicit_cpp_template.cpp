@@ -329,6 +329,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     //   velocity_mesh = 0 in eulerian framework
     if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==1)
     {
+	KRATOS_WATCH(r_process_info.GetValue(RUNGE_KUTTA_STEP));
         rVariables.RK_time_coefficient = 0.5;
         rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1);
         rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0];
@@ -337,6 +338,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     }
     else if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==2 || r_process_info.GetValue(RUNGE_KUTTA_STEP)==3)
     {
+	KRATOS_WATCH(r_process_info.GetValue(RUNGE_KUTTA_STEP));
         rVariables.RK_time_coefficient = 0.5;
         rVariables.forcing[node_element] = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable()) + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1));
         rVariables.convective_velocity(node_element,0) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0]);
@@ -345,6 +347,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     }
     else
     {
+	KRATOS_WATCH(r_process_info.GetValue(RUNGE_KUTTA_STEP));
         rVariables.RK_time_coefficient = 1.0;
         rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
         rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
@@ -392,6 +395,16 @@ void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContributi
     //substitute_lhs_2D
 
     //substitute_rhs_2D
+    
+    KRATOS_WATCH(this->GetGeometry()[0].Id());
+    KRATOS_WATCH(this->GetGeometry()[1].Id());
+    KRATOS_WATCH(this->GetGeometry()[2].Id());
+    Vector grad = prod(trans(DN),phi);
+    KRATOS_WATCH(grad);
+    KRATOS_WATCH(v);
+    KRATOS_WATCH(this->Id());
+
+
 
     noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
     noalias(rRightHandSideVector) += rhs * rVariables.weight;
