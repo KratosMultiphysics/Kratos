@@ -650,7 +650,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         computing_model_part = self.GetComputingModelPart()
         explicit_builder_and_solver = self.get_builder_and_solver()
         rebuild_level = 0
-        return KratosMultiphysics.ExplicitSolvingStrategyRungeKutta4(computing_model_part,
+        return ConvectionDiffusionApplication.ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion(computing_model_part,
                             explicit_builder_and_solver,
                             self.settings["move_mesh_flag"].GetBool(),
                             rebuild_level)
