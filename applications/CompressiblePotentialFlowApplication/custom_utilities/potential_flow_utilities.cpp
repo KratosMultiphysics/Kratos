@@ -771,6 +771,26 @@ double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAcceler
     return upwind_factor * Drho_Dq2;
 }
 
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating(
+    const array_1d<double, Dim>& rCurrentVelocity, 
+    const array_1d<double, Dim>& rUpwindVelocity, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rUpwindVelocity, rUpwindVelocity), rCurrentProcessInfo);
+
+    const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+
+    const double upwind_factor_derivative = ComputeUpwindFactorDerivativeWRTVelocitySquared<Dim, NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+
+    const double current_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
+    const double upwind_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+
+    const double current_density = ComputeDensity<Dim, NumNodes>(current_mach_sq, rCurrentProcessInfo);
+    const double upwind_density = ComputeDensity<Dim, NumNodes>(upwind_mach_sq, rCurrentProcessInfo);
+
+    return -upwind_factor_derivative * (current_density - upwind_density) + (upwind_factor * Drho_Dq2);
+}
 
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
@@ -918,6 +938,7 @@ template double ComputeDensityDerivativeWRTVelocitySquared<2,3>(const double loc
 template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -963,6 +984,7 @@ template double ComputeDensityDerivativeWRTVelocitySquared<3,4>(const double loc
 template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
