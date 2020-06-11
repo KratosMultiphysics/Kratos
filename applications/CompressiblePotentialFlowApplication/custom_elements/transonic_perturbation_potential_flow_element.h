@@ -209,9 +209,6 @@ public:
     ///@}
 protected:
 
-    double ComputeDensityDerivative(const double density,
-                                    const ProcessInfo& rCurrentProcessInfo) const;
-
 private:
     ///@}
     ///@name Member Variables
