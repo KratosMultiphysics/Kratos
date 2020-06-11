@@ -112,7 +112,6 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
     typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,const std::size_t);
     typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarType)(ModelPart&,const std::size_t,Variable<double>&);
     typedef  void (NormalCalculationUtils::*CalcOnSimplexWithIntVarType)(ModelPart&,const std::size_t,Variable<int>&);
-//            typedef  void (NormalCalculationUtils::*CalcOnSimplexWithArrayVarType)(ModelPart&,const std::size_t,Variable< array_1d<double,3> >&,const array_1d<double,3>&);
     typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarAlphaType)(ModelPart&,const std::size_t,Variable<double>&,const double,const double);
 
     CalcOnSimplexCondType CalcOnSimplex_Cond = &NormalCalculationUtils::CalculateOnSimplex;
