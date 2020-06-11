@@ -212,8 +212,8 @@ double ComputeVelocityMagnitude(
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
 
     // calculate velocity
-    const double numerator = (2.0 + (heat_capacity_ratio - 1) * free_stream_mach_squared );
-    const double denominator = (2.0 + (heat_capacity_ratio - 1) * localMachNumberSquared );
+    const double numerator = (2.0 + (heat_capacity_ratio - 1.0) * free_stream_mach_squared );
+    const double denominator = (2.0 + (heat_capacity_ratio - 1.0) * localMachNumberSquared );
     const double factor = free_stream_velocity_squared * localMachNumberSquared / free_stream_mach_squared;
 
     KRATOS_ERROR_IF(denominator < std::numeric_limits<double>::epsilon())
@@ -323,9 +323,9 @@ double ComputeCompressiblePressureCoefficient(const Element& rElement, const Pro
         << "Error on element -> " << rElement.Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
-    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
+    const double base = 1.0 + (heat_capacity_ratio - 1.0) * M_inf_2 * (1.0 - v_2 / v_inf_2) / 2.0;
 
-    return 2 * (pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1)) - 1) /
+    return 2.0 * (std::pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1.0)) - 1.0) /
            (heat_capacity_ratio * M_inf_2);
 }
 
@@ -352,9 +352,9 @@ double ComputePerturbationCompressiblePressureCoefficient(const Element& rElemen
         << "Error on element -> " << rElement.Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
-    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
+    const double base = 1.0 + (heat_capacity_ratio - 1.0) * M_inf_2 * (1.0 - v_2 / v_inf_2) / 2.0;
 
-    return 2 * (pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1)) - 1) /
+    return 2.0 * (std::pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1.0)) - 1.0) /
            (heat_capacity_ratio * M_inf_2);
 }
 
@@ -381,7 +381,7 @@ double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCur
         << "Error on element -> " << rElement.Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
-    return a_inf * std::sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
+    return a_inf * std::sqrt(1.0 + (heat_capacity_ratio - 1.0) * M_inf_2 * (1.0 - v_2 / v_inf_2) / 2.0);
 }
 
 template <int Dim, int NumNodes>
@@ -505,7 +505,7 @@ double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
     // make squares of values
-    const double free_stream_mach_squared = std::pow(free_stream_mach, 2);
+    const double free_stream_mach_squared = std::pow(free_stream_mach, 2.0);
     const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
 
     KRATOS_ERROR_IF(free_stream_velocity_squared < std::numeric_limits<double>::epsilon())
@@ -519,6 +519,9 @@ double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(
 
     // square bracket term
     const double speed_of_sound_factor = ComputeSquaredSpeedofSoundFactor<Dim, NumNodes>(local_velocity_squared, rCurrentProcessInfo);
+
+    KRATOS_ERROR_IF(speed_of_sound_factor < std::numeric_limits<double>::epsilon())
+        << "ComputeDerivativeLocalMachSquaredWRTVelocitySquared: speed of sound factor must be larger than zero." << std::endl;
 
     const double second_term_factor = 0.5 * (heat_capacity_ratio - 1.0) / free_stream_velocity_squared * free_stream_mach_squared;
 
@@ -710,7 +713,7 @@ double ComputeDensityDerivativeWRTVelocitySquared(
     // ratio of speed of sound to free stream speed of sound
     const double speed_of_sound_ratio = ComputeSquaredSpeedofSoundFactor<Dim, NumNodes>(localVelocitySquared, rCurrentProcessInfo);
 
-    const double free_stream_values_const = -0.5 * free_stream_density * std::pow(free_stream_mach,2.0) / inner_prod(free_stream_velocity, free_stream_velocity);;
+    const double free_stream_values_const = -0.5 * free_stream_density * std::pow(free_stream_mach,2.0) / inner_prod(free_stream_velocity, free_stream_velocity);
     const double speed_of_sound_power = (2.0 - heat_capacity_ratio) / (heat_capacity_ratio - 1.0);
 
     KRATOS_ERROR_IF((heat_capacity_ratio - 1.0) < std::numeric_limits<double>::epsilon())
@@ -718,6 +721,30 @@ double ComputeDensityDerivativeWRTVelocitySquared(
 
     return free_stream_values_const * std::pow(speed_of_sound_ratio, speed_of_sound_power);
 }
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicAccelerating(
+    const array_1d<double, Dim>& rCurrentVelocity, 
+    const array_1d<double, Dim>& rUpwindVelocity, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rCurrentVelocity, rCurrentVelocity), rCurrentProcessInfo);
+
+    const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+
+    const double upwind_factor_derivative = ComputeUpwindFactorDerivativeWRTVelocitySquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
+
+    const double current_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
+    const double upwind_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+
+    const double current_density = ComputeDensity<Dim, NumNodes>(current_mach_sq, rCurrentProcessInfo);
+    const double upwind_density = ComputeDensity<Dim, NumNodes>(upwind_mach_sq, rCurrentProcessInfo);
+
+    const double bracket_term = upwind_factor_derivative * (current_density - upwind_density) + upwind_factor * Drho_Dq2;
+
+    return Drho_Dq2 - bracket_term;
+}
+
 
 
 template <int Dim, int NumNodes>
@@ -863,6 +890,7 @@ template double ComputeUpwindFactorDerivativeWRTVelocitySquared<2,3>(const array
 template double ComputeDensity<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensity<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivativeWRTVelocitySquared<2,3>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicAccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -905,6 +933,7 @@ template double ComputeUpwindFactorDerivativeWRTVelocitySquared<3,4>(const array
 template double ComputeDensity<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensity<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivativeWRTVelocitySquared<3,4>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicAccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
