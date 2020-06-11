@@ -325,18 +325,23 @@ public:
 
                 for (IndexType j = 0; j < intersection_slave_spans.size(); ++j) {
                     local_coords_slave[0] = intersection_slave_spans[j];
-                    mpGeometries[i]->GlobalCoordinates(global_coords, local_coords_slave);
-                    curve_tesselation.GetClosestPoint(global_coords, global_coords_master, local_coords_master);
-                    mpGeometries[0]->ProjectionPoint(global_coords, global_coords_master, local_coords_master);
-                    KRATOS_DEBUG_ERROR_IF(norm_2(global_coords - global_coords_master) > 1e-6)
+                    mpGeometries[i]->GlobalCoordinates(
+                        global_coords, local_coords_slave);
+                    curve_tesselation.GetClosestPoint(
+                        global_coords, global_coords_master, local_coords_master);
+                    int success = mpGeometries[0]->ProjectionPoint(
+                        global_coords, global_coords_master, local_coords_master);
+                    KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords - global_coords_master) > 1e-6))
                         << "Projection of intersection spans failed. Global Coordinates on slave: "
                         << global_coords << ", and global coordinates on master: "
                         << global_coords_master << ". Difference large than 1e-6." << std::endl;
 
+                    // If success == 0, it is considered that the projection is on one of the boundaries.
                     intersection_master_spans.push_back(local_coords_master[0]);
                 }
             }
             mpGeometries[0]->Spans(intersection_master_spans, 0);
+            KRATOS_WATCH(intersection_master_spans)
             rIntegrationInfo.SetSpans(intersection_master_spans, 0);
             mpGeometries[0]->CreateIntegrationPoints(rIntegrationPoints, rIntegrationInfo);
         }
