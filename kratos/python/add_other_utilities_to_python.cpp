@@ -62,6 +62,77 @@ void SetOnProcessInfo(
     rCurrentProcessInfo[TABLE_UTILITY] = pTable;
 }
 
+double RotateAndCallFunctionCurrentConfiguration(
+    PythonGenericFunctionUtility& rPythonGenericFunctionUtility,
+    const double x,
+    const double y,
+    const double z,
+    const double t
+    )
+{
+    return rPythonGenericFunctionUtility.RotateAndCallFunction(x, y, z, t);
+}
+
+double RotateAndCallFunctionCurrentConfigurationAndInitialConfiguration(
+    PythonGenericFunctionUtility& rPythonGenericFunctionUtility,
+    const double x,
+    const double y,
+    const double z,
+    const double t,
+    const double X,
+    const double Y,
+    const double Z
+    )
+{
+    return rPythonGenericFunctionUtility.RotateAndCallFunction(x, y, z, t, X, Y, Z);
+}
+
+double CallFunctionCurrentConfiguration(
+    PythonGenericFunctionUtility& rPythonGenericFunctionUtility,
+    const double x,
+    const double y,
+    const double z,
+    const double t
+    )
+{
+    return rPythonGenericFunctionUtility.CallFunction(x, y, z, t);
+}
+
+double CallFunctionCurrentConfigurationAndInitialConfiguration(
+    PythonGenericFunctionUtility& rPythonGenericFunctionUtility,
+    const double x,
+    const double y,
+    const double z,
+    const double t,
+    const double X,
+    const double Y,
+    const double Z
+    )
+{
+    return rPythonGenericFunctionUtility.CallFunction(x, y, z, t, X, Y, Z);
+}
+
+template<class TVarType>
+void ApplyFunctionWithoutBuffer(
+    ApplyFunctionToNodesUtility& rApplyFunctionToNodesUtility,
+    const TVarType& rVariable,
+    const double Time
+    )
+{
+    rApplyFunctionToNodesUtility.ApplyFunction(rVariable, Time);
+}
+
+template<class TVarType>
+void ApplyFunctionWithBuffer(
+    ApplyFunctionToNodesUtility& rApplyFunctionToNodesUtility,
+    const TVarType& rVariable,
+    const double Time,
+    const IndexType BuffStep
+    )
+{
+    rApplyFunctionToNodesUtility.ApplyFunction(rVariable, Time, BuffStep);
+}
+
 //timer
 void PrintTimingInformation(Timer& rTimer)
 {
@@ -149,13 +220,17 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::string&, Parameters>())
         .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
         .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
-        .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
+        .def("RotateAndCallFunction", RotateAndCallFunctionCurrentConfiguration)
         .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
+        .def("RotateAndCallFunction", RotateAndCallFunctionCurrentConfigurationAndInitialConfiguration)
+        .def("CallFunction", CallFunctionCurrentConfiguration)
+        .def("CallFunction", CallFunctionCurrentConfigurationAndInitialConfiguration)
         ;
 
     py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
         .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
+        .def("ApplyFunction", ApplyFunctionWithoutBuffer< Variable<double> >)
+        .def("ApplyFunction", ApplyFunctionWithBuffer< Variable<double> >)
         .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
         ;
 
