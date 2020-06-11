@@ -167,8 +167,8 @@ public:
     /**
      * @brief This method creates a new class
      * @param Arguments The arguments of the method
-     * @param Settings The settings of the factory
      * @return The pointer to the class of interest
+     * @tparam TArgumentsType Variadic template arguments
      */
     template<typename... TArgumentsType >
     typename ClassType::Pointer Create(TArgumentsType&&... Arguments) const
