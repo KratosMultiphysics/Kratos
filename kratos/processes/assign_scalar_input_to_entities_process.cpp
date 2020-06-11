@@ -511,12 +511,11 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ReadDataTXT(const
 
     // The other lines
     SizeType counter = 0;
-    SizeType sub_counter = 0;
     std::string::size_type sz;     // alias of size_t
     while(std::getline(buffer, line)) {
         std::istringstream iss(line);
         std::string token;
-        sub_counter = 0;
+        SizeType sub_counter = 0;
 
         while(std::getline(iss, token, '\t')) {
             const double value = std::stod(token, &sz);
