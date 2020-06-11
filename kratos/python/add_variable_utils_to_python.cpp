@@ -109,15 +109,18 @@ void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
  * @param rVariable Reference to the variable to be set
  * @param rValue Reference to the value to set
  * @param rNodes Reference to the nodes container
+ * @param BuffStep The buffer step
  */
 template<class TDataType, class TVarType = Variable<TDataType>>
 void VariableUtilsSetVariable(
     VariableUtils &rVariableUtils,
     const TVarType &rVariable,
     const TDataType &rValue,
-    ModelPart::NodesContainerType &rNodes)
+    ModelPart::NodesContainerType &rNodes,
+    const IndexType BuffStep = 0
+    )
 {
-    rVariableUtils.SetVariable(rVariable, rValue, rNodes);
+    rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);
 }
 
 
@@ -132,6 +135,7 @@ void VariableUtilsSetVariable(
  * @param rNodes Reference to the nodes container
  * @param Flag Flag to filter the nodes that are set
  * @param CheckValue Flag value to be checked
+ * @param BuffStep The buffer step
  */
 template <class TDataType, class TVarType = Variable<TDataType>>
 void VariableUtilsSetVariableForFlag(
@@ -140,9 +144,11 @@ void VariableUtilsSetVariableForFlag(
     const TDataType &rValue,
     ModelPart::NodesContainerType &rNodes,
     const Flags Flag,
-    const bool CheckValue = true)
+    const bool CheckValue = true,
+    const IndexType BuffStep = 0
+    )
 {
-    rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);
+    rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);
 }
 
 template <class TDataType, class TContainerType, class TVarType = Variable<TDataType>>
@@ -218,29 +224,29 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Quaternion<double>>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Vector>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Matrix>>)
-        .def("SetVectorVar", VariableUtilsSetVariable<array_1d<double,3>>)
-        .def("SetVectorVar", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)
-        .def("SetScalarVar", VariableUtilsSetVariable<double>)
-        .def("SetScalarVar", VariableUtilsSetVariableForFlag<double>)
+        .def("SetVectorVar", VariableUtilsSetVariable<array_1d<double,3>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
+        .def("SetVectorVar", VariableUtilsSetVariableForFlag<array_1d<double, 3>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetScalarVar", VariableUtilsSetVariable<double>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
+        .def("SetScalarVar", VariableUtilsSetVariableForFlag<double>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
         .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVectorVar", VariableUtilsSetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
-        .def("SetVariable", VariableUtilsSetVariable<int>)
-        .def("SetVariable", VariableUtilsSetVariable<bool>)
-        .def("SetVariable", VariableUtilsSetVariable<double>)
-        .def("SetVariable", VariableUtilsSetVariable<array_1d<double, 3>>)
-        .def("SetVariable", VariableUtilsSetVariable<Vector>)
-        .def("SetVariable", VariableUtilsSetVariable<Matrix>)
-        .def("SetVariable", VariableUtilsSetVariable<Quaternion<double>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<bool>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<double>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 4>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 6>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 9>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<Vector>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<Matrix>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<Quaternion<double>>)
+        .def("SetVariable", VariableUtilsSetVariable<int>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariable<bool>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariable<double>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariable<array_1d<double, 3>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariable<Vector>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariable<Matrix>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariable<Quaternion<double>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariableForFlag<bool>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariableForFlag<double>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 3>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 4>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 6>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 9>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariableForFlag<Vector>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariableForFlag<Matrix>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVariable", VariableUtilsSetVariableForFlag<Quaternion<double>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<int>)
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<double>)
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<array_1d<double, 3>>)
