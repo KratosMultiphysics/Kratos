@@ -234,7 +234,7 @@ void SolidShellElementSprism3D6N::GetDofList(
 void SolidShellElementSprism3D6N::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -270,7 +270,7 @@ void SolidShellElementSprism3D6N::GetValuesVector(
 void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -306,7 +306,7 @@ void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
 void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -1350,13 +1350,12 @@ int SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo) c
     KRATOS_TRY;
 
     /* Check the neighbours have been calculated */
-    // Neighbour elements
-    const GlobalPointersVector< Element >& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_ERROR_IF(p_neighbour_elements.size() == 0) << "The neighbour elements are not calculated" << std::endl;
-
     // Neighbour nodes
-    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
-    KRATOS_ERROR_IF(p_neighbour_nodes.size() == 0) << "The neighbour nodes are not calculated" << std::endl;
+    KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_NODES)) << "The neighbour nodes are not calculated" << std::endl;
+    if (this->Has(NEIGHBOUR_NODES)) {
+        const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+        KRATOS_ERROR_IF(p_neighbour_nodes.size() == 0) << "The neighbour nodes calculated are empty" << std::endl;
+    }
 
     const int check = BaseType::Check(rCurrentProcessInfo);
 

@@ -45,7 +45,7 @@
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
-
+#include "utilities/properties_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -201,13 +201,14 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("__str__", PrintObject<Timer>)
         ;
 
-
     // Exact integration (for testing)
     py::class_<ExactMortarIntegrationUtility<2,2>>(m,"ExactMortarIntegrationUtility2D2N")
         .def(py::init<>())
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
         ;
@@ -217,9 +218,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
-        .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3>::TestGiDDebug)
+        .def("TestIODebug",&ExactMortarIntegrationUtility<3,3>::TestIODebug)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
@@ -227,9 +230,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
-        .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4>::TestGiDDebug)
+        .def("TestIODebug",&ExactMortarIntegrationUtility<3,4>::TestIODebug)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,3,false,4>>(m,"ExactMortarIntegrationUtility3D3N4N")
@@ -237,9 +242,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactAreaIntegration)
-        .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestGiDDebug)
+        .def("TestIODebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestIODebug)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,4,false,3>>(m,"ExactMortarIntegrationUtility3D4N3N")
@@ -247,9 +254,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t>())
         .def(py::init<const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double>())
+        .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactAreaIntegration)
-        .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestGiDDebug)
+        .def("TestIODebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestIODebug)
         ;
 
     // Mortar utilities
@@ -486,6 +495,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameCondition );
 
+    // PropertiesUtilities
+    auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
+    mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
 }
 
 } // namespace Python.

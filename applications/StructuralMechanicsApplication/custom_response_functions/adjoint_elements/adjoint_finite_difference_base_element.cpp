@@ -97,7 +97,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVector
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 

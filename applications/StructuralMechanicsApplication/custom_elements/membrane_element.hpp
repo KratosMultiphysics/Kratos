@@ -105,15 +105,15 @@ namespace Kratos
 
     void GetValuesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     void GetFirstDerivativesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     void GetSecondDerivativesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -129,13 +129,13 @@ namespace Kratos
 
     void AddExplicitContribution(
       const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-      Variable<array_1d<double, 3>>& rDestinationVariable,
+      const Variable<array_1d<double, 3>>& rDestinationVariable,
       const ProcessInfo& rCurrentProcessInfo) override;
 
     void AddExplicitContribution(
       const VectorType& rRHSVector,
       const Variable<VectorType>& rRHSVariable,
-      Variable<double >& rDestinationVariable,
+      const Variable<double >& rDestinationVariable,
       const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(const Variable<Matrix>& rVariable,

@@ -30,7 +30,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class NearestElementInterfaceInfo : public MapperInterfaceInfo
+class KRATOS_API(MAPPING_APPLICATION) NearestElementInterfaceInfo : public MapperInterfaceInfo
 {
 public:
 
@@ -129,7 +129,7 @@ private:
 
 };
 
-class NearestElementLocalSystem : public MapperLocalSystem
+class KRATOS_API(MAPPING_APPLICATION) NearestElementLocalSystem : public MapperLocalSystem
 {
 public:
 
@@ -164,7 +164,7 @@ private:
 * look into the class description of the MapperCommunicator
 */
 template<class TSparseSpace, class TDenseSpace>
-class NearestElementMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
+class KRATOS_API(MAPPING_APPLICATION) NearestElementMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions

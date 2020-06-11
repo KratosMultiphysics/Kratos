@@ -48,6 +48,47 @@ namespace Kratos
         ///@name Operations
         ///@{
 
+        static typename GeometryType::Pointer CreateFromCoordinates(
+            typename GeometryType::Pointer pGeometry,
+            const array_1d<double, 3>& rCoordinates,
+            double integration_weight)
+        {
+            KRATOS_TRY;
+
+            array_1d<double, 3> local_coordinates;
+            pGeometry->PointLocalCoordinates(local_coordinates, rCoordinates);
+
+            IntegrationPoint<3> int_p(local_coordinates, integration_weight);
+
+            Vector N;
+            pGeometry->ShapeFunctionsValues(N, local_coordinates);
+            Matrix N_matrix(1, N.size());
+            for (IndexType i = 0; i < N.size(); ++i)
+            {
+                N_matrix(0, i) = N[i];
+            }
+
+            Matrix DN_De;
+            pGeometry->ShapeFunctionsLocalGradients(DN_De, local_coordinates);
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                pGeometry->GetDefaultIntegrationMethod(),
+                int_p,
+                N_matrix,
+                DN_De);
+
+            return CreateQuadraturePoint(
+                pGeometry->WorkingSpaceDimension(),
+                pGeometry->LocalSpaceDimension(),
+                data_container,
+                pGeometry->Points(),
+                pGeometry.get());
+
+            KRATOS_CATCH("");
+        }
+
+
+
         static GeometryPointerType CreateQuadraturePointCurveOnSurface(
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
             PointsArrayType rPoints,
@@ -177,7 +218,7 @@ namespace Kratos
                 Matrix N_i = ZeroMatrix(1, pGeometry->size());
                 for (IndexType j = 0; j < pGeometry->size(); ++j)
                 {
-                    N_i(0, j) = r_N(0, j);
+                    N_i(0, j) = r_N(i, j);
                 }
 
                 GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
@@ -210,7 +251,7 @@ namespace Kratos
                 Matrix N_i = ZeroMatrix(1, pGeometry->size());
                 for (IndexType j = 0; j < pGeometry->size(); ++j)
                 {
-                    N_i(0, j) = r_N(0, j);
+                    N_i(0, j) = r_N(i, j);
                 }
 
                 GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(

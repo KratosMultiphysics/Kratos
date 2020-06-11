@@ -116,6 +116,8 @@ public:
     double infinite_friction = 0;
     double inertial_number_one = 0;
     double alpha_parameter = 0;
+    double friction_angle = 0;
+    double cohesion = 0;
 
 #pragma omp parallel
     {
@@ -131,14 +133,19 @@ public:
         bulk_modulus = elemProperties[BULK_MODULUS];
         viscosity = elemProperties[DYNAMIC_VISCOSITY];
 
-        if (elemProperties.Has(YIELD_SHEAR))
+        if (elemProperties.Has(YIELD_SHEAR)) //Bingham model
         {
           flow_index = elemProperties[FLOW_INDEX];
           yield_shear = elemProperties[YIELD_SHEAR];
           adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
         }
-
-        if (elemProperties.Has(STATIC_FRICTION))
+        else if (elemProperties.Has(FRICTION_ANGLE)) //Frictional Viscoplastic model
+        {
+          friction_angle = elemProperties[FRICTION_ANGLE];
+          cohesion = elemProperties[COHESION];
+          adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
+        }
+        else if (elemProperties.Has(STATIC_FRICTION)) //Mu(I)-rheology
         {
 
           static_friction = elemProperties[STATIC_FRICTION];
@@ -185,6 +192,8 @@ public:
         iNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ONE) = inertial_number_one;
         iNode->FastGetSolutionStepValue(INFINITE_FRICTION) = infinite_friction;
         iNode->FastGetSolutionStepValue(ALPHA_PARAMETER) = alpha_parameter;
+        iNode->FastGetSolutionStepValue(FRICTION_ANGLE) = friction_angle;
+        iNode->FastGetSolutionStepValue(COHESION) = cohesion;
       }
     }
 

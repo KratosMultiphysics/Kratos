@@ -398,18 +398,6 @@ public:
             }
         }
 
-        for (ModelPart::ElementsContainerType::iterator it_elem = GetModelPart().ElementsBegin();
-             it_elem != GetModelPart().ElementsEnd(); it_elem++)
-        {
-            it_elem->Check(GetModelPart().GetProcessInfo());
-        }
-
-        for (ModelPart::ConditionsContainerType::iterator it_cond = GetModelPart().ConditionsBegin();
-             it_cond != GetModelPart().ConditionsEnd(); it_cond++)
-        {
-            it_cond->Check(GetModelPart().GetProcessInfo());
-        }
-
         return 0;
 
         KRATOS_CATCH("")
