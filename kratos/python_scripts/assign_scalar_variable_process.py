@@ -37,7 +37,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
             "interval"        : [0.0, 1e30],
             "constrained"     : true,
-            "fill_buffer"     : true,
+            "fill_buffer"     : false,
             "value"           : 0.0,
             "local_axes"      : {}
         }
