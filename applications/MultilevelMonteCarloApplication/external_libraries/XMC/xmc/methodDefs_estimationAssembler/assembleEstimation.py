@@ -5,62 +5,61 @@ from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 import xmc.tools
 
-# TODO - potentially improved name for this method
-def assembleValue(hierarchy,*indexEstimationsList):
+#TODO rename; e.g. 'sum'
+def assembleValue(hierarchy, indexEstimations):
     """
     Compute a simple sum over all index-wise contributions
     """
-    indexEstimationsList = xmc.tools.packedList(indexEstimationsList)
-    return sum(indexEstimationsList)
+    # Flatten nested list and sum
+    return sum([est for estList in indexEstimations for est in estList])
 
-@ExaquteTask(returns=1)
-def assembleValue_Task(hierarchy,*indexEstimationsList):
+@ExaquteTask(returns=1, indexEstimations={Type: COLLECTION_IN, Depth: 2})
+def assembleValue_Task(hierarchy, indexEstimations):
     """
     Same as assembleValue, but is a PYCOMPSS task
     """
-    return assembleValue(hierarchy,*indexEstimationsList)
+    return assembleValue(hierarchy, indexEstimations)
 
-def assembleBias(hierarchy,*indexEstimationsList):
+def assembleBias(hierarchy, indexEstimations):
     """
     Based on hierarchy, compute the sum over the index estimations that lie on
     the boundary of the index space as an estimate for the bias.
     Note - The procedure used in this function to find the boundary of
     a given hierarchy assumes that the index set is covex
     """
-    indexEstimationsList = xmc.tools.packedList(indexEstimationsList)
+    # Select estimations of first random variable
+    indexEstimations = indexEstimations[0]
     # Compute maxima along each dimension of the hierarchy
     index_set,_ = xmc.tools.splitOneListIntoTwo(hierarchy)
     bias_booleans = xmc.tools.strictlyPositiveBoundaryBooleans(index_set)
     bias_estimations = []
     for i in range(len(hierarchy)):
         if bias_booleans[i] is True:
-            bias_estimations.append(indexEstimationsList[i])
+            bias_estimations.append(indexEstimations[i])
     return abs(sum(bias_estimations))
 
-@ExaquteTask(returns=1)
-def assembleBias_Task(hierarchy,*indexEstimationsList):
+@ExaquteTask(returns=1, indexEstimations={Type: COLLECTION_IN, Depth: 2})
+def assembleBias_Task(hierarchy, indexEstimations):
     """
-    Same as assembleBias, but is a PYCOMPSS task
+    Same as assembleBias, but is a PyCOMPSs task
     """
-    return assembleBias(hierarchy,*indexEstimationsList)
+    return assembleBias(hierarchy, indexEstimations)
 
-def assembleStatisticalError(hierarchy,*indexEstimationsList):
+#TODO Duplicate of assembleValue
+#TODO misnamed: variance not divived by number of samples
+def assembleStatisticalError(hierarchy, indexEstimations):
     """
-    Add together the variance divided by number of samples over all indices
-    to estimate statistical error
+    Add together the variance over all indices
+    to estimate global variance
     """
-    indexEstimationsList = xmc.tools.packedList(indexEstimationsList)
-    # TODO Quentin: I don't understand that check below, and it throws an error
-    # even when indexEstimationsList is as expected. Is it a mistake? 
-    # assert(len(indexEstimationsList)==1),"length of indexEstimationsList is not equal to 1"
-    return sum( indexEstimationsList )
+    return assembleValue(hierarchy, indexEstimations)
 
-@ExaquteTask(returns=1)
-def assembleStatisticalError_Task(hierarchy,*indexEstimationsList):
+@ExaquteTask(returns=1, indexEstimations={Type: COLLECTION_IN, Depth: 2})
+def assembleStatisticalError_Task(hierarchy, indexEstimations):
     """
     Same as assembleStatisticalError but is a PYCOMPSS task
     """
-    return assembleStatisticalError(hierarchy,*indexEstimationsList)
+    return assembleStatisticalError(hierarchy, indexEstimations)
 
-def assembleInterpolationError(hierarchy,*indexEstimationsList):
+def assembleInterpolationError(hierarchy, indexEstimations):
     pass

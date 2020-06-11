@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "fluid_element_tests/Test_3D_Newtonian_Sloshing/Test_3D_Newtonian_Sloshing",
         "start_time"      : 0.0,
-        "end_time"        : 0.003,
+        "end_time"        : 0.002,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP",
         "threads"         : 1,
