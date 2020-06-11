@@ -71,23 +71,8 @@ double CalculateConditionWallHeight(const ConditionType& rCondition,
     const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
     const GeometryType& r_condition_geometry = rCondition.GetGeometry();
 
-    auto calculate_cell_center = [](const GeometryType& rGeometry) -> array_1d<double, 3> {
-        const int number_of_nodes = rGeometry.PointsNumber();
-        array_1d<double, 3> cell_center = ZeroVector(3);
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            noalias(cell_center) =
-                cell_center + rGeometry[i_node].Coordinates() *
-                                  (1.0 / static_cast<double>(number_of_nodes));
-        }
-
-        return cell_center;
-    };
-
-    const array_1d<double, 3>& parent_center = calculate_cell_center(r_parent_geometry);
-
-    const array_1d<double, 3>& condition_center =
-        calculate_cell_center(r_condition_geometry);
+    const array_1d<double, 3>& parent_center = r_parent_geometry.Center();
+    const array_1d<double, 3>& condition_center = r_condition_geometry.Center();
 
     return inner_prod(condition_center - parent_center, normal);
 
