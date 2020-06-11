@@ -107,6 +107,7 @@ namespace Kratos
 			double initialTimeRefiningBox = mrRemesh.RefiningBoxInitialTime;
 			double finalTimeRefiningBox = mrRemesh.RefiningBoxFinalTime;
 			bool refiningBox = mrRemesh.UseRefiningBox;
+			bool eulerianInlet = false;
 
 			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
@@ -147,8 +148,8 @@ namespace Kratos
 
 			if (refiningBox == false)
 			{
-
-				if (ElementsToRefine > 0)
+				unsigned int inletNodes = 1;
+				if (ElementsToRefine > 0 || inletNodes > 0)
 				{
 					std::vector<array_1d<double, 3>> NewPositions;
 					std::vector<double> BiggestVolumes;
@@ -180,14 +181,14 @@ namespace Kratos
 					}
 
 					ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-					// const unsigned int nds = element_begin->GetGeometry().size();
+
 					for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
 					{
 
 						//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
 						if (dimension == 2)
 						{
-							SelectEdgeToRefine2D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+							SelectEdgeToRefine2D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine, eulerianInlet);
 
 							if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
 							{
@@ -196,7 +197,7 @@ namespace Kratos
 						}
 						else if (dimension == 3)
 						{
-							SelectEdgeToRefine3D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+							SelectEdgeToRefine3D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine, eulerianInlet);
 
 							if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
 							{
@@ -217,6 +218,21 @@ namespace Kratos
 					}
 					unsigned int maxId = 0;
 					CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, NewDofs, ElementsToRefine, maxId);
+
+					if (eulerianInlet == true)
+					{
+						for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
+						{
+							if (dimension == 2)
+							{
+								AddNodesToEulerianInletZone2D(ie->GetGeometry());
+							}
+							else if (dimension == 3)
+							{
+								AddNodesToEulerianInletZone3D(ie->GetGeometry());
+							}
+						} // elements loop
+					}
 
 					if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
 					{
@@ -268,11 +284,11 @@ namespace Kratos
 					//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
 					if (dimension == 2)
 					{
-						SelectEdgeToRefine2DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+						SelectEdgeToRefine2DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine, eulerianInlet);
 					}
 					else if (dimension == 3)
 					{
-						SelectEdgeToRefine3DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+						SelectEdgeToRefine3DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine, eulerianInlet);
 					}
 
 				} // elements loop
@@ -288,6 +304,21 @@ namespace Kratos
 				}
 				unsigned int maxId = 0;
 				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, NewDofs, ElementsToRefine, maxId);
+
+				if (eulerianInlet == true)
+				{
+					for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
+					{
+						if (dimension == 2)
+						{
+							AddNodesToEulerianInletZone2D(ie->GetGeometry());
+						}
+						else if (dimension == 3)
+						{
+							AddNodesToEulerianInletZone3D(ie->GetGeometry());
+						}
+					} // elements loop
+				}
 			}
 
 			mrRemesh.InputInitializedFlag = false;
@@ -737,7 +768,8 @@ namespace Kratos
 								  std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
 								  std::vector<Node<3>::DofsContainerType> &NewDofs,
 								  int &CountNodes,
-								  int ElementsToRefine)
+								  int ElementsToRefine,
+								  bool &eulerianInlet)
 		{
 			KRATOS_TRY
 
@@ -746,7 +778,8 @@ namespace Kratos
 			unsigned int rigidNodes = 0;
 			unsigned int boundaryNodes = 0;
 			unsigned int freesurfaceNodes = 0;
-			unsigned int inletNodes = 0;
+			unsigned int lagrangianInletNodes = 0;
+			unsigned int eulerianInletNodes = 0;
 			bool toEraseNodeFound = false;
 
 			for (unsigned int pn = 0; pn < nds; pn++)
@@ -769,7 +802,15 @@ namespace Kratos
 				}
 				if (Element[pn].Is(INLET))
 				{
-					inletNodes++;
+					if (Element[pn].Is(SLIP))
+					{
+						eulerianInletNodes++;
+						eulerianInlet = true;
+					}
+					else
+					{
+						lagrangianInletNodes++;
+					}
 				}
 			}
 
@@ -780,7 +821,7 @@ namespace Kratos
 			{
 				// penalization=0.7;
 				penalization = 0.8;
-				if (inletNodes > 0)
+				if (lagrangianInletNodes > 0)
 				{
 					penalization = 0.9;
 				}
@@ -794,6 +835,11 @@ namespace Kratos
 				penalization = 0.85;
 			}
 
+			if (eulerianInletNodes > 0)
+			{
+				penalization = 0;
+			}
+
 			double ElementalVolume = Element.Area();
 
 			array_1d<double, 3> Edges(3, 0.0);
@@ -801,9 +847,6 @@ namespace Kratos
 			array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			// array_1d<double,3> CoorDifference(3,0.0);
-			// noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-			// CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 			Edges[0] = sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
@@ -954,7 +997,8 @@ namespace Kratos
 								  std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
 								  std::vector<Node<3>::DofsContainerType> &NewDofs,
 								  int &CountNodes,
-								  int ElementsToRefine)
+								  int ElementsToRefine,
+								  bool &eulerianInlet)
 		{
 			KRATOS_TRY
 
@@ -962,7 +1006,8 @@ namespace Kratos
 
 			unsigned int rigidNodes = 0;
 			unsigned int freesurfaceNodes = 0;
-			unsigned int inletNodes = 0;
+			unsigned int lagrangianInletNodes = 0;
+			unsigned int eulerianInletNodes = 0;
 			bool toEraseNodeFound = false;
 
 			for (unsigned int pn = 0; pn < nds; pn++)
@@ -981,7 +1026,15 @@ namespace Kratos
 				}
 				if (Element[pn].Is(INLET))
 				{
-					inletNodes++;
+					if (Element[pn].Is(SLIP))
+					{
+						eulerianInletNodes++;
+						eulerianInlet = true;
+					}
+					else
+					{
+						lagrangianInletNodes++;
+					}
 				}
 			}
 
@@ -991,7 +1044,7 @@ namespace Kratos
 			if (rigidNodes > 2)
 			{
 				penalization = 0.7;
-				if (inletNodes > 0)
+				if (lagrangianInletNodes > 0)
 				{
 					penalization = 0.9;
 				}
@@ -1005,6 +1058,11 @@ namespace Kratos
 				penalization = 0.95;
 			}
 
+			if (eulerianInletNodes > 0)
+			{
+				penalization = 0;
+			}
+
 			// if(freesurfaceNodes>2){
 			//   penalization=0.6;
 			// }
@@ -1016,9 +1074,6 @@ namespace Kratos
 			array_1d<unsigned int, 6> SecondEdgeNode(6, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			// array_1d<double,3> CoorDifference(3,0.0);
-			// noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-			// CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 			Edges[0] = sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
@@ -1192,13 +1247,249 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
+		void AddNodesToEulerianInletZone2D(Element::GeometryType &Element)
+		{
+			KRATOS_TRY
+
+			const unsigned int nds = Element.size();
+
+			unsigned int rigidNodes = 0;
+			unsigned int inletNodes = 0;
+			array_1d<unsigned int, 2> inletNodesId;
+			unsigned int notInletNodesId = 0;
+			std::vector<std::vector<double>> ElementPointCoordinates(nds);
+			std::vector<double> PointCoordinates(nds);
+			std::vector<double> NewPointCoordinates(nds);
+			unsigned int id = MesherUtilities::GetMaxNodeId(*(mrModelPart.GetParentModelPart()));
+
+			// std::vector<Node<3>::Pointer> list_of_new_nodes;
+
+			for (unsigned int pn = 0; pn < nds; pn++)
+			{
+				if (Element[pn].Is(RIGID) && Element[pn].IsNot(INLET))
+				{
+					rigidNodes++;
+				}
+				if (Element[pn].Is(INLET))
+				{
+					inletNodesId[inletNodes] = pn;
+					inletNodes++;
+				}
+				else
+				{
+					notInletNodesId = pn;
+				}
+
+				PointCoordinates[0] = Element[pn].X();
+				PointCoordinates[1] = Element[pn].Y();
+				PointCoordinates[2] = Element[pn].Z();
+
+				ElementPointCoordinates[pn] = PointCoordinates;
+			}
+
+			if (inletNodes == 2 && rigidNodes == 0)
+			{
+				array_1d<double, 3> inletEdgeDifference = Element[inletNodesId[1]].Coordinates() - Element[inletNodesId[0]].Coordinates();
+				double squaredLengthInletEdge = inletEdgeDifference[0] * inletEdgeDifference[0] +
+												inletEdgeDifference[1] * inletEdgeDifference[1];
+				double inletEdgeLength = sqrt(squaredLengthInletEdge);
+
+				array_1d<double, 3> movingEdgeDifference = Element[notInletNodesId].Coordinates() - Element[inletNodesId[0]].Coordinates();
+				double squaredMovingEdgeDifference = movingEdgeDifference[0] * movingEdgeDifference[0] +
+													 movingEdgeDifference[1] * movingEdgeDifference[1];
+				double movingEdgeLength = sqrt(squaredMovingEdgeDifference) * 0.5;
+
+				movingEdgeDifference = Element[notInletNodesId].Coordinates() - Element[inletNodesId[1]].Coordinates();
+				squaredMovingEdgeDifference = movingEdgeDifference[0] * movingEdgeDifference[0] +
+											  movingEdgeDifference[1] * movingEdgeDifference[1];
+				movingEdgeLength += sqrt(squaredMovingEdgeDifference) * 0.5;
+
+				if (movingEdgeLength > 1.9 * inletEdgeLength)
+				{
+					id += 1;
+					VariablesList &rVariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
+
+					MeshDataTransferUtilities DataTransferUtilities;
+					double radius = 0;
+					DataTransferUtilities.CalculateCenterAndSearchRadius(ElementPointCoordinates, NewPointCoordinates, radius);
+
+					double x = NewPointCoordinates[0];
+					double y = NewPointCoordinates[1];
+					double z = NewPointCoordinates[2];
+
+					Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id, x, y, z);
+
+					std::vector<double> ShapeFunctionsN;
+
+					bool is_inside = MesherUtilities::CalculatePosition(ElementPointCoordinates, NewPointCoordinates, ShapeFunctionsN);
+
+					pnode->Set(NEW_ENTITY); //not boundary
+					if (mrRemesh.InputInitializedFlag)
+					{
+						mrRemesh.NodalPreIds.push_back(pnode->Id());
+						pnode->SetId(id);
+					}
+
+					pnode->SetSolutionStepVariablesList(&rVariablesList);
+
+					// //set buffer size
+					pnode->SetBufferSize(mrModelPart.GetBufferSize());
+
+					if (is_inside == true)
+					{
+						double alpha = 1; //1 to interpolate, 0 to leave the original data
+						DataTransferUtilities.Interpolate(Element, ShapeFunctionsN, rVariablesList, pnode, alpha);
+					}
+
+					NodeType::DofsContainerType &ReferenceDofs = Element[notInletNodesId].GetDofs();
+					for (Node<3>::DofsContainerType::iterator iii = ReferenceDofs.begin(); iii != ReferenceDofs.end(); iii++)
+					{
+						Node<3>::DofType &rDof = **iii;
+						pnode->pAddDof(rDof);
+					}
+				}
+			}
+
+			KRATOS_CATCH("")
+		}
+
+		void AddNodesToEulerianInletZone3D(Element::GeometryType &Element)
+		{
+
+			KRATOS_TRY
+
+			const unsigned int nds = Element.size();
+
+			unsigned int rigidNodes = 0;
+			unsigned int inletNodes = 0;
+			array_1d<unsigned int, 3> inletNodesId;
+			unsigned int notInletNodesId = 0;
+			std::vector<std::vector<double>> ElementPointCoordinates(nds);
+			std::vector<double> PointCoordinates(nds);
+			std::vector<double> NewPointCoordinates(nds);
+			unsigned int id = MesherUtilities::GetMaxNodeId(*(mrModelPart.GetParentModelPart()));
+
+			// std::vector<Node<3>::Pointer> list_of_new_nodes;
+
+			for (unsigned int pn = 0; pn < nds; pn++)
+			{
+				if (Element[pn].Is(RIGID) && Element[pn].IsNot(INLET))
+				{
+					rigidNodes++;
+				}
+				if (Element[pn].Is(INLET))
+				{
+					inletNodesId[inletNodes] = pn;
+					inletNodes++;
+				}
+				else
+				{
+					notInletNodesId = pn;
+				}
+
+				PointCoordinates[0] = Element[pn].X();
+				PointCoordinates[1] = Element[pn].Y();
+				PointCoordinates[2] = Element[pn].Z();
+
+				ElementPointCoordinates[pn] = PointCoordinates;
+			}
+
+			if (inletNodes == 3 && rigidNodes == 0)
+			{
+				array_1d<double, 3> inletEdgeDifference = Element[inletNodesId[1]].Coordinates() - Element[inletNodesId[0]].Coordinates();
+				double squaredLengthInletEdge = inletEdgeDifference[0] * inletEdgeDifference[0] +
+												inletEdgeDifference[1] * inletEdgeDifference[1] +
+												inletEdgeDifference[2] * inletEdgeDifference[2];
+				double inletEdgeLength = sqrt(squaredLengthInletEdge) / 3.0;
+
+				inletEdgeDifference = Element[inletNodesId[2]].Coordinates() - Element[inletNodesId[0]].Coordinates();
+				squaredLengthInletEdge = inletEdgeDifference[0] * inletEdgeDifference[0] +
+										 inletEdgeDifference[1] * inletEdgeDifference[1] +
+										 inletEdgeDifference[2] * inletEdgeDifference[2];
+				inletEdgeLength += sqrt(squaredLengthInletEdge) / 3.0;
+
+				inletEdgeDifference = Element[inletNodesId[2]].Coordinates() - Element[inletNodesId[1]].Coordinates();
+				squaredLengthInletEdge = inletEdgeDifference[0] * inletEdgeDifference[0] +
+										 inletEdgeDifference[1] * inletEdgeDifference[1] +
+										 inletEdgeDifference[2] * inletEdgeDifference[2];
+				inletEdgeLength += sqrt(squaredLengthInletEdge) / 3.0;
+
+
+				array_1d<double, 3> movingEdgeDifference = Element[notInletNodesId].Coordinates() - Element[inletNodesId[0]].Coordinates();
+				double squaredMovingEdgeDifference = movingEdgeDifference[0] * movingEdgeDifference[0] +
+													 movingEdgeDifference[1] * movingEdgeDifference[1] +
+													 movingEdgeDifference[2] * movingEdgeDifference[2];
+				double movingEdgeLength = sqrt(squaredMovingEdgeDifference) / 3.0;
+
+				movingEdgeDifference = Element[notInletNodesId].Coordinates() - Element[inletNodesId[1]].Coordinates();
+				squaredMovingEdgeDifference = movingEdgeDifference[0] * movingEdgeDifference[0] +
+											  movingEdgeDifference[1] * movingEdgeDifference[1] +
+											  movingEdgeDifference[2] * movingEdgeDifference[2];
+				movingEdgeLength += sqrt(squaredMovingEdgeDifference) / 3.0;
+
+				movingEdgeDifference = Element[notInletNodesId].Coordinates() - Element[inletNodesId[2]].Coordinates();
+				squaredMovingEdgeDifference = movingEdgeDifference[0] * movingEdgeDifference[0] +
+											  movingEdgeDifference[1] * movingEdgeDifference[1]+
+											  movingEdgeDifference[2] * movingEdgeDifference[2];
+				movingEdgeLength += sqrt(squaredMovingEdgeDifference) / 3.0;
+
+				if (movingEdgeLength > 1.4 * inletEdgeLength)
+				{
+					id += 1;
+					VariablesList &rVariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
+
+					MeshDataTransferUtilities DataTransferUtilities;
+					double radius = 0;
+					DataTransferUtilities.CalculateCenterAndSearchRadius(ElementPointCoordinates, NewPointCoordinates, radius);
+
+					double x = NewPointCoordinates[0];
+					double y = NewPointCoordinates[1];
+					double z = NewPointCoordinates[2];
+
+					Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id, x, y, z);
+
+					std::vector<double> ShapeFunctionsN;
+
+					bool is_inside = MesherUtilities::CalculatePosition(ElementPointCoordinates, NewPointCoordinates, ShapeFunctionsN);
+
+					pnode->Set(NEW_ENTITY); //not boundary
+					if (mrRemesh.InputInitializedFlag)
+					{
+						mrRemesh.NodalPreIds.push_back(pnode->Id());
+						pnode->SetId(id);
+					}
+
+					pnode->SetSolutionStepVariablesList(&rVariablesList);
+
+					// //set buffer size
+					pnode->SetBufferSize(mrModelPart.GetBufferSize());
+
+					if (is_inside == true)
+					{
+						double alpha = 1; //1 to interpolate, 0 to leave the original data
+						DataTransferUtilities.Interpolate(Element, ShapeFunctionsN, rVariablesList, pnode, alpha);
+					}
+
+					NodeType::DofsContainerType &ReferenceDofs = Element[notInletNodesId].GetDofs();
+					for (Node<3>::DofsContainerType::iterator iii = ReferenceDofs.begin(); iii != ReferenceDofs.end(); iii++)
+					{
+						Node<3>::DofType &rDof = **iii;
+						pnode->pAddDof(rDof);
+					}
+				}
+			}
+
+			KRATOS_CATCH("")
+		}
+
 		void SelectEdgeToRefine2DWithRefinement(Element::GeometryType &Element,
 												std::vector<array_1d<double, 3>> &NewPositions,
 												std::vector<double> &BiggestVolumes,
 												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
 												std::vector<Node<3>::DofsContainerType> &NewDofs,
 												int &CountNodes,
-												int ElementsToRefine)
+												int ElementsToRefine,
+												bool &eulerianInlet)
 		{
 			KRATOS_TRY
 
@@ -1206,7 +1497,7 @@ namespace Kratos
 
 			unsigned int rigidNodes = 0;
 			unsigned int freesurfaceNodes = 0;
-			unsigned int inletNodes = 0;
+			unsigned int eulerianInletNodes = 0;
 			bool toEraseNodeFound = false;
 
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
@@ -1240,7 +1531,11 @@ namespace Kratos
 				}
 				if (Element[pn].Is(INLET))
 				{
-					inletNodes++;
+					if (Element[pn].Is(SLIP))
+					{
+						eulerianInletNodes++;
+						eulerianInlet = true;
+					}
 				}
 
 				if (refiningBox == true)
@@ -1356,6 +1651,11 @@ namespace Kratos
 				{
 					penalization = 1.2;
 				}
+			}
+
+			if (eulerianInletNodes > 0)
+			{
+				penalization = 0;
 			}
 
 			double limitEdgeLength = 1.9 * meanMeshSize * penalization;
@@ -1488,7 +1788,8 @@ namespace Kratos
 												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
 												std::vector<Node<3>::DofsContainerType> &NewDofs,
 												int &CountNodes,
-												int ElementsToRefine)
+												int ElementsToRefine,
+												bool &eulerianInlet)
 		{
 			KRATOS_TRY
 
@@ -1496,7 +1797,7 @@ namespace Kratos
 
 			unsigned int rigidNodes = 0;
 			unsigned int freesurfaceNodes = 0;
-			unsigned int inletNodes = 0;
+			unsigned int eulerianInletNodes = 0;
 			bool toEraseNodeFound = false;
 
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
@@ -1530,7 +1831,11 @@ namespace Kratos
 				}
 				if (Element[pn].Is(INLET))
 				{
-					inletNodes++;
+					if (Element[pn].Is(SLIP))
+					{
+						eulerianInletNodes++;
+						eulerianInlet = true;
+					}
 				}
 
 				if (refiningBox == true)
@@ -1683,6 +1988,11 @@ namespace Kratos
 				{
 					penalization = 1.15;
 				}
+			}
+
+			if (eulerianInletNodes > 0)
+			{
+				penalization = 0;
 			}
 
 			double limitEdgeLength = 1.6 * meanMeshSize * penalization;
@@ -1939,12 +2249,14 @@ namespace Kratos
 
 			//assign data to dofs
 			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
+			// std::cout<<"VariablesList"<<VariablesList<<std::endl;
 
 			for (unsigned int nn = 0; nn < NewPositions.size(); nn++)
 			{
 
 				unsigned int id = initial_node_size + nn;
 				maxId = id;
+
 				double x = NewPositions[nn][0];
 				double y = NewPositions[nn][1];
 				double z = 0;
