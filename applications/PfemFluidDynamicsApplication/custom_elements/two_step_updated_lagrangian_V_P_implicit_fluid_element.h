@@ -323,12 +323,6 @@ protected:
                                        double &bulkCoefficient,
                                        double timeStep) override;
 
-  void ComputeMaterialParametersGranularGas(double &Density,
-                                            double &DeviatoricCoeff,
-                                            double &VolumetricCoeff,
-                                            ProcessInfo &rCurrentProcessInfo,
-                                            ElementalVariables &rElementalVariables) override;
-
   void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
                              const double Weight) override;
 

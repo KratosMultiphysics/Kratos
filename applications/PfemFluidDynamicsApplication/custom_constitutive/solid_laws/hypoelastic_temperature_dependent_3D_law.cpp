@@ -59,7 +59,7 @@ int HypoelasticTemperatureDependent3DLaw::Check(const Properties& rMaterialPrope
         << "Incorrect or missing POISSON_RATIO provided in process info for HypoelasticTemperatureDependent3DLaw: "
         << rMaterialProperties[POISSON_RATIO] << std::endl;
 
-    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] <= 0.0)
+    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0)
         << "Incorrect or missing DENSITY provided in process info for HypoelasticTemperatureDependent3DLaw: "
         << rMaterialProperties[DENSITY] << std::endl;
 

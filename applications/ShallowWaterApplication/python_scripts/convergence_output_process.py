@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
+import KratosMultiphysics.StatisticsApplication as STATS
 
 # Other imports
 import h5py
@@ -23,8 +24,7 @@ class ConvergenceOutputProcess(KM.Process):
                 "file_name"                  : "output_file",
                 "analysis_label"             : "label",
                 "analysis_attributes"        : {},
-                "convergence_variables_list" : [],
-                "weighting_variable"         : "NODAL_AREA"
+                "convergence_variables_list" : []
             }
             """
             )
@@ -38,11 +38,8 @@ class ConvergenceOutputProcess(KM.Process):
         self.f.flush() # Since this process will reuse the existing files, we need to ensure the file construction is finished. Otherwise problems may arise if the first analysis didn't finish.
 
         self.variables = [KM.KratosGlobals.GetVariable(v) for v in self.settings["convergence_variables_list"].GetStringArray()]
-        self.weight_variable = KM.KratosGlobals.GetVariable(settings["weighting_variable"].GetString())
 
     def ExecuteBeforeSolutionLoop(self):
-        if self.weight_variable == KM.NODAL_AREA:
-            KM.CalculateNonHistoricalNodalAreaProcess(self.model_part).Execute()
         self.dset = self._GetDataset()
         self.start_time = time.time()
 
@@ -61,9 +58,6 @@ class ConvergenceOutputProcess(KM.Process):
         for variable in self.variables:
             if not isinstance(variable, KM.DoubleVariable):
                 raise Exception("This process is expecting only double or component variables")
-
-        if not isinstance(self.weight_variable, KM.DoubleVariable):
-            raise Exception("The weighting variable is expected to be a double variable")
 
     def _WriteAttributes(self, dset):
         for key, param in self.settings["analysis_attributes"].items():
@@ -140,7 +134,7 @@ class ConvergenceOutputProcess(KM.Process):
             elapsed_time]
 
         for variable in self.variables:
-            value = SW.ShallowWaterUtilities().RootMeanSquareNonHistorical(variable, self.weight_variable, self.model_part.Nodes)
+            value = STATS.SpatialMethods.NonHistorical.Nodes.ValueMethods.RootMeanSquare(self.model_part, variable)
             case_data.append(value)
 
         case_idx = self.dset.len()
