@@ -745,6 +745,18 @@ double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicAccelerating(
     return Drho_Dq2 - bracket_term;
 }
 
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicDeaccelerating(
+    const array_1d<double, Dim>& rCurrentVelocity, 
+    const array_1d<double, Dim>& rUpwindVelocity, 
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rCurrentVelocity, rCurrentVelocity), rCurrentProcessInfo);
+
+    const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+
+    return Drho_Dq2 - upwind_factor * Drho_Dq2;
+}
 
 
 template <int Dim, int NumNodes>
@@ -891,6 +903,7 @@ template double ComputeDensity<2, 3>(const double localMachNumberSquared, const 
 template double ComputeUpwindedDensity<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivativeWRTVelocitySquared<2,3>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicAccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -934,6 +947,7 @@ template double ComputeDensity<3, 4>(const double localMachNumberSquared, const 
 template double ComputeUpwindedDensity<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivativeWRTVelocitySquared<3,4>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicAccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
