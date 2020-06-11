@@ -152,11 +152,9 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_NODAL_EQUIVALENT_STRAIN_RATE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_NODAL_MEAN_MESH_SIZE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_NODAL_TAU)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_NODAL_FREESURFACE_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_VOLUMETRIC_COEFFICIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_DEVIATORIC_COEFFICIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_INTERFACE_NODE)
+
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.EULERIAN_INLET)
 
         # Pfem Extra Vars
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)

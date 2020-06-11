@@ -527,15 +527,6 @@ public:
 				std::cout << "THIS node does not have SOLID_NODAL_MEAN_MESH_SIZE... " << itNode->X() << " " << itNode->Y() << std::endl;
 			}
 
-			if (itNode->SolutionStepsDataHas(SOLID_NODAL_FREESURFACE_AREA))
-			{
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_FREESURFACE_AREA) = 0;
-			}
-			else
-			{
-				std::cout << "THIS node does not have SOLID_NODAL_FREESURFACE_AREA... " << itNode->X() << " " << itNode->Y() << std::endl;
-			}
-
 			if (itNode->SolutionStepsDataHas(SOLID_NODAL_SFD_NEIGHBOURS))
 			{
 				Vector &rSolidNodalSFDneighbours = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS);
@@ -1069,10 +1060,6 @@ public:
 		if (itNode->SolutionStepsDataHas(SOLID_NODAL_MEAN_MESH_SIZE))
 		{
 			itNode->FastGetSolutionStepValue(SOLID_NODAL_MEAN_MESH_SIZE) = 0;
-		}
-		if (itNode->SolutionStepsDataHas(SOLID_NODAL_FREESURFACE_AREA))
-		{
-			itNode->FastGetSolutionStepValue(SOLID_NODAL_FREESURFACE_AREA) = 0;
 		}
 		if (itNode->SolutionStepsDataHas(SOLID_NODAL_VOLUMETRIC_DEF_RATE))
 		{
@@ -2406,7 +2393,6 @@ public:
 
 			i->FastGetSolutionStepValue(SOLID_NODAL_VOLUME) = 0;
 			i->FastGetSolutionStepValue(SOLID_NODAL_MEAN_MESH_SIZE) = 0;
-			i->FastGetSolutionStepValue(SOLID_NODAL_FREESURFACE_AREA) = 0;
 			i->FastGetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE) = 0;
 			i->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE) = 0;
 
