@@ -124,7 +124,7 @@ class BaseFactory
 public:
     ///@name Type Definitions
     ///@{
-        
+
     /// The definition of the class
     typedef TClass ClassType;
 
@@ -166,70 +166,22 @@ public:
 
     /**
      * @brief This method creates a new class
-     * @param rModel The model containing the problem
+     * @param Arguments The arguments of the method
      * @param Settings The settings of the factory
      * @return The pointer to the class of interest
      */
-    template<typename = std::enable_if<std::is_same<TAuxiliarClass, TClass>::value>>
-    typename ClassType::Pointer Create(Kratos::Parameters Settings) const
+    template<typename... TArgumentsType >
+    typename ClassType::Pointer Create(TArgumentsType&&... Arguments) const
     {
+        std::tuple<TArgumentsType...> args(Arguments...);
+        constexpr std::size_t args_size = std::tuple_size<std::tuple<TArgumentsType...>>::value;
+        Kratos::Parameters Settings = std::get<args_size - 1>(args);
         const std::string& r_name = Settings["name"].GetString();
-        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
-                                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << "\n" <<
+                                            "Which does not exist. The list of available options (for currently loaded applications) are: \n" <<
                                             KratosComponents<ClassType>() << std::endl;
         const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
-        return aux.Create(Settings);
-    }
-
-    /**
-     * @brief This method creates a new class
-     * @param rModel The model containing the problem
-     * @param Settings The settings of the factory
-     * @return The pointer to the class of interest
-     */
-    template<typename = std::enable_if<std::is_same<TAuxiliarClass, Model>::value>>
-    typename ClassType::Pointer Create(Model& rModel, Kratos::Parameters Settings) const
-    {
-        const std::string& r_name = Settings["name"].GetString();
-        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
-                                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
-                                            KratosComponents<ClassType>() << std::endl;
-        const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
-        return aux.Create(rModel, Settings);
-    }
-
-    /**
-     * @brief This method creates a new class
-     * @param rModelPart The model part containing the problem
-     * @param Settings The settings of the factory
-     * @return The pointer to the class of interest
-     */
-    template<typename = std::enable_if<std::is_same<TAuxiliarClass, ModelPart>::value>>
-    typename ClassType::Pointer Create(ModelPart& rModelPart, Kratos::Parameters Settings) const
-    {
-        const std::string& r_name = Settings["name"].GetString();
-        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
-                                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
-                                            KratosComponents<ClassType>() << std::endl;
-        const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
-        return aux.Create(rModelPart, Settings);
-    }
-
-    /**
-     * @brief This method creates a new class
-     * @param pLinearSolver The pointer to the linear solver
-     * @param Settings The settings of the factory
-     * @return The pointer to the class of interest
-     */
-    template<typename = std::enable_if<std::is_same<TAuxiliarClass, LinearSolverType>::value>>
-    typename ClassType::Pointer Create(typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings) const
-    {
-        const std::string& r_name = Settings["name"].GetString();
-        KRATOS_ERROR_IF_NOT(Has( r_name )) << "Trying to construct a class with type name= " << r_name << std::endl <<
-                                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
-                                            KratosComponents<ClassType>() << std::endl;
-        const ClassType& aux = KratosComponents<ClassType>::Get( r_name );
-        return aux.Create(pLinearSolver, Settings);
+        return aux.Create(std::forward<TArgumentsType>(Arguments)...);
     }
 
     ///@}
