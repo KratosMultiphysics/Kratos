@@ -149,10 +149,13 @@ template <int Dim, int NumNodes>
 double ComputeDensityDerivativeWRTVelocitySquared(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicAccelerating(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindedDensityDerivativeVelocitySquaredSupersonicDeaccelerating(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
