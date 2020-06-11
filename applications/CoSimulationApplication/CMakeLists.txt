@@ -24,6 +24,7 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     include(pybind11Tools)
 
     include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+    include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io )
 
     ## CoSimulation Core sources
     file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_CORE

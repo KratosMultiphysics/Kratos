@@ -55,6 +55,9 @@
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
+#include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
+#include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/johnson_cook_thermal_plastic_axisym_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
@@ -267,6 +270,10 @@ private:
     const LinearElasticPlaneStress2DLaw                     mLinearElasticPlaneStress2DLaw;
     const LinearElasticPlaneStrain2DLaw                     mLinearElasticPlaneStrain2DLaw;
     const LinearElasticAxisym2DLaw                          mLinearElasticAxisym2DLaw;
+    // CL: Johnson Cooker Thermal Plastic laws
+    const JohnsonCookThermalPlastic3DLaw                    mJohnsonCookThermalPlastic3DLaw;
+    const JohnsonCookThermalPlastic2DPlaneStrainLaw         mJohnsonCookThermalPlastic2DPlaneStrainLaw;
+    const JohnsonCookThermalPlastic2DAxisymLaw              mJohnsonCookThermalPlastic2DAxisymLaw;
     // CL: Hyperelastic laws
     const HyperElastic3DLaw                                 mHyperElastic3DLaw;
     const HyperElasticPlaneStrain2DLaw                      mHyperElasticPlaneStrain2DLaw;

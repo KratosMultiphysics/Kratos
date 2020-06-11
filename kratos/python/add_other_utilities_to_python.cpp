@@ -46,6 +46,7 @@
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/specifications_utilities.h"
+#include "utilities/properties_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -509,6 +510,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     mod_spec_utils.def("DetermineIfRequiresTimeIntegration", &SpecificationsUtilities::DetermineIfRequiresTimeIntegration );
     mod_spec_utils.def("CheckCompatibleConstitutiveLaws", &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
     mod_spec_utils.def("GetDocumention", &SpecificationsUtilities::GetDocumention );
+  
+    // PropertiesUtilities
+    auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
+    mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
 }
 
 } // namespace Python.
