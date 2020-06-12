@@ -285,7 +285,7 @@ namespace MPMSearchElementUtility
 
             array_1d<double, 3> dummy_local_coords;
         for (size_t i = 0; i < rPoints.size(); ++i) {
-            if (rReferenceGeom.IsInside(rPoints[i], dummy_local_coords), Tolerance) return false;
+            if (rReferenceGeom.IsInside(rPoints[i], dummy_local_coords, Tolerance)) return false;
         }
         return true;
 
