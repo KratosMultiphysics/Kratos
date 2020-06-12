@@ -775,7 +775,6 @@ namespace MPMSearchElementUtility
 
             // Transfer local data to containers
             if (trial_subpoint.Weight() > pqmpm_min_fraction) {
-                //intersected_elements[i]->Set(ACTIVE);
                 ips[active_subpoint_index] = trial_subpoint;
                 DN_De_vector[active_subpoint_index] = DN_De;
                 for (size_t j = 0; j < N.size(); ++j) {
@@ -832,7 +831,7 @@ namespace MPMSearchElementUtility
             ips_container, shape_function_container, shape_function_derivatives_container);
 
 
-
+        for (size_t i = 0; i < nodes_list_active.size(); i++) nodes_list_active[i].Set(ACTIVE);
         return CreateCustomQuadraturePoint(working_dim, rGeometry.LocalSpaceDimension(), data_container, nodes_list_active, &rGeometry);
 
         KRATOS_CATCH("");
