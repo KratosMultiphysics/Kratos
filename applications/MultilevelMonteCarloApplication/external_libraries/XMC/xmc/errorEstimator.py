@@ -1,5 +1,4 @@
 from xmc.tools import dynamicImport
-from xmc.tools import unpackedList
 
 class ErrorEstimator():
     """
@@ -14,5 +13,5 @@ class ErrorEstimator():
         # Methods
         self._errorMethod = dynamicImport(keywordArgs.get('error'))
 
-    def error(self, *assembledEstimationsList):
-        return self._errorMethod(self.parameters,*unpackedList(assembledEstimationsList))
+    def error(self, *args):
+        return self._errorMethod(self.parameters,*args)

@@ -45,7 +45,7 @@
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
-
+#include "utilities/properties_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -495,6 +495,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameCondition );
 
+    // PropertiesUtilities
+    auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
+    mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
 }
 
 } // namespace Python.

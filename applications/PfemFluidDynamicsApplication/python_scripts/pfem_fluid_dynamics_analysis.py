@@ -145,6 +145,11 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self.GraphicalOutputExecuteBeforeSolutionLoop()
 
+        self._solver.InitializeSolutionStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        self.GraphicalOutputPrintOutput()
+
         # Set time settings
         self.step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]

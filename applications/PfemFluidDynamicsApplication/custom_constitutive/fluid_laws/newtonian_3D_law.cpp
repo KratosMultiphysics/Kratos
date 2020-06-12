@@ -89,15 +89,11 @@ int Newtonian3DLaw::Check(const Properties& rMaterialProperties, const GeometryT
 std::string Newtonian3DLaw::Info() const { return "Newtonian3DLaw"; }
 
 double Newtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_properties = rParameters.GetMaterialProperties();
-    const double effective_viscosity = r_properties[DYNAMIC_VISCOSITY];
-    return effective_viscosity;
+    return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
 }
 
 double Newtonian3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_properties = rParameters.GetMaterialProperties();
-    const double effective_density = r_properties[DENSITY];
-    return effective_density;
+    return rParameters.GetMaterialProperties()[DENSITY];
 }
 
 void Newtonian3DLaw::save(Serializer& rSerializer) const {
