@@ -48,7 +48,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
                 initial_relaxation = 0.825
         else:
             max_relaxation = 0.9
-            min_relaxation = 0.7
+            min_relaxation = 0.1
             initial_relaxation = 0.825
             self.aitken_max_iterations = 10
             self.aitken_residual_dof_tolerance = 1e-5

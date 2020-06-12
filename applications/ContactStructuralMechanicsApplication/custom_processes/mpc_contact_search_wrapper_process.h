@@ -70,10 +70,12 @@ public:
      * @brief The constructor of the search utility uses the following inputs:
      * @param rMainModelPart The model part to be considered
      * @param ThisParameters The configuration parameters
+     * @param pPairedProperties Properties of the pair
      */
     MPCContactSearchWrapperProcess(
         ModelPart& rMainModelPart,
-        Parameters ThisParameters =  Parameters(R"({})")
+        Parameters ThisParameters =  Parameters(R"({})"),
+        Properties::Pointer pPairedProperties = nullptr
         );
 
     virtual ~MPCContactSearchWrapperProcess()= default;;

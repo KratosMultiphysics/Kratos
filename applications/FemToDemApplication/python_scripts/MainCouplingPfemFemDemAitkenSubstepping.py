@@ -23,7 +23,9 @@ class MainCouplingPfemFemDemAitkenSubstepping_Solution(MainCouplingPfemFemDemAit
 
     def __init__(self, Model, PFEMparameters):
         # Initialize solutions of the FEMDEM and PFEM
+        self.model = Model
         self.FEMDEM_Solution = MainCouplingFemDemSubstepping_for_PFEM_coupling.MainCoupledFemDemSubstepping_for_PFEM_coupling_Solution(Model)
+        self.FEMDEM_Solution.is_slave = True
         self.FEMDEM_Solution.Initialize()
 
         self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, 
