@@ -21,40 +21,32 @@
 #include <sstream>
 #include <cstddef>
 
+// External includes
 
 // Project includes
-#include "includes/define.h"
-//#include "includes/datafile_io.h"
 #include "includes/gid_io.h"
+#include "includes/gid_gauss_point_container.h"
 #include "includes/deprecated_variables.h"
+#include "free_surface_application.h"
 
 
 namespace Kratos
 {
 /**
- * Type definitions
- */
-typedef ModelPart::ElementsContainerType ElementsArrayType;
-typedef ModelPart::NodesContainerType NodesArrayType;
-typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-typedef GeometryData::IntegrationMethod IntegrationMethodType;
-typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
-
-/**
  * Auxiliary class to store gauss point containers and perform result printing
  * on gauss points
  */
-class EdgebasedGidGaussPointsContainer
+class EdgebasedGidGaussPointsContainer : public GidGaussPointsContainer
 {
 public:
+    typedef GidGaussPointsContainer BaseType;
     ///Constructor
     EdgebasedGidGaussPointsContainer( const char* gp_title, KratosGeometryFamily geometryFamily,
-                                      GiD_ElementType gid_element_type,
-                                      int number_of_integration_points,
-                                      std::vector<int> index_container )
-        :mGPTitle(gp_title),mKratosElementFamily(geometryFamily),
-         mGidElementFamily(gid_element_type), mSize(number_of_integration_points),
-         mIndexContainer(index_container) {}
+                                       GiD_ElementType gid_element_type,
+                                       int number_of_integration_points,
+                                       std::vector<int> index_container )
+        :BaseType( gp_title, geometryFamily, gid_element_type, number_of_integration_points,
+                   index_container) {}
 
     bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
     {
@@ -83,8 +75,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
-                       double SolutionTag, int value_index = 0 )
+    void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& rModelPart,
+                       double SolutionTag, int ValueIndex = 0 )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -98,7 +90,7 @@ public:
                         it != mMeshElements.end(); it++ )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -112,7 +104,7 @@ public:
                         it != mMeshConditions.end(); it++ )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -124,25 +116,24 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<bool> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<bool>& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex ) override
     {
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex ) override
+    {
+    }
+
+    void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double, 3> >& rVariable, ModelPart& rModelPart,
+                       double SolutionTag, unsigned int ValueIndex ) override
     {
     }
 
 
-    void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part,
-                       double SolutionTag, int value_index = 0 )
-    {
-    }
-
-
-    void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
-                       double SolutionTag, int value_index = 0 )
+    void PrintResults( GiD_FILE ResultFile, const Variable<Vector>& rVariable, ModelPart& rModelPart,
+                       double SolutionTag, unsigned int ValueIndex ) override
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -156,7 +147,7 @@ public:
                         it != mMeshElements.end(); ++it )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -172,7 +163,7 @@ public:
                         it != mMeshConditions.end(); it++ )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -186,8 +177,8 @@ public:
         }
     }
 
-    void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& r_model_part,
-                       double SolutionTag, int value_index = 0 )
+    void PrintResults( GiD_FILE ResultFile, const Variable<Matrix>& rVariable, ModelPart& rModelPart,
+                       double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -201,7 +192,7 @@ public:
                         it != mMeshElements.end(); ++it )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -226,7 +217,7 @@ public:
                         it != mMeshConditions.end(); it++ )
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                                                     rModelPart.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
@@ -255,7 +246,6 @@ public:
         mMeshConditions.clear();
     }
 
-public:
     void WriteGaussPoints(GiD_FILE ResultFile)
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -302,13 +292,15 @@ protected:
  * Auxiliary class to store meshes of different element types and to
  * write these meshes to an output file
  */
-class EdgebasedGidMeshContainer
+
+class EdgebasedGidMeshContainer : public GidMeshContainer
 {
 public:
+    typedef GidMeshContainer BaseType;
     ///Constructor
     EdgebasedGidMeshContainer( GeometryData::KratosGeometryType geometryType,
                                GiD_ElementType elementType, const char* mesh_title )
-        :mGeometryType(geometryType), mGidElementType(elementType), mMeshTitle(mesh_title) {}
+        :BaseType( geometryType, elementType, mesh_title) {}
 
     bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
     {
@@ -575,6 +567,8 @@ public:
     ModelPart::ConditionsContainerType mMeshConditions;
     const char* mMeshTitle;
 };//class EdgebasedGidMeshContainer
+
+KRATOS_API_EXTERN template class KRATOS_API(FREE_SURFACE_APPLICATION) GidIO<EdgebasedGidGaussPointsContainer,EdgebasedGidMeshContainer>;
 
 }// namespace Kratos.
 

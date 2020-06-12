@@ -26,12 +26,16 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
         FEMDEM_utilities = KratosFemDem.FEMDEMCouplingUtilities()
         FEMDEM_utilities.SaveStructuralSolution(self.FEM_Solution.main_model_part)
+        # FEMDEM_utilities.IdentifyFreeParticles(self.FEM_Solution.main_model_part, self.DEM_Solution.spheres_model_part)
+
         # Perform substepping
         pseudo_substepping_time = 0
         if self.DEM_Solution.spheres_model_part.NumberOfElements() > 0:
-            self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping...")
+            self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping... Explicit time step: " + str(self.DEM_Solution.solver.dt))
+            self.FEM_Solution.KratosPrintInfo("")
             while pseudo_substepping_time <= self.FEM_Solution.delta_time:
                 ### Begin Substepping
+                
                 self.BeforeSolveDEMOperations()
                 FEMDEM_utilities.InterpolateStructuralSolution(self.FEM_Solution.main_model_part,
                                                                self.FEM_Solution.delta_time,
@@ -53,11 +57,12 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
                 self.UpdateDEMVariables()
 
                 # DEM GiD print output
-                self.PrintDEMResults()
+                # self.PrintDEMResults()
 
                 # Advancing in DEM explicit scheme
                 pseudo_substepping_time += self.DEM_Solution.solver.dt
             ### End Substepping
+            
             # Reset the data base for the FEM
             FEMDEM_utilities.RestoreStructuralSolution(self.FEM_Solution.main_model_part)
 
@@ -68,13 +73,38 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         if self.TransferDEMContactForcesToFEM:
             FEMDEM_utilities.ComputeAndTranferAveragedContactTotalForces(self.FEM_Solution.main_model_part, self.FEM_Solution.delta_time)
 
-        self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
+#============================================================================================================================
+    def FinalizeSolutionStep(self):
 
-        # Update Coupled Postprocess file for Gid (post.lst)
-        self.WritePostListFile()
+        # Transfer the contact forces of the DEM to the FEM nodes
+        if self.TransferDEMContactForcesToFEM:
+            self.TransferNodalForcesToFEM()
+
+        self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 
         # Print required info
         self.PrintPlotsFiles()
+        
+        # MODIFIED FOR THE REMESHING
+        self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
+
+        # processes to be executed at the end of the solution step
+        self.FEM_Solution.model_processes.ExecuteFinalizeSolutionStep()
+
+        # processes to be executed before witting the output
+        self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        # self.FEM_Solution.GraphicalOutputPrintOutput()
+
+        # processes to be executed after writting the output
+        self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
+
+        if not self.is_slave:
+            self.PrintResults()
+            
+        if self.DoRemeshing:
+             self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
 
 #============================================================================================================================
     def BeforeSolveDEMOperations(self):

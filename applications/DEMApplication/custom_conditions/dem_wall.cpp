@@ -123,6 +123,53 @@ void DEMWall::CalculateRightHandSide(
     }
 }
 
+void DEMWall::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info)
+{
+
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+    unsigned int MatSize = number_of_nodes * dim;
+
+    if (rElasticForces.size() != MatSize)
+    {
+        rElasticForces.resize(MatSize, false);
+    }
+    rElasticForces = ZeroVector(MatSize);
+
+    std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
+
+    for (unsigned int i=0; i<rNeighbours.size(); i++)
+    {
+
+        if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
+
+        std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
+
+        for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
+        {
+            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
+
+            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
+            {
+                const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
+                double ContactElasticForce[3] = {0.0};
+
+                const array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];
+                ContactElasticForce[0] = neighbour_rigid_faces_elastic_contact_force[0];
+                ContactElasticForce[1] = neighbour_rigid_faces_elastic_contact_force[1];
+                ContactElasticForce[2] = neighbour_rigid_faces_elastic_contact_force[2];
+
+                for (unsigned int k=0; k< number_of_nodes; k++) {
+                    unsigned int w =  k * dim;
+                    for(size_t l=0; l<dim; l++) {
+                        rElasticForces[w + l] += -ContactElasticForce[l] * weights_vector[k];
+                    }
+                }
+            }//if the condition neighbour of my sphere neighbour is myself.
+        }//Loop spheres neighbours (condition)
+    }//Loop condition neighbours (spheres)
+}
+
 void DEMWall::ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector) {
     if(p_particle->Is(DEMFlags::STICKY)) return;
 
@@ -138,12 +185,6 @@ void DEMWall::ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_partic
         }//if the condition neighbour of my sphere neighbour is myself.
     }
 
-}
-
-void DEMWall::CalculateElasticForces(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& r_process_info) {
-      KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::CalculateElasticForces) shouldn't be accessed, use derived class instead", 0);
 }
 
 void DEMWall::GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode)
@@ -212,9 +253,10 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
 }
 
 
-double DEMWall::GetYoung()                                                      { return GetProperties()[YOUNG_MODULUS]; }
-double DEMWall::GetTgOfFrictionAngle()                                          { return GetProperties()[FRICTION]; }
-double DEMWall::GetPoisson()                                                    { return GetProperties()[POISSON_RATIO]; }
+double DEMWall::GetYoung() const                    { return GetProperties()[YOUNG_MODULUS];    }
+double DEMWall::GetPoisson() const                  { return GetProperties()[POISSON_RATIO];    }
+double DEMWall::GetTgOfStaticFrictionAngle() const  { return GetProperties()[STATIC_FRICTION];  }
+double DEMWall::GetTgOfDynamicFrictionAngle() const { return GetProperties()[DYNAMIC_FRICTION]; }
 
 
 void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)

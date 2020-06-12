@@ -46,6 +46,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "contact_property_ids"          : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "friction_coefficients"         : {"0": 0.0,"1": 0.0,"2": 0.0,"3": 0.0,"4": 0.0,"5": 0.0,"6": 0.0,"7": 0.0,"8": 0.0,"9": 0.0},
             "contact_type"                  : "Frictionless",
             "not_normal_update_frictional"  : false,
             "interval"                      : [0.0,"End"],
@@ -57,6 +58,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
+            "consider_tessellation"         : false,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {

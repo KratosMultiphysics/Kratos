@@ -24,8 +24,9 @@ namespace Kratos
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AdvancedContactSearchProcess(
     ModelPart & rMainModelPart,
-    Parameters ThisParameters
-    ) : BaseType(rMainModelPart, ThisParameters)
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
+    ) : BaseType(rMainModelPart, ThisParameters, pPairedProperties)
 {
 }
 
@@ -40,7 +41,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairin
 {
     // Getting the corresponding submodelparts
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = BaseType::mOptions.IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
     ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart("MasterSubModelPart" + BaseType::mThisParameters["id_name"].GetString());
     ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart("SlaveSubModelPart" + BaseType::mThisParameters["id_name"].GetString());
 
@@ -86,7 +87,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
 
     // Iterate over the nodes
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = BaseType::mOptions.IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     // If we do an static check
@@ -99,7 +100,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
     #pragma omp parallel for firstprivate(auxiliar_length, auxiliar_check, has_weighted_gap)
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = r_nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == BaseType::mOptions.IsNot(BaseType::INVERTED_SEARCH)) {
+        if (it_node->Is(SLAVE) == this->IsNot(BaseType::INVERTED_SEARCH)) {
             auxiliar_check = false;
             auxiliar_length = reference_auxiliar_length;
             has_weighted_gap = it_node->SolutionStepsDataHas(WEIGHTED_GAP);
@@ -177,7 +178,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeLine
 
     // Iterate over the nodes
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = BaseType::mOptions.IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + BaseType::mThisParameters["id_name"].GetString());
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     // We compute now the normal gap and set the nodes under certain threshold as active
@@ -439,7 +440,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMF
     )
 {
     if (norm_2(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || BaseType::mOptions.Is(BaseType::PURE_SLIP)) {
+        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseType::PURE_SLIP)) {
             ItNode->Set(SLIP, true);
         } else {
             ItNode->Set(SLIP, false);
@@ -556,7 +557,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMF
     )
 {
     if (norm_2(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || BaseType::mOptions.Is(BaseType::PURE_SLIP)) {
+        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseType::PURE_SLIP)) {
             ItNode->Set(SLIP, true);
         } else {
             ItNode->Set(SLIP, false);

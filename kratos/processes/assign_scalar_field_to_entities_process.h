@@ -69,9 +69,6 @@ public:
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
 
-    /// The defition of a component of an array
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
-
     /// Pointer definition of AssignScalarFieldToEntitiesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToEntitiesProcess);
 
@@ -118,6 +115,11 @@ public:
     {
         Execute();
     }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -167,8 +169,6 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignScalarFieldToEntitiesProcess(AssignScalarFieldToEntitiesProcess const& rOther);
-
     ///@}
     ///@name Protected Operations
     ///@{

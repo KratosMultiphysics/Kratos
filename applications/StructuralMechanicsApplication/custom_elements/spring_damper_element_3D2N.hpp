@@ -112,35 +112,28 @@ public:
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize() override;
 
     //************* COMPUTING  METHODS
 
@@ -153,8 +146,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-			      VectorType& rRightHandSideVector, 
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+			      VectorType& rRightHandSideVector,
 			      ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -184,7 +177,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
 		    ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -193,7 +186,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
 		    ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -203,7 +196,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -298,4 +291,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED  defined 
+#endif // KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED  defined
