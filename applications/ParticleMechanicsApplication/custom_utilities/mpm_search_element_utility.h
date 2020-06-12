@@ -74,7 +74,7 @@ namespace MPMSearchElementUtility
                     break;
                 }
                 cross_products[i] = CrossProductDet2D(Coords - rGeom.Points()[i].Coordinates(),
-                    rGeom.Points()[(i+1)% rGeom.PointsNumber()].Coordinates()- rGeom.Points()[i].Coordinates());
+                    rGeom.Points()[(i + 1) % rGeom.PointsNumber()].Coordinates() - rGeom.Points()[i].Coordinates());
             }
             for (size_t i = 1; i < cross_products.size(); ++i)
             {
@@ -86,6 +86,7 @@ namespace MPMSearchElementUtility
             }
 
         }
+        else return rGeom.IsInside(Coords, LocalCoords, Tolerance);
 
         if (is_inside) {
             if (IsCalcLocalCoords) return rGeom.IsInside(Coords, LocalCoords, Tolerance);
@@ -254,18 +255,18 @@ namespace MPMSearchElementUtility
             NodeType point_low, point_high;
         for (size_t i = 0; i < rIntersectedGeometries.size(); ++i) {
             if (rIntersectedGeometries[i]->GetGeometryType() != GeometryData::Kratos_Hexahedra3D8) {
-                KRATOS_INFO("MPMSearchElementUtility::Check3DBackGroundMeshIsCubicAxisAligned - ")
+                #pragma omp single
+                KRATOS_ERROR << "MPMSearchElementUtility::Check3DBackGroundMeshIsCubicAxisAligned - "
                     << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED RECTANGULAR-PRISM BACKGROUND GRIDS" << std::endl;
-                KRATOS_ERROR << "ERROR" << std::endl;
             }
             rIntersectedGeometries[i]->BoundingBox(point_low, point_high);
             for (size_t j = 0; j < rIntersectedGeometries[i]->PointsNumber(); ++j) {
                 for (size_t k = 0; k < 3; ++k) {
                     if (rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_low[k]) {
                         if (rIntersectedGeometries[i]->GetPoint(j).Coordinates()[k] != point_high[k]) {
-                            KRATOS_INFO("MPMSearchElementUtility::Check3DBackGroundMeshIsCubicAxisAligned - ")
+                            #pragma omp single
+                            KRATOS_ERROR << "MPMSearchElementUtility::Check3DBackGroundMeshIsCubicAxisAligned - "
                                 << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED RECTANGULAR-PRISM BACKGROUND GRIDS" << std::endl;
-                            KRATOS_ERROR << "ERROR" << std::endl;
                         }
                     }
                 }
@@ -586,7 +587,7 @@ namespace MPMSearchElementUtility
                 else if (node_it->HasDofFor(DISPLACEMENT_Z))  if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
                 if (is_fixed) {
                     const double fixed_point_to_cog = norm_2(node_it->Coordinates() - rCoordinates);
-                    if (fixed_point_to_cog < (IntersectedGeometries[i]->WorkingSpaceDimension() == 3) ? 2.0 : 1.414214 * SideHalfLength) return true;
+                    if (fixed_point_to_cog < ((IntersectedGeometries[i]->WorkingSpaceDimension() == 3) ? 2.0 : 1.414214 * SideHalfLength)) return true;
                 }
             }
         }
@@ -770,8 +771,6 @@ namespace MPMSearchElementUtility
                 trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
                     *intersected_geometries[i], N, DN_De);
             }
-
-            KRATOS_WATCH(trial_subpoint.Weight())
 
             // Transfer local data to containers
             if (trial_subpoint.Weight() > pqmpm_min_fraction) {
