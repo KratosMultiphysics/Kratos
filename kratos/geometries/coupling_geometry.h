@@ -331,10 +331,11 @@ public:
                         global_coords, global_coords_master, local_coords_master);
                     int success = mpGeometries[0]->ProjectionPoint(
                         global_coords, global_coords_master, local_coords_master);
-                    KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords - global_coords_master) > 1e-6))
+                    KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords - global_coords_master) > 1e-4))
                         << "Projection of intersection spans failed. Global Coordinates on slave: "
                         << global_coords << ", and global coordinates on master: "
-                        << global_coords_master << ". Difference large than 1e-6." << std::endl;
+                        << global_coords_master << ". Difference: " << norm_2(global_coords - global_coords_master)
+                        << " larger than 1e-4." << std::endl;
 
                     // If success == 0, it is considered that the projection is on one of the boundaries.
                     intersection_master_spans.push_back(local_coords_master[0]);
@@ -362,6 +363,8 @@ public:
         IndexType NumberOfShapeFunctionDerivatives,
         const IntegrationPointsArrayType& rIntegrationPoints) override
     {
+        const double model_tolerance = 1e-3;
+
         const SizeType num_integration_points = rIntegrationPoints.size();
 
         if (rResultGeometries.size() != num_integration_points) {
@@ -426,12 +429,11 @@ public:
             integration_points_slave);
 
         for (SizeType i = 0; i < num_integration_points; ++i) {
-            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) < 1e-6)
-                << "Difference between master and slave above tolerance of 1e-6. Location of master: "
-                << master_quadrature_points(i)->Center() << ", location of slave: "
+            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > model_tolerance)
+                << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                << ". Location of master: " << master_quadrature_points(i)->Center() << ", location of slave: "
                 << slave_quadrature_points(i)->Center() << ". Distance: "
-                << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center())
-                << std::endl;
+                << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;
 
             rResultGeometries(i) = Kratos::make_shared<CouplingGeometry<PointType>>(
                 master_quadrature_points(i), slave_quadrature_points(i));
