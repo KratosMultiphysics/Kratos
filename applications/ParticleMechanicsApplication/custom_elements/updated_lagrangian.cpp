@@ -211,7 +211,10 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     {
         KRATOS_INFO("UpdatedLagrangian")<<" Element: "<<this->Id()<<std::endl;
         KRATOS_INFO("UpdatedLagrangian")<<" Element position: "<< mMP.xg <<std::endl;
+        KRATOS_INFO("UpdatedLagrangian")<<" Element velocity: "<< mMP.velocity <<std::endl;
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
+        KRATOS_INFO("UpdatedLagrangian") << " Shape functions: " << r_geometry.ShapeFunctionsValues() << std::endl;
+        KRATOS_INFO("UpdatedLagrangian") << " Quadrature points: " << r_geometry.IntegrationPointsNumber() << std::endl;
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
