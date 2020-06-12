@@ -222,7 +222,7 @@ namespace MPMSearchElementUtility
                 array_1d<double, 3> local_coordinates;
                 bool is_found = false;
 
-                GeometryType& r_found_geom = FindGridGeom(condition_itr->GetGeometry().GetGeometryParent(0),
+                GeometryType& r_found_geom = FindGridGeom(condition_itr->GetGeometry(),
                     rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
                     rMPMModelPart.GetProcessInfo(), is_found);
 
