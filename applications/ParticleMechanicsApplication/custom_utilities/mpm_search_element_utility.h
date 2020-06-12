@@ -149,7 +149,6 @@ namespace MPMSearchElementUtility
         {
             if (!rParentGeom.Has(GEOMETRY_NEIGHBOURS))
                 ConstructNeighbourRelations(rParentGeom, rBackgroundGridModelPart);
-            std::cout << "neighbour\n";
 
             auto& geometry_neighbours = rParentGeom.GetValue(GEOMETRY_NEIGHBOURS);
             for (IndexType k = 0; k < geometry_neighbours.size(); k++)
