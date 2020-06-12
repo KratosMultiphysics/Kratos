@@ -219,7 +219,7 @@ namespace MPMSearchElementUtility
 
         for (size_t j = 0; j < rN.size2(); ++j) {
             SizeType nonzero_entries = 0;
-            for (size_t i = 0; i < rIntergrationSubPoints.size(); i++) if (rN(i, j) != 0.0) nonzero_entries += 1;
+            for (size_t i = 0; i < rIntergrationSubPoints.size(); i++) if (rN(i, j) > 0.0) nonzero_entries += 1;
             if (nonzero_entries != 1) {
                 KRATOS_INFO("MPMSearchElementUtility::Check - ") << "There must be only one nonzero entry per shape function column!";
                 KRATOS_ERROR << "ERROR";
@@ -738,7 +738,7 @@ namespace MPMSearchElementUtility
         const SizeType number_of_sub_material_points = intersected_geometries.size();
         PointerVector<Node<3>> nodes_list(number_of_nodes);
         IntegrationPointsArrayType ips(number_of_sub_material_points);
-        Matrix N_matrix(number_of_sub_material_points, number_of_nodes, 0.0);
+        Matrix N_matrix(number_of_sub_material_points, number_of_nodes, -1.0);
         DenseVector<Matrix> DN_De_vector(number_of_sub_material_points);
 
         // Temporary local containers

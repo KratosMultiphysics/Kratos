@@ -130,7 +130,7 @@ public:
         const SizeType points_number = this->PointsNumber();
         IndexType active_point_index = 0;
         for (IndexType i = 0; i < points_number; ++i) {
-            if (r_N(IntegrationPointIndex,i) > std::numeric_limits<double>::epsilon()) { // only use active nodes
+            if (r_N(IntegrationPointIndex,i) >= 0.0) { // only use active nodes
                 const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
                 for (IndexType k = 0; k < working_space_dimension; ++k) {
                     const double value = r_coordinates[k];

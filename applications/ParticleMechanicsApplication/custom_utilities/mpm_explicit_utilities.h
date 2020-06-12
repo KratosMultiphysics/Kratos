@@ -58,7 +58,7 @@ namespace Kratos
             Element& rElement, Vector& rMPStrain, Matrix& rDeformationGradient,
             const SizeType StrainSize);
 
-        inline void GetCartesianDerivatives(std::vector<Matrix>& rDN_DXVec, const GeometryType& rGeom);
+        inline void GetCartesianDerivatives(std::vector<Matrix>& rDN_DXVec, GeometryType& rGeom);
     }; // namespace ExplicitIntegrationUtilities
 }  // namespace Kratos
 #endif /* KRATOS_MPM_EXPLICIT_UTILITIES defined */

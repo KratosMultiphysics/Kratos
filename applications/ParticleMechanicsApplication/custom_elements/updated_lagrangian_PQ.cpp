@@ -86,7 +86,7 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces(
     {
         for (IndexType i = 0; i < number_of_nodes; ++i)
         {
-            if (GetGeometry().ShapeFunctionValue(int_p, i) > 0.0) // skip inactive nodes
+            if (GetGeometry().ShapeFunctionValue(int_p, i) >= 0.0) // skip inactive nodes
             {
                 for (unsigned int j = 0; j < dimension; ++j)
                 {
@@ -109,7 +109,6 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
     mFinalizedStep = false;
 
     // Calculating shape functions
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double, 3> nodal_momentum = ZeroVector(3);
     array_1d<double, 3>  nodal_inertia = ZeroVector(3);
 
@@ -118,7 +117,7 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
     {
         for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
         {
-            if (r_geometry.ShapeFunctionValue(int_p, i) > 0.0) // skip inactive nodes
+            if (r_geometry.ShapeFunctionValue(int_p, i) >= 0.0) // skip inactive nodes
             {
                 for (unsigned int j = 0; j < dimension; j++)
                 {
