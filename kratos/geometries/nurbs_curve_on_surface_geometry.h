@@ -37,6 +37,7 @@ public:
     ///@{
 
     typedef typename TSurfaceContainerPointType::value_type NodeType;
+    typedef typename TCurveContainerPointType::value_type CurveNodeType;
 
     typedef Geometry<NodeType> BaseType;
 
@@ -180,9 +181,9 @@ public:
         mpNurbsSurface->Spans(surface_spans_u, 0);
         mpNurbsSurface->Spans(surface_spans_v, 1);
 
-        CurveAxisIntersection<2, NodeType>::ComputeAxisIntersection(
+        CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
             rSpans,
-            *this, Start, End,
+            *(mpNurbsCurve.get()), Start, End,
             surface_spans_u, surface_spans_v,
             1e-6);
     }

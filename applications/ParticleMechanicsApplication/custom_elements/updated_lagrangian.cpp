@@ -544,7 +544,7 @@ void UpdatedLagrangian::CalculateAndAddInternalForces(VectorType& rRightHandSide
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo, 
+void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
     GeneralVariables& rVariables)
 {
     KRATOS_TRY
@@ -592,8 +592,8 @@ void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentPro
     rVariables.StrainVector = mMP.almansi_strain_vector;
 
     // Update gradient deformation
-    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment    
-    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment    
+    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment
+    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment
     rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
     rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
     rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
@@ -726,7 +726,7 @@ double& UpdatedLagrangian::CalculateVolumeChange( double& rVolumeChange, General
     KRATOS_CATCH( "" )
 }
 
-void UpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDisplacement, 
+void UpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDisplacement,
     const bool IsAxisymmetric)
 {
     KRATOS_TRY
@@ -950,14 +950,20 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
     mMP.almansi_strain_vector = rVariables.StrainVector;
 
     // Delta Plastic Strains
-    mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, mMP.delta_plastic_strain );
-    mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, mMP.delta_plastic_volumetric_strain);
-    mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, mMP.delta_plastic_deviatoric_strain);
+    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, mMP.delta_plastic_strain );
+    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, mMP.delta_plastic_volumetric_strain);
+    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, mMP.delta_plastic_deviatoric_strain);
 
     // Total Plastic Strain
-    mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, mMP.equivalent_plastic_strain );
-    mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
-    mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
+    if (mConstitutiveLawVector->Has(MP_EQUIVALENT_PLASTIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, mMP.equivalent_plastic_strain );
+    if (mConstitutiveLawVector->Has(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
+    if (mConstitutiveLawVector->Has(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
 
     const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
@@ -1047,7 +1053,7 @@ void UpdatedLagrangian::InitializeMaterial()
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
-        mConstitutiveLawVector->InitializeMaterial( 
+        mConstitutiveLawVector->InitializeMaterial(
             GetProperties(), GetGeometry(), N);
 
         mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
@@ -1360,7 +1366,7 @@ void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, const Proc
     if ( rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size)
         rMassMatrix.resize( matrix_size, matrix_size, false );
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
-    
+
     if (!is_lumped_mass_matrix) {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             for (IndexType j = 0; j < number_of_nodes; ++j) {
@@ -1566,6 +1572,11 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     else if (rVariable == MP_TOTAL_ENERGY) {
         rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
     }
+    else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
+        rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||
+        rVariable == MP_TEMPERATURE) {
+        rValues[0] = mConstitutiveLawVector->GetValue(rVariable, rValues[0]);
+    }
     else
     {
         KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
@@ -1725,11 +1736,19 @@ int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
 
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT) : false;
+
     bool correct_strain_measure = false;
     for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
     {
-        if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
-            correct_strain_measure = true;
+        if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient) correct_strain_measure = true;
+        if (is_explicit && LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Velocity_Gradient) correct_strain_measure = true;
+
+    }
+    if (true)
+    {
+
     }
 
     KRATOS_ERROR_IF(correct_strain_measure == false ) << "Constitutive law is not compatible with the element type: Large Displacements " << std::endl;
