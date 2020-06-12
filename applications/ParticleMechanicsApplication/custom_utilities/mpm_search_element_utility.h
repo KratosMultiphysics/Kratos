@@ -168,8 +168,7 @@ namespace MPMSearchElementUtility
     inline void NeighbourSearchElements(const ModelPart& rMPMModelPart,
         const ModelPart& rBackgroundGridModelPart,
         std::vector<typename Element::Pointer>& rMissingElements,
-        const double Tolerance,
-        const ProcessInfo& rProcessInfo)
+        const double Tolerance)
     {
         #pragma omp for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
@@ -177,13 +176,11 @@ namespace MPMSearchElementUtility
             array_1d<double, 3> local_coordinates;
             bool is_found = false;
             std::vector<array_1d<double, 3>> xg;
-            element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rProcessInfo);
+            element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rBackgroundGridModelPart.GetProcessInfo());
 
             GeometryType& r_found_geom = FindGridGeom(element_itr->GetGeometry().GetGeometryParent(0),
                 rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
                 rMPMModelPart.GetProcessInfo(), is_found);
-
-            if (IsExplicitAndNeedsCorrection(local_coordinates, rProcessInfo)) is_found = false;
 
             if (is_found)
             {
@@ -191,13 +188,17 @@ namespace MPMSearchElementUtility
                     r_found_geom, local_coordinates,
                     element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
-                // Update geometry of particle element
-                element_itr->SetGeometry(p_new_geometry);
+                if (IsExplicitAndNeedsCorrection(p_new_geometry, rBackgroundGridModelPart.GetProcessInfo()))
+                    is_found = false;
+                else {
+                    // Update geometry of particle element
+                    element_itr->SetGeometry(p_new_geometry);
 
-                for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
-                    r_found_geom.Points()[j].Set(ACTIVE);
+                    for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
+                        r_found_geom.Points()[j].Set(ACTIVE);
+                }
             }
-            else
+            if(!is_found)
             {
                 #pragma omp critical
                 rMissingElements.push_back(&*element_itr);
@@ -208,8 +209,7 @@ namespace MPMSearchElementUtility
     inline void NeighbourSearchConditions(const ModelPart& rMPMModelPart,
         const ModelPart& rBackgroundGridModelPart,
         std::vector<typename Condition::Pointer>& rMissingConditions,
-        const double Tolerance,
-        const ProcessInfo& rProcessInfo)
+        const double Tolerance)
     {
         #pragma omp for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i) {
@@ -405,8 +405,6 @@ namespace MPMSearchElementUtility
     void SearchElement(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
         const double Tolerance)
     {
-        const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
-
         ResetElementsAndNodes(rBackgroundGridModelPart);
 
         const bool use_neighbour_search = true; //TODO delete - for testing only
@@ -416,8 +414,8 @@ namespace MPMSearchElementUtility
 
         if (use_neighbour_search)
         {
-            NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements, Tolerance, r_process_info);
-            NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, missing_conditions, Tolerance, r_process_info);
+            NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements, Tolerance);
+            NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, missing_conditions, Tolerance);
         }
         else
         {
