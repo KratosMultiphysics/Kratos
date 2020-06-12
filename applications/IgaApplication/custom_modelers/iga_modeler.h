@@ -33,7 +33,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(KRATOS_IGA_APPLICATION) IgaModeler
+class KRATOS_API(IGA_APPLICATION) IgaModeler
     : public Modeler
 {
 public:
