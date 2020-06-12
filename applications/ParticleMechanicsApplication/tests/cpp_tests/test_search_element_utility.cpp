@@ -358,7 +358,7 @@ namespace Testing
             MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
-        #pragma omp critical
+
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
@@ -366,8 +366,8 @@ namespace Testing
         Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 9);
-        std::vector<double> result_weight = { 0.0307296, 0.103553,0.0121636,
-            0.128553, 0.5, 0.0785534, 0.0214466, 0.103553, 0.0214466 };
+        std::vector<double> result_weight = { 0.5, 0.0307296, 0.103553,0.0121636,
+            0.0785534, 0.103553, 0.128553, 0.0214466, 0.0214466 };
         for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); i++)
         {
             //KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
