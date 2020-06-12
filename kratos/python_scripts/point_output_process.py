@@ -172,7 +172,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
     def __CheckVariableIsSolutionStepVariable(self, var):
         # if the requested Variable is a component we check the source Variable
-        if type(var) == KratosMultiphysics.DoubleVariable:
+        if type(var) == KratosMultiphysics.DoubleVariable: # TODO check this, might no longer work!
             var = var.GetSourceVariable()
 
         if not self.model_part.HasNodalSolutionStepVariable(var):
