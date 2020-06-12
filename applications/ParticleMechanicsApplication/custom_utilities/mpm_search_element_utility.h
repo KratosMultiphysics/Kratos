@@ -602,7 +602,6 @@ namespace MPMSearchElementUtility
             rCoord[2] - (rGeom.WorkingSpaceDimension() == 3) ? 1.0 : 0.0 * SideHalfLength);
         const Point point_high(rCoord[0] + SideHalfLength, rCoord[1] + SideHalfLength,
             rCoord[2] + (rGeom.WorkingSpaceDimension() == 3) ? 1.0 : 0.0 * SideHalfLength);
-        //double center_to_center, maximum_contact_range, char_length;
         NodeType ele_point_low, ele_point_high;
 
         double center_to_center = norm_2(rGeom.Center() - rCoord);
