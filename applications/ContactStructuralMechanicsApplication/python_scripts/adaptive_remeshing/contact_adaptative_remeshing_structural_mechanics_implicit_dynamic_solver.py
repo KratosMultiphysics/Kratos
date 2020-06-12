@@ -67,7 +67,7 @@ class AdaptativeRemeshingContactImplicitMechanicalSolver(contact_structural_mech
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
-        return AdaptativeRemeshingContactMechanicalUtilities().GetConvergenceCriteria(self.main_model_part, error_criteria, conv_settings)
+        return AdaptativeRemeshingContactMechanicalUtilities().GetConvergenceCriteria(self.main_model_part, error_criteria, conv_settings, self.settings["compute_error_settings"])
 
     @classmethod
     def GetDefaultSettings(cls):

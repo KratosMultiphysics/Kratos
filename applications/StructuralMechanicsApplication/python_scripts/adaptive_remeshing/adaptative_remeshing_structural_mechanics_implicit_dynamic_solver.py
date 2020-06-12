@@ -48,7 +48,7 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
-        return AdaptativeRemeshingMechanicalUtilities().GetConvergenceCriteria(error_criteria, conv_settings)
+        return AdaptativeRemeshingMechanicalUtilities().GetConvergenceCriteria(error_criteria, conv_settings, self.settings["compute_error_settings"])
 
     @classmethod
     def GetDefaultSettings(cls):
