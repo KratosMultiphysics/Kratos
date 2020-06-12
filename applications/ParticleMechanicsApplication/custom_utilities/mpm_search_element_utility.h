@@ -1137,36 +1137,16 @@ namespace MPMSearchElementUtility
     {
         ResetElementsAndNodes(rBackgroundGridModelPart);
 
-        const bool use_neighbour_search = true; //TODO delete - for testing only
-
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
 
-        if (use_neighbour_search)
-        {
-            NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements, Tolerance);
-            NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, missing_conditions, Tolerance);
-        }
-        else
-        {
-            missing_elements.resize(rMPMModelPart.NumberOfElements());
-            for (size_t i = 0; i < rMPMModelPart.NumberOfElements(); ++i)
-            {
-                missing_elements[i] = &*(rMPMModelPart.Elements().begin() + i);
-            }
-
-            missing_conditions.resize(rMPMModelPart.NumberOfConditions());
-            for (size_t i = 0; i < rMPMModelPart.NumberOfConditions(); ++i)
-            {
-                missing_conditions[i] = &*(rMPMModelPart.Conditions().begin() + i);
-            }
-        }
+        NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements, Tolerance);
+        NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, missing_conditions, Tolerance);
 
         if (missing_conditions.size() > 0 || missing_elements.size() > 0)
             BinBasedSearchElementsAndConditions<TDimension>(rMPMModelPart,
                 rBackgroundGridModelPart, missing_elements, missing_conditions,
                 MaxNumberOfResults, Tolerance);
-
     }
 } // end namespace MPMSearchElementUtility
 
