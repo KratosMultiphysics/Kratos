@@ -81,9 +81,10 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces(
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
+    double weight;
     for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
     {
+        weight = (GetGeometry().IntegrationPointsNumber() > 1) ? GetGeometry().IntegrationPoints()[int_p].Weight() : 1.0;
         for (IndexType i = 0; i < number_of_nodes; ++i)
         {
             if (GetGeometry().ShapeFunctionValue(int_p, i) >= 0.0) // skip inactive nodes
@@ -91,7 +92,7 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces(
                 for (unsigned int j = 0; j < dimension; ++j)
                 {
                     rRightHandSideVector[dimension * i + j] += GetGeometry().ShapeFunctionValue(int_p, i) *
-                        rVolumeForce[j] * GetGeometry().IntegrationPoints()[int_p].Weight();
+                        rVolumeForce[j] * weight;
                 }
             }
         }
@@ -111,20 +112,21 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
     // Calculating shape functions
     array_1d<double, 3> nodal_momentum = ZeroVector(3);
     array_1d<double, 3>  nodal_inertia = ZeroVector(3);
-
+    double weight;
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
         {
+            weight = (GetGeometry().IntegrationPointsNumber() > 1) ? GetGeometry().IntegrationPoints()[int_p].Weight() : 1.0;
             if (r_geometry.ShapeFunctionValue(int_p, i) >= 0.0) // skip inactive nodes
             {
                 for (unsigned int j = 0; j < dimension; j++)
                 {
                     nodal_momentum[j] = r_geometry.ShapeFunctionValue(int_p, i) * mMP.velocity[j] *
-                        mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                        mMP.mass * weight;
                     nodal_inertia[j] = r_geometry.ShapeFunctionValue(int_p, i) * mMP.acceleration[j] *
-                        mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                        mMP.mass * weight;
                 }
 
                 // Add in the predictor velocity increment for central difference explicit
@@ -135,7 +137,7 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
                         const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
                         for (unsigned int j = 0; j < dimension; j++) {
                             nodal_momentum[j] += 0.5 * delta_time * (r_geometry.ShapeFunctionValue(int_p, i) *
-                                mMP.acceleration[j]) * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                                mMP.acceleration[j]) * mMP.mass * weight;
                         }
                     }
                 }
@@ -144,7 +146,7 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
                 r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
                 r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
                 r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_geometry.ShapeFunctionValue(int_p, i)
-                    * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                    * mMP.mass * weight;
                 r_geometry[i].UnSetLock();
             }
         }
