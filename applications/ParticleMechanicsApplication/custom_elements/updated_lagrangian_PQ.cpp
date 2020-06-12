@@ -36,26 +36,19 @@ namespace Kratos
 
 UpdatedLagrangianPQ::UpdatedLagrangianPQ( )
     : UpdatedLagrangian( )
-{
-    //DO NOT CALL IT: only needed for Register and Serialization!!!
-}
+{ }//DO NOT CALL IT: only needed for Register and Serialization!!!
 
 UpdatedLagrangianPQ::UpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry )
     : UpdatedLagrangian( NewId, pGeometry )
-{
-    //DO NOT ADD DOFS HERE!!!
-}
+{ }//DO NOT ADD DOFS HERE!!!
 
 UpdatedLagrangianPQ::UpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : UpdatedLagrangian( NewId, pGeometry, pProperties )
-{
-    mFinalizedStep = true;
-}
+{ mFinalizedStep = true; }
 
 UpdatedLagrangianPQ::UpdatedLagrangianPQ(UpdatedLagrangianPQ const& rOther)
     :UpdatedLagrangian(rOther)
-{
-}
+{ }
 
 UpdatedLagrangianPQ& UpdatedLagrangianPQ::operator=(UpdatedLagrangianPQ const& rOther)
 {
@@ -64,25 +57,19 @@ UpdatedLagrangianPQ& UpdatedLagrangianPQ::operator=(UpdatedLagrangianPQ const& r
 }
 
 Element::Pointer UpdatedLagrangianPQ::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
-{
-    return Element::Pointer( new UpdatedLagrangianPQ( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
-}
+{ return Element::Pointer( new UpdatedLagrangianPQ( NewId, GetGeometry().Create( ThisNodes ), pProperties ) ); }
 
 Element::Pointer UpdatedLagrangianPQ::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
-{
-    return Kratos::make_intrusive< UpdatedLagrangianPQ >(NewId, pGeom, pProperties);
-}
+{ return Kratos::make_intrusive< UpdatedLagrangianPQ >(NewId, pGeom, pProperties); }
 
 Element::Pointer UpdatedLagrangianPQ::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
     UpdatedLagrangianPQ NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-
     return Element::Pointer( new UpdatedLagrangianPQ(NewElement) );
 }
 
 UpdatedLagrangianPQ::~UpdatedLagrangianPQ()
-{
-}
+{ }
 
 void UpdatedLagrangianPQ::CalculateAndAddExternalForces(
     VectorType& rRightHandSideVector,
@@ -95,19 +82,16 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces(
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
     for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
     {
         for (IndexType i = 0; i < number_of_nodes; ++i)
         {
-            if (r_N(int_p, i) > 0.0)// skip inactive nodes
+            if (GetGeometry().ShapeFunctionValue(int_p, i) > 0.0) // skip inactive nodes
             {
-                int index = dimension * i;
-
                 for (unsigned int j = 0; j < dimension; ++j)
                 {
-                    rRightHandSideVector[index + j] += r_N(int_p, i) * rVolumeForce[j] * GetGeometry().IntegrationPoints()[int_p].Weight();
+                    rRightHandSideVector[dimension * i + j] += GetGeometry().ShapeFunctionValue(int_p, i) *
+                        rVolumeForce[j] * GetGeometry().IntegrationPoints()[int_p].Weight();
                 }
             }
         }
@@ -134,12 +118,14 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
     {
         for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
         {
-            if (r_N(int_p, i) > 0.0) // skip inactive nodes
+            if (r_geometry.ShapeFunctionValue(int_p, i) > 0.0) // skip inactive nodes
             {
                 for (unsigned int j = 0; j < dimension; j++)
                 {
-                    nodal_momentum[j] = r_N(int_p, i) * mMP.velocity[j] * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
-                    nodal_inertia[j] = r_N(int_p, i) * mMP.acceleration[j] * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                    nodal_momentum[j] = r_geometry.ShapeFunctionValue(int_p, i) * mMP.velocity[j] *
+                        mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                    nodal_inertia[j] = r_geometry.ShapeFunctionValue(int_p, i) * mMP.acceleration[j] *
+                        mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
                 }
 
                 // Add in the predictor velocity increment for central difference explicit
@@ -149,16 +135,17 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
                     if (rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)) {
                         const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
                         for (unsigned int j = 0; j < dimension; j++) {
-                            nodal_momentum[j] += 0.5 * delta_time * (r_N(int_p, i) * mMP.acceleration[j]) * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                            nodal_momentum[j] += 0.5 * delta_time * (r_geometry.ShapeFunctionValue(int_p, i) *
+                                mMP.acceleration[j]) * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
                         }
                     }
-
                 }
 
                 r_geometry[i].SetLock();
                 r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
                 r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
-                r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(int_p, i) * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
+                r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_geometry.ShapeFunctionValue(int_p, i)
+                    * mMP.mass * GetGeometry().IntegrationPoints()[int_p].Weight();
                 r_geometry[i].UnSetLock();
             }
         }
