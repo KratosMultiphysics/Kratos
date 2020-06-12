@@ -541,30 +541,31 @@ namespace MPMSearchElementUtility
         SizeType WorkingSpaceDimension,
         SizeType LocalSpaceDimension,
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
-        typename Geometry<Node<3>>::PointsArrayType rPoints)
+        typename Geometry<Node<3>>::PointsArrayType rPoints,
+        GeometryType* pGeometryParent)
     {
         KRATOS_TRY
 
             if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
                 return Kratos::make_shared<
                 QuadraturePointPartitionedGeometry<Node<3>, 1>>(
-                    rPoints, rShapeFunctionContainer);
+                    rPoints, rShapeFunctionContainer, pGeometryParent);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
                 return Kratos::make_shared<
                 QuadraturePointPartitionedGeometry<Node<3>, 2, 1>>(
-                    rPoints, rShapeFunctionContainer);
+                    rPoints, rShapeFunctionContainer, pGeometryParent);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
                 return Kratos::make_shared<
                 QuadraturePointPartitionedGeometry<Node<3>, 2>>(
-                    rPoints, rShapeFunctionContainer);
+                    rPoints, rShapeFunctionContainer, pGeometryParent);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
                 return Kratos::make_shared<
                 QuadraturePointPartitionedGeometry<Node<3>, 3, 2>>(
-                    rPoints, rShapeFunctionContainer);
+                    rPoints, rShapeFunctionContainer, pGeometryParent);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
                 return Kratos::make_shared<
                 QuadraturePointPartitionedGeometry<Node<3>, 3>>(
-                    rPoints, rShapeFunctionContainer);
+                    rPoints, rShapeFunctionContainer, pGeometryParent);
             else {
                 KRATOS_ERROR << "Working/Local space dimension combinations are "
                     << "not provided for QuadraturePointGeometry. WorkingSpaceDimension: "
@@ -830,7 +831,9 @@ namespace MPMSearchElementUtility
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container( ThisDefaultMethod,
             ips_container, shape_function_container, shape_function_derivatives_container);
 
-        return CreateCustomQuadraturePoint(working_dim, rGeometry.LocalSpaceDimension(), data_container, nodes_list_active);
+
+
+        return CreateCustomQuadraturePoint(working_dim, rGeometry.LocalSpaceDimension(), data_container, nodes_list_active, &rGeometry);
 
         KRATOS_CATCH("");
     }
