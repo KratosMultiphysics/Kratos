@@ -120,8 +120,11 @@ public:
         MatrixType &rMassMatrix,
         const ProcessInfo &rCurrentProcessInfo) override;
 
-    // void Initialize(
-    //     ProcessInfo& rCurrentProcessInfo) override;
+    void Initialize(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -164,6 +167,7 @@ protected:
         double delta_time;
         double RK_time_coefficient;
         double dynamic_tau;
+        double unknown_subscale;
         // arrays
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
@@ -178,6 +182,7 @@ protected:
         array_1d<double,TNumNodes> N;
         BoundedMatrix<double,TNumNodes,TDim> DN;
     };
+    VectorType mUnknownSubScale;
 
     ///@}
     ///@name Protected Operators
@@ -201,6 +206,10 @@ protected:
         ElementVariables& rVariables,
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector);
+
+    void UpdateUnknownSubgridScaleGaussPoint(
+        ElementVariables& rVariables,
+        unsigned int g);
 
     double ComputeH(
         BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);

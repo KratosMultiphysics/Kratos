@@ -11,6 +11,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 ASGS_stabilization = True           # Consider ASGS stabilization terms
+dynamic_subscales = True            # Consider subscale dynamic
 OSS_stabilization = True            # Consider OSS stabilization terms (together with ASGS: requires ASGS stabilization to be true)
 mode = "c"                          # Output mode to a c++ file
 
@@ -45,8 +46,9 @@ for dim in dim_vector:
     N,DN = DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
 
     ## Unknown fields definition
-    phi = DefineVector('phi',nnodes)           # scalar unknown
-    phi_old = DefineVector('phi_old',nnodes)   # scalar unknown previous time step
+    phi = DefineVector('phi',nnodes)                  # scalar unknown
+    phi_old = DefineVector('phi_old',nnodes)          # scalar unknown previous time step
+    phi_subscale_gauss = Symbol('phi_subscale_gauss') # scalar unknown on subscale space, defined on gauss integration points
 
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)   # vector unknown field test function (not needed)
@@ -92,24 +94,39 @@ for dim in dim_vector:
     rhs_stab_1_convection_1 = - tau * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
     rhs_stab_1_convection_2 = - tau * (v_gauss.transpose() * grad_q) * phi_gauss * div_v
     rhs_stab_1 = rhs_stab_1_forcing + rhs_stab_1_convection_1 + rhs_stab_1_convection_2 + rhs_stab_1_mass
-    # OSS term
+    # OSS term of convective term
     rhs_stab_1_oss = tau * (v_gauss.transpose() * grad_q) * prj_gauss
     if OSS_stabilization:
         rhs_stab_1 += rhs_stab_1_oss
 
     # Mass conservation residual
+    # mass term
+    rhs_stab_2_forcing = - q_gauss.transpose() * f_gauss
+    rhs_stab_2_mass = q_gauss.transpose() * N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time)
+    rhs_stab_2_convection_1 = q_gauss * (v_gauss.transpose() * grad_phi)
+    rhs_stab_2_convection_2 = q_gauss * phi_gauss * div_v
+    rhs_stab_2_diffusion = k * grad_phi.transpose() * grad_q
+    rhs_stab_2_mass_subgrid_old = tau * q_gauss.transpose() * phi_subscale_gauss
+    rhs_stab_2 = rhs_stab_2_forcing + rhs_stab_2_mass + rhs_stab_2_convection_1 + rhs_stab_2_convection_2 + rhs_stab_2_diffusion + rhs_stab_2_mass_subgrid_old
+    # OSS term of mass term
+    rhs_stab_2_oss = - q_gauss.transpose() * prj_gauss
+    if OSS_stabilization:
+        rhs_stab_2 += rhs_stab_2_oss
 
     # Compute the ASGS stabilization terms using the momentum and mass conservation residuals above
     rhs_stabilization = rhs_stab_1
+    if dynamic_subscales:
+        rhs_stabilization += rhs_stab_2
 
     ## Stabilization OSS funtional terms
     # with lhs we refer to the fact we take the strong equation on the left side
-    lhs_OSS_forcing = -q_gauss.transpose() * f_gauss
+    lhs_OSS_forcing = - q_gauss.transpose() * f_gauss
     lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time))
+    lhs_OSS_mass_subscale = - q_gauss.transpose() * (phi_subscale_gauss/(RK_time_coefficient*delta_time))
     lhs_OSS_diffusion = k * grad_phi.transpose() * grad_q
     lhs_OSS_convective_1 = q_gauss * (v_gauss.transpose() * grad_phi)
     lhs_OSS_convective_2 = q_gauss * phi_gauss * div_v
-    res_OSS = lhs_OSS_forcing + lhs_OSS_mass + lhs_OSS_diffusion + lhs_OSS_convective_1 + lhs_OSS_convective_2
+    res_OSS = lhs_OSS_forcing + lhs_OSS_mass + lhs_OSS_diffusion + lhs_OSS_convective_1 + lhs_OSS_convective_2 + lhs_OSS_mass_subscale
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):

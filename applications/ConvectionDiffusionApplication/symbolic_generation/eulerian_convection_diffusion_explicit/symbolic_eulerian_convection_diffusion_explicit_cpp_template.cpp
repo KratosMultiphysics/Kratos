@@ -113,6 +113,15 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocal
         rVariables.weight = integration_points[g].Weight() * DetJ0;
         // Compute tau
         this->CalculateTau(rVariables);
+        // Retrieve unknown belonging to subgrid scale space on gauss integration point g
+        if (rCurrentProcessInfo.GetValue(RUNGE_KUTTA_STEP)==1)
+        {
+            rVariables.unknown_subscale = 0; // because temporal derivative is zero, and delta time is zero
+        }
+        else
+        {
+            rVariables.unknown_subscale = mUnknownSubScale(g);
+        }
 
         // Execute standard RHS-LHS build or OSS step
         if (rCurrentProcessInfo.GetValue(ACTIVATION_LEVEL) == 1)
@@ -264,6 +273,63 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Resize and intialize output
+    if (mUnknownSubScale.size() != 3) // three integration points
+        mUnknownSubScale.resize(3, false);
+    mUnknownSubScale = ZeroVector(3);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::FinalizeSolutionStep(
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const unsigned int local_size = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+    // Reading integration points and local gradients
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    // Define local variables
+    Element::GeometryType::JacobiansType J0;
+    Matrix InvJ0(dimension,dimension);
+    double DetJ0;
+    // Compute Jacobian
+    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+
+    // Iterate over integration points to evaluate local contribution
+    for (unsigned int g = 0; g < integration_points.size(); g++) {
+
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(J0[g],InvJ0,DetJ0);
+
+        // Calculate the cartesian derivatives on integration point "g"
+        rVariables.DN = prod(DN_De[g],InvJ0);
+        // Caluclate N on the gauss point "g"
+        rVariables.N = row(N_gausspoint,g);
+        // Compute tau
+        this->CalculateTau(rVariables);
+        // Retrieve unknown belonging to subgrid scale space on gauss integration point g
+        rVariables.unknown_subscale = mUnknownSubScale(g);
+
+        // Update unknown belonging to subgrid scale space on gauss integration point g
+        this->UpdateUnknownSubgridScaleGaussPoint(rVariables,g);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
 int SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -373,6 +439,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContributi
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
     const auto prj = rVariables.oss_projection;
+    const auto phi_subscale_gauss = rVariables.unknown_subscale;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
@@ -404,6 +471,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContributi
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
     const auto prj = rVariables.oss_projection;
+    const auto phi_subscale_gauss = rVariables.unknown_subscale;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
@@ -435,6 +503,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussPointContrib
     const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
+    const auto phi_subscale_gauss = rVariables.unknown_subscale;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
@@ -462,12 +531,78 @@ void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussPointContrib
     const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
+    const auto phi_subscale_gauss = rVariables.unknown_subscale;
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
     //substitute_oss_3D
 
     noalias(rRightHandSideVector) += rhs * rVariables.weight;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void SymbolicEulerianConvectionDiffusionExplicit<2>::UpdateUnknownSubgridScaleGaussPoint(
+    ElementVariables& rVariables,
+    unsigned int g)
+{
+    // Retrieve element variables
+    const auto N = rVariables.N;
+    const auto DN = rVariables.DN;
+    const auto k = rVariables.diffusivity;
+    const auto f = rVariables.forcing;
+    const auto phi = rVariables.unknown;
+    const auto phi_old = rVariables.unknown_old;
+    const auto delta_time = rVariables.delta_time;
+    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto v = rVariables.convective_velocity;
+    const auto tau = rVariables.tau;
+    const auto phi_subscale_gauss = rVariables.unknown_subscale;
+    const auto prj = rVariables.oss_projection;
+    double phi_subscale_gauss_new = 0;
+
+    phi_subscale_gauss_new += N[0]*f[0] + N[1]*f[1] + N[2]*f[2]; // forcing term
+    phi_subscale_gauss_new += - (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]))/(delta_time); // mass term
+    phi_subscale_gauss_new += - (DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2])*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0)) - (DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2])*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1)); // convective term 1
+    phi_subscale_gauss_new += - (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1)); // convective term 2
+    phi_subscale_gauss_new += N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2]; // OSS term
+    phi_subscale_gauss_new *= tau;
+
+    mUnknownSubScale(g) = (tau*phi_subscale_gauss/delta_time) + phi_subscale_gauss_new;
+}
+
+/***********************************************************************************/
+
+template <>
+void SymbolicEulerianConvectionDiffusionExplicit<3>::UpdateUnknownSubgridScaleGaussPoint(
+    ElementVariables& rVariables,
+    unsigned int g)
+{
+    // Retrieve element variables
+    const auto N = rVariables.N;
+    const auto DN = rVariables.DN;
+    const auto k = rVariables.diffusivity;
+    const auto f = rVariables.forcing;
+    const auto phi = rVariables.unknown;
+    const auto phi_old = rVariables.unknown_old;
+    const auto delta_time = rVariables.delta_time;
+    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto v = rVariables.convective_velocity;
+    const auto tau = rVariables.tau;
+    const auto phi_subscale_gauss = rVariables.unknown_subscale;
+    const auto prj = rVariables.oss_projection;
+    double phi_subscale_gauss_new = 0;
+
+    phi_subscale_gauss_new += N[0]*f[0] + N[1]*f[1] + N[2]*f[2] + N[3]*f[3]; // forcing term
+    phi_subscale_gauss_new += - (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]))/(RK_time_coefficient*delta_time); // mass term
+    phi_subscale_gauss_new += - (DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2] + DN(3,0)*phi[3])*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) - (DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2] + DN(3,1)*phi[3])*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) - (DN(0,2)*phi[0] + DN(1,2)*phi[1] + DN(2,2)*phi[2] + DN(3,2)*phi[3])*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2)); // convective term 1
+    phi_subscale_gauss_new += - (DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2] + DN(3,0)*phi[3])*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) - (DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2] + DN(3,1)*phi[3])*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) - (DN(0,2)*phi[0] + DN(1,2)*phi[1] + DN(2,2)*phi[2] + DN(3,2)*phi[3])*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2)) - (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2] + N[3]*phi[3])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(0,2)*v(0,2) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(1,2)*v(1,2) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1) + DN(2,2)*v(2,2) + DN(3,0)*v(3,0) + DN(3,1)*v(3,1) + DN(3,2)*v(3,2)); // convective term 2
+    phi_subscale_gauss_new += N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2] + N[3]*prj[3]; // OSS term
+    phi_subscale_gauss_new *= tau;
+
+    mUnknownSubScale(g) = (tau*phi_subscale_gauss/delta_time) + phi_subscale_gauss_new;
 }
 
 /***********************************************************************************/
@@ -515,7 +650,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
     // Estimate tau
     double inv_tau = 0;
     // Dynamic part
-    inv_tau += rVariables.dynamic_tau * 1.0/rVariables.delta_time;
+    inv_tau += 1.0/rVariables.delta_time;
     // Convection
     inv_tau += 2.0 * norm_velocity / h;
     inv_tau += 1.0*div_vel; // unitary coefficient in fron of \nabla \cdot convective_velocity term in the strong equation
