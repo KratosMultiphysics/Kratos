@@ -116,9 +116,12 @@ public:
     void AddExplicitContribution(
         ProcessInfo &rCurrentProcessInfo) override;
 
-    virtual void CalculateMassMatrix(
+    void CalculateMassMatrix(
         MatrixType &rMassMatrix,
         const ProcessInfo &rCurrentProcessInfo) override;
+
+    // void Initialize(
+    //     ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry

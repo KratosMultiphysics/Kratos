@@ -208,7 +208,6 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitCon
     // Execute RK4 or OSS step
     VectorType rhs;
     this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
-    // KRATOS_WATCH(rhs);
     // Add the residual contribution
     // Note that the reaction is indeed the formulation residual
     for (unsigned int i_node = 0; i_node < local_size; i_node++) {
@@ -429,17 +428,6 @@ const double crhs13 =             tau*(DN(2,0)*crhs6 + DN(2,1)*crhs7);
             rhs[0]=-DN(0,0)*crhs2 - DN(0,1)*crhs4 + N[0]*crhs0 - N[0]*crhs10 - N[0]*crhs5 + crhs0*crhs8 - crhs10*crhs8 - crhs11*crhs8 - crhs5*crhs8 + crhs8*crhs9;
             rhs[1]=-DN(1,0)*crhs2 - DN(1,1)*crhs4 + N[1]*crhs0 - N[1]*crhs10 - N[1]*crhs5 + crhs0*crhs12 - crhs10*crhs12 - crhs11*crhs12 - crhs12*crhs5 + crhs12*crhs9;
             rhs[2]=-DN(2,0)*crhs2 - DN(2,1)*crhs4 + N[2]*crhs0 - N[2]*crhs10 - N[2]*crhs5 + crhs0*crhs13 - crhs10*crhs13 - crhs11*crhs13 - crhs13*crhs5 + crhs13*crhs9;
-
-
-    // KRATOS_WATCH(prj);
-    // KRATOS_WATCH(this->GetGeometry()[0].Id());
-    // KRATOS_WATCH(this->GetGeometry()[1].Id());
-    // KRATOS_WATCH(this->GetGeometry()[2].Id());
-    // Vector grad = prod(trans(DN),phi);
-    // KRATOS_WATCH(grad);
-    // KRATOS_WATCH(v);
-    // KRATOS_WATCH(this->Id());
-
 
 
     noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
