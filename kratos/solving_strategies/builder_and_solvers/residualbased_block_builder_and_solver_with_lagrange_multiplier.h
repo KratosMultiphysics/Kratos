@@ -650,7 +650,9 @@ public:
             BuildMasterSlaveConstraints(rModelPart);
 
             // Copy the LHS to avoid memory errors
-            TSystemMatrixType copy_of_A(rA);
+            TSystemMatrixType copy_of_A;
+            copy_of_A.swap(rA);
+
             TSystemMatrixType copy_of_T(BaseType::mT);
             TSystemMatrixType transpose_of_T(TSparseSpace::Size2(BaseType::mT), TSparseSpace::Size1(BaseType::mT));
             SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(transpose_of_T, BaseType::mT);
@@ -685,7 +687,7 @@ public:
             // Definition of the auxiliar values
             const bool has_constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
             KRATOS_ERROR_IF(has_constraint_scale_factor && !r_current_process_info.Has(CONSTRAINT_SCALE_FACTOR)) << "Constraint scale factor not defined at process info" << std::endl;
-            const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
+            const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(copy_of_A) : this->GetAveragevalueDiagonal(copy_of_A);
             mConstraintFactor = constraint_scale_factor;
 
             /* Fill common blocks */
@@ -711,7 +713,7 @@ public:
                 // Definition of the build scale factor auxiliar value
                 const bool has_auxiliar_constraint_scale_factor = mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
                 KRATOS_ERROR_IF(has_auxiliar_constraint_scale_factor && !r_current_process_info.Has(AUXILIAR_CONSTRAINT_SCALE_FACTOR)) << "Auxiliar constraint scale factor not defined at process info" << std::endl;
-                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(rA) : this->GetAveragevalueDiagonal(rA);
+                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(copy_of_A) : this->GetAveragevalueDiagonal(copy_of_A);
                 mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
 
                 // Create auxiliar identity matrix
