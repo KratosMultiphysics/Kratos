@@ -361,9 +361,9 @@ endif(${USE_MPI} MATCHES ON )
 # Find zlib (for gidpost)
 find_package(ZLIB)
 
-if( ZLIB_FOUND )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
-else( ZLIB_FOUND )
+# if( ZLIB_FOUND )
+#  include_directories( ${ZLIB_INCLUDE_DIRS} )
+# else( ZLIB_FOUND )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
@@ -371,7 +371,7 @@ else( ZLIB_FOUND )
   # we have to add this for zconf
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
-endif( ZLIB_FOUND )
+# endif( ZLIB_FOUND )
 
 # including the AMatrix
 if( AMATRIX_DIR )
