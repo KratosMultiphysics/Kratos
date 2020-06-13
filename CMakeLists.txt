@@ -367,7 +367,7 @@ else( ZLIB_FOUND )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
-  add_subdirectory(external_libraries/zlib)
+  add_subdirectory( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
   # we have to add this for zconf
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
