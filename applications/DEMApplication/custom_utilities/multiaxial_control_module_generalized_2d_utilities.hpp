@@ -56,6 +56,9 @@ public:
 
 KRATOS_CLASS_POINTER_DEFINITION(MultiaxialControlModuleGeneralized2DUtilities);
 
+/// Definition of the index type
+typedef std::size_t IndexType;
+
 /// Defining a table with double argument and result type as table type.
 typedef Table<double,double> TableType;
 
@@ -77,11 +80,11 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
                 "perturbation_tolerance": 1.0e-2,
                 "perturbation_period": 10,
                 "max_reaction_rate_factor": 2.0,
+                "characteristic_time": 1.0,
                 "stiffness_averaging_time_interval": 1.0,
                 "velocity_averaging_time_interval": 1.0,
                 "reaction_averaging_time_interval": 1.0,
-                "output_interval": 1,
-                "final_time": 1.0
+                "output_interval": 1
             },
             "list_of_actuators" : []
         }  )" );
@@ -118,6 +121,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     noalias(mDeltaDisplacement) = ZeroMatrix(number_of_actuators,number_of_actuators);
     mDeltaReactionStress.resize(number_of_actuators,number_of_actuators,false);
     noalias(mDeltaReactionStress) = ZeroMatrix(number_of_actuators,number_of_actuators);
+    ModelPart* SubModelPart;
     for (unsigned int i = 0; i < number_of_actuators; i++) {
         const unsigned int number_of_dem_boundaries = rParameters["list_of_actuators"][i]["list_of_dem_boundaries"].size();
         const unsigned int number_of_fem_boundaries = rParameters["list_of_actuators"][i]["list_of_fem_boundaries"].size();
@@ -126,10 +130,10 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         // std::vector<array_1d<double,3>> list_of_dem_outer_normals(number_of_dem_boundaries);
         std::vector<array_1d<double,3>> list_of_fem_outer_normals(number_of_fem_boundaries);
         for (unsigned int j = 0; j < number_of_dem_boundaries; j++) {
-            list_of_dem_submodelparts[j] = 
-                &(mrDemModelPart.GetSubModelPart(
+            SubModelPart = &(mrDemModelPart.GetSubModelPart(
                 rParameters["list_of_actuators"][i]["list_of_dem_boundaries"][j]["model_part_name"].GetString()
                 ));
+            list_of_dem_submodelparts[j] = SubModelPart;
             // list_of_dem_outer_normals[j][0] = rParameters["list_of_actuators"][i]["list_of_dem_boundaries"][j]["outer_normal"][0].GetDouble();
             // list_of_dem_outer_normals[j][1] = rParameters["list_of_actuators"][i]["list_of_dem_boundaries"][j]["outer_normal"][1].GetDouble();
             // list_of_dem_outer_normals[j][2] = rParameters["list_of_actuators"][i]["list_of_dem_boundaries"][j]["outer_normal"][2].GetDouble();
@@ -138,12 +142,13 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
             // list_of_dem_outer_normals[j][0] *= inverse_norm;
             // list_of_dem_outer_normals[j][1] *= inverse_norm;
             // list_of_dem_outer_normals[j][2] *= inverse_norm;
+            AddTableToSubModelPart(i + 1, rParameters["list_of_actuators"][i]["target_stress_table"], SubModelPart);
         }
         for (unsigned int j = 0; j < number_of_fem_boundaries; j++) {
-            list_of_fem_submodelparts[j] = 
-                &(mrFemModelPart.GetSubModelPart(
+            SubModelPart =&(mrFemModelPart.GetSubModelPart(
                 rParameters["list_of_actuators"][i]["list_of_fem_boundaries"][j]["model_part_name"].GetString()
                 ));
+            list_of_fem_submodelparts[j] = SubModelPart;
             list_of_fem_outer_normals[j][0] = rParameters["list_of_actuators"][i]["list_of_fem_boundaries"][j]["outer_normal"][0].GetDouble();
             list_of_fem_outer_normals[j][1] = rParameters["list_of_actuators"][i]["list_of_fem_boundaries"][j]["outer_normal"][1].GetDouble();
             list_of_fem_outer_normals[j][2] = rParameters["list_of_actuators"][i]["list_of_fem_boundaries"][j]["outer_normal"][2].GetDouble();
@@ -152,13 +157,14 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
             list_of_fem_outer_normals[j][0] *= inverse_norm;
             list_of_fem_outer_normals[j][1] *= inverse_norm;
             list_of_fem_outer_normals[j][2] *= inverse_norm;
+            AddTableToSubModelPart(i + 1, rParameters["list_of_actuators"][i]["target_stress_table"], SubModelPart);
         }
         const std::string actuator_name = rParameters["list_of_actuators"][i]["Parameters"]["actuator_name"].GetString();
         mDEMBoundariesSubModelParts[actuator_name] = list_of_dem_submodelparts;
         mFEMBoundariesSubModelParts[actuator_name] = list_of_fem_submodelparts;
         // mDEMOuterNormals[actuator_name] = list_of_dem_outer_normals;
         mFEMOuterNormals[actuator_name] = list_of_fem_outer_normals;
-        mTargetStressTableIds[actuator_name] = rParameters["list_of_actuators"][i]["Parameters"]["target_stress_table_id"].GetInt();
+        mTargetStressTableIds[actuator_name] = i + 1;
         const double compression_length = rParameters["list_of_actuators"][i]["Parameters"]["compression_length"].GetDouble();
         const double initial_velocity = rParameters["list_of_actuators"][i]["Parameters"]["initial_velocity"].GetDouble();
         const double stiffness = rParameters["list_of_actuators"][i]["Parameters"]["young_modulus"].GetDouble()/compression_length; // mStiffness is actually a stiffness over an area
@@ -175,7 +181,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
 
     mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
 
-    CalculateCharacteristicReactionVariationRate(rParameters["Parameters"]["final_time"].GetDouble());
+    CalculateCharacteristicReactionVariationRate(rParameters["Parameters"]["characteristic_time"].GetDouble());
 
     KRATOS_CATCH("");
 }
@@ -298,7 +304,9 @@ void CalculateAcceleration(const Vector& r_next_target_stress, const double& r_c
 
 void CalculateStiffness();
 
-void CalculateCharacteristicReactionVariationRate(const double& r_final_time);
+void CalculateCharacteristicReactionVariationRate(const double& r_characteristic_time);
+
+void AddTableToSubModelPart(const unsigned int TableId, const Parameters TableParameters, ModelPart* pSubModelPart);
 
 ///@}
 ///@name Protected  Access

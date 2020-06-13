@@ -574,6 +574,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
     noalias(mVelocity) = (1.0 - mVelocityAlpha) * velocity_estimated + mVelocityAlpha * mVelocity;
 }
 
+//***************************************************************************************************************
+
 void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const Vector& r_next_target_stress, const double& r_current_time) {
 
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
@@ -666,6 +668,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
 //     }
 // }
 
+//***************************************************************************************************************
+
 void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
 
     mKTime += mKDeltaTime;
@@ -716,7 +720,21 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
 
 //***************************************************************************************************************
 
-void MultiaxialControlModuleGeneralized2DUtilities::CalculateCharacteristicReactionVariationRate(const double& r_final_time) {
+void MultiaxialControlModuleGeneralized2DUtilities::AddTableToSubModelPart(const unsigned int TableId, 
+                                                                           const Parameters TableParameters, 
+                                                                           ModelPart* pSubModelPart) {
+
+    TableType::Pointer p_table = Kratos::make_shared<TableType>();
+    for (IndexType i = 0; i < TableParameters["data"].size(); ++i) {
+        p_table->PushBack(TableParameters["data"][i][0].GetDouble(),
+                        TableParameters["data"][i][1].GetDouble());
+    }
+    pSubModelPart->AddTable(TableId, p_table);
+}
+
+//***************************************************************************************************************
+
+void MultiaxialControlModuleGeneralized2DUtilities::CalculateCharacteristicReactionVariationRate(const double& r_characteristic_time) {
 
     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
 
@@ -750,7 +768,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateCharacteristicReact
         min_target_stress[map_index] = min_stress;
     }
 
-    mCharacteristicReactionVariationRate = std::abs(norm_inf(max_target_stress-min_target_stress)) / r_final_time;
+    mCharacteristicReactionVariationRate = std::abs(norm_inf(max_target_stress-min_target_stress)) / r_characteristic_time;
 }
 
 

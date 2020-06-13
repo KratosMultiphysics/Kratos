@@ -12,12 +12,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         sp_project_parameters_file_name = "sp_2d_rigid_fem_parameters.json"
 
         with open(sp_project_parameters_file_name,'r') as parameters_file:
-            self.sp_project_parameters = KratosMultiphysics.Parameters(parameters_file.read())
-
-        # Using problem final time as the final time of the control module
-        control_module_parameters = self.sp_project_parameters['multiaxial_control_module_generalized_2d_utility']
-        control_module_parameters['Parameters'].AddEmptyValue('final_time')
-        control_module_parameters['Parameters']['final_time'].SetDouble(self.DEM_parameters["FinalTime"].GetDouble())        
+            self.sp_project_parameters = KratosMultiphysics.Parameters(parameters_file.read())      
 
         # TEST NUMBER:
         # 1. CTW16, 2. CTW10, 3. CTW13, 4. CTW12, 5.Blind
