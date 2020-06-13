@@ -359,18 +359,21 @@ if(${USE_MPI} MATCHES ON )
 endif(${USE_MPI} MATCHES ON )
 
 # If we do not locally compile ZLIB we will find ZLIB in the system, if we cannot find it we will enforce the local compilation
-if( LOCAL_ZLIB_COMPILATION MATCHES OFF )
+IF(NOT DEFINED FORCE_LOCAL_ZLIB_COMPILATION)
+    set( FORCE_LOCAL_ZLIB_COMPILATION OFF )
+ENDIF(NOT DEFINED FORCE_LOCAL_ZLIB_COMPILATION)
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
     # Find zlib (for gidpost)
     find_package(ZLIB)
     if( ZLIB_FOUND )
         include_directories( ${ZLIB_INCLUDE_DIRS} )
     else( ZLIB_FOUND )
-        set( LOCAL_ZLIB_COMPILATION ON )
+        set( FORCE_LOCAL_ZLIB_COMPILATION ON )
     endif( ZLIB_FOUND )
-endif( LOCAL_ZLIB_COMPILATION MATCHES OFF )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 
 # We local compilate ZLIB
-if( LOCAL_ZLIB_COMPILATION MATCHES ON )
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
@@ -378,7 +381,7 @@ if( LOCAL_ZLIB_COMPILATION MATCHES ON )
   # We have to add this for zconf
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
-endif( LOCAL_ZLIB_COMPILATION MATCHES ON )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 
 # including the AMatrix
 if( AMATRIX_DIR )
