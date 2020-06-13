@@ -302,6 +302,8 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
+        const double model_tolerance = 1e-3;
+
         if (this->Dimension() == 1) {
             std::vector<double> intersection_master_spans;
 
@@ -331,18 +333,17 @@ public:
                         global_coords, global_coords_master, local_coords_master);
                     int success = mpGeometries[0]->ProjectionPoint(
                         global_coords, global_coords_master, local_coords_master);
-                    KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords - global_coords_master) > 1e-4))
+                    KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords - global_coords_master) > model_tolerance))
                         << "Projection of intersection spans failed. Global Coordinates on slave: "
                         << global_coords << ", and global coordinates on master: "
                         << global_coords_master << ". Difference: " << norm_2(global_coords - global_coords_master)
-                        << " larger than 1e-4." << std::endl;
+                        << " larger than model tolerance: " << model_tolerance << std::endl;
 
                     // If success == 0, it is considered that the projection is on one of the boundaries.
                     intersection_master_spans.push_back(local_coords_master[0]);
                 }
             }
             mpGeometries[0]->Spans(intersection_master_spans, 0);
-            KRATOS_WATCH(intersection_master_spans)
             rIntegrationInfo.SetSpans(intersection_master_spans, 0);
             mpGeometries[0]->CreateIntegrationPoints(rIntegrationPoints, rIntegrationInfo);
         }
