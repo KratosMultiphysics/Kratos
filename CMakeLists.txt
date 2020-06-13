@@ -358,6 +358,7 @@ if(${USE_MPI} MATCHES ON )
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif(${USE_MPI} MATCHES ON )
 
+# If we do not locally compile ZLIB we will find ZLIB in the system, if we cannot find it we will enforce the local compilation
 if( LOCAL_ZLIB_COMPILATION MATCHES OFF )
     # Find zlib (for gidpost)
     find_package(ZLIB)
@@ -368,6 +369,7 @@ if( LOCAL_ZLIB_COMPILATION MATCHES OFF )
     endif( ZLIB_FOUND )
 endif( LOCAL_ZLIB_COMPILATION MATCHES OFF )
 
+# We local compilate ZLIB
 if( LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
