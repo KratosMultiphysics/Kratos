@@ -26,8 +26,9 @@ namespace Kratos
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::MPCContactSearchProcess(
     ModelPart & rMainModelPart,
-    Parameters ThisParameters
-    ) : BaseType(rMainModelPart, ThisParameters)
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
+    ) : BaseType(rMainModelPart, ThisParameters, pPairedProperties)
 {
     // If we are going to consider multple searchs
     const std::string& id_name = BaseType::mThisParameters["id_name"].GetString();
