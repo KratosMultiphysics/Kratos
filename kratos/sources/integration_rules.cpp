@@ -35,6 +35,9 @@
 
 namespace Kratos
 {
+//LINE:
+
+//Gauss-Legendre
 LineGaussLegendreIntegrationPoints1::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints1::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints1::IntegrationPoints();}();
 LineGaussLegendreIntegrationPoints2::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints2::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints2::IntegrationPoints();}();
 LineGaussLegendreIntegrationPoints3::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints3::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints3::IntegrationPoints();}();
