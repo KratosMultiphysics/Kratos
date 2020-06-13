@@ -11,7 +11,11 @@
 //                   Riccardo Rossi
 //
 
+// System includes
 
+// External includes
+
+// Project includes
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_gauss_radau_integration_points.h"
