@@ -359,9 +359,7 @@ if(${USE_MPI} MATCHES ON )
 endif(${USE_MPI} MATCHES ON )
 
 # If we do not locally compile ZLIB we will find ZLIB in the system, if we cannot find it we will enforce the local compilation
-IF(NOT DEFINED FORCE_LOCAL_ZLIB_COMPILATION)
-    set( FORCE_LOCAL_ZLIB_COMPILATION OFF )
-ENDIF(NOT DEFINED FORCE_LOCAL_ZLIB_COMPILATION)
+OPTION ( FORCE_LOCAL_ZLIB_COMPILATION "force local compilation of zlib" OFF )
 if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
     # Find zlib (for gidpost)
     find_package(ZLIB)
