@@ -89,7 +89,7 @@ public:
     SparseMatrixMultiplicationUtility(){};
 
     /// Desctructor
-    virtual ~SparseMatrixMultiplicationUtility()= default;;
+    virtual ~SparseMatrixMultiplicationUtility()= default;
 
     ///@}
     ///@name Operators
