@@ -26,6 +26,7 @@
 
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 namespace Kratos
 {
@@ -227,6 +228,12 @@ public:
         return mSameCurveDirection;
     }
 
+    /// Returns the const NurbsCurveOnSurface::Pointer of this brep.
+    const NurbsInterval DomainInterval() const
+    {
+        return mCurveNurbsInterval;
+    }
+
     /// Returns the NurbsCurveOnSurface::Pointer of this brep.
     NurbsCurveOnSurfacePointerType pGetCurveOnSurface()
     {
@@ -272,13 +279,18 @@ public:
             rSpans[0] = mCurveNurbsInterval.GetT0();
             rSpans[1] = mCurveNurbsInterval.GetT1();
         }
-
         mpCurveOnSurface->Spans(rSpans);
     }
 
     ///@}
     ///@name Geometrical Operations
     ///@{
+
+    /// Provides the center of the underlying curve on surface
+    Point Center() const override
+    {
+        return mpCurveOnSurface->Center();
+    }
 
     /*
     * @brief This method maps from dimension space to working space.
@@ -295,21 +307,74 @@ public:
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
-    /**
-    * Returns whether given arbitrary point is inside the Geometry and the respective
-    * local point for the given global point
-    * @param rPoint The point to be checked if is inside o note in global coordinates
-    * @param rResult The local coordinates of the point
-    * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
-    * @return True if the point is inside, false otherwise
-    */
-    bool IsInside(
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
+    /* @brief This method maps from dimension space to working space and computes the
+     *        number of derivatives at the dimension parameter.
+     * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
+     * @param LocalCoordinates The local coordinates in dimension space
+     * @param Derivative Number of computed derivatives
+     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+     * @see PointLocalCoordinates
+     */
+    void GlobalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const override
     {
-        KRATOS_ERROR << "IsInside is not yet implemented within the BrepCurveOnSurface";
+        return mpCurveOnSurface->GlobalSpaceDerivatives(
+            rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+    }
+
+    ///@}
+    ///@name IsInside
+    ///@{
+
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    int SetInsideLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mCurveNurbsInterval.IsInside(rPointLocalCoordinates[0]);
+    }
+
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const bool success = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            rProjectedPointGlobalCoordinates,
+            *this,
+            20, Tolerance);
+
+        return (success)
+            ? 1
+            : 0;
     }
 
     ///@}
@@ -323,8 +388,14 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
-            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+        std::vector<double> spans;
+        if (!rIntegrationInfo.HasSpansInDirection(0)) {
+            std::vector<double> spans;
+            Spans(spans);
+            rIntegrationInfo.SetSpans(spans, 0);
+        }
+        KRATOS_WATCH(rIntegrationInfo.GetSpans(0))
+        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints, rIntegrationInfo);
     }
 
     ///@}
@@ -345,10 +416,10 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        IntegrationInfo& rIntegrationInfo) override
+        const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
     }
 
     ///@}
