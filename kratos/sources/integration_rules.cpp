@@ -33,10 +33,6 @@
 #include "integration/triangle_collocation_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 
-//LINE:
-
-//Gauss-Legendre
-
 namespace Kratos
 {
 LineGaussLegendreIntegrationPoints1::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints1::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints1::IntegrationPoints();}();
