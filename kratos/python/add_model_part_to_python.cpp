@@ -618,20 +618,6 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint2(Mo
     return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
 }
 
-// Master slave constraints
-ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint3(ModelPart& rModelPart,
-                                                                              std::string ConstraintName,
-                                                                              ModelPart::IndexType Id,
-                                                                              ModelPart::NodeType& rMasterNode,
-                                                                              ModelPart::VariableComponentType& rMasterVariable,
-                                                                              ModelPart::NodeType& rSlaveNode,
-                                                                              ModelPart::VariableComponentType& rSlaveVariable,
-                                                                              double Weight,
-                                                                              double Constant)
-{
-    return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
-}
-
 void ModelPartAddMasterSlaveConstraint(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType::Pointer pMasterSlaveConstraint)
 {
     rModelPart.AddMasterSlaveConstraint(pMasterSlaveConstraint);
@@ -919,7 +905,6 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintsByIds)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, py::return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, py::return_value_policy::reference_internal)
-        .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, py::return_value_policy::reference_internal)
         .def("__str__", PrintObject<ModelPart>)
         ;
 }
