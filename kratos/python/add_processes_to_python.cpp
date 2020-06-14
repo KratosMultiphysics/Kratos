@@ -74,7 +74,6 @@ namespace Kratos
 namespace Python
 {
 typedef Node<3> NodeType;
-typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 // Discontinuous distance computation auxiliar functions
 template<std::size_t TDim>
@@ -280,7 +279,6 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
             .def(py::init< ModelPart&, Parameters& >())
-            .def(py::init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
             .def("ExecuteInitialize", &ApplyConstantScalarValueProcess::ExecuteInitialize)
@@ -415,15 +413,6 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<AssignScalarFieldToEntitiesProcess<Element>, AssignScalarFieldToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarFieldToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
-
-    //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
-    //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
-
-    //py::class_<AddDofsNodalProcess<Variable<double> >, AddDofsNodalProcess<Variable<double> >::Pointer, Process>(m,"AddDoubleDofsNodalProcess")
-    // .def(py::init<Variable<double>, NodesContainerType&, DofsContainerType&>())
-    // ;
-    //py::class_<AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >, AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >::Pointer, Process>(m,"AddArrayComponentDofsNodalProcess")
-    // ;
 
     /* Simple Mortar mapper */
     // Wrapper

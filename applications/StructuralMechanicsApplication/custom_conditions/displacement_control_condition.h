@@ -65,8 +65,6 @@ public:
     typedef BaseType::GeometryType   GeometryType;
     typedef BaseType::NodesArrayType NodesArrayType;
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> Array1DComponentType;
-
     /// The machine precision
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 

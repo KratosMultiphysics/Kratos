@@ -791,6 +791,33 @@ class TestModelPart(KratosUnittest.TestCase):
         with self.assertRaisesRegex(TypeError, "Kratos.ModelPart: No constructor defined!"):
             KratosMultiphysics.ModelPart()
 
+    def test_create_non_existing_element(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+
+        props = model_part.CreateNewProperties(0)
+
+        with self.assertRaisesRegex(RuntimeError, 'Error: The Element "SomeCertainlyNonExistingElement" is not registered!\nMaybe you need to import the application where it is defined\?\nThe following Elements are registered:\n'):
+            model_part.CreateNewElement("SomeCertainlyNonExistingElement", 1, [1], props)
+
+    def test_create_non_existing_condition(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+
+        props = model_part.CreateNewProperties(0)
+
+        with self.assertRaisesRegex(RuntimeError, 'Error: The Condition "SomeCertainlyNonExistingCondition" is not registered!\nMaybe you need to import the application where it is defined\?\nThe following Conditions are registered:\n'):
+            model_part.CreateNewCondition("SomeCertainlyNonExistingCondition", 1, [1], props)
+
+    def test_create_non_existing_constraint(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        n1 = model_part.CreateNewNode(1, 1.0,1.1,0.2)
+        n2 = model_part.CreateNewNode(2, 2.0,3.1,0.2)
+
+        with self.assertRaisesRegex(RuntimeError, 'Error: The Constraint "SomeCertainlyNonExistingConstraint" is not registered!\nMaybe you need to import the application where it is defined\?\nThe following Constraints are registered:\n'):
+            model_part.CreateNewMasterSlaveConstraint("SomeCertainlyNonExistingConstraint", 1, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

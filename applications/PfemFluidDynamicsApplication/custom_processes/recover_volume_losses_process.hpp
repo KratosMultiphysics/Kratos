@@ -131,12 +131,14 @@ public:
       {
         std::cout << " InitialVolume " << initialVolume << " currentVolume " << currentVolume << "-->  volumeLoss " << volumeLoss << std::endl;
       }
+
       double freeSurfaceLength = 0;
 
       /////////////////////////        compute the free-surface length         /////////////////////////
       ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
       //ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
       const unsigned int nds = element_begin->GetGeometry().size();
+      double numberOfFreeSurfaceElements=0.0;
       for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
       {
         unsigned int freesurfaceNodes = 0;
@@ -167,6 +169,7 @@ public:
 
           double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
           freeSurfaceElementalSize = sqrt(SquaredLength);
+          numberOfFreeSurfaceElements+=1.0;
           // std::cout<<"length "<<freeSurfaceElementalSize<<std::endl;
         }
         if (dimension == 3)
@@ -203,15 +206,27 @@ public:
                                                      ie->GetGeometry()[2].Coordinates(),
                                                      ie->GetGeometry()[3].Coordinates());
           }
+          numberOfFreeSurfaceElements+=1.0;
         }
         freeSurfaceLength += freeSurfaceElementalSize;
       }
 
-      if (freeSurfaceLength == 0)
+      double meanFreeSurfaceElementSize=freeSurfaceLength/numberOfFreeSurfaceElements;
+      double offset = 0;
+
+      if (freeSurfaceLength > 0)
       {
-        freeSurfaceLength = 1.0;
+       offset = volumeLoss / freeSurfaceLength;
+
+       double ratioOffeset = fabs(offset) / freeSurfaceLength;
+       ratioOffeset = fabs(offset) / meanFreeSurfaceElementSize;
+        if(ratioOffeset>0.10){
+          // std::cout << "OFFSET is higher than 10.0% of free - surface element length " << offset << std::endl;
+          offset=0.1*meanFreeSurfaceElementSize*offset/fabs(offset);
+          // std::cout << "I will reduce it to " << offset << std::endl;
+       }
       }
-      double offset = volumeLoss / freeSurfaceLength;
+      
       // if( mEchoLevel > 0 )
       std::cout << "freeSurface length " << freeSurfaceLength << "  offset " << offset << std::endl;
 

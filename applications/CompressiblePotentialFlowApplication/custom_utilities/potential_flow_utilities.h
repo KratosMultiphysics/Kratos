@@ -77,6 +77,9 @@ template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocity(const Element& rElement);
 
 template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputePerturbedVelocity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
@@ -129,6 +132,18 @@ double SelectMaxUpwindFactor(const array_1d<double, Dim>& rCurrentVelocity, cons
 
 template <int Dim, int NumNodes>
 size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindFactorDerivativeWRTMachSquared(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindFactorDerivativeWRTVelocitySquared(const array_1d<double, Dim>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeDensity(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeUpwindedDensity(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);

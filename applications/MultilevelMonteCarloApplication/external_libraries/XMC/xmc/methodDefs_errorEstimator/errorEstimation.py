@@ -1,5 +1,4 @@
 import numpy as np
-from xmc.tools import packedList
 from xmc.tools import normalInverseCDF
 
 # Import PyCOMPSs
@@ -8,51 +7,53 @@ from xmc.tools import normalInverseCDF
 from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 #TODO - think of potentially better name
-def errorEstimationStatError(ignore, *args):
+def errorEstimationStatError(cdfValue, globalEstimations):
     """
     Accept the summation over the variances divided by number of samples over all
     levels and return its square root as the statistical error
     """
-    assembledEstimationsList = packedList(args)
-    # TODO - Think of better place for this assertion
-    assert(len(assembledEstimationsList)==1),"length of assembledEstimationsList passed to errorEstimationStatError is not 1"
-    if ignore is None:
-        cdf_value = 1 # default behavior
+    if cdfValue is None:
+        cdfValue = 1 # default behavior
     else:
-        cdf_value = normalInverseCDF(ignore[0]) # [Pisaroni et al.,CMLMC,pag.25]
-    return cdf_value*np.sqrt(assembledEstimationsList[0])
+        cdfValue = normalInverseCDF(cdfValue[0]) # [Pisaroni et al.,CMLMC,pag.25]
+    error = cdfValue*np.sqrt(globalEstimations[0])
+    # Ensure no NumPy type
+    return float(error)
 
-@ExaquteTask(returns=1)
-def errorEstimationStatError_Task(*args):
+@ExaquteTask(returns=1, estimations={Type: COLLECTION_IN, Depth: 1})
+def errorEstimationStatError_Task(parameters, estimations):
     """
     Same as errorEstimationStatError but is a pycompss task
     """
-    return errorEstimationStatError(*args)
+    return errorEstimationStatError(parameters, estimations)
 
-def errorEstimationTerr(cdf_value,*args):
+def errorEstimationTerr(cdfValue,globalEstimations):
     """
     Return total error given moments/variances
     """
-    assembledEstimationsList = packedList(args)
-    return assembledEstimationsList[0] + normalInverseCDF(cdf_value[0]) * np.sqrt(assembledEstimationsList[1])
+    error = globalEstimations[0] + errorEstimationStatError(cdfValue, globalEstimations[1:])
+    # Ensure no NumPy type
+    return float(error)
 
-@ExaquteTask(returns=1)
-def errorEstimationTerr_Task(*args):
+@ExaquteTask(returns=1, estimations={Type: COLLECTION_IN, Depth: 1})
+def errorEstimationTerr_Task(parameters, estimations):
     """
     Same as errorEstimationTerr but is a pycompss task
     """
-    return errorEstimationTerr(*args)
+    return errorEstimationTerr(parameters, estimations)
 
-def errorEstimationMSE(ignore, *args):
+# TODO This should be *squared* error, according to the name
+def errorEstimationMSE(_, globalEstimations):
     """
     Return mean squared error given moments/variances
     """
-    assembledEstimationsList = packedList(args)
-    return np.sqrt( assembledEstimationsList[0]**2 + assembledEstimationsList[1] )
+    error = np.sqrt( globalEstimations[0]**2 + globalEstimations[1] )
+    # Ensure no NumPy type
+    return float(error)
 
-@ExaquteTask(returns=1)
-def errorEstimationMSE_Task(*args):
+@ExaquteTask(returns=1, estimations={Type: COLLECTION_IN, Depth: 1})
+def errorEstimationMSE_Task(parameters, estimations):
     """
     Same as errorEstimationMSE but is a PyCOMPSs task
     """
-    return errorEstimationMSE(*args)
+    return errorEstimationMSE(parameters, estimations)

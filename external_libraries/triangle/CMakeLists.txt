@@ -11,7 +11,9 @@ add_definitions( -w )
 
 # perform platform specific defintions
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  add_definitions(-DCPU86)
+  if(${CMAKE_SIZEOF_VOID_P} MATCHES 4)
+    add_definitions(-DCPU86)
+  endif(${CMAKE_SIZEOF_VOID_P} MATCHES 4)
   add_definitions(-DNO_TIMER)
 else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_definitions(-DLINUX)
