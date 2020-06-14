@@ -86,6 +86,7 @@ public:
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
+        , mCurveNurbsInterval(pCurve->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -111,6 +112,7 @@ public:
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveNurbsInterval(pNurbsCurveOnSurface->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -121,8 +123,8 @@ public:
         NurbsInterval CurveNurbsInterval,
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mCurveNurbsInterval(CurveNurbsInterval)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveNurbsInterval(CurveNurbsInterval)
         , mSameCurveDirection(SameCurveDirection)
     {
     }
