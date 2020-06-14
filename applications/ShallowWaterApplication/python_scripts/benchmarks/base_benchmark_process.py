@@ -35,7 +35,7 @@ class BaseBenchmarkProcess(KM.Process):
 
     def ExecuteInitialize(self):
         for node in self.model_part.Nodes:
-            node.SetValue(SW.TOPOGRAPHY, self.Topography(node))
+            node.SetSolutionStepValue(SW.TOPOGRAPHY, self.Topography(node))
 
     def ExecuteBeforeSolutionLoop(self):
         time = self.model_part.ProcessInfo[KM.TIME]
