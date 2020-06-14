@@ -307,23 +307,6 @@ public:
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
-    /**
-    * Returns whether given arbitrary point is inside the Geometry and the respective
-    * local point for the given global point
-    * @param rPoint The point to be checked if is inside o note in global coordinates
-    * @param rResult The local coordinates of the point
-    * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
-    * @return True if the point is inside, false otherwise
-    */
-    bool IsInside(
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
-    {
-        KRATOS_ERROR << "IsInside is not yet implemented within the BrepCurveOnSurface";
-    }
-
     ///@}
     ///@name Integration Points
     ///@{
