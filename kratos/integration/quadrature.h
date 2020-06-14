@@ -122,7 +122,7 @@ public:
         return msIntegrationPointsVector;
     }
 
-    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
         IntegrationPointsArrayType results;
         GenerateIntegrationPoints(results, Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>());

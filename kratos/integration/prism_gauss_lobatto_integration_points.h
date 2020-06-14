@@ -45,12 +45,13 @@ public:
         return 3;
     }
 
-    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        IntegrationPointsArrayType integration_points;
-        integration_points[0] = IntegrationPointType( 0.0 , 0.0 , 0.5 , 1.00 / 6.00 );
-        integration_points[1] = IntegrationPointType( 1.0 , 0.0 , 0.5 , 1.00 / 6.00 );
-        integration_points[2] = IntegrationPointType( 0.0 , 1.0 , 0.5 , 1.00 / 6.00 );
+        const IntegrationPointsArrayType integration_points{{
+            IntegrationPointType( 0.0 , 0.0 , 0.5 , 1.00 / 6.00 ),
+            IntegrationPointType( 1.0 , 0.0 , 0.5 , 1.00 / 6.00 ),
+            IntegrationPointType( 0.0 , 1.0 , 0.5 , 1.00 / 6.00 )
+        }};
         return integration_points;
     }
 
@@ -93,16 +94,16 @@ public:
         return 6;
     }
 
-    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        IntegrationPointsArrayType integration_points;
-        integration_points[0] = IntegrationPointType( 0.0 , 0.0 , 0.0 , 1.00 / 12.00 );
-        integration_points[1] = IntegrationPointType( 1.0 , 0.0 , 0.0 , 1.00 / 12.00 );
-        integration_points[2] = IntegrationPointType( 0.0 , 1.0 , 0.0 , 1.00 / 12.00 );
-
-        integration_points[3] = IntegrationPointType( 0.0 , 0.0 , 1.0 , 1.00 / 12.00 );
-        integration_points[4] = IntegrationPointType( 1.0 , 0.0 , 1.0 , 1.00 / 12.00 );
-        integration_points[5] = IntegrationPointType( 0.0 , 1.0 , 1.0 , 1.00 / 12.00 );
+        const IntegrationPointsArrayType integration_points{{
+            IntegrationPointType( 0.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
+            IntegrationPointType( 1.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
+            IntegrationPointType( 0.0 , 1.0 , 0.0 , 1.00 / 12.00 ),
+            IntegrationPointType( 0.0 , 0.0 , 1.0 , 1.00 / 12.00 ),
+            IntegrationPointType( 1.0 , 0.0 , 1.0 , 1.00 / 12.00 ),
+            IntegrationPointType( 0.0 , 1.0 , 1.0 , 1.00 / 12.00 )
+        }};
         return integration_points;
     }
 

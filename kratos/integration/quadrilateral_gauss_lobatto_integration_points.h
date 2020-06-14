@@ -46,11 +46,12 @@ public:
         return 2;
     }
 
-    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        IntegrationPointsArrayType integration_points;
-        integration_points[0] = IntegrationPointType( -1.00 , 0.00, 1.00 );
-        integration_points[1] = IntegrationPointType(  1.00 , 0.00, 1.00 );
+        const IntegrationPointsArrayType integration_points{{
+            IntegrationPointType( -1.00 , 0.00, 1.00 ),
+            IntegrationPointType(  1.00 , 0.00, 1.00 )
+        }};
         return integration_points;
     }
 
@@ -93,13 +94,14 @@ public:
         return 4;
     }
 
-    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        IntegrationPointsArrayType integration_points;
-        integration_points[0] = IntegrationPointType( -1.00 , -1.00, 0.50 );
-        integration_points[1] = IntegrationPointType(  1.00 , -1.00, 0.50 );
-        integration_points[2] = IntegrationPointType(  1.00 ,  1.00, 0.50 );
-        integration_points[3] = IntegrationPointType( -1.00 ,  1.00, 0.50 );
+        const IntegrationPointsArrayType integration_points{{
+            IntegrationPointType( -1.00 , -1.00, 0.50 ),
+            IntegrationPointType(  1.00 , -1.00, 0.50 ),
+            IntegrationPointType(  1.00 ,  1.00, 0.50 ),
+            IntegrationPointType( -1.00 ,  1.00, 0.50 )
+        }};
         return integration_points;
     }
 
