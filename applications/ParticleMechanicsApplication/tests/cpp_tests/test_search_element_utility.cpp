@@ -627,49 +627,7 @@ namespace Testing
         KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
     }
 
-    /// PQMPM test 10 - Check pqmpm does not split with X<0 for axisym
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DAxisym, KratosParticleMechanicsFastSuite)
-    {
-        const double int_weight_test_tolerance = 1e-5;
-
-        // First Coordinates of Material Point
-        array_1d<double, 3> mp_coordinate;
-        mp_coordinate[0] = 0.1;
-        mp_coordinate[1] = 1.5;
-        mp_coordinate[2] = 0.0;
-        const double int_weight = 1.0;
-        std::vector<double> mp_volume(1);
-        mp_volume[0] = 1.0;
-
-        // Case of background grid( 0=quad, 10=tri, 20=hex. +1 = skew)
-        const IndexType grid_case = 0;
-
-        Model current_model;
-        ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
-
-        ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
-        PrepareGeneralBackgroundModelPart(r_background_model_part, grid_case);
-        PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
-
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
-        r_background_model_part.GetProcessInfo().SetValue(IS_AXISYMMETRIC, true);
-
-        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
-        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
-
-        MPMSearchElementUtility::SearchElement<2>(
-            r_background_model_part, r_mpm_model_part, 1000, 1e-6);
-
-        // Check results - MP should lie entirely within one cell
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
-        KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
-        KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
-    }
-
-    /// PQMPM test 11 - Check pqmpm reverts back to normal MPM if min_pqmpm fraction is specified and not fulfilled
+    /// PQMPM test 10 - Check pqmpm reverts back to normal MPM if min_pqmpm fraction is specified and not fulfilled
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DFraction, KratosParticleMechanicsFastSuite)
     {
         const double int_weight_test_tolerance = 1e-5;
