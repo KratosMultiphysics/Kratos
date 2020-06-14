@@ -325,6 +325,39 @@ public:
     }
 
     ///@}
+    ///@name Projection
+    ///@{
+
+    /* Makes projection of rPointGlobalCoordinates to
+     * the closest point rProjectedPointGlobalCoordinates on the curve,
+     * with local coordinates rProjectedPointLocalCoordinates.
+     *
+     * Condiders limits of this BrepCurveOnSurface as borders.
+     *
+     * @param Tolerance is the breaking criteria.
+     * @return 1 -> projection succeeded
+     *         0 -> projection failed
+     */
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const bool success = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            rProjectedPointGlobalCoordinates,
+            *this,
+            20, Tolerance);
+
+        return (success)
+            ? 1
+            : 0;
+    }
+
+    ///@}
     ///@name IsInside
     ///@{
 
