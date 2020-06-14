@@ -416,8 +416,8 @@ private:
             << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
 
         bool relative_direction = true;
-        if (rParameters["topology"][0].Has("trim_index")) {
-            relative_direction = rParameters["topology"][0]["trim_index"].GetInt();
+        if (rParameters["topology"][0].Has("relative_direction")) {
+            relative_direction = rParameters["topology"][0]["relative_direction"].GetBool();
         }
         else {
             KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 4))
