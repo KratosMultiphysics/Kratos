@@ -281,6 +281,12 @@ public:
     ///@name Geometrical Operations
     ///@{
 
+    /// Provides the center of the underlying surface
+    Point Center() const override
+    {
+        return mpNurbsSurface->Center();
+    }
+
     /*
     * @brief This method maps from dimension space to working space.
     * @param rResult array_1d<double, 3> with the coordinates in working space
