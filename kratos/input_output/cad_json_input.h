@@ -291,7 +291,7 @@ private:
 
         auto p_brep_curve_on_surface
             = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                pNurbsSurface, p_trimming_curve, brep_active_range, curve_direction);
+                pNurbsSurface, brep_active_range, p_trimming_curve, curve_direction);
 
         if (rParameters.Has("trim_index")) {
             p_brep_curve_on_surface->SetId(rParameters["trim_index"].GetInt());
@@ -429,9 +429,9 @@ private:
         auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
         auto brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
         auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
-            p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
+            p_nurbs_curve_on_surface, relative_direction);
 
-        SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
+        SetIdOrName<BrepCurveOnSurfaceType>(rParameters, brep_nurbs_interval, p_bre_edge_brep_curve_on_surface);
 
         rModelPart.AddGeometry(p_bre_edge_brep_curve_on_surface);
     }

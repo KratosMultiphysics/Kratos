@@ -121,17 +121,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     NurbsCurveGeometry& operator=(const NurbsCurveGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -141,17 +131,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator with different point type
     template<class TOtherContainerPointType>
     NurbsCurveGeometry& operator=(
         NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)

@@ -86,6 +86,7 @@ public:
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
+        , mCurveNurbsInterval(pCurve->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -111,6 +112,7 @@ public:
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveNurbsInterval(pNurbsCurveOnSurface->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -121,8 +123,8 @@ public:
         NurbsInterval CurveNurbsInterval,
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mCurveNurbsInterval(CurveNurbsInterval)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveNurbsInterval(CurveNurbsInterval)
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -163,17 +165,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator
     BrepCurveOnSurface& operator=( const BrepCurveOnSurface& rOther )
     {
         BaseType::operator=( rOther );
@@ -183,17 +175,7 @@ public:
         return *this;
     }
 
-    /**
-     * Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator with different point type
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
@@ -279,6 +261,7 @@ public:
             rSpans[0] = mCurveNurbsInterval.GetT0();
             rSpans[1] = mCurveNurbsInterval.GetT1();
         }
+
         mpCurveOnSurface->Spans(rSpans);
     }
 
@@ -325,39 +308,19 @@ public:
     }
 
     ///@}
-    ///@name IsInside
+    ///@name Projection
     ///@{
 
-    int IsInsideLocalSpace(
-        const CoordinatesArrayType& rPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
-    {
-        const double min_parameter = mCurveNurbsInterval.MinParameter();
-        if (rPointLocalCoordinates[0] < min_parameter) {
-            return 0;
-        }
-
-        const double max_parameter = mCurveNurbsInterval.MaxParameter();
-        if (rPointLocalCoordinates[0] > max_parameter) {
-            return 0;
-        }
-
-        return 1;
-    }
-
-    int SetInsideLocalSpace(
-        CoordinatesArrayType& rPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
-    {
-        return mCurveNurbsInterval.IsInside(rPointLocalCoordinates[0]);
-    }
-
-    ///@}
-    ///@name Spatial Operations
-    ///@{
-
+    /* Makes projection of rPointGlobalCoordinates to
+     * the closest point rProjectedPointGlobalCoordinates on the curve,
+     * with local coordinates rProjectedPointLocalCoordinates.
+     *
+     * Condiders limits of this BrepCurveOnSurface as borders.
+     *
+     * @param Tolerance is the breaking criteria.
+     * @return 1 -> projection succeeded
+     *         0 -> projection failed
+     */
     int ProjectionPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
@@ -378,10 +341,45 @@ public:
     }
 
     ///@}
+    ///@name IsInside
+    ///@{
+
+    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    /* Returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+     * and sets it to the closest border */
+    int SetInsideLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mCurveNurbsInterval.IsInside(rPointLocalCoordinates[0]);
+    }
+
+
+    ///@}
     ///@name Integration Points
     ///@{
 
-    /* Creates integration points on the nurbs surface of this geometry.
+    /* Creates integration points on the nurbs surface of this geometry
+     * with the domain limits of this brep curve on surface.
      * @param return integration points.
      */
     void CreateIntegrationPoints(
@@ -394,8 +392,9 @@ public:
             Spans(spans);
             rIntegrationInfo.SetSpans(spans, 0);
         }
-        KRATOS_WATCH(rIntegrationInfo.GetSpans(0))
-        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints, rIntegrationInfo);
+
+        mpCurveOnSurface->CreateIntegrationPoints(
+            rIntegrationPoints, rIntegrationInfo);
     }
 
     ///@}

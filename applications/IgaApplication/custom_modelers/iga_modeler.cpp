@@ -11,6 +11,7 @@
 
 // Project includes
 #include "iga_modeler.h"
+#include "integration/integration_info.h"
 
 
 namespace Kratos
