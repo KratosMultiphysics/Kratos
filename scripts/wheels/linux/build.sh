@@ -99,7 +99,14 @@ build() {
   chmod +x configure.sh
   ./configure.sh "$pythonLocation" "$useCotire"
 
-  cmake --build "${KRATOS_ROOT}/build/Release" --target install -- -j"$cpus"
+  if [[ $useCotire == "ON" ]];
+  then
+    cmake --build "${KRATOS_ROOT}/build/Release" --target all_unity -- -j1 && \
+    cmake --build "${KRATOS_ROOT}/build/Release" --target install/fast -- -j1
+  else
+    cmake --build "${KRATOS_ROOT}/build/Release" --target install -- -j"$cpus"
+  fi
+
 }
 
 for pythonVersion in "${pythons[@]}"; do
