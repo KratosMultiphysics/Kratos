@@ -301,12 +301,85 @@ public:
     void BuildLHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A) override
+        TSystemMatrixType& rA
+        ) override
     {
         KRATOS_TRY
 
-        TSystemVectorType tmp(A.size1(), 0.0);
-        this->Build(pScheme, rModelPart, A, tmp);
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const auto it_elem_begin = rModelPart.ElementsBegin();
+        const auto it_cond_begin = rModelPart.ConditionsBegin();
+
+        // Contributions to the system
+        LocalSystemMatrixType lhs_contribution(0, 0);
+
+        // Vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType equation_id;
+
+        // Assemble all elements
+        double start_build = OpenMPUtils::GetCurrentTime();
+
+        #pragma omp parallel firstprivate(nelements, nconditions, lhs_contribution, equation_id )
+        {
+            # pragma omp for  schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; ++k) {
+                auto it_elem = it_elem_begin + k;
+
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
+
+                if (element_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateLHSContribution(*it_elem, lhs_contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleLHS(rA, lhs_contribution, equation_id);
+
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*it_elem);
+                }
+
+            }
+
+            #pragma omp for  schedule(guided, 512)
+            for (int k = 0; k < nconditions; ++k) {
+                auto it_cond = it_cond_begin + k;
+
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool condition_is_active = true;
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
+
+                if (condition_is_active)
+                {
+                    // Calculate elemental contribution
+                    pScheme->CalculateLHSContribution(*it_cond, lhs_contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleLHS(rA, lhs_contribution, equation_id);
+
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*it_cond);
+                }
+            }
+        }
+
+        const double stop_build = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << stop_build - start_build << std::endl;
+
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building LHS" << std::endl;
+
 
         KRATOS_CATCH("")
     }
@@ -616,7 +689,7 @@ public:
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
-        SystemSolve(rA, rDx, rb);
+        SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
@@ -1590,6 +1663,21 @@ protected:
         }
     }
 
+    //**************************************************************************
+
+    void AssembleLHS(
+        TSystemMatrixType& rA,
+        const LocalSystemMatrixType& rLHSContribution,
+        Element::EquationIdVectorType& rEquationId
+        )
+    {
+        const SizeType local_size = rLHSContribution.size1();
+
+        for (IndexType i_local = 0; i_local < local_size; i_local++) {
+            const IndexType i_global = rEquationId[i_local];
+            AssembleRowContribution(rA, rLHSContribution, i_global, i_local, rEquationId);
+        }
+    }
 
     //**************************************************************************
 

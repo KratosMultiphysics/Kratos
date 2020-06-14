@@ -408,10 +408,10 @@ protected:
     {
         // The friction coefficient
         array_1d<double, TNumNodes> friction_coeffient_vector;
-        auto& geom = this->GetParentGeometry();
+        auto& r_geometry = this->GetParentGeometry();
 
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
-            friction_coeffient_vector[i_node] = geom[i_node].GetValue(FRICTION_COEFFICIENT);
+            friction_coeffient_vector[i_node] = r_geometry[i_node].GetValue(FRICTION_COEFFICIENT);
         }
 
         // TODO: Define the "CL" or friction law to compute this
