@@ -402,8 +402,15 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
-            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+        std::vector<double> spans;
+        if (!rIntegrationInfo.HasSpansInDirection(0)) {
+            std::vector<double> spans;
+            Spans(spans);
+            rIntegrationInfo.SetSpans(spans, 0);
+        }
+
+        mpCurveOnSurface->CreateIntegrationPoints(
+            rIntegrationPoints, rIntegrationInfo);
     }
 
     ///@}
