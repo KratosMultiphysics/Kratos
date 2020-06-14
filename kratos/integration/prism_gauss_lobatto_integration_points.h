@@ -45,11 +45,18 @@ public:
         return 3;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( 0.0 , 0.0 , 0.5 , 1.00 / 6.00 );
+        integration_points[1] = IntegrationPointType( 1.0 , 0.0 , 0.5 , 1.00 / 6.00 );
+        integration_points[2] = IntegrationPointType( 0.0 , 1.0 , 0.5 , 1.00 / 6.00 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( 0.0 , 0.0 , 0.5 , 1.00 / 6.00 );
-        msIntegrationPoints[1] = IntegrationPointType( 1.0 , 0.0 , 0.5 , 1.00 / 6.00 );
-        msIntegrationPoints[2] = IntegrationPointType( 0.0 , 1.0 , 0.5 , 1.00 / 6.00 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -86,16 +93,22 @@ public:
         return 6;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( 0.0 , 0.0 , 0.0 , 1.00 / 12.00 );
+        integration_points[1] = IntegrationPointType( 1.0 , 0.0 , 0.0 , 1.00 / 12.00 );
+        integration_points[2] = IntegrationPointType( 0.0 , 1.0 , 0.0 , 1.00 / 12.00 );
+
+        integration_points[3] = IntegrationPointType( 0.0 , 0.0 , 1.0 , 1.00 / 12.00 );
+        integration_points[4] = IntegrationPointType( 1.0 , 0.0 , 1.0 , 1.00 / 12.00 );
+        integration_points[5] = IntegrationPointType( 0.0 , 1.0 , 1.0 , 1.00 / 12.00 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        // This is added to solve the problem of static initialization. Pooyan.
-        msIntegrationPoints[0] = IntegrationPointType( 0.0 , 0.0 , 0.0 , 1.00 / 12.00 );
-        msIntegrationPoints[1] = IntegrationPointType( 1.0 , 0.0 , 0.0 , 1.00 / 12.00 );
-        msIntegrationPoints[2] = IntegrationPointType( 0.0 , 1.0 , 0.0 , 1.00 / 12.00 );
-
-        msIntegrationPoints[3] = IntegrationPointType( 0.0 , 0.0 , 1.0 , 1.00 / 12.00 );
-        msIntegrationPoints[4] = IntegrationPointType( 1.0 , 0.0 , 1.0 , 1.00 / 12.00 );
-        msIntegrationPoints[5] = IntegrationPointType( 0.0 , 1.0 , 1.0 , 1.00 / 12.00 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 

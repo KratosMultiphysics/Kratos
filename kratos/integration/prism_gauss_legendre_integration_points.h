@@ -25,46 +25,6 @@
 namespace Kratos
 {
 
-//class KRATOS_API(KRATOS_CORE) PrismGaussLegendreIntegrationPoints1
-//{
-//public:
-//    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPoints1);
-//    typedef std::size_t SizeType;
-
-//    static const unsigned int Dimension = 3;
-
-//    typedef IntegrationPoint<3> IntegrationPointType;
-
-//    typedef std::array<IntegrationPointType, 1> IntegrationPointsArrayType;
-
-//    typedef IntegrationPointType::PointType PointType;
-
-//    static SizeType IntegrationPointsNumber()
-//    {
-//        return 1;
-//    }
-
-//    static IntegrationPointsArrayType& IntegrationPoints()
-//    {
-
-//        msIntegrationPoints[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.5 , 0.5 );
-//        return msIntegrationPoints;
-//    }
-
-//    std::string Info() const
-//    {
-//        std::stringstream buffer;
-//        buffer << "Prism Gauss-Legendre quadrature 1 ";
-//        return buffer.str();
-//    }
-//protected:
-
-//private:
-
-//    static IntegrationPointsArrayType msIntegrationPoints;
-
-//}; // Class PrismGaussLegendreIntegrationPoints1
-
 class KRATOS_API(KRATOS_CORE) PrismGaussLegendreIntegrationPoints1
 {
 public:
@@ -84,12 +44,18 @@ public:
         return 3;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.16666666666666666667 );
+        integration_points[1] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.50000000000000000000 , 0.16666666666666666667 );
+        integration_points[2] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.16666666666666666667 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-
-        msIntegrationPoints[0] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.16666666666666666667 );
-        msIntegrationPoints[1] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.50000000000000000000 , 0.16666666666666666667 );
-        msIntegrationPoints[2] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.16666666666666666667 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -126,15 +92,21 @@ public:
         return 6;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.2113248654051871177 , 0.08333333333333333333 );
+        integration_points[1] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.2113248654051871177 , 0.08333333333333333333 );
+        integration_points[2] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.2113248654051871177 , 0.08333333333333333333 );
+        integration_points[3] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.7886751345948128823 , 0.08333333333333333333 );
+        integration_points[4] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.7886751345948128823 , 0.08333333333333333333 );
+        integration_points[5] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.7886751345948128823 , 0.08333333333333333333 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.2113248654051871177 , 0.08333333333333333333 );
-        msIntegrationPoints[1] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.2113248654051871177 , 0.08333333333333333333 );
-        msIntegrationPoints[2] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.2113248654051871177 , 0.08333333333333333333 );
-        msIntegrationPoints[3] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.7886751345948128823 , 0.08333333333333333333 );
-        msIntegrationPoints[4] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.7886751345948128823 , 0.08333333333333333333 );
-        msIntegrationPoints[5] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.7886751345948128823 , 0.08333333333333333333 );
-
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -171,18 +143,25 @@ public:
         return 9;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.11270166537925831148 , 0.04629629629629629630 );
+        integration_points[1] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.11270166537925831148 , 0.04629629629629629630 );
+        integration_points[2] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.11270166537925831148 , 0.04629629629629629630 );
+        integration_points[3] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.07407407407407407408 );
+        integration_points[4] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.50000000000000000000 , 0.07407407407407407408 );
+        integration_points[5] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.07407407407407407408 );
+        integration_points[6] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.88729833462074168852 , 0.04629629629629629630 );
+        integration_points[7] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.88729833462074168852 , 0.04629629629629629630 );
+        integration_points[8] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.88729833462074168852 , 0.04629629629629629630 );
+
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.11270166537925831148 , 0.04629629629629629630 );
-        msIntegrationPoints[1] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.11270166537925831148 , 0.04629629629629629630 );
-        msIntegrationPoints[2] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.11270166537925831148 , 0.04629629629629629630 );
-        msIntegrationPoints[3] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.07407407407407407408 );
-        msIntegrationPoints[4] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.50000000000000000000 , 0.07407407407407407408 );
-        msIntegrationPoints[5] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.07407407407407407408 );
-        msIntegrationPoints[6] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.88729833462074168852 , 0.04629629629629629630 );
-        msIntegrationPoints[7] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.88729833462074168852 , 0.04629629629629629630 );
-        msIntegrationPoints[8] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.88729833462074168852 , 0.04629629629629629630 );
-
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -219,21 +198,28 @@ public:
         return 12;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.06943184420297371239 , 0.02898790376145448812 );
+        integration_points[1]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.06943184420297371239 , 0.02898790376145448812 );
+        integration_points[2]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.06943184420297371239 , 0.02898790376145448812 );
+        integration_points[3]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.33000947820757186760 , 0.05434542957187884522 );
+        integration_points[4]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.33000947820757186760 , 0.05434542957187884522 );
+        integration_points[5]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.33000947820757186760 , 0.05434542957187884522 );
+        integration_points[6]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.66999052179242813240 , 0.05434542957187884522 );
+        integration_points[7]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.66999052179242813240 , 0.05434542957187884522 );
+        integration_points[8]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.66999052179242813240 , 0.05434542957187884522 );
+        integration_points[9]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.93056815579702628761 , 0.02898790376145448812 );
+        integration_points[10] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.93056815579702628761 , 0.02898790376145448812 );
+        integration_points[11] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.93056815579702628761 , 0.02898790376145448812 );
+
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.06943184420297371239 , 0.02898790376145448812 );
-        msIntegrationPoints[1]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.06943184420297371239 , 0.02898790376145448812 );
-        msIntegrationPoints[2]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.06943184420297371239 , 0.02898790376145448812 );
-        msIntegrationPoints[3]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.33000947820757186760 , 0.05434542957187884522 );
-        msIntegrationPoints[4]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.33000947820757186760 , 0.05434542957187884522 );
-        msIntegrationPoints[5]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.33000947820757186760 , 0.05434542957187884522 );
-        msIntegrationPoints[6]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.66999052179242813240 , 0.05434542957187884522 );
-        msIntegrationPoints[7]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.66999052179242813240 , 0.05434542957187884522 );
-        msIntegrationPoints[8]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.66999052179242813240 , 0.05434542957187884522 );
-        msIntegrationPoints[9]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.93056815579702628761 , 0.02898790376145448812 );
-        msIntegrationPoints[10] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.93056815579702628761 , 0.02898790376145448812 );
-        msIntegrationPoints[11] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.93056815579702628761 , 0.02898790376145448812 );
-
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -270,24 +256,31 @@ public:
         return 15;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.04691007703066800360 , 0.01974390708801575729 );
+        integration_points[1]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.04691007703066800360 , 0.01974390708801575729 );
+        integration_points[2]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.04691007703066800360 , 0.01974390708801575729 );
+        integration_points[3]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.23076534494715845448 , 0.03988572254161387234 );
+        integration_points[4]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.23076534494715845448 , 0.03988572254161387234 );
+        integration_points[5]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.23076534494715845448 , 0.03988572254161387234 );
+        integration_points[6]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.04740740740740740741 );
+        integration_points[7]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.50000000000000000000 , 0.04740740740740740741 );
+        integration_points[8]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.04740740740740740741 );
+        integration_points[9]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.76923465505284154552 , 0.03988572254161387234 );
+        integration_points[10] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.76923465505284154552 , 0.03988572254161387234 );
+        integration_points[11] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.76923465505284154552 , 0.03988572254161387234 );
+        integration_points[12] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.95308992296933199640 , 0.01974390708801575729 );
+        integration_points[13] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.95308992296933199640 , 0.01974390708801575729 );
+        integration_points[14] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.95308992296933199640 , 0.01974390708801575729 );
+
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.04691007703066800360 , 0.01974390708801575729 );
-        msIntegrationPoints[1]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.04691007703066800360 , 0.01974390708801575729 );
-        msIntegrationPoints[2]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.04691007703066800360 , 0.01974390708801575729 );
-        msIntegrationPoints[3]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.23076534494715845448 , 0.03988572254161387234 );
-        msIntegrationPoints[4]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.23076534494715845448 , 0.03988572254161387234 );
-        msIntegrationPoints[5]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.23076534494715845448 , 0.03988572254161387234 );
-        msIntegrationPoints[6]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.04740740740740740741 );
-        msIntegrationPoints[7]  = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.50000000000000000000 , 0.04740740740740740741 );
-        msIntegrationPoints[8]  = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.04740740740740740741 );
-        msIntegrationPoints[9]  = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.76923465505284154552 , 0.03988572254161387234 );
-        msIntegrationPoints[10] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.76923465505284154552 , 0.03988572254161387234 );
-        msIntegrationPoints[11] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.76923465505284154552 , 0.03988572254161387234 );
-        msIntegrationPoints[12] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.95308992296933199640 , 0.01974390708801575729 );
-        msIntegrationPoints[13] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , 0.95308992296933199640 , 0.01974390708801575729 );
-        msIntegrationPoints[14] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , 0.95308992296933199640 , 0.01974390708801575729 );
-
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -326,11 +319,17 @@ public:
         return 2;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.2113248654051871177454 , 0.25000000000000000000000 );
+        integration_points[1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.7886751345948128822546 , 0.25000000000000000000000 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-
-        msIntegrationPoints[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.2113248654051871177454 , 0.25000000000000000000000 );
-        msIntegrationPoints[1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.7886751345948128822546 , 0.25000000000000000000000 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -367,11 +366,18 @@ public:
         return 3;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.1127016653792583114821 , 0.1388888888888888889 );
+        integration_points[1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.5000000000000000000000 , 0.2222222222222222222 );
+        integration_points[2] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.8872983346207416885180 , 0.1388888888888888889 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.1127016653792583114821 , 0.1388888888888888889 );
-        msIntegrationPoints[1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.5000000000000000000000 , 0.2222222222222222222 );
-        msIntegrationPoints[2] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.8872983346207416885180 , 0.1388888888888888889 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -408,13 +414,20 @@ public:
         return 5;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0469100770306680036012 , 0.0592317212640472718 );
+        integration_points[1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.2307653449471584544819 , 0.1196571676248416170 );
+        integration_points[2] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.5000000000000000000000 , 0.1422222222222222222 );
+        integration_points[3] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.7692346550528415455182 , 0.1196571676248416170 );
+        integration_points[4] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.9530899229693319963988 , 0.0592317212640472718 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0469100770306680036012 , 0.0592317212640472718 );
-        msIntegrationPoints[1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.2307653449471584544819 , 0.1196571676248416170 );
-        msIntegrationPoints[2] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.5000000000000000000000 , 0.1422222222222222222 );
-        msIntegrationPoints[3] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.7692346550528415455182 , 0.1196571676248416170 );
-        msIntegrationPoints[4] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.9530899229693319963988 , 0.0592317212640472718 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -451,15 +464,22 @@ public:
         return 7;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0254460438286207377369 , 0.0261224489795918367347 );
+        integration_points[1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.1292344072003027800681 , 0.069926347872319166975  );
+        integration_points[2] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.2970774243113014165467 , 0.09545751262627973624   );
+        integration_points[3] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.5000000000000000000000 , 0.1044897959183673469388 );
+        integration_points[4] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.7029225756886985834533 , 0.09545751262627973624   );
+        integration_points[5] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.8707655927996972199320 , 0.069926347872319166975  );
+        integration_points[6] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.9745539561713792622631 , 0.0261224489795918367347 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0254460438286207377369 , 0.0261224489795918367347 );
-        msIntegrationPoints[1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.1292344072003027800681 , 0.069926347872319166975  );
-        msIntegrationPoints[2] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.2970774243113014165467 , 0.09545751262627973624   );
-        msIntegrationPoints[3] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.5000000000000000000000 , 0.1044897959183673469388 );
-        msIntegrationPoints[4] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.7029225756886985834533 , 0.09545751262627973624   );
-        msIntegrationPoints[5] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.8707655927996972199320 , 0.069926347872319166975  );
-        msIntegrationPoints[6] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.9745539561713792622631 , 0.0261224489795918367347 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -496,19 +516,26 @@ public:
         return 11;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[ 0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0108856709269715035981 , 0.0139171417790434166207 );
+        integration_points[ 1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0564687001159523504624 , 0.031395092366226156159  );
+        integration_points[ 2] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.1349239972129753379533 , 0.0465725527319335628565 );
+        integration_points[ 3] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.2404519353965940920372 , 0.058298441147997619980  );
+        integration_points[ 4] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.3652284220238275138343 , 0.065701136127561665545  );
+        integration_points[ 5] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.5000000000000000000000 , 0.0682312716944751576786 );
+        integration_points[ 6] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.6347715779761724861657 , 0.065701136127561665545  );
+        integration_points[ 7] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.7595480646034059079628 , 0.058298441147997619980  );
+        integration_points[ 8] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.8650760027870246620467 , 0.0465725527319335628565 );
+        integration_points[ 9] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.9435312998840476495376 , 0.031395092366226156159  );
+        integration_points[10] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.9891143290730284964020 , 0.0139171417790434166207 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[ 0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0108856709269715035981 , 0.0139171417790434166207 );
-        msIntegrationPoints[ 1] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0564687001159523504624 , 0.031395092366226156159  );
-        msIntegrationPoints[ 2] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.1349239972129753379533 , 0.0465725527319335628565 );
-        msIntegrationPoints[ 3] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.2404519353965940920372 , 0.058298441147997619980  );
-        msIntegrationPoints[ 4] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.3652284220238275138343 , 0.065701136127561665545  );
-        msIntegrationPoints[ 5] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.5000000000000000000000 , 0.0682312716944751576786 );
-        msIntegrationPoints[ 6] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.6347715779761724861657 , 0.065701136127561665545  );
-        msIntegrationPoints[ 7] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.7595480646034059079628 , 0.058298441147997619980  );
-        msIntegrationPoints[ 8] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.8650760027870246620467 , 0.0465725527319335628565 );
-        msIntegrationPoints[ 9] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.9435312998840476495376 , 0.031395092366226156159  );
-        msIntegrationPoints[10] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.9891143290730284964020 , 0.0139171417790434166207 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 

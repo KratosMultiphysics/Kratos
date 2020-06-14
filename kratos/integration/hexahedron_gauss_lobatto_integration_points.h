@@ -47,12 +47,19 @@ public:
         return 4;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( -1.00 , -1.00, 0.00, 1.00 );
+        integration_points[1] = IntegrationPointType(  1.00 , -1.00, 0.00, 1.00 );
+        integration_points[2] = IntegrationPointType(  1.00 ,  1.00, 0.00, 1.00 );
+        integration_points[3] = IntegrationPointType( -1.00 ,  1.00, 0.00, 1.00 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( -1.00 , -1.00, 0.00, 1.00 );
-        msIntegrationPoints[1] = IntegrationPointType(  1.00 , -1.00, 0.00, 1.00 );
-        msIntegrationPoints[2] = IntegrationPointType(  1.00 ,  1.00, 0.00, 1.00 );
-        msIntegrationPoints[3] = IntegrationPointType( -1.00 ,  1.00, 0.00, 1.00 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -89,18 +96,24 @@ public:
         return 8;
     }
 
+    static IntegrationPointsArrayType GenerateIntegrationPoints()
+    {
+        IntegrationPointsArrayType integration_points;
+        integration_points[0] = IntegrationPointType( -1.00 , -1.00, -1.00, 0.50 );
+        integration_points[1] = IntegrationPointType(  1.00 , -1.00, -1.00, 0.50 );
+        integration_points[2] = IntegrationPointType(  1.00 ,  1.00, -1.00, 0.50 );
+        integration_points[3] = IntegrationPointType( -1.00 ,  1.00, -1.00, 0.50 );
+
+        integration_points[4] = IntegrationPointType( -1.00 , -1.00,  1.00, 0.50 );
+        integration_points[5] = IntegrationPointType(  1.00 , -1.00,  1.00, 0.50 );
+        integration_points[6] = IntegrationPointType(  1.00 ,  1.00,  1.00, 0.50 );
+        integration_points[7] = IntegrationPointType( -1.00 ,  1.00,  1.00, 0.50 );
+        return integration_points;
+    }
+
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        // This is added to solve the problem of static initialization. Pooyan.
-        msIntegrationPoints[0] = IntegrationPointType( -1.00 , -1.00, -1.00, 0.50 );
-        msIntegrationPoints[1] = IntegrationPointType(  1.00 , -1.00, -1.00, 0.50 );
-        msIntegrationPoints[2] = IntegrationPointType(  1.00 ,  1.00, -1.00, 0.50 );
-        msIntegrationPoints[3] = IntegrationPointType( -1.00 ,  1.00, -1.00, 0.50 );
-
-        msIntegrationPoints[4] = IntegrationPointType( -1.00 , -1.00,  1.00, 0.50 );
-        msIntegrationPoints[5] = IntegrationPointType(  1.00 , -1.00,  1.00, 0.50 );
-        msIntegrationPoints[6] = IntegrationPointType(  1.00 ,  1.00,  1.00, 0.50 );
-        msIntegrationPoints[7] = IntegrationPointType( -1.00 ,  1.00,  1.00, 0.50 );
+        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 

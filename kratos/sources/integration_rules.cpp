@@ -38,155 +38,155 @@ namespace Kratos
 //LINE:
 
 //Gauss-Legendre
-LineGaussLegendreIntegrationPoints1::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints1::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints1::IntegrationPoints();}();
-LineGaussLegendreIntegrationPoints2::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints2::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints2::IntegrationPoints();}();
-LineGaussLegendreIntegrationPoints3::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints3::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints3::IntegrationPoints();}();
-LineGaussLegendreIntegrationPoints4::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints4::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints4::IntegrationPoints();}();
-LineGaussLegendreIntegrationPoints5::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints5::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints5::IntegrationPoints();}();
-LineGaussLegendreIntegrationPoints6::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints6::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints6::IntegrationPoints();}();
-LineGaussLegendreIntegrationPoints7::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints7::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints7::IntegrationPoints();}();
-LineGaussLegendreIntegrationPoints8::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints8::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints8::IntegrationPoints();}();
-LineGaussLegendreIntegrationPoints9::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints9::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints9::IntegrationPoints();}();
-LineGaussLegendreIntegrationPoints10::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints10::msIntegrationPoints = [](){return LineGaussLegendreIntegrationPoints10::IntegrationPoints();}();
+LineGaussLegendreIntegrationPoints1::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints1::msIntegrationPoints(LineGaussLegendreIntegrationPoints1::GenerateIntegrationPoints());
+LineGaussLegendreIntegrationPoints2::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints2::msIntegrationPoints(LineGaussLegendreIntegrationPoints2::GenerateIntegrationPoints());
+LineGaussLegendreIntegrationPoints3::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints3::msIntegrationPoints(LineGaussLegendreIntegrationPoints3::GenerateIntegrationPoints());
+LineGaussLegendreIntegrationPoints4::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints4::msIntegrationPoints(LineGaussLegendreIntegrationPoints4::GenerateIntegrationPoints());
+LineGaussLegendreIntegrationPoints5::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints5::msIntegrationPoints(LineGaussLegendreIntegrationPoints5::GenerateIntegrationPoints());
+LineGaussLegendreIntegrationPoints6::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints6::msIntegrationPoints(LineGaussLegendreIntegrationPoints6::GenerateIntegrationPoints());
+LineGaussLegendreIntegrationPoints7::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints7::msIntegrationPoints(LineGaussLegendreIntegrationPoints7::GenerateIntegrationPoints());
+LineGaussLegendreIntegrationPoints8::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints8::msIntegrationPoints(LineGaussLegendreIntegrationPoints8::GenerateIntegrationPoints());
+LineGaussLegendreIntegrationPoints9::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints9::msIntegrationPoints(LineGaussLegendreIntegrationPoints9::GenerateIntegrationPoints());
+LineGaussLegendreIntegrationPoints10::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints10::msIntegrationPoints(LineGaussLegendreIntegrationPoints10::GenerateIntegrationPoints());
 
 //Gauss-Lobatto
-LineGaussLobattoIntegrationPoints1::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints1::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints1::IntegrationPoints();}();
-LineGaussLobattoIntegrationPoints2::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints2::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints2::IntegrationPoints();}();
-LineGaussLobattoIntegrationPoints3::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints3::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints3::IntegrationPoints();}();
-LineGaussLobattoIntegrationPoints4::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints4::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints4::IntegrationPoints();}();
-LineGaussLobattoIntegrationPoints5::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints5::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints5::IntegrationPoints();}();
-LineGaussLobattoIntegrationPoints6::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints6::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints6::IntegrationPoints();}();
-LineGaussLobattoIntegrationPoints7::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints7::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints7::IntegrationPoints();}();
-LineGaussLobattoIntegrationPoints8::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints8::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints8::IntegrationPoints();}();
-LineGaussLobattoIntegrationPoints9::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints9::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints9::IntegrationPoints();}();
-LineGaussLobattoIntegrationPoints10::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints10::msIntegrationPoints = [](){return LineGaussLobattoIntegrationPoints10::IntegrationPoints();}();
+LineGaussLobattoIntegrationPoints1::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints1::msIntegrationPoints(LineGaussLobattoIntegrationPoints1::GenerateIntegrationPoints());
+LineGaussLobattoIntegrationPoints2::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints2::msIntegrationPoints(LineGaussLobattoIntegrationPoints2::GenerateIntegrationPoints());
+LineGaussLobattoIntegrationPoints3::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints3::msIntegrationPoints(LineGaussLobattoIntegrationPoints3::GenerateIntegrationPoints());
+LineGaussLobattoIntegrationPoints4::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints4::msIntegrationPoints(LineGaussLobattoIntegrationPoints4::GenerateIntegrationPoints());
+LineGaussLobattoIntegrationPoints5::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints5::msIntegrationPoints(LineGaussLobattoIntegrationPoints5::GenerateIntegrationPoints());
+LineGaussLobattoIntegrationPoints6::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints6::msIntegrationPoints(LineGaussLobattoIntegrationPoints6::GenerateIntegrationPoints());
+LineGaussLobattoIntegrationPoints7::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints7::msIntegrationPoints(LineGaussLobattoIntegrationPoints7::GenerateIntegrationPoints());
+LineGaussLobattoIntegrationPoints8::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints8::msIntegrationPoints(LineGaussLobattoIntegrationPoints8::GenerateIntegrationPoints());
+LineGaussLobattoIntegrationPoints9::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints9::msIntegrationPoints(LineGaussLobattoIntegrationPoints9::GenerateIntegrationPoints());
+LineGaussLobattoIntegrationPoints10::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints10::msIntegrationPoints(LineGaussLobattoIntegrationPoints10::GenerateIntegrationPoints());
 
 // Collocation
-LineCollocationIntegrationPoints1::IntegrationPointsArrayType LineCollocationIntegrationPoints1::msIntegrationPoints = [](){return LineCollocationIntegrationPoints1::IntegrationPoints();}();
-LineCollocationIntegrationPoints2::IntegrationPointsArrayType LineCollocationIntegrationPoints2::msIntegrationPoints = [](){return LineCollocationIntegrationPoints2::IntegrationPoints();}();
-LineCollocationIntegrationPoints3::IntegrationPointsArrayType LineCollocationIntegrationPoints3::msIntegrationPoints = [](){return LineCollocationIntegrationPoints3::IntegrationPoints();}();
-LineCollocationIntegrationPoints4::IntegrationPointsArrayType LineCollocationIntegrationPoints4::msIntegrationPoints = [](){return LineCollocationIntegrationPoints4::IntegrationPoints();}();
-LineCollocationIntegrationPoints5::IntegrationPointsArrayType LineCollocationIntegrationPoints5::msIntegrationPoints = [](){return LineCollocationIntegrationPoints5::IntegrationPoints();}();
+LineCollocationIntegrationPoints1::IntegrationPointsArrayType LineCollocationIntegrationPoints1::msIntegrationPoints(LineCollocationIntegrationPoints1::GenerateIntegrationPoints());
+LineCollocationIntegrationPoints2::IntegrationPointsArrayType LineCollocationIntegrationPoints2::msIntegrationPoints(LineCollocationIntegrationPoints2::GenerateIntegrationPoints());
+LineCollocationIntegrationPoints3::IntegrationPointsArrayType LineCollocationIntegrationPoints3::msIntegrationPoints(LineCollocationIntegrationPoints3::GenerateIntegrationPoints());
+LineCollocationIntegrationPoints4::IntegrationPointsArrayType LineCollocationIntegrationPoints4::msIntegrationPoints(LineCollocationIntegrationPoints4::GenerateIntegrationPoints());
+LineCollocationIntegrationPoints5::IntegrationPointsArrayType LineCollocationIntegrationPoints5::msIntegrationPoints(LineCollocationIntegrationPoints5::GenerateIntegrationPoints());
 
 //TRIANGLE:
 
 //Gauss-Legendre
-TriangleGaussLegendreIntegrationPoints1::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints1::msIntegrationPoints = [](){return TriangleGaussLegendreIntegrationPoints1::IntegrationPoints();}();
-TriangleGaussLegendreIntegrationPoints2::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints2::msIntegrationPoints = [](){return TriangleGaussLegendreIntegrationPoints2::IntegrationPoints();}();
-TriangleGaussLegendreIntegrationPoints3::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints3::msIntegrationPoints = [](){return TriangleGaussLegendreIntegrationPoints3::IntegrationPoints();}();
-TriangleGaussLegendreIntegrationPoints4::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints4::msIntegrationPoints = [](){return TriangleGaussLegendreIntegrationPoints4::IntegrationPoints();}();
-TriangleGaussLegendreIntegrationPoints5::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints5::msIntegrationPoints = [](){return TriangleGaussLegendreIntegrationPoints5::IntegrationPoints();}();
+TriangleGaussLegendreIntegrationPoints1::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints1::msIntegrationPoints(TriangleGaussLegendreIntegrationPoints1::GenerateIntegrationPoints());
+TriangleGaussLegendreIntegrationPoints2::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints2::msIntegrationPoints(TriangleGaussLegendreIntegrationPoints2::GenerateIntegrationPoints());
+TriangleGaussLegendreIntegrationPoints3::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints3::msIntegrationPoints(TriangleGaussLegendreIntegrationPoints3::GenerateIntegrationPoints());
+TriangleGaussLegendreIntegrationPoints4::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints4::msIntegrationPoints(TriangleGaussLegendreIntegrationPoints4::GenerateIntegrationPoints());
+TriangleGaussLegendreIntegrationPoints5::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints5::msIntegrationPoints(TriangleGaussLegendreIntegrationPoints5::GenerateIntegrationPoints());
 
 // Gauss-Radau
-TriangleGaussRadauIntegrationPoints1::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints1::msIntegrationPoints = [](){return TriangleGaussRadauIntegrationPoints1::IntegrationPoints();}();
-TriangleGaussRadauIntegrationPoints2::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints2::msIntegrationPoints = [](){return TriangleGaussRadauIntegrationPoints2::IntegrationPoints();}();
-TriangleGaussRadauIntegrationPoints3::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints3::msIntegrationPoints = [](){return TriangleGaussRadauIntegrationPoints3::IntegrationPoints();}();
-TriangleGaussRadauIntegrationPoints4::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints4::msIntegrationPoints = [](){return TriangleGaussRadauIntegrationPoints4::IntegrationPoints();}();
-TriangleGaussRadauIntegrationPoints5::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints5::msIntegrationPoints = [](){return TriangleGaussRadauIntegrationPoints5::IntegrationPoints();}();
-TriangleGaussRadauIntegrationPoints6::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints6::msIntegrationPoints = [](){return TriangleGaussRadauIntegrationPoints6::IntegrationPoints();}();
+TriangleGaussRadauIntegrationPoints1::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints1::msIntegrationPoints(TriangleGaussRadauIntegrationPoints1::GenerateIntegrationPoints());
+TriangleGaussRadauIntegrationPoints2::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints2::msIntegrationPoints(TriangleGaussRadauIntegrationPoints2::GenerateIntegrationPoints());
+TriangleGaussRadauIntegrationPoints3::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints3::msIntegrationPoints(TriangleGaussRadauIntegrationPoints3::GenerateIntegrationPoints());
+TriangleGaussRadauIntegrationPoints4::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints4::msIntegrationPoints(TriangleGaussRadauIntegrationPoints4::GenerateIntegrationPoints());
+TriangleGaussRadauIntegrationPoints5::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints5::msIntegrationPoints(TriangleGaussRadauIntegrationPoints5::GenerateIntegrationPoints());
+TriangleGaussRadauIntegrationPoints6::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints6::msIntegrationPoints(TriangleGaussRadauIntegrationPoints6::GenerateIntegrationPoints());
 
 // Collocation
-TriangleCollocationIntegrationPoints1::IntegrationPointsArrayType TriangleCollocationIntegrationPoints1::msIntegrationPoints = [](){return TriangleCollocationIntegrationPoints1::IntegrationPoints();}();
-TriangleCollocationIntegrationPoints2::IntegrationPointsArrayType TriangleCollocationIntegrationPoints2::msIntegrationPoints = [](){return TriangleCollocationIntegrationPoints2::IntegrationPoints();}();
-TriangleCollocationIntegrationPoints3::IntegrationPointsArrayType TriangleCollocationIntegrationPoints3::msIntegrationPoints = [](){return TriangleCollocationIntegrationPoints3::IntegrationPoints();}();
-TriangleCollocationIntegrationPoints4::IntegrationPointsArrayType TriangleCollocationIntegrationPoints4::msIntegrationPoints = [](){return TriangleCollocationIntegrationPoints4::IntegrationPoints();}();
-TriangleCollocationIntegrationPoints5::IntegrationPointsArrayType TriangleCollocationIntegrationPoints5::msIntegrationPoints = [](){return TriangleCollocationIntegrationPoints5::IntegrationPoints();}();
+TriangleCollocationIntegrationPoints1::IntegrationPointsArrayType TriangleCollocationIntegrationPoints1::msIntegrationPoints(TriangleCollocationIntegrationPoints1::GenerateIntegrationPoints());
+TriangleCollocationIntegrationPoints2::IntegrationPointsArrayType TriangleCollocationIntegrationPoints2::msIntegrationPoints(TriangleCollocationIntegrationPoints2::GenerateIntegrationPoints());
+TriangleCollocationIntegrationPoints3::IntegrationPointsArrayType TriangleCollocationIntegrationPoints3::msIntegrationPoints(TriangleCollocationIntegrationPoints3::GenerateIntegrationPoints());
+TriangleCollocationIntegrationPoints4::IntegrationPointsArrayType TriangleCollocationIntegrationPoints4::msIntegrationPoints(TriangleCollocationIntegrationPoints4::GenerateIntegrationPoints());
+TriangleCollocationIntegrationPoints5::IntegrationPointsArrayType TriangleCollocationIntegrationPoints5::msIntegrationPoints(TriangleCollocationIntegrationPoints5::GenerateIntegrationPoints());
 
 //QUADRILATERAL:
 
 //Gauss-Legendre
 QuadrilateralGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
-QuadrilateralGaussLegendreIntegrationPoints1::msIntegrationPoints = [](){return QuadrilateralGaussLegendreIntegrationPoints1::IntegrationPoints();}();
+QuadrilateralGaussLegendreIntegrationPoints1::msIntegrationPoints(QuadrilateralGaussLegendreIntegrationPoints1::GenerateIntegrationPoints());
 QuadrilateralGaussLegendreIntegrationPoints2::IntegrationPointsArrayType
-QuadrilateralGaussLegendreIntegrationPoints2::msIntegrationPoints = [](){return QuadrilateralGaussLegendreIntegrationPoints2::IntegrationPoints();}();
+QuadrilateralGaussLegendreIntegrationPoints2::msIntegrationPoints(QuadrilateralGaussLegendreIntegrationPoints2::GenerateIntegrationPoints());
 QuadrilateralGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
-QuadrilateralGaussLegendreIntegrationPoints3::msIntegrationPoints = [](){return QuadrilateralGaussLegendreIntegrationPoints3::IntegrationPoints();}();
+QuadrilateralGaussLegendreIntegrationPoints3::msIntegrationPoints(QuadrilateralGaussLegendreIntegrationPoints3::GenerateIntegrationPoints());
 QuadrilateralGaussLegendreIntegrationPoints4::IntegrationPointsArrayType
-QuadrilateralGaussLegendreIntegrationPoints4::msIntegrationPoints = [](){return QuadrilateralGaussLegendreIntegrationPoints4::IntegrationPoints();}();
+QuadrilateralGaussLegendreIntegrationPoints4::msIntegrationPoints(QuadrilateralGaussLegendreIntegrationPoints4::GenerateIntegrationPoints());
 QuadrilateralGaussLegendreIntegrationPoints5::IntegrationPointsArrayType
-QuadrilateralGaussLegendreIntegrationPoints5::msIntegrationPoints = [](){return QuadrilateralGaussLegendreIntegrationPoints5::IntegrationPoints();}();
+QuadrilateralGaussLegendreIntegrationPoints5::msIntegrationPoints(QuadrilateralGaussLegendreIntegrationPoints5::GenerateIntegrationPoints());
 
 //Gauss-Lobatto
 QuadrilateralGaussLobattoIntegrationPoints1::IntegrationPointsArrayType
-QuadrilateralGaussLobattoIntegrationPoints1::msIntegrationPoints = [](){return QuadrilateralGaussLobattoIntegrationPoints1::IntegrationPoints();}();
+QuadrilateralGaussLobattoIntegrationPoints1::msIntegrationPoints(QuadrilateralGaussLobattoIntegrationPoints1::GenerateIntegrationPoints());
 QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPointsArrayType
-QuadrilateralGaussLobattoIntegrationPoints2::msIntegrationPoints = [](){return QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPoints();}();
+QuadrilateralGaussLobattoIntegrationPoints2::msIntegrationPoints(QuadrilateralGaussLobattoIntegrationPoints2::GenerateIntegrationPoints());
 
 // Collocation
 QuadrilateralCollocationIntegrationPoints1::IntegrationPointsArrayType
-QuadrilateralCollocationIntegrationPoints1::msIntegrationPoints = [](){return QuadrilateralCollocationIntegrationPoints1::IntegrationPoints();}();
+QuadrilateralCollocationIntegrationPoints1::msIntegrationPoints(QuadrilateralCollocationIntegrationPoints1::GenerateIntegrationPoints());
 QuadrilateralCollocationIntegrationPoints2::IntegrationPointsArrayType
-QuadrilateralCollocationIntegrationPoints2::msIntegrationPoints = [](){return QuadrilateralCollocationIntegrationPoints2::IntegrationPoints();}();
+QuadrilateralCollocationIntegrationPoints2::msIntegrationPoints(QuadrilateralCollocationIntegrationPoints2::GenerateIntegrationPoints());
 QuadrilateralCollocationIntegrationPoints3::IntegrationPointsArrayType
-QuadrilateralCollocationIntegrationPoints3::msIntegrationPoints = [](){return QuadrilateralCollocationIntegrationPoints3::IntegrationPoints();}();
+QuadrilateralCollocationIntegrationPoints3::msIntegrationPoints(QuadrilateralCollocationIntegrationPoints3::GenerateIntegrationPoints());
 QuadrilateralCollocationIntegrationPoints4::IntegrationPointsArrayType
-QuadrilateralCollocationIntegrationPoints4::msIntegrationPoints = [](){return QuadrilateralCollocationIntegrationPoints4::IntegrationPoints();}();
+QuadrilateralCollocationIntegrationPoints4::msIntegrationPoints(QuadrilateralCollocationIntegrationPoints4::GenerateIntegrationPoints());
 QuadrilateralCollocationIntegrationPoints5::IntegrationPointsArrayType
-QuadrilateralCollocationIntegrationPoints5::msIntegrationPoints = [](){return QuadrilateralCollocationIntegrationPoints5::IntegrationPoints();}();
+QuadrilateralCollocationIntegrationPoints5::msIntegrationPoints(QuadrilateralCollocationIntegrationPoints5::GenerateIntegrationPoints());
 
 //TETRAHEDRON:
 
 //Gauss-Legendre
 TetrahedronGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
-TetrahedronGaussLegendreIntegrationPoints1::msIntegrationPoints = [](){return TetrahedronGaussLegendreIntegrationPoints1::IntegrationPoints();}();
+TetrahedronGaussLegendreIntegrationPoints1::msIntegrationPoints(TetrahedronGaussLegendreIntegrationPoints1::GenerateIntegrationPoints());
 TetrahedronGaussLegendreIntegrationPoints2::IntegrationPointsArrayType
-TetrahedronGaussLegendreIntegrationPoints2::msIntegrationPoints = [](){return TetrahedronGaussLegendreIntegrationPoints2::IntegrationPoints();}();
+TetrahedronGaussLegendreIntegrationPoints2::msIntegrationPoints(TetrahedronGaussLegendreIntegrationPoints2::GenerateIntegrationPoints());
 TetrahedronGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
-TetrahedronGaussLegendreIntegrationPoints3::msIntegrationPoints = [](){return TetrahedronGaussLegendreIntegrationPoints3::IntegrationPoints();}();
+TetrahedronGaussLegendreIntegrationPoints3::msIntegrationPoints(TetrahedronGaussLegendreIntegrationPoints3::GenerateIntegrationPoints());
 TetrahedronGaussLegendreIntegrationPoints4::IntegrationPointsArrayType
-TetrahedronGaussLegendreIntegrationPoints4::msIntegrationPoints = [](){return TetrahedronGaussLegendreIntegrationPoints4::IntegrationPoints();}();
+TetrahedronGaussLegendreIntegrationPoints4::msIntegrationPoints(TetrahedronGaussLegendreIntegrationPoints4::GenerateIntegrationPoints());
 TetrahedronGaussLegendreIntegrationPoints5::IntegrationPointsArrayType
-TetrahedronGaussLegendreIntegrationPoints5::msIntegrationPoints = [](){return TetrahedronGaussLegendreIntegrationPoints5::IntegrationPoints();}();
+TetrahedronGaussLegendreIntegrationPoints5::msIntegrationPoints(TetrahedronGaussLegendreIntegrationPoints5::GenerateIntegrationPoints());
 
 //PRISM:
 
 //Gauss-Legendre
 PrismGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPoints1::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPoints1::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPoints1::msIntegrationPoints(PrismGaussLegendreIntegrationPoints1::GenerateIntegrationPoints());
 PrismGaussLegendreIntegrationPoints2::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPoints2::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPoints2::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPoints2::msIntegrationPoints(PrismGaussLegendreIntegrationPoints2::GenerateIntegrationPoints());
 PrismGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPoints3::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPoints3::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPoints3::msIntegrationPoints(PrismGaussLegendreIntegrationPoints3::GenerateIntegrationPoints());
 PrismGaussLegendreIntegrationPoints4::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPoints4::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPoints4::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPoints4::msIntegrationPoints(PrismGaussLegendreIntegrationPoints4::GenerateIntegrationPoints());
 PrismGaussLegendreIntegrationPoints5::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPoints5::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPoints5::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPoints5::msIntegrationPoints(PrismGaussLegendreIntegrationPoints5::GenerateIntegrationPoints());
 
 /* EXTENDED VALUES (just one point along the plane) */
 PrismGaussLegendreIntegrationPointsExt1::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPointsExt1::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPointsExt1::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPointsExt1::msIntegrationPoints(PrismGaussLegendreIntegrationPointsExt1::GenerateIntegrationPoints());
 PrismGaussLegendreIntegrationPointsExt2::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPointsExt2::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPointsExt2::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPointsExt2::msIntegrationPoints(PrismGaussLegendreIntegrationPointsExt2::GenerateIntegrationPoints());
 PrismGaussLegendreIntegrationPointsExt3::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPointsExt3::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPointsExt3::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPointsExt3::msIntegrationPoints(PrismGaussLegendreIntegrationPointsExt3::GenerateIntegrationPoints());
 PrismGaussLegendreIntegrationPointsExt4::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPointsExt4::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPointsExt4::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPointsExt4::msIntegrationPoints(PrismGaussLegendreIntegrationPointsExt4::GenerateIntegrationPoints());
 PrismGaussLegendreIntegrationPointsExt5::IntegrationPointsArrayType
-PrismGaussLegendreIntegrationPointsExt5::msIntegrationPoints = [](){return PrismGaussLegendreIntegrationPointsExt5::IntegrationPoints();}();
+PrismGaussLegendreIntegrationPointsExt5::msIntegrationPoints(PrismGaussLegendreIntegrationPointsExt5::GenerateIntegrationPoints());
 
 //Gauss-Lobatto
 PrismGaussLobattoIntegrationPoints1::IntegrationPointsArrayType
-PrismGaussLobattoIntegrationPoints1::msIntegrationPoints = [](){return PrismGaussLobattoIntegrationPoints1::IntegrationPoints();}();
+PrismGaussLobattoIntegrationPoints1::msIntegrationPoints(PrismGaussLobattoIntegrationPoints1::GenerateIntegrationPoints());
 PrismGaussLobattoIntegrationPoints2::IntegrationPointsArrayType
-PrismGaussLobattoIntegrationPoints2::msIntegrationPoints = [](){return PrismGaussLobattoIntegrationPoints2::IntegrationPoints();}();
+PrismGaussLobattoIntegrationPoints2::msIntegrationPoints(PrismGaussLobattoIntegrationPoints2::GenerateIntegrationPoints());
 
 //HEXAHEDRON:
 
 //Gauss-Legendre
 HexahedronGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
-HexahedronGaussLegendreIntegrationPoints1::msIntegrationPoints = [](){return HexahedronGaussLegendreIntegrationPoints1::IntegrationPoints();}();
+HexahedronGaussLegendreIntegrationPoints1::msIntegrationPoints(HexahedronGaussLegendreIntegrationPoints1::GenerateIntegrationPoints());
 HexahedronGaussLegendreIntegrationPoints2::IntegrationPointsArrayType
-HexahedronGaussLegendreIntegrationPoints2::msIntegrationPoints = [](){return HexahedronGaussLegendreIntegrationPoints2::IntegrationPoints();}();
+HexahedronGaussLegendreIntegrationPoints2::msIntegrationPoints(HexahedronGaussLegendreIntegrationPoints2::GenerateIntegrationPoints());
 HexahedronGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
-HexahedronGaussLegendreIntegrationPoints3::msIntegrationPoints = [](){return HexahedronGaussLegendreIntegrationPoints3::IntegrationPoints();}();
+HexahedronGaussLegendreIntegrationPoints3::msIntegrationPoints(HexahedronGaussLegendreIntegrationPoints3::GenerateIntegrationPoints());
 HexahedronGaussLegendreIntegrationPoints4::IntegrationPointsArrayType
-HexahedronGaussLegendreIntegrationPoints4::msIntegrationPoints = [](){return HexahedronGaussLegendreIntegrationPoints4::IntegrationPoints();}();
+HexahedronGaussLegendreIntegrationPoints4::msIntegrationPoints(HexahedronGaussLegendreIntegrationPoints4::GenerateIntegrationPoints());
 HexahedronGaussLegendreIntegrationPoints5::IntegrationPointsArrayType
-HexahedronGaussLegendreIntegrationPoints5::msIntegrationPoints = [](){return HexahedronGaussLegendreIntegrationPoints5::IntegrationPoints();}();
+HexahedronGaussLegendreIntegrationPoints5::msIntegrationPoints(HexahedronGaussLegendreIntegrationPoints5::GenerateIntegrationPoints());
 
 //Gauss-Lobatto
 HexahedronGaussLobattoIntegrationPoints1::IntegrationPointsArrayType
-HexahedronGaussLobattoIntegrationPoints1::msIntegrationPoints = [](){return HexahedronGaussLobattoIntegrationPoints1::IntegrationPoints();}();
+HexahedronGaussLobattoIntegrationPoints1::msIntegrationPoints(HexahedronGaussLobattoIntegrationPoints1::GenerateIntegrationPoints());
 HexahedronGaussLobattoIntegrationPoints2::IntegrationPointsArrayType
-HexahedronGaussLobattoIntegrationPoints2::msIntegrationPoints = [](){return HexahedronGaussLobattoIntegrationPoints2::IntegrationPoints();}();
+HexahedronGaussLobattoIntegrationPoints2::msIntegrationPoints(HexahedronGaussLobattoIntegrationPoints2::GenerateIntegrationPoints());
 }
