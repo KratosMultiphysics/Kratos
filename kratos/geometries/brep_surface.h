@@ -337,10 +337,10 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        IntegrationInfo& rIntegrationInfo) override
+        const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
     }
 
     ///@}
