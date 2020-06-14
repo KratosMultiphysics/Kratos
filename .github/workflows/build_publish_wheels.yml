@@ -20,8 +20,6 @@ jobs:
     - name: Build wheels
       run: |
         mkdir wheels
-# todo: change branch to master
-# todo: change docker image to kratosmultiphysics/kratos-wheelbuilder-linux
         sudo docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/workspace/out hubertus248/kratoswheelbuilder-linux --branch "wheels/add-action" --cpus 2 --pythons ${{ matrix.python-version }}
 
   windows:
