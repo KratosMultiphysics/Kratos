@@ -284,9 +284,14 @@ private:
         auto p_trimming_curve(ReadNurbsCurve<2, TEmbeddedNodeType>(
             rParameters["parameter_curve"], rModelPart, EchoLevel));
 
+        KRATOS_ERROR_IF_NOT(rParameters["parameter_curve"].Has("active_range"))
+            << "Missing 'active_range' in parameter_curve, in trimming curve." << std::endl;
+        Vector active_range_vector = rParameters["parameter_curve"]["active_range"].GetVector();
+        NurbsInterval brep_active_range(active_range_vector[0], active_range_vector[1]);
+
         auto p_brep_curve_on_surface
             = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                pNurbsSurface, p_trimming_curve, curve_direction);
+                pNurbsSurface, brep_active_range, p_trimming_curve, curve_direction);
 
         if (rParameters.Has("trim_index")) {
             p_brep_curve_on_surface->SetId(rParameters["trim_index"].GetInt());
