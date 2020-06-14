@@ -307,6 +307,23 @@ public:
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
+    /* @brief This method maps from dimension space to working space and computes the
+     *        number of derivatives at the dimension parameter.
+     * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
+     * @param LocalCoordinates The local coordinates in dimension space
+     * @param Derivative Number of computed derivatives
+     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+     * @see PointLocalCoordinates
+     */
+    void GlobalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const override
+    {
+        return mpCurveOnSurface->GlobalSpaceDerivatives(
+            rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+    }
+
     ///@}
     ///@name Integration Points
     ///@{
