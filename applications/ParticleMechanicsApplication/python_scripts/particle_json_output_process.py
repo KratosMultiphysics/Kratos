@@ -36,7 +36,7 @@ class ParticleJsonOutputProcess(JsonOutputProcess):
                     variable_name = out.GetString()
                     variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
-                    if (variable_type == "Double" or variable_type == "Component"):
+                    if (variable_type == "Double" or variable_type == "Integer" or variable_type == "Component"):
                         if (self.resultant_solution == False):
                             data["PARTICLE_" + str(mp.Id)][variable_name] = []
                         else:
@@ -95,7 +95,7 @@ class ParticleJsonOutputProcess(JsonOutputProcess):
                         values_vector = mp.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
                         value = values_vector[0]
 
-                        if (variable_type == "Double" or variable_type == "Component"):
+                        if (variable_type == "Double" or variable_type == "Integer" or variable_type == "Component"):
                             if (self.resultant_solution == False):
                                 data["PARTICLE_" + str(mp.Id)][variable_name].append(value)
                             else:
