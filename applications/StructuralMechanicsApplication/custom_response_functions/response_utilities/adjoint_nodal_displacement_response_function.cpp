@@ -36,8 +36,8 @@ namespace Kratos
             KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedDofLabel << std::endl;
         else
         {
-            const VariableComponentType& r_traced_dof =
-                KratosComponents<VariableComponentType>::Get(mTracedDofLabel);
+            const DoubleVariableType& r_traced_dof =
+                KratosComponents<DoubleVariableType>::Get(mTracedDofLabel);
             KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_dof) )
                 << "Specified DOF is not available at traced node." << std::endl;
         }
@@ -70,8 +70,8 @@ namespace Kratos
             DofsVectorType dofs_of_element;
             mpNeighboringElement->GetDofList(dofs_of_element, rProcessInfo);
 
-            const VariableComponentType& r_traced_adjoint_dof =
-                KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDofLabel);
+            const DoubleVariableType& r_traced_adjoint_dof =
+                KratosComponents<DoubleVariableType>::Get(std::string("ADJOINT_") + mTracedDofLabel);
 
             for(IndexType i = 0; i < dofs_of_element.size(); ++i)
             {
@@ -178,8 +178,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const VariableComponentType& r_traced_dof =
-            KratosComponents<VariableComponentType>::Get(mTracedDofLabel);
+        const DoubleVariableType& r_traced_dof =
+            KratosComponents<DoubleVariableType>::Get(mTracedDofLabel);
 
         return rModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(r_traced_dof, 0);
 
