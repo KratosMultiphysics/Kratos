@@ -429,9 +429,9 @@ private:
         auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
         auto brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
         auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
-            p_nurbs_curve_on_surface, relative_direction);
+            p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
 
-        SetIdOrName<BrepCurveOnSurfaceType>(rParameters, brep_nurbs_interval, p_bre_edge_brep_curve_on_surface);
+        SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
 
         rModelPart.AddGeometry(p_bre_edge_brep_curve_on_surface);
     }
