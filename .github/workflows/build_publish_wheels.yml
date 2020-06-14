@@ -20,7 +20,7 @@ jobs:
     - name: Build wheels
       run: |
         mkdir wheels
-        sudo docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/workspace/out hubertus248/kratoswheelbuilder-linux --branch "wheels/add-action" --cpus 2 --pythons ${{ matrix.python-version }}
+        sudo docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/workspace/out hubertus248/kratoswheelbuilder-linux --branch "wheels/add-action" --cpus 2 --pythons ${{ matrix.python-version }} --cotire ON
 
   windows:
     runs-on: windows-latest

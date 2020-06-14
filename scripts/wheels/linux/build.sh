@@ -3,6 +3,7 @@ export KRATOS_VERSION="7.0.3"
 
 cpus=$1
 pythons=$2
+useCotire=$3
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
@@ -96,7 +97,7 @@ build() {
 
   cp /workspace/kratos/Kratos/scripts/wheels/linux/configure.sh ./configure.sh
   chmod +x configure.sh
-  ./configure.sh "$pythonLocation"
+  ./configure.sh "$pythonLocation" "$useCotire"
 
   cmake --build "${KRATOS_ROOT}/build/Release" --target install -- -j"$cpus"
 }
@@ -115,7 +116,11 @@ for pythonVersion in "${pythons[@]}"; do
   build_core_wheel
 
   for application in $(ls ${KRATOS_ROOT}/scripts/wheels/linux/applications); do
-    build_application_wheel "$application"
+    if [[ $application != _* ]];
+    then
+      build_application_wheel "$application"
+    fi
+
   done
 
   build_kratos_all_wheel
