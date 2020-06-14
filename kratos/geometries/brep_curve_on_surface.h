@@ -227,6 +227,12 @@ public:
         return mSameCurveDirection;
     }
 
+    /// Returns the const NurbsCurveOnSurface::Pointer of this brep.
+    const NurbsInterval DomainInterval() const
+    {
+        return mCurveNurbsInterval;
+    }
+
     /// Returns the NurbsCurveOnSurface::Pointer of this brep.
     NurbsCurveOnSurfacePointerType pGetCurveOnSurface()
     {
