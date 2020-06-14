@@ -26,6 +26,7 @@
 
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 namespace Kratos
 {
@@ -395,7 +396,8 @@ public:
     ///@name Integration Points
     ///@{
 
-    /* Creates integration points on the nurbs surface of this geometry.
+    /* Creates integration points on the nurbs surface of this geometry
+     * with the domain limits of this brep curve on surface.
      * @param return integration points.
      */
     void CreateIntegrationPoints(
@@ -431,10 +433,10 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        IntegrationInfo& rIntegrationInfo) override
+        const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
     }
 
     ///@}
