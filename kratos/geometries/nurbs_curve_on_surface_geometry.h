@@ -162,6 +162,14 @@ public:
     ///@name Curve Properties
     ///@{
 
+    /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
+     * @return domain interval.
+     */
+    NurbsInterval DomainInterval() const
+    {
+        return mpNurbsCurve->DomainInterval();
+    }
+
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,
      *         using the interval of this curve.
      * @param vector of span intervals.
@@ -421,6 +429,12 @@ public:
     ///@}
     ///@name Operation within Global Space
     ///@{
+
+    /// Provides the center of the underlying surface
+    Point Center() const override
+    {
+        return mpNurbsSurface->Center();
+    }
 
     /*
     * @brief This method maps from dimension space to working space.
