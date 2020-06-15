@@ -675,9 +675,9 @@ namespace Kratos
             std::cout << "|";
             for (size_t j = 0; j < rMatrix.size2(); ++j)
             {
-                std::cout << "\t" << rMatrix(i, j);
+                std::cout << " " << rMatrix(i, j);
             }
-            std::cout << "\t|\n";
+            std::cout << " |\n";
         }
         std::cout << std::endl;
         KRATOS_CATCH("")
