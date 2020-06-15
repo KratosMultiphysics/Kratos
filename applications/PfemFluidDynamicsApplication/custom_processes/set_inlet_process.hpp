@@ -97,13 +97,17 @@ namespace Kratos
         std::cout << "  SET INLET PROCESS ]; " << std::endl;
 
       // const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-      // unsigned int count=0;
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         // count++;
+        if (i_node->Is(RIGID))
+        {
+          i_node->GetValue(NO_MESH) = true;
+        }
         i_node->Set(INLET);
-        // i_node->Set(SLIP);
         i_node->Set(RIGID);
+        i_node->Reset(FREE_SURFACE);
+        i_node->GetValue(EULERIAN_INLET) = true;
       }
 
       KRATOS_CATCH(" ")

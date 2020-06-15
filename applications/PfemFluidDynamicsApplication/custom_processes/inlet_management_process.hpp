@@ -212,7 +212,7 @@ namespace Kratos
 
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
-        if (i_node->Is(INLET))
+        if (i_node->GetValue(EULERIAN_INLET)==false)
         {
 
           ElementWeakPtrVectorType &neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
@@ -297,7 +297,7 @@ namespace Kratos
 
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
-        if (i_node->Is(INLET) && i_node->Is(SLIP))
+        if (i_node->GetValue(EULERIAN_INLET)==true)
         {
           eulerianInletNodes += 1;
         }
