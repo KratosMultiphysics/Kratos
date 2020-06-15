@@ -689,8 +689,6 @@ namespace MPMSearchElementUtility
 
         const SizeType working_dim = rGeometry.WorkingSpaceDimension();
         const double pqmpm_min_fraction = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_MIN_FRACTION))
-            ? std::max(rBackgroundGridModelPart.GetProcessInfo()[PQMPM_MIN_FRACTION], Tolerance)
-            : Tolerance;
 
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
