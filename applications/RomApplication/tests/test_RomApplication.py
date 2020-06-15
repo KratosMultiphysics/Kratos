@@ -9,6 +9,7 @@ from thermal_static_test_files.test_ROM import ROMStationaryConvDiff
 from thermal_dynamic_test_files.test_ROM import ROMDynamicConvDiff
 from structural_static_test_files.test_ROM import ROMStaticStruct
 from structural_dynamic_test_files.test_ROM import ROMDynamicStruct
+from fluid_dynamics_test_files.test_ROM import ROMFluidDynamics
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -33,6 +34,7 @@ def AssembleTestSuites():
     smallSuite.addTest(ROMDynamicConvDiff('test_ConvDiff_Dynamic_ROM_2D'))
     smallSuite.addTest(ROMStaticStruct('test_Struct_Static_ROM_2D'))
     smallSuite.addTest(ROMDynamicStruct('test_Struct_Dynamic_ROM_2D'))
+    smallSuite.addTest(ROMFluidDynamics('test_Fluid_Dynamic_ROM_2D'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -50,7 +52,8 @@ def AssembleTestSuites():
             ROMStationaryConvDiff,
             ROMDynamicConvDiff,
             ROMStaticStruct,
-            ROMDynamicStruct
+            ROMDynamicStruct,
+            ROMFluidDynamics
         ])
     )
 
