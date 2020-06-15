@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -52,9 +50,9 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             err_msg += 'or None, got object of type "{}"'.format(type(models))
             raise Exception(err_msg)
 
-        self.process_info = KM.ProcessInfo()
+        super().__init__(settings, None, solver_name)
 
-        self.solver_wrappers = self.__CreateSolverWrappers()
+        self.process_info = KM.ProcessInfo()
 
         self.solver_wrappers = self.__CreateSolverWrappers(models)
 
