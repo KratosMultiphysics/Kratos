@@ -152,14 +152,18 @@ namespace Kratos
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
         IndexType active_node_counter = 0;
         auto node_begin = r_sub_domain_1_active.NodesBegin();
+
+        auto velocity_variable = (mGamma[0] == 0.5) ? VELOCITY : NODAL_MOMENTUM;
+        auto acceleration_variable = (mGamma[0] == 0.5) ? ACCELERATION : NODAL_INERTIA;
+
         for (size_t i = 0; i < domain_nodes; ++i)
         {
             auto node_it = node_begin + i;
             node_it->Set(ACTIVE, mSubDomain1FinalDomainActiveNodes[i]);
 
-            array_1d <double, 3>& nodal_vel = node_it->FastGetSolutionStepValue(VELOCITY);
+            array_1d <double, 3>& nodal_vel = node_it->FastGetSolutionStepValue(velocity_variable);
             array_1d <double, 3>& nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d <double, 3>& nodal_accel = node_it->FastGetSolutionStepValue(ACCELERATION);
+            array_1d <double, 3>& nodal_accel = node_it->FastGetSolutionStepValue(acceleration_variable);
             nodal_vel.clear();
             nodal_disp.clear();
             nodal_accel.clear();
@@ -562,9 +566,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        //KRATOS_ERROR << "EXPLICIT NOT YET IMPLEMENTED" << std::endl;
-        const SizeType working_space_dimension = rModelPart.ElementsBegin()->WorkingSpaceDimension();
-        bool add_correction = true;
+            const SizeType working_space_dimension = rModelPart.GetParentModelPart()->ElementsBegin()->WorkingSpaceDimension();
 
         // Add correction entries
         for (size_t i = 0; i < mSubDomain2ExplicitOrdering.size(); ++i)

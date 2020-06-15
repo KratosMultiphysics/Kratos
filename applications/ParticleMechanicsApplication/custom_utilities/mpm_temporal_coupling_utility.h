@@ -92,7 +92,7 @@ protected:
 
     void ComputeLamda(const Matrix& rH, const Vector& rb, Vector& rLamda);
 
-    void ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& link_accel, 
+    void ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& link_accel,
         const double timeStep, const IndexType domainIndex = 1);
 
     void ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& link_accel,

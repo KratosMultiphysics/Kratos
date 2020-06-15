@@ -196,11 +196,11 @@ class MPMCoupledTimeSolver(MPMSolver):
             #print('finalizing sd2')
             self._GetSolutionStrategy(2).FinalizeSolutionStep()
             self._GetSolutionStrategy(2).Clear()
-        self.coupling_utility.CorrectSubDomain1()
         if self.gamma_1 == 1.0:
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
         else:
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
+        self.coupling_utility.CorrectSubDomain1()
         return is_converged
 
 
