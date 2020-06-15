@@ -132,3 +132,6 @@ class Explicit3dTetCompressibleOscillatingPointTest(ParticleMechanicsTestFactory
 ### PQMPM tests
 class PQMPMExplicitQuadTest(ParticleMechanicsTestFactory):
     file_name = "pqmpm_tests/pqmpm_explicit_quad_test"
+
+class PQMPMExplicitTriTest(ParticleMechanicsTestFactory):
+    file_name = "pqmpm_tests/pqmpm_explicit_tri_test"
