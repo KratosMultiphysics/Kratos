@@ -570,6 +570,8 @@ namespace MPMSearchElementUtility
     inline bool DetermineIfDomainOverlapsBoundaryConditions(std::vector<GeometryType*>& IntersectedGeometries,
         const array_1d<double, 3>& rCoordinates, const double SideHalfLength)
     {
+        const double reach = (IntersectedGeometries[0]->WorkingSpaceDimension() == 3)
+            ? 1.7321 * SideHalfLength : 1.414214 * SideHalfLength;
         for (size_t i = 0; i < IntersectedGeometries.size(); ++i)
         {
             for (size_t j = 0; j < IntersectedGeometries[i]->PointsNumber(); ++j) {
@@ -580,7 +582,7 @@ namespace MPMSearchElementUtility
                 else if (node_it->HasDofFor(DISPLACEMENT_Z))  if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
                 if (is_fixed) {
                     const double fixed_point_to_cog = norm_2(node_it->Coordinates() - rCoordinates);
-                    if (fixed_point_to_cog < ((IntersectedGeometries[i]->WorkingSpaceDimension() == 3) ? 2.0 : 1.414214 * SideHalfLength)) return true;
+                    if (fixed_point_to_cog <= reach) return true;
                 }
             }
         }
@@ -591,15 +593,16 @@ namespace MPMSearchElementUtility
     inline bool IntersectionCheckWithBoundingBox(const GeometryType& rGeom, const array_1d<double, 3> rCoord, const double SideHalfLength)
     {
         const Point point_low(rCoord[0] - SideHalfLength, rCoord[1] - SideHalfLength,
-            rCoord[2] - (rGeom.WorkingSpaceDimension() == 3) ? 1.0 : 0.0 * SideHalfLength);
+            rCoord[2] - (rGeom.WorkingSpaceDimension() == 3) ? SideHalfLength : 0.0);
         const Point point_high(rCoord[0] + SideHalfLength, rCoord[1] + SideHalfLength,
-            rCoord[2] + (rGeom.WorkingSpaceDimension() == 3) ? 1.0 : 0.0 * SideHalfLength);
+            rCoord[2] + (rGeom.WorkingSpaceDimension() == 3) ? SideHalfLength : 0.0);
         //double center_to_center, maximum_contact_range, char_length;
         NodeType ele_point_low, ele_point_high;
 
+
         double center_to_center = norm_2(rGeom.Center() - rCoord);
         rGeom.BoundingBox(ele_point_low, ele_point_high);
-        double maximum_contact_range = (rGeom.WorkingSpaceDimension() == 3) ? 2.0 : 1.414214 * SideHalfLength +
+        double maximum_contact_range = ((rGeom.WorkingSpaceDimension() == 3) ? 1.7321 : 1.414214 )* SideHalfLength +
             norm_2(ele_point_high - ele_point_low);
         if (center_to_center <= maximum_contact_range) return true;
         return false;
@@ -692,10 +695,10 @@ namespace MPMSearchElementUtility
         }
 
         // we need to do splitting. Initially determine all grid elements we intersect with
-        const Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length,
-            rCoordinates[2] - (working_dim == 3) ? 1.0 : 0.0 * side_half_length);
-        const Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length,
-            rCoordinates[2] + (working_dim == 3) ? 1.0 : 0.0 * side_half_length);
+        Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2]);
+        if (working_dim == 3) point_low[2] -= side_half_length;
+        Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2]);
+        if (working_dim == 3) point_high[2] += side_half_length;
         SizeType number_of_nodes = 0;
         std::vector<GeometryType*> intersected_geometries;
 
@@ -759,7 +762,6 @@ namespace MPMSearchElementUtility
                 active_subpoint_index += 1;
             }
         }
-
         if (active_subpoint_index == 1) return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
             rGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
 
