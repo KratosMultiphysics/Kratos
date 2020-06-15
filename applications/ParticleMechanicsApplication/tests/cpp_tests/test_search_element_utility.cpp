@@ -130,7 +130,6 @@ namespace Testing
             }
         }
 
-        IndexType ele_index = 1;
         if (element == "Element2D4N")
         {
             rBackgroundModelPart.CreateNewElement( element, 1, { 1, 2, 6, 5 }, nullptr);
@@ -402,7 +401,6 @@ namespace Testing
 
         // Check results
         Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
-        int asdfda = rGeom.IntegrationPointsNumber();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 5);
         std::vector<double> result_weight = { 0.42, 0.018, 0.162, 0.32, 0.08};
@@ -448,12 +446,12 @@ namespace Testing
 
         // Check results
         Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
-        KRATOS_WATCH(rGeom.IntegrationPointsNumber())
+        //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 4);
         std::vector<double> result_weight = { 0.511859 , 0.203584 , 0.203584 , 0.0809724 };
         for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); i++)
         {
-            KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
+            //KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
             KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[i].Weight(), result_weight[i], tolerance_pqmpm_weight);
         }
     }
