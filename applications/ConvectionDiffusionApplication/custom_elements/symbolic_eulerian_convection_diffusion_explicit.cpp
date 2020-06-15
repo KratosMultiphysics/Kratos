@@ -370,7 +370,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
     for(unsigned int node_element = 0; node_element<local_size; node_element++)
 {
     // observations
-    // * ASGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient*delta_time)
+    // * SGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient*delta_time)
     //   observe that for RK step = 1 ASGS time derivative term = 0 because phi = phi_old
     // * convective velocity and forcing term:
     //   RK step 1: evaluated at previous time step
