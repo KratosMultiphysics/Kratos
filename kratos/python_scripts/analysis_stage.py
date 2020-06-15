@@ -153,20 +153,20 @@ class AnalysisStage(object):
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
-        # first we check if one of the output processes will print output in this step
-        # this is done to save computation in case none of them will print
         is_output_step = False
+        is_output_step_list = []
         for output_process in self._GetListOfOutputProcesses():
-            if output_process.IsOutputStep():
+            is_output_for_this_process = output_process.IsOutputStep()
+            is_output_step_list.append(is_output_for_this_process)
+            if is_output_for_this_process:
                 is_output_step = True
-                break
 
         if is_output_step: # at least one of the output processes will print output
             for process in self._GetListOfProcesses():
                 process.ExecuteBeforeOutputStep()
 
-            for output_process in self._GetListOfOutputProcesses():
-                if output_process.IsOutputStep():
+            for index, output_process in enumerate(self._GetListOfOutputProcesses()):
+                if is_output_step_list[index]:
                     output_process.PrintOutput()
 
             for process in self._GetListOfProcesses():
