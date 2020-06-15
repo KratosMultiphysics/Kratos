@@ -33,9 +33,9 @@ namespace Kratos
 
         //std::cout << "------------ j = " << mJ << " ------------" << std::endl;
 
-        KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed && mIsSubDomain1QuantitiesPrepared) 
+        KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed && mIsSubDomain1QuantitiesPrepared)
             << "ComputeActiveInterfaceNodes or PrepareSubDomain1CouplingQuantities not called yet" << std::endl;
-        
+
         // Interpolate subdomain 1 velocities
         const Vector SubDomain1InterpolatedVelocities = (mJ == mTimeStepRatio)
             ? mSubDomain1FinalInterfaceVelocity
@@ -62,7 +62,7 @@ namespace Kratos
         AssembleCondensationMatrixH(H, InvM2, Coupling2);
 
         // Assemble condensed unbalanced interface velocities
-        Vector b = SubDomain1InterpolatedVelocities + 
+        Vector b = SubDomain1InterpolatedVelocities +
             prod(mCoupling1,mSubDomain1AccumulatedLinkVelocity);
         b -= subDomain2freeVelocities;
         if (mPrintFreeInterfaceVelocity) std::cout << "========= FREE INTERFACE VELOCITIES ===============" << "\nDomain A = " << SubDomain1InterpolatedVelocities << "\nDomain B = " << subDomain2freeVelocities << std::endl;
@@ -108,6 +108,8 @@ namespace Kratos
 
     void MPMTemporalCouplingUtility::PrepareSubDomain1CouplingQuantities(const SystemMatrixType& rK1)
     {
+        KRATOS_TRY
+
         ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         Matrix eff_mass_mat_1;
         GetEffectiveMassMatrix(0, r_sub_domain_1_active, eff_mass_mat_1, rK1);
@@ -134,11 +136,16 @@ namespace Kratos
         }
 
         mIsSubDomain1QuantitiesPrepared = true;
+
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::CorrectSubDomain1()
     {
+        KRATOS_TRY
+
+
         // Restore subdomain 1
         ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -172,13 +179,15 @@ namespace Kratos
         else ApplyCorrectionImplicit(r_sub_domain_1_active, link_accel_1, time_step_1, 0);
 
         mIsSubDomain1QuantitiesPrepared = false;
+
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::InitializeSubDomain1Coupling()
     {
         KRATOS_TRY
-        
+
         Check();
         ComputeActiveInterfaceNodes();
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
@@ -192,6 +201,7 @@ namespace Kratos
     void MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1(const SystemMatrixType& rK1)
     {
         KRATOS_TRY
+
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
         SetSubDomainInterfaceVelocity(mrSubDomain1, mSubDomain1FinalInterfaceVelocity, 0);
@@ -272,7 +282,9 @@ namespace Kratos
         ModelPart& rModelPart,
         Vector& rVelocityContainer, const IndexType domainIndex)
     {
-        // Compute velocity of active interface nodes for sub domain 
+        KRATOS_TRY
+
+        // Compute velocity of active interface nodes for sub domain
         const IndexType working_space_dim = rModelPart.GetParentModelPart()->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         UtilityClearAndResizeVector(rVelocityContainer, mActiveInterfaceNodeIDs.size() * working_space_dim);
 
@@ -304,6 +316,8 @@ namespace Kratos
                 }
             }
         }
+
+        KRATOS_CATCH("")
     }
 
 
@@ -370,9 +384,11 @@ namespace Kratos
     }
 
 
-    void MPMTemporalCouplingUtility::GetEffectiveMassMatrix(const IndexType domainIndex, ModelPart& rModelPart, 
+    void MPMTemporalCouplingUtility::GetEffectiveMassMatrix(const IndexType domainIndex, ModelPart& rModelPart,
         Matrix& rEffectiveMassMatrix, const SystemMatrixType& rK)
     {
+        KRATOS_TRY
+
         const IndexType working_space_dim = rModelPart.GetParentModelPart()->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
         if (mGamma[domainIndex] == 1.0) // explicit
@@ -383,7 +399,7 @@ namespace Kratos
 
             // We don't need to use the stiffness matrix. Just assemble the mass matrix from the nodes
             GetNumberOfActiveModelPartNodes(rModelPart, sub_domain_explicit_ordering);
-            
+
             if (rEffectiveMassMatrix.size1() != working_space_dim * sub_domain_explicit_ordering.size() || rEffectiveMassMatrix.size2() != working_space_dim * sub_domain_explicit_ordering.size())
                 rEffectiveMassMatrix.resize(working_space_dim * sub_domain_explicit_ordering.size(), working_space_dim * sub_domain_explicit_ordering.size(), false);
             rEffectiveMassMatrix.clear();
@@ -413,11 +429,14 @@ namespace Kratos
         {
             KRATOS_ERROR << "INVALID mGamma Values" << mGamma;
         }
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::InvertEffectiveMassMatrix(const SystemMatrixType& rMeff, Matrix&rInvMeff)
     {
+        KRATOS_TRY
+
         if (rInvMeff.size1() != rMeff.size1() || rInvMeff.size2() != rMeff.size2())
             rInvMeff.resize(rMeff.size1(), rMeff.size2(), false);
 
@@ -434,11 +453,14 @@ namespace Kratos
         {
             KRATOS_ERROR << "NOT YET DONE";
         }
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::AssembleCondensationMatrixH(Matrix& rH, const Matrix& rInvM2, const Matrix& rCoupling2)
     {
+        KRATOS_TRY
+
         Matrix H1temp = mGamma[0] * mSmallTimestep * prod(mCoupling1, mInvM1);
         Matrix H1 = prod(H1temp, trans(mCoupling1));
 
@@ -450,11 +472,15 @@ namespace Kratos
 
         rH -= H1;
         rH -= H2;
+
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::ComputeLamda(const Matrix& rH, const Vector& rb, Vector& rLamda)
     {
+        KRATOS_TRY
+
         if (rLamda.size() != rb.size()) rLamda.resize(rb.size(), false);
 
         if (norm_2(rb) < std::numeric_limits<double>::epsilon())
@@ -493,22 +519,26 @@ namespace Kratos
                 }
             }
         }
+
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::ApplyCorrectionImplicit(ModelPart& rModelPart, const Vector& rLinkAccel,
         const double timeStep, const IndexType domainIndex)
     {
+        KRATOS_TRY
+
         const SizeType working_space_dimension = rModelPart.GetParentModelPart()->ElementsBegin()->WorkingSpaceDimension();
         const auto it_node_begin = rModelPart.NodesBegin();
 
 
         // Add corrections entries
         IndexType dof_position;
-        for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) 
+        for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i)
         {
             auto current_node = it_node_begin + i;
-            if (current_node->Is(ACTIVE)) 
+            if (current_node->Is(ACTIVE))
             {
                 // implicit arrangement - get position of current active interface node in the system matrix
                 if (domainIndex > 0) dof_position = current_node->GetDof(DISPLACEMENT_X).EquationId();
@@ -523,51 +553,45 @@ namespace Kratos
                 }
             }
         }
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& rLinkAccel,
         const double timeStep, const bool correctInterface)
     {
-        KRATOS_ERROR << "EXPLICIT NOT YET IMPLEMENTED" << std::endl;
+        KRATOS_TRY
+
+        //KRATOS_ERROR << "EXPLICIT NOT YET IMPLEMENTED" << std::endl;
         const SizeType working_space_dimension = rModelPart.ElementsBegin()->WorkingSpaceDimension();
         bool add_correction = true;
 
         // Add correction entries
-        const auto it_node_begin = rModelPart.NodesBegin();
-        for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
-            auto current_node = it_node_begin + i;
-
-            if (!correctInterface) {
-                // check if we are on a interface node now
-                for (IndexType j = 0; j < mActiveInterfaceNodeIDs.size(); ++j) {
-                    if (current_node->GetId() == mActiveInterfaceNodeIDs[j]) {
-                        add_correction = false;
-                        break;
-                    }
-                }
-            }
-
-            if (add_correction) {
-                // get position of current active interface node in the system matrix
-                const IndexType dof_position = current_node->GetDofPosition(DISPLACEMENT_X);
-
-                //array_1d<double, 3>& r_nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                //array_1d<double, 3>& r_nodal_force = current_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-                const double r_nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
+        for (size_t i = 0; i < mSubDomain2ExplicitOrdering.size(); ++i)
+        {
+            if (rLinkAccel[working_space_dimension*i] > std::numeric_limits<double>::epsilon())
+            {
+                auto node_it = rModelPart.pGetNode(mSubDomain2ExplicitOrdering[i]);
+                array_1d<double, 3>& r_nodal_momentum = node_it->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                array_1d<double, 3>& r_nodal_force = node_it->FastGetSolutionStepValue(FORCE_RESIDUAL);
+                const double r_nodal_mass = node_it->FastGetSolutionStepValue(NODAL_MASS);
 
                 for (IndexType k = 0; k < working_space_dimension; ++k) {
-                    //r_nodal_momentum[dof_position + k] += r_nodal_mass * timeStep * rLinkAccel[dof_position + k];
-                    //r_nodal_force[dof_position + k] += r_nodal_mass*rLinkAccel[dof_position + k];
+                    r_nodal_momentum[k] += r_nodal_mass * timeStep * rLinkAccel[working_space_dimension * i + k];
+                    r_nodal_force[k] += r_nodal_mass * rLinkAccel[working_space_dimension * i + k];
                 }
             }
         }
+
+
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, Vector& subDomainExplicitOrdering)
     {
+        KRATOS_TRY
+
         SizeType activeNodes = 0;
         static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
         const auto it_node_begin = rModelPart.NodesBegin();
@@ -586,11 +610,14 @@ namespace Kratos
                 activeNodes += 1;
             }
         }
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::Check()
     {
+        KRATOS_TRY
+
         KRATOS_ERROR_IF_NOT(mrSubDomain1.HasSubModelPart("temporal_interface"))
             << "Model part " << mrSubDomain1.Name()
             << " is missing a submodel part called temporal_interface\n" << mrSubDomain1 << std::endl;
@@ -616,11 +643,15 @@ namespace Kratos
         for (size_t i = 0; i < mGamma.size(); ++i)
             if (mGamma[i] != 0.5 && mGamma[i] != 1.0)
                 KRATOS_ERROR << "Gamma must equal 1.0 or 0.5. Gamma[" << i << "] = " << mGamma[i] << std::endl;
+
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::PrintNodeIdsAndCoords(ModelPart& rModelPart)
     {
+        KRATOS_TRY
+
         std::cout << "\n" << rModelPart.Name() << "  ----------------------" << std::endl;
         for (size_t i = 0; i < rModelPart.Nodes().size(); ++i)
         {
@@ -628,11 +659,15 @@ namespace Kratos
             //std::cout << "node " << node->GetId() << ", coords = (" << node->X() << ", " << node->Y() << ", " << node->Z() << ")" << std::endl;
             std::cout << "node x = " << node->X() << ", vel = (" << node->FastGetSolutionStepValue(VELOCITY) << std::endl;
         }
+
+        KRATOS_CATCH("")
     }
 
 
     void MPMTemporalCouplingUtility::PrintMatrix(const Matrix& rMatrix)
     {
+        KRATOS_TRY
+
         for (size_t i = 0; i < rMatrix.size1(); ++i)
         {
             std::cout << "|";
@@ -643,12 +678,17 @@ namespace Kratos
             std::cout << "\t|\n";
         }
         std::cout << std::endl;
+        KRATOS_CATCH("")
     }
 
     void MPMTemporalCouplingUtility::UtilityClearAndResizeVector(Vector& rVector, const SizeType desiredSize)
     {
+        KRATOS_TRY
+
         if (rVector.size() != desiredSize) rVector.resize(desiredSize, false);
         rVector.clear();
+
+        KRATOS_CATCH("")
     }
 
 
