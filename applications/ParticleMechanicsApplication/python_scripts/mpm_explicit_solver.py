@@ -28,7 +28,6 @@ class MPMExplicitSolver(MPMSolver):
             "stress_update" : "usf",
             "is_fix_explicit_mp_on_grid_edge" : false,
             "is_pqmpm"      : false,
-            "pqmpm_search_factor"  : 0.0,
             "is_pqmpm_fallback_to_mpm" : true,
             "pqmpm_min_fraction" : 0.0
         }""")
@@ -65,8 +64,6 @@ class MPMExplicitSolver(MPMSolver):
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM, is_pqmpm)
         is_pqmpm_fallback_to_mpm = self.settings["is_pqmpm_fallback_to_mpm"].GetBool()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM_FALLBACK_TO_MPM, is_pqmpm_fallback_to_mpm)
-        pqmpm_search_factor = self.settings["pqmpm_search_factor"].GetDouble()
-        grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_SEARCH_FACTOR, pqmpm_search_factor)
         pqmpm_min_fraction = self.settings["pqmpm_min_fraction"].GetDouble()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_MIN_FRACTION, pqmpm_min_fraction)
 
