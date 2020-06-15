@@ -3,7 +3,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos_co_sim_io import Create as CreateKratosCoSimIO
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
-from KratosMultiphysics import kratos_utilities as kratos_utils
 
 import os
 import subprocess
