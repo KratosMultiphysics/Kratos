@@ -982,6 +982,9 @@ namespace MPMSearchElementUtility
         const bool is_fix_explicit_mp_on_grid_edge = (r_process_info.Has(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE))
             ? r_process_info.GetValue(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)
             : false;
+        bool is_pqmpm = (r_process_info.Has(IS_PQMPM))
+            ? r_process_info.GetValue(IS_PQMPM)
+            : false;
 
         // Search background grid and make element active
         Vector N;
