@@ -862,6 +862,29 @@ namespace MPMSearchElementUtility
         return rParentGeom;
     }
 
+
+    inline typename Geometry<Node<3>>::Pointer CreateQuadraturePointForBinSearch(const ModelPart& rBackgroundGridModelPart,
+        const array_1d<double, 3>& rCoordinates,
+        Element& rMasterMaterialPoint,
+        GeometryType::Pointer pGeometry,
+        const double Tolerance)
+    {
+        if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
+        {
+            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM))
+            {
+                array_1d<double, 3> local_coords;
+                pGeometry->IsInside(rCoordinates, local_coords, Tolerance);
+                return PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, rCoordinates,
+                    local_coords, rMasterMaterialPoint, *pGeometry, Tolerance);
+            }
+        }
+        return  CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                pGeometry, rCoordinates,
+                rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+    }
+
+
     inline void NeighbourSearchElements(const ModelPart& rMPMModelPart,
         const ModelPart& rBackgroundGridModelPart,
         std::vector<typename Element::Pointer>& rMissingElements,
@@ -986,7 +1009,7 @@ namespace MPMSearchElementUtility
                 bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
 
-                if (is_found && is_fix_explicit_mp_on_grid_edge) {
+                if (is_found && is_fix_explicit_mp_on_grid_edge && !is_pqmpm) {
                     // check if MP is exactly on the edge of the element, this gives spurious strains in explicit
                     bool isOnEdge = false;
                     for (SizeType i = 0; i < N.size(); ++i) {
@@ -1024,9 +1047,8 @@ namespace MPMSearchElementUtility
                 if (is_found == true) {
                     pelem->Set(ACTIVE);
 
-                    auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                        pelem->pGetGeometry(), xg[0],
-                        element_itr->GetGeometry().IntegrationPoints()[0].Weight());
+                    auto p_new_geometry = CreateQuadraturePointForBinSearch(rBackgroundGridModelPart, xg[0],
+                        *element_itr, pelem->pGetGeometry(), Tolerance);
 
                     // Update geometry of particle element
                     element_itr->SetGeometry(p_new_geometry);
