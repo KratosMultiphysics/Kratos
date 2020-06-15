@@ -197,7 +197,7 @@ set_target_properties(KratosVersion PROPERTIES COMPILE_DEFINITIONS "KRATOS_VERSI
 target_compile_definitions(KratosVersion PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
-    KRATOS_PATCH_VERSION=${KratosMultiphysics_PATCH_VERSION}
+    KRATOS_PATCH_VERSION="${KratosMultiphysics_PATCH_VERSION}"
     KRATOS_SHA1_NUMBER="${KratosMultiphysics_SHA1_NUMBER}"
     KRATOS_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
 )
