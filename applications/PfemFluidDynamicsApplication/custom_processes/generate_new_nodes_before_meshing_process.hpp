@@ -120,12 +120,16 @@ namespace Kratos
 				mrRemesh.Info->RemovedNodes = 0;
 				if (mEchoLevel > 1)
 					std::cout << " First meshes: I repare the mesh without adding new nodes" << std::endl;
-			mrRemesh.Info->InitialNumberOfNodes = mrRemesh.Info->NumberOfNodes;
-		}
+				mrRemesh.Info->InitialNumberOfNodes = mrRemesh.Info->NumberOfNodes;
+			}
 
-		int ElementsToRefine = mrRemesh.Info->RemovedNodes;
+			unsigned int eulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
 
-		int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
+			int ElementsToRefine = mrRemesh.Info->RemovedNodes;
+
+			int MaximumNodesToAdd = ElementsToRefine + eulerianInletNodes;
+
+			int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
 			int numberOfNodes = mrRemesh.Info->NumberOfNodes;
 			int extraNodes = numberOfNodes - initialNumberOfNodes;
 			int toleredExtraNodes = int(0.05 * mrRemesh.Info->InitialNumberOfNodes);
@@ -138,31 +142,29 @@ namespace Kratos
 					if (ElementsToRefine < 0)
 					{
 						ElementsToRefine = 0;
+					}
 				}
 			}
-		}
+			if (MaximumNodesToAdd > 0 && mEchoLevel > 1)
+				std::cout << " I will look for " << ElementsToRefine << " new nodes" << std::endl;
 
-		if (ElementsToRefine > 0 && mEchoLevel > 1)
-			std::cout << " I will look for " << ElementsToRefine << " new nodes" << std::endl;
-
-		if (refiningBox == false)
-		{
-
-			if (ElementsToRefine > 0)
+			if (refiningBox == false)
 			{
-				std::vector<array_1d<double, 3>> NewPositions;
-				std::vector<double> BiggestVolumes;
-				std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
+				if (MaximumNodesToAdd > 0)
+				{
+					std::vector<array_1d<double, 3>> NewPositions;
+					std::vector<double> BiggestVolumes;
+					std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
 					std::vector<Node<3>::DofsContainerType> NewDofs;
 
 					int CountNodes = 0;
 
-					NewPositions.resize(ElementsToRefine);
-					BiggestVolumes.resize(ElementsToRefine);
-					NodesIDToInterpolate.resize(ElementsToRefine);
-					NewDofs.resize(ElementsToRefine);
+					NewPositions.resize(MaximumNodesToAdd);
+					BiggestVolumes.resize(MaximumNodesToAdd);
+					NodesIDToInterpolate.resize(MaximumNodesToAdd);
+					NewDofs.resize(MaximumNodesToAdd);
 
-					for (int nn = 0; nn < ElementsToRefine; nn++)
+					for (int nn = 0; nn < MaximumNodesToAdd; nn++)
 					{
 						BiggestVolumes[nn] = -1.0;
 					}
@@ -177,46 +179,50 @@ namespace Kratos
 						CornerWallNewPositions.resize(maxOfNewWallNodes);
 						CornerWallNodesIDToInterpolate.resize(maxOfNewWallNodes);
 						CornerWallNewDofs.resize(maxOfNewWallNodes);
-				}
+					}
 
-				ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-				// const unsigned int nds = element_begin->GetGeometry().size();
-				for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
-				{
-
-					//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
-					if (dimension == 2)
+					ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
+					// const unsigned int nds = element_begin->GetGeometry().size();
+					for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
 					{
-						SelectEdgeToRefine2D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
-
-						if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
+						//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
+						if (dimension == 2)
 						{
+							SelectEdgeToRefine2D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+
+							if (eulerianInletNodes > 0)
+							{
+								SelectEdgeToRefine2DInletZone(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+							}
+
+							if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
+							{
 								InsertNodeInCornerElement2D(ie->GetGeometry(), CornerWallNewPositions, CornerWallNodesIDToInterpolate, CornerWallNewDofs, cornerWallNewNodes);
 							}
-					}
-					else if (dimension == 3)
-					{
-						SelectEdgeToRefine3D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
-
-						if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
+						}
+						else if (dimension == 3)
 						{
+							SelectEdgeToRefine3D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+
+							if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
+							{
 								InsertNodeInCornerElement3D(ie->GetGeometry(), CornerWallNewPositions, CornerWallNodesIDToInterpolate, CornerWallNewDofs, cornerWallNewNodes);
 							}
 						}
 
 					} // elements loop
 
-					mrRemesh.Info->RemovedNodes -= ElementsToRefine;
-					if (CountNodes < ElementsToRefine)
+					mrRemesh.Info->RemovedNodes -= MaximumNodesToAdd;
+					if (CountNodes < MaximumNodesToAdd)
 					{
-						mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
+						mrRemesh.Info->RemovedNodes += MaximumNodesToAdd - CountNodes;
 						NewPositions.resize(CountNodes);
-					BiggestVolumes.resize(CountNodes);
-					NodesIDToInterpolate.resize(CountNodes);
-					NewDofs.resize(CountNodes);
-				}
-				unsigned int maxId = 0;
-				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, NewDofs, ElementsToRefine, maxId);
+						BiggestVolumes.resize(CountNodes);
+						NodesIDToInterpolate.resize(CountNodes);
+						NewDofs.resize(CountNodes);
+					}
+					unsigned int maxId = 0;
+					CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, NewDofs, MaximumNodesToAdd, maxId);
 
 					if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
 					{
@@ -232,7 +238,6 @@ namespace Kratos
 			}
 			else
 			{
-
 				if (ElementsToRefine < 10)
 				{
 					ElementsToRefine = 10;
@@ -241,6 +246,9 @@ namespace Kratos
 				{
 					ElementsToRefine *= 3;
 				}
+
+				MaximumNodesToAdd = ElementsToRefine + eulerianInletNodes;
+
 				std::vector<array_1d<double, 3>> NewPositions;
 				std::vector<double> BiggestVolumes;
 				std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
@@ -248,12 +256,12 @@ namespace Kratos
 
 				int CountNodes = 0;
 
-				NewPositions.resize(ElementsToRefine);
-				BiggestVolumes.resize(ElementsToRefine);
-				NodesIDToInterpolate.resize(ElementsToRefine);
-				NewDofs.resize(ElementsToRefine);
+				NewPositions.resize(MaximumNodesToAdd);
+				BiggestVolumes.resize(MaximumNodesToAdd);
+				NodesIDToInterpolate.resize(MaximumNodesToAdd);
+				NewDofs.resize(MaximumNodesToAdd);
 
-				for (int nn = 0; nn < ElementsToRefine; nn++)
+				for (int nn = 0; nn < MaximumNodesToAdd; nn++)
 				{
 					BiggestVolumes[nn] = -1.0;
 				}
@@ -264,21 +272,25 @@ namespace Kratos
 				{
 
 					const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
+					//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
+					if (dimension == 2)
+					{
+						SelectEdgeToRefine2DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
 
-				//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
-				if (dimension == 2)
-				{
-					SelectEdgeToRefine2DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
-				}
-				else if (dimension == 3)
-				{
-					SelectEdgeToRefine3DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
-				}
+						if (eulerianInletNodes > 0)
+						{
+							SelectEdgeToRefine2DInletZone(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+						}
+					}
+					else if (dimension == 3)
+					{
+						SelectEdgeToRefine3DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+					}
 
-			} // elements loop
+				} // elements loop
 
 				mrRemesh.Info->RemovedNodes -= ElementsToRefine;
-				if (CountNodes < ElementsToRefine)
+				if (CountNodes < MaximumNodesToAdd)
 				{
 					mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
 					NewPositions.resize(CountNodes);
@@ -287,12 +299,12 @@ namespace Kratos
 					NewDofs.resize(CountNodes);
 				}
 				unsigned int maxId = 0;
-			CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, NewDofs, ElementsToRefine, maxId);
-		}
+				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, NewDofs, MaximumNodesToAdd, maxId);
+			}
 
-		mrRemesh.InputInitializedFlag = false;
+			mrRemesh.InputInitializedFlag = false;
 
-		if (mEchoLevel > 1)
+			if (mEchoLevel > 1)
 				std::cout << "   GENERATE NEW NODES ]; " << std::endl;
 
 			KRATOS_CATCH(" ")
@@ -504,94 +516,94 @@ namespace Kratos
 			}
 
 			if (rigidNodes == 3 && freesurfaceNodes == 0 && toEraseNodes == 0)
-		{
-			array_1d<double, 3> NormalA(3, 0.0);
-			array_1d<double, 3> NormalB(3, 0.0);
-			double normNormalA=0;
-			double normNormalB=0;
-			double cos = 1.0;
-			double minCos = 1.0;
-			array_1d<unsigned int, 2> idsWallNodes(2, 0);
+			{
+				array_1d<double, 3> NormalA(3, 0.0);
+				array_1d<double, 3> NormalB(3, 0.0);
+				double normNormalA = 0;
+				double normNormalB = 0;
+				double cos = 1.0;
+				double minCos = 1.0;
+				array_1d<unsigned int, 2> idsWallNodes(2, 0);
 				unsigned int idFreeNode = 0;
 				double cosTolerance = 0.1;
 				if (Element[0].IsNot(RIGID))
-			{
-				NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
-					minCos = cos;
-					idsWallNodes[0] = 1;
+					NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 1;
 						idsWallNodes[1] = 2;
 						idFreeNode = 0;
 					}
 
-				NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 1;
+					NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 1;
 						idsWallNodes[1] = 3;
 						idFreeNode = 0;
 					}
 
-				NormalA = Element[2].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 2;
+					NormalA = Element[2].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 2;
 						idsWallNodes[1] = 3;
 						idFreeNode = 0;
 					}
 				}
 				else if (Element[1].IsNot(RIGID))
-			{
-				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
-					minCos = cos;
-					idsWallNodes[0] = 0;
+					NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 0;
 						idsWallNodes[1] = 2;
 						idFreeNode = 1;
 					}
 
-				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 0;
+					NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 0;
 						idsWallNodes[1] = 3;
 						idFreeNode = 1;
 					}
 
-				NormalA = Element[2].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 2;
+					NormalA = Element[2].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 2;
 						idsWallNodes[1] = 3;
 						idFreeNode = 1;
 					}
@@ -599,41 +611,41 @@ namespace Kratos
 				else if (Element[2].IsNot(RIGID))
 				{
 
-				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[1].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 0;
+					NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[1].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 0;
 						idsWallNodes[1] = 1;
 						idFreeNode = 2;
 					}
 
-				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 0;
+					NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 0;
 						idsWallNodes[1] = 3;
 						idFreeNode = 2;
 					}
 
-				NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 1;
+					NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 1;
 						idsWallNodes[1] = 3;
 						idFreeNode = 2;
 					}
@@ -641,50 +653,50 @@ namespace Kratos
 				else if (Element[3].IsNot(RIGID))
 				{
 
-				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[1].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 0;
+					NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[1].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 0;
 						idsWallNodes[1] = 1;
 						idFreeNode = 3;
 					}
 
-				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 0;
+					NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 0;
 						idsWallNodes[1] = 2;
 						idFreeNode = 3;
 					}
 
-				NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
-				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
-				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
-				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
-				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
-				{
-					minCos = cos;
-					idsWallNodes[0] = 1;
+					NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
+					NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
+					normNormalA = NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+					normNormalB = NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
+					cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
+					if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA > 0.99 && normNormalA < 1.01) && (normNormalB > 0.99 && normNormalB < 1.01))
+					{
+						minCos = cos;
+						idsWallNodes[0] = 1;
 						idsWallNodes[1] = 2;
 						idFreeNode = 3;
+					}
 				}
-			}
 
-			if (minCos < cosTolerance && minCos> -cosTolerance)
-			{
+				if (minCos < cosTolerance && minCos > -cosTolerance)
+				{
 
-				bool alreadyAddedNode = false;
+					bool alreadyAddedNode = false;
 					unsigned int idA = Element[idsWallNodes[0]].GetId();
 					unsigned int idB = Element[idsWallNodes[1]].GetId();
 					double minimumDistanceToInstert = 1.3 * mrRemesh.Refine->CriticalRadius;
@@ -731,25 +743,224 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
+		void SelectEdgeToRefine2DInletZone(Element::GeometryType &Element,
+										   std::vector<array_1d<double, 3>> &NewPositions,
+										   std::vector<double> &BiggestVolumes,
+										   std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+										   std::vector<Node<3>::DofsContainerType> &NewDofs,
+										   int &CountNodes,
+										   int ElementsToRefine)
+		{
+			KRATOS_TRY
+
+			const unsigned int nds = Element.size();
+
+			int maxNodeToAddAtTheInlet = mrRemesh.Info->NumberOfEulerianInletNodes + ElementsToRefine;
+			unsigned int rigidNodes = 0;
+			unsigned int eulerianInletNodes = 0;
+			bool toEraseNodeFound = false;
+
+			for (unsigned int pn = 0; pn < nds; pn++)
+			{
+				if (Element[pn].Is(INLET) && Element[pn].Is(SLIP))
+				{
+					eulerianInletNodes++;
+				}
+				if (Element[pn].Is(TO_ERASE))
+				{
+					toEraseNodeFound = true;
+				}
+			}
+
+			double limitEdgeLength = 2.1 * mrRemesh.Refine->CriticalRadius; //higher than the normal one to avoid increasing number of nodes
+			double safetyCoefficient2D = 1.5;
+			double penalization = 1.0;
+
+			if (eulerianInletNodes > 0 && toEraseNodeFound == false)
+			{
+				double ElementalVolume = Element.Area();
+
+				array_1d<double, 3> Edges(3, 0.0);
+				array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
+				array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
+				double WallCharacteristicDistance = 0;
+				array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+				double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
+				Edges[0] = sqrt(SquaredLength);
+				FirstEdgeNode[0] = 0;
+				SecondEdgeNode[0] = 1;
+				if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
+				{
+					WallCharacteristicDistance = Edges[0];
+				}
+				unsigned int Counter = 0;
+				for (unsigned int i = 2; i < nds; i++)
+				{
+					for (unsigned int j = 0; j < i; j++)
+					{
+						noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+						SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
+						Counter += 1;
+						Edges[Counter] = sqrt(SquaredLength);
+						FirstEdgeNode[Counter] = j;
+						SecondEdgeNode[Counter] = i;
+						if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
+						{
+							WallCharacteristicDistance = Edges[Counter];
+						}
+					}
+				}
+
+				bool dangerousElement = false;
+				if (rigidNodes > 1)
+				{
+					for (unsigned int i = 0; i < 3; i++)
+					{
+						if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient2D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
+							(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
+						{
+							Edges[i] = 0;
+						}
+						if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
+							(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
+						{
+							Edges[i] = 0;
+						}
+					}
+				}
+				if ((Edges[0] == 0 && Edges[1] == 0 && Edges[2] == 0) || rigidNodes == 3)
+				{
+					dangerousElement = true;
+				}
+
+				if (dangerousElement == false && toEraseNodeFound == false)
+				{
+					unsigned int maxCount = 3;
+					double LargestEdge = 0;
+
+					for (unsigned int i = 0; i < 3; i++)
+					{
+						if (Edges[i] > LargestEdge)
+						{
+							maxCount = i;
+							LargestEdge = Edges[i];
+						}
+					}
+
+					if (CountNodes < maxNodeToAddAtTheInlet && LargestEdge > limitEdgeLength)
+					{
+
+						array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
+
+						bool suitableElement = true;
+						for (int j = 0; j < CountNodes; j++)
+						{
+							double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
+							double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
+							if (diffX < 0 && diffY < 0) //  the node is in the same zone of a previously inserted node
+							{
+								suitableElement = false;
+							}
+						}
+
+						if (suitableElement == true)
+						{
+							NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
+							NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
+							if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
+							{
+								CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+							}
+							else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
+							{
+								CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+							}
+							else
+							{
+								std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
+							}
+							BiggestVolumes[CountNodes] = ElementalVolume;
+							NewPositions[CountNodes] = NewPosition;
+							CountNodes++;
+						}
+					}
+					else
+					{
+
+						ElementalVolume *= penalization;
+						for (int nn = (ElementsToRefine - 1); nn < maxNodeToAddAtTheInlet; nn++)
+						{
+							if (ElementalVolume > BiggestVolumes[nn])
+							{
+
+								bool suitableElement = true;
+								if (maxCount < 3 && LargestEdge > limitEdgeLength)
+								{
+									array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
+									if (maxNodeToAddAtTheInlet > 1 && CountNodes > 0)
+									{
+										for (int j = 0; j < maxNodeToAddAtTheInlet; j++)
+										{
+											double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
+											double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
+											if (diffX < 0 && diffY < 0) // the node is in the same zone of a previously inserted node
+											{
+												suitableElement = false;
+											}
+										}
+									}
+
+									if (suitableElement == true)
+									{
+										NodesIDToInterpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
+										NodesIDToInterpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
+										if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
+										{
+											CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+										}
+										else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
+										{
+											CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+										}
+										else
+										{
+											std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
+										}
+										BiggestVolumes[nn] = ElementalVolume;
+										NewPositions[nn] = NewPosition;
+									}
+								}
+
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			KRATOS_CATCH("")
+		}
+
 		void SelectEdgeToRefine2D(Element::GeometryType &Element,
 								  std::vector<array_1d<double, 3>> &NewPositions,
 								  std::vector<double> &BiggestVolumes,
-							  std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
-							  std::vector<Node<3>::DofsContainerType> &NewDofs,
-							  int &CountNodes,
-							  int ElementsToRefine)
-	{
-		KRATOS_TRY
+								  std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+								  std::vector<Node<3>::DofsContainerType> &NewDofs,
+								  int &CountNodes,
+								  int ElementsToRefine)
+		{
+			KRATOS_TRY
 
-		const unsigned int nds = Element.size();
+			const unsigned int nds = Element.size();
 
-		unsigned int rigidNodes = 0;
-		unsigned int boundaryNodes = 0;
-		unsigned int freesurfaceNodes = 0;
-		unsigned int inletNodes = 0;
-		bool toEraseNodeFound = false;
+			unsigned int rigidNodes = 0;
+			unsigned int boundaryNodes = 0;
+			unsigned int freesurfaceNodes = 0;
+			unsigned int lagrangianInletNodes = 0;
+			unsigned int eulerianInletNodes = 0;
+			bool toEraseNodeFound = false;
 
-		for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -766,24 +977,28 @@ namespace Kratos
 				if (Element[pn].Is(FREE_SURFACE))
 				{
 					freesurfaceNodes++;
+				}
+				if (Element[pn].Is(INLET))
+				{
+					if (Element[pn].Is(SLIP))
+					{
+						eulerianInletNodes++;
+					}
+					lagrangianInletNodes++;
+				}
 			}
-			if (Element[pn].Is(INLET))
-			{
-				inletNodes++;
-			}
-		}
 
-		double limitEdgeLength = 1.4 * mrRemesh.Refine->CriticalRadius;
-		double safetyCoefficient2D = 1.5;
-		double penalization = 1.0;
-		if (rigidNodes > 1)
-		{
-			// penalization=0.7;
-			penalization = 0.8;
-			if (inletNodes > 0)
+			double limitEdgeLength = 1.4 * mrRemesh.Refine->CriticalRadius;
+			double safetyCoefficient2D = 1.5;
+			double penalization = 1.0;
+			if (rigidNodes > 1)
 			{
-				penalization = 0.9;
-			}
+				// penalization=0.7;
+				penalization = 0.8;
+				if (lagrangianInletNodes > 0)
+				{
+					penalization = 0.9;
+				}
 			}
 			else if (rigidNodes > 0 && freesurfaceNodes > 0)
 			{
@@ -792,6 +1007,11 @@ namespace Kratos
 			else if (freesurfaceNodes > 0)
 			{
 				penalization = 0.85;
+			}
+
+			if (eulerianInletNodes > 0) //nodes close to the Eulerian inlet are added in a separated function
+			{
+				penalization = 0;
 			}
 
 			double ElementalVolume = Element.Area();
@@ -849,7 +1069,7 @@ namespace Kratos
 				dangerousElement = true;
 			}
 
-			if (dangerousElement == false && toEraseNodeFound == false)
+			if (dangerousElement == false && toEraseNodeFound == false && eulerianInletNodes < 0.5)
 			{
 				unsigned int maxCount = 3;
 				double LargestEdge = 0;
@@ -919,9 +1139,8 @@ namespace Kratos
 									{
 										double diffX = fabs(NewPositions[j][0] - NewPosition[0]) - mrRemesh.Refine->CriticalRadius * 0.5;
 										double diffY = fabs(NewPositions[j][1] - NewPosition[1]) - mrRemesh.Refine->CriticalRadius * 0.5;
-										if (diffX < 0 && diffY < 0) // the node is in the same zone of a previously inserted node 
+										if (diffX < 0 && diffY < 0) // the node is in the same zone of a previously inserted node
 										{
-											// std::cout << " the nodes has more or less the same position of a previously inserted node" << NewPositions[j][0] << " " << NewPositions[j][1] << " versus " << NewPosition[0] << " " << NewPosition[1] << std::endl;
 											suitableElement = false;
 										}
 									}
@@ -960,21 +1179,22 @@ namespace Kratos
 		void SelectEdgeToRefine3D(Element::GeometryType &Element,
 								  std::vector<array_1d<double, 3>> &NewPositions,
 								  std::vector<double> &BiggestVolumes,
-							  std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
-							  std::vector<Node<3>::DofsContainerType> &NewDofs,
-							  int &CountNodes,
-							  int ElementsToRefine)
-	{
-		KRATOS_TRY
+								  std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+								  std::vector<Node<3>::DofsContainerType> &NewDofs,
+								  int &CountNodes,
+								  int ElementsToRefine)
+		{
+			KRATOS_TRY
 
 			const unsigned int nds = Element.size();
 
-		unsigned int rigidNodes = 0;
-		unsigned int freesurfaceNodes = 0;
-		unsigned int inletNodes = 0;
-		bool toEraseNodeFound = false;
+			unsigned int rigidNodes = 0;
+			unsigned int freesurfaceNodes = 0;
+			unsigned int lagrangianInletNodes = 0;
+			unsigned int eulerianInletNodes = 0;
+			bool toEraseNodeFound = false;
 
-		for (unsigned int pn = 0; pn < nds; pn++)
+			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				if (Element[pn].Is(RIGID))
 				{
@@ -987,23 +1207,27 @@ namespace Kratos
 				if (Element[pn].Is(FREE_SURFACE))
 				{
 					freesurfaceNodes++;
+				}
+				if (Element[pn].Is(INLET))
+				{
+					if (Element[pn].Is(SLIP))
+					{
+						eulerianInletNodes++;
+					}
+					lagrangianInletNodes++;
+				}
 			}
-			if (Element[pn].Is(INLET))
-			{
-				inletNodes++;
-			}
-		}
 
-		double limitEdgeLength = 1.25 * mrRemesh.Refine->CriticalRadius;
-		double safetyCoefficient3D = 1.6;
+			double limitEdgeLength = 1.25 * mrRemesh.Refine->CriticalRadius;
+			double safetyCoefficient3D = 1.6;
 			double penalization = 1.0;
-		if (rigidNodes > 2)
-		{
-			penalization = 0.7;
-			if (inletNodes > 0)
+			if (rigidNodes > 2)
 			{
-				penalization = 0.9;
-			}
+				penalization = 0.7;
+				if (lagrangianInletNodes > 0)
+				{
+					penalization = 0.9;
+				}
 			}
 			else if (rigidNodes > 0 && freesurfaceNodes > 0)
 			{
@@ -1011,12 +1235,13 @@ namespace Kratos
 			}
 			else if (freesurfaceNodes > 0)
 			{
-			penalization = 0.95;
-		}
+				penalization = 0.95;
+			}
 
-		// if(freesurfaceNodes>2){
-		//   penalization=0.6;
-		// }
+			if (eulerianInletNodes > 0)
+			{
+				penalization = 0;
+			}
 
 			double ElementalVolume = Element.Volume();
 
@@ -1039,7 +1264,6 @@ namespace Kratos
 				for (unsigned int j = 0; j < i; j++)
 				{
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					// CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 					Counter += 1;
 					Edges[Counter] = sqrt(SquaredLength);
@@ -1062,9 +1286,6 @@ namespace Kratos
 					{
 						Edges[i] = 0;
 					}
-					// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-					//   Edges[i]=0;
-					// }
 					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
 						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
 					{
@@ -1106,10 +1327,9 @@ namespace Kratos
 			}
 
 			//just to fill the vector
-			if (dangerousElement == false && toEraseNodeFound == false)
+			if (dangerousElement == false && toEraseNodeFound == false && eulerianInletNodes < 0.5)
 			{
 
-				// array_1d<double,3> NewPosition(3,0.0);
 				unsigned int maxCount = 6;
 				double LargestEdge = 0;
 
@@ -1216,27 +1436,28 @@ namespace Kratos
 				}
 			}
 
-		KRATOS_CATCH("")
-	}
+			KRATOS_CATCH("")
+		}
 
-	void SelectEdgeToRefine2DWithRefinement(Element::GeometryType &Element,
-											std::vector<array_1d<double, 3>> &NewPositions,
-											std::vector<double> &BiggestVolumes,
-											std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
-											std::vector<Node<3>::DofsContainerType> &NewDofs,
-											int &CountNodes,
-											int ElementsToRefine)
-	{
-		KRATOS_TRY
+		void SelectEdgeToRefine2DWithRefinement(Element::GeometryType &Element,
+												std::vector<array_1d<double, 3>> &NewPositions,
+												std::vector<double> &BiggestVolumes,
+												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+												std::vector<Node<3>::DofsContainerType> &NewDofs,
+												int &CountNodes,
+												int ElementsToRefine)
+		{
+			KRATOS_TRY
 
 			const unsigned int nds = Element.size();
 
-		unsigned int rigidNodes = 0;
-		unsigned int freesurfaceNodes = 0;
-		unsigned int inletNodes = 0;
-		bool toEraseNodeFound = false;
+			unsigned int rigidNodes = 0;
+			unsigned int freesurfaceNodes = 0;
+			unsigned int lagrangianInletNodes = 0;
+			unsigned int eulerianInletNodes = 0;
+			bool toEraseNodeFound = false;
 
-		double meanMeshSize = mrRemesh.Refine->CriticalRadius;
+			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 			double initialTime = mrRemesh.RefiningBoxInitialTime;
@@ -1264,13 +1485,17 @@ namespace Kratos
 				if (Element[pn].Is(FREE_SURFACE))
 				{
 					freesurfaceNodes++;
-			}
-			if (Element[pn].Is(INLET))
-			{
-				inletNodes++;
-			}
+				}
+				if (Element[pn].Is(INLET))
+				{
+					lagrangianInletNodes++;
+					if (Element[pn].Is(SLIP))
+					{
+						eulerianInletNodes++;
+					}
+				}
 
-			if (refiningBox == true)
+				if (refiningBox == true)
 				{
 
 					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
@@ -1382,11 +1607,16 @@ namespace Kratos
 				if (rigidNodes > 0 && penalizationRigid == true)
 				{
 					penalization = 1.2;
+				}
 			}
-		}
 
-		double limitEdgeLength = 1.9 * meanMeshSize * penalization;
-		double safetyCoefficient2D = 1.5;
+			if (eulerianInletNodes > 0)
+			{
+				penalization = 0;
+			}
+
+			double limitEdgeLength = 1.9 * meanMeshSize * penalization;
+			double safetyCoefficient2D = 1.5;
 
 			double ElementalVolume = Element.Area();
 
@@ -1451,7 +1681,7 @@ namespace Kratos
 				dangerousElement = true;
 			}
 
-			if (dangerousElement == false && toEraseNodeFound == false)
+			if (dangerousElement == false && toEraseNodeFound == false && eulerianInletNodes < 0.5)
 			{
 
 				// array_1d<double,3> NewPosition(3,0.0);
@@ -1512,21 +1742,22 @@ namespace Kratos
 		void SelectEdgeToRefine3DWithRefinement(Element::GeometryType &Element,
 												std::vector<array_1d<double, 3>> &NewPositions,
 												std::vector<double> &BiggestVolumes,
-											std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
-											std::vector<Node<3>::DofsContainerType> &NewDofs,
-											int &CountNodes,
-											int ElementsToRefine)
-	{
-		KRATOS_TRY
+												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+												std::vector<Node<3>::DofsContainerType> &NewDofs,
+												int &CountNodes,
+												int ElementsToRefine)
+		{
+			KRATOS_TRY
 
 			const unsigned int nds = Element.size();
 
-		unsigned int rigidNodes = 0;
-		unsigned int freesurfaceNodes = 0;
-		unsigned int inletNodes = 0;
-		bool toEraseNodeFound = false;
+			unsigned int rigidNodes = 0;
+			unsigned int freesurfaceNodes = 0;
+			unsigned int eulerianInletNodes = 0;
+			unsigned int lagrangianInletNodes = 0;
+			bool toEraseNodeFound = false;
 
-		double meanMeshSize = mrRemesh.Refine->CriticalRadius;
+			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 			double initialTime = mrRemesh.RefiningBoxInitialTime;
@@ -1554,13 +1785,17 @@ namespace Kratos
 				if (Element[pn].Is(FREE_SURFACE))
 				{
 					freesurfaceNodes++;
-			}
-			if (Element[pn].Is(INLET))
-			{
-				inletNodes++;
-			}
+				}
+				if (Element[pn].Is(INLET))
+				{
+					lagrangianInletNodes++;
+					if (Element[pn].Is(SLIP))
+					{
+						eulerianInletNodes++;
+					}
+				}
 
-			if (refiningBox == true)
+				if (refiningBox == true)
 				{
 
 					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
@@ -1709,11 +1944,16 @@ namespace Kratos
 				if (rigidNodes > 0 && penalizationRigid == true)
 				{
 					penalization = 1.15;
+				}
 			}
-		}
 
-		double limitEdgeLength = 1.6 * meanMeshSize * penalization;
-		double safetyCoefficient3D = 1.6;
+			if (eulerianInletNodes > 0)
+			{
+				penalization = 0;
+			}
+
+			double limitEdgeLength = 1.6 * meanMeshSize * penalization;
+			double safetyCoefficient3D = 1.6;
 
 			double ElementalVolume = Element.Volume();
 
@@ -1822,7 +2062,7 @@ namespace Kratos
 					}
 				}
 
-				if (CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength)
+				if (CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength && eulerianInletNodes<0.5)
 				{
 
 					bool newNode = true;
@@ -1964,17 +2204,17 @@ namespace Kratos
 				std::cout << "initial_node_size  " << initial_node_size << std::endl;
 			}
 
-		//assign data to dofs
-		VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
+			//assign data to dofs
+			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
 
-		for (unsigned int nn = 0; nn < NewPositions.size(); nn++)
-		{
+			for (unsigned int nn = 0; nn < NewPositions.size(); nn++)
+			{
 
-			unsigned int id = initial_node_size + nn;
-			maxId = id;
-			double x = NewPositions[nn][0];
-			double y = NewPositions[nn][1];
-			double z = 0;
+				unsigned int id = initial_node_size + nn;
+				maxId = id;
+				double x = NewPositions[nn][0];
+				double y = NewPositions[nn][1];
+				double z = 0;
 				if (dimension == 3)
 					z = NewPositions[nn][2];
 
@@ -2008,17 +2248,21 @@ namespace Kratos
 				Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][1]);
 				InterpolateFromTwoNodes(pnode, SlaveNode1, SlaveNode2, VariablesList);
 				if (SlaveNode1->Is(RIGID) || SlaveNode1->Is(SOLID))
-			{
-				TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
-			}
-			else {
-                // Master node's properties are set using the maximum PROPERTY_ID value between SlaveNode1 and SlaveNode2
-            	if (SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID) >= SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID)) {
-                    TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
-                } else {
-                    TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
-                }
-			}
+				{
+					TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
+				}
+				else
+				{
+					// Master node's properties are set using the maximum PROPERTY_ID value between SlaveNode1 and SlaveNode2
+					if (SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID) >= SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID))
+					{
+						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
+					}
+					else
+					{
+						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
+					}
+				}
 				// if(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)){
 				//   TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
 				// }
@@ -2065,13 +2309,13 @@ namespace Kratos
 
 			for (VariablesList::const_iterator i_variable = rVariablesList.begin(); i_variable != rVariablesList.end(); i_variable++)
 			{
-			std::string variable_name = i_variable->Name();
-			if (KratosComponents<Variable<double>>::Has(variable_name))
-			{
-				const Variable<double> & variable = KratosComponents<Variable<double>>::Get(variable_name);
-				for (unsigned int step = 0; step < buffer_size; step++)
+				std::string variable_name = i_variable->Name();
+				if (KratosComponents<Variable<double>>::Has(variable_name))
 				{
-					//getting the data of the solution step
+					const Variable<double> &variable = KratosComponents<Variable<double>>::Get(variable_name);
+					for (unsigned int step = 0; step < buffer_size; step++)
+					{
+						//getting the data of the solution step
 						double &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
 						double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
@@ -2079,13 +2323,13 @@ namespace Kratos
 
 						node_data = (0.5 * node0_data + 0.5 * node1_data);
 					}
-			}
-			else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
-			{
-				const Variable<array_1d<double, 3>> & variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-				for (unsigned int step = 0; step < buffer_size; step++)
+				}
+				else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
 				{
-					//getting the data of the solution step
+					const Variable<array_1d<double, 3>> &variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
+					for (unsigned int step = 0; step < buffer_size; step++)
+					{
+						//getting the data of the solution step
 						array_1d<double, 3> &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
 						const array_1d<double, 3> &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
@@ -2105,13 +2349,13 @@ namespace Kratos
 					//std::cout<<"bool"<<std::endl;
 					//NO INTERPOLATION
 				}
-			else if (KratosComponents<Variable<Matrix>>::Has(variable_name))
-			{
-				//std::cout<<"Matrix"<<std::endl;
-				const Variable<Matrix> & variable = KratosComponents<Variable<Matrix>>::Get(variable_name);
-				for (unsigned int step = 0; step < buffer_size; step++)
+				else if (KratosComponents<Variable<Matrix>>::Has(variable_name))
 				{
-					//getting the data of the solution step
+					//std::cout<<"Matrix"<<std::endl;
+					const Variable<Matrix> &variable = KratosComponents<Variable<Matrix>>::Get(variable_name);
+					for (unsigned int step = 0; step < buffer_size; step++)
+					{
+						//getting the data of the solution step
 						Matrix &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
 						Matrix &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
@@ -2129,13 +2373,13 @@ namespace Kratos
 						}
 					}
 				}
-			else if (KratosComponents<Variable<Vector>>::Has(variable_name))
-			{
-				//std::cout<<"Vector"<<std::endl;
-				const Variable<Vector> & variable = KratosComponents<Variable<Vector>>::Get(variable_name);
-				for (unsigned int step = 0; step < buffer_size; step++)
+				else if (KratosComponents<Variable<Vector>>::Has(variable_name))
 				{
-					//getting the data of the solution step
+					//std::cout<<"Vector"<<std::endl;
+					const Variable<Vector> &variable = KratosComponents<Variable<Vector>>::Get(variable_name);
+					for (unsigned int step = 0; step < buffer_size; step++)
+					{
+						//getting the data of the solution step
 						Vector &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
 						Vector &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
@@ -2175,21 +2419,21 @@ namespace Kratos
 			MasterNode->FastGetSolutionStepValue(DYNAMIC_FRICTION) = SlaveNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
 			MasterNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO) = SlaveNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
 			MasterNode->FastGetSolutionStepValue(GRAIN_DIAMETER) = SlaveNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
-		MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY) = SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
-		MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
+			MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY) = SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
+			MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
 
-		MasterNode->FastGetSolutionStepValue(FRICTION_ANGLE) = SlaveNode->FastGetSolutionStepValue(FRICTION_ANGLE);
-		MasterNode->FastGetSolutionStepValue(COHESION) = SlaveNode->FastGetSolutionStepValue(COHESION);
+			MasterNode->FastGetSolutionStepValue(FRICTION_ANGLE) = SlaveNode->FastGetSolutionStepValue(FRICTION_ANGLE);
+			MasterNode->FastGetSolutionStepValue(COHESION) = SlaveNode->FastGetSolutionStepValue(COHESION);
 
-		if (MasterNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT) && SlaveNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT))
-		{
-			MasterNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
-			MasterNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT);
-		}
+			if (MasterNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT) && SlaveNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT))
+			{
+				MasterNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+				MasterNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT);
+			}
 
-		if (MasterNode->SolutionStepsDataHas(YOUNG_MODULUS) && SlaveNode->SolutionStepsDataHas(YOUNG_MODULUS))
-		{
-			MasterNode->FastGetSolutionStepValue(YOUNG_MODULUS) = 0;
+			if (MasterNode->SolutionStepsDataHas(YOUNG_MODULUS) && SlaveNode->SolutionStepsDataHas(YOUNG_MODULUS))
+			{
+				MasterNode->FastGetSolutionStepValue(YOUNG_MODULUS) = 0;
 				MasterNode->FastGetSolutionStepValue(POISSON_RATIO) = 0;
 			}
 			if (MasterNode->SolutionStepsDataHas(SOLID_DENSITY) && SlaveNode->SolutionStepsDataHas(SOLID_DENSITY))
