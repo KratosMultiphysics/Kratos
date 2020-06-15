@@ -813,7 +813,7 @@ namespace MPMSearchElementUtility
                 #pragma omp critical
                 KRATOS_INFO("MPMSearchElementUtility::Check")
                     << "Volume fraction of sub-points does not approximately sum to 1.0."
-                    << " This probably means the background grid is not big enough or that the PQMPM search factor is too small.\n"
+                    << " This probably means the background grid is not big enough.\n"
                     << "Material point volume = " << mp_volume_vec[0]
                     << "\nTotal volume fraction = " << vol_sum << "\nIndividual volume fractions:\n";
                 for (size_t i = 0; i < ips_active.size(); ++i) std::cout << ips_active[i].Weight() << std::endl;
