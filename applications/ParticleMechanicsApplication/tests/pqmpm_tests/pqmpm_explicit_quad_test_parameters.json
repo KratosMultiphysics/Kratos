@@ -24,7 +24,7 @@
             "input_filename" : "pqmpm_tests/pqmpm_explicit_2D_test_body"
         },
         "material_import_settings"           : {
-            "materials_filename" : "pqmpm_tests/pqmpm_explicit_test_materials.json"
+            "materials_filename" : "pqmpm_tests/pqmpm_explicit_2D_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 0.01

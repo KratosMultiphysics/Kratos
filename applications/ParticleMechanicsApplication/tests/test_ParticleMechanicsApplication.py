@@ -43,6 +43,7 @@ from particle_mechanics_test_factory import Explicit3dTetCompressibleOscillating
 
 from particle_mechanics_test_factory import PQMPMExplicitQuadTest as TPQMPMExplicitQuadTest
 from particle_mechanics_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
+from particle_mechanics_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 
 
 
@@ -124,6 +125,7 @@ def AssembleTestSuites():
 
     nightSuite.addTest(TPQMPMExplicitQuadTest('test_execution'))
     nightSuite.addTest(TPQMPMExplicitTriTest('test_execution'))
+    nightSuite.addTest(TPQMPMExplicitHexTest('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate

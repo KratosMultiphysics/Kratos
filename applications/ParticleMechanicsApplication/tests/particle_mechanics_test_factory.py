@@ -135,3 +135,6 @@ class PQMPMExplicitQuadTest(ParticleMechanicsTestFactory):
 
 class PQMPMExplicitTriTest(ParticleMechanicsTestFactory):
     file_name = "pqmpm_tests/pqmpm_explicit_tri_test"
+
+class PQMPMExplicitHexTest(ParticleMechanicsTestFactory):
+    file_name = "pqmpm_tests/pqmpm_explicit_hex_test"
