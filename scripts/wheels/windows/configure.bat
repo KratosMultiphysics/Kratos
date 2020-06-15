@@ -15,18 +15,18 @@ set PYTHON_EXECUTABLE=%1
 set USE_COTIRE=%3
 
 set KRATOS_APPLICATIONS=
-CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\DEMApplication;
-CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\ParticleMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\ParticleMechanicsApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
 rem CALL :add_app %KRATOS_APP_DIR%\DamApplication;
-CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
-CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
-CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
-CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
+rem CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
