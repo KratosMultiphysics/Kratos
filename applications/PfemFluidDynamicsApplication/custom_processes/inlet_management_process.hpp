@@ -35,196 +35,216 @@
 namespace Kratos
 {
 
-///@name Kratos Classes
-///@{
+  ///@name Kratos Classes
+  ///@{
 
-/// Refine Mesh Elements Process 2D and 3D
-/** The process labels the nodes to be refined (TO_REFINE)
+  /// Refine Mesh Elements Process 2D and 3D
+  /** The process labels the nodes to be refined (TO_REFINE)
     if the ThresholdVariable  is larger than a ReferenceThreshold
 */
 
-class InletManagementProcess
-    : public MesherProcess
-{
-public:
-  ///@name Type Definitions
-  ///@{
-
-  /// Pointer definition of Process
-  KRATOS_CLASS_POINTER_DEFINITION(InletManagementProcess);
-
-  typedef ModelPart::NodeType NodeType;
-  typedef ModelPart::ConditionType ConditionType;
-  typedef ModelPart::PropertiesType PropertiesType;
-  typedef ConditionType::GeometryType GeometryType;
-
-  typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
-  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
-
-  ///@}
-  ///@name Life Cycle
-  ///@{
-
-  /// Default constructor.
-  InletManagementProcess(ModelPart &rModelPart,
-                         MesherUtilities::MeshingParameters &rRemeshingParameters,
-                         int EchoLevel)
-      : mrModelPart(rModelPart),
-        mrRemesh(rRemeshingParameters)
+  class InletManagementProcess
+      : public MesherProcess
   {
-    KRATOS_INFO("InletManagementProcess") << " inlet_management CONSTRUCTOR ";
+  public:
+    ///@name Type Definitions
+    ///@{
 
-    mEchoLevel = EchoLevel;
-  }
+    /// Pointer definition of Process
+    KRATOS_CLASS_POINTER_DEFINITION(InletManagementProcess);
 
-  /// Destructor.
-  virtual ~InletManagementProcess() {}
+    typedef ModelPart::NodeType NodeType;
+    typedef ModelPart::ConditionType ConditionType;
+    typedef ModelPart::PropertiesType PropertiesType;
+    typedef ConditionType::GeometryType GeometryType;
 
-  ///@}
-  ///@name Operators
-  ///@{
+    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
-  /// This operator is provided to call the process as a function and simply calls the Execute method.
-  void operator()()
-  {
-    Execute();
-  }
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-  ///@}
-  ///@name Operations
-  ///@{
-
-  /// Execute method is used to execute the Process algorithms.
-  void Execute() override
-  {
-    KRATOS_TRY
-
-    if (mEchoLevel > 1)
-      std::cout << " [ INLET MANAGEMENT PROCESS: " << std::endl;
-
-    if (mrModelPart.Name() != mrRemesh.SubModelPartName)
-      std::cout << " ModelPart Supplied do not corresponds to the Meshing Domain: (" << mrModelPart.Name() << " != " << mrRemesh.SubModelPartName << ")" << std::endl;
-
-    const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-    double currentTime = rCurrentProcessInfo[TIME];
-    double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-
-    if (currentTime > 1.5 * timeInterval)
-      CheckAndCreateNewInletLayer();
-
-    if (mEchoLevel > 1)
-      std::cout << "   INLET MANAGEMENT PROCESS ]; " << std::endl;
-
-    KRATOS_CATCH(" ")
-  }
-
-  ///@}
-  ///@name Access
-  ///@{
-
-  ///@}
-  ///@name Inquiry
-  ///@{
-
-  ///@}
-  ///@name Input and output
-  ///@{
-
-  /// Turn back information as a string.
-  std::string Info() const override
-  {
-    return "InletManagementProcess";
-  }
-
-  /// Print information about this object.
-  void PrintInfo(std::ostream &rOStream) const override
-  {
-    rOStream << "InletManagementProcess";
-  }
-
-  /// Print object's data.s
-  void PrintData(std::ostream &rOStream) const override
-  {
-  }
-
-  ///@}
-  ///@name Friends
-  ///@{
-
-  ///@}
-
-private:
-  ///@name Static Member Variables
-  ///@{
-
-  ///@}
-  ///@name Static Member Variables
-  ///@{
-  ModelPart &mrModelPart;
-
-  MesherUtilities::MeshingParameters &mrRemesh;
-
-  MesherUtilities mMesherUtilities;
-
-  int mEchoLevel;
-
-  ///@}
-  ///@name Private Operators
-  ///@{
-
-  ///@}
-  ///@name Private Operations
-  ///@{
-
-  void CheckAndCreateNewInletLayer()
-
-  {
-    KRATOS_TRY
-
-    if (mEchoLevel > 1)
-      std::cout << " CheckAndCreateNewInletLayer " << std::endl;
-    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-    double maxSeparation = mrRemesh.Refine->CriticalRadius;
-
-    std::vector<Node<3>::Pointer> clonedNodes;
-    clonedNodes.clear();
-    clonedNodes.resize(1);
-    unsigned int numberClonedNodes = 0;
-    unsigned int sizeClonedNodes = 0;
-
-    for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
+    /// Default constructor.
+    InletManagementProcess(ModelPart &rModelPart,
+                           MesherUtilities::MeshingParameters &rRemeshingParameters,
+                           int EchoLevel)
+        : mrModelPart(rModelPart),
+          mrRemesh(rRemeshingParameters)
     {
-      if (i_node->Is(INLET))
+      KRATOS_INFO("InletManagementProcess") << " inlet_management CONSTRUCTOR ";
+
+      mEchoLevel = EchoLevel;
+    }
+
+    /// Destructor.
+    virtual ~InletManagementProcess() {}
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// This operator is provided to call the process as a function and simply calls the Execute method.
+    void operator()()
+    {
+      Execute();
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Execute method is used to execute the Process algorithms.
+    void Execute() override
+    {
+      KRATOS_TRY
+
+      if (mEchoLevel > 1)
+        std::cout << " [ INLET MANAGEMENT PROCESS: " << std::endl;
+
+      if (mrModelPart.Name() != mrRemesh.SubModelPartName)
+        std::cout << " ModelPart Supplied do not corresponds to the Meshing Domain: (" << mrModelPart.Name() << " != " << mrRemesh.SubModelPartName << ")" << std::endl;
+
+      const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+      double currentTime = rCurrentProcessInfo[TIME];
+      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+
+      unsigned int numberOfEulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
+
+      if (currentTime < 2 * timeInterval)
       {
+        mrRemesh.Info->RemovedNodes = 0;
+        if (mEchoLevel > 1)
+          std::cout << " First meshes: I repare the mesh without adding new nodes" << std::endl;
+        mrRemesh.Info->InitialNumberOfNodes = mrRemesh.Info->NumberOfNodes;
+      }
 
-        ElementWeakPtrVectorType &neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
-        NodeWeakPtrVectorType &rN = i_node->GetValue(NEIGHBOUR_NODES);
+      if (currentTime > 1.5 * timeInterval && numberOfEulerianInletNodes==0)
+      {
+        CheckAndCreateNewInletLayer();
+      }
+      else
+      {
+        numberOfEulerianInletNodes=0;
+        std::cout<<"CountEulerianInletNodes "<<numberOfEulerianInletNodes<<std::endl;
+        CountEulerianInletNodes(numberOfEulerianInletNodes);
+        std::cout<<"They are "<<numberOfEulerianInletNodes<<std::endl;
+        mrRemesh.Info->NumberOfEulerianInletNodes=numberOfEulerianInletNodes;
+      }
 
-        if ((neighb_elems.size() == 0 && rN.size() == 0) || i_node->Is(RIGID))
+      if (mEchoLevel > 1)
+        std::cout << "   INLET MANAGEMENT PROCESS ]; " << std::endl;
+
+      KRATOS_CATCH(" ")
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+      return "InletManagementProcess";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream &rOStream) const override
+    {
+      rOStream << "InletManagementProcess";
+    }
+
+    /// Print object's data.s
+    void PrintData(std::ostream &rOStream) const override
+    {
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+  private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Static Member Variables
+    ///@{
+    ModelPart &mrModelPart;
+
+    MesherUtilities::MeshingParameters &mrRemesh;
+
+    MesherUtilities mMesherUtilities;
+
+    int mEchoLevel;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    void CheckAndCreateNewInletLayer()
+
+    {
+      KRATOS_TRY
+
+      if (mEchoLevel > 1)
+        std::cout << " CheckAndCreateNewInletLayer " << std::endl;
+      const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+      double maxSeparation = mrRemesh.Refine->CriticalRadius;
+
+      std::vector<Node<3>::Pointer> clonedNodes;
+      clonedNodes.clear();
+      clonedNodes.resize(1);
+      unsigned int numberClonedNodes = 0;
+      unsigned int sizeClonedNodes = 0;
+
+      for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
+      {
+        if (i_node->Is(INLET))
         {
 
-          const array_1d<double, 3> &inletDisplacement = i_node->FastGetSolutionStepValue(DISPLACEMENT);
-          double distanceFromOrigin = sqrt(inletDisplacement[0] * inletDisplacement[0] +
-                                           inletDisplacement[1] * inletDisplacement[1]);
-          if (dimension == 3)
-          {
-            distanceFromOrigin = sqrt(inletDisplacement[0] * inletDisplacement[0] +
-                                      inletDisplacement[1] * inletDisplacement[1] +
-                                      inletDisplacement[2] * inletDisplacement[2]);
-          }
+          ElementWeakPtrVectorType &neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
+          NodeWeakPtrVectorType &rN = i_node->GetValue(NEIGHBOUR_NODES);
 
-          if (distanceFromOrigin > maxSeparation)
+          if ((neighb_elems.size() == 0 && rN.size() == 0) || i_node->Is(RIGID))
           {
 
-            if (i_node->Is(FLUID))
+            const array_1d<double, 3> &inletDisplacement = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+            double distanceFromOrigin = sqrt(inletDisplacement[0] * inletDisplacement[0] +
+                                             inletDisplacement[1] * inletDisplacement[1]);
+            if (dimension == 3)
             {
-              Node<3>::Pointer pnode = i_node->Clone();
-              sizeClonedNodes = numberClonedNodes + 1;
-              clonedNodes.resize(sizeClonedNodes);
-              clonedNodes[numberClonedNodes] = pnode;
-              numberClonedNodes++;
+              distanceFromOrigin = sqrt(inletDisplacement[0] * inletDisplacement[0] +
+                                        inletDisplacement[1] * inletDisplacement[1] +
+                                        inletDisplacement[2] * inletDisplacement[2]);
             }
-             //inlet nodes will be replaced at their initial position
+
+            if (distanceFromOrigin > maxSeparation)
+            {
+
+              if (i_node->Is(FLUID))
+              {
+                Node<3>::Pointer pnode = i_node->Clone();
+                sizeClonedNodes = numberClonedNodes + 1;
+                clonedNodes.resize(sizeClonedNodes);
+                clonedNodes[numberClonedNodes] = pnode;
+                numberClonedNodes++;
+              }
+              //inlet nodes will be replaced at their initial position
               i_node->X() = i_node->X0();
               i_node->Y() = i_node->Y0();
               i_node->FastGetSolutionStepValue(DISPLACEMENT_X, 0) = 0;
@@ -238,89 +258,104 @@ private:
                 i_node->FastGetSolutionStepValue(DISPLACEMENT_Z, 1) = 0;
               }
 
-          } /// if maxSeparation> limit
+            } /// if maxSeparation> limit
+          }
         }
       }
+
+      for (unsigned int i = 0; i < sizeClonedNodes; i++)
+      {
+
+        Node<3>::Pointer pnode = clonedNodes[i];
+        double NodeIdParent = MesherUtilities::GetMaxNodeId(*(mrModelPart.GetParentModelPart()));
+        double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
+        unsigned int id = NodeIdParent + 1; //total model part node size
+
+        if (NodeId > NodeIdParent)
+        {
+          id = NodeId + 1;
+        }
+        pnode->SetId(id);
+        pnode->Free(VELOCITY_X);
+        pnode->Free(VELOCITY_Y);
+        if (dimension == 3)
+        {
+          pnode->Free(VELOCITY_Z);
+        }
+        pnode->Reset(INLET);
+        pnode->Reset(RIGID);
+        pnode->Reset(BOUNDARY);
+        mrRemesh.NodalPreIds.push_back(pnode->Id());
+        mrModelPart.AddNode(pnode);
+      }
+
+      KRATOS_CATCH("")
     }
 
-    for (unsigned int i = 0; i < sizeClonedNodes; i++)
+    void CountEulerianInletNodes(unsigned int &eulerianInletNodes)
+
     {
+      KRATOS_TRY
 
-      Node<3>::Pointer pnode = clonedNodes[i];
-      double NodeIdParent = MesherUtilities::GetMaxNodeId(*(mrModelPart.GetParentModelPart()));
-      double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
-      unsigned int id = NodeIdParent + 1; //total model part node size
+      for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
+      {
+        if (i_node->Is(INLET) && i_node->Is(SLIP))
+        {
+          eulerianInletNodes += 1;
+        }
+      }
 
-      if (NodeId > NodeIdParent)
-      {
-        id = NodeId + 1;
-      }
-      pnode->SetId(id);
-      pnode->Free(VELOCITY_X);
-      pnode->Free(VELOCITY_Y);
-      if (dimension == 3)
-      {
-        pnode->Free(VELOCITY_Z);
-      }
-      pnode->Reset(INLET); 
-      pnode->Reset(RIGID); 
-      pnode->Reset(BOUNDARY); 
-      mrRemesh.NodalPreIds.push_back(pnode->Id());
-      mrModelPart.AddNode(pnode);
+      KRATOS_CATCH("")
     }
 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-    KRATOS_CATCH("")
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    InletManagementProcess &operator=(InletManagementProcess const &rOther);
+
+    /// this function is a private function
+
+    /// Copy constructor.
+    //Process(Process const& rOther);
+
+    ///@}
+
+  }; // Class Process
+
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+  /// input stream function
+  inline std::istream &operator>>(std::istream &rIStream,
+                                  InletManagementProcess &rThis);
+
+  /// output stream function
+  inline std::ostream &operator<<(std::ostream &rOStream,
+                                  const InletManagementProcess &rThis)
+  {
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
   }
-
   ///@}
-  ///@name Private  Access
-  ///@{
-
-  ///@}
-  ///@name Private Inquiry
-  ///@{
-
-  ///@}
-  ///@name Un accessible methods
-  ///@{
-
-  /// Assignment operator.
-  InletManagementProcess &operator=(InletManagementProcess const &rOther);
-
-  /// this function is a private function
-
-  /// Copy constructor.
-  //Process(Process const& rOther);
-
-  ///@}
-
-}; // Class Process
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-/// input stream function
-inline std::istream &operator>>(std::istream &rIStream,
-                                InletManagementProcess &rThis);
-
-/// output stream function
-inline std::ostream &operator<<(std::ostream &rOStream,
-                                const InletManagementProcess &rThis)
-{
-  rThis.PrintInfo(rOStream);
-  rOStream << std::endl;
-  rThis.PrintData(rOStream);
-
-  return rOStream;
-}
-///@}
 
 } // namespace Kratos.
 

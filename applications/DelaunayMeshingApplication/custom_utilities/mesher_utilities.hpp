@@ -280,6 +280,7 @@ public:
       unsigned int   NumberOfConditions;
 
       unsigned int   InitialNumberOfNodes;
+      unsigned int   NumberOfEulerianInletNodes;
 
       //added
       unsigned int   NumberOfNewElements;
