@@ -244,8 +244,6 @@ namespace Testing
     /// PQMPM test 1 - MP domain is entirely within cell and should only make 1 mp
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DQuadWithinCell, KratosParticleMechanicsFastSuite)
     {
-        const double int_weight_test_tolerance = 1e-5;
-
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
         mp_coordinate[0] = 0.5;
@@ -286,8 +284,6 @@ namespace Testing
     /// PQMPM test 2 - MP domain is entirely within cell and should only make 1 mp
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DTriWithinCell, KratosParticleMechanicsFastSuite)
     {
-        const double int_weight_test_tolerance = 1e-5;
-
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
         mp_coordinate[0] = 0.8;
@@ -328,8 +324,6 @@ namespace Testing
     /// PQMPM test 3 - MP domain is not entirely within one cell and should make 9 mp. 2D skew quad
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DQuad, KratosParticleMechanicsFastSuite)
     {
-        const double int_weight_test_tolerance = 1e-5;
-
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
         mp_coordinate[0] = 1.5;
@@ -376,8 +370,6 @@ namespace Testing
     /// PQMPM test 4 - MP domain is not entirely within one cell and should make 5 mp. 2D skew tri
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DTri, KratosParticleMechanicsFastSuite)
     {
-        const double int_weight_test_tolerance = 1e-5;
-
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
         mp_coordinate[0] = 1.5;
@@ -424,8 +416,6 @@ namespace Testing
     /// PQMPM test 5 - MP domain is not entirely within one cell and should make 4 mp. 3D hex
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM3DHex, KratosParticleMechanicsFastSuite)
     {
-        const double int_weight_test_tolerance = 1e-5;
-
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
         mp_coordinate[0] = 0.8;
@@ -472,8 +462,6 @@ namespace Testing
     /// PQMPM test 6 - Check pqmpm fails with unstructured 3D mesh
     //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM3DHexError, KratosParticleMechanicsFastSuite)
     //{
-    //    const double int_weight_test_tolerance = 1e-5;
-    //
     //    // First Coordinates of Material Point
     //    array_1d<double, 3> mp_coordinate;
     //    mp_coordinate[0] = 0.8;
@@ -510,8 +498,6 @@ namespace Testing
     ///// PQMPM test 7 - Check pqmpm fails if point tries to split outside mesh
     //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DOutsideSplit, KratosParticleMechanicsFastSuite)
     //{
-    //    const double int_weight_test_tolerance = 1e-5;
-    //
     //    // First Coordinates of Material Point
     //    array_1d<double, 3> mp_coordinate;
     //    mp_coordinate[0] = 0.1;
@@ -547,8 +533,6 @@ namespace Testing
     /// PQMPM test 8 - Check pqmpm falls back to normal mpm if point tries to split outside mesh
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DFallbackToMPM, KratosParticleMechanicsFastSuite)
     {
-        const double int_weight_test_tolerance = 1e-5;
-
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
         mp_coordinate[0] = 0.1;
@@ -584,8 +568,6 @@ namespace Testing
     /// PQMPM test 9 - Check pqmpm does not split across a BC
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DQuadBC, KratosParticleMechanicsFastSuite)
     {
-        const double int_weight_test_tolerance = 1e-5;
-
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
         mp_coordinate[0] = 0.9;
@@ -628,8 +610,6 @@ namespace Testing
     /// PQMPM test 10 - Check pqmpm reverts back to normal MPM if min_pqmpm fraction is specified and not fulfilled
     KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DFraction, KratosParticleMechanicsFastSuite)
     {
-        const double int_weight_test_tolerance = 1e-5;
-
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
         mp_coordinate[0] = 0.6;
