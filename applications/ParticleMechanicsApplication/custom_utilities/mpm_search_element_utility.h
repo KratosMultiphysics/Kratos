@@ -284,22 +284,6 @@ namespace MPMSearchElementUtility
         KRATOS_CATCH("")
     }
 
-    inline bool CheckNoPointsAreInGeom(
-        const std::vector<array_1d<double, 3>>& rPoints,
-        const GeometryType& rReferenceGeom,
-        const double Tolerance)
-    {
-        KRATOS_TRY
-
-            array_1d<double, 3> dummy_local_coords;
-        for (size_t i = 0; i < rPoints.size(); ++i) {
-            if (rReferenceGeom.IsInside(rPoints[i], dummy_local_coords, Tolerance)) return false;
-        }
-        return true;
-
-        KRATOS_CATCH("")
-    }
-
 
     inline Boost2DPolygonType Create2DPolygonBoundingSquareFromPointsFast(const std::vector<array_1d<double, 3>>& rPoints,
         const bool XActive = true, const bool YActive = true, const bool ZActive = false)
@@ -689,6 +673,8 @@ namespace MPMSearchElementUtility
 
         const SizeType working_dim = rGeometry.WorkingSpaceDimension();
         const double pqmpm_min_fraction = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_MIN_FRACTION))
+            ? std::max(rBackgroundGridModelPart.GetProcessInfo()[PQMPM_MIN_FRACTION], std::numeric_limits<double>::epsilon())
+            : std::numeric_limits<double>::epsilon();
 
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
@@ -751,26 +737,17 @@ namespace MPMSearchElementUtility
             sub_point_volume = 0.0;
             IntegrationPoint<3> trial_subpoint;
 
-            if (CheckNoPointsAreInGeom(master_domain_points, *intersected_geometries[i], Tolerance)) {
-                // whole element is completely inside bounding box
-                trial_subpoint = CreateSubPoint(intersected_geometries[i]->Center(),
-                    intersected_geometries[i]->DomainSize() / mp_volume_vec[0],
-                    *intersected_geometries[i], N, DN_De);
+            if (working_dim == 2) {
+                Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
+                sub_point_position[2] = rCoordinates[2]; // set z coord of sub point to that of the master
             }
-            else {
-                // only some of the background element is within the bounding box - most expensive check
-                if (working_dim == 2) {
-                    Determine2DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
-                    sub_point_position[2] = rCoordinates[2]; // set z coord of sub point to that of the master
-                }
-                else
-                    Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
-                trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
-                    *intersected_geometries[i], N, DN_De);
-            }
+            else Determine3DSubPoint(*intersected_geometries[i], master_domain_points, sub_point_position, sub_point_volume);
+
+            trial_subpoint = CreateSubPoint(sub_point_position, sub_point_volume / mp_volume_vec[0],
+                *intersected_geometries[i], N, DN_De);
 
             // Transfer local data to containers
-            if (trial_subpoint.Weight() > pqmpm_min_fraction && trial_subpoint.Weight() <= 1.0) {
+            if (trial_subpoint.Weight() > pqmpm_min_fraction) {
                 ips[active_subpoint_index] = trial_subpoint;
                 DN_De_vector[active_subpoint_index] = DN_De;
                 for (size_t j = 0; j < N.size(); ++j) {
@@ -802,7 +779,7 @@ namespace MPMSearchElementUtility
         // Check volume fractions sum to unity
         double vol_sum = 0.0;
         for (size_t i = 0; i < ips_active.size(); ++i) vol_sum += ips_active[i].Weight();
-        if (std::abs(vol_sum - 1.0) > Tolerance) {
+        if (std::abs(vol_sum - 1.0) > ips_active.size()* pqmpm_min_fraction) {
             const bool is_pqmpm_fallback = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM_FALLBACK_TO_MPM))
                 ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM_FALLBACK_TO_MPM) : false;
             if (is_pqmpm_fallback) return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
