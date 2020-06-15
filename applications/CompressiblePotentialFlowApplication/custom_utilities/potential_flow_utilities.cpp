@@ -728,6 +728,9 @@ double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating(
     const array_1d<double, Dim>& rUpwindVelocity, 
     const ProcessInfo& rCurrentProcessInfo)
 {
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section A.2.6
     const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rCurrentVelocity, rCurrentVelocity), rCurrentProcessInfo);
 
     const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
@@ -751,6 +754,9 @@ double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeacceleratin
     const array_1d<double, Dim>& rUpwindVelocity, 
     const ProcessInfo& rCurrentProcessInfo)
 {
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section A.2.6
     const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rCurrentVelocity, rCurrentVelocity), rCurrentProcessInfo);
 
     const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
@@ -764,6 +770,9 @@ double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAcceler
     const array_1d<double, Dim>& rUpwindVelocity, 
     const ProcessInfo& rCurrentProcessInfo)
 {
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section A.2.6
     const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rUpwindVelocity, rUpwindVelocity), rCurrentProcessInfo);
 
     const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
@@ -777,6 +786,9 @@ double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccel
     const array_1d<double, Dim>& rUpwindVelocity, 
     const ProcessInfo& rCurrentProcessInfo)
 {
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section A.2.6
     const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rUpwindVelocity, rUpwindVelocity), rCurrentProcessInfo);
 
     const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
