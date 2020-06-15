@@ -731,10 +731,6 @@ namespace Kratos
 							CopyDofs(Element[idFreeNode].GetDofs(), NewDofs[CountNodes]);
 							NewPositions[CountNodes] = NewPosition;
 							CountNodes++;
-							// std::cout << "  NewPosition  NewPosition NewPosition " << NewPosition << std::endl;
-							// std::cout <<idsWallNodes[0] <<" idA " <<idA << std::endl;
-							// std::cout <<idsWallNodes[1] <<" idB " <<idB << std::endl;
-							// std::cout <<idFreeNode<< " idC " <<idC << std::endl;
 						}
 					}
 				}
@@ -1625,9 +1621,6 @@ namespace Kratos
 			array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			// array_1d<double,3> CoorDifference(3,0.0);
-			// noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-			// CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 			Edges[0] = sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
@@ -1642,7 +1635,6 @@ namespace Kratos
 				for (unsigned int j = 0; j < i; j++)
 				{
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					// CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 					Counter += 1;
 					Edges[Counter] = sqrt(SquaredLength);
@@ -1665,10 +1657,6 @@ namespace Kratos
 					{
 						Edges[i] = 0;
 					}
-					// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-					//   Edges[i]=0;
-					//   // Edges[i]*=penalizationFreeSurface;
-					// }
 					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
 						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
 					{
@@ -1712,8 +1700,6 @@ namespace Kratos
 					if (newNode == true)
 					{
 						array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
-						// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
-						// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
 						if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
@@ -1962,9 +1948,6 @@ namespace Kratos
 			array_1d<unsigned int, 6> SecondEdgeNode(6, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			// array_1d<double,3> CoorDifference(3,0.0);
-			// noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-			// CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 			Edges[0] = sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
@@ -2239,8 +2222,6 @@ namespace Kratos
 				for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 				{
 					Node<3>::DofType &rDof = **iii;
-					// Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-					// (p_new_dof)->FreeDof();
 					pnode->pAddDof(rDof);
 				}
 
