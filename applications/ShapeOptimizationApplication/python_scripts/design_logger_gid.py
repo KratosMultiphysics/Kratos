@@ -51,10 +51,10 @@ class DesignLoggerGID( DesignLogger ):
     def __DetermineOutputMode( self ):
         output_mode = self.output_settings["design_output_mode"].GetString()
 
-        if output_mode == "WriteDesignSurface":
+        if output_mode == "write_design_surface":
             self.write_design_surface = True
             self.design_history_filename = self.design_surface.Name
-        elif output_mode == "WriteOptimizationModelPart":
+        elif output_mode == "write_optimization_model_part":
             if self.optimization_model_part.NumberOfElements() == 0:
                 raise NameError("Output of optimization model part in Gid-format requires definition of elements. No elements are given in current mdpa! You may change the design output mode.")
             self.write_optimization_model_part = True

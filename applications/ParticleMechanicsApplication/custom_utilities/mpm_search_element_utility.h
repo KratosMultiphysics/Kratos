@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Bodhinanda Chandra
@@ -21,6 +21,8 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/quadrature_points_utility.h"
+
 #include "particle_mechanics_application_variables.h"
 
 namespace Kratos
@@ -75,7 +77,6 @@ namespace MPMSearchElementUtility
             // Element search and assign background grid
             #pragma omp for
             for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
-
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
                 std::vector<array_1d<double, 3>> xg;
@@ -125,11 +126,16 @@ namespace MPMSearchElementUtility
 
                 if (is_found == true) {
                     pelem->Set(ACTIVE);
-                    element_itr->GetGeometry() = pelem->GetGeometry();
-                    auto& r_geometry = element_itr->GetGeometry();
 
-                    for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
-                        r_geometry[j].Set(ACTIVE);
+                    auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                        pelem->pGetGeometry(), xg[0],
+                        element_itr->GetGeometry().IntegrationPoints()[0].Weight());
+
+                    // Update geometry of particle element
+                    element_itr->SetGeometry(p_new_geometry);
+
+                    for (IndexType j = 0; j < p_new_geometry->PointsNumber(); ++j)
+                        (*p_new_geometry)[j].Set(ACTIVE);
                 }
                 else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()

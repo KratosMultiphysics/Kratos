@@ -27,7 +27,7 @@
 #include "trilinos_space.h"
 
 // FluidDynamics trilinos extensions
-#include "custom_strategies/strategies/fs_strategy.h"
+#include "custom_strategies/strategies/fractional_step_strategy.h"
 #include "custom_utilities/solver_settings.h"
 
 namespace Kratos {
@@ -44,13 +44,17 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     using TrilinosBaseSolvingStrategy = SolvingStrategy< TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver >;
     using BaseSolverSettings = SolverSettings<TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
 
-    using TrilinosFSStrategy = FSStrategy< TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
-    py::class_< TrilinosFSStrategy, typename TrilinosFSStrategy::Pointer, TrilinosBaseSolvingStrategy >(m,"TrilinosFSStrategy")
+    using TrilinosFractionalStepStrategy = FractionalStepStrategy< TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
+    py::class_< TrilinosFractionalStepStrategy, typename TrilinosFractionalStepStrategy::Pointer, TrilinosBaseSolvingStrategy >(m,"TrilinosFractionalStepStrategy")
     .def(py::init< ModelPart&, BaseSolverSettings&, bool >())
+    .def(py::init< ModelPart&, BaseSolverSettings&, bool, bool >())
     .def(py::init< ModelPart&, BaseSolverSettings&, bool, const Kratos::Variable<int>& >())
-    .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)
-    .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
-    .def("ClearExtraIterationSteps",&TrilinosFSStrategy::ClearExtraIterationSteps)
+    .def(py::init< ModelPart&, BaseSolverSettings&, bool, bool, const Kratos::Variable<int>& >())
+    .def("CalculateReactions", [](TrilinosFractionalStepStrategy& self) {
+        KRATOS_WARNING("TrilinosFractionalStepStrategy") << "\'CalculateReactions()\' exposure is deprecated. Use the constructor with the \'CalculateReactionsFlag\' instead." << std::endl;
+        self.CalculateReactions();})
+    .def("AddIterationStep",&TrilinosFractionalStepStrategy::AddIterationStep)
+    .def("ClearExtraIterationSteps",&TrilinosFractionalStepStrategy::ClearExtraIterationSteps)
     ;
 }
 

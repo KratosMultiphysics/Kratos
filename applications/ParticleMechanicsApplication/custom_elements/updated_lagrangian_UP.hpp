@@ -109,6 +109,8 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+
     /**
      * clones the selected element variables, creating a new one
      * @param NewId: the ID of the new element
@@ -124,12 +126,12 @@ public:
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -157,7 +159,7 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* COMPUTING  METHODS
@@ -237,6 +239,10 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    SizeType GetNumberOfDofs() override {
+        return GetGeometry().WorkingSpaceDimension() + 1;
+    }
+
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
@@ -253,7 +259,7 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                             GeneralVariables& rVariables,
                             const double& rIntegrationWeight,
                             const ProcessInfo& rCurrentProcessInfo) override;
@@ -262,7 +268,7 @@ protected:
      * Calculation and addition of the vectors of the RHS
      */
 
-    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
                             GeneralVariables& rVariables,
                             Vector& rVolumeForce,
                             const double& rIntegrationWeight,
@@ -282,7 +288,7 @@ protected:
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                              GeneralVariables& rVariables,
-                             const double& rIntegrationWeight) override;
+                             const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kup matrix
@@ -347,16 +353,9 @@ protected:
                                                   );
 
     /**
-     * Initialize System Matrices
-     */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                  VectorType& rRightHandSideVector,
-                                  Flags& rCalculationFlags) override;
-
-    /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Initialize Element General Variables
@@ -389,7 +388,7 @@ protected:
      */
     void CalculateDeformationMatrix(Matrix& rB,
                                     Matrix& rF,
-                                    Matrix& rDN_DX) override;
+                                    Matrix& rDN_DX);
 
     /**
      * Calculation of the Volume Change of the Element
