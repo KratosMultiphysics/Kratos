@@ -600,7 +600,7 @@ namespace MPMSearchElementUtility
         double center_to_center = norm_2(rGeom.Center() - rCoord);
         rGeom.BoundingBox(ele_point_low, ele_point_high);
         double maximum_contact_range = (rGeom.WorkingSpaceDimension() == 3) ? 2.0 : 1.414214 * SideHalfLength +
-            norm_2(ele_point_high - ele_point_low) / 2.0;
+            norm_2(ele_point_high - ele_point_low);
         if (center_to_center <= maximum_contact_range) return true;
         return false;
     }
@@ -779,7 +779,7 @@ namespace MPMSearchElementUtility
         // Check volume fractions sum to unity
         double vol_sum = 0.0;
         for (size_t i = 0; i < ips_active.size(); ++i) vol_sum += ips_active[i].Weight();
-        if (std::abs(vol_sum - 1.0) > ips_active.size()* pqmpm_min_fraction) {
+        if (std::abs(vol_sum - 1.0) > Tolerance) {
             const bool is_pqmpm_fallback = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM_FALLBACK_TO_MPM))
                 ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM_FALLBACK_TO_MPM) : false;
             if (is_pqmpm_fallback) return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
