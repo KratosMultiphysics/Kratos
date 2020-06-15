@@ -482,15 +482,12 @@ template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D
 template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
 
 void KratosDEMApplication::Register() {
-    KRATOS_INFO("DEM") << std::endl;
-    KRATOS_INFO("DEM") << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
-    KRATOS_INFO("DEM") << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "<< std::endl;
-    KRATOS_INFO("DEM") << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "<< std::endl;
-    KRATOS_INFO("DEM") << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      " << std::endl;
-    KRATOS_INFO("DEM") << std::endl;
-    KRATOS_INFO("DEM") << "Importing DEMApplication... ";
-
-    KRATOS_INFO("") << "( compiled in mode \"" << Kernel::BuildType() << "\" )";
+    KRATOS_INFO("") << "\n"
+                    << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      \n"
+                    << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      \n"
+                    << "            | |_| | |___| |  | |  __/ (_| | (__|   <       \n"
+                    << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      \n"
+                    << "Importing DEMApplication... ";                    
 
     KRATOS_REGISTER_VARIABLE(CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
     KRATOS_REGISTER_VARIABLE(NODE_TO_NEIGH_ELEMENT_POINTER)

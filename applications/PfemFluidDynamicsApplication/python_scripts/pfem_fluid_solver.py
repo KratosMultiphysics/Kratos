@@ -178,6 +178,10 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
 
+        #VARIABLES FOR FRICTIONAL VISCOPLASTIC MODEL
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FRICTION_ANGLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.COHESION)
+
         #VARIABLES FOR MU-I RHEOLOGY MODEL
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
