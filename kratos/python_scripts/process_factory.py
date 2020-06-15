@@ -32,8 +32,15 @@ class KratosProcessFactory(object):
                 if not kratos_module_name.startswith("KratosMultiphysics"):
                     kratos_module_name = "KratosMultiphysics." + kratos_module_name
 
-                full_module_name = kratos_module_name + "." + python_module_name
-                python_module = import_module(full_module_name)
+                full_module_name = kratos_module_name + ".processes." + python_module_name
+                full_module_name_old = kratos_module_name + "." + python_module_name
+
+                try:
+                    python_module = import_module(full_module_name)
+                except ImportError:
+                    # for backward compatibility in case the process is not in the "processes" folder
+                    python_module = import_module(full_module_name_old)
+
 
                 p = python_module.Factory(item, self.Model)
                 constructed_processes.append( p )
