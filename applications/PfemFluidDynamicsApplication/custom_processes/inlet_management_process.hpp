@@ -126,9 +126,7 @@ namespace Kratos
       else
       {
         numberOfEulerianInletNodes=0;
-        std::cout<<"CountEulerianInletNodes "<<numberOfEulerianInletNodes<<std::endl;
         CountEulerianInletNodes(numberOfEulerianInletNodes);
-        std::cout<<"They are "<<numberOfEulerianInletNodes<<std::endl;
         mrRemesh.Info->NumberOfEulerianInletNodes=numberOfEulerianInletNodes;
       }
 
