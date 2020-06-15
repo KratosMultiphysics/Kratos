@@ -326,7 +326,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         print('----------- SETTING GRID NODES INTO SUB DOMAIN MODEL PARTS ----------------')
 
         # Generate MP Element and Condition
-        KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, axis_symmetric_flag, pressure_dofs)
+        KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
         KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
 
         # TODO generalize interface definition
