@@ -2151,6 +2151,9 @@ private:
 		MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY) = SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
 		MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
 
+		MasterNode->FastGetSolutionStepValue(FRICTION_ANGLE) = SlaveNode->FastGetSolutionStepValue(FRICTION_ANGLE);
+		MasterNode->FastGetSolutionStepValue(COHESION) = SlaveNode->FastGetSolutionStepValue(COHESION);
+
 		if (MasterNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT) && SlaveNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT))
 		{
 			MasterNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = SlaveNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
