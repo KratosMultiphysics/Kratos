@@ -15,6 +15,7 @@ from co_simulation_test_factory import TestCoSimulationCases
 from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
 from test_processes import TestCreatePointBasedEntitiesProcess
+from test_co_sim_io_py_exposure import TestCoSimIOPyExposure
 
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
@@ -68,6 +69,7 @@ def AssembleTestSuites():
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
 
     nightSuite.addTests(smallSuite)
 
