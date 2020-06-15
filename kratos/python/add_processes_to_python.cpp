@@ -74,7 +74,6 @@ namespace Kratos
 namespace Python
 {
 typedef Node<3> NodeType;
-typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 // Discontinuous distance computation auxiliar functions
 template<std::size_t TDim>
@@ -280,7 +279,6 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
             .def(py::init< ModelPart&, Parameters& >())
-            .def(py::init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
             .def("ExecuteInitialize", &ApplyConstantScalarValueProcess::ExecuteInitialize)

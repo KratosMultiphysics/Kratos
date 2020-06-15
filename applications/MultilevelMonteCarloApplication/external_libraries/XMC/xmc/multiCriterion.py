@@ -92,7 +92,8 @@ class MultiCriterion():
         It takes the expected values as input, evaluate each elementary criterion on them and combine their boolean outputs into a dictionary flag.
         This is currently a wrapper for the protected _flagFunction attribute.
         """
-        return self._flagFunction(self,values)
+        return self._flagFunction(values,self.criteria,self.inputsForCriterion,
+                                  self._interpreter)
 
     @staticmethod
     def flagStructure():

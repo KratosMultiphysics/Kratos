@@ -70,7 +70,8 @@ void Bingham3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues) {
                   4.0 * r_strain_vector[4] * r_strain_vector[4] + 4.0 * r_strain_vector[5] * r_strain_vector[5]);
 
     // Ensuring that the case of equivalent_strain_rate = 0 is not problematic
-    if (equivalent_strain_rate <= 1e-5) {
+    const double tolerance=1e-8;
+    if (equivalent_strain_rate < tolerance) {
         effective_dynamic_viscosity = yield_shear * adaptive_exponent;
     } else {
         double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
@@ -104,17 +105,17 @@ int Bingham3DLaw::Check(const Properties& rMaterialProperties, const GeometryTyp
     KRATOS_CHECK_VARIABLE_KEY(ADAPTIVE_EXPONENT);
     KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
 
-    if (rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0) {
+    if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Bingham3DLaw: "
                      << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
     }
 
-    if (rMaterialProperties[YIELD_SHEAR] <= 0.0) {
+    if (rMaterialProperties[YIELD_SHEAR] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing YIELD_SHEAR provided in process info for Bingham3DLaw: "
                      << rMaterialProperties[YIELD_SHEAR] << std::endl;
     }
 
-    if (rMaterialProperties[ADAPTIVE_EXPONENT] <= 0.0) {
+    if (rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for Bingham3DLaw: "
                      << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
     }
@@ -132,21 +133,15 @@ double Bingham3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParamet
 }
 
 double Bingham3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_prop = rParameters.GetMaterialProperties();
-    const double effective_density = r_prop[DENSITY];
-    return effective_density;
+    return rParameters.GetMaterialProperties()[DENSITY];
 }
 
 double Bingham3DLaw::GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_prop = rParameters.GetMaterialProperties();
-    const double effective_dynamic_viscosity = r_prop[DYNAMIC_VISCOSITY];
-    return effective_dynamic_viscosity;
+    return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
 }
 
 double Bingham3DLaw::GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_prop = rParameters.GetMaterialProperties();
-    const double effective_yield_shear = r_prop[YIELD_SHEAR];
-    return effective_yield_shear;
+    return rParameters.GetMaterialProperties()[YIELD_SHEAR];
 }
 
 void Bingham3DLaw::save(Serializer& rSerializer) const {
