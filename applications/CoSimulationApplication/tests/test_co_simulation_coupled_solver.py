@@ -347,7 +347,7 @@ class TestCoupledSolverModelAccess(KratosUnittest.TestCase):
 
         # creating some submodelparts to see if getting those also works
         smp_1 = fluid_main_mp.CreateSubModelPart("boundary")
-        smp_11 = smp_1.CreateSubModelPart("slip")
+        smp_1.CreateSubModelPart("slip")
 
         boundary_mp = coupled_solver.model["fsi.fluid.fl_model_part.boundary"]
         self.assertIsInstance(boundary_mp, KM.ModelPart)
