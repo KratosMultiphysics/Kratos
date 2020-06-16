@@ -661,7 +661,7 @@ public:
     }
 
     ///@}
-    ///@name  Geometry Data
+    ///@name Geometry Data and Geometry Shape Function Container
     ///@{
 
     /**
@@ -680,7 +680,7 @@ public:
      *        E.g. QuadraturePointGeometries.
      */
     virtual void SetGeometryShapeFunctionContainer(
-        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>&  rGeometryShapeFunctionContainer) const
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>&  rGeometryShapeFunctionContainer)
     {
         KRATOS_ERROR <<
             "Calling SetGeometryShapeFunctionContainer from base geometry class."
