@@ -64,8 +64,8 @@ void RansComputeReactionsProcess::ExecuteInitialize()
     KRATOS_CATCH("");
 }
 
-void RansComputeReactionsProcess::CorrectPeriodicNodes(ModelPart& rModelPart,
-                                                       const Variable<array_1d<double, 3>>& rVariable)
+void RansComputeReactionsProcess::CorrectPeriodicNodes(
+    ModelPart& rModelPart, const Variable<array_1d<double, 3>>& rVariable)
 {
     KRATOS_TRY
 
@@ -182,22 +182,24 @@ void RansComputeReactionsProcess::PrintData(std::ostream& rOStream) const
 
 void RansComputeReactionsProcess::CalculateReactionValues(ModelPart::ConditionType& rCondition)
 {
-    //if (RansCalculationUtilities::IsWall(rCondition))
+    // if (RansCalculationUtilities::IsWall(rCondition))
     //{
-    const array_1d<double, 3> &r_friction_velocity =
-        rCondition.GetValue(FRICTION_VELOCITY);
+    const array_1d<double, 3>& r_friction_velocity = rCondition.GetValue(FRICTION_VELOCITY);
     const double u_tau = norm_2(r_friction_velocity);
     ModelPart::ConditionType::GeometryType& r_geometry = rCondition.GetGeometry();
 
-    for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+
+    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         NodeType& r_node = r_geometry[i_node];
         const double rho = r_node.FastGetSolutionStepValue(DENSITY);
 
         if (u_tau > 0.0)
         {
-            const double shear_force =
-                rho * std::pow(u_tau, 2) * r_geometry.DomainSize();
+            const double shear_force = rho * std::pow(u_tau, 2) *
+                                       r_geometry.DomainSize() /
+                                       static_cast<double>(number_of_nodes);
             r_node.SetLock();
             r_node.FastGetSolutionStepValue(REACTION) +=
                 r_friction_velocity * (shear_force / u_tau);

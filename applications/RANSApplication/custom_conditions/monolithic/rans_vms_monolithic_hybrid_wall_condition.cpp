@@ -188,7 +188,7 @@ void RansVMSMonolithicHybridWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
             if (wall_velocity_magnitude > eps)
             {
-                noalias(condition_u_tau) += r_wall_velocity * u_tau / wall_velocity_magnitude;
+                noalias(condition_u_tau) -= r_wall_velocity * u_tau / wall_velocity_magnitude;
 
                 const double value = rho * std::pow(u_tau, 2) *
                                      gauss_weights[g] / wall_velocity_magnitude;

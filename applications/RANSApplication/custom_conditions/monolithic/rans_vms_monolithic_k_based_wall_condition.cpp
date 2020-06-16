@@ -198,7 +198,7 @@ void RansVMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
                     c_mu_25 * std::sqrt(std::max(tke, 0.0)),
                     wall_velocity_magnitude / (inv_kappa * std::log(y_plus) + beta));
 
-                noalias(condition_u_tau) += r_wall_velocity * u_tau / wall_velocity_magnitude;
+                noalias(condition_u_tau) -= r_wall_velocity * u_tau / wall_velocity_magnitude;
 
                 const double value = rho * std::pow(u_tau, 2) *
                                      gauss_weights[g] / wall_velocity_magnitude;

@@ -184,7 +184,7 @@ void RansWallFunctionUpdateProcess::Execute()
 
             if (wall_velocity_magnitude > 0.0)
             {
-                noalias(condition_u_tau) += r_wall_velocity * u_tau / wall_velocity_magnitude;
+                noalias(condition_u_tau) -= r_wall_velocity * u_tau / wall_velocity_magnitude;
             }
         }
 
