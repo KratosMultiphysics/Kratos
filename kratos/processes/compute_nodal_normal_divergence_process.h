@@ -224,9 +224,6 @@ private:
     /// Assignment operator.
     ComputeNodalNormalDivergenceProcess& operator=(ComputeNodalNormalDivergenceProcess const& rOther);
 
-    /// Copy constructor.
-    //ComputeNodalDivergenceProcess(ComputeNodalDivergenceProcess const& rOther);
-
 
     ///@}
 

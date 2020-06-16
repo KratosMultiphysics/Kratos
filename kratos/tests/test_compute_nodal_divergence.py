@@ -46,7 +46,7 @@ class TestNodalDivergence(KratosUnittest.TestCase):
             KratosMultiphysics.NODAL_AREA).Execute()
 
         for node in model_part.Nodes:
-            if ( ((node.X-0.5)**2+(node.Y-0.5)**2 - 0.5**2) > -0.01 and ((node.X-0.5)**2+(node.Y-0.5)**2 - 0.5**2) < 0.01 ):
+            if ( ((node.X-0.5)**2+(node.Y-0.5)**2 - 0.5**2) > -0.02 and ((node.X-0.5)**2+(node.Y-0.5)**2 - 0.5**2) < 0.02 ):
                 print( node.GetSolutionStepValue(KratosMultiphysics.PRESSURE) )
             
         gid_output = GiDOutputProcess(model_part,
@@ -109,6 +109,7 @@ class TestNodalDivergence(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             if ( ((node.X-0.5)**2+(node.Y-0.5)**2+(node.Z-0.5)**2 - 0.5**2) > -0.01 and ((node.X-0.5)**2+(node.Y-0.5)**2+(node.Z-0.5)**2 - 0.5**2) < 0.01 ):
                 print( node.GetSolutionStepValue(KratosMultiphysics.PRESSURE) )
+                #self.assertAlmostEqual( node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 2.0/0.5, 1 )
             
         gid_output = GiDOutputProcess(model_part,
                                     "curvature_post_3D",
