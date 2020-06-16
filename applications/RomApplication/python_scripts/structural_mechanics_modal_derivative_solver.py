@@ -44,7 +44,7 @@ class ModalDerivativeSolver(MechanicalSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "scheme_type"                   : "static",
+            "derivative_type"               : "static",
             "finite_difference_type"        : "forward",
             "finite_difference_step_size"   : 1e-3,
             "mass_orthonormalize"           : true
@@ -84,14 +84,14 @@ class ModalDerivativeSolver(MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         builder_and_solver = self.get_builder_and_solver()
         
-        scheme_type = self.settings["scheme_type"].GetString()
-        scheme_type_flag = None
-        if  scheme_type == "static":
-            scheme_type_flag = False
-        elif scheme_type == "dynamic":
-            scheme_type_flag = True
+        derivative_type = self.settings["derivative_type"].GetString()
+        derivative_type_flag = None
+        if  derivative_type == "static":
+            derivative_type_flag = False
+        elif derivative_type == "dynamic":
+            derivative_type_flag = True
         else:
-            err_msg  = '\"scheme_type\" can only be \"static\" or \"dynamic\"'
+            err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
             raise Exception(err_msg)
 
         mass_orthonormalize_flag = self.settings["mass_orthonormalize"].GetBool()
@@ -99,6 +99,6 @@ class ModalDerivativeSolver(MechanicalSolver):
         return RomApplication.ModalDerivativeStrategy(computing_model_part,
                                                           mechanical_scheme,
                                                           builder_and_solver,
-                                                          scheme_type_flag,
+                                                          derivative_type_flag,
                                                           mass_orthonormalize_flag)
     

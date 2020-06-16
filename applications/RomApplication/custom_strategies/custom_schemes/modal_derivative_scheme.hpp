@@ -292,29 +292,50 @@ public:
         for (std::size_t iRHS = 0; iRHS < rRHS_Contribution.size(); iRHS++)
             rRHS_Contribution[iRHS] = 0.0;
 
+        // Compute element LHS derivative
         Matrix element_LHS_derivative;
         element_LHS_derivative.resize(rElementalDofList.size(),rElementalDofList.size(),false);
 
-        Matrix LHS;
-        LHS.resize(rElementalDofList.size(),rElementalDofList.size(),false);
-        rElement.CalculateLeftHandSide(LHS, rCurrentProcessInfo);
-
         // Positive perturbation
+        Matrix LHS_p_perturbed;
+        LHS_p_perturbed.resize(rElementalDofList.size(),rElementalDofList.size(),false);
         this->PerturbElement(rElement, 1.0, eigenvalue_j, rCurrentProcessInfo);
+        rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
 
-        Matrix LHS_perturbed;
-        LHS_perturbed.resize(rElementalDofList.size(),rElementalDofList.size(),false);
-        rElement.CalculateLeftHandSide(LHS_perturbed, rCurrentProcessInfo);
+        if (mFiniteDifferenceTypeFlag)
+        {   // Central Difference
+            
+            // Negative perturbation
+            Matrix LHS_n_perturbed;
+            LHS_n_perturbed.resize(rElementalDofList.size(),rElementalDofList.size(),false);
+            this->PerturbElement(rElement, -2.0, eigenvalue_j, rCurrentProcessInfo);
+            rElement.CalculateLeftHandSide(LHS_n_perturbed, rCurrentProcessInfo);
 
-        // Reset perturbation
-        this->PerturbElement(rElement, -1.0, eigenvalue_j, rCurrentProcessInfo);
+            // Reset perturbation
+            this->PerturbElement(rElement, 1.0, eigenvalue_j, rCurrentProcessInfo);
 
-        // Compute LHS derivative
-        element_LHS_derivative = (LHS_perturbed - LHS) / mFiniteDifferenceStepSize;
+            // Compute LHS derivative
+            element_LHS_derivative = (LHS_p_perturbed - LHS_n_perturbed) / (2.0*mFiniteDifferenceStepSize);
+        }
+        else
+        {   // Forward difference
+
+            // Reset perturbation
+            this->PerturbElement(rElement, -1.0, eigenvalue_j, rCurrentProcessInfo);
+
+            // Neutral state
+            Matrix LHS;
+            LHS.resize(rElementalDofList.size(),rElementalDofList.size(),false);
+            rElement.CalculateLeftHandSide(LHS, rCurrentProcessInfo);
+
+            // Compute LHS derivative
+            element_LHS_derivative = (LHS_p_perturbed - LHS) / mFiniteDifferenceStepSize;
+
+        }
 
         // Compute RHS contribution
-        // TODO: this is a workaround. use a map as in ROM analysis
         if (element_LHS_derivative.size1() != PhiElemental.size()){
+            // TODO: this is a workaround. use a map as in ROM analysis
             // retrieve only displacement dofs from PhiElemental
             unsigned int disp_shifter = 3;
             Vector tmpPhiElemental;
@@ -326,11 +347,11 @@ public:
                     tmpPhiElemental[iNode * 3 + iXYZ] = PhiElemental[iNode * 6 + disp_shifter + iXYZ];
                 }
             }
-            rRHS_Contribution += Vector(prec_prod(element_LHS_derivative, tmpPhiElemental));
+            rRHS_Contribution += prec_prod(element_LHS_derivative, tmpPhiElemental);
         }
         else
         {
-            rRHS_Contribution += Vector(prec_prod(element_LHS_derivative, PhiElemental));
+            rRHS_Contribution += prec_prod(element_LHS_derivative, PhiElemental);
         }
 
         // Negate the RHS
@@ -339,51 +360,9 @@ public:
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
-        // // Perturb each nodal DOF
-        // // Loop over element nodes
-        // for (auto& node_i : rElement.GetGeometry()) {
-        //     auto& node_i_dofs = node_i.GetDofs();
-        //     // Loop over nodal DOFs
-        //     auto it_dof_i = node_i_dofs.begin();
-        //     for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
-
-        //         const double dof_perturbation = mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j);
-
-        //         (*it_dof_i)->GetSolutionStepValue() += dof_perturbation;
-
-        //         const double perturbationMag = mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j);
-                
-        //         if ((*it_dof_i)->IsFree() && abs(perturbationMag)) {
-                    
-        //             RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative(rElement,
-        //                                                                 *(*it_dof_i),
-        //                                                                 perturbationMag,
-        //                                                                 element_LHS_derivative,
-        //                                                                 mFiniteDifferenceTypeFlag,
-        //                                                                 rCurrentProcessInfo);
-                    
-        //             // TODO: this is a workaround for extracting only the displacement DOFs
-        //             if (element_LHS_derivative.size1() != PhiElemental.size()){
-        //                 // retrieve only displacement dofs from PhiElemental
-        //                 unsigned int disp_shifter = 3;
-        //                 Vector tmpPhiElemental;
-        //                 tmpPhiElemental.resize(PhiElemental.size()/2);
-        //                 for (std::size_t iNode = 0; iNode < rElement.GetGeometry().size(); iNode++){
-        //                     for (std::size_t iXYZ = 0; iXYZ < 3; iXYZ++){
-        //                         tmpPhiElemental[iNode*3+iXYZ] = PhiElemental[iNode*6+disp_shifter+iXYZ];
-        //                     }                                
-        //                 }
-        //                 rRHS_Contribution += Vector(prod(element_LHS_derivative, tmpPhiElemental));
-        //             }
-        //             else {
-        //                 rRHS_Contribution += Vector(prod(element_LHS_derivative, PhiElemental));
-        //             }   
-        //         } 
-        //         ++it_dof_i;
-        //     }
-        // }
     }
 
+    // This function perturbs the element with the vector with given eigenvector index eigenvalue_j
     void PerturbElement(
         Element& rElement,
         const double step,
@@ -391,19 +370,27 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     )
     {
-        
+        // Initialize is necessary for updating the section properties of shell elements
+        rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+
+        // Loop over element nodes
         for (auto& node_i : rElement.GetGeometry()) {
             auto& node_i_dofs = node_i.GetDofs();
             // Loop over nodal DOFs
             auto it_dof_i = node_i_dofs.begin();
             for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
 
+                // Compute and assign the perturbation
                 const double dof_perturbation = step*mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j);
-
                 (*it_dof_i)->GetSolutionStepValue() += dof_perturbation;
+                
+                // Increment the dof iterator
                 ++it_dof_i;
             }
         }
+        
+        // Finalize is necessary for updating the section properties of shell elements
+        rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
     }
 
     // Condition contributions

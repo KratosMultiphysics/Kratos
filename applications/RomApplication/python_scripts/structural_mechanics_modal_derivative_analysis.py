@@ -33,14 +33,14 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         super(StructuralMechanicsModalDerivativeAnalysis,self).ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
 
-        scheme_type = self.project_parameters["solver_settings"]["scheme_type"].GetString()
-        scheme_flag = None
-        if scheme_type == "static":
-            scheme_flag = False
-        elif scheme_type == "dynamic":
-            scheme_flag = True
+        derivative_type = self.project_parameters["solver_settings"]["derivative_type"].GetString()
+        derivative_type_flag = None
+        if derivative_type == "static":
+            derivative_type_flag = False
+        elif derivative_type == "dynamic":
+            derivative_type_flag = True
         else:
-            err_msg  = '\"scheme_type\" can only be \"static\" or \"dynamic\"'
+            err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
             raise Exception(err_msg)
 
         with open('RomParameters.json') as rom_parameters_file:
@@ -48,7 +48,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
 
             number_of_initial_rom_dofs = data["rom_settings"]["number_of_rom_dofs"]
             
-            if not scheme_flag:
+            if not derivative_type_flag:
                 eigenvalues = [0]*number_of_initial_rom_dofs
             else:
                 eigenvalues = data["eigenvalues"]
@@ -59,7 +59,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             computing_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = kratos_eigenvalues
             
             number_of_extended_rom_dofs = None
-            if not scheme_flag:
+            if not derivative_type_flag:
                 number_of_extended_rom_dofs = int(number_of_initial_rom_dofs + number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ) / 2)
             else :
                 number_of_extended_rom_dofs = int(number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ))

@@ -46,7 +46,6 @@ public:
                                                 const ProcessInfo& rCurrentProcessInfo
                                                 ){
 
-
         KRATOS_TRY;
 
         KRATOS_WARNING_IF("RomFiniteDifferenceUtility::CalculateLeftHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
@@ -68,15 +67,21 @@ public:
                 Matrix LHS_m_perturbed;
                 
                 // Positive perturbation
+                rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rDof.GetSolutionStepValue() += rPertubationMag;
                 rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
+                rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
                 
                 // Negative perturbation
+                rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rDof.GetSolutionStepValue() -= 2.0*rPertubationMag;
                 rElement.CalculateLeftHandSide(LHS_m_perturbed, rCurrentProcessInfo);
+                rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
 
                 // Reset perturbation
+                rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rDof.GetSolutionStepValue() += rPertubationMag;
+                rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
                 
                 // Derivative of LHS w.r.t.
                 noalias(rOutput) = (LHS_p_perturbed - LHS_m_perturbed) / (2.0*rPertubationMag);
@@ -88,14 +93,20 @@ public:
                 Matrix LHS_p_perturbed;
 
                 // Compute LHS before perturbation
+                rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rElement.CalculateLeftHandSide(LHS, rCurrentProcessInfo);
+                rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
                 
                 // Positive perturbation
+                rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rDof.GetSolutionStepValue() += rPertubationMag;
                 rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
+                rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
 
                 // Reset perturbation
+                rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rDof.GetSolutionStepValue() -= rPertubationMag;
+                rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
                 
                 // Derivative of LHS w.r.t. DOF
                 noalias(rOutput) = (LHS_p_perturbed - LHS) / rPertubationMag;

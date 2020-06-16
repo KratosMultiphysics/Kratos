@@ -76,8 +76,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
                 py::arg("model_part"),
                 py::arg("scheme"),
                 py::arg("builder_and_solver"),
-                py::arg("derivative_type_flag")=false,
-                py::arg("mass_orthonormalize_flag")=true)
+                py::arg("derivative_type_flag"),
+                py::arg("mass_orthonormalize_flag"))
         ;
 
     //********************************************************************
