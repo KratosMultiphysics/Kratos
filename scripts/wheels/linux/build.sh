@@ -27,7 +27,7 @@ build_core_wheel() {
 
   cp bin/Release/KratosMultiphysics/* ${wheelRoot}/KratosMultiphysics
   cp scripts/wheels/linux/KratosMultiphysics.json ${wheelRoot}/wheel.json
-  cp scripts/wheels/__init__.py ${wheelRoot}/KratosMultiphysics/__init__.py
+  /bin/cp ${KRATOS_ROOT}/scripts/wheels/__init__.py ${wheelRoot}/KratosMultiphysics/__init__.py
 
   cd $wheelRoot
   $pythonLocation setup.py bdist_wheel
