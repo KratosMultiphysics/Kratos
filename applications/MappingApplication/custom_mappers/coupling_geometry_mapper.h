@@ -97,7 +97,8 @@ public:
     typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
     typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
 
-    typedef Variable<double> ComponentVariableType;
+    typedef Matrix DenseMappingMatrixType;
+    typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
 
     ///@}
     ///@name Life Cycle
@@ -116,8 +117,8 @@ public:
                            mrModelPartDestination(rModelPartDestination),
                            mMapperSettings(JsonParameters)
     {
-        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin);
-        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination);
+        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin.GetSubModelPart("interface"));
+        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination.GetSubModelPart("interface"));
 
         mpCouplingMP = rModelPartOrigin.pGetSubModelPart("coupling");
         mpCouplingQuadraturePointsMP = rModelPartOrigin.pGetSubModelPart("coupling_quadrature_points");
@@ -235,7 +236,7 @@ private:
 
     MapperUniquePointerType mpInverseMapper = nullptr;
 
-    TMappingMatrixUniquePointerType mpMappingMatrix;
+    DenseMappingMatrixUniquePointerType mpMappingMatrix;
 
     MapperLocalSystemPointerVector mMapperLocalSystems;
 
@@ -244,8 +245,6 @@ private:
 
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
-
-    void BuildMappingMatrix(Kratos::Flags MappingOptions = Kratos::Flags());
 
     void AssignInterfaceEquationIds()
     {

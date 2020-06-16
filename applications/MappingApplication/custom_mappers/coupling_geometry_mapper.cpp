@@ -26,16 +26,19 @@
 namespace Kratos {
 namespace Internals {
 
+typedef typename MapperDefinitions::SparseSpaceType SparseSpaceType;
+typedef std::size_t SizeType;
+
 void Assemble(
     const MapperLocalSystem::MatrixType& rLocalMappingMatrix,
     const MapperLocalSystem::EquationIdVectorType& rOriginIds,
     const MapperLocalSystem::EquationIdVectorType& rDestinationIds,
     Matrix& rMappingMatrix)
 {
-    std::cout << std::endl;
-    KRATOS_WATCH(rLocalMappingMatrix)
-    KRATOS_WATCH(rOriginIds)
-    KRATOS_WATCH(rDestinationIds)
+    // std::cout << std::endl;
+    // KRATOS_WATCH(rLocalMappingMatrix)
+    // KRATOS_WATCH(rOriginIds)
+    // KRATOS_WATCH(rDestinationIds)
 
     KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size1() != rDestinationIds.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rLocalMappingMatrix.size1() << " | DestinationIDs-size: " << rDestinationIds.size() << std::endl;
     KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size2() != rOriginIds.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << rLocalMappingMatrix.size2() << " | OriginIDs-size: " << rOriginIds.size() << std::endl;
@@ -44,6 +47,20 @@ void Assemble(
         for (IndexType j=0; j<rOriginIds.size(); ++j) {
             rMappingMatrix(rDestinationIds[i], rOriginIds[j]) += rLocalMappingMatrix(i,j);
         }
+    }
+}
+
+// dirty copy-paste from "mapping_matrix_utilities.cpp"
+void InitializeSystemVector(Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpVector,
+                            const SizeType VectorSize)
+{
+    // The vectors dont have graphs, that why we don't always have to reinitialize them
+    if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
+        Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector = Kratos::make_unique<typename SparseSpaceType::VectorType>(VectorSize);
+        rpVector.swap(p_new_vector);
+    }
+    else {
+        SparseSpaceType::SetToZero(*rpVector);
     }
 }
 
@@ -150,15 +167,10 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
-    KRATOS_WATCH("\n\n111")
-
     // assemble projector interface mass matrix - interface_matrix_projector
     const std::size_t num_nodes_interface_slave = mrModelPartDestination.GetSubModelPart("interface").NumberOfNodes(); // fix up and put in the mapper parameters
     const std::size_t num_nodes_interface_master = mrModelPartOrigin.GetSubModelPart("interface").NumberOfNodes();
     Matrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
-
-    KRATOS_WATCH(num_nodes_interface_slave)
-    KRATOS_WATCH(num_nodes_interface_master)
 
     MapperLocalSystem::MatrixType local_mapping_matrix;
     MapperLocalSystem::EquationIdVectorType origin_ids;
@@ -191,49 +203,18 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         // r_local_sys->Clear();
     }
 
-    KRATOS_WATCH("222")
     // Perform consistency scaling if requested
     if (mMapperSettings["consistency_scaling"].GetBool())
         EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
-    KRATOS_WATCH("333")
 
     // get total interface mapping matrix
     Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave);
     double aux_det_slave = 0;
     MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
-    Matrix interface_mapper = prod(interface_matrix_slave, interface_matrix_projector);
-    KRATOS_WATCH("444")
+    mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(interface_matrix_slave, interface_matrix_projector));
 
-
-
-
-    // assemble to global
-    // directly assemble from interface_mapper to global mapping matrix.
-    //BuildMappingMatrix(MappingOptions); // TODO we probably may not need this
-
-
-}
-
-/* Performs operations that are needed for Initialization and when the interface is updated (All cases)
-I.e. Operations that can be performed several times in the livetime of the mapper
-*/
-template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags MappingOptions)
-{
-    AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
-
-    const int echo_level = mMapperSettings["echo_level"].GetInt();
-
-    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
-        mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->pGetVector(),
-        mpInterfaceVectorContainerDestination->pGetVector(),
-        mpInterfaceVectorContainerOrigin->GetModelPart(),
-        mpInterfaceVectorContainerDestination->GetModelPart(),
-        mMapperLocalSystems,
-        echo_level
-    );
-
+    Internals::InitializeSystemVector(mpInterfaceVectorContainerOrigin->pGetVector(), num_nodes_interface_master);
+    Internals::InitializeSystemVector(mpInterfaceVectorContainerDestination->pGetVector(), num_nodes_interface_slave);
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -243,15 +224,14 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     Kratos::Flags MappingOptions)
 {
 
-    KRATOS_WATCH("MAP IS NOT IMPLEMENTED!!!")
-    // mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
+    mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    // TSparseSpace::Mult(
-    //     *mpMappingMatrix,
-    //     mpInterfaceVectorContainerOrigin->GetVector(),
-    //     mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+    TSparseSpace::Mult(
+        *mpMappingMatrix,
+        mpInterfaceVectorContainerOrigin->GetVector(),
+        mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
-    // mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+    mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -261,8 +241,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     Kratos::Flags MappingOptions)
 {
     for (const auto var_ext : {"_X", "_Y", "_Z"}) {
-        const auto& var_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + var_ext);
-        const auto& var_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + var_ext);
+        const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
+        const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
 
         MapInternal(var_origin, var_destination, MappingOptions);
     }
