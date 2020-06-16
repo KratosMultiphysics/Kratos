@@ -42,12 +42,12 @@ public:
                                                 Dof<double>& rDof,
                                                 const double& rPertubationMag,
                                                 Matrix& rOutput,
-                                                const ProcessInfo& rCurrentProcessInfo){
+                                                bool finite_difference_type,
+                                                const ProcessInfo& rCurrentProcessInfo
+                                                ){
 
 
         KRATOS_TRY;
-
-        // KRATOS_WATCH("RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative")
 
         KRATOS_WARNING_IF("RomFiniteDifferenceUtility::CalculateLeftHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
             << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
@@ -61,42 +61,47 @@ public:
             // rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
             // rElement.FinalizeSolutionStep(rCurrentProcessInfo);
 
-            // Central differencing
-            Matrix dLHS;
-            
-            // Negative perturbation
-            rDof.GetSolutionStepValue() -= rPertubationMag;
-            rElement.CalculateLeftHandSide(dLHS, rCurrentProcessInfo);
-            dLHS *= -1.0;
+            if (finite_difference_type) {
 
-            // Positive perturbation
-            rDof.GetSolutionStepValue() += 2.0*rPertubationMag;
-            rElement.CalculateLeftHandSide(dLHS, rCurrentProcessInfo);
+                // Central differencing
+                Matrix LHS_p_perturbed;
+                Matrix LHS_m_perturbed;
+                
+                // Positive perturbation
+                rDof.GetSolutionStepValue() += rPertubationMag;
+                rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
+                
+                // Negative perturbation
+                rDof.GetSolutionStepValue() -= 2.0*rPertubationMag;
+                rElement.CalculateLeftHandSide(LHS_m_perturbed, rCurrentProcessInfo);
 
-            // Reset perturbation
-            rDof.GetSolutionStepValue() -= rPertubationMag;
-            
-            //compute derivative of RHS w.r.t. design variable with finite differences
-            rOutput = dLHS / (2.0*rPertubationMag);
+                // Reset perturbation
+                rDof.GetSolutionStepValue() += rPertubationMag;
+                
+                // Derivative of LHS w.r.t.
+                noalias(rOutput) = (LHS_p_perturbed - LHS_m_perturbed) / (2.0*rPertubationMag);
 
-            // // Forward differencing
-            // Matrix LHS;
-            // Matrix LHS_perturbed;
+            } else {
 
-            // // compute LHS before perturbation
-            // rElement.CalculateLeftHandSide(LHS, rCurrentProcessInfo);
-            
-            // // Positive perturbation
-            // rDof.GetSolutionStepValue() += rPertubationMag;
-            // rElement.CalculateLeftHandSide(LHS_perturbed, rCurrentProcessInfo);
+                // Forward differencing
+                Matrix LHS;
+                Matrix LHS_p_perturbed;
 
-            // // Reset perturbation
-            // rDof.GetSolutionStepValue() -= rPertubationMag;
-            
-            // // Derivative of LHS w.r.t. DOF
-            // rOutput = (LHS_perturbed - LHS) / rPertubationMag;
-            
-            
+                // Compute LHS before perturbation
+                rElement.CalculateLeftHandSide(LHS, rCurrentProcessInfo);
+                
+                // Positive perturbation
+                rDof.GetSolutionStepValue() += rPertubationMag;
+                rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
+
+                // Reset perturbation
+                rDof.GetSolutionStepValue() -= rPertubationMag;
+                
+                // Derivative of LHS w.r.t. DOF
+                noalias(rOutput) = (LHS_p_perturbed - LHS) / rPertubationMag;
+
+            }
+                        
         }
         KRATOS_CATCH("");
     }

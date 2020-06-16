@@ -107,7 +107,11 @@ public:
      * @details Initiliazes the flags
      */
     /// Constructor.
-    ModalDerivativeScheme() : Scheme<TSparseSpace,TDenseSpace>() 
+    ModalDerivativeScheme(double FiniteDifferenceStepSize, bool FiniteDifferenceTypeFlag=false)
+    : 
+    Scheme<TSparseSpace,TDenseSpace>(), 
+    mFiniteDifferenceStepSize(FiniteDifferenceStepSize), 
+    mFiniteDifferenceTypeFlag(FiniteDifferenceTypeFlag)
     {
     }
 
@@ -236,26 +240,13 @@ public:
     {
         KRATOS_TRY
 
-        if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
-        {   
-            // Stiffness contribution   
-            rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
-        } 
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) 
-        {   
-            // Mass contribution is going to be implemented here
-            KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << "\nDynamic derivatives not implemented yet!" << std::endl;
-        } 
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 3)
-        {
-            // Mass matrix alone
+        if (rCurrentProcessInfo[BUILD_LEVEL] == 1 ) // Mass matrix
             rElement.CalculateMassMatrix(rLHS_Contribution, rCurrentProcessInfo);
-        }
+        else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) // Stiffness matrix
+            rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
         else 
-        {
             KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
-        }
-
+        
         rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -270,22 +261,18 @@ public:
     {
         KRATOS_TRY
         
-        Matrix element_LHS_derivative;
+        // Derivative of eigenvalue_i wrt eigenvalue_j
+        std::size_t eigenvalue_i = rCurrentProcessInfo[EIGENVALUE_I];
+        std::size_t eigenvalue_j = rCurrentProcessInfo[EIGENVALUE_J];
         
-        int eigenvalue_i = rCurrentProcessInfo[EIGENVALUE_I];
-        int eigenvalue_j = rCurrentProcessInfo[EIGENVALUE_J];
-        //const double eigenvalue = rCurrentProcessInfo[EIGENVALUE_VECTOR](eigenvalue_i); // This will be used for dynamic derivatives
-        KRATOS_WATCH(eigenvalue_i)
-        KRATOS_WATCH(eigenvalue_j)
-        
-        // Get PhiElemental
+        // Create PhiElemental
         Vector PhiElemental;
         std::size_t num_element_nodal_dofs = 0;
         for (auto& node_i : rElement.GetGeometry())
             num_element_nodal_dofs += node_i.GetDofs().size();
-        
         PhiElemental.resize(num_element_nodal_dofs);
         
+        // Get PhiElemental
         std::size_t dof_ctr = 0;
         for (auto& node_i : rElement.GetGeometry()) {
             auto& node_i_dofs = node_i.GetDofs();
@@ -296,73 +283,127 @@ public:
             }
             dof_ctr += node_i_dofs.size();
         }
+        
+        // Build RHS contribution
         rRHS_Contribution.clear();
-        rRHS_Contribution.resize(0);
+        std::vector<Dof<double>::Pointer> rElementalDofList;
+        rElement.GetDofList(rElementalDofList, rCurrentProcessInfo);
+        rRHS_Contribution.resize(rElementalDofList.size());
+        for (std::size_t iRHS = 0; iRHS < rRHS_Contribution.size(); iRHS++)
+            rRHS_Contribution[iRHS] = 0.0;
 
-        // Build RHS contributions
-        if (rCurrentProcessInfo[BUILD_LEVEL] == 1)
-        {   
-            // Perturb each nodal DOF
-            // Loop over element nodes
-            for (auto& node_i : rElement.GetGeometry()) {
-                auto& node_i_dofs = node_i.GetDofs();
-                // Loop over nodal DOFs
-                auto it_dof_i = node_i_dofs.begin();
-                for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
-                    const double perturbationMag = node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j)*1e-3;
-                    if (abs(perturbationMag) > 0.0)
-                    {
-                        RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative(rElement,
-                                                                            *(*it_dof_i),
-                                                                            perturbationMag,
-                                                                            element_LHS_derivative,
-                                                                            rCurrentProcessInfo);
-                        
-                        if (rRHS_Contribution.size() == 0){
-                            rRHS_Contribution.resize(element_LHS_derivative.size1());
-                            for (std::size_t iRHS = 0; iRHS < rRHS_Contribution.size(); iRHS++)
-                                rRHS_Contribution[iRHS] = 0.0;
-                        }
+        Matrix element_LHS_derivative;
+        element_LHS_derivative.resize(rElementalDofList.size(),rElementalDofList.size(),false);
 
-                        if (element_LHS_derivative.size1() != PhiElemental.size()){
-                            // retrieve only displacement dofs from PhiElemental
-                            unsigned int disp_shifter = 3;
-                            Vector tmpPhiElemental;
-                            tmpPhiElemental.resize(PhiElemental.size()/2);
-                            for (std::size_t iNode = 0; iNode < rElement.GetGeometry().size(); iNode++){
-                                for (std::size_t iXYZ = 0; iXYZ < 3; iXYZ++){
-                                    tmpPhiElemental[iNode*3+iXYZ] = PhiElemental[iNode*6+disp_shifter+iXYZ];
-                                }                                
-                            }
-                            rRHS_Contribution -= prod(element_LHS_derivative, tmpPhiElemental);
-                        }
-                        else{
-                            rRHS_Contribution -= prod(element_LHS_derivative, PhiElemental);
-                        }   
-                    }
-                    ++it_dof_i;
+        Matrix LHS;
+        LHS.resize(rElementalDofList.size(),rElementalDofList.size(),false);
+        rElement.CalculateLeftHandSide(LHS, rCurrentProcessInfo);
+
+        // Positive perturbation
+        this->PerturbElement(rElement, 1.0, eigenvalue_j, rCurrentProcessInfo);
+
+        Matrix LHS_perturbed;
+        LHS_perturbed.resize(rElementalDofList.size(),rElementalDofList.size(),false);
+        rElement.CalculateLeftHandSide(LHS_perturbed, rCurrentProcessInfo);
+
+        // Reset perturbation
+        this->PerturbElement(rElement, -1.0, eigenvalue_j, rCurrentProcessInfo);
+
+        // Compute LHS derivative
+        element_LHS_derivative = (LHS_perturbed - LHS) / mFiniteDifferenceStepSize;
+
+        // Compute RHS contribution
+        // TODO: this is a workaround. use a map as in ROM analysis
+        if (element_LHS_derivative.size1() != PhiElemental.size()){
+            // retrieve only displacement dofs from PhiElemental
+            unsigned int disp_shifter = 3;
+            Vector tmpPhiElemental;
+            tmpPhiElemental.resize(PhiElemental.size() / 2);
+            for (std::size_t iNode = 0; iNode < rElement.GetGeometry().size(); iNode++)
+            {
+                for (std::size_t iXYZ = 0; iXYZ < 3; iXYZ++)
+                {
+                    tmpPhiElemental[iNode * 3 + iXYZ] = PhiElemental[iNode * 6 + disp_shifter + iXYZ];
                 }
             }
-        }
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) 
-        {   
-            // Mass matrix contribution is going to be implemented here
-            KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << "\nDynamic derivatives not implemented yet!" << std::endl;
-        }
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 3) 
-        {
-            KRATOS_WARNING("\"else if (rCurrentProcessInfo[BUILD_LEVEL] == 3)\" should be erased after merging PR #7022");
-            rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
-            rRHS_Contribution.resize(EquationId.size());
+            rRHS_Contribution += Vector(prec_prod(element_LHS_derivative, tmpPhiElemental));
         }
         else
         {
-            KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
+            rRHS_Contribution += Vector(prec_prod(element_LHS_derivative, PhiElemental));
         }
+
+        // Negate the RHS
+        rRHS_Contribution *= -1.0;
 
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
+        // // Perturb each nodal DOF
+        // // Loop over element nodes
+        // for (auto& node_i : rElement.GetGeometry()) {
+        //     auto& node_i_dofs = node_i.GetDofs();
+        //     // Loop over nodal DOFs
+        //     auto it_dof_i = node_i_dofs.begin();
+        //     for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
+
+        //         const double dof_perturbation = mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j);
+
+        //         (*it_dof_i)->GetSolutionStepValue() += dof_perturbation;
+
+        //         const double perturbationMag = mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j);
+                
+        //         if ((*it_dof_i)->IsFree() && abs(perturbationMag)) {
+                    
+        //             RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative(rElement,
+        //                                                                 *(*it_dof_i),
+        //                                                                 perturbationMag,
+        //                                                                 element_LHS_derivative,
+        //                                                                 mFiniteDifferenceTypeFlag,
+        //                                                                 rCurrentProcessInfo);
+                    
+        //             // TODO: this is a workaround for extracting only the displacement DOFs
+        //             if (element_LHS_derivative.size1() != PhiElemental.size()){
+        //                 // retrieve only displacement dofs from PhiElemental
+        //                 unsigned int disp_shifter = 3;
+        //                 Vector tmpPhiElemental;
+        //                 tmpPhiElemental.resize(PhiElemental.size()/2);
+        //                 for (std::size_t iNode = 0; iNode < rElement.GetGeometry().size(); iNode++){
+        //                     for (std::size_t iXYZ = 0; iXYZ < 3; iXYZ++){
+        //                         tmpPhiElemental[iNode*3+iXYZ] = PhiElemental[iNode*6+disp_shifter+iXYZ];
+        //                     }                                
+        //                 }
+        //                 rRHS_Contribution += Vector(prod(element_LHS_derivative, tmpPhiElemental));
+        //             }
+        //             else {
+        //                 rRHS_Contribution += Vector(prod(element_LHS_derivative, PhiElemental));
+        //             }   
+        //         } 
+        //         ++it_dof_i;
+        //     }
+        // }
+    }
+
+    void PerturbElement(
+        Element& rElement,
+        const double step,
+        const std::size_t eigenvalue_j,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        
+        for (auto& node_i : rElement.GetGeometry()) {
+            auto& node_i_dofs = node_i.GetDofs();
+            // Loop over nodal DOFs
+            auto it_dof_i = node_i_dofs.begin();
+            for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
+
+                const double dof_perturbation = step*mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j);
+
+                (*it_dof_i)->GetSolutionStepValue() += dof_perturbation;
+                ++it_dof_i;
+            }
+        }
     }
 
     // Condition contributions
@@ -458,6 +499,10 @@ private:
     ///@{
 
     bool mSchemeIsInitialized;
+
+    double mFiniteDifferenceStepSize;
+
+    bool mFiniteDifferenceTypeFlag;
 
     ///@}
     ///@name Private Operators

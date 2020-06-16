@@ -44,13 +44,28 @@ class ModalDerivativeSolver(MechanicalSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "scheme_type"         : "static"
+            "scheme_type"                   : "static",
+            "finite_difference_type"        : "forward",
+            "finite_difference_step_size"   : 1e-3,
+            "mass_orthonormalize"           : true
         }""")
         this_defaults.AddMissingParameters(super(ModalDerivativeSolver, cls).GetDefaultSettings())
         return this_defaults
 
     def _create_solution_scheme(self):
-        return RomApplication.ModalDerivativeScheme()
+        finite_difference_type = self.settings["finite_difference_type"].GetString()
+        finite_difference_step_size = self.settings["finite_difference_step_size"].GetDouble()
+
+        finite_difference_type_flag = None
+        if finite_difference_type == "central":
+            finite_difference_type_flag = True
+        elif finite_difference_type == "forward":
+            finite_difference_type_flag = False
+        else:
+            err_msg  = '\"finite_difference_type_flag\" can only be \"forward\" or \"central\"'
+            raise Exception(err_msg)
+
+        return RomApplication.ModalDerivativeScheme(finite_difference_step_size, finite_difference_type_flag)
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
@@ -69,18 +84,21 @@ class ModalDerivativeSolver(MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         builder_and_solver = self.get_builder_and_solver()
         
-        scheme_type = None
-        if self.settings["scheme_type"].GetString() == "static":
-            scheme_type = False
-        elif self.settings["scheme_type"].GetString() == "dynamic":
-            scheme_type = True
+        scheme_type = self.settings["scheme_type"].GetString()
+        scheme_type_flag = None
+        if  scheme_type == "static":
+            scheme_type_flag = False
+        elif scheme_type == "dynamic":
+            scheme_type_flag = True
         else:
             err_msg  = '\"scheme_type\" can only be \"static\" or \"dynamic\"'
-            err_msg += str(scheme_type)
             raise Exception(err_msg)
+
+        mass_orthonormalize_flag = self.settings["mass_orthonormalize"].GetBool()
 
         return RomApplication.ModalDerivativeStrategy(computing_model_part,
                                                           mechanical_scheme,
                                                           builder_and_solver,
-                                                          scheme_type)
+                                                          scheme_type_flag,
+                                                          mass_orthonormalize_flag)
     

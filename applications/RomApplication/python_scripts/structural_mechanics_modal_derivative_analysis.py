@@ -32,33 +32,46 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
         super(StructuralMechanicsModalDerivativeAnalysis,self).ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
-        with open('RomParameters.json') as f:
-            data = json.load(f)
-            eigenvalues = data["eigenvalues"]
-            number_of_eigenvalues = data["rom_settings"]["number_of_rom_dofs"]
-            kratos_eigenvalues = KratosMultiphysics.Vector(number_of_eigenvalues)
-            for i in range(number_of_eigenvalues):
+
+        scheme_type = self.project_parameters["solver_settings"]["scheme_type"].GetString()
+        scheme_flag = None
+        if scheme_type == "static":
+            scheme_flag = False
+        elif scheme_type == "dynamic":
+            scheme_flag = True
+        else:
+            err_msg  = '\"scheme_type\" can only be \"static\" or \"dynamic\"'
+            raise Exception(err_msg)
+
+        with open('RomParameters.json') as rom_parameters_file:
+            data = json.load(rom_parameters_file)
+
+            number_of_initial_rom_dofs = data["rom_settings"]["number_of_rom_dofs"]
+            
+            if not scheme_flag:
+                eigenvalues = [0]*number_of_initial_rom_dofs
+            else:
+                eigenvalues = data["eigenvalues"]
+
+            kratos_eigenvalues = KratosMultiphysics.Vector(number_of_initial_rom_dofs)
+            for i in range(number_of_initial_rom_dofs):
                 kratos_eigenvalues[i] = eigenvalues[i]
             computing_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = kratos_eigenvalues
+            
+            number_of_extended_rom_dofs = None
+            if not scheme_flag:
+                number_of_extended_rom_dofs = int(number_of_initial_rom_dofs + number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ) / 2)
+            else :
+                number_of_extended_rom_dofs = int(number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ))
+
+            counter = 0
             nodal_dofs = len(data["rom_settings"]["nodal_unknowns"])
             nodal_modes = data["nodal_modes"]
-            counter = 0
-            initial_rom_dofs = number_of_eigenvalues
-            extended_rom_dofs = None
-            scheme_type = self.project_parameters["solver_settings"]["scheme_type"].GetString()
-            if scheme_type == "static":
-                extended_rom_dofs = int(initial_rom_dofs + initial_rom_dofs * ( initial_rom_dofs + 1 ) / 2)
-            elif scheme_type == "dynamic":
-                extended_rom_dofs = int(initial_rom_dofs * ( initial_rom_dofs + 1 ))
-            else:
-                err_msg  = '\"scheme_type\" can only be \"static\" or \"dynamic\"'
-                raise Exception(err_msg)
-
             for node in computing_model_part.Nodes:
-                aux = KratosMultiphysics.Matrix(nodal_dofs, extended_rom_dofs)
+                aux = KratosMultiphysics.Matrix(nodal_dofs, number_of_extended_rom_dofs)
                 for i in range(nodal_dofs):
                     Counter=str(node.Id)
-                    for j in range(initial_rom_dofs):
+                    for j in range(number_of_initial_rom_dofs):
                         aux[i,j] = nodal_modes[Counter][i][j]
                 node.SetValue(RomApplication.ROM_BASIS, aux ) # ROM basis
                 node.SetValue(RomApplication.AUX_ID, counter) # Aux ID
