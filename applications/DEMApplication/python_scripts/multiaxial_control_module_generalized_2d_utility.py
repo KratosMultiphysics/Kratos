@@ -5,6 +5,7 @@ import KratosMultiphysics.DEMApplication as Dem
 class MultiaxialControlModuleGeneralized2DUtility(object):
     def __init__(self, spheres_model_part, rigid_walls_model_part, parameters):
 
+        #NOTE: Negative target_stress means compression
         self.cm_step = 0
 
         self.spheres_model_part = spheres_model_part
@@ -13,8 +14,6 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         self.parameters = parameters["multiaxial_control_module_generalized_2d_utility"]
 
         self.output_interval = self.parameters["Parameters"]["output_interval"].GetInt()
-
-        # Negative target_stress means compression.
 
         self.cm_utility = Dem.MultiaxialControlModuleGeneralized2DUtilities(self.spheres_model_part, 
                                                                             self.rigid_walls_model_part, 

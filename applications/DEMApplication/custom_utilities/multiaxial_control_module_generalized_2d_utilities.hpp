@@ -80,7 +80,6 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
                 "perturbation_tolerance": 1.0e-2,
                 "perturbation_period": 10,
                 "max_reaction_rate_factor": 2.0,
-                "characteristic_time": 1.0,
                 "stiffness_averaging_time_interval": 1.0,
                 "velocity_averaging_time_interval": 1.0,
                 "reaction_averaging_time_interval": 1.0,
@@ -103,7 +102,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
     mPerturbationTolerance = rParameters["Parameters"]["perturbation_tolerance"].GetDouble();
     mPerturbationPeriod = rParameters["Parameters"]["perturbation_period"].GetInt();
     mMaxReactionCorrectionFraction = rParameters["Parameters"]["max_reaction_rate_factor"].GetDouble();
-    mStiffnessAlpha = 1.0 - mCMDeltaTime / rParameters["Parameters"]["stiffness_averaging_time_interval"].GetDouble();
+    mStiffnessAlpha = 1.0 - mCMDeltaTime / rParameters["Parameters"]["stiffness_averaging_time_interval"].GetDouble(); // NOTE: Regardless of using Ktime to calculate K, we still need to filter K.
     mVelocityAlpha = 1.0 - mCMDeltaTime / rParameters["Parameters"]["velocity_averaging_time_interval"].GetDouble();
     mReactionAlpha = 1.0 - mrDemModelPart.GetProcessInfo()[DELTA_TIME] / rParameters["Parameters"]["reaction_averaging_time_interval"].GetDouble();
 
@@ -181,7 +180,7 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
 
     mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
 
-    CalculateCharacteristicReactionVariationRate(rParameters["Parameters"]["characteristic_time"].GetDouble());
+    CalculateCharacteristicReactionVariationRate();
 
     KRATOS_CATCH("");
 }
@@ -268,7 +267,7 @@ protected:
     // std::map<std::string, std::vector<array_1d<double,3>>> mDEMOuterNormals; /// OuterNormal associated to each DEM boundary of every actuator. TODO: not used for now...
     std::map<std::string, unsigned int> mTargetStressTableIds; /// TargetStressTableIds associated to every actuator
     Vector mVelocity;
-    Vector mAcceleration;
+    Vector mAcceleration; // TODO: possible CM enhancement
     Vector mReactionStress;
     Vector mReactionStressOld;
     Vector mDisplacement;
@@ -304,7 +303,7 @@ void CalculateAcceleration(const Vector& r_next_target_stress, const double& r_c
 
 void CalculateStiffness();
 
-void CalculateCharacteristicReactionVariationRate(const double& r_characteristic_time);
+void CalculateCharacteristicReactionVariationRate();
 
 void AddTableToSubModelPart(const unsigned int TableId, const Parameters TableParameters, ModelPart* pSubModelPart);
 

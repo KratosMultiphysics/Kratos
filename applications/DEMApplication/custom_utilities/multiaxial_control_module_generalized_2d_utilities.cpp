@@ -137,26 +137,16 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionSte
 
         // Calculate velocity
         CalculateVelocity(next_target_stress, current_time);
+        
+        // TODO: possible CM enhancement
+            // We could calculate accelerations and limit them instead of calculating velocities and limiting their variation
         // CalculateAcceleration(next_target_stress, current_time);
     }
 
     // Move Actuators
 
-    // // Update velocity
-    // noalias(mVelocity) += mAcceleration * delta_time;
-    // // Limit velocity
-    // double norm_stiffness = 0.0;
-    // for(unsigned int i = 0; i < mStiffness.size1(); i++) {
-    //     norm_stiffness += mStiffness(i,i)*mStiffness(i,i);
-    // }
-    // norm_stiffness = std::sqrt(norm_stiffness);
-    // const double max_allowed_velocity = 2.0 * mCharacteristicReactionVariationRate / norm_stiffness;
-    // const double norm_velocity = norm_2(mVelocity);
-    // if (norm_velocity > max_allowed_velocity) {
-    //     for (unsigned int i = 0; i < mVelocity.size(); i++) {
-    //         mVelocity[i] = max_allowed_velocity/norm_velocity * mVelocity[i];
-    //     }
-    // }
+    // TODO: possible CM enhancement
+    // CalculateVelocity(next_target_stress, current_time);
 
     // Iterate through all actuators
     for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
@@ -229,13 +219,6 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
     Vector elastic_reaction_stress_estimated(number_of_actuators);
     noalias(elastic_reaction_stress_estimated) = MeasureReactionStress(ELASTIC_FORCES); // Total forces - viscous forces
     noalias(mElasticReactionStress) = (1.0 - mReactionAlpha) * elastic_reaction_stress_estimated + mReactionAlpha * mElasticReactionStress;
-
-    // Update Stiffness matrix
-    // if (current_time > (mCMTime - 0.5 * delta_time)) {
-
-    //     // Update K if DeltaDisplacement is invertible
-    //     CalculateStiffness();
-    // }
 
     noalias(mDisplacement) += mVelocity * mCMDeltaTime;
 
@@ -572,6 +555,15 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
         }
     }
     noalias(mVelocity) = (1.0 - mVelocityAlpha) * velocity_estimated + mVelocityAlpha * mVelocity;
+
+    // TODO: possible CM enhancement
+    // noalias(mVelocity) += mAcceleration * mrDemModelPart.GetProcessInfo()[DELTA_TIME];
+    // const double norm_velocity = norm_2(mVelocity);
+    // if (norm_velocity > max_allowed_velocity) {
+    //     for (unsigned int i = 0; i < mVelocity.size(); i++) {
+    //         mVelocity[i] = max_allowed_velocity/norm_velocity * mVelocity[i];
+    //     }
+    // }
 }
 
 //***************************************************************************************************************
@@ -591,8 +583,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
                                                     false);
     const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
 
-    KRATOS_WATCH("Begin updating acceleration")
-    KRATOS_WATCH(mAcceleration)
+    // KRATOS_WATCH("Begin updating acceleration")
+    // KRATOS_WATCH(mAcceleration)
 
     Vector acceleration_perturbation(number_of_actuators);
     noalias(acceleration_perturbation) = GetPerturbations(mAcceleration,r_current_time);
@@ -604,10 +596,12 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
                                  (prod(k_inverse, delta_target_stress) - mVelocity * mCMDeltaTime);
     }
 
-    KRATOS_WATCH("Updating acceleration")
-    KRATOS_WATCH(mAcceleration)
+    // KRATOS_WATCH("Updating acceleration")
+    // KRATOS_WATCH(mAcceleration)
 
-    // Limit acceleration. TODO
+    // TODO: possible CM enhancement
+        // Investigate more on how to limit acceleration
+    // Limit acceleration. 
     double norm_stiffness = 0.0;
     for(unsigned int i = 0; i < mStiffness.size1(); i++) {
         norm_stiffness += mStiffness(i,i)*mStiffness(i,i);
@@ -620,53 +614,10 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
             mAcceleration[i] = max_allowed_acceleration/norm_acceleration * mAcceleration[i];
         }
     }
-    KRATOS_WATCH("End Updating Acceleration")
-    KRATOS_WATCH(mAcceleration)
+    // KRATOS_WATCH("End Updating Acceleration")
+    // KRATOS_WATCH(mAcceleration)
 
 }
-
-//***************************************************************************************************************
-
-// void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
-
-//     const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
-
-//     Vector delta_reaction_stress(number_of_actuators);
-//     noalias(delta_reaction_stress) = mReactionStress - mReactionStressOld;
-//     noalias(mReactionStressOld) = mReactionStress;
-
-//     for (unsigned int i = 0; i < number_of_actuators; i++) {
-//         mDeltaDisplacement(i,mActuatorCounter) = mVelocity[i]*mCMDeltaTime;
-//         mDeltaReactionStress(i,mActuatorCounter) = delta_reaction_stress[i];
-//     }
-
-//     Matrix k_estimated(number_of_actuators,number_of_actuators);
-
-//     if (mCMStep > number_of_actuators-1) {
-//         Matrix delta_displacement_inverse(number_of_actuators,number_of_actuators);
-//         double delta_displacement_det = 0.0;
-//         MathUtils<double>::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
-//         // TODO: check tolerance in CheckConditionNumber
-//         const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement, 
-//                                                         delta_displacement_inverse, 1.0e-10, 
-//                                                         false);
-//         const double delta_displacement_condition_number = GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
-
-//         if (is_delta_displacement_invertible == false || std::isnan(delta_displacement_condition_number) ) {
-//             noalias(k_estimated) = mStiffness;
-//             std::cout << "Delta displacement matrix is not invertible. Keeping stiffness matrix constant" << std::endl;
-//         } else {
-//             noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
-//         }
-//         noalias(mStiffness) = (1.0 - mStiffnessAlpha) * k_estimated + mStiffnessAlpha * mStiffness;
-//     }
-
-//     if (mActuatorCounter == number_of_actuators-1) {
-//         mActuatorCounter = 0;
-//     } else{
-//         mActuatorCounter++;
-//     }
-// }
 
 //***************************************************************************************************************
 
@@ -696,7 +647,6 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
         Matrix delta_displacement_inverse(number_of_actuators,number_of_actuators);
         double delta_displacement_det = 0.0;
         MathUtils<double>::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
-        // TODO: check tolerance in CheckConditionNumber
         const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement, 
                                                         delta_displacement_inverse, 1.0e-10, 
                                                         false);
@@ -709,6 +659,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
             noalias(k_estimated) = prod(mDeltaReactionStress,delta_displacement_inverse);
         }
         noalias(mStiffness) = (1.0 - mStiffnessAlpha) * k_estimated + mStiffnessAlpha * mStiffness;
+        // NOTE: Regardless of using Ktime to calculate K, we still need to filter K.
     }
 
     if (mActuatorCounter == number_of_actuators-1) {
@@ -734,21 +685,13 @@ void MultiaxialControlModuleGeneralized2DUtilities::AddTableToSubModelPart(const
 
 //***************************************************************************************************************
 
-void MultiaxialControlModuleGeneralized2DUtilities::CalculateCharacteristicReactionVariationRate(const double& r_characteristic_time) {
-
-    const unsigned int number_of_actuators = mFEMBoundariesSubModelParts.size();
-
-    Vector max_target_stress(number_of_actuators);
-    noalias(max_target_stress) = ZeroVector(number_of_actuators);
-    Vector min_target_stress(number_of_actuators);
-    noalias(min_target_stress) = ZeroVector(number_of_actuators);
-
-    double max_stress = -std::numeric_limits<double>::infinity();
-    double min_stress = std::numeric_limits<double>::infinity();
+void MultiaxialControlModuleGeneralized2DUtilities::CalculateCharacteristicReactionVariationRate() {
 
     TableType::Pointer pTargetStressTable;
 
-    // Iterate through all actuators
+    mCharacteristicReactionVariationRate = -std::numeric_limits<double>::infinity();
+
+    // Loop through all actuators
     for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
         const std::string actuator_name = mOrderedMapKeys[map_index];
         std::vector<ModelPart*> FEMSubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
@@ -760,15 +703,52 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateCharacteristicReact
             pTargetStressTable = (*(FEMSubModelPartList[0])).pGetTable(target_stress_table_id);
         }
         const auto table_data = pTargetStressTable->Data();
-        for(auto i_row = table_data.begin() ; i_row != table_data.end() ; i_row++){
-            max_stress = std::max(i_row->second[0], max_stress);
-            min_stress = std::min(i_row->second[0], max_stress);
-        }
-        max_target_stress[map_index] = max_stress;
-        min_target_stress[map_index] = min_stress;
-    }
 
-    mCharacteristicReactionVariationRate = std::abs(norm_inf(max_target_stress-min_target_stress)) / r_characteristic_time;
+        // Maximum reaction variation rate
+        KRATOS_ERROR_IF(table_data.size() < 2) << "Actuator " << actuator_name << " has a target stress table with less than 2 rows." << std::endl;
+        double reaction_variation_rate = mCharacteristicReactionVariationRate;
+        // Loop through the rows of the target stress table
+        for(unsigned int i = 1 ; i < table_data.size() ; i++) {
+            if(std::abs(table_data[i].first - table_data[i-1].first) > std::numeric_limits<double>::epsilon()) {
+                reaction_variation_rate = std::abs((table_data[i].second[0] - table_data[i-1].second[0]) /
+                                                   (table_data[i].first - table_data[i-1].first));
+            } else {
+                KRATOS_ERROR << "Actuator " << actuator_name << " has a target stress table with repeated abscissa input." << std::endl;
+            }
+
+            if(reaction_variation_rate > mCharacteristicReactionVariationRate) {
+                mCharacteristicReactionVariationRate = reaction_variation_rate;
+            }
+        }
+
+        // TODO
+        // Maximum characteristic reaction variation rate (NOTE: here we'd avoid spurious reaction variation rates)
+        // double max_stress = -std::numeric_limits<double>::infinity();
+        // double min_stress = std::numeric_limits<double>::infinity();
+        // double max_time = 1.0;
+        // double min_time = 0.0;
+        // // Loop through the rows of the target stress table
+        // for(unsigned int i = 0 ; i < table_data.size() ; i++) {
+
+        //     if(table_data[i].second[0] > max_stress) {
+        //         max_stress = table_data[i].second[0];
+        //         max_time = table_data[i].first;
+        //     }
+        //     if(table_data[i].second[0] < min_stress) {
+        //         min_stress = table_data[i].second[0];
+        //         min_time = table_data[i].first;
+        //     }
+
+        //     if(std::abs(max_time - min_time) > std::numeric_limits<double>::epsilon()) {
+        //         double max_characteristic_reaction_variation_rate = std::abs((max_stress-min_stress)/(max_time-min_time));
+        //         if(max_characteristic_reaction_variation_rate > mCharacteristicReactionVariationRate) {
+        //             mCharacteristicReactionVariationRate = max_characteristic_reaction_variation_rate;
+        //         }
+        //     } else if(i == table_data.size() - 1) {
+        //         KRATOS_ERROR << "Actuator " << actuator_name << " has a target stress table with repeated abscissa input." << std::endl;
+        //     }
+        // }
+    }
 }
 
 
