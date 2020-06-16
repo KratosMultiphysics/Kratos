@@ -65,7 +65,7 @@ public:
 
 private:
     GeometryPointerType mpGeom;
-    bool mIsProjection; // Set to true is we are projecting the master onto the slave. 
+    bool mIsProjection; // Set to true is we are projecting the master onto the slave.
                         // Set to false if we are projecting the slave onto the slave.
 
 };
@@ -249,8 +249,8 @@ private:
 
     void AssignInterfaceEquationIds()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartOrigin.GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetSubModelPart("interface").GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mrModelPartOrigin.GetSubModelPart("interface").GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,
