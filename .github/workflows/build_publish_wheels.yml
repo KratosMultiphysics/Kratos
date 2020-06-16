@@ -36,4 +36,4 @@ jobs:
       shell: pwsh
       run: |
         mkdir wheels
-        docker run --rm --memory=7g --cpus=1 -v wheels:c:\out hubertus248/kratoswheelbuilder-win -branch master -pythons "${{ matrix.python-version }}" -cotire ON
+        docker run --rm --memory=6g --cpus=1 -v wheels:c:\out hubertus248/kratoswheelbuilder-win -branch master -pythons "${{ matrix.python-version }}" -cotire ON
