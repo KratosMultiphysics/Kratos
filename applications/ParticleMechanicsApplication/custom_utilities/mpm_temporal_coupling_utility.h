@@ -96,9 +96,9 @@ protected:
         const double timeStep, const IndexType domainIndex = 1);
 
     void ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& link_accel,
-        const double timeStep, const bool correctInterface = true);
+        const double timeStep, const IndexType DomainIndex = 1, const bool correctInterface = true);
 
-    void GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, Vector& subDomainExplicitOrdering);
+    void GetNumberOfActiveModelPartNodes(const ModelPart& rModelPart, Vector& subDomainExplicitOrdering);
 
     void Check();
 
@@ -121,7 +121,7 @@ protected:
     // SubDomain 1 acceleration at the end of the large timestep dT
     Vector mSubDomain1FinalDomainAccelerationOrInertia;
     // SubDomain 1 active nodes bools
-    Vector mSubDomain1FinalDomainActiveNodes;
+    std::vector<bool> mSubDomain1FinalDomainActiveNodes;
     // SubDomain 1 interface accumulated corrective link velocity
     Vector mSubDomain1AccumulatedLinkVelocity;
     // SubDomain 1 nodal x-dof positions in the implicit system matrix

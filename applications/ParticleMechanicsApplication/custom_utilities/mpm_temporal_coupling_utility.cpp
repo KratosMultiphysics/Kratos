@@ -26,6 +26,65 @@
 
 namespace Kratos
 {
+    void MPMTemporalCouplingUtility::InitializeSubDomain1Coupling()
+    {
+        KRATOS_TRY
+
+            Check();
+        ComputeActiveInterfaceNodes();
+        KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
+
+        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
+        SetSubDomainInterfaceVelocity(r_sub_domain_1_active, mSubDomain1InitialInterfaceVelocity, 0);
+
+        KRATOS_CATCH("")
+    }
+
+
+    void MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1(const SystemMatrixType& rK1)
+    {
+        KRATOS_TRY
+
+            KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
+
+        SetSubDomainInterfaceVelocity(mrSubDomain1, mSubDomain1FinalInterfaceVelocity, 0);
+
+        const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
+        const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
+
+        UtilityClearAndResizeVector(mSubDomain1FinalDomainVelocityOrMomenta, domain_nodes * working_space_dim);
+        UtilityClearAndResizeVector(mSubDomain1FinalDomainDisplacement, domain_nodes * working_space_dim);
+        UtilityClearAndResizeVector(mSubDomain1FinalDomainAccelerationOrInertia, domain_nodes * working_space_dim);
+        //UtilityClearAndResizeVector(mSubDomain1FinalDomainActiveNodes, domain_nodes);
+        if (mSubDomain1FinalDomainActiveNodes.size() != domain_nodes) mSubDomain1FinalDomainActiveNodes.resize(domain_nodes);
+
+        auto node_begin = r_sub_domain_1_active.NodesBegin();
+        for (size_t i = 0; i < domain_nodes; ++i)
+        {
+            auto node_it = node_begin + i;
+            mSubDomain1FinalDomainActiveNodes[i] = node_it->Is(ACTIVE);
+            const array_1d <double, 3> nodal_vel_or_mom = (mGamma[0] == 0.5)
+                ? node_it->FastGetSolutionStepValue(VELOCITY)
+                : node_it->FastGetSolutionStepValue(NODAL_MOMENTUM);
+            const array_1d <double, 3> nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d <double, 3> nodal_accel_or_inertia = (mGamma[0] == 0.5)
+                ? node_it->FastGetSolutionStepValue(ACCELERATION)
+                : node_it->FastGetSolutionStepValue(NODAL_INERTIA);
+            for (size_t k = 0; k < working_space_dim; ++k)
+            {
+                mSubDomain1FinalDomainVelocityOrMomenta[i * working_space_dim + k] = nodal_vel_or_mom[k];
+                mSubDomain1FinalDomainDisplacement[i * working_space_dim + k] = nodal_disp[k];
+                mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k] = nodal_accel_or_inertia[k];
+            }
+        }
+
+        PrepareSubDomain1CouplingQuantities(rK1);
+
+        KRATOS_CATCH("")
+    }
+
+
 
     void MPMTemporalCouplingUtility::CalculateCorrectiveLagrangianMultipliers( const SystemMatrixType& rK2 )
     {
@@ -106,6 +165,101 @@ namespace Kratos
     }
 
 
+
+    void MPMTemporalCouplingUtility::CorrectSubDomain1()
+    {
+        KRATOS_TRY
+
+
+            // Restore subdomain 1
+            ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
+        const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
+        IndexType active_node_counter = 0;
+        auto node_begin = r_sub_domain_1_active.NodesBegin();
+
+        auto velocity_variable = (mGamma[0] == 0.5) ? VELOCITY : NODAL_MOMENTUM;
+        auto acceleration_variable = (mGamma[0] == 0.5) ? ACCELERATION : NODAL_INERTIA;
+
+        for (size_t i = 0; i < domain_nodes; ++i)
+        {
+            auto node_it = node_begin + i;
+            node_it->Set(ACTIVE, mSubDomain1FinalDomainActiveNodes[i]);
+
+            array_1d <double, 3>& nodal_vel = node_it->FastGetSolutionStepValue(velocity_variable);
+            array_1d <double, 3>& nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d <double, 3>& nodal_accel = node_it->FastGetSolutionStepValue(acceleration_variable);
+            nodal_vel.clear();
+            nodal_disp.clear();
+            nodal_accel.clear();
+
+            for (size_t k = 0; k < working_space_dim; ++k)
+            {
+                nodal_vel[k] = mSubDomain1FinalDomainVelocityOrMomenta[i * working_space_dim + k];
+                nodal_disp[k] = mSubDomain1FinalDomainDisplacement[i * working_space_dim + k];
+                nodal_accel[k] = mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k];
+            }
+        }
+
+        // Correct subdomain 1
+        const double time_step_1 = mSmallTimestep * mTimeStepRatio;
+        const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
+        if (mGamma[0] == 1.0) ApplyCorrectionExplicit(r_sub_domain_1_active, link_accel_1, time_step_1,0);
+        else ApplyCorrectionImplicit(r_sub_domain_1_active, link_accel_1, time_step_1, 0);
+
+        mIsSubDomain1QuantitiesPrepared = false;
+
+        KRATOS_CATCH("")
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     void MPMTemporalCouplingUtility::PrepareSubDomain1CouplingQuantities(const SystemMatrixType& rK1)
     {
         KRATOS_TRY
@@ -140,109 +294,6 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-
-    void MPMTemporalCouplingUtility::CorrectSubDomain1()
-    {
-        KRATOS_TRY
-
-
-        // Restore subdomain 1
-        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
-        const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
-        IndexType active_node_counter = 0;
-        auto node_begin = r_sub_domain_1_active.NodesBegin();
-
-        auto velocity_variable = (mGamma[0] == 0.5) ? VELOCITY : NODAL_MOMENTUM;
-        auto acceleration_variable = (mGamma[0] == 0.5) ? ACCELERATION : NODAL_INERTIA;
-
-        for (size_t i = 0; i < domain_nodes; ++i)
-        {
-            auto node_it = node_begin + i;
-            node_it->Set(ACTIVE, mSubDomain1FinalDomainActiveNodes[i]);
-
-            array_1d <double, 3>& nodal_vel = node_it->FastGetSolutionStepValue(velocity_variable);
-            array_1d <double, 3>& nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d <double, 3>& nodal_accel = node_it->FastGetSolutionStepValue(acceleration_variable);
-            nodal_vel.clear();
-            nodal_disp.clear();
-            nodal_accel.clear();
-
-            for (size_t k = 0; k < working_space_dim; ++k)
-            {
-                nodal_vel[k] = mSubDomain1FinalDomainVelocityOrMomenta[i * working_space_dim + k];
-                nodal_disp[k] = mSubDomain1FinalDomainDisplacement[i * working_space_dim + k];
-                nodal_accel[k] = mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k];
-            }
-        }
-
-        // Correct subdomain 1
-        const double time_step_1 = mSmallTimestep * mTimeStepRatio;
-        const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
-        if (mGamma[0] == 1.0) ApplyCorrectionExplicit(r_sub_domain_1_active, link_accel_1, time_step_1);
-        else ApplyCorrectionImplicit(r_sub_domain_1_active, link_accel_1, time_step_1, 0);
-
-        mIsSubDomain1QuantitiesPrepared = false;
-
-        KRATOS_CATCH("")
-    }
-
-
-    void MPMTemporalCouplingUtility::InitializeSubDomain1Coupling()
-    {
-        KRATOS_TRY
-
-        Check();
-        ComputeActiveInterfaceNodes();
-        KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
-
-        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
-        SetSubDomainInterfaceVelocity(r_sub_domain_1_active, mSubDomain1InitialInterfaceVelocity, 0);
-
-        KRATOS_CATCH("")
-    }
-
-    void MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1(const SystemMatrixType& rK1)
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
-
-        SetSubDomainInterfaceVelocity(mrSubDomain1, mSubDomain1FinalInterfaceVelocity, 0);
-
-        const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
-        const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
-
-        UtilityClearAndResizeVector(mSubDomain1FinalDomainVelocityOrMomenta, domain_nodes * working_space_dim);
-        UtilityClearAndResizeVector(mSubDomain1FinalDomainDisplacement, domain_nodes * working_space_dim);
-        UtilityClearAndResizeVector(mSubDomain1FinalDomainAccelerationOrInertia, domain_nodes * working_space_dim);
-        UtilityClearAndResizeVector(mSubDomain1FinalDomainActiveNodes, domain_nodes);
-
-        auto node_begin = r_sub_domain_1_active.NodesBegin();
-        for (size_t i = 0; i < domain_nodes; ++i)
-        {
-            auto node_it = node_begin + i;
-            mSubDomain1FinalDomainActiveNodes[i] = node_it->Is(ACTIVE);
-            const array_1d <double, 3> nodal_vel_or_mom = (mGamma[0] == 0.5)
-                ? node_it->FastGetSolutionStepValue(VELOCITY)
-                : node_it->FastGetSolutionStepValue(NODAL_MOMENTUM);
-            const array_1d <double, 3> nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d <double, 3> nodal_accel_or_inertia = (mGamma[0] == 0.5)
-                ? node_it->FastGetSolutionStepValue(ACCELERATION)
-                : node_it->FastGetSolutionStepValue(NODAL_INERTIA);
-            for (size_t k = 0; k < working_space_dim; ++k)
-            {
-                mSubDomain1FinalDomainVelocityOrMomenta[i * working_space_dim + k] = nodal_vel_or_mom[k];
-                mSubDomain1FinalDomainDisplacement[i * working_space_dim + k] = nodal_disp[k];
-                mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k] = nodal_accel_or_inertia[k];
-            }
-        }
-
-        PrepareSubDomain1CouplingQuantities(rK1);
-
-        KRATOS_CATCH("")
-    }
 
 
     void MPMTemporalCouplingUtility::ComputeActiveInterfaceNodes()
@@ -313,10 +364,13 @@ namespace Kratos
             {
                 auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
                 const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
-                const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                for (IndexType k = 0; k < working_space_dim; ++k)
+                if (nodal_mass > std::numeric_limits<double>::epsilon())
                 {
-                    rVelocityContainer[working_space_dim * i + k] = nodal_momentum[k]/ nodal_mass;
+                    const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                    for (IndexType k = 0; k < working_space_dim; ++k)
+                    {
+                        rVelocityContainer[working_space_dim * i + k] = nodal_momentum[k] / nodal_mass;
+                    }
                 }
             }
         }
@@ -381,7 +435,7 @@ namespace Kratos
                     }
                 }
             }
-            PrintMatrix(rCouplingMatrix);
+            //PrintMatrix(rCouplingMatrix);
         }
 
         KRATOS_CATCH("")
@@ -562,18 +616,21 @@ namespace Kratos
 
 
     void MPMTemporalCouplingUtility::ApplyCorrectionExplicit(ModelPart& rModelPart, const Vector& rLinkAccel,
-        const double timeStep, const bool correctInterface)
+        const double timeStep, const IndexType DomainIndex, const bool correctInterface)
     {
         KRATOS_TRY
 
             const SizeType working_space_dimension = rModelPart.GetParentModelPart()->ElementsBegin()->WorkingSpaceDimension();
+        const Vector& explicit_ordering = (DomainIndex == 0)
+            ? mSubDomain1ExplicitOrdering
+            : mSubDomain2ExplicitOrdering;
 
         // Add correction entries
-        for (size_t i = 0; i < mSubDomain2ExplicitOrdering.size(); ++i)
+        for (size_t i = 0; i < explicit_ordering.size(); ++i)
         {
             if (rLinkAccel[working_space_dimension*i] > std::numeric_limits<double>::epsilon())
             {
-                auto node_it = rModelPart.pGetNode(mSubDomain2ExplicitOrdering[i]);
+                auto node_it = rModelPart.pGetNode(explicit_ordering[i]);
                 array_1d<double, 3>& r_nodal_momentum = node_it->FastGetSolutionStepValue(NODAL_MOMENTUM);
                 array_1d<double, 3>& r_nodal_force = node_it->FastGetSolutionStepValue(FORCE_RESIDUAL);
                 const double r_nodal_mass = node_it->FastGetSolutionStepValue(NODAL_MASS);
@@ -590,7 +647,7 @@ namespace Kratos
     }
 
 
-    void MPMTemporalCouplingUtility::GetNumberOfActiveModelPartNodes(ModelPart& rModelPart, Vector& subDomainExplicitOrdering)
+    void MPMTemporalCouplingUtility::GetNumberOfActiveModelPartNodes(const ModelPart& rModelPart, Vector& subDomainExplicitOrdering)
     {
         KRATOS_TRY
 
@@ -602,13 +659,13 @@ namespace Kratos
             if (current_node->FastGetSolutionStepValue(NODAL_MASS) > numerical_limit) activeNodes += 1;
         }
 
-        UtilityClearAndResizeVector(mSubDomain1ExplicitOrdering, activeNodes);
+        UtilityClearAndResizeVector(subDomainExplicitOrdering, activeNodes);
         activeNodes = 0;
         for (IndexType i = 0; i < rModelPart.Nodes().size(); ++i) {
             auto current_node = it_node_begin + i;
             if (current_node->FastGetSolutionStepValue(NODAL_MASS) > numerical_limit)
             {
-                mSubDomain1ExplicitOrdering[activeNodes] = current_node->GetId();
+                subDomainExplicitOrdering[activeNodes] = current_node->GetId();
                 activeNodes += 1;
             }
         }

@@ -165,20 +165,18 @@ class MPMCoupledTimeSolver(MPMSolver):
             self.coupling_utility.StoreFreeVelocitiesSubDomain1Explicit()
 
         # store interface velocities in coupling class vector
+        if self.gamma_2 == 1.0:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
+        else:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         for j in range(1,self.time_step_ratio+1):
             #print('Advance SD2 time')
             time = self.model_sub_domain_2.ProcessInfo[KratosMultiphysics.TIME]
             time += self.time_step_2
             self.model_sub_domain_2.CloneTimeStep(time)
             self.model_sub_domain_2.ProcessInfo[KratosMultiphysics.STEP] += 1
-            #print("Subdomain 2 time = ", time)
             print("Subdomain 2 timestep", j, "of",self.time_step_ratio,
                   "(SD1 time = ",self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.TIME], ", SD2 time = ",time,")")
-
-            if self.gamma_2 == 1.0:
-                self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
-            else:
-                self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
 
             #print('Initializing sd2')
             self._GetSolutionStrategy(2).Initialize()
