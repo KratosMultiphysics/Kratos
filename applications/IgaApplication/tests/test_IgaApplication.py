@@ -6,6 +6,9 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Modelers tests
+from test_modelers import TestModelers as TTestModelers
+
 # Import the tests o test_classes to create the suits
 
 def AssembleTestSuites():
@@ -21,7 +24,7 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestModelers]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
