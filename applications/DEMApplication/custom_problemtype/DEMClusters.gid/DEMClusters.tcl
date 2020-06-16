@@ -22,17 +22,17 @@
 
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
-##  Current Issues ## 
+##  Current Issues ##
 
 ## GenerateClusterFile works fine in the folder but shows segmentation fault when launching from gid
 
-##- spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples 
+##- spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples
 ##- even if spheretree works as expected, it throw an error when finalizing. kike: child process exited abnormally
 
 
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
-##  Fixed Issues ## 
+##  Fixed Issues ##
 
 ##- Are ALL calculated Vertex normals correct? verified manually with testcubev4
 ##- Sphere tree paths with spaces
@@ -40,7 +40,7 @@
 ##- verify that your geometry have all the normals coherent. (should be as align normals has been added before meshing)
 ##- add some info on the help based on the manual
 ##- Calling external precompiled cpp, add criteria for negative radius when deleting line in sph
-##- plan on msh to clu functionaly design of precompiled executable. args, paths and location, 
+##- plan on msh to clu functionaly design of precompiled executable. args, paths and location,
 ##-     define arguments path and call exe from inside exec folder.
 ##- add dummy .bat to avoid error showing both unix.bat and win.bat
 ##- cluster visualizaton in GID pre
@@ -62,7 +62,7 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateSPH" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateCLU" ] 2 PRE [list GenerateClusterFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster" ] 3 PRE [list ReadClusterFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster" ] 3 PRE [list ReadClusterFileintoMesh] "" ""
         GiDMenu::UpdateMenus
     }
 
@@ -111,24 +111,42 @@ proc AfterMeshGeneration {fail} {
 
 }
 
+proc OneClickGo {} {
+    # new proc
+    # 0delete old spheres from geometry
+    # 1 calculate
+    # 2 GenerateSPH
+    # 3Generateclu
+    # 4visualize
+}
 
 
-# new proc
-# 0delete old spheres from geometry
-# 1 calculate
-# 2 GenerateSPH
-# 3Generateclu
-# 4visualize
 
 
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
+
+    # add HERE proc to delete all geometry spheres
+
     source [file join $problemtypedir OBJFile.tcl]
     set OBJOutput [GenerateOBJFile $basename $dir $problemtypedir]
 
     set modelname [GiD_Info Project ModelName]
     set export_msh [file join ${modelname}.gid generic.msh]
     GiD_Process Mescape Files WriteMesh $export_msh
+}
+
+proc AfterRunCalculation {basename dir problemtypedir where error errorfilename} {
+
+    ::KUtils::IsProcessRunningVar Set 0
+
+    # GenerateSPHFileFromOBJFile
+    # GenerateClusterFile
+    # ReadClusterFile
+
+
+    # return nowindow
+    return 0
 }
 
 
@@ -143,6 +161,8 @@ namespace eval DEMClusters {
     variable ProblemTypePath ""
 }
 
+# GiD_Process Mescape Utilities Calculate MEscape Files WriteCalcFile Mescape Files WriteMesh /home/farrufat/Downloads/cluster_creation/homebrew/delete.gid/generic.msh
+
 
 proc call_SphereTree { } {
 
@@ -154,7 +174,7 @@ proc call_SphereTree { } {
     } elseif {$Algorithm == "MakeTreeSpawn"} {
         ::DEMClusters::call_makeTreeSpawn
     } elseif {$Algorithm == "MakeTreeOctree"} {
-        ::DEMClusters::call_makeTreeOctree        
+        ::DEMClusters::call_makeTreeOctree
     } elseif {$Algorithm == "MakeTreeHubbard"} {
         ::DEMClusters::call_makeTreeHubbard
     } else {
@@ -162,10 +182,12 @@ proc call_SphereTree { } {
     }
 
     # set Young_Modulus [GiD_AccessValue get condition Body_Part Young_Modulus]
-    
+
 }
 
 proc DEMClusters::call_TreeMedial { } {
+
+
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set branch [GiD_AccessValue get gendata branch]
@@ -189,7 +211,16 @@ proc DEMClusters::call_TreeMedial { } {
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
-    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+
+    package require platform
+    set tcl_platform [platform::generic]
+    if { $tcl_platform == "linux-x86_64" } {
+        # SphereTree should be installed the linux system (compiled and installed)
+        set program makeTreeMedial
+    } else {
+        set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    }
+
     exec $program {*}$argv
 
     # MakeTreeMedial -depth 3 -branch 8 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
@@ -197,7 +228,7 @@ proc DEMClusters::call_TreeMedial { } {
     # set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
     # set arguments [lrange $argv 1 end]
     # exec $program {*}$arguments
-   
+
     # TreeMedial ValidArgs:
     # -depth              Depth of the sphere-tree
     # -branch             Branching factor of sphere-tree
@@ -337,14 +368,14 @@ proc GenerateClusterFile { } {
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     if {$Algorithm == "MakeTreeMedial"} {
         set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-medial.sph]
-        set genericSPHFilename "\"$genericSPHFilename\""
+        #set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeGrid"} {
         set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-grid.sph]
         set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeSpawn"} {
         set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-spawn.sph]
         set genericSPHFilename "\"$genericSPHFilename\""
-    } elseif {$Algorithm == "MakeTreeOctree"} {    
+    } elseif {$Algorithm == "MakeTreeOctree"} {
         set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-octree.sph]
         set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeHubbard"} {
@@ -354,14 +385,24 @@ proc GenerateClusterFile { } {
     } else {
         W "Select a valid algorithm"
     }
-     
-    set cluster_exec create_cluster.exe
+
+
     set genericMSHFilename [file join $::DEMClusters::ProblemPath generic.msh]
     set genericMSHFilename "\"$genericMSHFilename\""
     set argv_number 2
 
     set argv "$argv_number $genericMSHFilename $genericSPHFilename"
-    set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
+
+    package require platform
+    set tcl_platform [platform::generic]
+    if { $tcl_platform == "linux-x86_64" } {
+        set cluster_exec create_cluster_unix
+        set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
+    } else {
+        set cluster_exec create_cluster.exe
+        set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
+    }
+
     #set program "\"$program\""
     W $argv
     W $program
@@ -369,10 +410,12 @@ proc GenerateClusterFile { } {
     #set fid [open "| $program $argv_number $genericMSHFilename $genericSPHFilename" r+]
     #close $fid
     #exec $program $argv_number $genericMSHFilename $genericSPHFilename
-    #exec {*}[auto_execok start] $program $argv_number $genericMSHFilename $genericSPHFilename
-    exec $program {*}$argv
+    exec $program 2 $genericMSHFilename $genericSPHFilename > output.txt
+    #exec {*}[auto_execok $program]  $argv_number $genericMSHFilename $genericSPHFilename
+    #exec $program {*}$argv
 
     # create_cluster 2 generic.msh generic-medial.sph
+    #g++ -o create_cluster.exe mesh_to_clu_converter.cpp
 }
 
 
@@ -433,18 +476,43 @@ proc ReadClusterFile { } {
 
     #  Process data file
     set data [split $file_data "\n"]
-    set data [lreplace $data end-14 end] 
+    set data [lreplace $data end-14 end]
     foreach line $data {
         if {[llength $line] >3} {
             W $line
             GiD_Process Mescape Geometry Create Object Sphere [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] [lrange $line 3 3] escape escape
-        } 
+        }
     }
 }
 
+proc ReadClusterFileintoMesh { } {
+
+    set modelname [GiD_Info Project ModelName]
+    set clustername [file join ${modelname}.gid generic_cluster.clu]
+    set FileVar [open $clustername "r+"]
+    set file_data [read $FileVar]
+    lreplace $file_data end end
+    close $FileVar
+
+    GiD_Process Mescape Meshing EditMesh CreateElement Sphere 10 1 1 1 escape escape
 
 
-
+    #  Process data file
+    set data [split $file_data "\n"]
+    set data [lreplace $data end-14 end]
+    foreach line $data {
+        if {[llength $line] >3} {
+            W $line
+            W [lrange $line 3 3]
+            W [lrange $line 0 0]
+            W [lrange $line 1 1]
+            W [lrange $line 2 2]
+            # GiD_Process Mescape
+            GiD_Process Mescape Meshing EditMesh CreateElement Sphere [lrange $line 3 3] [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] escape escape
+            # GiD_Process Mescape
+        }
+    }
+}
 
 
 # GiD_Mesh get element <num|from_face|from_edge> ?face|face_linear|num_faces|edge_linear|num_edges|normal|tangent|center|connectivities ?<face_id>|<edge_id>??
