@@ -11,8 +11,6 @@ wheelRoot="/workspace/wheel"
 wheelOut="/workspace/out"
 coreLibDir="/workspace/coreLibs"
 
-set -e
-
 setup_wheel_dir() {
   cd $KRATOS_ROOT
   mkdir $wheelRoot
