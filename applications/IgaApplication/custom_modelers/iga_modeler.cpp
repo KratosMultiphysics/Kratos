@@ -280,7 +280,7 @@ namespace Kratos
     ///@name Get Points at Boundaries
     ///@{
 
-    /// Reads in a json formatted file and returns its KratosParameters instance.
+    /// Searches points at boundaries of nurbs geometries.
     void IgaModeler::GetPointsAt(
         GeometriesArrayType& rGeometryList,
         const std::string& rGeometryType,

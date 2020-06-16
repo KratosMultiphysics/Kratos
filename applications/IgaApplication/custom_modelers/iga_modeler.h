@@ -175,7 +175,7 @@ private:
     ///@name Get Points at Boundaries
     ///@{
 
-    /// Reads in a json formatted file and returns its KratosParameters instance.
+    /// Searches points at boundaries of nurbs geometries.
     void GetPointsAt(
         GeometriesArrayType& rGeometryList,
         const std::string& rGeometryType,
