@@ -34,12 +34,12 @@ using namespace csv;
 using std::vector;
 using std::string;
 
-KRATOS_TEST_CASE_IN_SUITE(col_posTest, KratosExternalLibrariesFastSuite)
-{
-    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
-    int pos = get_col_pos(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"}),"Entity Type");
-    KRATOS_CHECK_EQUAL(pos, 1);
-}
+// KRATOS_TEST_CASE_IN_SUITE(col_posTest, KratosExternalLibrariesFastSuite)
+// {
+//     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
+//     int pos = get_col_pos(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"}),"Entity Type");
+//     KRATOS_CHECK_EQUAL(pos, 1);
+// }
 
 KRATOS_TEST_CASE_IN_SUITE(PreventColumnNamesFromBeingOverwritten, KratosExternalLibrariesFastSuite)
 {
@@ -97,44 +97,44 @@ KRATOS_TEST_CASE_IN_SUITE(NonExistentCSV, KratosExternalLibrariesFastSuite)
     KRATOS_CHECK(error_caught);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReadCSVwithHeaderRow, KratosExternalLibrariesFastSuite )
-{
-    // Header on first row
-    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
-    const std::string data_file = Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"});
-    CSVReader reader(data_file, CSVFormat());
-    CSVRow row;
-    reader.read_row(row); // Populate row with first line
-
-    // Expected Results
-    vector<string> col_names = {
-        "Year", "Entity Type", "Entity Group", "Entity Name",
-        "Department / Subdivision", "Position", "Elected Official",
-        "Judicial", "Other Positions", "Min Classification Salary",
-        "Max Classification Salary", "Reported Base Wage", "Regular Pay",
-        "Overtime Pay", "Lump-Sum Pay", "Other Pay", "Total Wages",
-        "Defined Benefit Plan Contribution", "Employees Retirement Cost Covered",
-        "Deferred Compensation Plan", "Health Dental Vision",
-        "Total Retirement and Health Cost", "Pension Formula",
-        "Entity URL", "Entity Population", "Last Updated",
-        "Entity County", "Special District Activities"
-    };
-
-    vector<string> first_row = {
-        "2015","State Department","","Administrative Law, Office of","",
-        "Assistant Chief Counsel","False","False","","112044","129780",""
-       ,"133020.06","0","2551.59","2434.8","138006.45","34128.65","0","0"
-       ,"15273.97","49402.62","2.00% @ 55","http://www.spb.ca.gov/","",
-        "08/02/2016","",""
-    };
-
-    KRATOS_CHECK_EQUAL( vector<string>(row), first_row );
-    KRATOS_CHECK_EQUAL( get_col_names(data_file), col_names );
-
-    // Skip to end
-    while (reader.read_row(row));
-    KRATOS_CHECK_EQUAL( reader.num_rows, 246497 );
-}
+// KRATOS_TEST_CASE_IN_SUITE(ReadCSVwithHeaderRow, KratosExternalLibrariesFastSuite )
+// {
+//     // Header on first row
+//     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
+//     const std::string data_file = Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2015_StateDepartment.csv"});
+//     CSVReader reader(data_file, CSVFormat());
+//     CSVRow row;
+//     reader.read_row(row); // Populate row with first line
+//
+//     // Expected Results
+//     vector<string> col_names = {
+//         "Year", "Entity Type", "Entity Group", "Entity Name",
+//         "Department / Subdivision", "Position", "Elected Official",
+//         "Judicial", "Other Positions", "Min Classification Salary",
+//         "Max Classification Salary", "Reported Base Wage", "Regular Pay",
+//         "Overtime Pay", "Lump-Sum Pay", "Other Pay", "Total Wages",
+//         "Defined Benefit Plan Contribution", "Employees Retirement Cost Covered",
+//         "Deferred Compensation Plan", "Health Dental Vision",
+//         "Total Retirement and Health Cost", "Pension Formula",
+//         "Entity URL", "Entity Population", "Last Updated",
+//         "Entity County", "Special District Activities"
+//     };
+//
+//     vector<string> first_row = {
+//         "2015","State Department","","Administrative Law, Office of","",
+//         "Assistant Chief Counsel","False","False","","112044","129780",""
+//        ,"133020.06","0","2551.59","2434.8","138006.45","34128.65","0","0"
+//        ,"15273.97","49402.62","2.00% @ 55","http://www.spb.ca.gov/","",
+//         "08/02/2016","",""
+//     };
+//
+//     KRATOS_CHECK_EQUAL( vector<string>(row), first_row );
+//     KRATOS_CHECK_EQUAL( get_col_names(data_file), col_names );
+//
+//     // Skip to end
+//     while (reader.read_row(row));
+//     KRATOS_CHECK_EQUAL( reader.num_rows, 246497 );
+// }
 
 KRATOS_TEST_CASE_IN_SUITE(read_rowCSVField_Easy, KratosExternalLibrariesFastSuite)
 {
