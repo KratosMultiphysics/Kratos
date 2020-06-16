@@ -1,0 +1,16 @@
+{
+    "element_condition_list": [
+        {
+            "brep_ids": [ 1 ],
+            "geometry_type": "GeometrySurfaceNodes",
+            "iga_model_part": "Support_1",
+            "parameters": { "local_parameters": [ 1, -1 ] }
+        },
+        {
+            "brep_ids": [ 1 ],
+            "geometry_type": "GeometrySurfaceNodes",
+            "iga_model_part": "Support_2",
+            "parameters": { "local_parameters": [ -1, 1 ] }
+        }
+    ]
+}
