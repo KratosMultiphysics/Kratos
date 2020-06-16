@@ -68,18 +68,17 @@ KRATOS_TEST_CASE_IN_SUITE(PreventColumnNamesFromBeingOverwritten, KratosExternal
     }
 }
 
-// get_file_info()
-KRATOS_TEST_CASE_IN_SUITE(get_file_info, KratosExternalLibrariesFastSuite)
-{
-    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
-
-    CSVFileInfo info = get_file_info(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2009PowerStatus.txt"}));
-
-    KRATOS_CHECK_EQUAL(info.delim, '|');
-    KRATOS_CHECK_EQUAL(info.n_rows, 37960); // Can confirm with Excel
-    KRATOS_CHECK_EQUAL(info.n_cols, 3);
-    KRATOS_CHECK_EQUAL(info.col_names, vector<string>({"ReportDt", "Unit", "Power"}));
-}
+// KRATOS_TEST_CASE_IN_SUITE(get_file_info, KratosExternalLibrariesFastSuite)
+// {
+//     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
+//
+//     CSVFileInfo info = get_file_info(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2009PowerStatus.txt"}));
+//
+//     KRATOS_CHECK_EQUAL(info.delim, '|');
+//     KRATOS_CHECK_EQUAL(info.n_rows, 37960); // Can confirm with Excel
+//     KRATOS_CHECK_EQUAL(info.n_cols, 3);
+//     KRATOS_CHECK_EQUAL(info.col_names, vector<string>({"ReportDt", "Unit", "Power"}));
+// }
 
 KRATOS_TEST_CASE_IN_SUITE(NonExistentCSV, KratosExternalLibrariesFastSuite)
 {
@@ -151,33 +150,33 @@ KRATOS_TEST_CASE_IN_SUITE(read_rowCSVField_Easy, KratosExternalLibrariesFastSuit
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(read_rowCSVField_PowerStatus, KratosExternalLibrariesFastSuite)
-{
-    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
-    CSVReader reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2009PowerStatus.txt"}));
-    CSVRow row;
-
-    std::size_t date = reader.index_of("ReportDt"),
-        unit = reader.index_of("Unit"),
-        power = reader.index_of("Power");
-
-    // Try to find a non-existent column
-    KRATOS_CHECK_EQUAL(reader.index_of("metallica"), CSV_NOT_FOUND);
-
-    for (std::size_t i = 0; reader.read_row(row); i++) {
-        // Assert correct types
-        KRATOS_CHECK(row[date].is_str());
-        KRATOS_CHECK(row[unit].is_str());
-        KRATOS_CHECK(row[power].is_int());
-
-        // Spot check
-        if (i == 2) {
-            KRATOS_CHECK_EQUAL(row[power].get<int>(), 100);
-            KRATOS_CHECK_STRING_EQUAL(row[date].get<>(), "12/31/2009"); // string_view
-            KRATOS_CHECK_STRING_EQUAL(row[unit].get<std::string>(), "Beaver Valley 1");
-        }
-    }
-}
+// KRATOS_TEST_CASE_IN_SUITE(read_rowCSVField_PowerStatus, KratosExternalLibrariesFastSuite)
+// {
+//     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_read_csv_file.cpp");
+//     CSVReader reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/real_data/2009PowerStatus.txt"}));
+//     CSVRow row;
+//
+//     std::size_t date = reader.index_of("ReportDt"),
+//         unit = reader.index_of("Unit"),
+//         power = reader.index_of("Power");
+//
+//     // Try to find a non-existent column
+//     KRATOS_CHECK_EQUAL(reader.index_of("metallica"), CSV_NOT_FOUND);
+//
+//     for (std::size_t i = 0; reader.read_row(row); i++) {
+//         // Assert correct types
+//         KRATOS_CHECK(row[date].is_str());
+//         KRATOS_CHECK(row[unit].is_str());
+//         KRATOS_CHECK(row[power].is_int());
+//
+//         // Spot check
+//         if (i == 2) {
+//             KRATOS_CHECK_EQUAL(row[power].get<int>(), 100);
+//             KRATOS_CHECK_STRING_EQUAL(row[date].get<>(), "12/31/2009"); // string_view
+//             KRATOS_CHECK_STRING_EQUAL(row[unit].get<std::string>(), "Beaver Valley 1");
+//         }
+//     }
+// }
 
 } // namespace Testing.
 } // namespace Kratos.

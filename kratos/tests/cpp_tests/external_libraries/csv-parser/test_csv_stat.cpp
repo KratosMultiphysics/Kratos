@@ -64,25 +64,25 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingStatisticsfromDirectInput, KratosExternalLi
     KRATOS_CHECK_EQUAL( reader.get_dtypes()[0][CSV_INT8], 100 );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Statisticspersonscsv, KratosExternalLibrariesFastSuite )
-{
-    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_stat.cpp");
-    CSVStat reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/mimesis_data/persons.csv"}));
-    KRATOS_CHECK_EQUAL( ceil(reader.get_mean()[1]), 42 );
-}
+// KRATOS_TEST_CASE_IN_SUITE(Statisticspersonscsv, KratosExternalLibrariesFastSuite )
+// {
+//     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_stat.cpp");
+//     CSVStat reader(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/mimesis_data/persons.csv"}));
+//     KRATOS_CHECK_EQUAL( ceil(reader.get_mean()[1]), 42 );
+// }
 
-KRATOS_TEST_CASE_IN_SUITE(DataTypespersonscsv, KratosExternalLibrariesFastSuite)
-{
-    const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_stat.cpp");
-    auto dtypes = csv_data_types(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/mimesis_data/persons.csv"}));
-
-    KRATOS_CHECK_EQUAL(dtypes["Full Name"], CSV_STRING);
-    KRATOS_CHECK_EQUAL(dtypes["Age"], CSV_INT8);
-    KRATOS_CHECK_EQUAL(dtypes["Occupation"], CSV_STRING);
-    KRATOS_CHECK_EQUAL(dtypes["Email"], CSV_STRING);
-    KRATOS_CHECK_EQUAL(dtypes["Telephone"], CSV_STRING);
-    KRATOS_CHECK_EQUAL(dtypes["Nationality"], CSV_STRING);
-}
+// KRATOS_TEST_CASE_IN_SUITE(DataTypespersonscsv, KratosExternalLibrariesFastSuite)
+// {
+//     const std::string working_dir = StringUtilities::ErasePartialString(__FILE__, "test_csv_stat.cpp");
+//     auto dtypes = csv_data_types(Kratos::FilesystemExtensions::JoinPaths({working_dir, "data/mimesis_data/persons.csv"}));
+//
+//     KRATOS_CHECK_EQUAL(dtypes["Full Name"], CSV_STRING);
+//     KRATOS_CHECK_EQUAL(dtypes["Age"], CSV_INT8);
+//     KRATOS_CHECK_EQUAL(dtypes["Occupation"], CSV_STRING);
+//     KRATOS_CHECK_EQUAL(dtypes["Email"], CSV_STRING);
+//     KRATOS_CHECK_EQUAL(dtypes["Telephone"], CSV_STRING);
+//     KRATOS_CHECK_EQUAL(dtypes["Nationality"], CSV_STRING);
+// }
 
 } // namespace Testing.
 } // namespace Kratos.
