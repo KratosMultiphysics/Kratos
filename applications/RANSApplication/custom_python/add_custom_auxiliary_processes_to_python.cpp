@@ -38,6 +38,7 @@
 #include "custom_processes/auxiliary_processes/rans_nut_k_omega_update_process.h"
 #include "custom_processes/auxiliary_processes/rans_omega_turbulent_mixing_inlet_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_k_omega_sst_update_process.h"
+#include "custom_processes/auxiliary_processes/rans_compute_reactions_process.h"
 
 // RANS sensitivity processes
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
@@ -196,6 +197,11 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     py::class_<RansOmegaTurbulentMixingLengthInletProcessType,
                RansOmegaTurbulentMixingLengthInletProcessType::Pointer, Process>(
         m, "RansOmegaTurbulentMixingLengthInletProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    using RansComputeReactionsProcessType = RansComputeReactionsProcess;
+    py::class_<RansComputeReactionsProcessType, RansComputeReactionsProcessType::Pointer, Process>(
+        m, "RansComputeReactionsProcess")
         .def(py::init<Model&, Parameters&>());
 }
 
