@@ -18,17 +18,6 @@ def Factory(settings, Model):
             KratosRANS.RansFindConditionParentProcess
         ],
         [
-            "ScalarCellCenteredAveragingProcess",
-            KratosRANS.RansScalarCellCenterAveragingProcess
-        ],
-        [
-            "VectorCellCenteredAveragingProcess",
-            KratosRANS.RansVectorCellCenterAveragingProcess
-        ],
-        [   "VectorAlignProcess",
-            KratosRANS.RansVectorAlignProcess
-        ],
-        [
             "CalculateNormalsProcess",
             CalculateNormalsProcess
         ],
