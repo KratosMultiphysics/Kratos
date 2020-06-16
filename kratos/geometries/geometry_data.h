@@ -321,11 +321,10 @@ public:
     }
 
     ///@}
-    ///@name  Geometry Shape Function Container
+    ///@name Geometry Shape Function Container
     ///@{
 
-    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer.
-     */
+    /// SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer.
     void SetGeometryShapeFunctionContainer(
         const GeometryShapeFunctionContainer<IntegrationMethod>& rGeometryShapeFunctionContainer)
     {
