@@ -19,9 +19,9 @@ if(POLICY CMP0074)
 endif(POLICY CMP0074)
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 7)
-set (KratosMultiphysics_MINOR_VERSION 1)
-set (KratosMultiphysics_PATCH_VERSION 0)
+set (KratosMultiphysics_MAJOR_VERSION 9)
+set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION "Dev")
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -358,20 +358,28 @@ if(${USE_MPI} MATCHES ON )
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif(${USE_MPI} MATCHES ON )
 
-# Find zlib (for gidpost)
-find_package(ZLIB)
+# If we do not locally compile ZLIB we will find ZLIB in the system, if we cannot find it we will enforce the local compilation
+OPTION ( FORCE_LOCAL_ZLIB_COMPILATION "Force local compilation of zlib" OFF )
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
+    # Find zlib (for gidpost)
+    find_package(ZLIB)
+    if( ZLIB_FOUND )
+        include_directories( ${ZLIB_INCLUDE_DIRS} )
+    else( ZLIB_FOUND )
+        set( FORCE_LOCAL_ZLIB_COMPILATION ON )
+    endif( ZLIB_FOUND )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 
-if( ZLIB_FOUND )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
-else( ZLIB_FOUND )
+# We local compilate ZLIB
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
-  add_subdirectory(external_libraries/zlib)
-  # we have to add this for zconf
+  add_subdirectory( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
+  # We have to add this for zconf
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
-endif( ZLIB_FOUND )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 
 # including the AMatrix
 if( AMATRIX_DIR )
