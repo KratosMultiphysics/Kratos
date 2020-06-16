@@ -147,6 +147,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         #print("Subdomain 1 time = ", self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.TIME])
         self._GetSolutionStrategy(1).Initialize()
         self._GetSolutionStrategy(1).InitializeSolutionStep()
+        self.coupling_utility.SetActiveNodes(self.model_sub_domain_1)
         self.coupling_utility.InitializeSubDomain1Coupling()
 
 
@@ -181,6 +182,7 @@ class MPMCoupledTimeSolver(MPMSolver):
             #print('Initializing sd2')
             self._GetSolutionStrategy(2).Initialize()
             self._GetSolutionStrategy(2).InitializeSolutionStep()
+            self.coupling_utility.SetActiveNodes(self.model_sub_domain_2)
             #print('Predicting sd2')
             self._GetSolutionStrategy(2).Predict()
             #print('solving sd2')
@@ -191,18 +193,20 @@ class MPMCoupledTimeSolver(MPMSolver):
                 self.coupling_utility.CalculateCorrectiveLagrangianMultipliers(K2)
             else:
                 self.coupling_utility.CalculateCorrectiveLagrangianMultipliersExplicit()
-            #print('finalizing sd2')
+            print('finalizing sd2')
             self._GetSolutionStrategy(2).FinalizeSolutionStep()
             self._GetSolutionStrategy(2).Clear()
         if self.gamma_1 == 1.0:
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
         else:
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
+        print('correcting sd1')
         self.coupling_utility.CorrectSubDomain1()
         return is_converged
 
 
     def FinalizeSolutionStep(self):
+        print('finalizing sd1')
         self._GetSolutionStrategy(1).FinalizeSolutionStep()
         self._GetSolutionStrategy(1).Clear()
         #print('finalize sd1')
@@ -569,7 +573,9 @@ class MPMCoupledTimeSolver(MPMSolver):
         if index == 2:
             if (self.settings["time_stepping"]["time_integration_method_2"].GetString() == "explicit"):
                 is_implicit = False
-
+        stress_update_option = 1
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, stress_update_option)
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, False)
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()
         if(scheme_type == "newmark"):
@@ -597,6 +603,10 @@ class MPMCoupledTimeSolver(MPMSolver):
             stress_update_option = 1
             grid_model_part.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, stress_update_option)
             grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT_CENTRAL_DIFFERENCE, False)
+            if index==1:
+                self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, stress_update_option)
+            elif index == 2:
+                self.model_sub_domain_2.ProcessInfo.SetValue(KratosParticle.EXPLICIT_STRESS_UPDATE_OPTION, stress_update_option)
             return KratosParticle.MPMExplicitScheme( grid_model_part)
 
 

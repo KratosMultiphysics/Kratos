@@ -75,6 +75,18 @@ public:
 
     void CorrectSubDomain1();
 
+    void SetActiveNodes(ModelPart& rModelPart)
+    {
+        for (auto& node_it : rModelPart.Nodes())
+        {
+            if (node_it.FastGetSolutionStepValue(NODAL_MASS) > std::numeric_limits<double>::epsilon())
+            {
+                node_it.Set(ACTIVE, true);
+            }
+            else node_it.Reset(ACTIVE);
+        }
+    }
+
 protected:
     void ComputeActiveInterfaceNodes();
 

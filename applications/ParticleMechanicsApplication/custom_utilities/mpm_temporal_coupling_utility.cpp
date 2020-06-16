@@ -30,7 +30,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            Check();
+        Check();
         ComputeActiveInterfaceNodes();
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
@@ -78,6 +78,7 @@ namespace Kratos
                 mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k] = nodal_accel_or_inertia[k];
             }
         }
+        KRATOS_WATCH(mSubDomain1FinalDomainVelocityOrMomenta)
 
         PrepareSubDomain1CouplingQuantities(rK1);
 
@@ -199,6 +200,8 @@ namespace Kratos
                 nodal_disp[k] = mSubDomain1FinalDomainDisplacement[i * working_space_dim + k];
                 nodal_accel[k] = mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k];
             }
+            KRATOS_WATCH(nodal_vel)
+            KRATOS_WATCH(node_it->Is(ACTIVE))
         }
 
         // Correct subdomain 1
@@ -349,8 +352,6 @@ namespace Kratos
             for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
             {
                 auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
-                const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
-                const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
                 const array_1d <double, 3> nodal_vel = current_node->FastGetSolutionStepValue(VELOCITY);
                 for (IndexType k = 0; k < working_space_dim; ++k)
                 {

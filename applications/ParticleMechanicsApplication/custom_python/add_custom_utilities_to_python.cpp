@@ -68,6 +68,7 @@ namespace Python{
             .def("StoreFreeVelocitiesSubDomain1", &MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1)
             .def("StoreFreeVelocitiesSubDomain1Explicit", &MPMTemporalCouplingUtility::StoreFreeVelocitiesSubDomain1Explicit)
             .def("CorrectSubDomain1", &MPMTemporalCouplingUtility::CorrectSubDomain1)
+            .def("SetActiveNodes", &MPMTemporalCouplingUtility::SetActiveNodes)
             ;
     }
 
