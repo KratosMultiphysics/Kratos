@@ -299,12 +299,12 @@ namespace Kratos
                     << " needs to have a dimension of 1 for type GeometryCurveNodes. Dimension: " << geom.Dimension()
                     << ". Geometry" << geom << std::endl;
 
-                SizeType number_of_cps = this->size();
+                SizeType number_of_cps = geom.size();
 
                 IndexType t_start = 0;
                 IndexType t_end = number_of_cps;
 
-                if (rLocalCoordinates[0] >= 0) {
+                if (local_coordinates[0] >= 0) {
                     t_start = local_coordinates[0] * (number_of_cps - 1);
                     t_end = local_coordinates[0] * (number_of_cps - 1) + 1;
                 }
@@ -318,17 +318,17 @@ namespace Kratos
                     << " needs to have a dimension of 1 for type GeometryCurveVariationNodes. Dimension: " << geom.Dimension()
                     << ". Geometry" << geom << std::endl;
 
-                SizeType number_of_cps = this->size();
+                SizeType number_of_cps = geom.size();
 
                 KRATOS_ERROR_IF(number_of_cps < 3)
                     << "GetPointsAt: Not enough control points to get second row of nodes."
                     << std::endl;
 
                 if (local_coordinates[0] == 0) {
-                    rModelPart.push_back(geom.pGetPoint(1));
+                    rModelPart.AddNode(geom.pGetPoint(1));
                 }
                 else if (local_coordinates[0] == 1) {
-                    rModelPart.push_back(geom.pGetPoint(number_of_cps - 1));
+                    rModelPart.AddNode(geom.pGetPoint(number_of_cps - 1));
                 }
                 else {
                     KRATOS_ERROR << "GetPointsAt: GeometrySurfaceVariationNodes and local coordinates: " << local_coordinates[0]
@@ -380,7 +380,7 @@ namespace Kratos
 
                 for (IndexType i = u_start; i < u_end; ++i) {
                     for (IndexType j = v_start; j < v_end; ++j) {
-                        rModelPart.push_back(geom.pGetPoint(i * number_of_cps_u + j));
+                        rModelPart.AddNode(geom.pGetPoint(i * number_of_cps_u + j));
                     }
                 }
             }
