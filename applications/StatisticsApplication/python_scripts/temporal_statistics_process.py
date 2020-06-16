@@ -15,7 +15,17 @@ def Factory(settings, model):
         )
     return TemporalStatisticsProcess(model, settings["Parameters"])
 
+'''
+    Temporal Statistics process
 
+    This process calculates temporal statistics for given input variables in given container, and outputs to chosen variables
+    and chosen container.
+
+    This is compatible in OpenMP and MPI
+
+    Note: When this process is used with restarting, please don't use restarting start timestep and "statistics_start_point_control_value" time step
+          same. This will have an error in averaging, once simulation is restarted.
+'''
 class TemporalStatisticsProcess(Kratos.Process):
     def __init__(self, model, settings):
         Kratos.Process.__init__(self)
