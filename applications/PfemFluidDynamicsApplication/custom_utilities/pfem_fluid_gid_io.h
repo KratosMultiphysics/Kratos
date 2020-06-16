@@ -87,10 +87,17 @@ public:
              node_iterator != rThisMesh.NodesEnd();
              ++node_iterator)
         {
+            unsigned int ID=0;
             nodes_id[0] = node_iterator->Id();
-            nodes_id[1] = node_iterator->Is(ISOLATED);
+            if(node_iterator->Is(FREE_SURFACE)){
+                ID = 1;
+            }else if(node_iterator->Is(ISOLATED)){
+                ID = 2;
+            }
+            nodes_id[1] =  ID;
             GiD_fWriteElementMat(BaseType::mMeshFile, node_iterator->Id(), nodes_id);
         }
+
         GiD_fEndElements(BaseType::mMeshFile);
         GiD_fEndMesh(BaseType::mMeshFile);
 

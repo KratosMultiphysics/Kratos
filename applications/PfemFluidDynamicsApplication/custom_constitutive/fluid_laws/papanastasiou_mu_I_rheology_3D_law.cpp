@@ -131,19 +131,19 @@ int PapanastasiouMuIRheology3DLaw::Check(const Properties& rMaterialProperties, 
     KRATOS_CHECK_VARIABLE_KEY(REGULARIZATION_COEFFICIENT);
     KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
 
-    if (rMaterialProperties[STATIC_FRICTION] <= 0.0) {
+    if (rMaterialProperties[STATIC_FRICTION] < 0.0) {
         KRATOS_ERROR
             << "Incorrect or missing STATIC_FRICTION provided in process info for PapanastasiouMuIRheology3DLaw: "
             << rMaterialProperties[STATIC_FRICTION] << std::endl;
     }
 
-    if (rMaterialProperties[DYNAMIC_FRICTION] <= 0.0) {
+    if (rMaterialProperties[DYNAMIC_FRICTION] < 0.0) {
         KRATOS_ERROR
             << "Incorrect or missing DYNAMIC_FRICTION provided in process info for PapanastasiouMuIRheology3DLaw: "
             << rMaterialProperties[DYNAMIC_FRICTION] << std::endl;
     }
 
-    if (rMaterialProperties[INERTIAL_NUMBER_ZERO] <= 0.0) {
+    if (rMaterialProperties[INERTIAL_NUMBER_ZERO] < 0.0) {
         KRATOS_ERROR
             << "Incorrect or missing INERTIAL_NUMBER_ZERO provided in process info for PapanastasiouMuIRheology3DLaw: "
             << rMaterialProperties[INERTIAL_NUMBER_ZERO] << std::endl;
@@ -161,7 +161,7 @@ int PapanastasiouMuIRheology3DLaw::Check(const Properties& rMaterialProperties, 
             << rMaterialProperties[GRAIN_DENSITY] << std::endl;
     }
 
-    if (rMaterialProperties[REGULARIZATION_COEFFICIENT] <= 0.0) {
+    if (rMaterialProperties[REGULARIZATION_COEFFICIENT] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing REGULARIZATION_COEFFICIENT provided in process info for "
                         "PapanastasiouMuIRheology3DLaw: "
                      << rMaterialProperties[REGULARIZATION_COEFFICIENT] << std::endl;
@@ -181,9 +181,7 @@ double PapanastasiouMuIRheology3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Par
 }
 
 double PapanastasiouMuIRheology3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_properties = rParameters.GetMaterialProperties();
-    const double effective_density = r_properties[DENSITY];
-    return effective_density;
+    return rParameters.GetMaterialProperties()[DENSITY];
 }
 
 void PapanastasiouMuIRheology3DLaw::save(Serializer& rSerializer) const {
