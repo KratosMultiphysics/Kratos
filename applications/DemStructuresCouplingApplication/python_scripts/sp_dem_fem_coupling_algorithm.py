@@ -54,13 +54,13 @@ class SPAlgorithm(Algorithm):
             "multiaxial_control_module_fem_dem_generalized_2d_utility" : {
                 "Parameters"    : {
                     "control_module_delta_time": 2.0e-6,
-                    "velocity_factor" : 1.0,
-                    "stress_tolerance": 1.0e-2,
+                    "perturbation_tolerance": 1.0e-3,
                     "perturbation_period": 10,
-                    "update_stiffness": true,
-                    "stiffness_alpha": 1.0,
-                    "start_time" : 0.0,
-                    "stress_averaging_time": 2.0e-6
+                    "max_reaction_rate_factor": 10.0,
+                    "stiffness_averaging_time_interval": 2.0e-6,
+                    "velocity_averaging_time_interval": 2.0e-6,
+                    "reaction_averaging_time_interval": 2.0e-8,
+                    "output_interval": 0
                 },
                 "list_of_actuators" : []
             }
