@@ -241,6 +241,24 @@ namespace MPMSearchElementUtility
         }
     }
 
+
+    inline bool IsFixExplicitAndOnElementEdge(const Vector& N, const ProcessInfo& rProcessInfo)
+    {
+        if (rProcessInfo.Has(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)) {
+            if (rProcessInfo.GetValue(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)) {
+                // check if MP is exactly on the edge of the element, this gives spurious strains in explicit
+                for (SizeType i = 0; i < N.size(); ++i) {
+                    if (std::abs(N[i]) < std::numeric_limits<double>::epsilon()) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
     template <std::size_t TDimension>
     void BinBasedSearchElementsAndConditions(ModelPart& rMPMModelPart,
         ModelPart& rBackgroundGridModelPart,
@@ -248,12 +266,8 @@ namespace MPMSearchElementUtility
         std::vector<typename Condition::Pointer>& rMissingConditions,
         const std::size_t MaxNumberOfResults, const double Tolerance)
     {
-        const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
-        const bool is_fix_explicit_mp_on_grid_edge = (r_process_info.Has(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE))
-            ? r_process_info.GetValue(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)
-            : false;
-
         // Search background grid and make element active
+        const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
         Vector N;
         const int max_result = 1000;
 
