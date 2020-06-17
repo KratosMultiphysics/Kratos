@@ -68,7 +68,7 @@ class SurfaceNormalShapeChange(ResponseFunctionInterface):
                 "input_type"        : "use_input_model_part",
                 "input_filename"    : "UNKNOWN_NAME"
             },
-            "flip_normal_direction" : true
+            "flip_normal_direction" : false
         }""")
         return this_defaults
 
