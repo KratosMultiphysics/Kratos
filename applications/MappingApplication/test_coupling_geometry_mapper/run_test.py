@@ -59,14 +59,63 @@ KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, 
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
     "echo_level" : 0,
-    "dual_mortar": false,
+    "dual_mortar": true,
     "consistency_scaling" : false
 }""")
 
 mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)
 #mapper = KratosMapping.MapperFactory.CreateMapper(model_part_coupling, dummy, mapper_params) // goal => NO!!!
 
-for node in model_part_origin.Nodes:
-    node.SetSolutionStepValue(KM.DISPLACEMENT_X, 1.0)
+
+prescribed_displacement = 2.5
+prescribed_force = 3.0
+print("\nMapping uniform displacement ",prescribed_displacement," from origin to destination")
+for node in originInterface.Nodes:
+    node.SetSolutionStepValue(KM.DISPLACEMENT_X, prescribed_displacement)
+
 
 mapper.Map(KM.DISPLACEMENT, KM.DISPLACEMENT)
+print("destination interface nodes displacement values")
+for node in destinationInterface.Nodes:
+    print("\t",node.Id," displacement = ",node.GetSolutionStepValue(KM.DISPLACEMENT_X))
+    #self.assertAlmostEqual(node.GetSolutionStepValue(KM.DISPLACEMENT_X),prescribed_displacement)
+
+
+# clear values
+#for node in model_part_origin.Nodes:
+#    node.SetSolutionStepValue(KM.DISPLACEMENT_X, 0.0)
+
+print("\n\nInverse mapping from destination to origin")
+for node in destinationInterface.Nodes:
+    node.SetSolutionStepValue(KM.FORCE_X, prescribed_force)
+    if node.Id == 1 or node.Id == 10:
+        node.SetSolutionStepValue(KM.FORCE_X, prescribed_force/2.0)
+    print("\t",node.Id," displacement = ",node.GetSolutionStepValue(KM.FORCE_X))
+    print("\t",node.Id," Y position = ",node.Y)
+
+mapper.InverseMap(KM.FORCE, KM.FORCE)
+print("destination interface nodes displacement values")
+
+
+for node in originInterface.Nodes:
+    print("\t",node.Id," forces = ",node.GetSolutionStepValue(KM.FORCE_X))
+    print("\t",node.Id," forces = ",node.Y)
+
+
+print("\n\nCHECKING ENERGY BALANCE")
+energy_origin = 0.0
+print("Origin part")
+for node in originInterface.Nodes:
+    print("\t",node.Id,"\n\t\tforces = ",node.GetSolutionStepValue(KM.FORCE_X),"\n\t\tdisp = ",node.GetSolutionStepValue(KM.DISPLACEMENT_X))
+    energy_origin += node.GetSolutionStepValue(KM.FORCE_X) * node.GetSolutionStepValue(KM.DISPLACEMENT_X)
+
+energy_dest = 0.0
+print("Destination part")
+for node in destinationInterface.Nodes:
+    print("\t",node.Id,"\n\t\tforces = ",node.GetSolutionStepValue(KM.FORCE_X),"\n\t\tdisp = ",node.GetSolutionStepValue(KM.DISPLACEMENT_X))
+    energy_dest += node.GetSolutionStepValue(KM.FORCE_X) * node.GetSolutionStepValue(KM.DISPLACEMENT_X)
+
+print(energy_origin)
+print(energy_dest)
+print("ebergy balance = ",energy_origin-energy_dest)
+#self.assertAlmostEqual(energy_origin, energy_dest)
