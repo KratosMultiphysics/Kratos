@@ -516,9 +516,15 @@ inline std::ostream& operator << (
 ///@name Type Dimension Definition
 ///@{
 
-template<class TPointType>
-const GeometryDimension Geometry<
-    TPointType>::msGeometryDimension(
+template<class TPointType,
+    int TWorkingSpaceDimension,
+    int TLocalSpaceDimension,
+    int TDimension>
+const GeometryDimension QuadraturePointGeometry<
+    TPointType,
+    TWorkingSpaceDimension,
+    TLocalSpaceDimension,
+    TDimension>::msGeometryDimension(
         TLocalSpaceDimension,
         TWorkingSpaceDimension,
         TLocalSpaceDimension);
