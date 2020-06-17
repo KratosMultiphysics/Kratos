@@ -329,45 +329,54 @@ public:
     }
 };
 
-double GetDoubleValue(const std::string& rInput);
+double KRATOS_API(STATISTICS_APPLICATION) GetDoubleValue(const std::string& rInput);
 
-int GetIntegerValue(const std::string& rInput);
+int KRATOS_API(STATISTICS_APPLICATION) GetIntegerValue(const std::string& rInput);
 
-void SplitString(std::string& rOutput1, std::string& rOutput2, const std::string& rInput);
-
-template <class TDataType>
-void DataTypeSizeInitializer(TDataType& rData, const TDataType& rReferenceData);
+void KRATOS_API(STATISTICS_APPLICATION)
+    SplitString(std::string& rOutput1, std::string& rOutput2, const std::string& rInput);
 
 template <class TDataType>
-void DataTypeSizeChecker(const TDataType& rData, const TDataType& rReferenceData);
+void KRATOS_API(STATISTICS_APPLICATION)
+    DataTypeSizeInitializer(TDataType& rData, const TDataType& rReferenceData);
+
+template <class TDataType>
+void KRATOS_API(STATISTICS_APPLICATION)
+    DataTypeSizeChecker(const TDataType& rData, const TDataType& rReferenceData);
 
 template <class TContainerType>
-TContainerType& GetLocalDataContainer(ModelPart& rModelPart);
+TContainerType& KRATOS_API(STATISTICS_APPLICATION)
+    GetLocalDataContainer(ModelPart& rModelPart);
 
 template <class TContainerType>
-const TContainerType& GetLocalDataContainer(const ModelPart& rModelPart);
+const TContainerType& KRATOS_API(STATISTICS_APPLICATION)
+    GetLocalDataContainer(const ModelPart& rModelPart);
 
 template <class TContainerType>
-TContainerType& GetDataContainer(ModelPart& rModelPart);
+TContainerType& KRATOS_API(STATISTICS_APPLICATION)
+    GetDataContainer(ModelPart& rModelPart);
 
 template <class TContainerType>
-const TContainerType& GetDataContainer(const ModelPart& rModelPart);
+const TContainerType& KRATOS_API(STATISTICS_APPLICATION)
+    GetDataContainer(const ModelPart& rModelPart);
 
 template <class TDataType>
 const std::function<double(const TDataType&)> KRATOS_API(STATISTICS_APPLICATION)
     GetNormMethod(const Variable<TDataType>& rVariable, const std::string& rNormType);
 
 template <class TDataType>
-std::string GetVariableTypeName();
+std::string KRATOS_API(STATISTICS_APPLICATION) GetVariableTypeName();
 
 template <class TDataType>
-void CheckVariableType(const std::vector<std::string>& rVariableNamesList);
+void KRATOS_API(STATISTICS_APPLICATION)
+    CheckVariableType(const std::vector<std::string>& rVariableNamesList);
 
-void CheckInputOutputVariables(
+void KRATOS_API(STATISTICS_APPLICATION) CheckInputOutputVariables(
     const std::vector<std::string>& rInputVariableNamesList,
     const std::vector<std::string>& rOutputVariableNamesList);
 
-std::vector<double> SortSortedValuesList(const std::vector<std::vector<double>>& rValues);
+std::vector<double> KRATOS_API(STATISTICS_APPLICATION)
+    SortSortedValuesList(const std::vector<std::vector<double>>& rValues);
 
 } // namespace MethodUtilities
 
