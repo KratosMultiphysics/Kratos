@@ -353,6 +353,8 @@ public:
         if ((DirectionIndex == 0) || (DirectionIndex == 1)) {
             return 3;
         }
+        KRATOS_DEBUG_ERROR_IF(DirectionIndex > 2) << "Possible direction index reaches from 0-2. Given direction index: "
+            << DirectionIndex << std::endl;
         return 1;
     }
 
