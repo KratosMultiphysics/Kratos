@@ -65,8 +65,6 @@ public:
     typedef BaseType::GeometryType   GeometryType;
     typedef BaseType::NodesArrayType NodesArrayType;
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> Array1DComponentType;
-
     /// The machine precision
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
@@ -169,7 +167,7 @@ public:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -329,8 +327,8 @@ private:
     ///@name Private Operations
     ///@{
 
-    Array1DComponentType* GetDisplacementInDirection() const;
-    Array1DComponentType* GetPointLoadInDirection() const;
+    Variable<double>* GetDisplacementInDirection() const;
+    Variable<double>* GetPointLoadInDirection() const;
 
     ///@}
     ///@name Private  Access

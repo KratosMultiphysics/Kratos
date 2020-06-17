@@ -208,7 +208,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def CheckVariableType(self,name):
 
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
-        if( (not isinstance(self.var,KratosMultiphysics.Array1DComponentVariable)) and (not isinstance(self.var,KratosMultiphysics.DoubleVariable)) and (not isinstance(self.var,KratosMultiphysics.VectorVariable)) ):
+        if( (not isinstance(self.var,KratosMultiphysics.Array1DVariable3)) and (not isinstance(self.var,KratosMultiphysics.DoubleVariable)) and (not isinstance(self.var,KratosMultiphysics.VectorVariable)) ):
             raise Exception("Variable type is incorrect. Must be a scalar or a component")
 
     #

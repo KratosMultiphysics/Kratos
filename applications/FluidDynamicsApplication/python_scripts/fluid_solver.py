@@ -1,5 +1,3 @@
-import sys
-
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
@@ -192,10 +190,7 @@ class FluidSolver(PythonSolver):
 
     def _GetElementNumNodes(self):
         if self.main_model_part.NumberOfElements() != 0:
-            if sys.version_info[0] >= 3: # python3 syntax
-                element_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
-            else: # python2 syntax
-                element_num_nodes = len(self.main_model_part.Elements.__iter__().next().GetNodes())
+            element_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
         else:
             element_num_nodes = 0
 
@@ -204,10 +199,7 @@ class FluidSolver(PythonSolver):
 
     def _GetConditionNumNodes(self):
         if self.main_model_part.NumberOfConditions() != 0:
-            if sys.version_info[0] >= 3: # python3 syntax
-                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
-            else: # python2 syntax
-                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().next().GetNodes())
+            condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
         else:
             condition_num_nodes = 0
 

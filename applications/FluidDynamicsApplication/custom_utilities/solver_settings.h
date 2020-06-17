@@ -175,12 +175,12 @@ public:
                 pThisStrategy.swap(itStrategy->second);
                 return true;
             } else {
-                KRATOS_INFO("SolverSettingsFSStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
+                KRATOS_INFO("SolverSettingsFractionalStepStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
                 return false;
             }
         }
         else {
-            KRATOS_INFO("SolverSettingsFSStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
+            KRATOS_INFO("SolverSettingsFractionalStepStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
             return false;
         }
     }

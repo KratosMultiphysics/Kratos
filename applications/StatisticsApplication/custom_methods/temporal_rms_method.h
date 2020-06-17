@@ -57,10 +57,14 @@ public:
         {
         }
 
-        void CalculateStatistics(const double DeltaTime) override
+        void CalculateStatistics() override
         {
             TContainerType& r_container =
                 MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+
+            const double delta_time = this->GetDeltaTime();
+            const double old_total_time = this->GetTotalTime();
+            const double total_time = old_total_time + delta_time;
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -74,10 +78,9 @@ public:
                 MethodUtilities::DataTypeSizeChecker(r_input_value, r_output_value);
 
                 TemporalRootMeanSquareMethod::CalculateRootMeanSquare<TDataType>(
-                    r_output_value, r_input_value, DeltaTime, this->GetTotalTime());
+                    r_output_value, r_input_value, delta_time, old_total_time, total_time);
             }
 
-            TemporalMethod::CalculateStatistics(DeltaTime);
             KRATOS_INFO_IF("TemporalValueRootMeanSquareMethod", this->GetEchoLevel() > 1)
                 << "Calculated temporal value root mean square for "
                 << mrInputVariable.Name() << " input variable with "
@@ -92,7 +95,7 @@ public:
 
             auto& initializer_method =
                 TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
-                                                              TDataStorageFunctor, TDataType>;
+                                                             TDataStorageFunctor, TDataType>;
             initializer_method(r_container, mrOutputVariable, mrInputVariable);
 
             KRATOS_INFO_IF("TemporalValueRootMeanSquareMethod", this->GetEchoLevel() > 0)
@@ -125,13 +128,17 @@ public:
         {
         }
 
-        void CalculateStatistics(const double DeltaTime) override
+        void CalculateStatistics() override
         {
             TContainerType& r_container =
                 MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const auto& norm_method =
                 MethodUtilities::GetNormMethod(mrInputVariable, mNormType);
+
+            const double delta_time = this->GetDeltaTime();
+            const double old_total_time = this->GetTotalTime();
+            const double total_time = old_total_time + delta_time;
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -145,10 +152,9 @@ public:
                     TDataStorageFunctor<TContainerItemType>()(r_item, mrOutputVariable);
 
                 TemporalRootMeanSquareMethod::CalculateRootMeanSquare<double>(
-                    r_output_value, input_norm_value, DeltaTime, this->GetTotalTime());
+                    r_output_value, input_norm_value, delta_time, old_total_time, total_time);
             }
 
-            TemporalMethod::CalculateStatistics(DeltaTime);
             KRATOS_INFO_IF("TemporalNormRootMeanSquareMethod", this->GetEchoLevel() > 1)
                 << "Calculated temporal norm root mean square for "
                 << mrInputVariable.Name() << " input variable with "
@@ -237,12 +243,13 @@ private:
     void static CalculateRootMeanSquare(TDataType& rRootMeanSquare,
                                         const TDataType& rNewDataPoint,
                                         const double DeltaTime,
-                                        const double TotalTime)
+                                        const double OldTotalTime,
+                                        const double CurrentTotalTime)
     {
         rRootMeanSquare = MethodUtilities::RaiseToPower<TDataType>(
-            (MethodUtilities::RaiseToPower<TDataType>(rRootMeanSquare, 2) * TotalTime +
+            (MethodUtilities::RaiseToPower<TDataType>(rRootMeanSquare, 2) * OldTotalTime +
              MethodUtilities::RaiseToPower(rNewDataPoint, 2) * DeltaTime) *
-                (1.0 / (TotalTime + DeltaTime)),
+                (1.0 / CurrentTotalTime),
             0.5);
     }
 };
