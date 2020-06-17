@@ -352,12 +352,8 @@ public:
 #endif
     }
 
-    static void TransposeMult(Matrix& rA, VectorType& rX, VectorType& rY)
-    {
-		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
-    } // rY = rAT * rX
-
-    static void TransposeMult(const compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
+    template< class TOtherMatrixType >
+    static void TransposeMult(TOtherMatrixType& rA, VectorType& rX, VectorType& rY)
     {
 		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
