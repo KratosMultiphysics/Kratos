@@ -60,11 +60,25 @@ mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
     "echo_level" : 0,
     "dual_mortar": true,
-    "consistency_scaling" : false
+    "consistency_scaling" : false,
+    "modeler_parameters":{
+        "modeler_name" : "PeterSucks",
+        "origin_model_part_name" : "P-Dog",
+        "destination_model_part_name" : "T-Dog",
+        "is_interface_defined" : false
+    }
 }""")
 
 mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)
-#mapper = KratosMapping.MapperFactory.CreateMapper(model_part_coupling, dummy, mapper_params) // goal => NO!!!
+
+# Plan ---------------------------------------
+#mapper = KratosMapping.MapperFactory.CreateMapper(current_model, mapper_params)
+#   (this creates a mapper modeller)
+#   modeller.CreateModelPart   (this creates model_part_coupling_quadrature_points)
+#       DetermineIntersectingGeometries()
+#       CreateCouplingGeometries()
+#mapper.CreateMappingMatrix()
+#
 
 
 prescribed_displacement = 2.5
