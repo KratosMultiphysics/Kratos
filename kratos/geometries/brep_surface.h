@@ -281,13 +281,13 @@ public:
     ///@name Geometrical Operations
     ///@{
 
-    /* @brief Provides Spans of the underlying brep surface.
+    /* @brief Provides Spans of the underlying nurbs surface.
      * @param vector of span intervals.
      * @param index of chosen direction, possible direction 0 and 1.
      */
     void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const override
     {
-        mpNurbsSurface->Spans(rSpans);
+        mpNurbsSurface->Spans(rSpans, DirectionIndex);
     }
 
     /// Provides the center of the underlying surface
