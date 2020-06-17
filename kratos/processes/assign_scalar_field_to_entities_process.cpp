@@ -75,8 +75,6 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Clear()
 
     if( KratosComponents< Variable<double> >::Has( mVariableName ) ) { //case of scalar variable
         ClearValueScalar<>(KratosComponents< Variable<double> >::Get(mVariableName));
-    } else if( KratosComponents< array_1d_component_type >::Has( mVariableName ) ) { //case of component variable
-        ClearValueScalar<>(KratosComponents< array_1d_component_type >::Get(mVariableName));
     } else if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) { //case of vector variable
         ClearValueVector<>(KratosComponents< Variable<Vector> >::Get(mVariableName));
     } else {
