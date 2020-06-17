@@ -60,7 +60,7 @@
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "processes/time_averaging_process.h"
-#include "includes/node.h"
+#include "processes/from_json_check_result_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -74,7 +74,6 @@ namespace Kratos
 namespace Python
 {
 typedef Node<3> NodeType;
-typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 // Discontinuous distance computation auxiliar functions
 template<std::size_t TDim>
@@ -281,7 +280,6 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
             .def(py::init< ModelPart&, Parameters& >())
-            .def(py::init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
             .def("ExecuteInitialize", &ApplyConstantScalarValueProcess::ExecuteInitialize)
@@ -412,15 +410,6 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<AssignScalarFieldToEntitiesProcess<Element>, AssignScalarFieldToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarFieldToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
-
-    //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
-    //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
-
-    //py::class_<AddDofsNodalProcess<Variable<double> >, AddDofsNodalProcess<Variable<double> >::Pointer, Process>(m,"AddDoubleDofsNodalProcess")
-    // .def(py::init<Variable<double>, NodesContainerType&, DofsContainerType&>())
-    // ;
-    //py::class_<AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >, AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >::Pointer, Process>(m,"AddArrayComponentDofsNodalProcess")
-    // ;
 
     /* Simple Mortar mapper */
     // Wrapper
@@ -597,6 +586,19 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>(m, "TimeAveragingProcess")
     .def(py::init<Model&, Parameters>())
     ;
+
+    auto from_json_check_result_process_interface =
+    py::class_<FromJSONCheckResultProcess, FromJSONCheckResultProcess::Pointer, Process>(m, "FromJSONCheckResultProcess")
+    .def(py::init<Model&>())
+    .def(py::init<Model&, Parameters>())
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def("IsCorrectResult", &FromJSONCheckResultProcess::IsCorrectResult)
+    ;
+
+    from_json_check_result_process_interface.attr("CORRECT_RESULT")                 = &FromJSONCheckResultProcess::CORRECT_RESULT;
+    from_json_check_result_process_interface.attr("HISTORICAL_VALUE")               = &FromJSONCheckResultProcess::HISTORICAL_VALUE;
+    from_json_check_result_process_interface.attr("CHECK_ONLY_LOCAL_ENTITIES")      = &FromJSONCheckResultProcess::CHECK_ONLY_LOCAL_ENTITIES;
 }
 
 }  // namespace Python.
