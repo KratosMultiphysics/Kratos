@@ -575,9 +575,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 
     const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
     
-    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
-    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<TDim, TNumNodes>(local_velocity_squared, rCurrentProcessInfo);
-
+    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
 
@@ -642,8 +640,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 
     const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
-    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
-    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<TDim, TNumNodes>(local_velocity_squared, rCurrentProcessInfo);
+    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
 
@@ -777,8 +774,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 
     const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
-    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
-    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<TDim, TNumNodes>(local_velocity_squared, rCurrentProcessInfo);
+    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
 

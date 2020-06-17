@@ -694,7 +694,7 @@ double ComputeUpwindedDensity(
 
 template <int Dim, int NumNodes>
 double ComputeDensityDerivativeWRTVelocitySquared(
-    const double localVelocitySquared, 
+    const double localMachNumberSquared, 
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -710,8 +710,10 @@ double ComputeDensityDerivativeWRTVelocitySquared(
     KRATOS_ERROR_IF(free_stream_mach < std::numeric_limits<double>::epsilon())
         << "ComputeDensityDerivativeWRTVelocitySquared: free stream mach number must be larger than zero." << std::endl;
 
+    const double local_velocity_squared = ComputeVelocityMagnitude<Dim, NumNodes>(localMachNumberSquared, rCurrentProcessInfo);
+
     // ratio of speed of sound to free stream speed of sound
-    const double speed_of_sound_ratio = ComputeSquaredSpeedofSoundFactor<Dim, NumNodes>(localVelocitySquared, rCurrentProcessInfo);
+    const double speed_of_sound_ratio = ComputeSquaredSpeedofSoundFactor<Dim, NumNodes>(local_velocity_squared, rCurrentProcessInfo);
 
     const double free_stream_values_const = -0.5 * free_stream_density * std::pow(free_stream_mach,2.0) / inner_prod(free_stream_velocity, free_stream_velocity);
     const double speed_of_sound_power = (2.0 - heat_capacity_ratio) / (heat_capacity_ratio - 1.0);
@@ -725,83 +727,79 @@ double ComputeDensityDerivativeWRTVelocitySquared(
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating(
     const array_1d<double, Dim>& rCurrentVelocity, 
-    const array_1d<double, Dim>& rUpwindVelocity, 
+    const double currentMachNumberSquared,
+    const double upwindMachNumberSquared, 
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
     //           and the Integral Boundary Layer Equations in Three Dimensions
     //           by Brian Nishida (1996), Section A.2.6
-    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rCurrentVelocity, rCurrentVelocity), rCurrentProcessInfo);
-
-    const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+    const double upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(currentMachNumberSquared, rCurrentProcessInfo);
 
     const double upwind_factor_derivative = ComputeUpwindFactorDerivativeWRTVelocitySquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
 
-    const double current_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
-    const double upwind_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(currentMachNumberSquared, rCurrentProcessInfo);
 
-    const double current_density = ComputeDensity<Dim, NumNodes>(current_mach_sq, rCurrentProcessInfo);
-    const double upwind_density = ComputeDensity<Dim, NumNodes>(upwind_mach_sq, rCurrentProcessInfo);
+    const double current_density = ComputeDensity<Dim, NumNodes>(currentMachNumberSquared, rCurrentProcessInfo);
+    const double upwind_density = ComputeDensity<Dim, NumNodes>(upwindMachNumberSquared, rCurrentProcessInfo);
 
-    const double bracket_term = upwind_factor_derivative * (current_density - upwind_density) + upwind_factor * Drho_Dq2;
-
-    return Drho_Dq2 - bracket_term;
+    return Drho_Dq2 * (1.0 - upwind_factor) - upwind_factor_derivative * (current_density - upwind_density);
 }
 
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating(
-    const array_1d<double, Dim>& rCurrentVelocity, 
-    const array_1d<double, Dim>& rUpwindVelocity, 
+    const double currentMachNumberSquared,
+    const double upwindMachSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
     //           and the Integral Boundary Layer Equations in Three Dimensions
-    //           by Brian Nishida (1996), Section A.2.6
-    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rCurrentVelocity, rCurrentVelocity), rCurrentProcessInfo);
+    //           by Brian Nishida (1996), Section A.2.6    
+    // const double current_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
+    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(currentMachNumberSquared, rCurrentProcessInfo);
 
-    const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+    // const double upwind_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+    const double upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(upwindMachSquared, rCurrentProcessInfo);
 
-    return Drho_Dq2 - upwind_factor * Drho_Dq2;
+    return Drho_Dq2 * (1.0 - upwind_factor);
 }
 
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating(
-    const array_1d<double, Dim>& rCurrentVelocity, 
-    const array_1d<double, Dim>& rUpwindVelocity, 
+    const double currentMachNumberSquared,
+    const double upwindMachNumberSquared, 
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
     //           and the Integral Boundary Layer Equations in Three Dimensions
     //           by Brian Nishida (1996), Section A.2.6
-    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rUpwindVelocity, rUpwindVelocity), rCurrentProcessInfo);
+    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(upwindMachNumberSquared, rCurrentProcessInfo);
 
-    const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+    const double upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(currentMachNumberSquared, rCurrentProcessInfo);
 
     return upwind_factor * Drho_Dq2;
 }
 
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating(
-    const array_1d<double, Dim>& rCurrentVelocity, 
-    const array_1d<double, Dim>& rUpwindVelocity, 
+    const array_1d<double, Dim>& rUpwindVelocity,
+    const double currentMachNumberSquared,
+    const double upwindMachNumberSquared, 
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
     //           and the Integral Boundary Layer Equations in Three Dimensions
     //           by Brian Nishida (1996), Section A.2.6
-    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(inner_prod(rUpwindVelocity, rUpwindVelocity), rCurrentProcessInfo);
-
-    const double upwind_factor = SelectMaxUpwindFactor<Dim, NumNodes>(rCurrentVelocity, rUpwindVelocity, rCurrentProcessInfo);
+    const double upwind_factor = ComputeUpwindFactor<Dim, NumNodes>(upwindMachNumberSquared, rCurrentProcessInfo);
 
     const double upwind_factor_derivative = ComputeUpwindFactorDerivativeWRTVelocitySquared<Dim, NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
 
-    const double current_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
-    const double upwind_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rUpwindVelocity, rCurrentProcessInfo);
+    const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(upwindMachNumberSquared, rCurrentProcessInfo);
 
-    const double current_density = ComputeDensity<Dim, NumNodes>(current_mach_sq, rCurrentProcessInfo);
-    const double upwind_density = ComputeDensity<Dim, NumNodes>(upwind_mach_sq, rCurrentProcessInfo);
+    const double current_density = ComputeDensity<Dim, NumNodes>(currentMachNumberSquared, rCurrentProcessInfo);
+    const double upwind_density = ComputeDensity<Dim, NumNodes>(upwindMachNumberSquared, rCurrentProcessInfo);
 
-    return -upwind_factor_derivative * (current_density - upwind_density) + (upwind_factor * Drho_Dq2);
+    return upwind_factor * Drho_Dq2 - upwind_factor_derivative * (current_density - upwind_density);
 }
 
 template <int Dim, int NumNodes>
@@ -947,10 +945,10 @@ template double ComputeUpwindFactorDerivativeWRTVelocitySquared<2,3>(const array
 template double ComputeDensity<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensity<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivativeWRTVelocitySquared<2,3>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const array_1d<double, 2>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<2,3>(const array_1d<double, 2>& rCurrentVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<2,3>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<2,3>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -993,10 +991,10 @@ template double ComputeUpwindFactorDerivativeWRTVelocitySquared<3,4>(const array
 template double ComputeDensity<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeUpwindedDensity<3, 4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeDensityDerivativeWRTVelocitySquared<3,4>(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
-template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const array_1d<double, 3>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<3,4>(const array_1d<double, 3>& rCurrentVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<3,4>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<3,4>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
