@@ -452,15 +452,15 @@ public:
                         this->pGetBuilderAndSolver()->ApplyRHSConstraints(p_scheme, r_model_part, rb);
                     }
 
-                    // Apply dynamic derivative constraint
-                    this->ApplyDynamicDerivativeConstraint(basis);
-
                     // Apply Dirichlet conditions
                     this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
 
+                    // Apply dynamic derivative constraint
+                    this->ApplyDynamicDerivativeConstraint(basis);
+
                     // Solve for the modal derivative
                     this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
-                    // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);                    
+                    // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
                 }
                 
                 // Mass orthonormalization
@@ -555,11 +555,15 @@ public:
         
     }
 
+    /**
+     * @brief This function retrieves the basis of given index
+     * @details
+     * { 
+     * } 
+     */  
     void GetBasis(std::size_t basis_index, TSystemVectorType& rBasis)
     {
         ModelPart& r_model_part = BaseType::GetModelPart();
-
-        // const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
 
         for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++) {
             ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
@@ -571,32 +575,44 @@ public:
             {
                 const auto itDof = std::begin(NodeDofs) + iDOF;
                 rBasis((*itDof)->EquationId()) = rRomBasis(iDOF,basis_index);
-            }            
+            }
         }
     }
 
+    /**
+     * @brief This function applies the dynamic derivative constraint
+     * @details
+     * { 
+     * The dynamic derivative LHS is singular since A_ij = K - lambda_i*M ,
+     * thus the dynamic derivative constraint has to be applied with; Basis_i^T @ M dBasis_i_dalpha_j = 0
+     * This function applies the constraint using the given Basis_i to the first found free DOF
+     * } 
+     */  
     void ApplyDynamicDerivativeConstraint(TSystemVectorType& rBasis)
     {
         KRATOS_TRY
 
         TSystemMatrixType& rA = *mpA;
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
-        TSystemVectorType& rb = *mpb;
 
         DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
 
-        TSystemVectorType row;
-        row = prec_prod(rMassMatrix, rBasis);
+        TSystemVectorType constraint;
+        constraint = prec_prod(rMassMatrix, rBasis);
 
-        for (auto dof : r_dof_set)
+        for (auto dof_i : r_dof_set)
         {
-            if (dof.IsFree())
+            // If the DOF is free
+            if (dof_i.IsFree())
             {
-                for (std::size_t j = 0; j < rA.size2(); j++) 
+                // then add the constraint only to the first free DOF's row and column
+                for (auto dof_j : r_dof_set)
                 {
-                    rA(dof.EquationId(),j) = row[j];
+                    // Set row
+                    rA(dof_i.EquationId(),dof_j.EquationId()) += constraint[dof_j.EquationId()];
+                    // Set column
+                    rA(dof_j.EquationId(),dof_i.EquationId()) += constraint[dof_j.EquationId()];
                 }
-                rb[dof.EquationId()] = 0.0;
                 return;
             }
         }
@@ -604,6 +620,12 @@ public:
         KRATOS_CATCH("")        
     }
 
+    /**
+     * @brief This function assigns the solution vector to ROM_BASIS nodal variable
+     * @details
+     * { 
+     * } 
+     */  
     void AssignVariables(TSystemVectorType& rDx)
     {
         KRATOS_TRY

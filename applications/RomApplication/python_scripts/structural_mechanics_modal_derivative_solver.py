@@ -47,7 +47,8 @@ class ModalDerivativeSolver(MechanicalSolver):
             "derivative_type"               : "static",
             "finite_difference_type"        : "forward",
             "finite_difference_step_size"   : 1e-3,
-            "mass_orthonormalize"           : true
+            "mass_orthonormalize"           : true,
+            "rom_parameters_filename"       : "RomParameters.json"
         }""")
         this_defaults.AddMissingParameters(super(ModalDerivativeSolver, cls).GetDefaultSettings())
         return this_defaults

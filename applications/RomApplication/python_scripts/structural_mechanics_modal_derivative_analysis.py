@@ -42,8 +42,9 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         else:
             err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
             raise Exception(err_msg)
-
-        with open('RomParameters.json') as rom_parameters_file:
+        
+        rom_parameters_filename = self.project_parameters["solver_settings"]["rom_parameters_filename"].GetString()
+        with open(rom_parameters_filename) as rom_parameters_file:
             data = json.load(rom_parameters_file)
 
             number_of_initial_rom_dofs = data["rom_settings"]["number_of_rom_dofs"]
@@ -61,7 +62,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             number_of_extended_rom_dofs = None
             if not derivative_type_flag:
                 number_of_extended_rom_dofs = int(number_of_initial_rom_dofs + number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ) / 2)
-            else :
+            else:
                 number_of_extended_rom_dofs = int(number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ))
 
             counter = 0

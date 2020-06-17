@@ -69,14 +69,14 @@ public:
                 // Positive perturbation
                 rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rDof.GetSolutionStepValue() += rPertubationMag;
-                rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
                 rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+                rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
                 
                 // Negative perturbation
                 rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rDof.GetSolutionStepValue() -= 2.0*rPertubationMag;
-                rElement.CalculateLeftHandSide(LHS_m_perturbed, rCurrentProcessInfo);
                 rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+                rElement.CalculateLeftHandSide(LHS_m_perturbed, rCurrentProcessInfo);
 
                 // Reset perturbation
                 rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
@@ -84,7 +84,7 @@ public:
                 rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
                 
                 // Derivative of LHS w.r.t.
-                noalias(rOutput) = (LHS_p_perturbed - LHS_m_perturbed) / (2.0*rPertubationMag);
+                rOutput = (LHS_p_perturbed - LHS_m_perturbed) / (2.0*rPertubationMag);
 
             } else {
 
@@ -100,16 +100,16 @@ public:
                 // Positive perturbation
                 rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rDof.GetSolutionStepValue() += rPertubationMag;
-                rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
                 rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
-
+                rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
+                
                 // Reset perturbation
                 rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                 rDof.GetSolutionStepValue() -= rPertubationMag;
                 rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
                 
                 // Derivative of LHS w.r.t. DOF
-                noalias(rOutput) = (LHS_p_perturbed - LHS) / rPertubationMag;
+                rOutput = (LHS_p_perturbed - LHS) / rPertubationMag;
 
             }
                         
