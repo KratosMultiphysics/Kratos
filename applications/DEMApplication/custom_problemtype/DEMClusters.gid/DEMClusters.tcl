@@ -200,15 +200,16 @@ proc DEMClusters::call_TreeMedial { } {
     set erFact [GiD_AccessValue get gendata erFact]
     set numSamples [GiD_AccessValue get gendata numSamples]
     set minSamples [GiD_AccessValue get gendata minSamples]
-    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
-    set genericOBJFilename "\"$genericOBJFilename\""
+    #set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    #set genericOBJFilename "\"$genericOBJFilename\""
+    set modelname [GiD_Info Project ModelName]
+    set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     #set filename_obj $::DEMClusters::ProblemName ## custom names
     #append filename_obj .obj
 
 
-    set modelname [GiD_Info Project ModelName]
-    set genericOBJFilename [file join ${modelname}.gid generic.obj]
+
 
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
 
@@ -269,8 +270,10 @@ proc DEMClusters::call_makeTreeGrid { } {
     set numCover [GiD_AccessValue get gendata numCover]
     set minCover [GiD_AccessValue get gendata minCover]
     set testerLevels [GiD_AccessValue get gendata testerLevels]
-    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
-    set genericOBJFilename "\"$genericOBJFilename\""
+    #set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    #set genericOBJFilename "\"$genericOBJFilename\""
+    set modelname [GiD_Info Project ModelName]
+    set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
@@ -297,8 +300,10 @@ proc DEMClusters::call_makeTreeSpawn { } {
     set numCover [GiD_AccessValue get gendata numCover]
     set minCover [GiD_AccessValue get gendata minCover]
     set testerLevels [GiD_AccessValue get gendata testerLevels]
-    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
-    set genericOBJFilename "\"$genericOBJFilename\""
+    #set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    #set genericOBJFilename "\"$genericOBJFilename\""
+    set modelname [GiD_Info Project ModelName]
+    set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
@@ -327,8 +332,10 @@ proc DEMClusters::call_makeTreeHubbard { } {
     set depth [GiD_AccessValue get gendata depth]
     set numSamples [GiD_AccessValue get gendata numSamples]
     set minSamples [GiD_AccessValue get gendata minSamples]
-    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    #set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
     #set genericOBJFilename "\"$genericOBJFilename\""
+    set modelname [GiD_Info Project ModelName]
+    set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     set modelname [GiD_Info Project ModelName]
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
@@ -349,8 +356,10 @@ proc DEMClusters::call_makeTreeOctree { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set depth [GiD_AccessValue get gendata depth]
-    set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
-    set genericOBJFilename "\"$genericOBJFilename\""
+    #set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
+    #set genericOBJFilename "\"$genericOBJFilename\""
+    set modelname [GiD_Info Project ModelName]
+    set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     set argv "-depth $depth -nopause $genericOBJFilename"
     set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
@@ -389,8 +398,6 @@ proc GenerateClusterFile { } {
     set genericMSHFilename [file join $::DEMClusters::ProblemPath generic.msh]
     # set genericMSHFilename "\"$genericMSHFilename\""
     set argv_number 2
-    set argv "$argv_number $genericMSHFilename $genericSPHFilename"
-
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
