@@ -343,7 +343,6 @@ namespace MPMSearchElementUtility
                     bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                     if (is_found == true) {
-                        //pelem->Set(ACTIVE);
                         condition_itr->GetGeometry() = pelem->GetGeometry();
                         auto& r_geometry = condition_itr->GetGeometry();
 
