@@ -168,6 +168,10 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->LocalSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->Dimension(), 2);
 
+            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[0], 4);
+            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[1], 5);
+            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[2], 6);
+
             KRATOS_CHECK_MATRIX_NEAR(
                 p_this_quadrature_point->ShapeFunctionsValues(),
                 N_i,
