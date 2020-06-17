@@ -41,7 +41,7 @@ namespace Kratos
 
 namespace SpatialMethods
 {
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor>
+template <class TContainerType, class TContainerItemType, template <class T> class TDataRetrievalFunctor>
 class ContainerSpatialMethods
 {
 public:
@@ -63,9 +63,8 @@ public:
         return sum;
     }
 
-    template <typename TDataType>
-    TDataType static CalculateSum(const ModelPart& rModelPart,
-                                  const Variable<TDataType>& rVariable)
+    template <class TDataType>
+    TDataType static CalculateSum(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
     {
         KRATOS_TRY
 
@@ -109,11 +108,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    double static CalculateNormSum(const ModelPart& rModelPart,
-                                   const Variable<TDataType>& rVariable,
-                                   const std::string& rNormType,
-                                   Parameters Params)
+    template <class TDataType>
+    double static CalculateNormSum(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -145,9 +145,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    TDataType static CalculateRootMeanSquare(const ModelPart& rModelPart,
-                                             const Variable<TDataType>& rVariable)
+    template <class TDataType>
+    TDataType static CalculateRootMeanSquare(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
     {
         KRATOS_TRY
 
@@ -196,11 +195,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    double static CalculateNormRootMeanSquare(const ModelPart& rModelPart,
-                                              const Variable<TDataType>& rVariable,
-                                              const std::string& rNormType,
-                                              Parameters Params)
+    template <class TDataType>
+    double static CalculateNormRootMeanSquare(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -235,9 +235,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    TDataType static CalculateMean(const ModelPart& rModelPart,
-                                   const Variable<TDataType>& rVariable)
+    template <class TDataType>
+    TDataType static CalculateMean(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
     {
         const TDataType& sum = CalculateSum<TDataType>(rModelPart, rVariable);
         const TContainerType& r_container =
@@ -250,11 +249,12 @@ public:
         return sum * (1.0 / std::max(static_cast<double>(number_of_items), 1.0));
     }
 
-    template <typename TDataType>
-    double static CalculateNormMean(const ModelPart& rModelPart,
-                                    const Variable<TDataType>& rVariable,
-                                    const std::string& rNormType,
-                                    Parameters Params)
+    template <class TDataType>
+    double static CalculateNormMean(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         const double sum =
             CalculateNormSum<TDataType>(rModelPart, rVariable, rNormType, Params);
@@ -273,9 +273,9 @@ public:
         return 0.0;
     }
 
-    template <typename TDataType>
-    std::tuple<TDataType, TDataType> static CalculateVariance(const ModelPart& rModelPart,
-                                                              const Variable<TDataType>& rVariable)
+    template <class TDataType>
+    std::tuple<TDataType, TDataType> static CalculateVariance(
+        const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
     {
         TDataType mean = CalculateMean<TDataType>(rModelPart, rVariable);
         TDataType global_variance = rVariable.Zero();
@@ -328,11 +328,12 @@ public:
             std::forward<TDataType>(mean), std::forward<TDataType>(global_variance));
     }
 
-    template <typename TDataType>
-    std::tuple<double, double> static CalculateNormVariance(const ModelPart& rModelPart,
-                                                            const Variable<TDataType>& rVariable,
-                                                            const std::string& rNormType,
-                                                            Parameters Params)
+    template <class TDataType>
+    std::tuple<double, double> static CalculateNormVariance(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         double mean = CalculateNormMean<TDataType>(rModelPart, rVariable, rNormType, Params);
 
@@ -375,11 +376,12 @@ public:
             std::forward<double>(mean), std::forward<double>(global_variance));
     }
 
-    template <typename TDataType>
-    std::tuple<double, std::size_t> static GetNormMax(const ModelPart& rModelPart,
-                                                      const Variable<TDataType>& rVariable,
-                                                      const std::string& rNormType,
-                                                      Parameters Params)
+    template <class TDataType>
+    std::tuple<double, std::size_t> static GetNormMax(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -440,11 +442,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    std::tuple<double, std::size_t> static GetNormMin(const ModelPart& rModelPart,
-                                                      const Variable<TDataType>& rVariable,
-                                                      const std::string& rNormType,
-                                                      Parameters Params)
+    template <class TDataType>
+    std::tuple<double, std::size_t> static GetNormMin(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -505,11 +508,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    double static GetNormMedian(const ModelPart& rModelPart,
-                                const Variable<TDataType>& rVariable,
-                                const std::string& rNormType,
-                                Parameters Params)
+    template <class TDataType>
+    double static GetNormMedian(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        Parameters Params)
     {
         KRATOS_TRY
 
@@ -567,7 +571,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
+    template <class TDataType>
     std::tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>, std::vector<double>, std::vector<double>> static GetNormDistribution(
 
         const ModelPart& rModelPart,
@@ -599,8 +603,9 @@ public:
         {
             min_value = Params["min_value"].GetDouble();
         }
-        else if (Params["min_value"].IsString() &&
-                 Params["min_value"].GetString() == "min")
+        else if (
+            Params["min_value"].IsString() &&
+            Params["min_value"].GetString() == "min")
         {
             const auto& min_data =
                 GetNormMin<TDataType>(rModelPart, rVariable, rNormType, Params);
@@ -618,8 +623,9 @@ public:
         {
             max_value = Params["max_value"].GetDouble();
         }
-        else if (Params["max_value"].IsString() &&
-                 Params["max_value"].GetString() == "max")
+        else if (
+            Params["max_value"].IsString() &&
+            Params["max_value"].GetString() == "max")
         {
             const auto& max_data =
                 GetNormMax<TDataType>(rModelPart, rVariable, rNormType, Params);
@@ -648,9 +654,9 @@ public:
                                 static_cast<double>(number_of_groups));
         }
 
-        // final group limit is extended by a small amount. epsilon in numeric limits cannot be used
-        // since testing also need to have the same extending value in python. Therefore hard coded value
-        // is used
+        // final group limit is extended by a small amount. epsilon in numeric
+        // limits cannot be used since testing also need to have the same
+        // extending value in python. Therefore hard coded value is used
         group_limits[group_limits.size() - 1] += 1e-16;
         group_limits.push_back(std::numeric_limits<double>::max());
 
@@ -740,8 +746,9 @@ public:
         group_limits[group_limits.size() - 2] -= 1e-16;
         group_limits[group_limits.size() - 1] = max_value;
 
-        return std::make_tuple<double, double, std::vector<double>, std::vector<int>,
-                               std::vector<double>, std::vector<double>, std::vector<double>>(
+        return std::make_tuple<
+            double, double, std::vector<double>, std::vector<int>,
+            std::vector<double>, std::vector<double>, std::vector<double>>(
             std::forward<double>(min_value), std::forward<double>(max_value),
             std::forward<std::vector<double>>(group_limits),
             std::forward<std::vector<int>>(global_distribution),

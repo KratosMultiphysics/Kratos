@@ -267,41 +267,38 @@ using NodesContainerType = ModelPart::NodesContainerType;
 using ConditionsContainerType = ModelPart::ConditionsContainerType;
 using ElementsContainerType = ModelPart::ElementsContainerType;
 
-template <typename TDataType>
+template <class TDataType>
 TDataType KRATOS_API(STATISTICS_APPLICATION)
     RaiseToPower(const TDataType& rData, const double Power);
 
-template <typename TContainerItemType>
+template <class TContainerItemType>
 class NonHistoricalDataValueRetrievalFunctor
 {
 public:
-    template <typename TDataType>
+    template <class TDataType>
     TDataType& operator()(TContainerItemType& rDataItem, const Variable<TDataType>& rVariable) const
     {
         return rDataItem.GetValue(rVariable);
     }
 
-    template <typename TDataType>
-    TDataType operator()(const TContainerItemType& rDataItem,
-                         const Variable<TDataType>& rVariable) const
+    template <class TDataType>
+    TDataType operator()(const TContainerItemType& rDataItem, const Variable<TDataType>& rVariable) const
     {
         return rDataItem.GetValue(rVariable);
     }
 
-    template <typename TDataType>
-    void operator()(TContainerItemType& rDataItem,
-                    const Variable<TDataType>& rVariable,
-                    const TDataType& rValue) const
+    template <class TDataType>
+    void operator()(TContainerItemType& rDataItem, const Variable<TDataType>& rVariable, const TDataType& rValue) const
     {
         rDataItem.SetValue(rVariable, rValue);
     }
 };
 
-template <typename TContainerItemType>
+template <class TContainerItemType>
 class HistoricalDataValueRetrievalFunctor
 {
 public:
-    template <typename TDataType>
+    template <class TDataType>
     TDataType& operator()(TContainerItemType& rDataItem, const Variable<TDataType>& rVariable) const
     {
         KRATOS_TRY
@@ -311,9 +308,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    TDataType operator()(const TContainerItemType& rDataItem,
-                         const Variable<TDataType>& rVariable) const
+    template <class TDataType>
+    TDataType operator()(const TContainerItemType& rDataItem, const Variable<TDataType>& rVariable) const
     {
         KRATOS_TRY
 
@@ -322,10 +318,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    template <typename TDataType>
-    void operator()(TContainerItemType& rDataItem,
-                    const Variable<TDataType>& rVariable,
-                    const TDataType& rValue) const
+    template <class TDataType>
+    void operator()(TContainerItemType& rDataItem, const Variable<TDataType>& rVariable, const TDataType& rValue) const
     {
         KRATOS_TRY
 
@@ -341,36 +335,37 @@ int GetIntegerValue(const std::string& rInput);
 
 void SplitString(std::string& rOutput1, std::string& rOutput2, const std::string& rInput);
 
-template <typename TDataType>
+template <class TDataType>
 void DataTypeSizeInitializer(TDataType& rData, const TDataType& rReferenceData);
 
-template <typename TDataType>
+template <class TDataType>
 void DataTypeSizeChecker(const TDataType& rData, const TDataType& rReferenceData);
 
-template <typename TContainerType>
+template <class TContainerType>
 TContainerType& GetLocalDataContainer(ModelPart& rModelPart);
 
-template <typename TContainerType>
+template <class TContainerType>
 const TContainerType& GetLocalDataContainer(const ModelPart& rModelPart);
 
-template <typename TContainerType>
+template <class TContainerType>
 TContainerType& GetDataContainer(ModelPart& rModelPart);
 
-template <typename TContainerType>
+template <class TContainerType>
 const TContainerType& GetDataContainer(const ModelPart& rModelPart);
 
-template <typename TDataType>
+template <class TDataType>
 const std::function<double(const TDataType&)> KRATOS_API(STATISTICS_APPLICATION)
     GetNormMethod(const Variable<TDataType>& rVariable, const std::string& rNormType);
 
-template <typename TDataType>
+template <class TDataType>
 std::string GetVariableTypeName();
 
-template <typename TDataType>
+template <class TDataType>
 void CheckVariableType(const std::vector<std::string>& rVariableNamesList);
 
-void CheckInputOutputVariables(const std::vector<std::string>& rInputVariableNamesList,
-                               const std::vector<std::string>& rOutputVariableNamesList);
+void CheckInputOutputVariables(
+    const std::vector<std::string>& rInputVariableNamesList,
+    const std::vector<std::string>& rOutputVariableNamesList);
 
 std::vector<double> SortSortedValuesList(const std::vector<std::vector<double>>& rValues);
 
