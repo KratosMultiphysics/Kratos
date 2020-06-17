@@ -299,7 +299,7 @@ namespace MPMSearchElementUtility
                         if (SearchStructure.FindPointOnMesh(xg_nudged, N, pelem, result_begin, MaxNumberOfResults, Tolerance)) {
                             element_itr->SetValuesOnIntegrationPoints(MP_COORD, { xg_nudged }, rMPMModelPart.GetProcessInfo());
                             KRATOS_INFO("MPMSearchElementUtility") << "WARNING: To prevent spurious explicit stresses, Material Point "
-                                << element_itr->Id() << " was nudged by " << nudge_displacement << std::endl;
+                                << element_itr->Id() << " was nudged." << std::endl;
                         } else { is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
                             KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Material Point " << element_itr->Id()
                                 << " lies exactly on an element edge and may give spurious results." << std::endl;
