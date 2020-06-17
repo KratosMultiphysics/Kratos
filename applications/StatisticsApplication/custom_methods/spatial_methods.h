@@ -135,7 +135,7 @@ public:
                     TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
                 sum += norm_method(current_value);
             }
-#pragma omp atomic update
+#pragma omp atomic
             global_sum += sum;
         }
 
@@ -222,7 +222,7 @@ public:
                     TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
                 sum += std::pow(norm_method(current_value), 2);
             }
-#pragma omp atomic update
+#pragma omp atomic
             global_sum += sum;
         }
 
@@ -357,7 +357,7 @@ public:
 
                 variance += std::pow(norm_method(current_value), 2);
             }
-#pragma omp atomic update
+#pragma omp atomic
             global_variance += variance;
         }
         global_variance =
