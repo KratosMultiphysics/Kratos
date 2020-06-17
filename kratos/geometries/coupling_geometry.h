@@ -345,7 +345,7 @@ public:
             }
             std::vector<double> all_intersections;
             IntegrationInfo::MergeSpans(all_intersections, intersection_master_spans, intersection_master_spans_on_master_spans);
-            rIntegrationInfo.SetSpans(intersection_master_spans, 0);
+            rIntegrationInfo.SetSpans(all_intersections, 0);
             mpGeometries[0]->CreateIntegrationPoints(rIntegrationPoints, rIntegrationInfo);
         }
     }
