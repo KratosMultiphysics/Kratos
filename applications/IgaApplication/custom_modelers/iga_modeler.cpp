@@ -293,8 +293,7 @@ namespace Kratos
             //                   1->End
             //                  -1->All nodes in this dimension
             Vector local_coordinates = rParameters["local_parameters"].GetVector();
-            KRATOS_WATCH(rGeometryType);
-            KRATOS_WATCH(local_coordinates);
+
             if (rGeometryType == "GeometryCurveNodes") {
                 KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 1) << "Geometry #" << geom.Id()
                     << " needs to have a dimension of 1 for type GeometryCurveNodes. Dimension: " << geom.Dimension()
@@ -344,9 +343,6 @@ namespace Kratos
 
                 SizeType number_of_cps_u = geom.PointsNumberInDirection(0);
                 SizeType number_of_cps_v = geom.PointsNumberInDirection(1);
-
-                KRATOS_WATCH(number_of_cps_u)
-                    KRATOS_WATCH(number_of_cps_v)
 
                 IndexType u_start = 0;
                 IndexType u_end = number_of_cps_u;
