@@ -1,27 +1,25 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
-import KratosMultiphysics.IgaApplication as IgaApplication
+import KratosMultiphysics.IgaApplication
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+def run_modelers(current_model, modelers_list):
+    from KratosMultiphysics.modeler_factory import KratosModelerFactory
+    factory = KratosModelerFactory()
+    list_of_modelers = factory.ConstructListOfModelers(current_model, modelers_list)
+
+    for modeler in list_of_modelers:
+        modeler.SetupGeometryModel()
+
+    for modeler in list_of_modelers:
+        modeler.PrepareGeometryModel()
+
+    for modeler in list_of_modelers:
+        modeler.SetupModelPart()
 
 class TestModelers(KratosUnittest.TestCase):
-    def _run_modelers(self, current_model, modelers_list):
-        from KratosMultiphysics.modeler_factory import KratosModelerFactory
-        factory = KratosModelerFactory()
-        list_of_modelers = factory.ConstructListOfModelers(current_model, modelers_list)
-
-        for modeler in list_of_modelers:
-            modeler.SetupGeometryModel()
-
-        for modeler in list_of_modelers:
-            modeler.PrepareGeometryModel()
-
-        for modeler in list_of_modelers:
-            modeler.SetupModelPart()
-
-
     def _strong_support_surface_test(self, current_model):
 
         modelers_list = KratosMultiphysics.Parameters(
@@ -40,7 +38,7 @@ class TestModelers(KratosUnittest.TestCase):
                 "physics_file_name": "modeler_tests/strong_support_physics.iga.json"
             } }] """ )
 
-        self._run_modelers(current_model, modelers_list)
+        run_modelers(current_model, modelers_list)
 
         support_1_model_part = current_model.GetModelPart("IgaModelPart.Support_1")
         support_1_Variation_model_part = current_model.GetModelPart("IgaModelPart.Support_1_Variation")
