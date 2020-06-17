@@ -50,7 +50,7 @@
 
 namespace Kratos
 {
-class MultiaxialControlModuleGeneralized2DUtilities
+class KRATOS_API(DEM_APPLICATION) MultiaxialControlModuleGeneralized2DUtilities
 {
 public:
 
