@@ -704,6 +704,15 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitAPIModeParameter(const IndexType 
 /***********************************************************************************/
 
 template<>
+void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitNodeGloNumParameter(const IndexType nodeGloNum)
+{
+    KRATOS_ERROR_IF( !PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nodeGloNum, nodeGloNum) ) << "Unable to set node global numbering" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitVerbosityParameter(const IndexType VerbosityPMMG)
 {
     KRATOS_ERROR_IF( !PMMG_Set_iparameter(mParMmgMesh, PMMG_IPARAM_verbose, VerbosityPMMG) ) << "Unable to set verbosity" << std::endl;
@@ -961,6 +970,10 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
     // API Mode: Forced to "1" all the time
     if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_APImode, static_cast<int>(PMMG_APIDISTRIB_nodes)) != 1 )
         KRATOS_ERROR << "Unable to set initialize parallel library through interface faces or nodes" << std::endl;
+
+    // Node global numbering: Forced to "1" all the time
+    if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nodeGloNum,1) != 1 )
+        KRATOS_ERROR << "Unable to set initialize parallel library with node global numbering" << std::endl;
 
     // Set the angle detection
     const bool deactivate_detect_angle = ConfigurationParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
@@ -1845,7 +1858,6 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
     int err_node_comm = PMMG_Get_NodeCommunicator_nodes(mParMmgMesh, idx_node_loc);
     int err_owners = PMMG_Get_NodeCommunicator_owners(mParMmgMesh, owner, idx_node_glob, &nunique, &ntot);
 
-
     const int rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
     const int size = rModelPart.GetCommunicator().GetDataCommunicator().Size();
     std::vector<int> array_of_local_nodes(size,0);
@@ -1866,30 +1878,19 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
 
     std::map<int,int> local_to_partition_index;
 
-    for(IndexType icomm = 0; icomm < n_node_comm; icomm++ ) {
-        // KRATOS_WATCH(nitem_node_comm[icomm])
-        for(IndexType inode = 0; inode < nitem_node_comm[icomm]; inode++ ) {
-
-            // std::cout << "rank owner loc glob: " <<rank << " " << owner[icomm][inode] << " " << idx_node_loc[icomm][inode] << " " << idx_node_glob[icomm][inode] << std::endl;
-            if (idx_node_glob[icomm][inode]>0){
-                mLocalToGlobal[idx_node_loc[icomm][inode]] =  idx_node_glob[icomm][inode];
-                local_to_partition_index[idx_node_loc[icomm][inode]] = owner[icomm][inode];
-            }
-
-        }
-
-    }
-
-    int base_id=reduced_array_of_local_nodes[rank]+ntot;
-
-    int counter = 1;
+    int errglonum;
     for (IndexType i_node = 1; i_node <= rPMMGMeshInfo.NumberOfNodes; ++i_node) {
-        if (mLocalToGlobal.count(i_node)==0) {
-            mLocalToGlobal[i_node] =  base_id+counter;
-            counter++;
-            local_to_partition_index[i_node] = rank;
-        }
+        errglonum = PMMG_Get_vertexGloNum(mParMmgMesh,&mLocalToGlobal[i_node],&local_to_partition_index[i_node]);
     }
+//    for(IndexType icomm = 0; icomm < n_node_comm; icomm++ ) {
+//        for(IndexType inode = 0; inode < nitem_node_comm[icomm]; inode++ ) {
+//            idx_node_glob[icomm][inode] = mLocalToGlobal[idx_node_loc[icomm][inode]];
+//        }
+//    }
+//    printf("MYRANK %d\n",mParMmgMesh->myrank);
+//    PMMG_printCommunicator(mParMmgMesh, PMMG_APIDISTRIB_nodes, idx_node_loc, idx_node_glob,NULL);
+
+
 
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
     std::unordered_map<IndexType, IndexVectorType> color_nodes, first_color_cond, second_color_cond, first_color_elem, second_color_elem;

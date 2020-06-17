@@ -399,6 +399,11 @@ public:
      */
     void InitAPIModeParameter(const IndexType VerbosityPMMG);
 
+    /**
+     * @brief Ask for output node global numbering
+     * @param[in] 1 to ask it, 0 to skip it
+     */
+    void InitNodeGloNumParameter(const IndexType nodeGloNum);
 
     /**
      * @brief Here the verbosity is set using the API
