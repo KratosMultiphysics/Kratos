@@ -3311,19 +3311,6 @@ public:
     }
 
     ///@}
-    ///@name Geometry Shape Function Container
-    ///@{
-
-    void SetGeometryShapeFunctionContainer(
-        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>&
-            rGeometryShapeFunctionContainer)
-    {
-        mpGeometryData = new GeometryData(
-            &msGeometryDimension,
-            rGeometryShapeFunctionContainer);
-    }
-
-    ///@}
     ///@name Input and output
     ///@{
 
