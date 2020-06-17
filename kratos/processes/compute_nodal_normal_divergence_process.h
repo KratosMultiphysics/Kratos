@@ -38,8 +38,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    //typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -95,10 +93,7 @@ public:
         );
 
     /// Destructor.
-    ~ComputeNodalNormalDivergenceProcess() override
-    {
-    }
-
+    ~ComputeNodalNormalDivergenceProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -218,8 +213,6 @@ private:
     ///@{
 
     /// Assignment operator.
-    ComputeNodalNormalDivergenceProcess& operator=(ComputeNodalNormalDivergenceProcess const& rOther);
-
 
     ///@}
 
