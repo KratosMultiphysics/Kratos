@@ -108,11 +108,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         else:
 
             self.function_expression = self.settings["modulus"].GetString()
-
-            if (sys_info > (3, 0)):
-                self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
-            else:
-                self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval'))
+            self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))            
 
             self.value_is_spatial_function = True
 
