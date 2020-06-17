@@ -19,6 +19,8 @@
 #include "includes/define.h"
 #include "geometries/geometry_data.h"
 
+#include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
+
 namespace Kratos
 {
 
@@ -220,6 +222,38 @@ public:
             << "Not enough Spans defined at IntegrationInfo." << std::endl;
 
         return mSpansVector[DirectionIndex];
+    }
+
+    static void MergeSpans(std::vector<double>& rResultSpans, const std::vector<double>& rSpans1, const std::vector<double>& rSpans2, double Tolerance = 1e-6) {
+        NurbsInterval interval_1(rSpans1[0], rSpans1[rSpans1.size() - 1]);
+        NurbsInterval interval_2(rSpans2[0], rSpans2[rSpans2.size() - 1]);
+
+        for (IndexType i = 0; i < rSpans1.size(); ++i) {
+            double temp = rSpans1[i];
+            interval_2.IsInside(temp);
+            rResultSpans.push_back(temp);
+        }
+        for (IndexType i = 0; i < rSpans2.size(); ++i) {
+            double temp = rSpans2[i];
+            interval_1.IsInside(temp);
+            rResultSpans.push_back(temp);
+        }
+
+        SortUnique(rResultSpans, Tolerance);
+    }
+
+    static void SortUnique(
+        std::vector<double>& rIntersectionParameters,
+        const double Tolerance)
+    {
+        std::sort(std::begin(rIntersectionParameters), std::end(rIntersectionParameters));
+
+        auto last = std::unique(std::begin(rIntersectionParameters), std::end(rIntersectionParameters),
+            [=](double a, double b) { return b - a < Tolerance; });
+
+        auto nb_unique = std::distance(std::begin(rIntersectionParameters), last);
+
+        rIntersectionParameters.resize(nb_unique);
     }
 
     ///@}

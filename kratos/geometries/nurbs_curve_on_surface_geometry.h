@@ -157,65 +157,17 @@ public:
      */
     void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        double external_start;
-        double external_end;
-        NurbsInterval this_interval = mpNurbsCurve->DomainInterval();
-        if (rSpans.size() > 0) {
-            external_start = rSpans[0];
-            external_end = rSpans[rSpans.size() - 1];
-            NurbsInterval this_interval = mpNurbsCurve->DomainInterval();
-            this_interval.IsInside(external_start);
-            this_interval.IsInside(external_end);
-
-            NurbsInterval external_interval(external_start, external_end);
-
-            std::vector<double> new_spans;
-            for (IndexType i = 0; i < rSpans.size(); i++) {
-                double temp = rSpans[i];
-                if (external_interval.IsInside(temp)) {
-                    new_spans.push_back(temp);
-                }
-            }
-            rSpans = new_spans;
-        }
-        else {
-            external_start = this_interval.GetT0();
-            external_end = this_interval.GetT1();
-        }
-
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
         mpNurbsSurface->Spans(surface_spans_u, 0);
         mpNurbsSurface->Spans(surface_spans_v, 1);
 
         // compute axis intersection with external limits
-        std::vector<double> intersection_spans;
         CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
-            intersection_spans,
-            *(mpNurbsCurve.get()), external_start, external_end,
+            rSpans, *(mpNurbsCurve.get()),
+            mpNurbsCurve->DomainInterval().GetT0(), mpNurbsCurve->DomainInterval().GetT1(),
             surface_spans_u, surface_spans_v,
             1e-6);
-
-        // Add all intersections
-        for (IndexType i = 0; i < intersection_spans.size(); ++i)
-        {
-            rSpans.push_back(intersection_spans[i]);
-        }
-        SortUnique(rSpans, 1e-6);
-    }
-
-    static void SortUnique(
-        std::vector<double>& rIntersectionParameters,
-        const double Tolerance)
-    {
-        std::sort(std::begin(rIntersectionParameters), std::end(rIntersectionParameters));
-
-        auto last = std::unique(std::begin(rIntersectionParameters), std::end(rIntersectionParameters),
-            [=](double a, double b) { return b - a < Tolerance; });
-
-        auto nb_unique = std::distance(std::begin(rIntersectionParameters), last);
-
-        rIntersectionParameters.resize(nb_unique);
     }
 
     ///@}

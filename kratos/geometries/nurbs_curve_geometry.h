@@ -266,66 +266,17 @@ public:
      */
     void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        if (rSpans.size() > 0) {
-            double external_start = rSpans[0];
-            double external_end = rSpans[rSpans.size() - 1];
-            NurbsInterval this_interval = DomainInterval();
-            this_interval.IsInside(external_start);
-            this_interval.IsInside(external_end);
+        rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
-            NurbsInterval external_interval(external_start, external_end);
+        rSpans[0] = mKnots[0];
 
-            std::vector<double> new_spans;
-            for (IndexType i = 0; i < rSpans.size(); i++) {
-                double temp = rSpans[i];
-                if (external_interval.IsInside(temp)) {
-                    new_spans.push_back(temp);
-                }
-            }
-            rSpans = new_spans;
-
-            double test = mKnots[0];
-            if (external_interval.IsInside(test)) {
-                rSpans.push_back(mKnots[0]);
-            }
-
-            for (IndexType i = 0; i < mKnots.size() - 1; i++) {
-                if (std::abs(mKnots[i] - mKnots[i + 1]) > 1e-6) {
-                    test = mKnots[i + 1];
-                    if (external_interval.IsInside(test)) {
-                        rSpans.push_back(mKnots[i + 1]);
-                    }
-                }
-            }
-            SortUnique(rSpans, 1e-6);
-        }
-        else {
-            rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
-
-            rSpans[0] = mKnots[0];
-
-            IndexType counter = 1;
-            for (IndexType i = 0; i < mKnots.size() - 1; i++) {
-                if (std::abs(mKnots[i] - mKnots[i + 1]) > 1e-6) {
-                    rSpans[counter] = mKnots[i + 1];
-                    counter++;
-                }
+        IndexType counter = 1;
+        for (IndexType i = 0; i < mKnots.size() - 1; i++) {
+            if (std::abs(mKnots[i] - mKnots[i + 1]) > 1e-6) {
+                rSpans[counter] = mKnots[i + 1];
+                counter++;
             }
         }
-    }
-
-    static void SortUnique(
-        std::vector<double>& rIntersectionParameters,
-        const double Tolerance)
-    {
-        std::sort(std::begin(rIntersectionParameters), std::end(rIntersectionParameters));
-
-        auto last = std::unique(std::begin(rIntersectionParameters), std::end(rIntersectionParameters),
-            [=](double a, double b) { return b - a < Tolerance; });
-
-        auto nb_unique = std::distance(std::begin(rIntersectionParameters), last);
-
-        rIntersectionParameters.resize(nb_unique);
     }
 
     ///@}
