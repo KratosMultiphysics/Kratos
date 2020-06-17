@@ -112,10 +112,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
 
             self.value_is_spatial_function = True
 
-            if(self.function_expression.find("x") == -1 and
-               self.function_expression.find("y") == -1 and
-               self.function_expression.find("z") == -1): #depends on time only
-                    self.value_is_spatial_function = False
+            if(self.function_expression.find("x") == -1 and self.function_expression.find("y") == -1 and self.function_expression.find("z") == -1): #depends on time only
+                self.value_is_spatial_function = False
 
 
     def GetVariables(self):
