@@ -371,26 +371,24 @@ proc GenerateClusterFile { } {
         #set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeGrid"} {
         set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-grid.sph]
-        set genericSPHFilename "\"$genericSPHFilename\""
+        #set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeSpawn"} {
         set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-spawn.sph]
-        set genericSPHFilename "\"$genericSPHFilename\""
+        #set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeOctree"} {
         set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-octree.sph]
-        set genericSPHFilename "\"$genericSPHFilename\""
+        #set genericSPHFilename "\"$genericSPHFilename\""
     } elseif {$Algorithm == "MakeTreeHubbard"} {
         #set genericSPHFilename generic-hubbard.sph
         set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-hubbard.sph]
-        set genericSPHFilename "\"$genericSPHFilename\""
+        #set genericSPHFilename "\"$genericSPHFilename\""
     } else {
         W "Select a valid algorithm"
     }
 
-
     set genericMSHFilename [file join $::DEMClusters::ProblemPath generic.msh]
-    set genericMSHFilename "\"$genericMSHFilename\""
+    # set genericMSHFilename "\"$genericMSHFilename\""
     set argv_number 2
-
     set argv "$argv_number $genericMSHFilename $genericSPHFilename"
 
     package require platform
@@ -403,18 +401,8 @@ proc GenerateClusterFile { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
     }
 
-    #set program "\"$program\""
-    W $argv
-    W $program
-
-    #set fid [open "| $program $argv_number $genericMSHFilename $genericSPHFilename" r+]
-    #close $fid
-    #exec $program $argv_number $genericMSHFilename $genericSPHFilename
-    exec $program 2 $genericMSHFilename $genericSPHFilename > output.txt
-    #exec {*}[auto_execok $program]  $argv_number $genericMSHFilename $genericSPHFilename
-    #exec $program {*}$argv
-
-    # create_cluster 2 generic.msh generic-medial.sph
+    exec $program $argv_number $genericMSHFilename $genericSPHFilename
+    #exec $program $argv_number $genericMSHFilename $genericSPHFilename > output.txt
     #g++ -o create_cluster.exe mesh_to_clu_converter.cpp
 }
 

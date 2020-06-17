@@ -14,12 +14,15 @@ int main(int argc, char * argv[]){
     std::ifstream infilesph(argv[3]);
     std::string line, linesph;
 
+    std::cout << argv[2] << std::endl;
+    std::cout << argv[3] << std::endl;
+    std::cout << "lectura correcta de archivos" << std::endl;
+
+
     infile.ignore(80,'\n'); infile.ignore(80,'\n');
     // Count nodes only - format 1 2 3 4
     int node_counter = 0;
     while (std::getline(infile, line)) {
-        std::cout << line << std::endl;
-        //if (line == "End Coordinates") {continue;}
         std::istringstream iss(line);
         int a;
         double b, c, d, e;
@@ -42,8 +45,6 @@ int main(int argc, char * argv[]){
 
     std::cout << "\nNumber of nodes: " << node_counter << '\n';
     std::cout << "Number of elements: " << element_counter << '\n';
-
-
 
 
     infile.seekg(0, std::ios::beg);
@@ -70,6 +71,7 @@ int main(int argc, char * argv[]){
         int a;
         double b, c, d, e;
         if (iss >> a >> b >> c >> d) {
+            std::cout << "infile3 msh" << std::endl;
             tcoord[0][node_counter] = b;
             tcoord[1][node_counter] = c;
             tcoord[2][node_counter] = d;
@@ -107,10 +109,10 @@ int main(int argc, char * argv[]){
 
     infilesph.ignore(80,'\n'); infilesph.ignore(80,'\n');
     while (std::getline(infilesph, linesph)) {
+        std::cout << "infilesph sph" << std::endl;
         std::cout << linesph << std::endl;
         std::istringstream iss(linesph);
         double Xcoord, Ycoord, Zcoord, Rad, one;
-        //if (linesph == "Options :") {break;}
         if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad >> one) {
             if (Rad>=0) {
                 xcoords.push_back(Xcoord);
@@ -142,7 +144,6 @@ int main(int argc, char * argv[]){
         double ValW1=tcoord[0][NodeD-1] - tcoord[0][NodeA-1];
         double ValW2=tcoord[1][NodeD-1] - tcoord[1][NodeA-1];
         double ValW3=tcoord[2][NodeD-1] - tcoord[2][NodeA-1];
-        std::cout << ValU1 << std::endl;
 
         double Volu0= ValU1*ValV2*ValW3+ValU2*ValV3*ValW1+ValU3*ValW2*ValV1-ValU3*ValV2*ValW1-ValU2*ValV1*ValW3-ValU1*ValW2*ValV3;
         Volum[element_counter]=Volu0/6;
@@ -163,8 +164,6 @@ int main(int argc, char * argv[]){
         Vmaspiedra+=Vmass[element_counter];
     }
     std::cout << "Total mass: " << Vmaspiedra << '\n';
-
-
 
     // TODO: remove move centers
     //Calculo del centro de gravedad del cluster o piedra
