@@ -21,12 +21,13 @@ file(
 
 ## Python module
 pybind11_add_module( KratosFluidDynamicsTrilinosExtension MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
-if(USE_COTIRE MATCHES ON)
-  set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES COTIRE_UNITY_LINK_LIBRARIES_INIT "COPY_UNITY")
-  cotire(KratosFluidDynamicsTrilinosExtension)
-endif(USE_COTIRE MATCHES ON)
+
 target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
 set_target_properties( KratosFluidDynamicsTrilinosExtension PROPERTIES PREFIX "")
+
+if(USE_COTIRE MATCHES ON)
+  cotire(KratosFluidDynamicsTrilinosExtension)
+endif(USE_COTIRE MATCHES ON)
 
 ###############################################################################
 # changing the .dll suffix to .pyd
