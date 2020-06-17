@@ -83,8 +83,6 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Clear()
 
     if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
         ClearValue<>(KratosComponents< Variable<double> >::Get(mVariableName));
-    } else if( KratosComponents<array_1d_component_type>::Has( mVariableName )  ) { //case of component variable
-        ClearValueSerial<>(KratosComponents<array_1d_component_type>::Get(mVariableName));
     } else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
         ClearValue<>(KratosComponents< Variable<int> >::Get(mVariableName));
     } else if( KratosComponents< Variable<bool> >::Has( mVariableName ) ) { //case of bool variable
