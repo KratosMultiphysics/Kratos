@@ -17,6 +17,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from shape_optimization_test_factory import opt_process_shell_test
 from shape_optimization_test_factory import opt_process_solid_test
 from shape_optimization_test_factory import opt_process_vertex_morphing_test
+from shape_optimization_test_factory import opt_process_vertex_morphing_small_test
 from shape_optimization_test_factory import opt_process_eigenfrequency_test
 from shape_optimization_test_factory import opt_process_weighted_eigenfrequency_test
 from shape_optimization_test_factory import algorithm_steepest_descent_test
@@ -61,6 +62,7 @@ def AssembleTestSuites():
     # Adding small tests (tests that take < 1s)
     smallSuite = suites['small']
     smallSuite.addTest(mapper_test('test_execution'))
+    smallSuite.addTest(opt_process_vertex_morphing_small_test('test_execution'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([WrlIOTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SurfaceNormalShapeChangeTest]))
 
