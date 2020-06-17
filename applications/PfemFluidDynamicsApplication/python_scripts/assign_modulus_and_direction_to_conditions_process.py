@@ -75,7 +75,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         elif( self.interval[0] < 0 ):
             self.interval_string = "start"
             self.interval[0] = 0.0
-            
+
         ##check normalized direction
         direction   = []
         scalar_prod = 0
@@ -109,7 +109,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
 
             self.function_expression = self.settings["modulus"].GetString()
 
-            if (sys.version_info > (3, 0)):
+            if (sys_info > (3, 0)):
                 self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
             else:
                 self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval'))

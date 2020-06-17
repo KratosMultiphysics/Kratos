@@ -3,10 +3,7 @@ import os
 import subprocess
 import sys
 import multiprocessing as mp
-if sys.version_info >= (3, 0):
-    import queue
-else:
-    import Queue as queue
+import queue
 from threading import Thread
 import threading
 from glob import glob
@@ -72,11 +69,7 @@ def GetFilePath(fileName):
 
 def run(benchmark, file_for_output):
     path_to_callable_script = os.path.join(path, "DEM_benchmarks_analysis.py")
-
-    if sys.version_info >= (3, 0):
-        subprocess.check_call(["python3", path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
-    else:
-        subprocess.check_call(["python", "-3", path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
+    subprocess.check_call(["python3", path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
 
 def worker(queue):
 

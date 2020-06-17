@@ -84,10 +84,7 @@ def Run():
                 if platform.system()=="Windows":
                     subprocess.check_call(["python", path + "/DEM_benchmarks_analysis.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
                 else:
-                    if sys.version_info >= (3, 0):
-                        subprocess.check_call(["python3", path + "/DEM_benchmarks_analysis.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-                    else:
-                        subprocess.check_call(["python", "-3", path + "/DEM_benchmarks_analysis.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+                    subprocess.check_call(["python3", path + "/DEM_benchmarks_analysis.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
 
                 os.environ["OMP_NUM_THREADS"] = "" # Trying to set a 'default' value
             except:

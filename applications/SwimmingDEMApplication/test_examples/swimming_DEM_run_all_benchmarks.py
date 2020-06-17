@@ -12,28 +12,25 @@ os.chdir(swimming_dem_scripts_path)
 
 
 def Run():
-    
-    print("\nStarting swimming_DEM Benchmarks..............\n")    
-    Text=""           
-        
+
+    print("\nStarting swimming_DEM Benchmarks..............\n")
+    Text=""
+
     if platform.system()=="Windows":
         os.system("python hydrodynamic_forces.py " + " > BenchTemp.txt")
     else:
-        if sys.version_info >= (3, 0):
-            os.system("python3 hydrodynamic_forces.py " + " > BenchTemp.txt")
-        else:
-            os.system("python -3 hydrodynamic_forces.py " + " > BenchTemp.txt")
-                
+        os.system("python3 hydrodynamic_forces.py " + " > BenchTemp.txt")
+
     os.remove("BenchTemp.txt")
-        
+
     f = open("hydrodynamic_forces.txt")
     file_contents = f.read()
     f.close()
-    
+
     Text += file_contents.rstrip("\n")
-    Text += "\n\n\n"        
-    
+    Text += "\n\n\n"
+
     return Text
-       
+
 if __name__ == '__main__':
     print(Run())
