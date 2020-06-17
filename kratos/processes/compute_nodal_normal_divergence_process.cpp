@@ -7,9 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
-//  Co-author:       Mohammad R. Hashemi
+//  Main authors:    Mohammad R. Hashemi (based on the work by Riccardo Rossi and Vicente Mataix Ferrandiz)
 //
 
 /* Project includes */
@@ -28,9 +26,6 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     // First element iterator
     const auto it_element_begin = mrModelPart.ElementsBegin();
 
-    // Current domain size
-    const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
     // Iterate over the elements
     #pragma omp parallel for
     for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
@@ -38,7 +33,6 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
         auto& r_geometry = it_elem->GetGeometry();
 
         // Current geometry information
-        const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
         // The integration points
@@ -160,14 +154,10 @@ ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveA
 template<>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::ClearDivergence()
 {
-    const auto it_node_begin = mrModelPart.NodesBegin();
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node=it_node_begin + i;
-        it_node->SetValue(*mpAreaVariable, 0.0);
-        it_node->FastGetSolutionStepValue(*mpDivergenceVariable) = 0.0;
-    }
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+            rNode.SetValue(*mpAreaVariable, 0.0);
+            rNode.FastGetSolutionStepValue(*mpDivergenceVariable) = 0.0;
+        });
 }
 
 /***********************************************************************************/
@@ -176,14 +166,10 @@ void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::
 template <>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::ClearDivergence()
 {
-    const auto it_node_begin = mrModelPart.NodesBegin();
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node= it_node_begin + i;
-        it_node->SetValue(*mpAreaVariable, 0.0);
-        it_node->SetValue(*mpDivergenceVariable, 0.0);
-    }
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+            rNode.SetValue(*mpAreaVariable, 0.0);
+            rNode.SetValue(*mpDivergenceVariable, 0.0);
+        });
 }
 
 /***********************************************************************************/
@@ -216,13 +202,10 @@ double& ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSetting
 template <>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::PonderateDivergence()
 {
-    const auto it_node_begin = mrModelPart.NodesBegin();
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node = it_node_begin + i;
-        it_node->FastGetSolutionStepValue(*mpDivergenceVariable) /= it_node->GetValue(*mpAreaVariable);
-    }
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+            rNode.FastGetSolutionStepValue(*mpDivergenceVariable) /= 
+                rNode.GetValue(*mpAreaVariable);
+        });
 }
 
 /***********************************************************************************/
@@ -231,13 +214,10 @@ void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::
 template <>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::PonderateDivergence()
 {
-    const auto it_node_begin = mrModelPart.NodesBegin();
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node = it_node_begin + i;
-        it_node->GetValue(*mpDivergenceVariable) /= it_node->GetValue(*mpAreaVariable);
-    }
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+            rNode.GetValue(*mpDivergenceVariable) /= 
+                rNode.GetValue(*mpAreaVariable);
+        });
 }
 
 /***********************************************************************************/

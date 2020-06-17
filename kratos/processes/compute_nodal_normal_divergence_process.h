@@ -7,9 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
-//  Co-author:       Mohammad R. Hashemi
+//  Main authors:    Mohammad R. Hashemi (based on the work by Riccardo Rossi and Vicente Mataix Ferrandiz)
 //
 
 #if !defined(KRATOS_COMPUTE_DIVERGENCE_PROCESS_INCLUDED )
