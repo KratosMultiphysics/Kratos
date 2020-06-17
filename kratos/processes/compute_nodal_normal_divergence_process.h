@@ -61,7 +61,7 @@ struct ComputeNodalDivergenceProcessSettings
  * @ingroup KratosCore
  * @brief Compute Nodal Normal Divergence process
  * @details This process computes the divergence of a nomalized vector stored in the nodes
- * @author Me
+ * @author Mohammad R. Hashemi
  * @tparam THistorical If the variable is historical or not
 */
 template<bool THistorical>
@@ -85,7 +85,7 @@ public:
         const Variable<array_1d<double,3> >& rOriginVariable,
         const Variable<double>& rDivergenceVariable,
         const Variable<double>& rAreaVariable = NODAL_AREA,
-        const bool NonHistoricalVariable = false
+        const bool NonHistoricalOriginVariable = false
         );
 
     /// Destructor.
@@ -164,7 +164,7 @@ private:
     const Variable<array_1d<double,3>>* mpOriginVariable;  /// The scalar variable list to compute
     const Variable<double>* mpDivergenceVariable;          /// The resultant divergence variable
     const Variable<double>* mpAreaVariable;                /// The auxiliar area variable
-    bool mNonHistoricalVariable = false;                   /// If the variable is non-historical
+    bool mNonHistoricalOriginVariable = false;                   /// If the origin variable is non-historical
 
     ///@}
     ///@name Private Operators
