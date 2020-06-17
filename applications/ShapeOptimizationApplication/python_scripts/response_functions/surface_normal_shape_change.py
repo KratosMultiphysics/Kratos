@@ -16,7 +16,7 @@ from KratosMultiphysics.response_functions.response_function_interface import Re
 
 class SurfaceNormalShapeChange(ResponseFunctionInterface):
     """
-    This simple geometric response functions calculates the sum of all shape updates in
+    This simple geometric response function calculates the sum of all shape updates in
     surface normal direction. Shape update in surface normal direction is considered positive,
     in the opposite direction negative.
 
