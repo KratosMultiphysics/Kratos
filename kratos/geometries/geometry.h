@@ -3639,7 +3639,7 @@ private:
     IndexType mId;
 
     GeometryData const* mpGeometryData;
-    
+
     static const GeometryDimension msGeometryDimension;
 
     PointsArrayType mPoints;
