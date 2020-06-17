@@ -530,6 +530,8 @@ public:
     /// Returns number of points per direction.
     virtual SizeType PointsNumberInDirection(IndexType DirectionIndex) const
     {
+        KRATOS_DEBUG_ERROR_IF(DirectionIndex > 2) << "Possible direction index reaches from 0-2. "
+            << "Given direction index: " << DirectionIndex << std::endl;
         return (DirectionIndex == 0)
             ? mPoints.size()
             : 1;
