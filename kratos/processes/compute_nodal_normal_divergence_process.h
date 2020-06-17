@@ -26,6 +26,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/variable_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -201,11 +202,6 @@ private:
      * @brief This divides the divergence value by the nodal area
      */
     void PonderateDivergence();
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    //Parameters GetDefaultParameters() const;
 
     ///@}
     ///@name Private  Access

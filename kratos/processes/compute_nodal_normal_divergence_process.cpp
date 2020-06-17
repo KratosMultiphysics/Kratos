@@ -25,10 +25,6 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     // Set to zero
     ClearDivergence();
 
-    // Auxiliary containers
-    Matrix DN_DX, J0;
-    Vector N;
-
     // First element iterator
     const auto it_element_begin = mrModelPart.ElementsBegin();
 
@@ -36,7 +32,7 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
     // Iterate over the elements
-    #pragma omp parallel for firstprivate(DN_DX,  N, J0)
+    #pragma omp parallel for
     for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
         auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
@@ -45,75 +41,31 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
         const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
-        // Resize if needed
-        if (DN_DX.size1() != number_of_nodes || DN_DX.size2() != dimension)
-            DN_DX.resize(number_of_nodes, dimension);
-        if (N.size() != number_of_nodes)
-            N.resize(number_of_nodes);
-        if (J0.size1() != dimension || J0.size2() != local_space_dimension)
-            J0.resize(dimension, local_space_dimension);
-
         // The integration points
         const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
         const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
         const std::size_t number_of_integration_points = r_integration_points.size();
-
-        //Storing the normalized vector (origin variable)
-        std::vector <Vector> values(number_of_nodes);
-        if (!mNonHistoricalVariable) {
-            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node){
-
-                values[i_node] = ZeroVector(dimension);
-                double norm = 0.0;
-                const array_1d<double, 3> i_value = r_geometry[i_node].FastGetSolutionStepValue(*mpOriginVariable);
-
-                for(std::size_t i_dim=0; i_dim<dimension; ++i_dim){
-                    (values[i_node])(i_dim) = i_value(i_dim);
-                    norm += i_value(i_dim)*i_value(i_dim);
-                }
-                norm = std::sqrt(norm);
-                for(std::size_t i_dim=0; i_dim<dimension; ++i_dim){
-                    (values[i_node])(i_dim) /= norm;
-                }
-            }
-        } else {
-            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node){
-                values.push_back(ZeroVector(dimension));
-                double norm = 0.0;
-                const array_1d<double, 3> i_value = r_geometry[i_node].GetValue(*mpOriginVariable);
-
-                for(std::size_t i_dim=0; i_dim<dimension; ++i_dim){
-                    (values[i_node])(i_dim) = i_value(i_dim);
-                    norm += i_value(i_dim)*i_value(i_dim);
-                }
-                norm = std::sqrt(norm);
-                for(std::size_t i_dim=0; i_dim<dimension; ++i_dim){
-                    (values[i_node])(i_dim) /= norm;
-                }
-            }
-        }
 
         // The containers of the shape functions and their local gradient
         const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
         const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
 
         for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
-            // Getting the shape functions
-            noalias(N) = row(rNcontainer, point_number);
-
             // Getting the jacobians and local shape functions gradient
-            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
             double detJ0;
-            Matrix InvJ0;
+            Matrix J0, InvJ0, DN_DX;
+            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
             MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
             const Matrix& rDN_De = rDN_DeContainer[point_number];
             GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
 
             double divergence = 0.0;
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
-                for(std::size_t i_dim=0; i_dim<dimension; ++i_dim) {
-                    divergence += DN_DX(i_node,i_dim)*(values[i_node])(i_dim);
-                }
+                const auto& vector_field = r_geometry[i_node].FastGetSolutionStepValue(*mpOriginVariable);
+
+                const double norm = norm_2(vector_field);
+
+                divergence += inner_prod( row(DN_DX, i_node), vector_field ) / norm;
             }
 
             const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
@@ -123,12 +75,12 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
                 double& r_divergence = GetDivergence(r_geometry, i_node);
 
                 #pragma omp atomic
-                r_divergence += N[i_node] * gauss_point_volume * divergence;
+                r_divergence += (row(rNcontainer, point_number))[i_node] * gauss_point_volume * divergence;
 
                 double& vol = r_geometry[i_node].GetValue(*mpAreaVariable);
 
                 #pragma omp atomic
-                vol += N[i_node] * gauss_point_volume;
+                vol += (row(rNcontainer, point_number))[i_node] * gauss_point_volume;
             }
         }
     }
@@ -287,21 +239,6 @@ void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::
         it_node->GetValue(*mpDivergenceVariable) /= it_node->GetValue(*mpAreaVariable);
     }
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-/* template<bool THistorical>
-Parameters ComputeNodalNormalDivergenceProcess<THistorical>::GetDefaultParameters() const
-{
-    Parameters default_parameters = Parameters(R"(
-    {
-        "origin_variable"                : "PLEASE_DEFINE_A_VARIABLE",
-        "non_historical_origin_variable" :  false
-    })" );
-
-    return default_parameters;
-} */
 
 /***********************************************************************************/
 /***********************************************************************************/
