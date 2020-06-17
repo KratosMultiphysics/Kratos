@@ -422,9 +422,9 @@ public:
 
         const DataCommunicator& r_data_communicator =
             rModelPart.GetCommunicator().GetDataCommunicator();
-        const std::vector<double> global_max_value_array =
+        const auto& global_max_value_array =
             r_data_communicator.AllGather(std::vector<double>{global_max});
-        const std::vector<std::size_t> global_max_id_array =
+        const auto& global_max_id_array =
             r_data_communicator.AllGather(std::vector<std::size_t>{global_id});
 
         for (std::size_t i = 0; i < global_max_value_array.size(); ++i)
@@ -488,9 +488,9 @@ public:
 
         const DataCommunicator& r_data_communicator =
             rModelPart.GetCommunicator().GetDataCommunicator();
-        const std::vector<double> global_min_value_array =
+        const auto& global_min_value_array =
             r_data_communicator.AllGather(std::vector<double>{global_min});
-        const std::vector<std::size_t> global_min_id_array =
+        const auto& global_min_id_array =
             r_data_communicator.AllGather(std::vector<std::size_t>{global_id});
 
         for (std::size_t i = 0; i < global_min_value_array.size(); ++i)
