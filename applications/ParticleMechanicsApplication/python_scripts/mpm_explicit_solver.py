@@ -29,7 +29,7 @@ class MPMExplicitSolver(MPMSolver):
             "is_fix_explicit_mp_on_grid_edge" : false,
             "is_pqmpm"      : false,
             "is_pqmpm_fallback_to_mpm" : true,
-            "pqmpm_min_fraction" : 0.0
+            "pqmpm_subpoint_min_volume_fraction" : 0.0
         }""")
         this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultSettings())
         return this_defaults
@@ -64,8 +64,8 @@ class MPMExplicitSolver(MPMSolver):
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM, is_pqmpm)
         is_pqmpm_fallback_to_mpm = self.settings["is_pqmpm_fallback_to_mpm"].GetBool()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_PQMPM_FALLBACK_TO_MPM, is_pqmpm_fallback_to_mpm)
-        pqmpm_min_fraction = self.settings["pqmpm_min_fraction"].GetDouble()
-        grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_MIN_FRACTION, pqmpm_min_fraction)
+        pqmpm_subpoint_min_volume_fraction = self.settings["pqmpm_subpoint_min_volume_fraction"].GetDouble()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, pqmpm_subpoint_min_volume_fraction)
 
         # Check if we are fixing MPs that lie directly on the edge of grid elements
         if is_pqmpm:

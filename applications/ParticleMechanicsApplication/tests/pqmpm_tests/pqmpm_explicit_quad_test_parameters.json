@@ -17,7 +17,7 @@
 		"stress_update"                      : "usl",
 		"is_pqmpm"							 : true,
 		"is_pqmpm_fallback_to_mpm"			 : false,
-		"pqmpm_min_fraction"				 : 0.0,
+		"pqmpm_subpoint_min_volume_fraction" : 0.0,
 		"compressible"                       : true,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
