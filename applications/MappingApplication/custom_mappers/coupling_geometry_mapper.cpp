@@ -76,7 +76,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
     const auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
 
-    const bool is_dual_mortar = (mIsProjection && mpGeom->GetValue(IS_DUAL_MORTAR))
+    const bool is_dual_mortar = (!mIsProjection && mpGeom->GetValue(IS_DUAL_MORTAR))
         ? true
         : false;
 
@@ -100,6 +100,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
 
     if (is_dual_mortar) {
+        rLocalMappingMatrix.clear();
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) { // This loop is probably redundant - it will always just be 1
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
                 rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
@@ -118,9 +119,9 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                         * det_jacobian[integration_point_itr];
 
                     KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
                     KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, j) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
                 }
             }
         }
@@ -136,7 +137,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
 std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
 {
-    std::cout << "   >>> XXX : IS_PROJECTED_LOCAL_SYSTEM: " << mIsProjection << std::endl;
+    //std::cout << "   >>> XXX : IS_PROJECTED_LOCAL_SYSTEM: " << mIsProjection << std::endl;
     // KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
     // std::stringstream buffer;
@@ -165,7 +166,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     CreateMapperLocalSystems(mpCouplingMP->GetCommunicator(),
                              mMapperLocalSystems);
 
-    AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
+    AssignInterfaceEquationIds(); // Has to be done every time in case of overlapping interfaces!
 
     // assemble projector interface mass matrix - interface_matrix_projector
     const std::size_t num_nodes_interface_slave = mrModelPartDestination.GetSubModelPart("interface").NumberOfNodes(); // fix up and put in the mapper parameters
@@ -176,31 +177,21 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     MapperLocalSystem::EquationIdVectorType origin_ids;
     MapperLocalSystem::EquationIdVectorType destination_ids;
 
-
     for (size_t local_projector_system = 0;
-        local_projector_system < mMapperLocalSystems.size()/2; local_projector_system++)
-    {
+        local_projector_system < mMapperLocalSystems.size()/2; ++local_projector_system) {
         mMapperLocalSystems[local_projector_system]->PairingInfo(0);
         mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
-
         Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_projector);
-
-        // r_local_sys->Clear();
     }
-    std::cout << std::endl << std::endl;
 
     // assemble slave interface mass matrix - interface_matrix_slave
     Matrix interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
     for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
-        local_projector_system < mMapperLocalSystems.size(); local_projector_system++)
+        local_projector_system < mMapperLocalSystems.size(); ++local_projector_system)
     {
-
         mMapperLocalSystems[local_projector_system]->PairingInfo(0);
         mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
-
         Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_slave);
-
-        // r_local_sys->Clear();
     }
 
     // Perform consistency scaling if requested
@@ -208,10 +199,15 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
 
     // get total interface mapping matrix
-    Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave);
-    double aux_det_slave = 0;
-    MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
-    mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(interface_matrix_slave, interface_matrix_projector));
+    Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave, 0.0);
+    if (mMapperSettings["dual_mortar"].GetBool())
+        for (size_t i = 0; i < interface_matrix_slave.size1(); ++i)
+            inv_interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
+    else { double aux_det_slave = 0;
+        MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
+    }
+    mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_slave, interface_matrix_projector));
+    CheckMappingMatrixConsistency();
 
     Internals::InitializeSystemVector(mpInterfaceVectorContainerOrigin->pGetVector(), num_nodes_interface_master);
     Internals::InitializeSystemVector(mpInterfaceVectorContainerDestination->pGetVector(), num_nodes_interface_slave);
@@ -221,30 +217,43 @@ template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<double>& rOriginVariable,
     const Variable<double>& rDestinationVariable,
-    Kratos::Flags MappingOptions)
+    Kratos::Flags MappingOptions, const bool IsInverse)
 {
 
-    mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    TSparseSpace::Mult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+    if (!IsInverse) {
+        mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
+        TSparseSpace::Mult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerOrigin->GetVector(),
+            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+        mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+    }
+    else {
+        mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
+        Kratos::Matrix trans_mapping_matrix(trans(*mpMappingMatrix));
 
-    mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+        TSparseSpace::Mult(
+            trans_mapping_matrix,
+            mpInterfaceVectorContainerDestination->GetVector(),
+            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = trans(rMdo) * rQd
+        mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+    }
+
+
 }
 
 template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<array_1d<double, 3>>& rOriginVariable,
     const Variable<array_1d<double, 3>>& rDestinationVariable,
-    Kratos::Flags MappingOptions)
+    Kratos::Flags MappingOptions, const bool IsInverse)
 {
     for (const auto var_ext : {"_X", "_Y", "_Z"}) {
         const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
         const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
 
-        MapInternal(var_origin, var_destination, MappingOptions);
+        MapInternal(var_origin, var_destination, MappingOptions, IsInverse);
     }
 }
 

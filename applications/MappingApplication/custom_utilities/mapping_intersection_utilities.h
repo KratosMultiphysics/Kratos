@@ -42,7 +42,7 @@ namespace MappingIntersectionUtilities
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    const bool mPrintDebugForPeter = true; // TODO delete
+    const bool mPrintDebugForPeter = false; // TODO delete
 
     void KRATOS_API(MAPPING_APPLICATION) FindIntersection1DGeometries2D(
         ModelPart& rModelPartDomainA,

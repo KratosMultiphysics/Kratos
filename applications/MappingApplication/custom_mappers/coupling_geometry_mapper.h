@@ -166,7 +166,7 @@ public:
         const Variable<double>& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        MapInternal(rOriginVariable, rDestinationVariable, MappingOptions,true);
     }
 
     void InverseMap(
@@ -174,7 +174,7 @@ public:
         const Variable< array_1d<double, 3> >& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        MapInternal(rOriginVariable, rDestinationVariable, MappingOptions, true);
     }
 
     ///@}
@@ -243,6 +243,8 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
+    bool mIsInverseFlag = false;
+
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
@@ -254,11 +256,11 @@ private:
 
     void MapInternal(const Variable<double>& rOriginVariable,
                      const Variable<double>& rDestinationVariable,
-                     Kratos::Flags MappingOptions);
+                     Kratos::Flags MappingOptions, const bool IsInverse = false);
 
     void MapInternal(const Variable<array_1d<double, 3>>& rOriginVariable,
                      const Variable<array_1d<double, 3>>& rDestinationVariable,
-                     Kratos::Flags MappingOptions);
+                     Kratos::Flags MappingOptions, const bool IsInverse = false);
 
     void CreateMapperLocalSystems(
         const Communicator& rModelPartCommunicator,
@@ -272,6 +274,19 @@ private:
     void EnforceConsistencyWithScaling(const Matrix& rInterfaceMatrixSlave,
         Matrix& rInterfaceMatrixProjected,
         const double scalingLimit = 1.1);
+
+    void CheckMappingMatrixConsistency()
+    {
+        for (size_t row = 0; row < mpMappingMatrix->size1(); ++row) {
+            double row_sum = 0.0;
+            for (size_t col = 0; col < mpMappingMatrix->size2(); ++col) row_sum += (*mpMappingMatrix)(row, col);
+            if (std::abs(row_sum - 1.0) > 1e-6) {
+                KRATOS_WATCH(*mpMappingMatrix)
+                KRATOS_WATCH(row_sum)
+                KRATOS_ERROR << "mapping matrix is not consistent\n";
+            }
+        }
+    }
 
     Parameters GetMapperDefaultSettings() const
     {
