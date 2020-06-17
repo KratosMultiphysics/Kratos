@@ -184,11 +184,11 @@ public:
         }
 
         global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
         global_sum = MethodUtilities::RaiseToPower<TDataType>(
-            global_sum * (1.0 / std::max(static_cast<double>(number_of_items), 1.0)), 0.5);
+            global_sum * (1.0 / std::max(number_of_items, 1.0)), 0.5);
 
         return global_sum;
 
@@ -227,10 +227,10 @@ public:
         }
 
         global_sum = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_sum);
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
-        return std::sqrt(global_sum / std::max(static_cast<double>(number_of_items), 1.0));
+                static_cast<double>(r_container.size()));
+        return std::sqrt(global_sum / std::max(number_of_items, 1.0));
 
         KRATOS_CATCH("");
     }
@@ -242,11 +242,11 @@ public:
         const TContainerType& r_container =
             MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
 
-        return sum * (1.0 / std::max(static_cast<double>(number_of_items), 1.0));
+        return sum * (1.0 / std::max(number_of_items, 1.0));
     }
 
     template <class TDataType>
@@ -261,13 +261,13 @@ public:
         const TContainerType& r_container =
             MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
 
         if (number_of_items > 0)
         {
-            return sum * (1.0 / static_cast<double>(number_of_items));
+            return sum * (1.0 / number_of_items);
         }
 
         return 0.0;
@@ -314,13 +314,13 @@ public:
 
         global_variance =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
 
         if (number_of_items > 0)
         {
-            global_variance *= (1.0 / static_cast<double>(number_of_items));
+            global_variance *= (1.0 / number_of_items);
             global_variance -= MethodUtilities::RaiseToPower(mean, 2);
         }
 
@@ -362,13 +362,13 @@ public:
         }
         global_variance =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(global_variance);
-        const unsigned int number_of_items =
+        const double number_of_items =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                r_container.size());
+                static_cast<double>(r_container.size()));
 
         if (number_of_items > 0)
         {
-            global_variance *= (1.0 / static_cast<double>(number_of_items));
+            global_variance *= (1.0 / number_of_items);
             global_variance -= MethodUtilities::RaiseToPower(mean, 2);
         }
 
