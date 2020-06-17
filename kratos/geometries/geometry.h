@@ -3401,12 +3401,6 @@ public:
     ///@}
 
 protected:
-    ///@name Static Member Variables
-    ///@{
-
-    static const GeometryDimension msGeometryDimension;
-
-    ///@}
     ///@name Geometry Data
     ///@{
 
@@ -3645,6 +3639,8 @@ private:
     IndexType mId;
 
     GeometryData const* mpGeometryData;
+    
+    static const GeometryDimension msGeometryDimension;
 
     PointsArrayType mPoints;
 
