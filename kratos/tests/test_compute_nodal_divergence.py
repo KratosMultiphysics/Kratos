@@ -5,7 +5,7 @@ import KratosMultiphysics
 import math
 import os
 
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
+#from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -13,8 +13,6 @@ def GetFilePath(fileName):
 class TestNodalDivergence(KratosUnittest.TestCase):
             
     def test_nodal_divergence_2d_square(self):
-        print( " " )
-        print( "Test 2D, square domain 1x1:" )
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -44,38 +42,39 @@ class TestNodalDivergence(KratosUnittest.TestCase):
             KratosMultiphysics.DISTANCE_GRADIENT,
             KratosMultiphysics.PRESSURE, #KratosCFD.CURVATURE,
             KratosMultiphysics.NODAL_AREA).Execute()
-
-        for node in model_part.Nodes:
-            if ( ((node.X-0.5)**2+(node.Y-0.5)**2 - 0.5**2) > -0.02 and ((node.X-0.5)**2+(node.Y-0.5)**2 - 0.5**2) < 0.02 ):
-                print( node.GetSolutionStepValue(KratosMultiphysics.PRESSURE) )
+        
+        node = (model_part.Nodes)[19]        
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 2.1431154720650256)
+        node = (model_part.Nodes)[18]        
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 2.143115472065025)
+        node = (model_part.Nodes)[9]        
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 2.1431154720650243)
             
-        gid_output = GiDOutputProcess(model_part,
-                                    "curvature_post_2D",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["PRESSURE"]
-                                            }
-                                        }
-                                        """)
-                                    )
+        #gid_output = GiDOutputProcess(model_part,
+        #                            "curvature_post_2D",
+        #                            KratosMultiphysics.Parameters("""
+        #                                {
+        #                                    "result_file_configuration" : {
+        #                                        "gidpost_flags": {
+        #                                            "GiDPostMode": "GiD_PostBinary",
+        #                                            "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                                            "WriteConditionsFlag": "WriteConditions",
+        #                                           "MultiFileFlag": "SingleFile"
+        #                                        },
+        #                                        "nodal_results"       : ["PRESSURE"]
+        #                                    }
+        #                                }
+        #                                """)
+        #                            )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+        #gid_output.ExecuteInitialize()
+        #gid_output.ExecuteBeforeSolutionLoop()
+        #gid_output.ExecuteInitializeSolutionStep()
+        #gid_output.PrintOutput()
+        #gid_output.ExecuteFinalizeSolutionStep()
+        #gid_output.ExecuteFinalize()
         
     def test_nodal_divergence_3d_cube(self):
-        print( " " )
-        print( "Test 3, cubic domain 1x1x1:" )
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -105,35 +104,37 @@ class TestNodalDivergence(KratosUnittest.TestCase):
             KratosMultiphysics.DISTANCE_GRADIENT,
             KratosMultiphysics.PRESSURE, #KratosCFD.CURVATURE,
             KratosMultiphysics.NODAL_AREA).Execute()
+        
+        node = (model_part.Nodes)[117]        
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 3.7011835866693046)
+        node = (model_part.Nodes)[36]        
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 3.9753094244054954)
+        node = (model_part.Nodes)[175]        
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 3.701183586669305)         
             
-        for node in model_part.Nodes:
-            if ( ((node.X-0.5)**2+(node.Y-0.5)**2+(node.Z-0.5)**2 - 0.5**2) > -0.01 and ((node.X-0.5)**2+(node.Y-0.5)**2+(node.Z-0.5)**2 - 0.5**2) < 0.01 ):
-                print( node.GetSolutionStepValue(KratosMultiphysics.PRESSURE) )
-                #self.assertAlmostEqual( node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 2.0/0.5, 1 )
-            
-        gid_output = GiDOutputProcess(model_part,
-                                    "curvature_post_3D",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["PRESSURE"]
-                                            }
-                                        }
-                                        """)
-                                    )
+        #gid_output = GiDOutputProcess(model_part,
+        #                            "curvature_post_3D",
+        #                            KratosMultiphysics.Parameters("""
+        #                                {
+        #                                    "result_file_configuration" : {
+        #                                        "gidpost_flags": {
+        #                                            "GiDPostMode": "GiD_PostBinary",
+        #                                            "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                                            "WriteConditionsFlag": "WriteConditions",
+        #                                            "MultiFileFlag": "SingleFile"
+        #                                        },
+        #                                        "nodal_results"       : ["PRESSURE"]
+        #                                    }
+        #                                }
+        #                                """)
+        #                            )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+        #gid_output.ExecuteInitialize()
+        #gid_output.ExecuteBeforeSolutionLoop()
+        #gid_output.ExecuteInitializeSolutionStep()
+        #gid_output.PrintOutput()
+        #gid_output.ExecuteFinalizeSolutionStep()
+        #gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()
