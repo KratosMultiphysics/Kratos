@@ -22,6 +22,7 @@
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/variable_utils.h"
+#include "modeler/modeler_factory.h"
 
 namespace Kratos {
 namespace Internals {
@@ -293,6 +294,14 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
         for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j)
                 rInterfaceMatrixProjected(i, j) *= alpha;
     }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CreateModeler()
+{
+    // auto modeler = ModelerFactory.Create()
+    // KratosMapping.FindIntersection1DGeometries2D(originInterface, destinationInterface, model_part_coupling, 1e-6)
+    // KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

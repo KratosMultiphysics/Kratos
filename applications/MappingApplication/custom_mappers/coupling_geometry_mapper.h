@@ -117,6 +117,9 @@ public:
                            mrModelPartDestination(rModelPartDestination),
                            mMapperSettings(JsonParameters)
     {
+        this->CreateModeler();
+
+        // here use whatever ModelPart(s) was created by the Modeler
         mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin.GetSubModelPart("interface"));
         mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination.GetSubModelPart("interface"));
 
@@ -333,6 +336,8 @@ private:
             "echo_level" : 0
         })");
     }
+
+    void CreateModeler();
 
     ///@}
     ///@name Private  Access
