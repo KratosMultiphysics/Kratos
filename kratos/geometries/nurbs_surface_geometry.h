@@ -204,6 +204,8 @@ public:
         else if (DirectionIndex == 1) {
             return this->NumberOfControlPointsV();
         }
+        KRATOS_DEBUG_ERROR_IF(DirectionIndex > 2) << "Possible direction index in NurbsSurfaceGeometry reaches from 0-2. Given direction index: "
+            << DirectionIndex << std::endl;
         return 1;
     }
 
