@@ -35,11 +35,6 @@ void Assemble(
     const MapperLocalSystem::EquationIdVectorType& rDestinationIds,
     Matrix& rMappingMatrix)
 {
-    // std::cout << std::endl;
-    // KRATOS_WATCH(rLocalMappingMatrix)
-    // KRATOS_WATCH(rOriginIds)
-    // KRATOS_WATCH(rDestinationIds)
-
     KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size1() != rDestinationIds.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rLocalMappingMatrix.size1() << " | DestinationIDs-size: " << rDestinationIds.size() << std::endl;
     KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size2() != rOriginIds.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << rLocalMappingMatrix.size2() << " | OriginIDs-size: " << rOriginIds.size() << std::endl;
 
@@ -217,43 +212,59 @@ template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<double>& rOriginVariable,
     const Variable<double>& rDestinationVariable,
-    Kratos::Flags MappingOptions, const bool IsInverse)
+    Kratos::Flags MappingOptions)
 {
+    mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
+    TSparseSpace::Mult(
+        *mpMappingMatrix,
+        mpInterfaceVectorContainerOrigin->GetVector(),
+        mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
-    if (!IsInverse) {
-        mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
-        TSparseSpace::Mult(
-            *mpMappingMatrix,
-            mpInterfaceVectorContainerOrigin->GetVector(),
-            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
-        mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
-    }
-    else {
-        mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
-        Kratos::Matrix trans_mapping_matrix(trans(*mpMappingMatrix));
+    mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+}
 
-        TSparseSpace::Mult(
-            trans_mapping_matrix,
-            mpInterfaceVectorContainerDestination->GetVector(),
-            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = trans(rMdo) * rQd
-        mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
-    }
+template<class TSparseSpace, class TDenseSpace>
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
+    const Variable<double>& rOriginVariable,
+    const Variable<double>& rDestinationVariable,
+    Kratos::Flags MappingOptions)
+{
+    mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
+    TSparseSpace::TransposeMult(
+        *mpMappingMatrix,
+        mpInterfaceVectorContainerDestination->GetVector(),
+        mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
 
+    mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 }
 
 template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<array_1d<double, 3>>& rOriginVariable,
     const Variable<array_1d<double, 3>>& rDestinationVariable,
-    Kratos::Flags MappingOptions, const bool IsInverse)
+    Kratos::Flags MappingOptions)
 {
     for (const auto var_ext : {"_X", "_Y", "_Z"}) {
         const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
         const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
 
-        MapInternal(var_origin, var_destination, MappingOptions, IsInverse);
+        MapInternal(var_origin, var_destination, MappingOptions);
+    }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
+    const Variable<array_1d<double, 3>>& rOriginVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
+    Kratos::Flags MappingOptions)
+{
+    for (const auto var_ext : {"_X", "_Y", "_Z"}) {
+        const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
+        const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
+
+        MapInternalTranspose(var_origin, var_destination, MappingOptions);
     }
 }
 

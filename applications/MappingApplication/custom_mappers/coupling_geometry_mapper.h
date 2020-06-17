@@ -150,7 +150,17 @@ public:
         const Variable<double>& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
-        MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
+            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
+            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        }
+        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
+            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
+        }
+        else {
+            MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
+        }
     }
 
     void Map(
@@ -158,7 +168,17 @@ public:
         const Variable< array_1d<double, 3> >& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
-        MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
+            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
+            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        }
+        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
+            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
+        }
+        else {
+            MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
+        }
     }
 
     void InverseMap(
@@ -166,7 +186,12 @@ public:
         const Variable<double>& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
-        MapInternal(rOriginVariable, rDestinationVariable, MappingOptions,true);
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
+            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
+        }
+        else {
+            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        }
     }
 
     void InverseMap(
@@ -174,7 +199,12 @@ public:
         const Variable< array_1d<double, 3> >& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
-        MapInternal(rOriginVariable, rDestinationVariable, MappingOptions, true);
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
+            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
+        }
+        else {
+            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        }
     }
 
     ///@}
@@ -256,11 +286,19 @@ private:
 
     void MapInternal(const Variable<double>& rOriginVariable,
                      const Variable<double>& rDestinationVariable,
-                     Kratos::Flags MappingOptions, const bool IsInverse = false);
+                     Kratos::Flags MappingOptions);
+
+    void MapInternalTranspose(const Variable<double>& rOriginVariable,
+                              const Variable<double>& rDestinationVariable,
+                              Kratos::Flags MappingOptions);
 
     void MapInternal(const Variable<array_1d<double, 3>>& rOriginVariable,
                      const Variable<array_1d<double, 3>>& rDestinationVariable,
-                     Kratos::Flags MappingOptions, const bool IsInverse = false);
+                     Kratos::Flags MappingOptions);
+
+    void MapInternalTranspose(const Variable<array_1d<double, 3>>& rOriginVariable,
+                              const Variable<array_1d<double, 3>>& rDestinationVariable,
+                              Kratos::Flags MappingOptions);
 
     void CreateMapperLocalSystems(
         const Communicator& rModelPartCommunicator,
@@ -294,6 +332,26 @@ private:
         return Parameters( R"({
             "echo_level" : 0
         })");
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    MapperUniquePointerType& GetInverseMapper()
+    {
+        if (!mpInverseMapper) {
+            InitializeInverseMapper();
+        }
+        return mpInverseMapper;
+    }
+
+    void InitializeInverseMapper()
+    {
+        KRATOS_ERROR << "Inverse Mapping is not supported yet!" << std::endl;
+        mpInverseMapper = this->Clone(mrModelPartDestination,
+                                      mrModelPartOrigin,
+                                      mMapperSettings);
     }
 
     ///@}

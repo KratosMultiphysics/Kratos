@@ -107,7 +107,7 @@ for node in destinationInterface.Nodes:
     print("\t",node.Id," displacement = ",node.GetSolutionStepValue(KM.FORCE_X))
     print("\t",node.Id," Y position = ",node.Y)
 
-mapper.InverseMap(KM.FORCE, KM.FORCE)
+mapper.InverseMap(KM.FORCE, KM.FORCE, KratosMapping.Mapper.USE_TRANSPOSE)
 print("destination interface nodes displacement values")
 
 
