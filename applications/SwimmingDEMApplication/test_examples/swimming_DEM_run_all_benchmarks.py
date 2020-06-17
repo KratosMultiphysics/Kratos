@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import os
 import sys
 import platform
+import shutil
 
 kratos_benchmarking_path = '../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
@@ -16,10 +17,8 @@ def Run():
     print("\nStarting swimming_DEM Benchmarks..............\n")
     Text=""
 
-    if platform.system()=="Windows":
-        os.system("python hydrodynamic_forces.py " + " > BenchTemp.txt")
-    else:
-        os.system("python3 hydrodynamic_forces.py " + " > BenchTemp.txt")
+    py_cmd = "python3" if shutil.which("python3") is not None else "python"
+    os.system(py_cmd + " hydrodynamic_forces.py " + " > BenchTemp.txt")
 
     os.remove("BenchTemp.txt")
 

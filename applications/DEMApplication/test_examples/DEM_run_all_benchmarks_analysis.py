@@ -81,12 +81,8 @@ def Run():
             print(Benchmark_text[benchmark - 1])
             try:
                 os.environ["OMP_NUM_THREADS"] = "1"
-
-                if platform.system()=="Windows":
-                    subprocess.check_call(["python", path + "/DEM_benchmarks_analysis.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-                else:
-                    py_cmd = "python3" if shutil.which("python3") is not None else "python"
-                    subprocess.check_call([py_cmd, path + "/DEM_benchmarks_analysis.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
+                py_cmd = "python3" if shutil.which("python3") is not None else "python"
+                subprocess.check_call([py_cmd, path + "/DEM_benchmarks_analysis.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
 
                 os.environ["OMP_NUM_THREADS"] = "" # Trying to set a 'default' value
             except:
