@@ -389,14 +389,14 @@ public:
             MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_max = std::numeric_limits<double>::lowest();
-        std::size_t global_id = 0;
+        unsigned int global_id = 0;
         const auto& norm_method =
             MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
             double current_max = std::numeric_limits<double>::lowest();
-            std::size_t current_id = 0;
+            unsigned int current_id = 0;
 #pragma omp for
             for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
             {
@@ -425,7 +425,7 @@ public:
         const auto& global_max_value_array =
             r_data_communicator.AllGather(std::vector<double>{global_max});
         const auto& global_max_id_array =
-            r_data_communicator.AllGather(std::vector<std::size_t>{global_id});
+            r_data_communicator.AllGather(std::vector<unsigned int>{global_id});
 
         for (std::size_t i = 0; i < global_max_value_array.size(); ++i)
         {
@@ -436,8 +436,8 @@ public:
             }
         }
 
-        return std::make_tuple<double, std::size_t>(
-            std::forward<double>(global_max), std::forward<std::size_t>(global_id));
+        return std::make_tuple<double, unsigned int>(
+            std::forward<double>(global_max), std::forward<unsigned int>(global_id));
 
         KRATOS_CATCH("");
     }
@@ -455,14 +455,14 @@ public:
             MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
 
         double global_min = std::numeric_limits<double>::max();
-        std::size_t global_id = 0;
+        unsigned int global_id = 0;
         const auto& norm_method =
             MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
 
 #pragma omp parallel
         {
             double current_min = std::numeric_limits<double>::max();
-            std::size_t current_id = 0;
+            unsigned int current_id = 0;
 #pragma omp for
             for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
             {
@@ -491,7 +491,7 @@ public:
         const auto& global_min_value_array =
             r_data_communicator.AllGather(std::vector<double>{global_min});
         const auto& global_min_id_array =
-            r_data_communicator.AllGather(std::vector<std::size_t>{global_id});
+            r_data_communicator.AllGather(std::vector<unsigned int>{global_id});
 
         for (std::size_t i = 0; i < global_min_value_array.size(); ++i)
         {
@@ -502,8 +502,8 @@ public:
             }
         }
 
-        return std::make_tuple<double, std::size_t>(
-            std::forward<double>(global_min), std::forward<std::size_t>(global_id));
+        return std::make_tuple<double, unsigned int>(
+            std::forward<double>(global_min), std::forward<unsigned int>(global_id));
 
         KRATOS_CATCH("");
     }
