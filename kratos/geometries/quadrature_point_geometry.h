@@ -442,7 +442,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    //static const GeometryDimension msGeometryDimension;
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Member Variables
