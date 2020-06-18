@@ -284,6 +284,8 @@ private:
                                     const ElementalData<TNumNodes, TDim>& rData,
                                     unsigned int& rRow) const;
 
+    void AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
+
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
