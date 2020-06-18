@@ -197,18 +197,18 @@ void ExecuteInitializeSolutionStep()
         #pragma omp parallel for
         for(int i = 0; i<NNodes; i++) {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
-            it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-            it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress;
-            it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity;
+            it->GetValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+            it->GetValue(REACTION_STRESS_Z) = reaction_stress;
+            it->GetValue(LOADING_VELOCITY_Z) = mVelocity;
         }
     } else {
         // Save calculated velocity and reaction for print (only at FEM nodes)
         #pragma omp parallel for
         for(int i = 0; i<NNodes; i++) {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
-            it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-            it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress;
-            it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = 0.0;
+            it->GetValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+            it->GetValue(REACTION_STRESS_Z) = reaction_stress;
+            it->GetValue(LOADING_VELOCITY_Z) = 0.0;
         }
     }
 

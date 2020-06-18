@@ -78,7 +78,7 @@ class SPAlgorithm(Algorithm):
         self.InitializeAdditionalProcessInfoVars()
 
         from KratosMultiphysics.DemStructuresCouplingApplication.multiaxial_control_module_fem_dem_generalized_2d_utility import MultiaxialControlModuleFEMDEMGeneralized2DUtility
-        self.multiaxial_control_module = MultiaxialControlModuleFEMDEMGeneralized2DUtility(self.dem_solution.spheres_model_part, self.model)
+        self.multiaxial_control_module = MultiaxialControlModuleFEMDEMGeneralized2DUtility(self.model, self.sp_parameters)
         self.multiaxial_control_module.ExecuteInitialize()
         # if self.test_number:
         #     from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility

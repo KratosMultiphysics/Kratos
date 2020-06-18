@@ -219,9 +219,9 @@ void ExecuteInitializeSolutionStep()
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(DISPLACEMENT_X) += mVelocity * DeltaTime;
                 // Save calculated velocity and reaction for print (only at FEM nodes)
-                it->FastGetSolutionStepValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
-                it->FastGetSolutionStepValue(REACTION_STRESS_X) = ReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = mVelocity;
+                it->GetValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_X) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_X) = mVelocity;
             }
         } else if (mImposedDirection == 1) { // Y direction
             const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_Y_VALUE");
@@ -232,9 +232,9 @@ void ExecuteInitializeSolutionStep()
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(DISPLACEMENT_Y) += mVelocity * DeltaTime;
                 // Save calculated velocity and reaction for print (only at FEM nodes)
-                it->FastGetSolutionStepValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
-                it->FastGetSolutionStepValue(REACTION_STRESS_Y) = ReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = mVelocity;
+                it->GetValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_Y) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_Y) = mVelocity;
             }
         } else if (mImposedDirection == 2) { // Z direction
             const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_Z_VALUE");
@@ -245,9 +245,9 @@ void ExecuteInitializeSolutionStep()
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(DISPLACEMENT_Z) += mVelocity * DeltaTime;
                 // Save calculated velocity and reaction for print (only at FEM nodes)
-                it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-                it->FastGetSolutionStepValue(REACTION_STRESS_Z) = ReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity;
+                it->GetValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_Z) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_Z) = mVelocity;
             }
             mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(pTargetStressTable->GetValue(CurrentTime));
         }
@@ -260,9 +260,9 @@ void ExecuteInitializeSolutionStep()
             #pragma omp parallel for
             for(int i = 0; i<NNodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
-                it->FastGetSolutionStepValue(REACTION_STRESS_X) = ReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = 0.0;
+                it->GetValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_X) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_X) = 0.0;
             }
         } else if (mImposedDirection == 1) { // Y direction
             const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_Y_VALUE");
@@ -271,9 +271,9 @@ void ExecuteInitializeSolutionStep()
             #pragma omp parallel for
             for(int i = 0; i<NNodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
-                it->FastGetSolutionStepValue(REACTION_STRESS_Y) = ReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = 0.0;
+                it->GetValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_Y) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_Y) = 0.0;
             }
         } else if (mImposedDirection == 2) { // Z direction
             const Variable<double>& DemVelocityVar = KratosComponents< Variable<double> >::Get("IMPOSED_VELOCITY_Z_VALUE");
@@ -282,9 +282,9 @@ void ExecuteInitializeSolutionStep()
             #pragma omp parallel for
             for(int i = 0; i<NNodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-                it->FastGetSolutionStepValue(REACTION_STRESS_Z) = ReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = 0.0;
+                it->GetValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+                it->GetValue(REACTION_STRESS_Z) = ReactionStress;
+                it->GetValue(LOADING_VELOCITY_Z) = 0.0;
             }
             mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(pTargetStressTable->GetValue(CurrentTime));
         }

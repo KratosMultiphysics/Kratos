@@ -3,20 +3,20 @@ import KratosMultiphysics.DEMApplication as Dem
 
 
 class MultiaxialControlModuleGeneralized2DUtility(object):
-    def __init__(self, spheres_model_part, rigid_walls_model_part, parameters):
+    def __init__(self, Model, settings):
 
         #NOTE: Negative target_stress means compression
+
+        self.spheres_model_part = Model["SpheresPart"]
+        self.fem_model_part = Model["RigidFacePart"] #rigid_walls_model_part
+
+        self.parameters = settings["multiaxial_control_module_generalized_2d_utility"]
+
         self.cm_step = 0
-
-        self.spheres_model_part = spheres_model_part
-        self.rigid_walls_model_part = rigid_walls_model_part
-
-        self.parameters = parameters["multiaxial_control_module_generalized_2d_utility"]
-
         self.output_interval = self.parameters["Parameters"]["output_interval"].GetInt()
 
         self.cm_utility = Dem.MultiaxialControlModuleGeneralized2DUtilities(self.spheres_model_part,
-                                                                            self.rigid_walls_model_part,
+                                                                            self.fem_model_part,
                                                                             self.parameters)
 
     def ExecuteInitialize(self):
@@ -164,7 +164,7 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
                 mp = self.spheres_model_part.GetSubModelPart(boundary["model_part_name"].GetString())
                 self.dem_submodelparts[name].append(mp)
             for boundary in actuator_parameters["list_of_fem_boundaries"]:
-                mp = self.rigid_walls_model_part.GetSubModelPart(boundary["model_part_name"].GetString())
+                mp = self.fem_model_part.GetSubModelPart(boundary["model_part_name"].GetString())
                 self.fem_submodelparts[name].append(mp)
 
     def FillPrintVariables(self):
@@ -174,36 +174,36 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         for name in self.actuator_names:
             if name == 'Z':
                 for node in self.dem_submodelparts[name][0].Nodes:
-                    self.reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Z))
+                    self.reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Z))
                     self.smoothed_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Z))
                     self.elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Z))
                     self.smoothed_elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Z))
-                    self.target_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Z))
-                    self.velocities[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Z))
+                    self.target_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Z))
+                    self.velocities[name].append(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Z))
                     break
 
             elif name == 'X':
                 for node in self.fem_submodelparts[name][0].Nodes:
-                    self.reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))
+                    self.reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))
                     self.smoothed_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_X))
                     self.elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_X))
                     self.smoothed_elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_X))
-                    self.target_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X))
-                    self.velocities[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X))
+                    self.target_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X))
+                    self.velocities[name].append(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X))
                     break
             elif name == 'Y':
                 for node in self.fem_submodelparts[name][0].Nodes:
-                    self.reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))
+                    self.reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))
                     self.smoothed_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Y))
                     self.elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Y))
                     self.smoothed_elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Y))
-                    self.target_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y))
-                    self.velocities[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y))
+                    self.target_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y))
+                    self.velocities[name].append(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y))
                     break
             elif name == 'Radial':
                 for node in self.fem_submodelparts[name][0].Nodes:
-                    value_x = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X)
-                    value_y = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y)
+                    value_x = node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X)
+                    value_y = node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y)
                     norm = (value_x**2 + value_y**2)**0.5
                     self.reactions[name].append(norm)
                     value_x = node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_X)
@@ -218,12 +218,12 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
                     value_y = node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Y)
                     norm = (value_x**2 + value_y**2)**0.5
                     self.smoothed_elastic_reactions[name].append(norm)
-                    value_x = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X)
-                    value_y = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y)
+                    value_x = node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X)
+                    value_y = node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y)
                     norm = (value_x**2 + value_y**2)**0.5
                     self.target_reactions[name].append(norm)
-                    value_x = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X)
-                    value_y = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y)
+                    value_x = node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X)
+                    value_y = node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y)
                     norm = (value_x**2 + value_y**2)**0.5
                     self.velocities[name].append(norm)
                     break

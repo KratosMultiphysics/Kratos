@@ -68,7 +68,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitialize() {
                     it->Fix(DISPLACEMENT_Y);
                     it->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
                 }
-            }            
+            }
         }
     }
 
@@ -196,7 +196,7 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
     Vector reaction_stress_estimated(number_of_actuators);
     noalias(reaction_stress_estimated) = this->MeasureReactionStress(REACTION);
     noalias(mReactionStress) = (1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress;
-    // noalias(mReactionStress) = 1.0/(1.0 - std::pow(mReactionAlpha,mStep)) * 
+    // noalias(mReactionStress) = 1.0/(1.0 - std::pow(mReactionAlpha,mStep)) *
     //                         ((1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress);
 
     noalias(mDisplacement) += mVelocity * mCMDeltaTime;
@@ -224,9 +224,9 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
                 #pragma omp parallel for
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    array_1d<double,3>& r_target_stress = it->FastGetSolutionStepValue(TARGET_STRESS);
-                    array_1d<double,3>& r_reaction_stress = it->FastGetSolutionStepValue(REACTION_STRESS);
-                    array_1d<double,3>& r_loading_velocity = it->FastGetSolutionStepValue(LOADING_VELOCITY);
+                    array_1d<double,3>& r_target_stress = it->GetValue(TARGET_STRESS);
+                    array_1d<double,3>& r_reaction_stress = it->GetValue(REACTION_STRESS);
+                    array_1d<double,3>& r_loading_velocity = it->GetValue(LOADING_VELOCITY);
                     noalias(r_target_stress) = ZeroVector(3);
                     noalias(r_reaction_stress) = ZeroVector(3);
                     noalias(r_loading_velocity) = ZeroVector(3);
@@ -255,12 +255,12 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
                 const double external_radius = std::sqrt(it->X()*it->X() + it->Y()*it->Y());
                 const double cos_theta = it->X()/external_radius;
                 const double sin_theta = it->Y()/external_radius;
-                it->FastGetSolutionStepValue(TARGET_STRESS_X) = current_target_stress * cos_theta;
-                it->FastGetSolutionStepValue(TARGET_STRESS_Y) = current_target_stress * sin_theta;
-                it->FastGetSolutionStepValue(REACTION_STRESS_X) = mReactionStress[map_index] * cos_theta;
-                it->FastGetSolutionStepValue(REACTION_STRESS_Y) = mReactionStress[map_index] * sin_theta;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = mVelocity[map_index] * cos_theta;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = mVelocity[map_index] * sin_theta;
+                it->GetValue(TARGET_STRESS_X) = current_target_stress * cos_theta;
+                it->GetValue(TARGET_STRESS_Y) = current_target_stress * sin_theta;
+                it->GetValue(REACTION_STRESS_X) = mReactionStress[map_index] * cos_theta;
+                it->GetValue(REACTION_STRESS_Y) = mReactionStress[map_index] * sin_theta;
+                it->GetValue(LOADING_VELOCITY_X) = mVelocity[map_index] * cos_theta;
+                it->GetValue(LOADING_VELOCITY_Y) = mVelocity[map_index] * sin_theta;
             }
         } else if (actuator_name == "Z") {
             // Note: we only print on FEM nodes
@@ -275,9 +275,9 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
                 #pragma omp parallel for
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    it->FastGetSolutionStepValue(TARGET_STRESS_Z) = current_target_stress;
-                    it->FastGetSolutionStepValue(REACTION_STRESS_Z) = mReactionStress[map_index];
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity[map_index];
+                    it->GetValue(TARGET_STRESS_Z) = current_target_stress;
+                    it->GetValue(REACTION_STRESS_Z) = mReactionStress[map_index];
+                    it->GetValue(LOADING_VELOCITY_Z) = mVelocity[map_index];
                 }
                 mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(current_target_stress);
             }
@@ -293,9 +293,9 @@ void MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutio
                 #pragma omp parallel for
                 for(int j = 0; j<NNodes; j++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
-                    array_1d<double,3>& r_target_stress = it->FastGetSolutionStepValue(TARGET_STRESS);
-                    array_1d<double,3>& r_reaction_stress = it->FastGetSolutionStepValue(REACTION_STRESS);
-                    array_1d<double,3>& r_loading_velocity = it->FastGetSolutionStepValue(LOADING_VELOCITY);
+                    array_1d<double,3>& r_target_stress = it->GetValue(TARGET_STRESS);
+                    array_1d<double,3>& r_reaction_stress = it->GetValue(REACTION_STRESS);
+                    array_1d<double,3>& r_loading_velocity = it->GetValue(LOADING_VELOCITY);
                     noalias(r_target_stress) += current_target_stress * mFEMOuterNormals[actuator_name][i];
                     noalias(r_reaction_stress) += mReactionStress[map_index] * mFEMOuterNormals[actuator_name][i];
                     noalias(r_loading_velocity) += mVelocity[map_index] * mFEMOuterNormals[actuator_name][i];

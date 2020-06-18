@@ -532,9 +532,9 @@ private:
                 // max_absolute
                 // average_relative
                 // average_absolute
-                it->FastGetSolutionStepValue(TARGET_STRESS_X) = rTargetStress;
-                it->FastGetSolutionStepValue(REACTION_STRESS_X) = rReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = rVelocity;
+                it->GetValue(TARGET_STRESS_X) = rTargetStress;
+                it->GetValue(REACTION_STRESS_X) = rReactionStress;
+                it->GetValue(LOADING_VELOCITY_X) = rVelocity;
             }
         } else if (mImposedDirection == 1) { // Y direction
             #pragma omp parallel for
@@ -545,9 +545,9 @@ private:
                 it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
                 it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
                 // Save calculated velocity and reaction for print
-                it->FastGetSolutionStepValue(TARGET_STRESS_Y) = rTargetStress;
-                it->FastGetSolutionStepValue(REACTION_STRESS_Y) = rReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = rVelocity;
+                it->GetValue(TARGET_STRESS_Y) = rTargetStress;
+                it->GetValue(REACTION_STRESS_Y) = rReactionStress;
+                it->GetValue(LOADING_VELOCITY_Y) = rVelocity;
             }
         } else if (mImposedDirection == 2) { // Z direction
             mrModelPart.GetProcessInfo()[IMPOSED_Z_STRAIN_VALUE] += rVelocity*mrModelPart.GetProcessInfo()[DELTA_TIME]/mCompressionLength;
@@ -555,9 +555,9 @@ private:
             for(int i = 0; i<NNodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 // Save calculated velocity and reaction for print
-                it->FastGetSolutionStepValue(TARGET_STRESS_Z) = rTargetStress;
-                it->FastGetSolutionStepValue(REACTION_STRESS_Z) = rReactionStress;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = rVelocity;
+                it->GetValue(TARGET_STRESS_Z) = rTargetStress;
+                it->GetValue(REACTION_STRESS_Z) = rReactionStress;
+                it->GetValue(LOADING_VELOCITY_Z) = rVelocity;
             }
             mrModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(rTargetStress);
         } else { // Radial direction
@@ -576,12 +576,12 @@ private:
                 it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
                 it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
                 // Save calculated velocity and reaction for print
-                it->FastGetSolutionStepValue(TARGET_STRESS_X) = rTargetStress * cos_theta;
-                it->FastGetSolutionStepValue(TARGET_STRESS_Y) = rTargetStress * sin_theta;
-                it->FastGetSolutionStepValue(REACTION_STRESS_X) = rReactionStress * cos_theta;
-                it->FastGetSolutionStepValue(REACTION_STRESS_Y) = rReactionStress * sin_theta;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = rVelocity * cos_theta;
-                it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = rVelocity * sin_theta;
+                it->GetValue(TARGET_STRESS_X) = rTargetStress * cos_theta;
+                it->GetValue(TARGET_STRESS_Y) = rTargetStress * sin_theta;
+                it->GetValue(REACTION_STRESS_X) = rReactionStress * cos_theta;
+                it->GetValue(REACTION_STRESS_Y) = rReactionStress * sin_theta;
+                it->GetValue(LOADING_VELOCITY_X) = rVelocity * cos_theta;
+                it->GetValue(LOADING_VELOCITY_Y) = rVelocity * sin_theta;
             }
         }
     }

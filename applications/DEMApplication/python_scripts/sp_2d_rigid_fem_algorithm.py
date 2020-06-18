@@ -12,7 +12,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         sp_project_parameters_file_name = "sp_2d_rigid_fem_parameters.json"
 
         with open(sp_project_parameters_file_name,'r') as parameters_file:
-            self.sp_project_parameters = KratosMultiphysics.Parameters(parameters_file.read())      
+            self.sp_project_parameters = KratosMultiphysics.Parameters(parameters_file.read())
 
         # TEST NUMBER:
         # 1. CTW16, 2. CTW10, 3. CTW13, 4. CTW12, 5.Blind
@@ -41,7 +41,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
             poro_file.write(porosity_message)
 
         from KratosMultiphysics.DEMApplication.multiaxial_control_module_generalized_2d_utility import MultiaxialControlModuleGeneralized2DUtility
-        self.multiaxial_control_module = MultiaxialControlModuleGeneralized2DUtility(self.spheres_model_part, self.rigid_face_model_part, self.sp_project_parameters)
+        self.multiaxial_control_module = MultiaxialControlModuleGeneralized2DUtility(self.model, self.sp_project_parameters)
         self.multiaxial_control_module.ExecuteInitialize()
 
     def InitializeSolutionStep(self):
