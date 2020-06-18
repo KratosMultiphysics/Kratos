@@ -29,42 +29,11 @@ namespace Kratos
 {
 namespace MethodUtilities
 {
-// method template instantiations
-
-template KRATOS_API(STATISTIC_APPLICATION) double RaiseToPower(const double&, const double);
-template KRATOS_API(STATISTIC_APPLICATION) int RaiseToPower(const int&, const double);
-
-template KRATOS_API(STATISTIC_APPLICATION) const std::function<double(const int&)> GetNormMethod(
-    const Variable<int>&, const std::string&);
-template KRATOS_API(STATISTIC_APPLICATION) const std::function<double(const double&)> GetNormMethod(
-    const Variable<double>&, const std::string&);
-
-template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeInitializer(double&, const double&);
-template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeInitializer(int&, const int&);
-template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeInitializer(
-    array_1d<double, 3>&, const array_1d<double, 3>&);
-
-template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeChecker(const double&, const double&);
-template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeChecker(const int&, const int&);
-template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeChecker(
-    const array_1d<double, 3>&, const array_1d<double, 3>&);
-
-template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<double>(
-    const std::vector<std::string>& rVariableNamesList);
-template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<array_1d<double, 3>>(
-    const std::vector<std::string>& rVariableNamesList);
-template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<Vector>(
-    const std::vector<std::string>& rVariableNamesList);
-template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<Matrix>(
-    const std::vector<std::string>& rVariableNamesList);
-
-// class template instantiations
-template class NonHistoricalDataValueRetrievalFunctor<NodeType>;
-template class HistoricalDataValueRetrievalFunctor<NodeType>;
-template class NonHistoricalDataValueRetrievalFunctor<ConditionType>;
-template class NonHistoricalDataValueRetrievalFunctor<ElementType>;
+// template<> KRATOS_API(STATISTIC_APPLICATION) double RaiseToPower(const double&, const double);
+// template<> KRATOS_API(STATISTIC_APPLICATION) int RaiseToPower(const int&, const double);
 
 template <class TDataType>
+KRATOS_API(STATISTIC_APPLICATION)
 TDataType RaiseToPower(const TDataType& rData, const double Power)
 {
     return std::pow(rData, Power);
@@ -804,6 +773,42 @@ std::vector<double> SortSortedValuesList(const std::vector<std::vector<double>>&
         return result;
     }
 }
+
+// method template instantiations
+template KRATOS_API(STATISTIC_APPLICATION) double RaiseToPower(const double&, const double);
+template KRATOS_API(STATISTIC_APPLICATION) int RaiseToPower(const int&, const double);
+
+template KRATOS_API(STATISTIC_APPLICATION) const std::function<double(const int&)> GetNormMethod(
+    const Variable<int>&, const std::string&);
+template KRATOS_API(STATISTIC_APPLICATION) const std::function<double(const double&)> GetNormMethod(
+    const Variable<double>&, const std::string&);
+
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeInitializer(double&, const double&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeInitializer(int&, const int&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeInitializer(
+    array_1d<double, 3>&, const array_1d<double, 3>&);
+
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeChecker(const double&, const double&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeChecker(const int&, const int&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeChecker(
+    const array_1d<double, 3>&, const array_1d<double, 3>&);
+
+template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<double>(
+    const std::vector<std::string>& rVariableNamesList);
+template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<array_1d<double, 3>>(
+    const std::vector<std::string>& rVariableNamesList);
+template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<Vector>(
+    const std::vector<std::string>& rVariableNamesList);
+template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<Matrix>(
+    const std::vector<std::string>& rVariableNamesList);
+
+// class template instantiations
+template class NonHistoricalDataValueRetrievalFunctor<NodeType>;
+template class HistoricalDataValueRetrievalFunctor<NodeType>;
+template class NonHistoricalDataValueRetrievalFunctor<ConditionType>;
+template class NonHistoricalDataValueRetrievalFunctor<ElementType>;
+
+//
 
 } // namespace MethodUtilities
 
