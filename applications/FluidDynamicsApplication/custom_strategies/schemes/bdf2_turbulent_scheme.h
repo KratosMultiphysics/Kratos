@@ -10,10 +10,8 @@
 //  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_GEAR_SCHEME_H_INCLUDED )
-#define  KRATOS_GEAR_SCHEME_H_INCLUDED
-
-
+#if !defined(KRATOS_BDF2_TURBULENT_SCHEME_H_INCLUDED )
+#define  KRATOS_BDF2_TURBULENT_SCHEME_H_INCLUDED
 
 // System includes
 #include <string>
@@ -28,7 +26,7 @@
 #include "includes/dof.h"
 #include "processes/process.h"
 #include "containers/pointer_vector_set.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/coordinate_transformation_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -62,14 +60,14 @@ namespace Kratos
 /**
  */
 template<class TSparseSpace,class TDenseSpace>
-class GearScheme : public Scheme<TSparseSpace, TDenseSpace>
+class BDF2TurbulentScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of GearScheme
-    KRATOS_CLASS_POINTER_DEFINITION(GearScheme);
+    /// Pointer definition of BDF2TurbulentScheme
+    KRATOS_CLASS_POINTER_DEFINITION(BDF2TurbulentScheme);
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
@@ -81,17 +79,17 @@ public:
     typedef Dof<TDataType> TDofType;
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
-
+    typedef CoordinateTransformationUtils<LocalSystemMatrixType, LocalSystemVectorType, double> RotationToolType;
+    typedef typename RotationToolType::UniquePointer RotationToolPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    GearScheme()
-        :
-        Scheme<TSparseSpace, TDenseSpace>(),
-        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    BDF2TurbulentScheme()
+    : Scheme<TSparseSpace, TDenseSpace>()
+    , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
 
     /// Constructor to use the formulation combined with a turbulence model.
@@ -101,26 +99,24 @@ public:
      * non-linear iteration.
      * @param pTurbulenceModel pointer to the turbulence model
      */
-    GearScheme(Process::Pointer pTurbulenceModel)
-        :
-        Scheme<TSparseSpace, TDenseSpace>(),
-        mpTurbulenceModel(pTurbulenceModel),
-        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+    BDF2TurbulentScheme(Process::Pointer pTurbulenceModel)
+        : Scheme<TSparseSpace, TDenseSpace>()
+        , mpTurbulenceModel(pTurbulenceModel)
+        , mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
 
     /// Constructor for periodic boundary conditions.
     /**
      * @param rPeriodicVar the variable used to store periodic pair indices.
      */
-    GearScheme(const Kratos::Variable<int>& rPeriodicVar)
-        :
-        Scheme<TSparseSpace, TDenseSpace>(),
-        mrPeriodicIdVar(rPeriodicVar)
+    BDF2TurbulentScheme(const Kratos::Variable<int>& rPeriodicVar)
+        : Scheme<TSparseSpace, TDenseSpace>()
+        , mrPeriodicIdVar(rPeriodicVar)
     {}
 
 
     /// Destructor.
-    ~GearScheme() override
+    ~BDF2TurbulentScheme() override
     {}
 
     ///@}
@@ -141,49 +137,39 @@ public:
     {
         KRATOS_TRY
 
-        int ErrorCode = BaseType::Check(rModelPart);
-        if (ErrorCode != 0) return ErrorCode;
-
-//            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+        // Base scheme check
+        int error_code = BaseType::Check(rModelPart);
+        if (error_code != 0) {
+            return error_code;
+        }
 
         // Check buffer size
-        if (rModelPart.GetBufferSize() < 3)
-            KRATOS_THROW_ERROR(std::logic_error, "GearScheme error: Insufficient buffer size for BDF2, should be at least 3, got ",rModelPart.GetBufferSize());
-
-        // Check that all required variables were registered
-        if(DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"TIME_STEP Key is 0. Check if all applications were correctly registered.","");
-        if(BDF_COEFFICIENTS.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"BDF_COEFFICIENTS Key is 0. Check if all applications were correctly registered.","");
-        if(OSS_SWITCH.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if all applications were correctly registered.","");
-
-        if(DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT Key is 0. Check if all applications were correctly registered.","");
-        if(VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if all applications were correctly registered.","");
-        if(MESH_VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if all applications were correctly registered.","");
-        if(ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.","");
-
-//            // Check that the ModelPart's ProcessInfo contains the required variables
-//            if(rCurrentProcessInfo.Has(DELTA_TIME) != true)
-//                KRATOS_THROW_ERROR(std::invalid_argument,"No value of DELTA_TIME defined in ProcessInfo for a model part passed to GearScheme","");
-//            if(rCurrentProcessInfo.Has(BDF_COEFFICIENTS) != true)
-//                KRATOS_THROW_ERROR(std::invalid_argument,"No value of BDF_COEFFICIENTS defined in ProcessInfo for a model part passed to GearScheme","");
-//            if(rCurrentProcessInfo.Has(OSS_SWITCH) != true)
-//                KRATOS_THROW_ERROR(std::invalid_argument,"No value of OSS_SWITCH defined in ProcessInfo for a model part passed to GearScheme","");
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 3)
+            << "Insufficient buffer size for BDF2, should be at least 3, got " << rModelPart.GetBufferSize() << std::endl;
 
         return 0;
+
         KRATOS_CATCH("");
     }
 
+    void Initialize(ModelPart& rModelPart) override
+    {
+        // Set up the rotation tool pointer
+        const auto& r_proces_info = rModelPart.GetProcessInfo();
+        const unsigned int domain_size = r_proces_info[DOMAIN_SIZE];
+        auto p_aux = Kratos::make_unique<RotationToolType>(domain_size, domain_size + 1, SLIP);
+        mpRotationTool.swap(p_aux);
+
+        // Base initialize call
+        BaseType::Initialize(rModelPart);
+    }
+
     /// Set the time iteration coefficients
-    void InitializeSolutionStep(ModelPart& rModelPart,
-                                        TSystemMatrixType& A,
-                                        TSystemVectorType& Dx,
-                                        TSystemVectorType& b) override
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
     {
         this->SetTimeCoefficients(rModelPart.GetProcessInfo());
 
@@ -191,40 +177,30 @@ public:
         BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
 
         // Recalculate mesh velocity (to account for variable time step)
+        const double tol = 1.0e-12;
         const double Dt = rModelPart.GetProcessInfo()[DELTA_TIME];
         const double OldDt = rModelPart.GetProcessInfo().GetPreviousSolutionStepInfo(1)[DELTA_TIME];
-        if(Dt != OldDt)
-        {
+        if(std::abs(Dt - OldDt) > tol) {
+            const int n_nodes = rModelPart.NumberOfNodes();
             const Vector& BDFcoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
 
-            // OpenMP partition
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::PartitionVector NodePartition;
-            OpenMPUtils::DivideInPartitions(rModelPart.NumberOfNodes(),NumThreads,NodePartition);
-
-            #pragma omp parallel
-            {
-                int k = OpenMPUtils::ThisThread();
-                ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
-                ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k+1];
-
-                for(ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-                {
-                    array_1d<double,3>& rMeshVel = itNode->FastGetSolutionStepValue(MESH_VELOCITY);
-                    const array_1d<double,3>& rDisp0 = itNode->FastGetSolutionStepValue(DISPLACEMENT);
-                    const array_1d<double,3>& rDisp1 = itNode->FastGetSolutionStepValue(DISPLACEMENT,1);
-                    const array_1d<double,3>& rDisp2 = itNode->FastGetSolutionStepValue(DISPLACEMENT,2);
-
-                    rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
-                }
+#pragma omp parallel for
+            for(int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto it_node = rModelPart.NodesBegin() + i_node;
+                auto& rMeshVel = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
+                const auto& rDisp0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                const auto& rDisp1 = it_node->FastGetSolutionStepValue(DISPLACEMENT,1);
+                const auto& rDisp2 = it_node->FastGetSolutionStepValue(DISPLACEMENT,2);
+                rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
             }
         }
     }
 
-    void InitializeNonLinIteration(ModelPart& rModelPart,
-                                           TSystemMatrixType& A,
-                                           TSystemVectorType& Dx,
-                                           TSystemVectorType& b) override
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -233,10 +209,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    void FinalizeNonLinIteration(ModelPart &rModelPart,
-                                         TSystemMatrixType &A,
-                                         TSystemVectorType &Dx,
-                                         TSystemVectorType &b) override
+    void FinalizeNonLinIteration(
+        ModelPart &rModelPart,
+        TSystemMatrixType &A,
+        TSystemVectorType &Dx,
+        TSystemVectorType &b) override
     {
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -250,46 +227,36 @@ public:
     }
 
     /// Start the iteration by providing a first approximation to the solution.
-    void Predict(ModelPart& rModelPart,
-                         DofsArrayType& rDofSet,
-                         TSystemMatrixType& A,
-                         TSystemVectorType& Dx,
-                         TSystemVectorType& b) override
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfNodes(), NumThreads, NodePartition);
-
+        const int n_nodes = rModelPart.NumberOfNodes();
         const Vector& BDFcoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
-        return;
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
+#pragma omp parallel for
+        for(int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            auto& rVel0 = it_node->FastGetSolutionStepValue(VELOCITY);
+            const auto& rVel1 = it_node->FastGetSolutionStepValue(VELOCITY,1);
+            const auto& rVel2 = it_node->FastGetSolutionStepValue(VELOCITY,2);
+            auto& rAcceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
 
-            ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
-            ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k+1];
+            // Predict velocities
+            if(!it_node->IsFixed(VELOCITY_X))
+                rVel0[0] = 2.00 * rVel1[0] - rVel2[0];
+            if(!it_node->IsFixed(VELOCITY_Y))
+                rVel0[1] = 2.00 * rVel1[1] - rVel2[1];
+            if(!it_node->IsFixed(VELOCITY_Z))
+                rVel0[2] = 2.00 * rVel1[2] - rVel2[2];
 
-            for(ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                array_1d<double,3>& rVel0 = itNode->FastGetSolutionStepValue(VELOCITY);
-                const array_1d<double,3>& rVel1 = itNode->FastGetSolutionStepValue(VELOCITY,1);
-                const array_1d<double,3>& rVel2 = itNode->FastGetSolutionStepValue(VELOCITY,2);
-                array_1d<double,3>& rAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
-
-                // Predict velocities
-                if(!itNode->IsFixed(VELOCITY_X))
-                    rVel0[0] = 2.00 * rVel1[0] - rVel2[0];
-                if(!itNode->IsFixed(VELOCITY_Y))
-                    rVel0[1] = 2.00 * rVel1[1] - rVel2[1];
-                if(!itNode->IsFixed(VELOCITY_Z))
-                    rVel0[2] = 2.00 * rVel1[2] - rVel2[2];
-
-                // Predict acceleration
-                rAcceleration = BDFcoefs[0] * rVel0 + BDFcoefs[1] * rVel1 + BDFcoefs[2] * rVel2;
-            }
+            // Predict acceleration
+            rAcceleration = BDFcoefs[0] * rVel0 + BDFcoefs[1] * rVel1 + BDFcoefs[2] * rVel2;
         }
 
         KRATOS_CATCH("")
@@ -303,18 +270,22 @@ public:
      * @param Dx Newton-Raphson iteration solution
      * @param b Newton-Raphson right hand side (unused)
      */
-    void Update(ModelPart& rModelPart,
-                        DofsArrayType& rDofSet,
-                        TSystemMatrixType& A,
-                        TSystemVectorType& Dx,
-                        TSystemVectorType& b) override
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
+        mpRotationTool->RotateVelocities(rModelPart);
+
         mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
-        const Vector& BDFCoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
+        mpRotationTool->RecoverVelocities(rModelPart);
 
+        const Vector& BDFCoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
         this->UpdateAcceleration(rModelPart,BDFCoefs);
 
         KRATOS_CATCH("")
@@ -347,6 +318,10 @@ public:
         this->CombineLHSContributions(LHS_Contribution,Mass,Damp,rCurrentProcessInfo);
         this->AddDynamicRHSContribution<Kratos::Element>(rCurrentElement,RHS_Contribution,Mass,rCurrentProcessInfo);
 
+        // Apply slip condition
+        mpRotationTool->Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+
         KRATOS_CATCH("")
     }
 
@@ -374,6 +349,10 @@ public:
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
         this->AddDynamicRHSContribution<Kratos::Element>(rCurrentElement,RHS_Contribution,Mass,rCurrentProcessInfo);
+
+        // Apply slip condition
+        mpRotationTool->Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
+        mpRotationTool->ApplySlipCondition(RHS_Contribution, rCurrentElement.GetGeometry());
 
         KRATOS_CATCH("")
     }
@@ -405,6 +384,10 @@ public:
         this->CombineLHSContributions(LHS_Contribution,Mass,Damp,rCurrentProcessInfo);
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
 
+        // Apply slip condition
+        mpRotationTool->Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+        mpRotationTool->ApplySlipCondition(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+
         KRATOS_CATCH("")
     }
 
@@ -433,6 +416,10 @@ public:
         // Add the dynamic contributions to the local system using BDF2 coefficients
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
 
+        // Apply slip condition
+        mpRotationTool->Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
+        mpRotationTool->ApplySlipCondition(RHS_Contribution, rCurrentCondition.GetGeometry());
+
         KRATOS_CATCH("")
     }
 
@@ -460,7 +447,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "GearScheme";
+        buffer << "BDF2TurbulentScheme";
         return buffer.str();
     }
 
@@ -480,7 +467,6 @@ public:
 
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -499,7 +485,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     /// Calculate the coefficients for time iteration.
     /**
@@ -531,26 +516,19 @@ protected:
      * @param rDofSet Container for the Degrees of freedom in the system
      * @param Dx Solution of the linear system
      */
-    virtual void UpdateDofs(DofsArrayType& rDofSet,
-                            TSystemVectorType& Dx)
+    virtual void UpdateDofs(
+        DofsArrayType& rDofSet,
+        TSystemVectorType& Dx)
     {
         KRATOS_TRY
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
+        const int n_dof = rDofSet.size();
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
-
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
-            {
-                if (itDof->IsFree())
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
+#pragma omp parallel for
+        for (int i_dof = 0; i_dof < n_dof; ++i_dof) {
+            auto it_dof = rDofSet.begin() + i_dof;
+            if (it_dof->IsFree()) {
+                it_dof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, it_dof->EquationId());
             }
         }
 
@@ -562,44 +540,36 @@ protected:
      * @param rModelPart fluid ModelPart
      * @param rBDFcoefs Time stepping coefficients for this iteration.
      */
-    void UpdateAcceleration(ModelPart& rModelPart,
-                            const Vector& rBDFcoefs)
+    void UpdateAcceleration(
+        ModelPart& rModelPart,
+        const Vector& rBDFcoefs)
     {
         KRATOS_TRY
-
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfNodes(), NumThreads, NodePartition);
 
         const double Coef0 = rBDFcoefs[0];
         const double Coef1 = rBDFcoefs[1];
         const double Coef2 = rBDFcoefs[2];
+        const int n_nodes = rModelPart.NumberOfNodes();
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
+#pragma omp parallel for
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const auto& rVel0 = it_node->FastGetSolutionStepValue(VELOCITY);
+            const auto& rVel1 = it_node->FastGetSolutionStepValue(VELOCITY,1);
+            const auto& rVel2 = it_node->FastGetSolutionStepValue(VELOCITY,2);
+            auto& rAcceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
 
-            ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
-            ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k+1];
-
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                const array_1d<double,3>& rVel0 = itNode->FastGetSolutionStepValue(VELOCITY);
-                const array_1d<double,3>& rVel1 = itNode->FastGetSolutionStepValue(VELOCITY,1);
-                const array_1d<double,3>& rVel2 = itNode->FastGetSolutionStepValue(VELOCITY,2);
-                array_1d<double,3>& rAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
-
-                rAcceleration = Coef0 * rVel0 + Coef1 * rVel1 + Coef2 * rVel2;
-            }
+            rAcceleration = Coef0 * rVel0 + Coef1 * rVel1 + Coef2 * rVel2;
         }
 
         KRATOS_CATCH("")
     }
 
-    void CombineLHSContributions(LocalSystemMatrixType& rLHS,
-                                 LocalSystemMatrixType& rMass,
-                                 LocalSystemMatrixType& rDamp,
-                                 const ProcessInfo& rCurrentProcessInfo)
+    void CombineLHSContributions(
+        LocalSystemMatrixType& rLHS,
+        LocalSystemMatrixType& rMass,
+        LocalSystemMatrixType& rDamp,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         const double Coef0 = rCurrentProcessInfo.GetValue(BDF_COEFFICIENTS)[0];
         if (rMass.size1() != 0) noalias(rLHS) += Coef0 * rMass;
@@ -632,14 +602,18 @@ protected:
         }
     }
 
-
     void FullProjection(ModelPart& rModelPart)
     {
         const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
         // Initialize containers
-        for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
-        {
-            noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3); // "x"
+        const int n_nodes = rModelPart.NumberOfNodes();
+        const int n_elems = rModelPart.NumberOfElements();
+        const array_1d<double,3> zero_vect = ZeroVector(3);
+#pragma omp parallel for firstprivate(zero_vect)
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto ind = rModelPart.NodesBegin() + i_node;
+            noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = zero_vect; // "x"
             ind->FastGetSolutionStepValue(DIVPROJ) = 0.0; // "x"
             ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // "Ml"
         }
@@ -651,7 +625,7 @@ protected:
 
         // iteration variables
         unsigned int iter = 0;
-        array_1d<double,3> dMomProj = ZeroVector(3);
+        array_1d<double,3> dMomProj = zero_vect;
         double dMassProj = 0.0;
 
         double RelMomErr = 1000.0 * RelTol;
@@ -662,9 +636,11 @@ protected:
         while( ( (AbsMomErr > AbsTol && RelMomErr > RelTol) || (AbsMassErr > AbsTol && RelMassErr > RelTol) ) && iter < MaxIter)
         {
             // Reinitialize RHS
-            for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
+#pragma omp parallel for firstprivate(zero_vect)
+            for (int i_node = 0; i_node < n_nodes; ++i_node)
             {
-                noalias(ind->GetValue(ADVPROJ)) = ZeroVector(3); // "b"
+                auto ind = rModelPart.NodesBegin() + i_node;
+                noalias(ind->GetValue(ADVPROJ)) = zero_vect; // "b"
                 ind->GetValue(DIVPROJ) = 0.0; // "b"
                 ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // Reset because Calculate will overwrite it
             }
@@ -677,10 +653,10 @@ protected:
 
             // Compute new values
             array_1d<double, 3 > output;
-
-            for (typename ModelPart::ElementsContainerType::iterator elem = rModelPart.ElementsBegin(); elem != rModelPart.ElementsEnd(); elem++)
-            {
-                elem->Calculate(SUBSCALE_VELOCITY, output, rCurrentProcessInfo);
+#pragma omp parallel for private(output)
+            for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+                auto it_elem = rModelPart.ElementsBegin() + i_elem;
+                it_elem->Calculate(SUBSCALE_VELOCITY, output, rCurrentProcessInfo);
             }
 
             rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
@@ -690,8 +666,9 @@ protected:
             rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
 
             // Update iteration variables
-            for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
-            {
+#pragma omp parallel for
+            for (int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto ind = rModelPart.NodesBegin() + i_node;
                 const double Area = ind->FastGetSolutionStepValue(NODAL_AREA); // Ml dx = b - Mc x
                 dMomProj = ind->GetValue(ADVPROJ) / Area;
                 dMassProj = ind->GetValue(DIVPROJ) / Area;
@@ -699,7 +676,7 @@ protected:
                 RelMomErr += sqrt( dMomProj[0]*dMomProj[0] + dMomProj[1]*dMomProj[1] + dMomProj[2]*dMomProj[2]);
                 RelMassErr += fabs(dMassProj);
 
-                array_1d<double,3>& rMomRHS = ind->FastGetSolutionStepValue(ADVPROJ);
+                auto& rMomRHS = ind->FastGetSolutionStepValue(ADVPROJ);
                 double& rMassRHS = ind->FastGetSolutionStepValue(DIVPROJ);
                 rMomRHS += dMomProj;
                 rMassRHS += dMassProj;
@@ -721,25 +698,28 @@ protected:
             iter++;
         }
 
-        KRATOS_INFO_IF("GearScheme", rModelPart.GetCommunicator().MyPID() == 0)
-            << "Performed OSS Projection in " << iter << " iterations" << std::endl;
+        KRATOS_INFO("BDF2TurbulentScheme") << "Performed OSS Projection in " << iter << " iterations" << std::endl;
     }
 
     void LumpedProjection(ModelPart& rModelPart)
     {
+        const int n_nodes = rModelPart.NumberOfNodes();
+        const int n_elems = rModelPart.NumberOfElements();
         const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        for (typename ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-        {
-            noalias(itNode->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
+        const array_1d<double,3> zero_vect = ZeroVector(3);
+#pragma omp parallel for firstprivate(zero_vect)
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto itNode = rModelPart.NodesBegin() + i_node;
+            noalias(itNode->FastGetSolutionStepValue(ADVPROJ)) = zero_vect;
             itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0;
             itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
         }
 
         array_1d<double, 3 > Out;
-
-        for (typename ModelPart::ElementsContainerType::iterator itElem = rModelPart.ElementsBegin(); itElem != rModelPart.ElementsEnd(); itElem++)
-        {
+#pragma omp parallel for private(Out)
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+            auto itElem = rModelPart.ElementsBegin() + i_elem;
             itElem->Calculate(ADVPROJ, Out, rCurrentProcessInfo);
         }
 
@@ -752,10 +732,11 @@ protected:
             this->PeriodicConditionProjectionCorrection(rModelPart);
         }
 
-        for (typename ModelPart::NodesContainerType::iterator iNode = rModelPart.NodesBegin(); iNode != rModelPart.NodesEnd(); iNode++)
-        {
-            if (iNode->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
-            {
+        const double zero_tol = 1.0e-12;
+#pragma omp parallel for firstprivate(zero_tol)
+        for (int i_node = 0; i_node < n_nodes; ++i_node){
+            auto iNode = rModelPart.NodesBegin() + i_node;
+            if (iNode->FastGetSolutionStepValue(NODAL_AREA) < zero_tol) {
                 iNode->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
             }
             const double Area = iNode->FastGetSolutionStepValue(NODAL_AREA);
@@ -763,8 +744,7 @@ protected:
             iNode->FastGetSolutionStepValue(DIVPROJ) /= Area;
         }
 
-        KRATOS_INFO_IF("GearScheme", rModelPart.GetCommunicator().MyPID() == 0)
-            << "Computing OSS projections" << std::endl;
+        KRATOS_INFO("BDF2TurbulentScheme") << "Computing OSS projections" << std::endl;
     }
 
     /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
@@ -841,6 +821,7 @@ protected:
 
     void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
     {
+        //TODO: This needs to be done in another manner as soon as we start using non-historical NODAL_AREA
         if (rNode.GetValue(NODAL_AREA) != 0.0) // Only periodic nodes will have a non-historical NODAL_AREA set.
         {
             rNode.FastGetSolutionStepValue(NODAL_AREA) = rNode.GetValue(NODAL_AREA);
@@ -865,7 +846,6 @@ protected:
 
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -877,6 +857,8 @@ private:
 
     /// Pointer to a turbulence model
     Process::Pointer mpTurbulenceModel = nullptr;
+
+    RotationToolPointerType mpRotationTool = nullptr;
 
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
@@ -925,16 +907,16 @@ private:
     ///@{
 
     /// Assignment operator.
-    GearScheme & operator=(GearScheme const& rOther)
+    BDF2TurbulentScheme & operator=(BDF2TurbulentScheme const& rOther)
     {}
 
     /// Copy constructor.
-    GearScheme(GearScheme const& rOther)
+    BDF2TurbulentScheme(BDF2TurbulentScheme const& rOther)
     {}
 
     ///@}
 
-}; // Class GearScheme
+}; // Class BDF2TurbulentScheme
 
 ///@}
 
@@ -946,17 +928,16 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
 template<class TSparseSpace,class TDenseSpace>
-inline std::istream& operator >>(std::istream& rIStream,GearScheme<TSparseSpace,TDenseSpace>& rThis)
+inline std::istream& operator >>(std::istream& rIStream,BDF2TurbulentScheme<TSparseSpace,TDenseSpace>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template<class TSparseSpace,class TDenseSpace>
-inline std::ostream& operator <<(std::ostream& rOStream,const GearScheme<TSparseSpace,TDenseSpace>& rThis)
+inline std::ostream& operator <<(std::ostream& rOStream,const BDF2TurbulentScheme<TSparseSpace,TDenseSpace>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -964,10 +945,11 @@ inline std::ostream& operator <<(std::ostream& rOStream,const GearScheme<TSparse
 
     return rOStream;
 }
+
 ///@}
 
 ///@} addtogroup block
 
 } // namespace Kratos.
 
-#endif // KRATOS_GEAR_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_BDF2_TURBULENT_SCHEME_H_INCLUDED  defined
