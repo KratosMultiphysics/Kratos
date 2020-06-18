@@ -113,6 +113,14 @@ public:
                          : mrModelPartOrigin(rModelPartOrigin),
                            mrModelPartDestination(rModelPartDestination) {}
 
+    //CouplingGeometryMapper(Model& rModel,
+    //    Parameters JsonParameters)
+    //    : mrModel(rModel),
+    //    mMapperSettings(JsonParameters)
+    //{
+    //    // TODO move to this
+    //}
+
     CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
                          Parameters JsonParameters)
@@ -126,10 +134,7 @@ public:
             mModeler = MappingGeometriesModeler(rModelPartOrigin.GetModel(), JsonParameters["modeler_parameters"]);
 
             // TODO @teschemachen this is what we want I guess but theres some errors
-            //mpModeler = ModelerFactory::Create(
-            //    JsonParameters["modeler_name"].GetString(),
-            //    rModelPartOrigin.GetModel(),
-            //    JsonParameters["modeler_parameters"]);
+            //mpModeler = ModelerFactory::Create( JsonParameters["modeler_name"].GetString(), rModelPartOrigin.GetModel(), JsonParameters["modeler_parameters"]);
 
             KRATOS_WATCH(mModeler.Info());
 
@@ -137,12 +142,10 @@ public:
             mModeler.PrepareGeometryModel();
         }
 
-
         // here use whatever ModelPart(s) was created by the Modeler
         mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin.GetSubModelPart("interface"));
         mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination.GetSubModelPart("interface"));
-
-        mpCouplingMP = rModelPartOrigin.pGetSubModelPart("coupling");
+        mpCouplingMP = rModelPartOrigin.pGetSubModelPart("coupling"); // TODO need to fix this
 
         for (auto condition_itr = mpCouplingMP->ConditionsBegin();
             condition_itr != mpCouplingMP->ConditionsEnd();
@@ -304,7 +307,7 @@ private:
 
     bool mIsInverseFlag = false;
 
-    Modeler mModeler;
+    MappingGeometriesModeler mModeler;
     //typename Modeler::Pointer mpModeler; // TODO @teschemachen
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());

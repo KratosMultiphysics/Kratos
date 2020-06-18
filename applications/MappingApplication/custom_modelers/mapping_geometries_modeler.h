@@ -91,7 +91,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "MappingGeometriesModeler"; // TODO @teschemachen for some reason we dont hit this
+        return "MappingGeometriesModeler";
     }
 
     /// Print information about this object.

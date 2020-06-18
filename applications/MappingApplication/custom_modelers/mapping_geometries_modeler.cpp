@@ -39,8 +39,17 @@ namespace Kratos
             : mpModel->CreateModelPart("coupling");
 
 
+        // This could be changed in the future
+        KRATOS_ERROR_IF_NOT(origin_model_part.HasSubModelPart("interface"))
+            << "Missing submodel part \"interface\" in " << origin_model_part_name << std::endl;
+
+        KRATOS_ERROR_IF_NOT(destination_model_part.HasSubModelPart("interface"))
+            << "Missing submodel part \"interface\" in " << destination_model_part_name << std::endl;
+
         MappingIntersectionUtilities::FindIntersection1DGeometries2D(
-            origin_model_part, destination_model_part, coupling_model_part, 1e-6);
+            origin_model_part.GetSubModelPart("interface"),
+            destination_model_part.GetSubModelPart("interface"),
+            coupling_model_part, 1e-6);
         MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
             coupling_model_part, 1e-6);
     }
@@ -50,6 +59,5 @@ namespace Kratos
         // TODO add other functions
 
     }
-
     ///@}
 }

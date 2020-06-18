@@ -34,7 +34,6 @@ destinationInterface.AddNodes([3])
 destinationInterface.AddNodes([1])
 
 is_use_modeler = False #for debugging, update the one in the parameters below too
-
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
     "echo_level" : 0,
@@ -48,20 +47,21 @@ mapper_params = KM.Parameters("""{
     }
 }""")
 
+
+# Create dummy line conditions on submodel parts to couple together
+originProps = originInterface.GetProperties()[1]
+nodeOffset = 327
+for conditionIndex in range(1,6):
+    cNode = nodeOffset + conditionIndex
+    originInterface.CreateNewCondition("LineCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
+
+destProps = destinationInterface.GetProperties()[1]
+destinationInterface.CreateNewCondition("LineCondition2D2N", 101, [1,3], destProps)
+destinationInterface.CreateNewCondition("LineCondition2D2N", 102, [3,6], destProps)
+destinationInterface.CreateNewCondition("LineCondition2D2N", 103, [6,10], destProps)
+
+
 if is_use_modeler == False:
-    # Create dummy line conditions on submodel parts to couple together
-    originProps = originInterface.GetProperties()[1]
-    nodeOffset = 327
-    for conditionIndex in range(1,6):
-        cNode = nodeOffset + conditionIndex
-        originInterface.CreateNewCondition("LineCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
-
-    destProps = destinationInterface.GetProperties()[1]
-    destinationInterface.CreateNewCondition("LineCondition2D2N", 101, [1,3], destProps)
-    destinationInterface.CreateNewCondition("LineCondition2D2N", 102, [3,6], destProps)
-    destinationInterface.CreateNewCondition("LineCondition2D2N", 103, [6,10], destProps)
-
-
     # TODO, add some logic to call the correct intersection functions. that would depend on the dimension of the coupling interfaces
     model_part_origin.CreateSubModelPart("coupling")
     model_part_coupling = model_part_origin.GetSubModelPart("coupling")
