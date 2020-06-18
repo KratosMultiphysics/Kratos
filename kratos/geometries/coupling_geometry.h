@@ -198,7 +198,7 @@ public:
     * @param Index: 0 -> master, all bigger than 0 -> slaves.
     * @return pointer of geometry, corresponding to the index.
     */
-    GeometryPointer pGetGeometryPart(IndexType Index) override
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index "
             << Index << " out of range. CouplingGeometry #" << this->Id()
@@ -214,27 +214,31 @@ public:
     * @param Index: 0 -> master, all bigger than 0 -> slaves.
     * @return const pointer of geometry, corresponding to the index.
     */
-    const GeometryPointer pGetGeometryPart(IndexType Index) const override
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index \""
-            << Index << "\" out of range. CouplingGeometry #" << this->Id() 
+            << Index << "\" out of range. CouplingGeometry #" << this->Id()
             << " has " << mpGeometries.size() << " geometries." << std::endl;
 
         return mpGeometries[Index];
     }
 
     /**
-    * @brief ONLY for coupling_geometry. Not necessary in base class.
-    * @details Allows to exchange certain geometries.
-    * @param Index of the geometry part. 0->Master; 1->Slave
+     * @brief Allows to exchange certain geometries.
+     * @details ONLY for coupling_geometry. Not necessary in base class.
+     * @param Index of the geometry part. 0->Master; 1->Slave
+     * @param pGeometry The new geometry to add
      */
-    void SetGeometryPart(IndexType Index, GeometryPointer pGeometry)
+    void SetGeometryPart(
+        const IndexType Index,
+        GeometryPointer pGeometry
+        )
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index out of range: "
             << Index << " composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
-        if (0 == Index){
+        if (Index == 0){
             if (mpGeometries.size() > 1) {
                 KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[1]->Dimension())
                     << "Dimension of new master geometry does not coincide with the other geometries. "
@@ -254,9 +258,9 @@ public:
     }
 
     /**
-    * @brief ONLY for coupling_geometry. Not necessary in base class.
-    * @details Allows to enhance the coupling geometry, with another geometry.
-    * @param Index of the geometry part. 0->Master; 1->Slave
+     * @brief Allows to enhance the coupling geometry, with another geometry.
+     * @details ONLY for coupling_geometry. Not necessary in base class.
+     * @param pGeometry The new geometry to add
      */
     IndexType AddGeometryPart(GeometryPointer pGeometry)
     {
@@ -268,7 +272,7 @@ public:
             << "Dimension of new geometry: " << pGeometry->Dimension()
             << ", dimension of coupling geometry: " << this->Dimension() << std::endl;
 
-        IndexType new_index = mpGeometries.size();
+        const IndexType new_index = mpGeometries.size();
 
         mpGeometries.push_back(pGeometry);
 
