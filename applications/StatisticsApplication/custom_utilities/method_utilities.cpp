@@ -774,9 +774,6 @@ std::vector<double> SortSortedValuesList(const std::vector<std::vector<double>>&
 // method template instantiations
 template KRATOS_API(STATISTICS_APPLICATION) double RaiseToPower(const double&, const double);
 template KRATOS_API(STATISTICS_APPLICATION) int RaiseToPower(const int&, const double);
-template KRATOS_API(STATISTICS_APPLICATION) array_1d<double, 3> RaiseToPower(const array_1d<double, 3>&, const double);
-template KRATOS_API(STATISTICS_APPLICATION) Vector RaiseToPower(const Vector&, const double);
-template KRATOS_API(STATISTICS_APPLICATION) Matrix RaiseToPower(const Matrix&, const double);
 
 template KRATOS_API(STATISTICS_APPLICATION) const std::function<double(const int&)> GetNormMethod(
     const Variable<int>&, const std::string&);
