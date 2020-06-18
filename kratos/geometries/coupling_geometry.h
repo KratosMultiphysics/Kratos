@@ -225,14 +225,13 @@ public:
 
     /**
      * @brief Allows to exchange certain geometries.
-     * @details ONLY for coupling_geometry. Not necessary in base class.
      * @param Index of the geometry part. 0->Master; 1->Slave
      * @param pGeometry The new geometry to add
      */
     void SetGeometryPart(
         const IndexType Index,
         GeometryPointer pGeometry
-        )
+        ) override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index out of range: "
             << Index << " composite contains only of: "
@@ -259,10 +258,9 @@ public:
 
     /**
      * @brief Allows to enhance the coupling geometry, with another geometry.
-     * @details ONLY for coupling_geometry. Not necessary in base class.
      * @param pGeometry The new geometry to add
      */
-    IndexType AddGeometryPart(GeometryPointer pGeometry)
+    IndexType AddGeometryPart(GeometryPointer pGeometry) override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries[0]->Dimension() != pGeometry->Dimension())
             << "Geometries of different dimensional size!" << std::endl;
@@ -281,10 +279,9 @@ public:
 
     /**
      * @brief Removes a geometry part
-     * @details ONLY for coupling_geometry. Not necessary in base class.
      * @param pGeometry The new geometry to remove
      */
-    void RemoveGeometryPart(GeometryPointer pGeometry)
+    void RemoveGeometryPart(GeometryPointer pGeometry) override
     {
         const IndexType geometry_id = pGeometry->Id();
         IndexType to_remove_id = 0;
@@ -300,10 +297,9 @@ public:
 
     /**
      * @brief Removes a geometry part
-     * @details ONLY for coupling_geometry. Not necessary in base class.
      * @param Index of the geometry part.
      */
-    void RemoveGeometryPart(const IndexType Index)
+    void RemoveGeometryPart(const IndexType Index) override
     {
         KRATOS_ERROR_IF(Index == 0) << "Master geometry should not be removed from the CouplingGeometry" << std::endl;
         mpGeometries.erase(mpGeometries.begin() + Index);

@@ -821,6 +821,50 @@ public:
     }
 
     /**
+     * @brief Allows to exchange certain geometries.
+     * @param Index of the geometry part. 0->Master; 1->Slave
+     * @param pGeometry The new geometry to add
+     */
+    virtual void SetGeometryPart(
+        const IndexType Index,
+        GeometryType::Pointer pGeometry
+        )
+    {
+        KRATOS_ERROR << "Calling base class 'SetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Allows to enhance the coupling geometry, with another geometry.
+     * @param pGeometry The new geometry to add
+     */
+    virtual IndexType AddGeometryPart(GeometryType::Pointer pGeometry)
+    {
+        KRATOS_ERROR << "Calling base class 'AddGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Removes a geometry part
+     * @param pGeometry The new geometry to remove
+     */
+    virtual void RemoveGeometryPart(GeometryType::Pointer pGeometry)
+    {
+        KRATOS_ERROR << "Calling base class 'RemoveGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Removes a geometry part
+     * @param Index of the geometry part.
+     */
+    virtual void RemoveGeometryPart(const IndexType Index)
+    {
+        KRATOS_ERROR << "Calling base class 'RemoveGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
     * @brief Use to check if certain Indexed object is
     *        within the geometry parts of this geometry.
     * @param Index of the geometry part. This index can be used differently
