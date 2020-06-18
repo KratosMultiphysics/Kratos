@@ -29,8 +29,9 @@ namespace Kratos
 {
 namespace MethodUtilities
 {
-// template<> KRATOS_API(STATISTIC_APPLICATION) double RaiseToPower(const double&, const double);
-// template<> KRATOS_API(STATISTIC_APPLICATION) int RaiseToPower(const int&, const double);
+template<> KRATOS_API(STATISTIC_APPLICATION) array_1d<double, 3> RaiseToPower(const array_1d<double, 3>&, const double);
+template<> KRATOS_API(STATISTIC_APPLICATION) Vector RaiseToPower(const Vector&, const double);
+template<> KRATOS_API(STATISTIC_APPLICATION) Matrix RaiseToPower(const Matrix&, const double);
 
 template <class TDataType>
 KRATOS_API(STATISTIC_APPLICATION)
