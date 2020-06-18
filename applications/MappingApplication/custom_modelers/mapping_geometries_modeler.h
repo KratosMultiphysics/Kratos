@@ -63,7 +63,6 @@ public:
         : Modeler(rModel, ModelerParameters)
         , mpModel(&rModel)
     {
-        KRATOS_WATCH("Buiding MappingGeometriesModeler")
     }
 
     /// Destructor.
@@ -81,8 +80,6 @@ public:
     ///@{
 
     void SetupGeometryModel() override;
-
-    void PrepareGeometryModel() override;
 
     ///@}
     ///@name Input and output
@@ -112,6 +109,14 @@ private:
     ///@{
 
     Model* mpModel = nullptr;
+
+    void CopySubModelPart(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
+    {
+        rDestinationMP.SetNodes(rReferenceMP.pNodes());
+        rDestinationMP.SetConditions(rReferenceMP.pConditions());
+    }
+
+    void CheckParameters();
 
     ///@}
     ///@name Serializer
