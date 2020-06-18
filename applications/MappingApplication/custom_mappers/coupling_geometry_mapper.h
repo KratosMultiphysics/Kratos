@@ -110,49 +110,25 @@ public:
     // Default constructor, needed for registration
     CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination)
-                         : mrModelPartOrigin(rModelPartOrigin),
-                           mrModelPartDestination(rModelPartDestination) {}
+                        : mrModel(rModelPartOrigin.GetModel()){}
 
-    //CouplingGeometryMapper(Model& rModel,
-    //    Parameters JsonParameters)
-    //    : mrModel(rModel),
-    //    mMapperSettings(JsonParameters)
-    //{
-    //    // TODO move to this
-    //}
+
+    CouplingGeometryMapper(Model& rModel,
+        Parameters JsonParameters)
+        : mrModel(rModel),
+        mMapperSettings(JsonParameters)
+    {
+        InitializeMapper();
+    }
+
 
     CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
                          Parameters JsonParameters)
-                         : mrModelPartOrigin(rModelPartOrigin),
-                           mrModelPartDestination(rModelPartDestination),
+                         : mrModel(rModelPartOrigin.GetModel()),
                            mMapperSettings(JsonParameters)
     {
-        if (mMapperSettings["is_use_modeler"].GetBool())
-        {
-            // Temporary, another constructor will be added soon
-            mModeler = MappingGeometriesModeler(rModelPartOrigin.GetModel(), JsonParameters["modeler_parameters"]);
-
-            // TODO @teschemachen this is what we want I guess but theres some errors
-            //mpModeler = ModelerFactory::Create( JsonParameters["modeler_name"].GetString(), rModelPartOrigin.GetModel(), JsonParameters["modeler_parameters"]);
-
-            KRATOS_WATCH(mModeler.Info());
-
-            mModeler.SetupGeometryModel();
-            mModeler.PrepareGeometryModel();
-        }
-
-        // here use whatever ModelPart(s) was created by the Modeler
-        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin.GetSubModelPart("interface"));
-        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination.GetSubModelPart("interface"));
-        mpCouplingMP = rModelPartOrigin.pGetSubModelPart("coupling"); // TODO need to fix this
-
-        for (auto condition_itr = mpCouplingMP->ConditionsBegin();
-            condition_itr != mpCouplingMP->ConditionsEnd();
-            ++condition_itr)
-            condition_itr->GetGeometry().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
-
-        this->InitializeInterface();
+        InitializeMapper();
     }
 
     /// Destructor.
@@ -166,11 +142,7 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
-        if (mMapperSettings["is_use_modeler"].GetBool())
-        {
-            mModeler.PrepareGeometryModel();
-        }
-
+        mModeler.PrepareGeometryModel();
 
         AssignInterfaceEquationIds();
 
@@ -253,8 +225,15 @@ public:
                                   Parameters JsonParameters) const override
     {
         return Kratos::make_unique<CouplingGeometryMapper<TSparseSpace, TDenseSpace>>(
-            rModelPartOrigin,
-            rModelPartDestination,
+            rModelPartOrigin.GetModel(),
+            JsonParameters);
+    }
+
+    MapperUniquePointerType Clone(Model& rModel,
+                                  Parameters JsonParameters) const
+    {
+        return Kratos::make_unique<CouplingGeometryMapper<TSparseSpace, TDenseSpace>>(
+            rModel,
             JsonParameters);
     }
 
@@ -289,9 +268,10 @@ private:
     ///@name Private Operations
     ///@{
 
-    ModelPart& mrModelPartOrigin;
-    ModelPart& mrModelPartDestination;
-    ModelPart* mpCouplingMP;
+    Model& mrModel;
+    ModelPart* mpCouplingMP = nullptr;
+    ModelPart* mpCouplingInterfaceOrigin = nullptr;
+    ModelPart* mpCouplingInterfaceDestination = nullptr;
 
     Parameters mMapperSettings;
 
@@ -304,18 +284,17 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
-
-    bool mIsInverseFlag = false;
-
     MappingGeometriesModeler mModeler;
     //typename Modeler::Pointer mpModeler; // TODO @teschemachen
+
+    void InitializeMapper();
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
     void AssignInterfaceEquationIds()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetSubModelPart("interface").GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartOrigin.GetSubModelPart("interface").GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceDestination->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceOrigin->GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,
@@ -383,8 +362,7 @@ private:
     void InitializeInverseMapper()
     {
         KRATOS_ERROR << "Inverse Mapping is not supported yet!" << std::endl;
-        mpInverseMapper = this->Clone(mrModelPartDestination,
-                                      mrModelPartOrigin,
+        mpInverseMapper = this->Clone(mrModel,
                                       mMapperSettings);
     }
 

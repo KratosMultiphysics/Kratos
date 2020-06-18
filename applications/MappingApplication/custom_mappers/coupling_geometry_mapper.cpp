@@ -153,6 +153,34 @@ std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
 
 
 template<class TSparseSpace, class TDenseSpace>
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeMapper()
+{
+    mModeler = MappingGeometriesModeler(mrModel, mMapperSettings["modeler_parameters"]);
+    // TODO @teschemachen this is what we want I guess but theres some errors
+    //mpModeler = ModelerFactory::Create( JsonParameters["modeler_name"].GetString(), rModelPartOrigin.GetModel(), JsonParameters["modeler_parameters"]);
+    mModeler.SetupGeometryModel();
+    mModeler.PrepareGeometryModel();
+
+    // here use whatever ModelPart(s) was created by the Modeler
+    mpCouplingMP = &(mrModel.GetModelPart("coupling"));
+    mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
+    mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
+
+    mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
+    mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
+
+
+    // TODO update
+    for (auto condition_itr = mpCouplingMP->ConditionsBegin();
+        condition_itr != mpCouplingMP->ConditionsEnd();
+        ++condition_itr)
+        condition_itr->GetGeometry().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
+
+    this->InitializeInterface();
+}
+
+
+template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
 {
     // @tteschemachen here kann man theoretisch auch das Origin-MP nehmen
@@ -165,8 +193,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     AssignInterfaceEquationIds(); // Has to be done every time in case of overlapping interfaces!
 
     // assemble projector interface mass matrix - interface_matrix_projector
-    const std::size_t num_nodes_interface_slave = mrModelPartDestination.GetSubModelPart("interface").NumberOfNodes(); // fix up and put in the mapper parameters
-    const std::size_t num_nodes_interface_master = mrModelPartOrigin.GetSubModelPart("interface").NumberOfNodes();
+    const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes(); // fix up and put in the mapper parameters
+    const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
     Matrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
 
     MapperLocalSystem::MatrixType local_mapping_matrix;
