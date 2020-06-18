@@ -277,6 +277,43 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartEnsureModelPartOwnsProperties, KratosCoreFast
     KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 1);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ModelPartGetSubModelPart, KratosCoreFastSuite)
+{
+    Model model;
+
+    auto& model_part = model.CreateModelPart("Main");
+
+    // Checking SubModelPart
+    model_part.CreateSubModelPart("Inlet1");
+
+    ModelPart& smp = model_part.GetSubModelPart("Inlet1");
+    KRATOS_CHECK_EQUAL("Inlet1", smp.Name());
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Random"),
+        "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe the following sub model parts are available:");
+
+    // Checking SubSubModelPart
+    auto& ssmp = smp.CreateSubModelPart("sub_inlet");
+
+    KRATOS_CHECK(model_part.HasSubModelPart("Inlet1"));
+    KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+
+    KRATOS_CHECK_EQUAL("sub_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet").Name());
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.random_sub_inlet"),
+        "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Inlet1\"\nThe total input string was \"Inlet1.random_sub_inlet\"\nThe the following sub model parts are available:");
+
+    // Checking SubSubSubModelPart
+    ssmp.CreateSubModelPart("tiny_inlet");
+
+    KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet.tiny_inlet"));
+
+    KRATOS_CHECK_EQUAL("tiny_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet.tiny_inlet").Name());
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.sub_inlet.big_inlet"),
+        "Error: There is no sub model part with name \"big_inlet\" in model part \"sub_inlet\"\nThe total input string was \"Inlet1.sub_inlet.big_inlet\"\nThe the following sub model parts are available:");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ModelPartHasSubModelPart, KratosCoreFastSuite)
 {
     Model model;
