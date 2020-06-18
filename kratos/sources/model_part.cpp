@@ -464,6 +464,14 @@ ModelPart& ModelPart::GetRootModelPart()
         return *this;
 }
 
+const ModelPart& ModelPart::GetRootModelPart() const
+{
+    if (IsSubModelPart())
+        return mpParentModelPart->GetRootModelPart();
+    else
+        return *this;
+}
+
 void ModelPart::SetNodalSolutionStepVariablesList()
 {
     KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
