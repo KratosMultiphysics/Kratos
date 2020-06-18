@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <numeric>
 
 // External includes
 
@@ -33,6 +34,14 @@ void GetNameWithAscendants(const ModelPart& rModelPart, std::vector<std::string>
         GetNameWithAscendants(*rModelPart.GetParentModelPart(), rModelPartNames);
     }
 }
+
+std::string JoinModelPartNames(std::vector<std::string>::iterator VecBegin, std::vector<std::string>::iterator VecEnd)
+{
+    return std::accumulate(VecBegin, VecEnd, std::string(),
+                           [](std::string &ss, std::string &s)
+                           { return ss.empty() ? s : ss + "." + s; });
+}
+
 } // empty namespace for internal functions
 
 void Model::Reset()
@@ -141,22 +150,10 @@ ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
     else //it is a submodelpart with the full name provided
     {
         auto search = mRootModelPartMap.find(subparts_list[0]);
-        if(search != mRootModelPartMap.end())
-        {
+        if(search != mRootModelPartMap.end()) {
             ModelPart* p_model_part = (search->second).get();
-            for(unsigned int i=1; i<subparts_list.size(); ++i)
-            {
-                KRATOS_ERROR_IF_NOT(p_model_part->HasSubModelPart(subparts_list[i]))
-                    << "The ModelPart named : \"" << subparts_list[i]
-                    << "\" was not found as SubModelPart of : \""
-                    << subparts_list[i-1] << "\". The total input string was \""
-                    << rFullModelPartName << "\"" << std::endl;
-                p_model_part = &p_model_part->GetSubModelPart(subparts_list[i]);
-            }
-            return *p_model_part;
-        }
-        else
-        {
+            return p_model_part->GetSubModelPart(JoinModelPartNames(subparts_list.begin()+1, subparts_list.end()));
+        } else {
             KRATOS_ERROR << "root model part " << rFullModelPartName << " not found" << std::endl;
         }
 
@@ -214,22 +211,10 @@ const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) cons
     else //it is a submodelpart with the full name provided
     {
         auto search = mRootModelPartMap.find(subparts_list[0]);
-        if(search != mRootModelPartMap.end())
-        {
+        if(search != mRootModelPartMap.end()) {
             ModelPart* p_model_part = (search->second).get();
-            for(unsigned int i=1; i<subparts_list.size(); ++i)
-            {
-                KRATOS_ERROR_IF_NOT(p_model_part->HasSubModelPart(subparts_list[i]))
-                    << "The ModelPart named : \"" << subparts_list[i]
-                    << "\" was not found as SubModelPart of : \""
-                    << subparts_list[i-1] << "\". The total input string was \""
-                    << rFullModelPartName << "\"" << std::endl;
-                p_model_part = &p_model_part->GetSubModelPart(subparts_list[i]);
-            }
-            return *p_model_part;
-        }
-        else
-        {
+            return p_model_part->GetSubModelPart(JoinModelPartNames(subparts_list.begin()+1, subparts_list.end()));
+        } else {
             KRATOS_ERROR << "root model part " << rFullModelPartName << " not found" << std::endl;
         }
 
@@ -247,21 +232,16 @@ bool Model::HasModelPart(const std::string& rFullModelPartName) const
 
     std::vector< std::string > subparts_list = SplitSubModelPartHierarchy(rFullModelPartName);
 
-    //token 0 is the root
+    // token 0 is the root
     auto search = mRootModelPartMap.find(subparts_list[0]);
-    if(search != mRootModelPartMap.end())
-    {
-        ModelPart* mp = (search->second).get();
-        for(unsigned int i=1; i<subparts_list.size(); i++)
-        {
-            if(!mp->HasSubModelPart(subparts_list[i]))
-                return false;
-            mp = &(mp->GetSubModelPart(subparts_list[i]));
+    if(search != mRootModelPartMap.end()) {
+        if (subparts_list.size() == 1) {
+            return true;
+        } else {
+            ModelPart* p_model_part = (search->second).get();
+            return p_model_part->HasSubModelPart(JoinModelPartNames(subparts_list.begin()+1, subparts_list.end()));
         }
-        return true;
-    }
-    else
-    {
+    } else {
         return false;
     }
 
