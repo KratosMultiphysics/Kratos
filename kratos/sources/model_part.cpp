@@ -1634,18 +1634,32 @@ void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
 
 ModelPart& ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
-    // Here a warning would be enough. To be disscussed. Pooyan.
-    KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
-        << "There is an already existing sub model part with name \"" << NewSubModelPartName
-        << "\" in model part: \"" << Name() << "\"" << std::endl;
+    const auto sub_model_parts_list = SplitSubModelPartHierarchy(NewSubModelPartName);
+    if (sub_model_parts_list.size() == 1) {
+        // Here a warning would be enough. To be disscussed. Pooyan.
+        KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
+            << "There is an already existing sub model part with name \"" << NewSubModelPartName
+            << "\" in model part: \"" << Name() << "\"" << std::endl;
 
-    ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
-    Kratos::shared_ptr<ModelPart> p_model_part(praw); //we need to construct first a raw pointer
-    p_model_part->SetParentModelPart(this);
-    p_model_part->mBufferSize = this->mBufferSize;
-    p_model_part->mpProcessInfo = this->mpProcessInfo;
-    mSubModelParts.insert(p_model_part);
-    return *p_model_part;
+        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
+        Kratos::shared_ptr<ModelPart> p_model_part(praw); //we need to construct first a raw pointer
+        p_model_part->SetParentModelPart(this);
+        p_model_part->mBufferSize = this->mBufferSize;
+        p_model_part->mpProcessInfo = this->mpProcessInfo;
+        mSubModelParts.insert(p_model_part);
+        return *p_model_part;
+
+    } else {
+        ModelPart* p_current_mp = this;
+        for (const auto& r_smp_name : sub_model_parts_list) {
+            if (!p_current_mp->HasSubModelPart(r_smp_name)) {
+                p_current_mp = &p_current_mp->CreateSubModelPart(r_smp_name);
+            } else {
+                p_current_mp = &p_current_mp->GetSubModelPart(r_smp_name);
+            }
+        }
+        return *p_current_mp;
+    }
 }
 
 ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
