@@ -341,5 +341,51 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartHasSubModelPart, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("Random"));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ModelPartCreateSubModelPart, KratosCoreFastSuite)
+{
+    Model model;
+
+    auto& model_part = model.CreateModelPart("Main");
+
+    // Checking SubModelPart
+    auto& smp = model_part.CreateSubModelPart("Inlet1");
+    KRATOS_CHECK_EQUAL("Inlet1", smp.Name());
+
+    // Checking SubSubModelPart
+    // here Inlet1 exists already
+    auto& ssmp = model_part.CreateSubModelPart("Inlet1.sub_inlet");
+
+    KRATOS_CHECK(model_part.HasSubModelPart("Inlet1"));
+    KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+    KRATOS_CHECK(smp.HasSubModelPart("sub_inlet"));
+
+    // here InletCustom does NOT exists yet
+    auto& ssmp_2 = model_part.CreateSubModelPart("InletCustom.ccc_sub_inlet");
+
+    KRATOS_CHECK(model_part.HasSubModelPart("InletCustom"));
+    KRATOS_CHECK(model_part.HasSubModelPart("InletCustom.ccc_sub_inlet"));
+    KRATOS_CHECK(model_part.GetSubModelPart("InletCustom").HasSubModelPart("ccc_sub_inlet"));
+    KRATOS_CHECK_EQUAL(ssmp_2.Name(), "ccc_sub_inlet");
+
+    // Checking SubSubSubModelPart
+    auto& sssmp = model_part.CreateSubModelPart("Inlet1.sub_inlet.aabbcc");
+
+    KRATOS_CHECK(model_part.HasSubModelPart("Inlet1"));
+    KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+    KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet.aabbcc"));
+    KRATOS_CHECK(ssmp.HasSubModelPart("aabbcc"));
+    KRATOS_CHECK_EQUAL(sssmp.Name(), "aabbcc");
+
+    // here nothing exists yet
+    auto& sssmp_2 = model_part.CreateSubModelPart("Fancy.xxx_sub_inlet.uztr");
+
+    KRATOS_CHECK(model_part.HasSubModelPart("Fancy"));
+    KRATOS_CHECK(model_part.HasSubModelPart("Fancy.xxx_sub_inlet"));
+    KRATOS_CHECK(model_part.HasSubModelPart("Fancy.xxx_sub_inlet.uztr"));
+    KRATOS_CHECK(model_part.GetSubModelPart("Fancy").HasSubModelPart("xxx_sub_inlet"));
+    KRATOS_CHECK(model_part.GetSubModelPart("Fancy").HasSubModelPart("xxx_sub_inlet.uztr"));
+    KRATOS_CHECK_EQUAL(sssmp_2.Name(), "uztr");
+}
+
 }  // namespace Testing.
 }  // namespace Kratos.
