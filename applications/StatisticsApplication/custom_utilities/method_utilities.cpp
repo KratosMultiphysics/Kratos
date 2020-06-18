@@ -29,27 +29,15 @@ namespace Kratos
 {
 namespace MethodUtilities
 {
-template<> KRATOS_API(STATISTIC_APPLICATION) NodesContainerType& GetLocalDataContainer<NodesContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) ElementsContainerType& GetLocalDataContainer<ElementsContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) ConditionsContainerType& GetLocalDataContainer<ConditionsContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const NodesContainerType& GetLocalDataContainer<NodesContainerType>(const ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const ElementsContainerType& GetLocalDataContainer<ElementsContainerType>(const ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const ConditionsContainerType& GetLocalDataContainer<ConditionsContainerType>(const ModelPart&);
-
-template<> KRATOS_API(STATISTIC_APPLICATION) NodesContainerType& GetDataContainer<NodesContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) ElementsContainerType& GetDataContainer<ElementsContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) ConditionsContainerType& GetDataContainer<ConditionsContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const NodesContainerType& GetDataContainer<NodesContainerType>(const ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const ElementsContainerType& GetDataContainer<ElementsContainerType>(const ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const ConditionsContainerType& GetDataContainer<ConditionsContainerType>(const ModelPart&);
-
 template <class TDataType>
+KRATOS_API(STATISTIC_APPLICATION)
 TDataType RaiseToPower(const TDataType& rData, const double Power)
 {
     return std::pow(rData, Power);
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 array_1d<double, 3> RaiseToPower(const array_1d<double, 3>& rData, const double Power)
 {
     array_1d<double, 3> output;
@@ -61,6 +49,7 @@ array_1d<double, 3> RaiseToPower(const array_1d<double, 3>& rData, const double 
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 Vector RaiseToPower(const Vector& rData, const double Power)
 {
     const int n = rData.size();
@@ -73,6 +62,7 @@ Vector RaiseToPower(const Vector& rData, const double Power)
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 Matrix RaiseToPower(const Matrix& rData, const double Power)
 {
     const int n1 = rData.size1();
@@ -89,12 +79,14 @@ Matrix RaiseToPower(const Matrix& rData, const double Power)
 }
 
 template <class TDataType>
+KRATOS_API(STATISTIC_APPLICATION)
 void DataTypeSizeInitializer(TDataType& rData, const TDataType& rReferenceData)
 {
     // do nothing in the case of double and int or array_1d<double, 3>
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 void DataTypeSizeInitializer(Vector& rData, const Vector& rReferenceData)
 {
     KRATOS_TRY
@@ -114,6 +106,7 @@ void DataTypeSizeInitializer(Vector& rData, const Vector& rReferenceData)
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 void DataTypeSizeInitializer(Matrix& rData, const Matrix& rReferenceData)
 {
     KRATOS_TRY
@@ -136,12 +129,14 @@ void DataTypeSizeInitializer(Matrix& rData, const Matrix& rReferenceData)
 }
 
 template <class TDataType>
+KRATOS_API(STATISTIC_APPLICATION)
 void DataTypeSizeChecker(const TDataType& rData, const TDataType& rReferenceData)
 {
     // do nothing in the case of double and int or array_1d<double, 3>
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 void DataTypeSizeChecker(const Vector& rData, const Vector& rReferenceData)
 {
     KRATOS_TRY
@@ -154,6 +149,7 @@ void DataTypeSizeChecker(const Vector& rData, const Vector& rReferenceData)
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 void DataTypeSizeChecker(const Matrix& rData, const Matrix& rReferenceData)
 {
     KRATOS_TRY
@@ -169,77 +165,90 @@ void DataTypeSizeChecker(const Matrix& rData, const Matrix& rReferenceData)
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 NodesContainerType& GetLocalDataContainer(ModelPart& rModelPart)
 {
     return rModelPart.GetCommunicator().LocalMesh().Nodes();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 ElementsContainerType& GetLocalDataContainer(ModelPart& rModelPart)
 {
     return rModelPart.GetCommunicator().LocalMesh().Elements();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 ConditionsContainerType& GetLocalDataContainer(ModelPart& rModelPart)
 {
     return rModelPart.GetCommunicator().LocalMesh().Conditions();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 const NodesContainerType& GetLocalDataContainer(const ModelPart& rModelPart)
 {
     return rModelPart.GetCommunicator().LocalMesh().Nodes();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 const ElementsContainerType& GetLocalDataContainer(const ModelPart& rModelPart)
 {
     return rModelPart.GetCommunicator().LocalMesh().Elements();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 const ConditionsContainerType& GetLocalDataContainer(const ModelPart& rModelPart)
 {
     return rModelPart.GetCommunicator().LocalMesh().Conditions();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 NodesContainerType& GetDataContainer(ModelPart& rModelPart)
 {
     return rModelPart.Nodes();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 ElementsContainerType& GetDataContainer(ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 ConditionsContainerType& GetDataContainer(ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 const NodesContainerType& GetDataContainer(const ModelPart& rModelPart)
 {
     return rModelPart.Nodes();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 const ElementsContainerType& GetDataContainer(const ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 const ConditionsContainerType& GetDataContainer(const ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
 
+KRATOS_API(STATISTIC_APPLICATION)
 double GetDoubleValue(const std::string& rInput)
 {
     KRATOS_TRY
@@ -265,7 +274,7 @@ double GetDoubleValue(const std::string& rInput)
     KRATOS_CATCH("");
 }
 
-int GetIntegerValue(const std::string& rInput)
+KRATOS_API(STATISTIC_APPLICATION) int GetIntegerValue(const std::string& rInput)
 {
     KRATOS_TRY
 
@@ -286,6 +295,7 @@ int GetIntegerValue(const std::string& rInput)
     KRATOS_CATCH("");
 }
 
+KRATOS_API(STATISTIC_APPLICATION)
 void SplitString(std::string& rOutput1, std::string& rOutput2, const std::string& rInput)
 {
     const std::size_t str_size = rInput.size();
@@ -304,6 +314,7 @@ void SplitString(std::string& rOutput1, std::string& rOutput2, const std::string
 }
 
 template <class TDataType>
+KRATOS_API(STATISTIC_APPLICATION)
 const std::function<double(const TDataType&)> GetNormMethod(
     const Variable<TDataType>& rVariable, const std::string& rNormType)
 {
@@ -332,6 +343,7 @@ const std::function<double(const TDataType&)> GetNormMethod(
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 const std::function<double(const array_1d<double, 3>&)> GetNormMethod(
     const Variable<array_1d<double, 3>>& rVariable, const std::string& rNormType)
 {
@@ -407,6 +419,7 @@ const std::function<double(const array_1d<double, 3>&)> GetNormMethod(
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 const std::function<double(const Vector&)> GetNormMethod(
     const Variable<Vector>& rVariable, const std::string& rNormType)
 {
@@ -480,6 +493,7 @@ const std::function<double(const Vector&)> GetNormMethod(
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 const std::function<double(const Matrix&)> GetNormMethod(
     const Variable<Matrix>& rVariable, const std::string& rNormType)
 {
@@ -624,30 +638,35 @@ const std::function<double(const Matrix&)> GetNormMethod(
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 std::string GetVariableTypeName<double>()
 {
     return "Double";
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 std::string GetVariableTypeName<array_1d<double, 3>>()
 {
     return "Array3D";
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 std::string GetVariableTypeName<Vector>()
 {
     return "Vector";
 }
 
 template <>
+KRATOS_API(STATISTIC_APPLICATION)
 std::string GetVariableTypeName<Matrix>()
 {
     return "Matrix";
 }
 
 template <class TDataType>
+KRATOS_API(STATISTIC_APPLICATION)
 void CheckVariableType(const std::vector<std::string>& rVariableNamesList)
 {
     KRATOS_TRY
@@ -662,6 +681,7 @@ void CheckVariableType(const std::vector<std::string>& rVariableNamesList)
     KRATOS_CATCH("");
 }
 
+KRATOS_API(STATISTIC_APPLICATION)
 void CheckInputOutputVariables(
     const std::vector<std::string>& rInputVariableNamesList,
     const std::vector<std::string>& rOutputVariableNamesList)
@@ -709,6 +729,7 @@ void CheckInputOutputVariables(
     KRATOS_CATCH("");
 }
 
+KRATOS_API(STATISTIC_APPLICATION)
 std::vector<double> SortSortedValuesList(const std::vector<std::vector<double>>& rValues)
 {
     const int number_of_arrays = rValues.size();
@@ -760,25 +781,32 @@ std::vector<double> SortSortedValuesList(const std::vector<std::vector<double>>&
 
 // method template instantiations
 
-template double RaiseToPower(const double&, const double);
-template int RaiseToPower(const int&, const double);
+template KRATOS_API(STATISTIC_APPLICATION) double RaiseToPower(const double&, const double);
+template KRATOS_API(STATISTIC_APPLICATION) int RaiseToPower(const int&, const double);
 
-template const std::function<double(const int&)> GetNormMethod(const Variable<int>&, const std::string&);
-template const std::function<double(const double&)> GetNormMethod(
+template KRATOS_API(STATISTIC_APPLICATION) const std::function<double(const int&)> GetNormMethod(
+    const Variable<int>&, const std::string&);
+template KRATOS_API(STATISTIC_APPLICATION) const std::function<double(const double&)> GetNormMethod(
     const Variable<double>&, const std::string&);
 
-template void DataTypeSizeInitializer(double&, const double&);
-template void DataTypeSizeInitializer(int&, const int&);
-template void DataTypeSizeInitializer(array_1d<double, 3>&, const array_1d<double, 3>&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeInitializer(double&, const double&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeInitializer(int&, const int&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeInitializer(
+    array_1d<double, 3>&, const array_1d<double, 3>&);
 
-template void DataTypeSizeChecker(const double&, const double&);
-template void DataTypeSizeChecker(const int&, const int&);
-template void DataTypeSizeChecker(const array_1d<double, 3>&, const array_1d<double, 3>&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeChecker(const double&, const double&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeChecker(const int&, const int&);
+template KRATOS_API(STATISTIC_APPLICATION) void DataTypeSizeChecker(
+    const array_1d<double, 3>&, const array_1d<double, 3>&);
 
-template void CheckVariableType<double>(const std::vector<std::string>& rVariableNamesList);
-template void CheckVariableType<array_1d<double, 3>>(const std::vector<std::string>& rVariableNamesList);
-template void CheckVariableType<Vector>(const std::vector<std::string>& rVariableNamesList);
-template void CheckVariableType<Matrix>(const std::vector<std::string>& rVariableNamesList);
+template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<double>(
+    const std::vector<std::string>& rVariableNamesList);
+template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<array_1d<double, 3>>(
+    const std::vector<std::string>& rVariableNamesList);
+template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<Vector>(
+    const std::vector<std::string>& rVariableNamesList);
+template KRATOS_API(STATISTIC_APPLICATION) void CheckVariableType<Matrix>(
+    const std::vector<std::string>& rVariableNamesList);
 
 // class template instantiations
 template class NonHistoricalDataValueRetrievalFunctor<NodeType>;
