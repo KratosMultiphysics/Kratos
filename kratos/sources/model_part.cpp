@@ -12,7 +12,7 @@
 //
 
 // System includes
-
+#include <sstream>
 
 // External includes
 
@@ -31,9 +31,7 @@ std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullMode
     std::vector<std::string> rSubPartsList;
     std::istringstream iss(rFullModelPartName);
     std::string token;
-    rSubPartsList.clear();
-    while (std::getline(iss, token, '.'))
-    {
+    while (std::getline(iss, token, '.')) {
         rSubPartsList.push_back(token);
     }
     return rSubPartsList;
@@ -1634,7 +1632,7 @@ ModelPart& ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
         << "\" in model part: \"" << Name() << "\"" << std::endl;
 
     ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
-    Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
+    Kratos::shared_ptr<ModelPart> p_model_part(praw); //we need to construct first a raw pointer
     p_model_part->SetParentModelPart(this);
     p_model_part->mBufferSize = this->mBufferSize;
     p_model_part->mpProcessInfo = this->mpProcessInfo;
@@ -1657,8 +1655,8 @@ ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
             }
             KRATOS_ERROR << err_msg.str() << std::endl;
         }
-
         return *i;
+
     } else {
         ModelPart* p_current_mp = this;
         for (const auto& r_smp_name : sub_model_parts_list) {
