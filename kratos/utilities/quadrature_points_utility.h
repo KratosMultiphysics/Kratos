@@ -285,14 +285,14 @@ namespace Kratos
             IntegrationPoint<3> int_p(rLocalCoordinates, rIntegrationWeight);
 
             Vector N;
-            pGeometry->ShapeFunctionsValues(N, local_coordinates);
+            pGeometry->ShapeFunctionsValues(N, rLocalCoordinates);
             Matrix N_matrix(1, N.size());
             for (IndexType i = 0; i < N.size(); ++i) {
                 N_matrix(0, i) = N[i];
             }
 
             Matrix DN_De;
-            pGeometry->ShapeFunctionsLocalGradients(DN_De, local_coordinates);
+            pGeometry->ShapeFunctionsLocalGradients(DN_De, rLocalCoordinates);
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 pGeometry->GetDefaultIntegrationMethod(), int_p, N_matrix, DN_De);
