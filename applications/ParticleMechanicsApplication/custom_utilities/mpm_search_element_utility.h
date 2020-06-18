@@ -780,8 +780,8 @@ namespace MPMSearchElementUtility
         double vol_sum = 0.0;
         for (size_t i = 0; i < ips_active.size(); ++i) vol_sum += ips_active[i].Weight();
         if (std::abs(vol_sum - 1.0) > Tolerance) {
-            const bool is_pqmpm_fallback = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM_FALLBACK_TO_MPM))
-                ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM_FALLBACK_TO_MPM) : false;
+            const bool is_pqmpm_fallback = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS))
+                ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS) : false;
             if (is_pqmpm_fallback) return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
                 rGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
             else {

@@ -16,7 +16,7 @@
         "scheme_type"                        : "central_difference",
         "stress_update"                      : "usf",
 		"is_pqmpm"							 : true,
-		"is_pqmpm_fallback_to_mpm"			 : false,
+		"is_make_normal_mp_if_pqmpm_fails"	 : false,
 		"pqmpm_subpoint_min_volume_fraction" : 0.0,
 		"compressible"                       : true,
         "model_import_settings"              : {

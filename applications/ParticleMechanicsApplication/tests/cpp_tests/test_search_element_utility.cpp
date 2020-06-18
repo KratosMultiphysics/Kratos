@@ -263,7 +263,7 @@ namespace Testing
         PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
 
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+        r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
         r_background_model_part.GetProcessInfo().SetValue(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, 1e-24);
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
@@ -303,7 +303,7 @@ namespace Testing
         PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
 
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+        r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
         r_background_model_part.GetProcessInfo().SetValue(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, 1e-24);
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
@@ -343,7 +343,7 @@ namespace Testing
         PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
 
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+        r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
@@ -389,7 +389,7 @@ namespace Testing
         PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
 
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+        r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
@@ -434,7 +434,7 @@ namespace Testing
         PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
 
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+        r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
@@ -480,7 +480,7 @@ namespace Testing
     //    PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
     //
     //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-    //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+    //    r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
     //
     //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
     //        MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
@@ -516,7 +516,7 @@ namespace Testing
     //    PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
     //
     //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-    //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+    //    r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
     //
     //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
     //        MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
@@ -551,7 +551,7 @@ namespace Testing
         PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
 
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, true);
+        r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, true);
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
@@ -589,7 +589,7 @@ namespace Testing
         r_background_model_part.pGetNode(6)->Fix(DISPLACEMENT_X);
 
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, false);
+        r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
@@ -628,7 +628,7 @@ namespace Testing
         PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
 
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
-        r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM_FALLBACK_TO_MPM, true);
+        r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, true);
         r_background_model_part.GetProcessInfo().SetValue(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, 0.5);
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
