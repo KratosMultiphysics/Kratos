@@ -19,8 +19,9 @@
 // External includes
 
 // Project includes
-#include "modeler.h"
+#include "modeler/modeler.h"
 #include "input_output/cad_json_input.h"
+#include "custom_utilities/mapping_intersection_utilities.h"
 
 
 namespace Kratos
@@ -32,7 +33,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(KRATOS_CORE) MappingGeometriesModeler
+class KRATOS_API(MAPPING_APPLICATION) MappingGeometriesModeler
     : public Modeler
 {
 public:
@@ -62,6 +63,7 @@ public:
         : Modeler(rModel, ModelerParameters)
         , mpModel(&rModel)
     {
+        KRATOS_WATCH("Buiding MappingGeometriesModeler")
     }
 
     /// Destructor.
@@ -80,7 +82,7 @@ public:
 
     void SetupGeometryModel() override;
 
-    void PrepareGeometryModel() {} override;
+    void PrepareGeometryModel() override;
 
     ///@}
     ///@name Input and output
@@ -89,7 +91,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "MappingGeometriesModeler";
+        return "MappingGeometriesModeler"; // TODO @teschemachen for some reason we dont hit this
     }
 
     /// Print information about this object.

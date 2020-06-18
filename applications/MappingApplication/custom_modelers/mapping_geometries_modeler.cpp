@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 
@@ -42,10 +42,17 @@ namespace Kratos
             ? mpModel->GetModelPart("coupling_quadrature_points")
             : mpModel->CreateModelPart("coupling_quadrature_points");
 
+
         MappingIntersectionUtilities::FindIntersection1DGeometries2D(
             origin_model_part, destination_model_part, coupling_model_part, 1e-6);
         MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
-            model_part_coupling, model_part_coupling_quadrature_points, 1e-6);
+            coupling_model_part, model_part_coupling_quadrature_points, 1e-6);
+    }
+
+    void MappingGeometriesModeler::PrepareGeometryModel()
+    {
+        // TODO add other functions
+
     }
 
     ///@}

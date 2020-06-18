@@ -25,6 +25,8 @@
 #include "custom_utilities/mapper_local_system.h"
 
 #include "custom_utilities/mapping_intersection_utilities.h"
+#include "custom_modelers/mapping_geometries_modeler.h"
+//#include "modeler/modeler_factory.h"
 
 namespace Kratos
 {
@@ -118,13 +120,23 @@ public:
                            mrModelPartDestination(rModelPartDestination),
                            mMapperSettings(JsonParameters)
     {
-        mModeler = ModelerFactory.Create(
-            JsonParameters["modeler_name"].GetString(),
-            rModelPartOrigin.GetModel(),
-            JsonParameters["modeler_parameters"]);
+        if (mMapperSettings["is_use_modeler"].GetBool())
+        {
+            // Temporary, another constructor will be added soon
+            mModeler = MappingGeometriesModeler(rModelPartOrigin.GetModel(), JsonParameters["modeler_parameters"]);
 
-        mModeler.SetupGeometryModel();
-        mModeler.PrepareGeometryModel();
+            // TODO @teschemachen this is what we want I guess but theres some errors
+            //mpModeler = ModelerFactory::Create(
+            //    JsonParameters["modeler_name"].GetString(),
+            //    rModelPartOrigin.GetModel(),
+            //    JsonParameters["modeler_parameters"]);
+
+            KRATOS_WATCH(mModeler.Info());
+
+            mModeler.SetupGeometryModel();
+            mModeler.PrepareGeometryModel();
+        }
+
 
         // here use whatever ModelPart(s) was created by the Modeler
         mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin.GetSubModelPart("interface"));
@@ -152,9 +164,13 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
-        mModeler.PrepareGeometryModel();
+        if (mMapperSettings["is_use_modeler"].GetBool())
+        {
+            mModeler.PrepareGeometryModel();
+        }
 
-        AssignInterfaceEquationIds()
+
+        AssignInterfaceEquationIds();
 
         KRATOS_ERROR << "Not implemented!" << std::endl;
     }
@@ -291,6 +307,8 @@ private:
     bool mIsInverseFlag = false;
 
     Modeler mModeler;
+    //typename Modeler::Pointer mpModeler; // TODO @teschemachen
+
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
     void AssignInterfaceEquationIds()
