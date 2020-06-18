@@ -1626,7 +1626,7 @@ void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
 ///@name Sub Model Parts
 ///@{
 
-ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart& ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
     // Here a warning would be enough. To be disscussed. Pooyan.
     KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
@@ -1644,10 +1644,39 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
 
 ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 {
-    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+    const auto sub_model_parts_list = SplitSubModelPartHierarchy(SubModelPartName);
+    if (sub_model_parts_list.size() == 1) {
+        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+        if (i == mSubModelParts.end()) {
+            std::stringstream err_msg;
+            err_msg << "There is no sub model part with name \"" << SubModelPartName
+                    << "\" in model part \"" << Name() << "\"\n"
+                    << "The the following sub model parts are available:";
+            for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+                err_msg << "\n\t" << r_avail_smp_name;
+            }
+            KRATOS_ERROR << err_msg.str() << std::endl;
+        }
 
-    return *i;
+        return *i;
+    } else {
+        ModelPart* p_current_mp = this;
+        for (const auto& r_smp_name : sub_model_parts_list) {
+            if (!p_current_mp->HasSubModelPart(r_smp_name)) {
+                std::stringstream err_msg;
+                err_msg << "There is no sub model part with name \"" << r_smp_name
+                        << "\" in model part \"" << p_current_mp->Name() << "\"\n"
+                        << "The total input string was \"" << SubModelPartName << "\"\n"
+                        << "The the following sub model parts are available:";
+                for (const auto& r_avail_smp_name : p_current_mp->GetSubModelPartNames()) {
+                    err_msg << "\n\t" << r_avail_smp_name;
+                }
+                KRATOS_ERROR << err_msg.str() << std::endl;
+            }
+            p_current_mp = &p_current_mp->GetSubModelPart(r_smp_name);
+        }
+        return *p_current_mp;
+    }
 }
 
 ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
