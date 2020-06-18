@@ -19,8 +19,7 @@
 
 //Processes
 #include "custom_processes/perturb_geometry_subgrid_process.h"
-//#include "custom_processes/pertube_geometry_small_correlation_length.h"
-
+#include "custom_processes/perturb_geometry_sparse_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -36,13 +35,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def("AssembleEigenvectors", &PerturbGeometrySubgridProcess::AssembleEigenvectors)
         ;
 
-    // py::class_<PertubeGeometrySmallCorrelationLength, PertubeGeometrySmallCorrelationLength::Pointer, Process>(m,"PertubeGeometrySmallCorrelationLength")
-    //     .def(py::init<ModelPart&,double>())
-    //     .def("CreateEigenvectors", &PertubeGeometrySmallCorrelationLength::CreateEigenvectors)
-    //     .def("AssembleEigenvectors", &PertubeGeometrySmallCorrelationLength::AssembleEigenvectors)
-    //     //.def("Average", &PertubeGeometrySmallCorrelationLength::Average)
-    //     ;
-
+    py::class_<PerturbGeometrySparseProcess, PerturbGeometrySparseProcess::Pointer, Process>(m,"PerturbGeometrySparseProcess")
+        .def(py::init<ModelPart&,double>())
+        .def("CreateEigenvectors", &PerturbGeometrySparseProcess::CreateEigenvectors)
+        .def("AssembleEigenvectors", &PerturbGeometrySparseProcess::AssembleEigenvectors)
+        ;
 }
 
 }  // namespace Python.

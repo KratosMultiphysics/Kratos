@@ -9,21 +9,22 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_PERTUBE_GEOMETRY_SMALL_CORRELATION_LENGTH_PROCESS)
-#define KRATOS_PERTUBE_GEOMETRY_SMALL_CORRELATION_LENGTH_PROCESS
+#if !defined(KRATOS_PERTUB_GEOMETRY_SPARSE_PROCESS)
+#define KRATOS_PERTUB_GEOMETRY_SPARSE_PROCESS
 
 // System includes
 
 // External includes
 
 // Project includes
+#include "custom_solvers/eigensystem_solver.h"
+#include "custom_solvers/eigen_direct_solver.h"
+#include "custom_processes/perturb_geometry_base_process.h"
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "custom_solvers/eigensystem_solver.h"
-#include "custom_solvers/eigen_direct_solver.h"
-#include "custom_utilities/omp_node_search.h"
+
 
 
 namespace Kratos
@@ -44,24 +45,24 @@ namespace Kratos
 ///@{
 
 /**
- * @class PertubeGeometrySmallCorrelationLength
+ * @class PerturbGeometrySparseProcess
  *
- * @ingroup StructuralMechanicsApplication
+ * @ingroup EigenSolversApplication
  *
  * @brief This method computes the center of gravity
  * @details It takes into account all elements in the ModelPart
  *
  * @author Manuel Messmer
  */
-class KRATOS_API(EIGEN_SOLVERS_APPLICATION) PertubeGeometrySmallCorrelationLength
-    : public Process
+class KRATOS_API(EIGEN_SOLVERS_APPLICATION) PerturbGeometrySparseProcess
+    : public PerturbGeometryBaseProcess
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of PertubeGeometrySmallCorrelationLength
-    KRATOS_CLASS_POINTER_DEFINITION(PertubeGeometrySmallCorrelationLength);
+    /// Pointer definition of PerturbGeometrySparseProcess
+    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometrySparseProcess);
 
     typedef TUblasSparseSpace<double> TSparseSpaceType;
     typedef TUblasDenseSpace<double> TDenseSpaceType;
@@ -76,27 +77,17 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    typedef Kratos::intrusive_ptr<Kratos::Node<3UL> >                     NodesType;
-    
-
-
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PertubeGeometrySmallCorrelationLength( ModelPart& rInitialModelPart, double MaximalDisplacement) : 
-        mrInitialModelPart(rInitialModelPart),
-        mMaximalDisplacement(MaximalDisplacement)
-    {
-        KRATOS_TRY
-        MortarUtilities::ComputeNodesMeanNormalModelPart( mrInitialModelPart, false );
-        KRATOS_CATCH("")
+    PerturbGeometrySparseProcess( ModelPart& rInitialModelPart, double MaximalDisplacement) :
+        PerturbGeometryBaseProcess(rInitialModelPart, MaximalDisplacement){
     }
 
     /// Destructor.
-    ~PertubeGeometrySmallCorrelationLength() override
+    ~PerturbGeometrySparseProcess() override
     = default;
 
     ///@}
@@ -123,11 +114,8 @@ public:
     ///@name Operations
     ///@{
 
-    int CreateEigenvectors(ModelPart& rThisModelPart, double minDistance, double correlationLength);
+    int CreateEigenvectors(ModelPart& rThisModelPart, double correlationLength, double truncationTolerance );
 
-    void AssembleEigenvectors(ModelPart& rThisModelPart, const std::vector<double>& variables );
-
-    double CorrelationFunction( ModelPart::NodeIterator itNode1, NodesType itNode2, double CorrelationLenth);
     ///@}
     ///@name Access
     ///@{
@@ -145,13 +133,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "PertubeGeometrySmallCorrelationLength";
+        return "PerturbGeometrySparseProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "PertubeGeometrySmallCorrelationLength";
+        rOStream << "PerturbGeometrySparseProcess";
     }
 
     /// Print object's data.
@@ -206,20 +194,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
-    ModelPart& mrInitialModelPart;              // The main model part
-
-    DenseMatrixType mDisplacement;
-
-    EigensystemSolver<>* mpEigenSolver;
-
-    double mMaximalDisplacement;
-
-    OMP_NodeSearch* searcher;
 
     ///@}
     ///@name Private Operators
@@ -245,15 +222,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    PertubeGeometrySmallCorrelationLength& operator=(PertubeGeometrySmallCorrelationLength const& rOther) = delete;
+    PerturbGeometrySparseProcess& operator=(PerturbGeometrySparseProcess const& rOther) = delete;
 
     /// Copy constructor.
-    PertubeGeometrySmallCorrelationLength(PertubeGeometrySmallCorrelationLength const& rOther) = delete;
+    PerturbGeometrySparseProcess(PerturbGeometrySparseProcess const& rOther) = delete;
 
 
     ///@}
 
-}; // Class PertubeGeometrySmallCorrelationLength
+}; // Class PerturbGeometrySparseProcess
 
 ///@}
 
@@ -265,23 +242,7 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   PertubeGeometrySmallCorrelationLength& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const PertubeGeometrySmallCorrelationLength& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
-
 }
-#endif /* KRATOS_PERTUBE_GEOMETRY_PROCESS defined */
+#endif /* KRATOS_PERTUBE_GEOMETRY_SPARSE_PROCESS defined */
 
 
-       

@@ -78,7 +78,7 @@ file(
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/perturb_geometry_base_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/perturb_geometry_subgrid_process.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/pertube_geometry_small_correlation_length.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/perturb_geometry_sparse_process.cpp
 )
 
 ###############################################################
