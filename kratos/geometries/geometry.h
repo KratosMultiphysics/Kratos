@@ -308,7 +308,7 @@ public:
         , mPoints(ThisPoints)
     {
     }
-  
+
     Geometry(
         IndexType GeometryId,
         const PointsArrayType& ThisPoints,
@@ -359,7 +359,7 @@ public:
     * @note Copied geometry shares the same Id as the
     *       original geometry.
     */
-    template<class TOtherPointType> 
+    template<class TOtherPointType>
     Geometry( Geometry<TOtherPointType> const & rOther )
         : mId(rOther.mId),
           mpGeometryData(rOther.mpGeometryData),
@@ -518,7 +518,7 @@ public:
         return mPoints.size();
     }
 
-    /** 
+    /**
     * @detail Returns the number of the points/ nodes
     *         belonging to this geometry.
     * @return Number of points/ nodes.
@@ -776,7 +776,7 @@ public:
     *        within the derived classes.
     * @return reference to corresponding geometry.
      */
-    virtual GeometryType& GetGeometryPart(IndexType Index)
+    virtual GeometryType& GetGeometryPart(const IndexType Index)
     {
         return *pGetGeometryPart(Index);
     }
@@ -788,7 +788,7 @@ public:
     *        within the derived classes.
     * @return const reference to corresponding geometry.
     */
-    virtual const GeometryType& GetGeometryPart(IndexType Index) const
+    virtual const GeometryType& GetGeometryPart(const IndexType Index) const
     {
         return *pGetGeometryPart(Index);
     }
@@ -800,7 +800,7 @@ public:
     *        within the derived classes.
     * @return pointer to corresponding geometry.
     */
-    virtual typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
+    virtual typename GeometryType::Pointer pGetGeometryPart(const IndexType Index)
     {
         KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
             << " Please check the definition in the derived class. " << *this << std::endl;
@@ -814,7 +814,7 @@ public:
     *        within the derived classes.
     * @return const pointer to corresponding geometry.
     */
-    virtual const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const
+    virtual const typename GeometryType::Pointer pGetGeometryPart(const IndexType Index) const
     {
         KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
             << " Please check the definition in the derived class. " << *this << std::endl;
@@ -827,7 +827,7 @@ public:
     *        within the derived classes.
     * @return true if has geometry part
     */
-    virtual bool HasGeometryPart(IndexType Index) const
+    virtual bool HasGeometryPart(const IndexType Index) const
     {
         KRATOS_ERROR << "Calling base class 'HasGeometryPart' method instead of derived function."
             << " Please check the definition in the derived class. " << *this << std::endl;
@@ -3634,7 +3634,7 @@ private:
 
     DataValueContainer mData;
 
-  
+
     ///@}
     ///@name Id Bit-Change Operations
     ///@{
