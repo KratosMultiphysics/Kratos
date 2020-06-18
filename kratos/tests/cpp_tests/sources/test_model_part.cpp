@@ -106,15 +106,6 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartEmptyName, KratosCoreFastSuite)
         "Error: Please don't use empty names (\"\") when creating a ModelPart");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ModelPartNameContainingPoint, KratosCoreFastSuite)
-{
-    Model current_model;
-
-    // Constructor with name
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other"),
-        "Error: Please don't use names containing (\".\") when creating a ModelPart (used in \"name.other\")");
-}
-
 KRATOS_TEST_CASE_IN_SUITE(ModelPartTable, KratosCoreFastSuite)
 {
     Model current_model;
