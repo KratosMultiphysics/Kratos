@@ -24,12 +24,6 @@
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ##
 
-## GenerateClusterFile works fine in the folder but shows segmentation fault when launching from gid
-
-##- spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples
-##- even if spheretree works as expected, it throw an error when finalizing. kike: child process exited abnormally
-
-
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Fixed Issues ##
@@ -45,9 +39,8 @@
 ##- add dummy .bat to avoid error showing both unix.bat and win.bat
 ##- cluster visualizaton in GID pre
 ##- add export gidmesh as generic.msh on calculate
+##- RECOMMENEDED MEDIAL - spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 
 
 ## GiD events --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -98,8 +91,6 @@ proc AfterReadGIDProject { filename } {
     set ::DEMClusters::ProblemName $filename
 }
 
-
-#proc BeforeMeshGeneration {elementsize}
 proc GiD_Event_BeforeMeshGeneration {elementsize} {
 
     # Align the normal
@@ -112,6 +103,8 @@ proc AfterMeshGeneration {fail} {
 }
 
 proc OneClickGo {} {
+
+    # GiD_Process Mescape Utilities Calculate MEscape Files WriteCalcFile Mescape
     # new proc
     # 0delete old spheres from geometry
     # 1 calculate
@@ -119,9 +112,6 @@ proc OneClickGo {} {
     # 3Generateclu
     # 4visualize
 }
-
-
-
 
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
@@ -161,9 +151,6 @@ namespace eval DEMClusters {
     variable ProblemTypePath ""
 }
 
-# GiD_Process Mescape Utilities Calculate MEscape Files WriteCalcFile Mescape Files WriteMesh /home/farrufat/Downloads/cluster_creation/homebrew/delete.gid/generic.msh
-
-
 proc call_SphereTree { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
@@ -180,14 +167,9 @@ proc call_SphereTree { } {
     } else {
         W "Select a valid algorithm"
     }
-
-    # set Young_Modulus [GiD_AccessValue get condition Body_Part Young_Modulus]
-
 }
 
 proc DEMClusters::call_TreeMedial { } {
-
-
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set branch [GiD_AccessValue get gendata branch]
@@ -207,9 +189,7 @@ proc DEMClusters::call_TreeMedial { } {
 
     #set filename_obj $::DEMClusters::ProblemName ## custom names
     #append filename_obj .obj
-
-
-
+    # set Young_Modulus [GiD_AccessValue get condition Body_Part Young_Modulus]
 
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
 
@@ -372,7 +352,33 @@ proc DEMClusters::call_makeTreeOctree { } {
 
 proc GenerateClusterFile { } {
 
-    #TODO: no hi ha forma de que funcione desde GID
+    set all [GiD_Tools geometry mass_properties 1]
+
+    set mass [lrange $all 0 0]
+
+    W [lrange $all 1 1]
+
+    W [lrange $all 2 2]
+
+    W [lrange $all 3 3]
+    W [lrange $all 4 4]
+    W [lrange $all 5 5]
+
+
+    
+    # It returns a list with 3 items: mass {center_x center_y center_z} {Ixx Iyy Izz Ixy Iyz Ixz}
+
+    # GiD_Tools mesh mass_properties <tetrahedra_ids> | -boundary_elements <triangle_ids>
+
+    # To calculate the mass properties of volume, gravity center and inertia tensor of a volume, defined by a selection of tetrahedra or the selection of the triangles bounding the volume.
+
+    # <tetrahedra_ids> A list of integer ids of the tetrahedra of the volume to be computed
+
+    # <triangle_ids> A list of integer ids of the triangles that enclose a volume, with normals pointing inside.
+
+    # It returns a list with 3 items: mass {center_x center_y center_z} {Ixx Iyy Izz Ixy Iyz Ixz}
+
+
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     if {$Algorithm == "MakeTreeMedial"} {
@@ -408,9 +414,10 @@ proc GenerateClusterFile { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
     }
 
+    
     exec $program $argv_number $genericMSHFilename $genericSPHFilename
-    #exec $program $argv_number $genericMSHFilename $genericSPHFilename > output.txt
-    #g++ -o create_cluster.exe mesh_to_clu_converter.cpp
+    # FOR DEBUG - exec $program $argv_number $genericMSHFilename $genericSPHFilename > output.txt
+    # REGENERATE EXEC FOR WINDOWS : g++ -o create_cluster.exe mesh_to_clu_converter.cpp
 }
 
 
