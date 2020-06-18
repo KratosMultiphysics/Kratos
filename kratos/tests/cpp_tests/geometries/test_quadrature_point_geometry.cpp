@@ -182,6 +182,59 @@ namespace Kratos {
                 1e-6);
         }
 
+        KRATOS_TEST_CASE_IN_SUITE(UpdateQuadraturePointGeometry2dWithUtility, KratosCoreFastSuite)
+        {
+            auto p_this_quadrature_point = GenerateQuadraturePointGeometry();
+
+            auto triangle = GeneratePointsTriangle2D3Update();
+            auto integration_points = triangle->IntegrationPoints(GeometryData::GI_GAUSS_3);
+
+            CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
+                p_this_quadrature_point, integration_points[0], integration_points[0].Weight(), *(triangle.get()));
+
+            //auto integration_method = triangle->GetDefaultIntegrationMethod();
+            auto r_N = triangle->ShapeFunctionsValues(GeometryData::GI_GAUSS_3);
+            Matrix N_i = ZeroMatrix(1, triangle->size());
+            for (IndexType j = 0; j < triangle->size(); ++j) {
+                N_i(0, j) = r_N(0, j);
+            }
+            Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
+
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->size(), 3);
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->WorkingSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->LocalSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->Dimension(), 2);
+
+            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[0].Id(), 4);
+            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[1].Id(), 5);
+            KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[2].Id(), 6);
+
+            KRATOS_CHECK_MATRIX_NEAR(
+                p_this_quadrature_point->ShapeFunctionsValues(),
+                N_i,
+                1e-6);
+            KRATOS_CHECK_MATRIX_NEAR(
+                p_this_quadrature_point->ShapeFunctionDerivatives(1, 0),
+                DN_De,
+                1e-6);
+
+            /// Check correct parent access.
+            Matrix Jacobian1; Matrix Jacobian2;
+            array_1d<double, 3> coordinates;
+            coordinates[0] = 0.1; coordinates[1] = 0.2; coordinates[0] = 0.0;
+
+            KRATOS_CHECK_MATRIX_NEAR(
+                p_this_quadrature_point->Jacobian(Jacobian1, coordinates),
+                triangle->Jacobian(Jacobian1, coordinates),
+                1e-6);
+
+            Vector SF1; Vector SF2;
+            KRATOS_CHECK_VECTOR_NEAR(
+                p_this_quadrature_point->ShapeFunctionsValues(SF1, coordinates),
+                triangle->ShapeFunctionsValues(SF2, coordinates),
+                1e-6);
+        }
+
         KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2dCopyConstructor, KratosCoreFastSuite)
         {
             QPGeometryPointerType p_this_quadrature_point = GenerateQuadraturePointGeometry2();
