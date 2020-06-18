@@ -100,57 +100,6 @@ void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
     rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
 }
 
-/**
- * @brief Auxiliary set variable export function
- * This function is required to export the SetVariable overloaded method with a unique name
- * @tparam TDataType The variable data type
- * @tparam Variable<TDataType> The variable type
- * @param rVariableUtils Reference to the self variable utils class
- * @param rVariable Reference to the variable to be set
- * @param rValue Reference to the value to set
- * @param rNodes Reference to the nodes container
- * @param BuffStep The buffer step
- */
-template<class TDataType, class TVarType = Variable<TDataType>>
-void VariableUtilsSetVariable(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const TDataType &rValue,
-    ModelPart::NodesContainerType &rNodes,
-    const IndexType BuffStep = 0
-    )
-{
-    rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);
-}
-
-
-/**
- * @brief Auxiliary set variable export function
- * This function is required to export the SetVariable with flag overloaded method with a unique name
- * @tparam TDataType The variable data type
- * @tparam Variable<TDataType> The variable type
- * @param rVariableUtils Reference to the self variable utils class
- * @param rVariable Reference to the variable to be set
- * @param rValue Reference to the value to set
- * @param rNodes Reference to the nodes container
- * @param Flag Flag to filter the nodes that are set
- * @param CheckValue Flag value to be checked
- * @param BuffStep The buffer step
- */
-template <class TDataType, class TVarType = Variable<TDataType>>
-void VariableUtilsSetVariableForFlag(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const TDataType &rValue,
-    ModelPart::NodesContainerType &rNodes,
-    const Flags Flag,
-    const bool CheckValue = true,
-    const IndexType BuffStep = 0
-    )
-{
-    rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);
-}
-
 template <class TDataType, class TContainerType, class TVarType = Variable<TDataType>>
 void VariableUtilsSetNonHistoricalVariable(
     VariableUtils &rVariableUtils,
@@ -224,29 +173,69 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Quaternion<double>>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Vector>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Matrix>>)
-        .def("SetVectorVar", VariableUtilsSetVariable<array_1d<double,3>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
-        .def("SetVectorVar", VariableUtilsSetVariableForFlag<array_1d<double, 3>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
-        .def("SetScalarVar", VariableUtilsSetVariable<double>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
-        .def("SetScalarVar", VariableUtilsSetVariableForFlag<double>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVectorVar", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, const array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVectorVar", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVectorVar", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, const array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVectorVar", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVectorVar", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, const array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetScalarVar", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, const double &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetScalarVar", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, double &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetScalarVar", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, const double &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetScalarVar", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, double &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetScalarVar", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, const double &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
         .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVectorVar", VariableUtilsSetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
-        .def("SetVariable", VariableUtilsSetVariable<int>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariable<bool>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariable<double>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariable<array_1d<double, 3>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariable<Vector>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariable<Matrix>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariable<Quaternion<double>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<bool>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<double>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 3>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 4>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 6>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 9>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<Vector>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<Matrix>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<Quaternion<double>>, py::arg("variable"), py::arg("value"), py::arg("nodes"), py::arg("flag"), py::arg("check")=true, py::arg("buffer_step")=0)
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<int> &rVariable, const int &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<int> &rVariable, int &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<bool> &rVariable, const bool &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<bool> &rVariable, bool &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, const double &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, double &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, const array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 4>> &rVariable, const array_1d<double, 4> &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 4>> &rVariable, array_1d<double, 4> &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 6>> &rVariable, const array_1d<double, 6> &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 6>> &rVariable, array_1d<double, 6> &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 9>> &rVariable, const array_1d<double, 9> &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 9>> &rVariable, array_1d<double, 9> &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Vector> &rVariable, const Vector &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Vector> &rVariable, Vector &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Matrix> &rVariable, const Matrix &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Matrix> &rVariable, Matrix &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Quaternion<double>> &rVariable, const Quaternion<double> &rValue, ModelPart::NodesContainerType &rNodes) {rVariableUtils.SetVariable(rVariable, rValue, rNodes);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Quaternion<double>> &rVariable, Quaternion<double> &rValue, ModelPart::NodesContainerType &rNodes, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<int> &rVariable, const int &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<int> &rVariable, int &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<int> &rVariable, const int &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<bool> &rVariable, const bool &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<bool> &rVariable, bool &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<bool> &rVariable, const bool &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, const double &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, double &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<double> &rVariable, const double &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, const array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 3>> &rVariable, const array_1d<double, 3> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 4>> &rVariable, const array_1d<double, 4> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 4>> &rVariable, array_1d<double, 4> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 4>> &rVariable, const array_1d<double, 4> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 6>> &rVariable, const array_1d<double, 6> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 6>> &rVariable, array_1d<double, 6> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 6>> &rVariable, const array_1d<double, 6> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 9>> &rVariable, const array_1d<double, 9> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 9>> &rVariable, array_1d<double, 9> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<array_1d<double, 9>> &rVariable, const array_1d<double, 9> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Vector> &rVariable, const Vector &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Vector> &rVariable, Vector &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Vector> &rVariable, const Vector &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Matrix> &rVariable, const Matrix &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Matrix> &rVariable, Matrix &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Matrix> &rVariable, const Matrix &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Quaternion<double>> &rVariable, const Quaternion<double> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Quaternion<double>> &rVariable, const Quaternion<double> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);})
+        .def("SetVariable", [](VariableUtils &rVariableUtils, const Variable<Quaternion<double>> &rVariable, const Quaternion<double> &rValue, ModelPart::NodesContainerType &rNodes, const Flags Flag, const bool CheckValue, const IndexType BuffStep) {rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue, BuffStep);})
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<int>)
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<double>)
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<array_1d<double, 3>>)
