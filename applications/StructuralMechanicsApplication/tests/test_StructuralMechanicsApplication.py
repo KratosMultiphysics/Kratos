@@ -528,17 +528,6 @@ if __name__ == '__main__':
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
-        p = subprocess.Popen(
-            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py", "--using-mpi"],
-            stdout=subprocess.PIPE,
-            cwd=os.path.dirname(os.path.abspath(__file__)))
-        p.wait()
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    else:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nSkipping mpi python tests due to missing dependencies")
-
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
