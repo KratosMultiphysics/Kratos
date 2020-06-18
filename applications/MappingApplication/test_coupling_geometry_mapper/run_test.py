@@ -61,11 +61,10 @@ mapper_params = KM.Parameters("""{
     "echo_level" : 0,
     "dual_mortar": true,
     "consistency_scaling" : false,
+    "modeler_name" : "PeterSucks",
     "modeler_parameters":{
-        "modeler_name" : "PeterSucks",
         "origin_model_part_name" : "P-Dog",
-        "destination_model_part_name" : "T-Dog",
-        "is_interface_defined" : false
+        "destination_model_part_name" : "T-Dog"
     }
 }""")
 
