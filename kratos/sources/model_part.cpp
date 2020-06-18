@@ -1624,9 +1624,25 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
     return *p_model_part;
 }
 
+ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
+{
+    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    return *i;
+}
+
+ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
+{
+    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    return (i.base()->second).get();
+}
+
 /** Remove a sub modelpart with given name.
 */
-void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
+void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 {
     // finding the sub model part
     SubModelPartIterator i_sub_model_part = mSubModelParts.find(ThisSubModelPartName);
@@ -1640,7 +1656,7 @@ void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 
 /** Remove given sub model part.
 */
-void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
+void ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
 {
     std::string name = ThisSubModelPart.Name();
     // finding the sub model part
@@ -1649,6 +1665,21 @@ void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
     KRATOS_ERROR_IF(i_sub_model_part == mSubModelParts.end()) << "The sub model part  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
 
     mSubModelParts.erase(name);
+}
+
+
+ModelPart* ModelPart::GetParentModelPart() const
+{
+    if (IsSubModelPart()) {
+        return mpParentModelPart;
+    } else {
+        return const_cast<ModelPart*>(this);
+    }
+}
+
+bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
+{
+    return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
 }
 
 std::vector<std::string> ModelPart::GetSubModelPartNames()
