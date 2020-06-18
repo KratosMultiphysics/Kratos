@@ -24,6 +24,7 @@
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
+#include "custom_utilities/mapping_intersection_utilities.h"
 
 namespace Kratos
 {
@@ -117,7 +118,13 @@ public:
                            mrModelPartDestination(rModelPartDestination),
                            mMapperSettings(JsonParameters)
     {
-        this->CreateModeler();
+        mModeler = ModelerFactory.Create(
+            JsonParameters["modeler_name"].GetString(),
+            rModelPartOrigin.GetModel(),
+            JsonParameters["modeler_parameters"]);
+
+        mModeler.SetupGeometryModel();
+        mModeler.PrepareGeometryModel();
 
         // here use whatever ModelPart(s) was created by the Modeler
         mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin.GetSubModelPart("interface"));
@@ -145,6 +152,10 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
+        mModeler.PrepareGeometryModel();
+
+        AssignInterfaceEquationIds()
+
         KRATOS_ERROR << "Not implemented!" << std::endl;
     }
 
@@ -278,6 +289,7 @@ private:
 
     bool mIsInverseFlag = false;
 
+    Modeler mModeler;
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
@@ -336,8 +348,6 @@ private:
             "echo_level" : 0
         })");
     }
-
-    void CreateModeler();
 
     ///@}
     ///@name Private  Access
