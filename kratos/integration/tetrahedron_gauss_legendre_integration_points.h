@@ -56,7 +56,6 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -106,7 +105,6 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -160,7 +158,6 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -220,7 +217,6 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
@@ -291,7 +287,6 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints = GenerateIntegrationPoints();
         return msIntegrationPoints;
     }
 
