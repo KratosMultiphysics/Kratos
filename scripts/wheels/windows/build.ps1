@@ -1,5 +1,6 @@
 param([string]$cotire = "OFF",
-    [string[]] $pythons)
+    [string[]] $pythons,
+    [int] $cpus)
 
 $env:kratos_version = "7.0.3"
 
@@ -10,12 +11,12 @@ $wheelOutDir = "c:\out"
 
 function exec_build($python, $pythonPath) {
     cmd.exe /c "call configure.bat $( $pythonPath ) $( $kratosRoot ) OFF"
-    cmake --build "$( $kratosRoot )/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
+    cmake --build "$( $kratosRoot )/build/Release" --target install -j $cpus -- /property:configuration=Release /p:Platform=x64
 }
 
 function exec_build_cotire($python, $pythonPath) {
     cmd.exe /c "call configure.bat $( $pythonPath ) $( $kratosRoot ) ON"
-    cmake --build "$( $kratosRoot )/build/Release" --target all_unity -- /property:configuration=Release /p:Platform=x64
+    cmake --build "$( $kratosRoot )/build/Release" --target all_unity -j $cpus -- /property:configuration=Release /p:Platform=x64
     cmake --build "$( $kratosRoot )/build/Release" --target zlibstatic -- /property:configuration=Release /p:Platform=x64
     cmake --build "$( $kratosRoot )/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }

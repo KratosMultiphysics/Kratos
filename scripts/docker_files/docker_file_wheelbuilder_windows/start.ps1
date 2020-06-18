@@ -1,8 +1,10 @@
 param([string]$branch = "master",
     [string]$cotire = "OFF",
-    [string[]]$pythons = @("38", "37", "36", "35"))
+    [string[]]$pythons = @("38", "37", "36", "35"),
+    [int]$cpus = (Get-WmiObject -class Win32_ComputerSystem).numberoflogicalprocessors)
 
-Write-Host "starting build for branch $( $branch )"
+Write-Host "Starting build for branch $( $branch )"
+Write-Host "Using $($cpus) cpus"
 
 #Load development env
 cmd.exe /c "call `"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat`" && set > %temp%\vcvars.txt"
