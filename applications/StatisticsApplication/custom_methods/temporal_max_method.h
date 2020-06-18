@@ -73,13 +73,15 @@ public:
             KRATOS_CATCH("");
         }
 
-        void CalculateStatistics(const double DeltaTime) override
+        void CalculateStatistics() override
         {
             TContainerType& r_container =
                 MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const auto& norm_method =
                 MethodUtilities::GetNormMethod(mrInputVariable, mNormType);
+
+            const double total_time = this->GetTotalTime();
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -98,11 +100,9 @@ public:
                 if (input_norm_value > r_output_value)
                 {
                     r_output_value = input_norm_value;
-                    r_max_time_value = this->GetTotalTime() + DeltaTime;
+                    r_max_time_value = total_time;
                 }
             }
-
-            TemporalMethod::CalculateStatistics(DeltaTime);
 
             KRATOS_INFO_IF("TemporalNormMaxMethod", this->GetEchoLevel() > 1)
                 << "Calculated temporal norm max for " << mrInputVariable.Name()

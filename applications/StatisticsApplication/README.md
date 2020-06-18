@@ -51,12 +51,10 @@ import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
 sum_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.Sum.Array(model_part, "", Kratos.VELOCITY, 0, Kratos.DISPLACEMENT)
-sum_method.InitializeStatisticsMethod()
-previous_time = 2
+integration_starting_time = 2.0
+sum_method.InitializeStatisticsMethod(integration_starting_time)
 for t in range(3, 6):
-    delta_time = t - previous_time
-    sum_method.CalculateStatistics(delta_time)
-    previous_time = t
+    sum_method.CalculateStatistics()
 ```
 
 #### Mean
@@ -87,12 +85,10 @@ import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
 mean_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.Mean.Array(model_part, "", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_MEAN)
-mean_method.InitializeStatisticsMethod()
-previous_time = 2
+integration_starting_time = 2.0
+mean_method.InitializeStatisticsMethod(integration_starting_time)
 for t in range(3, 6):
-    delta_time = t - previous_time
-    mean_method.CalculateStatistics(delta_time)
-    previous_time = t
+    mean_method.CalculateStatistics()
 ```
 
 #### Root mean square
@@ -123,12 +119,10 @@ import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
 rms_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.RootMeanSquare.Array(model_part, "", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_MEAN)
-rms_method.InitializeStatisticsMethod()
-previous_time = 2
+integration_starting_time = 2.0
+rms_method.InitializeStatisticsMethod(integration_starting_time)
 for t in range(3, 6):
-    delta_time = t - previous_time
-    rms_method.CalculateStatistics(delta_time)
-    previous_time = t
+    rms_method.CalculateStatistics()
 ```
 
 #### Variance
@@ -159,12 +153,10 @@ import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
 variance_method = KratosStats.TemporalMethods.NonHistorical.Nodes.ValueMethods.Variance.Array(model_part, "", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_MEAN, KratosStats.VECTOR_3D_VARIANCE)
-variance_method.InitializeStatisticsMethod()
-previous_time = 2
+integration_starting_time = 2.0
+variance_method.InitializeStatisticsMethod(integration_starting_time)
 for t in range(3, 6):
-    delta_time = t - previous_time
-    variance_method.CalculateStatistics(delta_time)
-    previous_time = t
+    variance_method.CalculateStatistics()
 ```
 
 #### Min
@@ -195,12 +187,10 @@ import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
 min_method = KratosStats.TemporalMethods.NonHistorical.Nodes.NormMethods.Min.Array(model_part, "magnitude", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_NORM, Kratos.TIME)
-min_method.InitializeStatisticsMethod()
-previous_time = 2
+integration_starting_time = 2.0
+min_method.InitializeStatisticsMethod(integration_starting_time)
 for t in range(3, 6):
-    delta_time = t - previous_time
-    min_method.CalculateStatistics(delta_time)
-    previous_time = t
+    min_method.CalculateStatistics()
 ```
 
 #### Max
@@ -231,12 +221,10 @@ import KratosMultiphysics.StatisticsApplication as KratosStats
 model = Kratos.Model()
 model_part = model.CreateModelPart("test_model_part")
 max_method = KratosStats.TemporalMethods.NonHistorical.Nodes.NormMethods.Max.Array(model_part, "magnitude", Kratos.VELOCITY, 0, KratosStats.VECTOR_3D_NORM, Kratos.TIME)
-max_method.InitializeStatisticsMethod()
-previous_time = 2
+integration_starting_time = 2.0
+max_method.InitializeStatisticsMethod(integration_starting_time)
 for t in range(3, 6):
-    delta_time = t - previous_time
-    max_method.CalculateStatistics(delta_time)
-    previous_time = t
+    max_method.CalculateStatistics()
 ```
 
 #### Median
