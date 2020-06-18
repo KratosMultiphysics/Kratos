@@ -30,7 +30,6 @@ namespace Kratos
 namespace MethodUtilities
 {
 template <class TDataType>
-KRATOS_API(STATISTIC_APPLICATION)
 TDataType RaiseToPower(const TDataType& rData, const double Power)
 {
     return std::pow(rData, Power);
@@ -79,7 +78,6 @@ Matrix RaiseToPower(const Matrix& rData, const double Power)
 }
 
 template <class TDataType>
-KRATOS_API(STATISTIC_APPLICATION)
 void DataTypeSizeInitializer(TDataType& rData, const TDataType& rReferenceData)
 {
     // do nothing in the case of double and int or array_1d<double, 3>
@@ -129,7 +127,6 @@ void DataTypeSizeInitializer(Matrix& rData, const Matrix& rReferenceData)
 }
 
 template <class TDataType>
-KRATOS_API(STATISTIC_APPLICATION)
 void DataTypeSizeChecker(const TDataType& rData, const TDataType& rReferenceData)
 {
     // do nothing in the case of double and int or array_1d<double, 3>
@@ -248,7 +245,6 @@ const ConditionsContainerType& GetDataContainer(const ModelPart& rModelPart)
     return rModelPart.Conditions();
 }
 
-KRATOS_API(STATISTIC_APPLICATION)
 double GetDoubleValue(const std::string& rInput)
 {
     KRATOS_TRY
@@ -274,7 +270,7 @@ double GetDoubleValue(const std::string& rInput)
     KRATOS_CATCH("");
 }
 
-KRATOS_API(STATISTIC_APPLICATION) int GetIntegerValue(const std::string& rInput)
+int GetIntegerValue(const std::string& rInput)
 {
     KRATOS_TRY
 
@@ -295,7 +291,6 @@ KRATOS_API(STATISTIC_APPLICATION) int GetIntegerValue(const std::string& rInput)
     KRATOS_CATCH("");
 }
 
-KRATOS_API(STATISTIC_APPLICATION)
 void SplitString(std::string& rOutput1, std::string& rOutput2, const std::string& rInput)
 {
     const std::size_t str_size = rInput.size();
@@ -314,7 +309,6 @@ void SplitString(std::string& rOutput1, std::string& rOutput2, const std::string
 }
 
 template <class TDataType>
-KRATOS_API(STATISTIC_APPLICATION)
 const std::function<double(const TDataType&)> GetNormMethod(
     const Variable<TDataType>& rVariable, const std::string& rNormType)
 {
@@ -666,7 +660,6 @@ std::string GetVariableTypeName<Matrix>()
 }
 
 template <class TDataType>
-KRATOS_API(STATISTIC_APPLICATION)
 void CheckVariableType(const std::vector<std::string>& rVariableNamesList)
 {
     KRATOS_TRY
@@ -681,7 +674,6 @@ void CheckVariableType(const std::vector<std::string>& rVariableNamesList)
     KRATOS_CATCH("");
 }
 
-KRATOS_API(STATISTIC_APPLICATION)
 void CheckInputOutputVariables(
     const std::vector<std::string>& rInputVariableNamesList,
     const std::vector<std::string>& rOutputVariableNamesList)
@@ -729,7 +721,6 @@ void CheckInputOutputVariables(
     KRATOS_CATCH("");
 }
 
-KRATOS_API(STATISTIC_APPLICATION)
 std::vector<double> SortSortedValuesList(const std::vector<std::vector<double>>& rValues)
 {
     const int number_of_arrays = rValues.size();
