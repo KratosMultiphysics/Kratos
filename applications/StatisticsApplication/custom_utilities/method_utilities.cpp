@@ -29,19 +29,19 @@ namespace Kratos
 {
 namespace MethodUtilities
 {
-template<> KRATOS_API(STATISTIC_APPLICATION) NodesContainerType& GetLocalDataContainer<NodesContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) ElementsContainerType& GetLocalDataContainer<ElementsContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) ConditionsContainerType& GetLocalDataContainer<ConditionsContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const NodesContainerType& GetLocalDataContainer<NodesContainerType>(const ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const ElementsContainerType& GetLocalDataContainer<ElementsContainerType>(const ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const ConditionsContainerType& GetLocalDataContainer<ConditionsContainerType>(const ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) NodesContainerType& GetLocalDataContainer<NodesContainerType>(ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) ElementsContainerType& GetLocalDataContainer<ElementsContainerType>(ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) ConditionsContainerType& GetLocalDataContainer<ConditionsContainerType>(ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) const NodesContainerType& GetLocalDataContainer<NodesContainerType>(const ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) const ElementsContainerType& GetLocalDataContainer<ElementsContainerType>(const ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) const ConditionsContainerType& GetLocalDataContainer<ConditionsContainerType>(const ModelPart&);
 
-template<> KRATOS_API(STATISTIC_APPLICATION) NodesContainerType& GetDataContainer<NodesContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) ElementsContainerType& GetDataContainer<ElementsContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) ConditionsContainerType& GetDataContainer<ConditionsContainerType>(ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const NodesContainerType& GetDataContainer<NodesContainerType>(const ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const ElementsContainerType& GetDataContainer<ElementsContainerType>(const ModelPart&);
-template<> KRATOS_API(STATISTIC_APPLICATION) const ConditionsContainerType& GetDataContainer<ConditionsContainerType>(const ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) NodesContainerType& GetDataContainer<NodesContainerType>(ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) ElementsContainerType& GetDataContainer<ElementsContainerType>(ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) ConditionsContainerType& GetDataContainer<ConditionsContainerType>(ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) const NodesContainerType& GetDataContainer<NodesContainerType>(const ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) const ElementsContainerType& GetDataContainer<ElementsContainerType>(const ModelPart&);
+// template<> KRATOS_API(STATISTIC_APPLICATION) const ConditionsContainerType& GetDataContainer<ConditionsContainerType>(const ModelPart&);
 
 template <class TDataType>
 TDataType RaiseToPower(const TDataType& rData, const double Power)
