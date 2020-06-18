@@ -276,9 +276,6 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
-    bool mIsInverseFlag = false;
-
-
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
     void AssignInterfaceEquationIds()
