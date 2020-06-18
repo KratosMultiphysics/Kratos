@@ -14,6 +14,7 @@ file( GLOB KRATOS_MAPPING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/*.cpp
 )
 
 set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
