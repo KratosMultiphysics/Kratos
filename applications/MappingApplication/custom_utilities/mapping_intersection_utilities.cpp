@@ -58,7 +58,6 @@ void MappingIntersectionUtilities::FindIntersection1DGeometries2D(
 
 void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
     ModelPart& rModelPartCoupling,
-    ModelPart& rModelPartResult,
     double Tolerance)
 {
     const ModelPart& rParentModelPart = *(rModelPartCoupling.GetParentModelPart());

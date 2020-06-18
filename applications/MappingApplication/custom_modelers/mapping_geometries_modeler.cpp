@@ -38,15 +38,11 @@ namespace Kratos
             ? mpModel->GetModelPart("coupling")
             : mpModel->CreateModelPart("coupling");
 
-        ModelPart& model_part_coupling_quadrature_points = mpModel->HasModelPart("coupling_quadrature_points")
-            ? mpModel->GetModelPart("coupling_quadrature_points")
-            : mpModel->CreateModelPart("coupling_quadrature_points");
-
 
         MappingIntersectionUtilities::FindIntersection1DGeometries2D(
             origin_model_part, destination_model_part, coupling_model_part, 1e-6);
         MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
-            coupling_model_part, model_part_coupling_quadrature_points, 1e-6);
+            coupling_model_part, 1e-6);
     }
 
     void MappingGeometriesModeler::PrepareGeometryModel()

@@ -52,7 +52,6 @@ namespace MappingIntersectionUtilities
 
     void KRATOS_API(MAPPING_APPLICATION) CreateQuadraturePointsCoupling1DGeometries2D(
         ModelPart& rModelPartCoupling,
-        ModelPart& rModelPartResult,
         double Tolerance);
 
     bool KRATOS_API(MAPPING_APPLICATION) FindOverlapExtents1DGeometries2D(

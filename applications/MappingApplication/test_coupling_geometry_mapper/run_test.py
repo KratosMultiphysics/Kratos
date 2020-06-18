@@ -64,11 +64,9 @@ if is_use_modeler == False:
 
     # TODO, add some logic to call the correct intersection functions. that would depend on the dimension of the coupling interfaces
     model_part_origin.CreateSubModelPart("coupling")
-    model_part_origin.CreateSubModelPart("coupling_quadrature_points")
     model_part_coupling = model_part_origin.GetSubModelPart("coupling")
-    model_part_coupling_quadrature_points = model_part_origin.GetSubModelPart("coupling_quadrature_points")
     KratosMapping.FindIntersection1DGeometries2D(originInterface, destinationInterface, model_part_coupling, 1e-6)
-    KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
+    KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, 1e-6)
     # TODO, the above problem need args changed to just origin_model_part and destination_model_part
 
 mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)
@@ -76,7 +74,7 @@ mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_
 # Plan ---------------------------------------
 #mapper = KratosMapping.MapperFactory.CreateMapper(current_model, mapper_params)
 #   (this creates a mapper modeller)
-#   modeller.CreateModelPart   (this creates model_part_coupling_quadrature_points)
+#   modeller.CreateModelPart   (this creates model_part_coupling)
 #       DetermineIntersectingGeometries()
 #       CreateCouplingGeometries()
 #mapper.CreateMappingMatrix()

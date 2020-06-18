@@ -143,7 +143,6 @@ public:
         mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination.GetSubModelPart("interface"));
 
         mpCouplingMP = rModelPartOrigin.pGetSubModelPart("coupling");
-        mpCouplingQuadraturePointsMP = rModelPartOrigin.pGetSubModelPart("coupling_quadrature_points");
 
         for (auto condition_itr = mpCouplingMP->ConditionsBegin();
             condition_itr != mpCouplingMP->ConditionsEnd();
@@ -290,7 +289,6 @@ private:
     ModelPart& mrModelPartOrigin;
     ModelPart& mrModelPartDestination;
     ModelPart* mpCouplingMP;
-    ModelPart* mpCouplingQuadraturePointsMP;
 
     Parameters mMapperSettings;
 
