@@ -9,8 +9,8 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_PERTUBE_GEOMETRY_SMALL_CORRELATION_LENGTH_PROCESS)
-#define KRATOS_PERTUBE_GEOMETRY_SMALL_CORRELATION_LENGTH_PROCESS
+#if !defined(KRATOS_PERTURB_GEOMETRY_PROCESS)
+#define KRATOS_PERTURB_GEOMETRY_PROCESS
 
 // System includes
 
@@ -24,6 +24,7 @@
 #include "custom_solvers/eigensystem_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
 #include "custom_utilities/omp_node_search.h"
+#include "utilities/mortar_utilities.h"
 
 
 namespace Kratos
@@ -44,41 +45,37 @@ namespace Kratos
 ///@{
 
 /**
- * @class PertubeGeometrySmallCorrelationLength
+ * @class PerturbGeometryBaseProcess
  *
  * @ingroup StructuralMechanicsApplication
  *
- * @brief This method computes the center of gravity
+ * @brief Base class for geometry perturbation process
  * @details It takes into account all elements in the ModelPart
  *
  * @author Manuel Messmer
  */
-class KRATOS_API(EIGEN_SOLVERS_APPLICATION) PertubeGeometrySmallCorrelationLength
+class KRATOS_API(EIGEN_SOLVERS_APPLICATION) PerturbGeometryBaseProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of PertubeGeometrySmallCorrelationLength
-    KRATOS_CLASS_POINTER_DEFINITION(PertubeGeometrySmallCorrelationLength);
+    /// Pointer definition of PerturbGeometryBaseProcess
+    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometryBaseProcess);
 
     typedef TUblasSparseSpace<double> TSparseSpaceType;
     typedef TUblasDenseSpace<double> TDenseSpaceType;
 
     typedef typename TSparseSpaceType::VectorPointerType SparseVectorPointerType;
 
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    typedef typename TSparseSpaceType::MatrixPointerType SparseMatrixPointerType;
 
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
-    typedef typename TDenseSpaceType::MatrixPointerType DenseMatrixPointerType;
-
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    typedef Kratos::intrusive_ptr<Kratos::Node<3UL> >                     NodesType;
-    
-
+    typedef typename TDenseSpaceType::MatrixPointerType DenseMatrixPointerType;
 
 
     ///@}
@@ -86,19 +83,18 @@ public:
     ///@{
 
     /// Default constructor.
-    PertubeGeometrySmallCorrelationLength( ModelPart& rInitialModelPart, double MaximalDisplacement) : 
+    PerturbGeometryBaseProcess( ModelPart& rInitialModelPart, double MaximalDisplacement) :
         mrInitialModelPart(rInitialModelPart),
         mMaximalDisplacement(MaximalDisplacement)
     {
         KRATOS_TRY
         MortarUtilities::ComputeNodesMeanNormalModelPart( mrInitialModelPart, false );
-        CorrelationMatrix_check = Eigen::MatrixXd::Zero(mrInitialModelPart.NumberOfNodes(), mrInitialModelPart.NumberOfNodes());
-        CorrelationMatrix_check_orig = Eigen::MatrixXd::Zero(mrInitialModelPart.NumberOfNodes(), mrInitialModelPart.NumberOfNodes());
+        mpPerturbationMatrix = TDenseSpaceType::CreateEmptyMatrixPointer();
         KRATOS_CATCH("")
     }
 
     /// Destructor.
-    ~PertubeGeometrySmallCorrelationLength() override
+    ~PerturbGeometryBaseProcess() override
     = default;
 
     ///@}
@@ -125,15 +121,10 @@ public:
     ///@name Operations
     ///@{
 
-    int CreateEigenvectors(ModelPart& rThisModelPart, double minDistance, double correlationLength);
-
     void AssembleEigenvectors(ModelPart& rThisModelPart, const std::vector<double>& variables );
 
-    void Average(int number);
-   
-    double Kernel( double x, double sigma );
+    double CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLenth);
 
-    double CorrelationFunction( ModelPart::NodeIterator itNode1, NodesType itNode2, double CorrelationLenth);
     ///@}
     ///@name Access
     ///@{
@@ -151,13 +142,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "PertubeGeometrySmallCorrelationLength";
+        return "PerturbGeometryBaseProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "PertubeGeometrySmallCorrelationLength";
+        rOStream << "PerturbGeometryBaseProcess";
     }
 
     /// Print object's data.
@@ -181,6 +172,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    DenseMatrixPointerType mpPerturbationMatrix;
 
     ///@}
     ///@name Protected Operators
@@ -217,20 +209,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrInitialModelPart;              // The main model part
-
-    DenseMatrixType mDisplacement;
-
-    // Remove this again ################################
-    Eigen::MatrixXd CorrelationMatrix_check;
-    Eigen::MatrixXd CorrelationMatrix_check_orig;
-    //###################################################
-
-    EigensystemSolver<>* mpEigenSolver;
+    ModelPart& mrInitialModelPart;
 
     double mMaximalDisplacement;
-
-    OMP_NodeSearch* searcher;
 
     ///@}
     ///@name Private Operators
@@ -256,15 +237,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    PertubeGeometrySmallCorrelationLength& operator=(PertubeGeometrySmallCorrelationLength const& rOther) = delete;
+    PerturbGeometryBaseProcess& operator=(PerturbGeometryBaseProcess const& rOther) = delete;
 
     /// Copy constructor.
-    PertubeGeometrySmallCorrelationLength(PertubeGeometrySmallCorrelationLength const& rOther) = delete;
+    PerturbGeometryBaseProcess(PerturbGeometryBaseProcess const& rOther) = delete;
 
 
     ///@}
 
-}; // Class PertubeGeometrySmallCorrelationLength
+}; // Class PerturbGeometryBaseProcess
 
 ///@}
 
@@ -276,23 +257,7 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   PertubeGeometrySmallCorrelationLength& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const PertubeGeometrySmallCorrelationLength& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
-
 }
-#endif /* KRATOS_PERTUBE_GEOMETRY_PROCESS defined */
+#endif /* KRATOS_PERTURBE_GEOMETRY_PROCESS defined */
 
 
-       

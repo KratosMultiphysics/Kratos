@@ -18,8 +18,8 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 //Processes
-#include "custom_processes/pertube_geometry.h"
-#include "custom_processes/pertube_geometry_small_correlation_length.h"
+#include "custom_processes/perturb_geometry_subgrid_process.h"
+//#include "custom_processes/pertube_geometry_small_correlation_length.h"
 
 
 namespace Kratos {
@@ -30,19 +30,18 @@ void AddCustomProcessesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     /// Processes
-    py::class_<PertubeGeometryProcess, PertubeGeometryProcess::Pointer, Process>(m,"PertubeGeometryProcess")
+    py::class_<PerturbGeometrySubgridProcess, PerturbGeometrySubgridProcess::Pointer, Process>(m,"PerturbGeometrySubgridProcess")
         .def(py::init<ModelPart&,double>())
-        .def("CreateEigenvectors", &PertubeGeometryProcess::CreateEigenvectors)
-        .def("AssembleEigenvectors", &PertubeGeometryProcess::AssembleEigenvectors)
-        //.def("Average", &PertubeGeometryProcess::Average)
+        .def("CreateEigenvectors", &PerturbGeometrySubgridProcess::CreateEigenvectors)
+        .def("AssembleEigenvectors", &PerturbGeometrySubgridProcess::AssembleEigenvectors)
         ;
-    
-    py::class_<PertubeGeometrySmallCorrelationLength, PertubeGeometrySmallCorrelationLength::Pointer, Process>(m,"PertubeGeometrySmallCorrelationLength")
-        .def(py::init<ModelPart&,double>()) 
-        .def("CreateEigenvectors", &PertubeGeometrySmallCorrelationLength::CreateEigenvectors)
-        .def("AssembleEigenvectors", &PertubeGeometrySmallCorrelationLength::AssembleEigenvectors)
-        //.def("Average", &PertubeGeometrySmallCorrelationLength::Average)
-        ;
+
+    // py::class_<PertubeGeometrySmallCorrelationLength, PertubeGeometrySmallCorrelationLength::Pointer, Process>(m,"PertubeGeometrySmallCorrelationLength")
+    //     .def(py::init<ModelPart&,double>())
+    //     .def("CreateEigenvectors", &PertubeGeometrySmallCorrelationLength::CreateEigenvectors)
+    //     .def("AssembleEigenvectors", &PertubeGeometrySmallCorrelationLength::AssembleEigenvectors)
+    //     //.def("Average", &PertubeGeometrySmallCorrelationLength::Average)
+    //     ;
 
 }
 
