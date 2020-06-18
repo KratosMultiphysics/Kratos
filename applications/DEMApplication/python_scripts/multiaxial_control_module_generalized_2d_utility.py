@@ -15,8 +15,8 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
 
         self.output_interval = self.parameters["Parameters"]["output_interval"].GetInt()
 
-        self.cm_utility = Dem.MultiaxialControlModuleGeneralized2DUtilities(self.spheres_model_part, 
-                                                                            self.rigid_walls_model_part, 
+        self.cm_utility = Dem.MultiaxialControlModuleGeneralized2DUtilities(self.spheres_model_part,
+                                                                            self.rigid_walls_model_part,
                                                                             self.parameters)
 
     def ExecuteInitialize(self):
@@ -44,39 +44,39 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         if self.cm_step % self.output_interval != 0:
             return
 
-        import matplotlib.pyplot as plt 
+        import matplotlib.pyplot as plt
 
         f = plt.figure()
 
         for name in self.actuator_names:
-            plt.plot(self.times, 
-                    self.reactions[name], 
-                    color=self.colors[name], 
-                    linestyle=self.reactions['linestyle'], 
+            plt.plot(self.times,
+                    self.reactions[name],
+                    color=self.colors[name],
+                    linestyle=self.reactions['linestyle'],
                     linewidth=self.reactions['linewidth'],
                     label='reaction_' + name)
-            plt.plot(self.times, 
-                    self.smoothed_reactions[name], 
-                    color=self.colors[name], 
-                    linestyle=self.smoothed_reactions['linestyle'], 
+            plt.plot(self.times,
+                    self.smoothed_reactions[name],
+                    color=self.colors[name],
+                    linestyle=self.smoothed_reactions['linestyle'],
                     linewidth=self.smoothed_reactions['linewidth'],
                     label='smoothed_reaction_' + name)
-            plt.plot(self.times, 
-                    self.elastic_reactions[name], 
-                    color=self.colors[name], 
-                    linestyle=self.elastic_reactions['linestyle'], 
+            plt.plot(self.times,
+                    self.elastic_reactions[name],
+                    color=self.colors[name],
+                    linestyle=self.elastic_reactions['linestyle'],
                     linewidth=self.elastic_reactions['linewidth'],
                     label='elastic_reaction_' + name)
-            plt.plot(self.times, 
-                    self.smoothed_elastic_reactions[name], 
-                    color=self.colors[name], 
-                    linestyle=self.smoothed_elastic_reactions['linestyle'], 
+            plt.plot(self.times,
+                    self.smoothed_elastic_reactions[name],
+                    color=self.colors[name],
+                    linestyle=self.smoothed_elastic_reactions['linestyle'],
                     linewidth=self.smoothed_elastic_reactions['linewidth'],
                     label='smoothed_elastic_reaction_' + name)
-            plt.plot(self.times, 
-                    self.target_reactions[name], 
-                    color=self.colors[name], 
-                    linestyle=self.target_reactions['linestyle'], 
+            plt.plot(self.times,
+                    self.target_reactions[name],
+                    color=self.colors[name],
+                    linestyle=self.target_reactions['linestyle'],
                     linewidth=self.target_reactions['linewidth'],
                     label='target_reaction_' + name)
 
@@ -87,12 +87,12 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
             max_stress = max(max(abs(min(self.target_reactions[name])),max(self.target_reactions[name])), max_stress)
         plt.ylim(-2*max_stress,2*max_stress)
 
-        # naming the x axis 
-        plt.xlabel('time (s)') 
-        # naming the y axis 
-        plt.ylabel('stress (Pa)') 
-        # giving a title to my graph 
-        plt.title('Reaction vs target stresses') 
+        # naming the x axis
+        plt.xlabel('time (s)')
+        # naming the y axis
+        plt.ylabel('stress (Pa)')
+        # giving a title to my graph
+        plt.title('Reaction vs target stresses')
 
         f.savefig("reactions.pdf", bbox_inches='tight')
         plt.close()
@@ -100,26 +100,26 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
         f = plt.figure()
 
         for name in self.actuator_names:
-            plt.plot(self.times, 
-                    self.velocities[name], 
-                    color=self.colors[name], 
+            plt.plot(self.times,
+                    self.velocities[name],
+                    color=self.colors[name],
                     label='velocity_' + name)
 
         plt.legend()
 
-        # naming the x axis 
-        plt.xlabel('time (s)') 
-        # naming the y axis 
-        plt.ylabel('velocity (m/s)') 
-        # giving a title to my graph 
-        plt.title('Loading velocity') 
+        # naming the x axis
+        plt.xlabel('time (s)')
+        # naming the y axis
+        plt.ylabel('velocity (m/s)')
+        # giving a title to my graph
+        plt.title('Loading velocity')
 
         f.savefig("velocities.pdf", bbox_inches='tight')
         plt.close()
 
     def InitializePrintVariables(self):
 
-        import matplotlib.pyplot as plt 
+        import matplotlib.pyplot as plt
         from matplotlib import colors as mcolors
 
         self.times = []
@@ -175,9 +175,9 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
             if name == 'Z':
                 for node in self.dem_submodelparts[name][0].Nodes:
                     self.reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Z))
-                    self.smoothed_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Z))
-                    self.elastic_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Z))
-                    self.smoothed_elastic_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Z))
+                    self.smoothed_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Z))
+                    self.elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Z))
+                    self.smoothed_elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Z))
                     self.target_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Z))
                     self.velocities[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Z))
                     break
@@ -185,18 +185,18 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
             elif name == 'X':
                 for node in self.fem_submodelparts[name][0].Nodes:
                     self.reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))
-                    self.smoothed_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_X))
-                    self.elastic_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_X))
-                    self.smoothed_elastic_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_X))
+                    self.smoothed_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_X))
+                    self.elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_X))
+                    self.smoothed_elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_X))
                     self.target_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X))
                     self.velocities[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X))
                     break
             elif name == 'Y':
                 for node in self.fem_submodelparts[name][0].Nodes:
                     self.reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))
-                    self.smoothed_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Y))
-                    self.elastic_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Y))
-                    self.smoothed_elastic_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Y))
+                    self.smoothed_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Y))
+                    self.elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Y))
+                    self.smoothed_elastic_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Y))
                     self.target_reactions[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y))
                     self.velocities[name].append(node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y))
                     break
@@ -206,16 +206,16 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
                     value_y = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y)
                     norm = (value_x**2 + value_y**2)**0.5
                     self.reactions[name].append(norm)
-                    value_x = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_X)
-                    value_y = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Y)
+                    value_x = node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_X)
+                    value_y = node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Y)
                     norm = (value_x**2 + value_y**2)**0.5
                     self.smoothed_reactions[name].append(norm)
-                    value_x = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_X)
-                    value_y = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Y)
+                    value_x = node.GetValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_X)
+                    value_y = node.GetValue(KratosMultiphysics.DEMApplication.ELASTIC_REACTION_STRESS_Y)
                     norm = (value_x**2 + value_y**2)**0.5
                     self.elastic_reactions[name].append(norm)
-                    value_x = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_X)
-                    value_y = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Y)
+                    value_x = node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_X)
+                    value_y = node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_ELASTIC_REACTION_STRESS_Y)
                     norm = (value_x**2 + value_y**2)**0.5
                     self.smoothed_elastic_reactions[name].append(norm)
                     value_x = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X)

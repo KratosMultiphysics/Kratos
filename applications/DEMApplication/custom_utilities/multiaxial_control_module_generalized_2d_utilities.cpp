@@ -137,7 +137,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionSte
 
         // Calculate velocity
         CalculateVelocity(next_target_stress, current_time);
-        
+
         // TODO: possible CM enhancement
             // We could calculate accelerations and limit them instead of calculating velocities and limiting their variation
         // CalculateAcceleration(next_target_stress, current_time);
@@ -214,7 +214,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
     Vector reaction_stress_estimated(number_of_actuators);
     noalias(reaction_stress_estimated) = MeasureReactionStress(CONTACT_FORCES); // Total forces
     noalias(mReactionStress) = (1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress;
-    // noalias(mReactionStress) = 1.0/(1.0 - std::pow(mReactionAlpha,mStep)) * 
+    // noalias(mReactionStress) = 1.0/(1.0 - std::pow(mReactionAlpha,mStep)) *
     //                         ((1.0 - mReactionAlpha) * reaction_stress_estimated + mReactionAlpha * mReactionStress);
     Vector elastic_reaction_stress_estimated(number_of_actuators);
     noalias(elastic_reaction_stress_estimated) = MeasureReactionStress(ELASTIC_FORCES); // Total forces - viscous forces
@@ -247,9 +247,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
                     array_1d<double,3>& r_target_stress = it->FastGetSolutionStepValue(TARGET_STRESS);
                     array_1d<double,3>& r_reaction_stress = it->FastGetSolutionStepValue(REACTION_STRESS);
-                    array_1d<double,3>& r_smoothed_reaction_stress = it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS);
-                    array_1d<double,3>& r_elastic_reaction_stress = it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS);
-                    array_1d<double,3>& r_smoothed_elastic_reaction_stress = it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS);
+                    array_1d<double,3>& r_smoothed_reaction_stress = it->GetValue(SMOOTHED_REACTION_STRESS);
+                    array_1d<double,3>& r_elastic_reaction_stress = it->GetValue(ELASTIC_REACTION_STRESS);
+                    array_1d<double,3>& r_smoothed_elastic_reaction_stress = it->GetValue(SMOOTHED_ELASTIC_REACTION_STRESS);
                     array_1d<double,3>& r_loading_velocity = it->FastGetSolutionStepValue(LOADING_VELOCITY);
                     noalias(r_target_stress) = ZeroVector(3);
                     noalias(r_reaction_stress) = ZeroVector(3);
@@ -286,12 +286,12 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
                 it->FastGetSolutionStepValue(TARGET_STRESS_Y) = current_target_stress * sin_theta;
                 it->FastGetSolutionStepValue(REACTION_STRESS_X) = reaction_stress_estimated[map_index] * cos_theta;
                 it->FastGetSolutionStepValue(REACTION_STRESS_Y) = reaction_stress_estimated[map_index] * sin_theta;
-                it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS_X) = mReactionStress[map_index] * cos_theta;
-                it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS_Y) = mReactionStress[map_index] * sin_theta;
-                it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS_X) = elastic_reaction_stress_estimated[map_index] * cos_theta;
-                it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS_Y) = elastic_reaction_stress_estimated[map_index] * sin_theta;
-                it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS_X) = mElasticReactionStress[map_index] * cos_theta;
-                it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS_Y) = mElasticReactionStress[map_index] * sin_theta;
+                it->GetValue(SMOOTHED_REACTION_STRESS_X) = mReactionStress[map_index] * cos_theta;
+                it->GetValue(SMOOTHED_REACTION_STRESS_Y) = mReactionStress[map_index] * sin_theta;
+                it->GetValue(ELASTIC_REACTION_STRESS_X) = elastic_reaction_stress_estimated[map_index] * cos_theta;
+                it->GetValue(ELASTIC_REACTION_STRESS_Y) = elastic_reaction_stress_estimated[map_index] * sin_theta;
+                it->GetValue(SMOOTHED_ELASTIC_REACTION_STRESS_X) = mElasticReactionStress[map_index] * cos_theta;
+                it->GetValue(SMOOTHED_ELASTIC_REACTION_STRESS_Y) = mElasticReactionStress[map_index] * sin_theta;
                 it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = mVelocity[map_index] * cos_theta;
                 it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = mVelocity[map_index] * sin_theta;
             }
@@ -309,9 +309,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
                     it->FastGetSolutionStepValue(TARGET_STRESS_Z) = current_target_stress;
                     it->FastGetSolutionStepValue(REACTION_STRESS_Z) = reaction_stress_estimated[map_index];
-                    it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS_Z) = mReactionStress[map_index];
-                    it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS_Z) = elastic_reaction_stress_estimated[map_index];
-                    it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS_Z) = mElasticReactionStress[map_index];
+                    it->GetValue(SMOOTHED_REACTION_STRESS_Z) = mReactionStress[map_index];
+                    it->GetValue(ELASTIC_REACTION_STRESS_Z) = elastic_reaction_stress_estimated[map_index];
+                    it->GetValue(SMOOTHED_ELASTIC_REACTION_STRESS_Z) = mElasticReactionStress[map_index];
                     it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity[map_index];
                 }
                 mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(current_target_stress);
@@ -330,9 +330,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep(
                     ModelPart::NodesContainerType::iterator it = it_begin + j;
                     array_1d<double,3>& r_target_stress = it->FastGetSolutionStepValue(TARGET_STRESS);
                     array_1d<double,3>& r_reaction_stress = it->FastGetSolutionStepValue(REACTION_STRESS);
-                    array_1d<double,3>& r_smoothed_reaction_stress = it->FastGetSolutionStepValue(SMOOTHED_REACTION_STRESS);
-                    array_1d<double,3>& r_elastic_reaction_stress = it->FastGetSolutionStepValue(ELASTIC_REACTION_STRESS);
-                    array_1d<double,3>& r_smoothed_elastic_reaction_stress = it->FastGetSolutionStepValue(SMOOTHED_ELASTIC_REACTION_STRESS);
+                    array_1d<double,3>& r_smoothed_reaction_stress = it->GetValue(SMOOTHED_REACTION_STRESS);
+                    array_1d<double,3>& r_elastic_reaction_stress = it->GetValue(ELASTIC_REACTION_STRESS);
+                    array_1d<double,3>& r_smoothed_elastic_reaction_stress = it->GetValue(SMOOTHED_ELASTIC_REACTION_STRESS);
                     array_1d<double,3>& r_loading_velocity = it->FastGetSolutionStepValue(LOADING_VELOCITY);
                     noalias(r_target_stress) += current_target_stress * mFEMOuterNormals[actuator_name][i];
                     noalias(r_reaction_stress) += reaction_stress_estimated[map_index] * mFEMOuterNormals[actuator_name][i];
@@ -528,7 +528,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
     Matrix k_inverse(number_of_actuators,number_of_actuators);
     double k_det = 0.0;
     MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
-    const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness, 
+    const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness,
                                                     k_inverse, std::numeric_limits<double>::epsilon(),
                                                     false);
     const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
@@ -537,7 +537,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
     noalias(velocity_perturbation) = GetPerturbations(mVelocity,r_current_time);
     if (is_k_invertible == false || std::isnan(k_condition_number)) {
         noalias(velocity_estimated) = mVelocity + velocity_perturbation;
-        std::cout << "Stiffness matrix is not invertible. Keeping loading velocity constant" << std::endl;            
+        std::cout << "Stiffness matrix is not invertible. Keeping loading velocity constant" << std::endl;
     } else {
         noalias(velocity_estimated) = prod(k_inverse,delta_target_stress)/mCMDeltaTime;
     }
@@ -578,7 +578,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
     Matrix k_inverse(number_of_actuators,number_of_actuators);
     double k_det = 0.0;
     MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
-    const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness, 
+    const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness,
                                                     k_inverse, std::numeric_limits<double>::epsilon(),
                                                     false);
     const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
@@ -590,9 +590,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
     noalias(acceleration_perturbation) = GetPerturbations(mAcceleration,r_current_time);
     if (is_k_invertible == false || std::isnan(k_condition_number)) {
         noalias(mAcceleration) = mAcceleration + acceleration_perturbation;
-        std::cout << "Stiffness matrix is not invertible. Keeping acceleration constant" << std::endl;            
+        std::cout << "Stiffness matrix is not invertible. Keeping acceleration constant" << std::endl;
     } else {
-        noalias(mAcceleration) = 2.0 / (mCMDeltaTime * mCMDeltaTime) * 
+        noalias(mAcceleration) = 2.0 / (mCMDeltaTime * mCMDeltaTime) *
                                  (prod(k_inverse, delta_target_stress) - mVelocity * mCMDeltaTime);
     }
 
@@ -601,7 +601,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
 
     // TODO: possible CM enhancement
         // Investigate more on how to limit acceleration
-    // Limit acceleration. 
+    // Limit acceleration.
     double norm_stiffness = 0.0;
     for(unsigned int i = 0; i < mStiffness.size1(); i++) {
         norm_stiffness += mStiffness(i,i)*mStiffness(i,i);
@@ -647,8 +647,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
         Matrix delta_displacement_inverse(number_of_actuators,number_of_actuators);
         double delta_displacement_det = 0.0;
         MathUtils<double>::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
-        const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement, 
-                                                        delta_displacement_inverse, 1.0e-10, 
+        const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement,
+                                                        delta_displacement_inverse, 1.0e-10,
                                                         false);
         const double delta_displacement_condition_number = GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
 
@@ -671,8 +671,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
 
 //***************************************************************************************************************
 
-void MultiaxialControlModuleGeneralized2DUtilities::AddTableToSubModelPart(const unsigned int TableId, 
-                                                                           const Parameters TableParameters, 
+void MultiaxialControlModuleGeneralized2DUtilities::AddTableToSubModelPart(const unsigned int TableId,
+                                                                           const Parameters TableParameters,
                                                                            ModelPart* pSubModelPart) {
 
     TableType::Pointer p_table = Kratos::make_shared<TableType>();
