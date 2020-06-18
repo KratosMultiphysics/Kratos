@@ -23,6 +23,24 @@
 
 namespace Kratos
 {
+
+namespace {
+
+std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName)
+{
+    std::vector<std::string> rSubPartsList;
+    std::istringstream iss(rFullModelPartName);
+    std::string token;
+    rSubPartsList.clear();
+    while (std::getline(iss, token, '.'))
+    {
+        rSubPartsList.push_back(token);
+    }
+    return rSubPartsList;
+}
+
+}
+
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
@@ -1679,7 +1697,19 @@ ModelPart* ModelPart::GetParentModelPart() const
 
 bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
 {
-    return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+    const auto sub_model_parts_list = SplitSubModelPartHierarchy(ThisSubModelPartName);
+    if (sub_model_parts_list.size() == 1) {
+        return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+    } else {
+        ModelPart* p_current_mp = const_cast<ModelPart*>(this);
+        for (const auto& r_smp_name : sub_model_parts_list) {
+            if (!p_current_mp->HasSubModelPart(r_smp_name)) {
+                return false;
+            }
+            p_current_mp = &p_current_mp->GetSubModelPart(r_smp_name);
+        }
+        return true;
+    }
 }
 
 std::vector<std::string> ModelPart::GetSubModelPartNames()
