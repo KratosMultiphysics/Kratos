@@ -12,25 +12,20 @@ def ReadModelPart(model_part, mdpa_file_name):
 
 
 current_model = KM.Model()
+
+# Read origin modelpart
 model_part_origin = current_model.CreateModelPart("origin")
-model_part_destination = current_model.CreateModelPart("destination")
-
 ReadModelPart(model_part_origin, "coupled_cantilever/domainA")
-ReadModelPart(model_part_destination, "coupled_cantilever/domainB")
-
-# Potential change - add coupling and coupling quad parts to origin modelpart. Then we can submit everything when we make the mapper
-model_part_origin.CreateSubModelPart("coupling")
-model_part_origin.CreateSubModelPart("coupling_quadrature_points")
-model_part_coupling = model_part_origin.GetSubModelPart("coupling")
-model_part_coupling_quadrature_points = model_part_origin.GetSubModelPart("coupling_quadrature_points")
-#model_part_coupling = current_model.CreateModelPart("coupling")
-#model_part_coupling_quadrature_points = current_model.CreateModelPart("coupling_quadrature_points")
-
-# Create submodelparts
+# Artificially create interface submodelpart
 model_part_origin.CreateSubModelPart("interface")
 originInterface = model_part_origin.GetSubModelPart("interface")
 for nodeIndex in range(328,334):
     originInterface.AddNodes([nodeIndex])
+
+# Read destination modelpart
+model_part_destination = current_model.CreateModelPart("destination")
+ReadModelPart(model_part_destination, "coupled_cantilever/domainB")
+# Artificially create interface submodelpart
 model_part_destination.CreateSubModelPart("interface")
 destinationInterface = model_part_destination.GetSubModelPart("interface")
 destinationInterface.AddNodes([10])
@@ -38,35 +33,43 @@ destinationInterface.AddNodes([6])
 destinationInterface.AddNodes([3])
 destinationInterface.AddNodes([1])
 
-
-# Create dummy line conditions on submodel parts to couple together
-originProps = originInterface.GetProperties()[1]
-nodeOffset = 327
-for conditionIndex in range(1,6):
-    cNode = nodeOffset + conditionIndex
-    originInterface.CreateNewCondition("LineCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
-
-destProps = destinationInterface.GetProperties()[1]
-destinationInterface.CreateNewCondition("LineCondition2D2N", 101, [1,3], destProps)
-destinationInterface.CreateNewCondition("LineCondition2D2N", 102, [3,6], destProps)
-destinationInterface.CreateNewCondition("LineCondition2D2N", 103, [6,10], destProps)
-
-# TODO, add some logic to call the correct intersection functions. that would depend on the dimension of the coupling interfaces
-KratosMapping.FindIntersection1DGeometries2D(originInterface, destinationInterface, model_part_coupling, 1e-6)
-KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
-# TODO, the above problem need args changed to just origin_model_part and destination_model_part
+is_use_modeler = False #for debugging, update the one in the parameters below too
 
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
     "echo_level" : 0,
     "dual_mortar": true,
     "consistency_scaling" : false,
-    "modeler_name" : "PeterSucks",
+    "is_use_modeler" : false,
+    "modeler_name" : "MappingGeometriesModeler",
     "modeler_parameters":{
-        "origin_model_part_name" : "P-Dog",
-        "destination_model_part_name" : "T-Dog"
+        "origin_model_part_name" : "origin",
+        "destination_model_part_name" : "destination"
     }
 }""")
+
+if is_use_modeler == False:
+    # Create dummy line conditions on submodel parts to couple together
+    originProps = originInterface.GetProperties()[1]
+    nodeOffset = 327
+    for conditionIndex in range(1,6):
+        cNode = nodeOffset + conditionIndex
+        originInterface.CreateNewCondition("LineCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
+
+    destProps = destinationInterface.GetProperties()[1]
+    destinationInterface.CreateNewCondition("LineCondition2D2N", 101, [1,3], destProps)
+    destinationInterface.CreateNewCondition("LineCondition2D2N", 102, [3,6], destProps)
+    destinationInterface.CreateNewCondition("LineCondition2D2N", 103, [6,10], destProps)
+
+
+    # TODO, add some logic to call the correct intersection functions. that would depend on the dimension of the coupling interfaces
+    model_part_origin.CreateSubModelPart("coupling")
+    model_part_origin.CreateSubModelPart("coupling_quadrature_points")
+    model_part_coupling = model_part_origin.GetSubModelPart("coupling")
+    model_part_coupling_quadrature_points = model_part_origin.GetSubModelPart("coupling_quadrature_points")
+    KratosMapping.FindIntersection1DGeometries2D(originInterface, destinationInterface, model_part_coupling, 1e-6)
+    KratosMapping.CreateQuadraturePointsCoupling1DGeometries2D(model_part_coupling, model_part_coupling_quadrature_points, 1e-6)
+    # TODO, the above problem need args changed to just origin_model_part and destination_model_part
 
 mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)
 
