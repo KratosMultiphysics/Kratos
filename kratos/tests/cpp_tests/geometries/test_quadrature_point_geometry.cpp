@@ -139,6 +139,7 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->ShapeFunctionsValues().size2(), 3);
         }
 
+        /// Updates the location of the QuadraturePointGeometry
         KRATOS_TEST_CASE_IN_SUITE(UpdateQuadraturePointGeometry2d, KratosCoreFastSuite)
         {
             auto p_this_quadrature_point = GenerateQuadraturePointGeometry();
@@ -173,15 +174,12 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[2].Id(), 6);
 
             KRATOS_CHECK_MATRIX_NEAR(
-                p_this_quadrature_point->ShapeFunctionsValues(),
-                N_i,
-                1e-6);
+                p_this_quadrature_point->ShapeFunctionsValues(), N_i, 1e-6);
             KRATOS_CHECK_MATRIX_NEAR(
-                p_this_quadrature_point->ShapeFunctionDerivatives(1, 0),
-                DN_De,
-                1e-6);
+                p_this_quadrature_point->ShapeFunctionDerivatives(1, 0), DN_De, 1e-6);
         }
 
+        /// Updates the location of the QuadraturePointGeometry using the QuadraturePointUtility
         KRATOS_TEST_CASE_IN_SUITE(UpdateQuadraturePointGeometry2dWithUtility, KratosCoreFastSuite)
         {
             auto p_this_quadrature_point = GenerateQuadraturePointGeometry();
@@ -190,7 +188,8 @@ namespace Kratos {
             auto integration_points = triangle->IntegrationPoints(GeometryData::GI_GAUSS_3);
 
             CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
-                p_this_quadrature_point, integration_points[0], integration_points[0].Weight(), *(triangle.get()));
+                p_this_quadrature_point, integration_points[0],
+                integration_points[0].Weight(), *(triangle.get()));
 
             //auto integration_method = triangle->GetDefaultIntegrationMethod();
             auto r_N = triangle->ShapeFunctionsValues(GeometryData::GI_GAUSS_3);
@@ -210,13 +209,9 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL((*p_this_quadrature_point)[2].Id(), 6);
 
             KRATOS_CHECK_MATRIX_NEAR(
-                p_this_quadrature_point->ShapeFunctionsValues(),
-                N_i,
-                1e-6);
+                p_this_quadrature_point->ShapeFunctionsValues(), N_i, 1e-6);
             KRATOS_CHECK_MATRIX_NEAR(
-                p_this_quadrature_point->ShapeFunctionDerivatives(1, 0),
-                DN_De,
-                1e-6);
+                p_this_quadrature_point->ShapeFunctionDerivatives(1, 0), DN_De, 1e-6);
 
             /// Check correct parent access.
             Matrix Jacobian1; Matrix Jacobian2;
