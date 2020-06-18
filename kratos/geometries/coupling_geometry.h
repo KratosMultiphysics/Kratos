@@ -280,6 +280,50 @@ public:
     }
 
     /**
+     * @brief Removes a geometry part
+     * @details ONLY for coupling_geometry. Not necessary in base class.
+     * @param pGeometry The new geometry to remove
+     */
+    void RemoveGeometryPart(GeometryPointer pGeometry)
+    {
+        const IndexType geometry_id = pGeometry->Id();
+        IndexType to_remove_id = 0;
+        for (const auto& p_geom : mpGeometries) {
+            if (p_geom->Id() == geometry_id) {
+                break;
+            }
+            ++to_remove_id;
+        }
+
+        RemoveGeometryPart(to_remove_id);
+    }
+
+    /**
+     * @brief Removes a geometry part
+     * @details ONLY for coupling_geometry. Not necessary in base class.
+     * @param Index of the geometry part.
+     */
+    void RemoveGeometryPart(const IndexType Index)
+    {
+        KRATOS_ERROR_IF(Index == 0) << "Master geometry should not be removed from the CouplingGeometry" << std::endl;
+        mpGeometries.erase(mpGeometries.begin() + Index);
+    }
+
+    /**
+     * @brief Use to check if certain Indexed object is within the geometry parts of this geometry.
+     * @param Index of the geometry part. This index can be used differently within the derived classes.
+     * @return true if has geometry part
+     */
+    bool HasGeometryPart(const IndexType Index) const override
+    {
+        if (Index <= NumberOfGeometryParts() - 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @brief The number of geometry part
      * @return The number of geometry parts that this geometry contains.
      */
