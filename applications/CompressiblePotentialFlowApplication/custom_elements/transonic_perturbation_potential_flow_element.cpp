@@ -592,26 +592,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::TestAssemblyFunction(const ProcessInfo& rCurrentProcessInfo)
-{
-    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
-
-    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
-
-    if (this->IsNot(INLET)) {
-        const array_1d<double, TDim> upwind_velocity = 
-            PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*pGetUpwindElement(), rCurrentProcessInfo);
-        const double upwind_mach_number_squared = 
-            PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(upwind_velocity, rCurrentProcessInfo);
-        
-        const double DrhoDu2 = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<TDim, TNumNodes>(velocity, local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
-        const double DrhoDu2_up = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<TDim, TNumNodes>(local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
-        auto DNV = AssembleDensityDerivativeAndShapeFunctions(DrhoDu2, DrhoDu2_up, velocity, upwind_velocity, rCurrentProcessInfo);
-    }
-}
-
-
-template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideNormalElement(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)

@@ -288,8 +288,6 @@ private:
 
     array_1d<size_t, TNumNodes> GetAssemblyKey(const GeometryType& rGeom, const GeometryType& rUpwindGeom);
 
-    void TestAssemblyFunction(const ProcessInfo& rCurrentProcessInfo);
-
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
