@@ -592,6 +592,26 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 }
 
 template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::TestAssemblyFunction(const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
+
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+
+    if (this->IsNot(INLET)) {
+        const array_1d<double, TDim> upwind_velocity = 
+            PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*pGetUpwindElement(), rCurrentProcessInfo);
+        const double upwind_mach_number_squared = 
+            PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(upwind_velocity, rCurrentProcessInfo);
+        
+        const double DrhoDu2 = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<TDim, TNumNodes>(velocity, local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
+        const double DrhoDu2_up = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<TDim, TNumNodes>(local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
+        auto DNV = AssembleDensityDerivativeAndShapeFunctions(DrhoDu2, DrhoDu2_up, velocity, upwind_velocity, rCurrentProcessInfo);
+    }
+}
+
+
+template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideNormalElement(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -954,7 +974,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssignRightHand
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssembleDensityDerivativeAndShapeFunctions(
+BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssembleDensityDerivativeAndShapeFunctions(
     const double densityDerivativeWRTVelocitySquared,
     const double densityDerivativeWRTUpwindVelocitySquared,
     const array_1d<double, TDim>& velocity,
@@ -964,26 +984,46 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssembleDensity
     const GeometryType& r_geom = this->GetGeometry();
     const GeometryType& r_upwind_geom = pGetUpwindElement()->GetGeometry();
 
+    const array_1d<size_t, TNumNodes> upwind_node_key = GetAssemblyKey(r_geom, r_upwind_geom);
+
     ElementalData<TNumNodes, TDim> currentElementdata;
     ElementalData<TNumNodes, TDim> upwindElementdata;
 
     GeometryUtils::CalculateGeometryData(r_geom, currentElementdata.DN_DX, currentElementdata.N, currentElementdata.vol);
     GeometryUtils::CalculateGeometryData(r_upwind_geom, upwindElementdata.DN_DX, upwindElementdata.N, upwindElementdata.vol);
 
-    const BoundedVector<double, TNumNodes> current_DNV = densityDerivativeWRTVelocitySquared * prod(velocity, currentElementdata.DN_DX);
-    const BoundedVector<double, TNumNodes> upwind_DNV = densityDerivativeWRTUpwindVelocitySquared * prod(upwindVelocity, upwindElementdata.DN_DX);
+    const BoundedVector<double, TNumNodes> current_DNV = prod(currentElementdata.DN_DX, velocity);
+    const BoundedVector<double, TNumNodes> upwind_DNV = prod(upwindElementdata.DN_DX, upwindVelocity);
 
-    std::vector<size_t> current_element_ids;
+    BoundedVector<double, TNumNodes + 1> assembly_DNV;
+
     for (int i = 0; i < TNumNodes; i++)
     {
-        current_element_ids[i] = r_geom[i].Id();
+        assembly_DNV[i] += current_DNV[i];
+        assembly_DNV[upwind_node_key[i]] += upwind_DNV[i];
     }
 
-    array_1d<size_t, 3> upwind_node_key;
+    return assembly_DNV;
+
+}
+
+template <int TDim, int TNumNodes>
+array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAssemblyKey(
+    const GeometryType& rGeom,
+    const GeometryType& rUpwindGeom)
+{
+    std::vector<size_t> current_element_ids;
+    current_element_ids.resize(TNumNodes, false);
+    array_1d<size_t, TNumNodes> upwind_node_key;
+
+    for (int i = 0; i < TNumNodes; i++)
+    {
+        current_element_ids[i] = rGeom[i].Id();
+    }
 
     for (int i = 0; i < TNumNodes; i++) { 
         auto current_id = std::find(current_element_ids.begin(), current_element_ids.end(),
-                r_upwind_geom[i].Id());
+                rUpwindGeom[i].Id());
 
         if( current_id == current_element_ids.end()) {
             upwind_node_key[i] = TNumNodes;
@@ -993,15 +1033,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssembleDensity
         }  
     }
 
-    BoundedVector<double, TNumNodes + 1> assembly_DNV;
-    assembly_DNV += current_DNV;
-    assembly_DNV[TNumNodes] = 0.0;
-
-    for (int i = 0; i < TNumNodes; i++) {
-        assembly_DNV[upwind_node_key[i]] += upwind_DNV[i];
-        KRATOS_WATCH(assembly_DNV[i]);
-    }
-
+    return upwind_node_key;
 }
 
 template <int TDim, int TNumNodes>

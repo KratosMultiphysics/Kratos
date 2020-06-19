@@ -284,7 +284,11 @@ private:
                                     const ElementalData<TNumNodes, TDim>& rData,
                                     unsigned int& rRow) const;
 
-    void AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
+    BoundedVector<double, TNumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
+
+    array_1d<size_t, TNumNodes> GetAssemblyKey(const GeometryType& rGeom, const GeometryType& rUpwindGeom);
+
+    void TestAssemblyFunction(const ProcessInfo& rCurrentProcessInfo);
 
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
