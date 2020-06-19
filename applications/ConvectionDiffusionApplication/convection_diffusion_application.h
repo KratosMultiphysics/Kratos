@@ -30,7 +30,8 @@
 #include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/adjoint_diffusion_element.h"
-#include "custom_elements/symbolic_eulerian_convection_diffusion_explicit.h"
+#include "custom_elements/symbolic_quasi_static_eulerian_convection_diffusion_explicit.h"
+#include "custom_elements/symbolic_dynamic_eulerian_convection_diffusion_explicit.h"
 
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
@@ -248,8 +249,10 @@ private:
     const AdjointThermalFace mAdjointThermalFace2D2N;
     const AdjointThermalFace mAdjointThermalFace3D3N;
 
-    const SymbolicEulerianConvectionDiffusionExplicit<2> mSymbolicEulerianConvectionDiffusionExplicit2D3N;
-    const SymbolicEulerianConvectionDiffusionExplicit<3> mSymbolicEulerianConvectionDiffusionExplicit3D4N;
+    const SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2> mSymbolicQuasiStaticEulerianConvectionDiffusionExplicit2D3N;
+    const SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3> mSymbolicQuasiStaticEulerianConvectionDiffusionExplicit3D4N;
+    const SymbolicDynamicEulerianConvectionDiffusionExplicit<2> mSymbolicDynamicEulerianConvectionDiffusionExplicit2D3N;
+    const SymbolicDynamicEulerianConvectionDiffusionExplicit<3> mSymbolicDynamicEulerianConvectionDiffusionExplicit3D4N;
 
     ///@}
     ///@name Private Operators

@@ -23,13 +23,19 @@ elif (dim_to_compute == "Both"):
     dim_vector = [2,3]
 
 ## Read the template file and set the output filename accordingly
-template_filename = "symbolic_eulerian_convection_diffusion_explicit_cpp_template.cpp"
+if dynamic_subscales:
+    template_filename = "symbolic_dynamic_eulerian_convection_diffusion_explicit_cpp_template.cpp"
+else:
+    template_filename = "symbolic_quasi_static_eulerian_convection_diffusion_explicit_cpp_template.cpp"
 
-if template_filename == "symbolic_eulerian_convection_diffusion_explicit_cpp_template.cpp":
-    output_filename = "symbolic_eulerian_convection_diffusion_explicit.cpp"
+if template_filename == "symbolic_dynamic_eulerian_convection_diffusion_explicit_cpp_template.cpp":
+    output_filename = "symbolic_dynamic_eulerian_convection_diffusion_explicit.cpp"
+elif template_filename == "symbolic_quasi_static_eulerian_convection_diffusion_explicit_cpp_template.cpp":
+    output_filename = "symbolic_quasi_static_eulerian_convection_diffusion_explicit.cpp"
 else:
     err_msg = "Wrong template_filename provided. Must be (template --> output):\n"
-    err_msg +=  "\t- symbolic_eulerian_convection_diffusion_explicit_cpp_template.cpp --> symbolic_eulerian_convection_diffusion_explicit.cpp"
+    err_msg +=  "\t- symbolic_dynamic_eulerian_convection_diffusion_explicit_cpp_template.cpp --> symbolic_dynamic_eulerian_convection_diffusion_explicit.cpp\n"
+    err_msg +=  "\t- symbolic_quasi_static_eulerian_convection_diffusion_explicit_cpp_template.cpp --> symbolic_quasi_static_eulerian_convection_diffusion_explicit.cpp"
     raise Exception(err_msg)
 
 ## Initialize the outstring to be filled with the template .cpp file
@@ -126,7 +132,9 @@ for dim in dim_vector:
     lhs_OSS_diffusion = k * grad_phi.transpose() * grad_q
     lhs_OSS_convective_1 = q_gauss * (v_gauss.transpose() * grad_phi)
     lhs_OSS_convective_2 = q_gauss * phi_gauss * div_v
-    res_OSS = lhs_OSS_forcing + lhs_OSS_mass + lhs_OSS_diffusion + lhs_OSS_convective_1 + lhs_OSS_convective_2 + lhs_OSS_mass_subscale
+    res_OSS = lhs_OSS_forcing + lhs_OSS_mass + lhs_OSS_diffusion + lhs_OSS_convective_1 + lhs_OSS_convective_2
+    if dynamic_subscales:
+        res_OSS = res_OSS + lhs_OSS_mass_subscale
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
