@@ -1,7 +1,5 @@
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-
 from .cfd_utility_functions import GetCFDUtilityFunction
 
 
