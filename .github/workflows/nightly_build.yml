@@ -70,7 +70,7 @@ jobs:
       shell: cmd
       run: |
         pip install numpy
-      
+
     - name: Build
       shell: cmd
       run: |
