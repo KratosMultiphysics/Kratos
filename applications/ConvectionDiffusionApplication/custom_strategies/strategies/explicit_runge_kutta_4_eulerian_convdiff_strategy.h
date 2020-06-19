@@ -182,25 +182,28 @@ protected:
         const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
-        // Perform Orthogonal Subgrid Scale step
-        // ACTIVATION_LEVEL stands for auxiliary OSS_SWITCH variable, which is in cfd_variables.h
+        // Perform Orthogonal Subgrid Scale step if USE_OSS is active
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        r_process_info.GetValue(ACTIVATION_LEVEL) = 1;
-        p_explicit_bs->BuildRHS(r_model_part);
-
-        ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
-        auto& r_settings = *p_settings;
-
-        for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); i_node++)
+        if (r_process_info.GetValue(USE_OSS) == 1)
         {
-            auto& current_node = r_model_part.GetNode(i_node+1);
-            const double mass = r_lumped_mass_vector(i_node);
-            current_node.FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = current_node.FastGetSolutionStepValue(r_settings.GetReactionVariable()) / mass;
-        }
+            // Activate OSS flag used inside the element
+            r_process_info.GetValue(OSS_SWITCH) = 1;
+            p_explicit_bs->BuildRHS(r_model_part);
 
-        // End OSS step
-        r_process_info.GetValue(ACTIVATION_LEVEL) = 0;
+            ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+            auto& r_settings = *p_settings;
+
+            for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); i_node++)
+            {
+                auto& current_node = r_model_part.GetNode(i_node+1);
+                const double mass = r_lumped_mass_vector(i_node);
+                current_node.FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = current_node.FastGetSolutionStepValue(r_settings.GetReactionVariable()) / mass;
+            }
+            // End OSS step
+        }
+        // Deactivate OSS flag used inside the element
+        r_process_info.GetValue(OSS_SWITCH) = 0;
     };
 
     ///@}

@@ -124,7 +124,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocal
         }
 
         // Execute standard RHS-LHS build or OSS step
-        if (rCurrentProcessInfo.GetValue(ACTIVATION_LEVEL) == 1)
+        if (rCurrentProcessInfo.GetValue(OSS_SWITCH) == 1)
         {
             // Update OSS additional term
             this->ComputeOSSGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
