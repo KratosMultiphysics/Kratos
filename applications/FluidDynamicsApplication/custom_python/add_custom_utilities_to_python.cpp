@@ -184,11 +184,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // Adding cfd utilities
     m.def_submodule("CFDUtilities")
         .def("CalculateNumberOfNeighbourConditions", &CFDUtilities::CalculateNumberOfNeighbourConditions)
-        .def("CalculateLinearLogarithmicWallFunctionBasedYPlusLimit", &CFDUtilities::CalculateLinearLogarithmicWallFunctionBasedYPlusLimit,
-        .def("CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau", &CFDUtilities::CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau,
+        .def("CalculateLinearLogarithmicWallFunctionBasedYPlusLimit", &CFDUtilities::CalculateLinearLogarithmicWallFunctionBasedYPlusLimit)
+        .def("CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau", &CFDUtilities::CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau)
         .def("CalculateReactionBasedYPlusUTau", &CFDUtilities::CalculateReactionBasedYPlusUTau)
         .def("CalculateYPlusAndUTauForConditionsBasedOnReaction", &CFDUtilities::CalculateYPlusAndUTauForConditionsBasedOnReaction)
-        .def("CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction", &CFDUtilities::CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction,
+        .def("CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction", &CFDUtilities::CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction)
         .def("DistributeConditionVariableToNodes", &CFDUtilities::DistributeConditionVariableToNodes<double>)
         .def("DistributeConditionVariableToNodes", &CFDUtilities::DistributeConditionVariableToNodes<array_1d<double,3>>)
         ;
