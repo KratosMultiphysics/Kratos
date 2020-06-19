@@ -2,110 +2,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
-
-class CFDFunctions:
-    @staticmethod
-    def GetFunction(params):
-        if (params.Has("function_name")):
-            function_name = "Function" + params["function_name"].GetString()
-        else:
-            raise Exception("Please provide a function_name.")
-
-        function_list = [
-            func for func in dir(CFDFunctions) if func.startswith("Function")
-        ]
-
-        if (function_name not in function_list):
-            msg = "Unknown function name [ \"function_name\" = \"" + function_name[
-                8:] + "\" ].\n"
-            msg += "Supported function names are:"
-            for func in function_list:
-                msg += "\n\t" + func[8:]
-            raise Exception(msg)
-
-        Kratos.Logger.PrintInfo("CFDFunctions",
-                                "Created " + function_name[8:] + " function.")
-        return getattr(CFDFunctions, function_name)(params)
-
-    @staticmethod
-    def FunctionDistributeConditionVariableToNodes(params):
-        default_settings = Kratos.Parameters("""
-        {
-            "function_name": "DistributeConditionVariableToNodes",
-            "variable_name": "PLEASE_PROVIDE_A_VARIABLE_NAME"
-        }""")
-
-        params.ValidateAndAssignDefaults(default_settings)
-        variable_name = params["variable_name"].GetString()
-        if (not Kratos.KratosGlobals.HasVariable(variable_name)):
-            raise Exception("Variable " + variable_name + " not found.")
-        variable_type = Kratos.KratosGlobals.GetVariableType(variable_name)
-        variable = Kratos.KratosGlobals.GetVariable(variable_name)
-        if (variable_type in ["Double", "Array"]):
-            return lambda model_part: KratosCFD.CFDUtilities.DistributeConditionVariableToNodes(
-                model_part, variable)
-        else:
-            raise Exception("Unsupported variable type " + variable_type +
-                            " in " + variable_name + " variable.")
-
-    @staticmethod
-    def FunctionCalculateYPlusAndUTauForConditionsBasedOnReaction(params):
-        default_settings = Kratos.Parameters("""
-        {
-            "function_name"                    : "CalculateYPlusAndUTauForConditionsBasedOnReaction",
-            "kinematic_viscosity_variable_name": "VISCOSITY",
-            "reaction_variable_name"           : "REACTION"
-        }""")
-
-        params.ValidateAndAssignDefaults(default_settings)
-
-        nu_variable_name = params[
-            "kinematic_viscosity_variable_name"].GetString()
-        CFDFunctions.__CheckVariableType(nu_variable_name, "Double")
-        nu_variable = Kratos.KratosGlobals.GetVariable(nu_variable_name)
-
-        reaction_variable_name = params["reaction_variable_name"].GetString()
-        CFDFunctions.__CheckVariableType(reaction_variable_name, "Array")
-        reaction_variable = Kratos.KratosGlobals.GetVariable(
-            reaction_variable_name)
-
-        return lambda model_part: KratosCFD.CFDUtilities.CalculateYPlusAndUTauForConditionsBasedOnReaction(
-            model_part, nu_variable, reaction_variable)
-
-    @staticmethod
-    def FunctionCalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
-        params):
-        default_settings = Kratos.Parameters("""
-        {
-            "function_name"                    : "CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction",
-            "kinematic_viscosity_variable_name": "VISCOSITY",
-            "von_karman"                       : 0.41,
-            "wall_smoothness"                  : 5.2,
-            "max_iterations"                   : 20,
-            "tolerance"                        : 1e-6
-        }""")
-
-        params.ValidateAndAssignDefaults(default_settings)
-
-        nu_variable_name = params[
-            "kinematic_viscosity_variable_name"].GetString()
-        CFDFunctions.__CheckVariableType(nu_variable_name, "Double")
-        nu_variable = Kratos.KratosGlobals.GetVariable(nu_variable_name)
-
-        kappa = params["von_karman"].GetDouble()
-        beta = params["wall_smoothness"].GetDouble()
-        max_iterations = params["max_iterations"].GetInt()
-        tolerance = params["tolerance"].GetDouble()
-
-        return lambda model_part: KratosCFD.CFDUtilities.CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
-            model_part, nu_variable, kappa, beta, max_iterations, tolerance)
-
-    @staticmethod
-    def __CheckVariableType(variable_name, required_variable_type):
-        variable_type = Kratos.KratosGlobals.GetVariableType(variable_name)
-        if (variable_type != required_variable_type):
-            msg = "Type of " + variable_name + " is not supported. Please provide a " + required_variable_type + " [ " + variable_name + " = " + variable_type + " ]."
-            raise Exception(msg)
+from .cfd_utility_functions import GetCFDUtilityFunction
 
 
 def Factory(settings, model):
@@ -122,6 +19,22 @@ def Factory(settings, model):
 
 
 class CFDFunctionProcess(Kratos.Process):
+    """This process executes CFD functions implemented in c++ level
+
+    This process is used to evaluate CFD functions implemented in c++ level
+    and exposed through "CFDUtilities" submodule in FluidDynamicsApplication.
+
+    Kratos Parameter settings:
+        "model_part_name"  : The model part on which CFDUtility function will be executed
+        "function_settings": Settings of appropriate function. ("function_name" is a must have under this group)
+        "execution_points" : User defined execution points in simulation, where function is executed.
+                                Allowed execution points:
+                                    "Initialize",
+                                    "InitializeSolutionStep",
+                                    "FinalizeSolutionStep",
+                                    "Finalize"
+
+    """
     def __init__(self, model, params):
         Kratos.Process.__init__(self)
 
@@ -139,7 +52,7 @@ class CFDFunctionProcess(Kratos.Process):
         self.execution_points_list = params["execution_points"].GetStringArray(
         )
 
-        self.function = CFDFunctions.GetFunction(params["function_settings"])
+        self.function = GetCFDUtilityFunction(params["function_settings"])
 
     def ExecuteInitialize(self):
         if ("Initialize" in self.execution_points_list):
