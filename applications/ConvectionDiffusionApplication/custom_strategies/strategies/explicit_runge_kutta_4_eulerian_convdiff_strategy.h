@@ -179,7 +179,6 @@ protected:
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Perform Orthogonal Subgrid Scale step if USE_OSS is active
@@ -193,8 +192,9 @@ protected:
 
             ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
             auto& r_settings = *p_settings;
-
-            for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); i_node++)
+            const auto number_of_nodes = r_model_part.NumberOfNodes();
+#pragma omp parallel for firstprivate(number_of_nodes)
+            for (unsigned int i_node = 0; i_node < number_of_nodes; i_node++)
             {
                 auto& current_node = r_model_part.GetNode(i_node+1);
                 const double mass = r_lumped_mass_vector(i_node);
