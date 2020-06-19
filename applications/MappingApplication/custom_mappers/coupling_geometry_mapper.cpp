@@ -207,6 +207,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     }
 
     // assemble slave interface mass matrix - interface_matrix_slave
+    // TODO for dual mortar this should be a vector not a matrix
     Matrix interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
     for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
         local_projector_system < mMapperLocalSystems.size(); ++local_projector_system)
@@ -224,11 +225,13 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave, 0.0);
     if (mMapperSettings["dual_mortar"].GetBool()) {
         for (size_t i = 0; i < interface_matrix_slave.size1(); ++i) {
-            if (interface_matrix_slave(i, i) > std::numeric_limits<double>::epsilon())
+            if (interface_matrix_slave(i, i) > std::numeric_limits<double>::epsilon()) {
                 inv_interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
+            }
         }
     }
-    else { double aux_det_slave = 0;
+    else {
+        double aux_det_slave = 0;
         MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
     }
     mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_slave, interface_matrix_projector));
