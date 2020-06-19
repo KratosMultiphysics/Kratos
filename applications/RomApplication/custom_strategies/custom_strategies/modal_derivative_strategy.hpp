@@ -377,6 +377,7 @@ public:
         TSystemVectorType& rb = *mpb;
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType basis;
+        TSparseSpace::Resize(basis, rA.size1());
         
         // Get eigenvalues vector
         LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
@@ -412,14 +413,14 @@ public:
             r_model_part.GetProcessInfo()[EIGENVALUE_I] = basis_i;
             const double eigenvalue = r_eigenvalues[basis_i];
 
+            // If dynamic derivatives then build system matrix for each eigenvalue
+            if (mDerivativeTypeFlag)
+                rA = rStiffnessMatrix - (eigenvalue * rMassMatrix);
+
             if (!mDerivativeTypeFlag) // Shift the derivative start index due to symmetry of static derivatives
                 basis_j_start_index = basis_i;     
             else // Dynamic derivatives are unsymmetric
                 basis_j_start_index = 0;
-            
-            // if dynamic derivatives then build system matrix for each eigenvalue
-            if (mDerivativeTypeFlag)
-                rA = rStiffnessMatrix - (eigenvalue * rMassMatrix);
 
             // Derivative wrt basis_j
             for (std::size_t basis_j = basis_j_start_index; basis_j < num_eigenvalues; basis_j++)
@@ -440,8 +441,6 @@ public:
                     this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
 
                     // Get basis_i
-                    TSparseSpace::Resize(basis, rA.size1());
-                    TSparseSpace::SetToZero(basis);
                     this->GetBasis(basis_i, basis);
 
                     // Compute RHS for dynamic derivative
@@ -537,7 +536,6 @@ public:
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
         TSystemVectorType basis;
         TSparseSpace::Resize(basis, mpA->size1());
-        TSparseSpace::SetToZero(basis);
         
         std::size_t derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
 
