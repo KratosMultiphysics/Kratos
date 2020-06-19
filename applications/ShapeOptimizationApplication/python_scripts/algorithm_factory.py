@@ -24,8 +24,6 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                         model_part_controller)
     elif algorithm_name == "gradient_projection":
         from .algorithm_gradient_projection import AlgorithmGradientProjection
-        if not AlgorithmGradientProjection:
-            raise RuntimeError("'gradient_projection' algorithm is not available. Hint: 'EigenSolversApplication' is required.")
         return AlgorithmGradientProjection(optimization_settings,
                                             analyzer,
                                             communicator,
