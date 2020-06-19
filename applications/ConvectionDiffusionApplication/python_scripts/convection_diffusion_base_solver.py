@@ -99,6 +99,12 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
             self.solver_imports_model_part = True
 
+        # TODO: improve robustness of the "if" adding element names which support OSS
+        if (self.settings["use_orthogonal_subscales"].GetBool() is True):
+            self.main_model_part.ProcessInfo.SetValue(ConvectionDiffusionApplication.USE_OSS, 1)
+        else:
+            self.main_model_part.ProcessInfo.SetValue(ConvectionDiffusionApplication.USE_OSS, 0)
+
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
 
     @classmethod
@@ -163,7 +169,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
-            "buffer_size" : -1
+            "buffer_size" : -1,
+            "use_orthogonal_subscales" : false
         }
         """)
         default_settings.AddMissingParameters(super(ConvectionDiffusionBaseSolver,cls).GetDefaultSettings())
