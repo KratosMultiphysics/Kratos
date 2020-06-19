@@ -71,7 +71,6 @@ int main(int argc, char * argv[]){
         int a;
         double b, c, d, e;
         if (iss >> a >> b >> c >> d) {
-            std::cout << "infile3 msh" << std::endl;
             tcoord[0][node_counter] = b;
             tcoord[1][node_counter] = c;
             tcoord[2][node_counter] = d;
@@ -86,6 +85,7 @@ int main(int argc, char * argv[]){
         int a;
         double b, c, d, e;
         if (iss >> a >> b >> c >> d >> e) {
+            std::cout << line << std::endl;
             Nconec[0][element_counter] = b;
             Nconec[1][element_counter] = c;
             Nconec[2][element_counter] = d;
@@ -109,12 +109,11 @@ int main(int argc, char * argv[]){
 
     infilesph.ignore(80,'\n'); infilesph.ignore(80,'\n');
     while (std::getline(infilesph, linesph)) {
-        std::cout << "infilesph sph" << std::endl;
-        std::cout << linesph << std::endl;
         std::istringstream iss(linesph);
         double Xcoord, Ycoord, Zcoord, Rad, one;
-        if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad >> one) {
+        if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad >> one) {            
             if (Rad>=0) {
+                std::cout << linesph << std::endl;
                 xcoords.push_back(Xcoord);
                 ycoords.push_back(Ycoord);
                 zcoords.push_back(Zcoord);

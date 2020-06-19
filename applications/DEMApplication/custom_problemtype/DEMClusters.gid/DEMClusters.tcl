@@ -355,15 +355,24 @@ proc GenerateClusterFile { } {
     set all [GiD_Tools geometry mass_properties 1]
 
     set mass [lrange $all 0 0]
+    W $mass
 
-    W [lrange $all 1 1]
+    set a [join [lrange $all 1 1]]
+    set centerX [lindex $a 0]
+    set centerY [lindex $a 1]
+    set centerZ [lindex $a 2]
+    W $centerX
+    W $centerY
+    W $centerZ
 
-    W [lrange $all 2 2]
-
-    W [lrange $all 3 3]
-    W [lrange $all 4 4]
-    W [lrange $all 5 5]
-
+    set a [join [lrange $all 2 2]]
+    set Ixx [expr {[lindex $a 0]/$mass}]
+    set Iyy [expr {[lindex $a 1]/$mass}]
+    set Izz [expr {[lindex $a 2]/$mass}]
+    W $Ixx
+    W $Iyy
+    W $Izz
+    W "xxx"
 
     
     # It returns a list with 3 items: mass {center_x center_y center_z} {Ixx Iyy Izz Ixy Iyz Ixz}
@@ -416,8 +425,9 @@ proc GenerateClusterFile { } {
 
     
     exec $program $argv_number $genericMSHFilename $genericSPHFilename
-    # FOR DEBUG - exec $program $argv_number $genericMSHFilename $genericSPHFilename > output.txt
-    # REGENERATE EXEC FOR WINDOWS : g++ -o create_cluster.exe mesh_to_clu_converter.cpp
+    # FOR DEBUG - 
+    # exec $program $argv_number $genericMSHFilename $genericSPHFilename > [file join $::DEMClusters::ProblemPath output.txt]
+    # REGENERATE EXEC FOR WINDOWS : exec>g++ -static-libgcc -static-libstdc++ -o create_cluster.exe mesh_to_clu_converter.cpp
 }
 
 
