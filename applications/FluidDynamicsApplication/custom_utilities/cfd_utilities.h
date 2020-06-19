@@ -46,7 +46,7 @@ using GeometryType = Geometry<NodeType>;
  * @param rGaussWeights
  * @param rNContainer
  */
-void CalculateConditionGeometryData(
+void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateConditionGeometryData(
     const GeometryType& rGeometry,
     const GeometryData::IntegrationMethod& rIntegrationMethod,
     Vector& rGaussWeights,
@@ -66,7 +66,8 @@ void CalculateConditionGeometryData(
  *
  * @see TetrahedralMeshOrientationCheck
  */
-double CalculateConditionWallHeight(const ConditionType& rCondition, const array_1d<double, 3>& rNormal);
+double KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    CalculateConditionWallHeight(const ConditionType& rCondition, const array_1d<double, 3>& rNormal);
 
 /**
  * @brief Calculates neighbour conditions
@@ -220,18 +221,12 @@ double KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateReactionBasedYPlusUTau(
  * @see CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau
  * @see CalculateReactionBasedYPlusUTau
  */
-void CalculateYPlusAndUTauForConditions(
+void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateYPlusAndUTauForConditions(
     ModelPart& rModelPart,
     const Variable<double>& rKinematicViscosityVariable,
     const std::function<double(
-        array_1d<double, 3>&,
-        const GeometryType&,
-        const array_1d<double, 3>&,
-        const Vector&,
-        const double,
-        const double,
-        const double
-        )>& rYPlusAndUTauCalculationMethod);
+        array_1d<double, 3>&, const GeometryType&, const array_1d<double, 3>&, const Vector&, const double, const double, const double)>&
+        rYPlusAndUTauCalculationMethod);
 /**
  * @brief Calculates $y^+$ and $u_\tau$ based on reaction for conditions
  *
@@ -293,7 +288,8 @@ void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
  * @param rVariable     Variable to be distributed
  */
 template <typename TDataType>
-void DistributeConditionVariableToNodes(ModelPart& rModelPart, const Variable<TDataType>& rVariable);
+void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
+    DistributeConditionVariableToNodes(ModelPart& rModelPart, const Variable<TDataType>& rVariable);
 
 } // namespace CFDUtilities
 
