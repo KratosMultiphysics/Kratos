@@ -31,8 +31,7 @@ def GetCFDUtilityFunction(params):
     if (function_name not in function_list):
         msg = "Unknown function name [ \"function_name\" = \"" + function_name + "\" ].\n"
         msg += "Supported function names are:"
-        for func in function_list:
-            msg += "\n\t" + func
+        msg += "\n\t".join(function_list)
         raise Exception(msg)
 
     Kratos.Logger.PrintInfo("CFDUtilityFunctions",

@@ -52,6 +52,17 @@ class CFDUtilityFunctionProcess(Kratos.Process):
         self.execution_points_list = params["execution_points"].GetStringArray(
         )
 
+        allowed_execution_points = [
+            "Initialize", "InitializeSolutionStep", "FinalizeSolutionStep",
+            "Finalize"
+        ]
+        for execution_point in self.execution_points_list:
+            if (execution_point not in allowed_execution_points):
+                msg = "Unknown function execution point [ \"execution_point\" = \"" + execution_point + "\" ].\n"
+                msg += "Supported execution points are:"
+                msg += "\n\t".join(allowed_execution_points)
+                raise Exception(msg)
+
         self.function = GetCFDUtilityFunction(params["function_settings"])
 
     def ExecuteInitialize(self):
