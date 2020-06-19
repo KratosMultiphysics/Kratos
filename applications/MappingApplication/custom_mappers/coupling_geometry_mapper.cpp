@@ -222,9 +222,12 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     // get total interface mapping matrix
     Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave, 0.0);
-    if (mMapperSettings["dual_mortar"].GetBool())
-        for (size_t i = 0; i < interface_matrix_slave.size1(); ++i)
-            inv_interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
+    if (mMapperSettings["dual_mortar"].GetBool()) {
+        for (size_t i = 0; i < interface_matrix_slave.size1(); ++i) {
+            if (interface_matrix_slave(i, i) > std::numeric_limits<double>::epsilon())
+                inv_interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
+        }
+    }
     else { double aux_det_slave = 0;
         MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
     }
