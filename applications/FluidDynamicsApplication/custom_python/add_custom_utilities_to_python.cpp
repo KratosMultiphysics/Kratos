@@ -185,29 +185,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     m.def_submodule("CFDUtilities")
         .def("CalculateNumberOfNeighbourConditions", &CFDUtilities::CalculateNumberOfNeighbourConditions)
         .def("CalculateLinearLogarithmicWallFunctionBasedYPlusLimit", &CFDUtilities::CalculateLinearLogarithmicWallFunctionBasedYPlusLimit,
-            py::arg("von_karman") = 0.41,
-            py::arg("wall_smoothness") = 5.2,
-            py::arg("max_iterations") = 20,
-            py::arg("tolerance") = 1e-6)
         .def("CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau", &CFDUtilities::CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau,
-            py::arg("friction_velocity"),
-            py::arg("wall_velocity"),
-            py::arg("normal"),
-            py::arg("kinematic_viscosity"),
-            py::arg("wall_height"),
-            py::arg("von_karman") = 0.41,
-            py::arg("wall_smoothness") = 5.2,
-            py::arg("max_iterations") = 20,
-            py::arg("tolerance") = 1e-6)
         .def("CalculateReactionBasedYPlusUTau", &CFDUtilities::CalculateReactionBasedYPlusUTau)
         .def("CalculateYPlusAndUTauForConditionsBasedOnReaction", &CFDUtilities::CalculateYPlusAndUTauForConditionsBasedOnReaction)
         .def("CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction", &CFDUtilities::CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction,
-            py::arg("model_part"),
-            py::arg("kinematic_viscosity_variable"),
-            py::arg("von_karman") = 0.41,
-            py::arg("wall_smoothness") = 5.2,
-            py::arg("max_iterations") = 20,
-            py::arg("tolerance") = 1e-6)
         .def("DistributeConditionVariableToNodes", &CFDUtilities::DistributeConditionVariableToNodes<double>)
         .def("DistributeConditionVariableToNodes", &CFDUtilities::DistributeConditionVariableToNodes<array_1d<double,3>>)
         ;
