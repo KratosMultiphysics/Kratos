@@ -65,8 +65,6 @@ public:
     typedef BaseType::GeometryType   GeometryType;
     typedef BaseType::NodesArrayType NodesArrayType;
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> Array1DComponentType;
-
     /// The machine precision
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
@@ -148,8 +146,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -158,8 +156,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal displacements
@@ -169,7 +167,7 @@ public:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -220,7 +218,7 @@ public:
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
      * @param rCurrentProcessInfo The current process info instance
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * @brief This method computes the DoF block size
@@ -329,8 +327,8 @@ private:
     ///@name Private Operations
     ///@{
 
-    Array1DComponentType* GetDisplacementInDirection() const;
-    Array1DComponentType* GetPointLoadInDirection() const;
+    Variable<double>* GetDisplacementInDirection() const;
+    Variable<double>* GetPointLoadInDirection() const;
 
     ///@}
     ///@name Private  Access

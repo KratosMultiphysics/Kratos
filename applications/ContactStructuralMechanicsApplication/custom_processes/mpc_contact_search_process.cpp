@@ -26,8 +26,9 @@ namespace Kratos
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::MPCContactSearchProcess(
     ModelPart & rMainModelPart,
-    Parameters ThisParameters
-    ) : BaseType(rMainModelPart, ThisParameters)
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
+    ) : BaseType(rMainModelPart, ThisParameters, pPairedProperties)
 {
     // If we are going to consider multple searchs
     const std::string& id_name = BaseType::mThisParameters["id_name"].GetString();
@@ -135,12 +136,13 @@ Condition::Pointer MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Ad
     if (p_cond.get() != nullptr) {
         MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<ContactMasterSlaveConstraint>(GetMaximumConstraintsIds() + 1);
         p_new_const->Set(ACTIVE);
-        p_new_const->Initialize(rComputingModelPart.GetProcessInfo());
+        const auto& r_process_info = rComputingModelPart.GetProcessInfo();
+        p_new_const->Initialize(r_process_info);
         rComputingModelPart.AddMasterSlaveConstraint(p_new_const);
         p_cond->SetValue(CONSTRAINT_POINTER, p_new_const);
         if (is_frictional) p_cond->Set(SLIP);
         if (is_rigid) p_cond->Set(RIGID);
-        p_cond->Initialize();
+        p_cond->Initialize(r_process_info);
     }
 
     return p_cond;

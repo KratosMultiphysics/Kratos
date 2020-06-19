@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
@@ -81,6 +82,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
 
     /// Node type definition
     typedef Node<3> NodeType;
@@ -399,7 +403,63 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const MatrixType& rRe
         );
 
-  private:
+    /**
+     * @brief This computes the rotation matrix for the 1st Euler angle
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorEuler1(
+        const double EulerAngle1,
+        BoundedMatrix<double, 3, 3> &rRotationOperator
+    );
+
+    /**
+     * @brief This computes the rotation matrix for the 2nd Euler angle
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorEuler2(
+        const double EulerAngle2,
+        BoundedMatrix<double, 3, 3> &rRotationOperator
+    );
+
+    /**
+     * @brief This computes the rotation matrix for the 3rd Euler angle
+     * http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperatorEuler3(
+        const double EulerAngle3,
+        BoundedMatrix<double, 3, 3> &rRotationOperator
+    );
+
+    /**
+     * @brief This computes the total rotation matrix
+     * rotates from local to global coordinates.
+     * The so-called "x convention" is used.
+     * Order of the rotations:
+     *    1. The first rotation PHI around the Z-axis
+     *    2. The second rotation THETA around the X'-axis
+     *    3. The third rotation HI around the former Z'-axis
+     * more info: http://mathworld.wolfram.com/EulerAngles.html
+     */
+    static void CalculateRotationOperator(
+        const double EulerAngle1, // phi
+        const double EulerAngle2, // theta
+        const double EulerAngle3, // hi
+        BoundedMatrix<double, 3, 3> &rRotationOperator
+    );
+
+    /**
+     * @brief This converts the 
+     * 3x3 rotation matrix to the 6x6
+     * Cook et al., "Concepts and applications
+     * of finite element analysis"
+     */
+    static void CalculateRotationOperatorVoigt(
+        const BoundedMatrixType &rOldOperator,
+        BoundedMatrixVoigtType &rNewOperator
+    );
+
+
+private:
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos

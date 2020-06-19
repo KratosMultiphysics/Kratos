@@ -2158,6 +2158,20 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
 
 }
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::SetValuesOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rValues,
+    const ProcessInfo &rCurrentProcessInfo
+)
+{
+    if (rVariable == DAMAGE_ELEMENT) {
+        mDamage = rValues[0];
+    } else if (rVariable == STRESS_THRESHOLD) {
+        mThreshold = rValues[0];
+    }
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/

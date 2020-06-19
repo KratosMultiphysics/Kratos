@@ -615,12 +615,13 @@ private:
         Vector control_point_weights = ZeroVector(rParameters.size());
         KRATOS_ERROR_IF(rParameters.size() == 0)
             << "Length of control point list is zero!" << std::endl;
-        KRATOS_ERROR_IF(rParameters[0].size() != 4)
+
+        SizeType number_of_entries = rParameters[0].size();
+        KRATOS_ERROR_IF(rParameters[0][number_of_entries - 1].size() != 4)
             << "Control points need to be provided in following structure: [[x, y, z, weight]] or [id, [x, y, z, weight]]"
             << "Size of inner vector incorrect!"
             << std::endl;
 
-        SizeType number_of_entries = rParameters[0].size();
         for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
         {
             control_point_weights[cp_idx] = rParameters[cp_idx][number_of_entries - 1][3].GetDouble();

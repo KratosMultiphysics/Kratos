@@ -1063,7 +1063,7 @@ public:
                     pnode->X0() = weight * (it_node1->X0()) + (1.0 - weight) * it_node2->X0();
                     pnode->Y0() = weight * (it_node1->Y0()) + (1.0 - weight) * it_node2->Y0();
                     pnode->Z0() = weight * (it_node1->Z0()) + (1.0 - weight) * it_node2->Z0();
-                    pnode->FastGetSolutionStepValue(PARTITION_INDEX) =  double(partition_new_nodes[i]) ;
+                    pnode->FastGetSolutionStepValue(PARTITION_INDEX) = partition_new_nodes[i];
                     new_model_part.Nodes().push_back(pnode);
                 }
 
@@ -1382,7 +1382,7 @@ public:
             double* node1_data = it->GetValue(FATHER_NODES)[1].SolutionStepData().Data(0);
             double weight = it->GetValue(WEIGHT_FATHER_NODES);
             double* step_data = (it)->SolutionStepData().Data(0);
-            double partition_index= it->FastGetSolutionStepValue(PARTITION_INDEX);
+            int partition_index= it->FastGetSolutionStepValue(PARTITION_INDEX);
 
             //now we only have to copy the information from node_data to step_data
             for (int j = 0; j < step_data_size; j++) //looping all the variables and interpolating using weight

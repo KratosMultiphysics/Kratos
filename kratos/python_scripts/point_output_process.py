@@ -84,8 +84,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 continue
             elif type(var) == KratosMultiphysics.Array1DVariable3:
                 continue
-            elif type(var) == KratosMultiphysics.Array1DComponentVariable:
-                continue
             else:
                 err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
                 err_msg += 'It can only be double, component or array3d!'
@@ -174,7 +172,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
     def __CheckVariableIsSolutionStepVariable(self, var):
         # if the requested Variable is a component we check the source Variable
-        if type(var) == KratosMultiphysics.Array1DComponentVariable:
+        if type(var) == KratosMultiphysics.DoubleVariable: # TODO check this, might no longer work!
             var = var.GetSourceVariable()
 
         if not self.model_part.HasNodalSolutionStepVariable(var):

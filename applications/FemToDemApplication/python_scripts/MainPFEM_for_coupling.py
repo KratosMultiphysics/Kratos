@@ -31,7 +31,59 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("PFEM" + problem_name)
 
         self.FEM_model_part = FEM_model_part
-        super(MainPFEM_for_coupling_solution, self).__init__(model, parameters)
+
+        self.model = model
+        #### TIME MONITORING START ####
+        # Time control starts
+        self.KratosPrintInfo(timer.ctime())
+        # Measure process time
+        self.t0p = timer.clock()
+        # Measure wall time
+        self.t0w = timer.time()
+        #### TIME MONITORING END ####
+
+        #### PARSING THE PARAMETERS ####
+
+        #set echo level
+        self.echo_level = parameters["problem_data"]["echo_level"].GetInt()
+
+        # Print solving time
+        self.report = False
+        if( self.echo_level > 0 ):
+            self.report = True
+
+        self.KratosPrintInfo(" ")
+        self.KratosPrintInfo("::[KPFEM Simulation]:: [Time Step:" + str(parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()) + " echo:" +  str(self.echo_level) + "]")
+
+        #### Model_part settings start ####
+        self.model = model
+        self.project_parameters = parameters
+
+        ## Get echo level and parallel type
+        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
+        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+        is_distributed_run = KratosMultiphysics.IsDistributedRun()
+
+        if self.parallel_type == "OpenMP" and is_distributed_run:
+            KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"OpenMP" is specified as "parallel_type", but Kratos is running distributed!')
+        if self.parallel_type == "MPI" and not is_distributed_run:
+            KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
+
+        self._GetSolver().AddVariables() # this creates the solver and adds the variables
+        # Defining the model_part
+        self.main_model_part = self.model.GetModelPart(parameters["solver_settings"]["model_part_name"].GetString())
+
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, parameters["solver_settings"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, parameters["solver_settings"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, parameters["problem_data"]["start_time"].GetDouble())
+        if parameters["problem_data"].Has("gravity_vector"):
+             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, parameters["problem_data"]["gravity_vector"][0].GetDouble())
+             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, parameters["problem_data"]["gravity_vector"][1].GetDouble())
+             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, parameters["problem_data"]["gravity_vector"][2].GetDouble())
+
+        self.problem_path = os.getcwd()
+        self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
 #============================================================================================================================
     def SetCustomGraphicalOutput(self, custom_parameters):
@@ -62,3 +114,32 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         return solver
         
 #============================================================================================================================
+
+    def FinalizeSolutionStep(self):
+        """This function performs all the required operations that should be executed
+        (for each step) AFTER solving the solution step.
+        """
+        self.clock_time = self.StartTimeMeasuring();
+        self._GetSolver().FinalizeSolutionStep()
+        self.GraphicalOutputExecuteFinalizeSolutionStep()
+
+        # processes to be executed at the end of the solution step
+        self.model_processes.ExecuteFinalizeSolutionStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteFinalizeSolutionStep()
+        self.model_processes.ExecuteBeforeOutputStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeOutputStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        # self.GraphicalOutputPrintOutput()
+
+        # processes to be executed after witting the output
+        self.model_processes.ExecuteAfterOutputStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteAfterOutputStep()
+
+        self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);

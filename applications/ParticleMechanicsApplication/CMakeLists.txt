@@ -18,14 +18,15 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_UP.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_quadrilateral.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_axisymmetry.cpp
 
 	###constitutive laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_stress_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_axisym_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/johnson_cook_thermal_plastic_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/johnson_cook_thermal_plastic_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_axisym_2D_law.cpp
@@ -52,7 +53,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/yield_criteria/mc_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.cpp
 
-	###yield criteria
+	###hardening criteria
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hardening_laws/exponential_strain_softening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hardening_laws/cam_clay_hardening_law.cpp
 
@@ -79,6 +80,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	###utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpm_particle_generator_utility.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpm_energy_calculation_utility.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpm_explicit_utilities.cpp
 
 )
 
