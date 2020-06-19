@@ -89,7 +89,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
     def __CreateResponseFunctions( specified_responses, model ):
         response_functions = {}
 
-        sho_response_functions = ["plane_based_packaging", "mesh_based_packaging"]
+        sho_response_functions = ["plane_based_packaging", "mesh_based_packaging", "surface_normal_shape_change"]
         csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
         convdiff_response_functions = ["point_temperature"]
 
