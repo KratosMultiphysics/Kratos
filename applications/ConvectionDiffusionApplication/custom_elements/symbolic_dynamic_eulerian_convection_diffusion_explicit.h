@@ -149,10 +149,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // void InitializeEulerianElement(
-    //     ElementVariables& rVariables,
-    //     const ProcessInfo& rCurrentProcessInfo);
-
     void ComputeGaussPointContribution(
         ElementVariables& rVariables,
         MatrixType& rLeftHandSideMatrix,
@@ -167,9 +163,6 @@ protected:
         ElementVariables& rVariables,
         unsigned int g);
 
-    double ComputeH(
-        BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
-
     void CalculateTau(
         ElementVariables& rVariables);
 
@@ -181,8 +174,6 @@ protected:
     ///@}
     ///@name Protected Inquiry
     ///@{
-
-    IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Protected LifeCycle

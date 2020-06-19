@@ -214,81 +214,6 @@ int SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Check(co
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template< unsigned int TDim, unsigned int TNumNodes >
-// void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianElement(
-//     ElementVariables& rVariables,
-//     const ProcessInfo& rCurrentProcessInfo)
-// {
-//     KRATOS_TRY
-
-//     const ProcessInfo& r_process_info = rCurrentProcessInfo;
-//     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
-//     auto& r_settings = *p_settings;
-
-//     const auto& r_geometry = this->GetGeometry();
-//     const unsigned int local_size = r_geometry.size();
-
-//     // initialize some scalar variables
-//     rVariables.lumping_factor = 1.00 / double(TNumNodes);
-//     rVariables.diffusivity = 0.0;
-//     rVariables.specific_heat = 0.0;
-//     rVariables.density = 0.0;
-//     rVariables.dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
-
-//     for(unsigned int node_element = 0; node_element<local_size; node_element++)
-// {
-//     // observations
-//     // * SGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient*delta_time)
-//     //   observe that for RK step = 1 ASGS time derivative term = 0 because phi = phi_old
-//     // * convective velocity and forcing term:
-//     //   RK step 1: evaluated at previous time step
-//     //   RK steps 2 and 3: linear interpolation between current and oldprevious time step
-//     //   RK step 4: evaluated at current time step
-//     // * convective_velocity = velocity - velocity_mesh
-//     //   velocity_mesh = 0 in eulerian framework
-//     if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==1)
-//     {
-//         rVariables.RK_time_coefficient = 0.5;
-//         rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1);
-//         rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0];
-//         rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1];
-//         rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2];
-//     }
-//     else if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==2 || r_process_info.GetValue(RUNGE_KUTTA_STEP)==3)
-//     {
-//         rVariables.RK_time_coefficient = 0.5;
-//         rVariables.forcing[node_element] = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable()) + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1));
-//         rVariables.convective_velocity(node_element,0) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0]);
-//         rVariables.convective_velocity(node_element,1) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1]);
-//         rVariables.convective_velocity(node_element,2) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2]);
-//     }
-//     else
-//     {
-//         rVariables.RK_time_coefficient = 1.0;
-//         rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
-//         rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
-//         rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
-//         rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2];
-//     }
-//     rVariables.oss_projection[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetProjectionVariable());
-//     rVariables.diffusivity += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
-//     rVariables.specific_heat += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetSpecificHeatVariable());
-//     rVariables.density += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDensityVariable());
-//     rVariables.delta_time = r_process_info[DELTA_TIME];
-//     rVariables.unknown[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable());
-//     rVariables.unknown_old[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable(),1);
-// }
-//     // divide by number of nodes scalar variables
-//     rVariables.diffusivity *= rVariables.lumping_factor;
-//     rVariables.density *= rVariables.lumping_factor;
-//     rVariables.specific_heat *= rVariables.lumping_factor;
-
-//     KRATOS_CATCH( "" )
-// }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template <>
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContribution(
     ElementVariables& rVariables,
@@ -477,27 +402,6 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::UpdateUnknownSubgrid
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-double SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
-    BoundedMatrix<double,TNumNodes,TDim >& DN_DX)
-{
-    double h=0.0;
-    for(unsigned int i=0; i<TNumNodes; i++)
-    {
-        double h_inv = 0.0;
-        for(unsigned int k=0; k<TDim; k++)
-        {
-            h_inv += DN_DX(i,k)*DN_DX(i,k);
-        }
-        h += 1.0/h_inv;
-    }
-    h = sqrt(h)/static_cast<double>(TNumNodes);
-    return h;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
     ElementVariables& rVariables)
 {
@@ -529,15 +433,6 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     // Limiting
     inv_tau = std::max(inv_tau, 1e-2);
     rVariables.tau = (rVariables.density*rVariables.specific_heat) / inv_tau;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
-Element::IntegrationMethod SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::GetIntegrationMethod() const
-{
-    return GeometryData::GI_GAUSS_2;
 }
 
 /***********************************************************************************/
