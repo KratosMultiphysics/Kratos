@@ -155,11 +155,9 @@ std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
 template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeMapper()
 {
-    mModeler = MappingGeometriesModeler(mrModel, mMapperSettings["modeler_parameters"]);
-    // TODO @teschemachen this is what we want I guess but theres some errors
-    //mpModeler = ModelerFactory::Create( JsonParameters["modeler_name"].GetString(), rModelPartOrigin.GetModel(), JsonParameters["modeler_parameters"]);
-    mModeler.SetupGeometryModel();
-    mModeler.PrepareGeometryModel();
+    mpModeler = (ModelerFactory::Create(mMapperSettings["modeler_name"].GetString(), mrModel, mMapperSettings["modeler_parameters"]));
+    mpModeler->SetupGeometryModel();
+    mpModeler->PrepareGeometryModel();
 
     // here use whatever ModelPart(s) was created by the Modeler
     mpCouplingMP = &(mrModel.GetModelPart("coupling"));

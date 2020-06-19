@@ -142,7 +142,7 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
-        mModeler.PrepareGeometryModel();
+        mpModeler->PrepareGeometryModel();
 
         AssignInterfaceEquationIds();
 
@@ -267,6 +267,7 @@ private:
 
     ///@name Private Operations
     ///@{
+    typename Modeler::Pointer mpModeler = nullptr;
 
     Model& mrModel;
     ModelPart* mpCouplingMP = nullptr;
@@ -284,8 +285,6 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
-    MappingGeometriesModeler mModeler;
-    //typename Modeler::Pointer mpModeler; // TODO @teschemachen
 
     void InitializeMapper();
 
