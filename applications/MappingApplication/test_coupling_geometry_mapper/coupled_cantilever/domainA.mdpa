@@ -2048,11 +2048,5 @@ Begin SubModelPart PointLoad2D_domainAinterface // Group domainAinterface // Sub
     Begin SubModelPartElements
     End SubModelPartElements
     Begin SubModelPartConditions
-            1
-            2
-            3
-            4
-            5
-            6
     End SubModelPartConditions
 End SubModelPart

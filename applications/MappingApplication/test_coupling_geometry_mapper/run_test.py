@@ -16,22 +16,11 @@ current_model = KM.Model()
 # Read origin modelpart
 model_part_origin = current_model.CreateModelPart("origin")
 ReadModelPart(model_part_origin, "coupled_cantilever/domainA")
-# Artificially create interface submodelpart
-model_part_origin.CreateSubModelPart("interface")
-originInterface = model_part_origin.GetSubModelPart("interface")
-for nodeIndex in range(328,334):
-    originInterface.AddNodes([nodeIndex])
 
 # Read destination modelpart
 model_part_destination = current_model.CreateModelPart("destination")
 ReadModelPart(model_part_destination, "coupled_cantilever/domainB")
-# Artificially create interface submodelpart
-model_part_destination.CreateSubModelPart("interface")
-destinationInterface = model_part_destination.GetSubModelPart("interface")
-destinationInterface.AddNodes([10])
-destinationInterface.AddNodes([6])
-destinationInterface.AddNodes([3])
-destinationInterface.AddNodes([1])
+
 
 mapper_params = KM.Parameters("""{
     "mapper_type": "coupling_geometry",
@@ -43,18 +32,23 @@ mapper_params = KM.Parameters("""{
         "origin_model_part_name" : "origin",
         "destination_model_part_name" : "destination",
         "is_interface_sub_model_parts_specified" : true,
-        "origin_interface_sub_model_part_name" : "interface",
-        "destination_interface_sub_model_part_name" : "interface"
+        "origin_interface_sub_model_part_name" : "PointLoad2D_domainAinterface",
+        "destination_interface_sub_model_part_name" : "DISPLACEMENT_domainBinterface"
     }
 }""")
 
 # ======== Left in here because this is a temporary technique to construct coupling geoms =======
 # Create dummy line conditions on submodel parts to couple together
+origin_interface_sub_model_part_name = (mapper_params["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString())
+originInterface = model_part_origin.GetSubModelPart(origin_interface_sub_model_part_name)
 originProps = originInterface.GetProperties()[1]
 nodeOffset = 327
 for conditionIndex in range(1,6):
     cNode = nodeOffset + conditionIndex
     originInterface.CreateNewCondition("LineCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
+
+destination_interface_sub_model_part_name = (mapper_params["modeler_parameters"]["destination_interface_sub_model_part_name"].GetString())
+destinationInterface = model_part_destination.GetSubModelPart(destination_interface_sub_model_part_name)
 destProps = destinationInterface.GetProperties()[1]
 destinationInterface.CreateNewCondition("LineCondition2D2N", 101, [1,3], destProps)
 destinationInterface.CreateNewCondition("LineCondition2D2N", 102, [3,6], destProps)
