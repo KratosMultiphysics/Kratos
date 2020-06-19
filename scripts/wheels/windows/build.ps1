@@ -9,7 +9,7 @@ $env:kratos_root = $kratosRoot
 $wheelRoot = "c:\wheel"
 $wheelOutDir = "c:\out"
 
-$ErrorActionPrefference="Stop"
+$ErrorActionPreference="Stop"
 
 function exec_build($python, $pythonPath) {
     cmd.exe /c "call configure.bat $( $pythonPath ) $( $kratosRoot ) OFF"

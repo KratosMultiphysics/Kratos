@@ -15,10 +15,10 @@ set PYTHON_EXECUTABLE=%1
 set USE_COTIRE=%3
 
 set KRATOS_APPLICATIONS=
-rem CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 rem CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\DEMApplication;
-rem CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
 rem CALL :add_app %KRATOS_APP_DIR%\ParticleMechanicsApplication;
 rem CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
 rem CALL :add_app %KRATOS_APP_DIR%\DamApplication;
