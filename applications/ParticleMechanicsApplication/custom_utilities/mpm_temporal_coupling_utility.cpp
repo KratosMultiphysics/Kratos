@@ -172,8 +172,8 @@ namespace Kratos
         KRATOS_TRY
 
 
-            // Restore subdomain 1
-            ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
+        // Restore subdomain 1
+        ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
         const IndexType working_space_dim = mrSubDomain1.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType domain_nodes = r_sub_domain_1_active.Nodes().size();
         IndexType active_node_counter = 0;
@@ -194,14 +194,33 @@ namespace Kratos
             nodal_disp.clear();
             nodal_accel.clear();
 
+            if (mGamma[0] == 1.0) {
+                double& nodal_mass = node_it->FastGetSolutionStepValue(NODAL_MASS);
+                nodal_mass = 0.0;
+            }
+
             for (size_t k = 0; k < working_space_dim; ++k)
             {
                 nodal_vel[k] = mSubDomain1FinalDomainVelocityOrMomenta[i * working_space_dim + k];
                 nodal_disp[k] = mSubDomain1FinalDomainDisplacement[i * working_space_dim + k];
                 nodal_accel[k] = mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k];
             }
-            KRATOS_WATCH(nodal_vel)
-            KRATOS_WATCH(node_it->Is(ACTIVE))
+        }
+
+        // Re-map nodal masses
+        if (mGamma[0] == 1.0)
+        {
+            for (Element& mp : mrSubDomain1.Elements())
+            {
+                std::vector<double> mp_mass;
+                mp.CalculateOnIntegrationPoints(MP_MASS, mp_mass, mrSubDomain1.GetProcessInfo());
+                for (size_t i = 0; i < mp.GetGeometry().PointsNumber(); i++)
+                {
+                    double& nodal_mass = mp.GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS);
+                    nodal_mass += mp_mass[0] * mp.GetGeometry().ShapeFunctionValue(0, i);
+                }
+
+            }
         }
 
         // Correct subdomain 1
