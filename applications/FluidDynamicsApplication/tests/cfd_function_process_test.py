@@ -13,7 +13,7 @@ class CFDFunctionProcessTest(UnitTest.TestCase):
 
     def testCFDFunctionProcess(self):
         work_folder = "Cavity"
-        settings_file_name = "cfd_function_process.json"
+        settings_file_name = "cfd_utility_function_process.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name)

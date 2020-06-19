@@ -139,7 +139,7 @@
         "auxiliar_process_list": [
             {
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "python_module": "cfd_function_process",
+                "python_module": "cfd_utility_function_process",
                 "help": "",
                 "Parameters": {
                     "model_part_name": "MainModelPart.NoSlip2D_left_wall",
@@ -152,7 +152,7 @@
             },
             {
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "python_module": "cfd_function_process",
+                "python_module": "cfd_utility_function_process",
                 "help": "",
                 "Parameters": {
                     "model_part_name": "MainModelPart.NoSlip2D_right_wall",
@@ -168,7 +168,7 @@
             },
             {
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "python_module": "cfd_function_process",
+                "python_module": "cfd_utility_function_process",
                 "help": "",
                 "Parameters": {
                     "model_part_name": "MainModelPart",
@@ -180,7 +180,7 @@
             },
             {
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "python_module": "cfd_function_process",
+                "python_module": "cfd_utility_function_process",
                 "help": "",
                 "Parameters": {
                     "model_part_name": "MainModelPart",

@@ -15,10 +15,10 @@ def Factory(settings, model):
             "expected input shall be a Model object, encapsulating a json string"
         )
 
-    return CFDFunctionProcess(model, settings["Parameters"])
+    return CFDUtilityFunctionProcess(model, settings["Parameters"])
 
 
-class CFDFunctionProcess(Kratos.Process):
+class CFDUtilityFunctionProcess(Kratos.Process):
     """This process executes CFD functions implemented in c++ level
 
     This process is used to evaluate CFD functions implemented in c++ level
