@@ -5,12 +5,13 @@ from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_
 import KratosMultiphysics.KratosUnittest as UnitTest
 import math
 
+
 class CFDUtilitiesTest(UnitTest.TestCase):
     def testCalculateLinearLogarithmicWallFunctionBasedYPlusLimit(self):
         kappa = 0.5
         beta = 6.0
         y_plus = KratosCFD.CFDUtilities.CalculateLinearLogarithmicWallFunctionBasedYPlusLimit(
-            kappa, beta)
+            kappa, beta, 20, 1e-6)
         u_plus = math.log(y_plus) / kappa + beta
         self.assertAlmostEqual(u_plus, y_plus, 6)
 
@@ -30,7 +31,7 @@ class CFDUtilitiesTest(UnitTest.TestCase):
         velocity[1] = 0.2
         velocity[2] = 0.3
         y_plus = KratosCFD.CFDUtilities.CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
-            u_tau, velocity, normal, nu, y, kappa, beta)
+            u_tau, velocity, normal, nu, y, kappa, beta, 20, 1e-6)
         tangential_velocity = velocity - unit_normal * (
             velocity[0] * unit_normal[0] + velocity[1] * unit_normal[1] +
             velocity[2] * unit_normal[2])
@@ -49,7 +50,7 @@ class CFDUtilitiesTest(UnitTest.TestCase):
         velocity[1] = 2000.0
         velocity[2] = 3000.0
         y_plus = KratosCFD.CFDUtilities.CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau(
-            u_tau, velocity, normal, nu, y, kappa, beta)
+            u_tau, velocity, normal, nu, y, kappa, beta, 20, 1e-6)
         tangential_velocity = velocity - unit_normal * (
             velocity[0] * unit_normal[0] + velocity[1] * unit_normal[1] +
             velocity[2] * unit_normal[2])
@@ -127,7 +128,7 @@ class CFDUtilitiesTest(UnitTest.TestCase):
         kappa = 0.5
         beta = 10.0
         KratosCFD.CFDUtilities.CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction(
-            model_part, Kratos.VISCOSITY, kappa, beta)
+            model_part, Kratos.VISCOSITY, kappa, beta, 20, 1e-6)
 
         check_y_plus_values = [42.184008341432026, 14.937830572275276]
         check_u_tau_values = [
