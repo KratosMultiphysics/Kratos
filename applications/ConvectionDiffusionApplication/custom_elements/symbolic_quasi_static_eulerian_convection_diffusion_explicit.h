@@ -164,6 +164,7 @@ protected:
         double delta_time;
         double RK_time_coefficient;
         double dynamic_tau;
+        double unknown_subscale;
         // arrays
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;

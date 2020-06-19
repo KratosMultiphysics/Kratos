@@ -51,6 +51,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+        typedef SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes> BaseType;
+        typedef typename BaseType::ElementVariables ElementVariables;
         typedef Node < 3 > NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
@@ -136,33 +138,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    struct ElementVariables
-    {
-        // scalars
-        double diffusivity;
-        double density;
-        double specific_heat;
-        double lumping_factor;
-        double tau;
-        double weight;
-        double delta_time;
-        double RK_time_coefficient;
-        double dynamic_tau;
-        double unknown_subscale;
-        // arrays
-        array_1d<double,TNumNodes> forcing;
-        array_1d<double,TNumNodes> unknown;
-        array_1d<double,TNumNodes> unknown_old;
-        array_1d<double,TNumNodes> oss_projection;
-        // matrices
-        BoundedMatrix<double,TNumNodes,3> convective_velocity;
-        // auxiliary containers for the symbolically-generated matrices
-        BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
-        array_1d<double,TNumNodes*(TDim+1)> rhs;
-        // auxiliary containers for the symbolically-generated variables for Gauss integration
-        array_1d<double,TNumNodes> N;
-        BoundedMatrix<double,TNumNodes,TDim> DN;
-    };
     VectorType mUnknownSubScale;
 
     ///@}
