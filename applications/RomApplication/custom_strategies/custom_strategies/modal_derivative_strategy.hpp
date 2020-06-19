@@ -367,8 +367,6 @@ public:
     {
         KRATOS_TRY
 
-        // Implementation of this function considers only the static derivatives
-
         ModelPart& r_model_part = BaseType::GetModelPart();
         TSchemePointerType& p_scheme = this->pGetScheme();
         TSystemMatrixType& rA = *mpA;
@@ -378,7 +376,7 @@ public:
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType basis;
         TSparseSpace::Resize(basis, rA.size1());
-        
+       
         // Get eigenvalues vector
         LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
         const std::size_t num_eigenvalues = r_eigenvalues.size();
@@ -411,21 +409,29 @@ public:
         {
             // Set the EIGENVALUE_I counter for use in the scheme
             r_model_part.GetProcessInfo()[EIGENVALUE_I] = basis_i;
-            const double eigenvalue = r_eigenvalues[basis_i];
 
-            // If dynamic derivatives then build system matrix for each eigenvalue
-            if (mDerivativeTypeFlag)
+            if (mDerivativeTypeFlag){ // If dynamic derivatives
+                const double eigenvalue = r_eigenvalues[basis_i];
+
+                // If dynamic derivatives then build system matrix for each eigenvalue
                 rA = rStiffnessMatrix - (eigenvalue * rMassMatrix);
-
-            if (!mDerivativeTypeFlag) // Shift the derivative start index due to symmetry of static derivatives
-                basis_j_start_index = basis_i;     
-            else // Dynamic derivatives are unsymmetric
+                
+                // Dynamic derivatives are unsymmetric
                 basis_j_start_index = 0;
+
+                // Get basis_i
+                this->GetBasis(basis_i, basis);
+            } 
+            else // If static derivatives
+            {
+                // Shift the derivative start index due to symmetry of static derivatives
+                basis_j_start_index = basis_i;
+            }                
 
             // Derivative wrt basis_j
             for (std::size_t basis_j = basis_j_start_index; basis_j < num_eigenvalues; basis_j++)
             {
-                // Set the EIGENVALUE_J counter for use in the scheme
+                // Set the EIGENVALUE_J counter for using in the scheme
                 r_model_part.GetProcessInfo()[EIGENVALUE_J] = basis_j;
 
                 // Reset RHS and solution vector at each step
@@ -439,9 +445,6 @@ public:
                 } else {
                     // Build first stiffness contribution
                     this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
-
-                    // Get basis_i
-                    this->GetBasis(basis_i, basis);
 
                     // Compute RHS for dynamic derivative
                     rb -= prec_inner_prod(basis, rb)* prec_prod(rMassMatrix, basis);
@@ -465,7 +468,7 @@ public:
                 // Mass orthonormalization
                 if (mMassOrthonormalizeFlag)
                     this->MassOrthonormalize(rDx);
-                
+
                 // Assign solution to ROM_BASIS
                 this->AssignVariables(rDx);
 
@@ -476,6 +479,8 @@ public:
             // Reset all the dofs to initial value
             this->ResetVariables();
         }
+
+        // this->ComputeReducedMatrices();
 
         return true;
         KRATOS_CATCH("")
@@ -536,14 +541,15 @@ public:
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
         TSystemVectorType basis;
         TSparseSpace::Resize(basis, mpA->size1());
-        
-        std::size_t derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
+        std::size_t current_basis_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
 
         // Mass-Orthogonalization using modified Gram-Schmidt method
-        for (std::size_t basis_index = 0; basis_index < derivative_index; basis_index++){
+        for (std::size_t basis_index = 0; basis_index < current_basis_index; basis_index++){
 
+            // Get previous basis
             this->GetBasis(basis_index, basis);
 
+            // Apply Mass-Orthogonalization w.r.t. previous bases
             rDx -= (prec_inner_prod(prec_prod(rMassMatrix, basis), rDx) * basis);
 
         }
@@ -569,10 +575,11 @@ public:
             Matrix& rRomBasis = itNode->GetValue(ROM_BASIS);
 
             // fill the basis vector
+            auto itDof = std::begin(NodeDofs);
             for (std::size_t iDOF = 0; iDOF < NumNodeDofs; iDOF++)
             {
-                const auto itDof = std::begin(NodeDofs) + iDOF;
                 rBasis((*itDof)->EquationId()) = rRomBasis(iDOF,basis_index);
+                itDof++;
             }
         }
     }
@@ -615,7 +622,53 @@ public:
             }
         }
         
-        KRATOS_CATCH("")        
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function reduces the mass and stiffness matrices using the computed basis
+     * @details
+     * { 
+     * This is implemented purely for debugging purposes
+     * } 
+     */  
+    void ComputeReducedMatrices()
+    {
+        KRATOS_TRY
+
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        std::size_t derivative_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
+
+        Matrix Mred;
+        Mred.resize(derivative_index,derivative_index, false);
+        Matrix Kred;
+        Kred.resize(derivative_index,derivative_index, false);
+        TSystemVectorType basis_i;
+        TSparseSpace::Resize(basis_i, mpA->size1());
+        TSystemVectorType basis_j;
+        TSparseSpace::Resize(basis_j, mpA->size1());
+        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rStiffnessMatrix = *mpStiffnessMatrix;
+        TSystemMatrixType& rMassMatrix = *mpMassMatrix;
+
+        for (std::size_t i = 0; i < derivative_index; i++)
+        {
+            this->GetBasis(i, basis_i);
+            for (std::size_t j = 0; j < derivative_index; j++)
+            {
+                this->GetBasis(j, basis_j);
+                Mred(i,j) = inner_prod(basis_i, prod(rMassMatrix, basis_j));
+                if (mDerivativeTypeFlag)
+                    Kred(i,j) = inner_prod(basis_i, prod(rStiffnessMatrix, basis_j));
+                else
+                    Kred(i,j) = inner_prod(basis_i, prod(rA, basis_j));
+            }
+        }
+
+        KRATOS_WATCH(Mred)
+        KRATOS_WATCH(Kred)
+
+        KRATOS_CATCH("")
     }
 
     /**
