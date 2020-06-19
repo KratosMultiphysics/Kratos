@@ -9,7 +9,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 class CFDFunctionProcessTest(UnitTest.TestCase):
     def setUp(self):
         # Set to true to get post-process files for the test
-        self.print_output = True
+        self.print_output = False
 
     def testCFDFunctionProcess(self):
         work_folder = "Cavity"
