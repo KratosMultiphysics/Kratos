@@ -9,6 +9,8 @@ $env:kratos_root = $kratosRoot
 $wheelRoot = "c:\wheel"
 $wheelOutDir = "c:\out"
 
+$ErrorActionPrefference="Stop"
+
 function exec_build($python, $pythonPath) {
     cmd.exe /c "call configure.bat $( $pythonPath ) $( $kratosRoot ) OFF"
     cmake --build "$( $kratosRoot )/build/Release" --target install -j $cpus -- /property:configuration=Release /p:Platform=x64

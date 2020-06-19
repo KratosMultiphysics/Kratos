@@ -20,4 +20,4 @@ cd c:\kratos
 git clone --depth 1 --single-branch --branch $branch https://github.com/KratosMultiphysics/Kratos.git
 
 cp c:\kratos\Kratos\scripts\wheels\windows\build.ps1 c:\scripts\build.ps1
-& "c:\scripts\build.ps1" -cotire $cotire -pythons $pythons
+& "c:\scripts\build.ps1" -cotire $cotire -pythons $pythons -cpus $cpus
