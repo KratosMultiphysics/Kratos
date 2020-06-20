@@ -82,7 +82,7 @@ void NormalCalculationUtils::CalculateOnSimplex(
             }
         }
 
-        rModelPart.GetCommunicator().SynchronizeAndNodalFlags(VISITED);
+        rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
 
         for(auto& r_node: rModelPart.Nodes()) {
             if(r_node.Is(VISITED)) {
