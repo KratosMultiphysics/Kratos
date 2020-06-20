@@ -200,7 +200,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
-        """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
+        """adapted from https://doi.org/10.1007/978-94-011-2550-5 chapter 5"""
         gp_utilities = self.optimization_utilities
 
         g_a, g_a_variables = self.__getActiveConstraints()
