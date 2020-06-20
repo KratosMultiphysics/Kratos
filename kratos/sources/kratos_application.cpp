@@ -112,7 +112,7 @@ void KratosApplication::RegisterKratosCore() {
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();
     RegisterPreconditioners();
-
+  
     // Register of solving strategies
     RegisterBuilderAndSolvers();
     RegisterConvergenceCriterias();
@@ -183,11 +183,12 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex3D4N", mLevelSetConvectionElementSimplex3D4N)
 
     KRATOS_REGISTER_MODELER("Modeler", mModeler);
+    KRATOS_REGISTER_MODELER("CadIoModeler", mCadIoModeler);
 
     //Register general geometries:
     // Point register:
     Serializer::Register("Point", mPointPrototype);
-
+  
     // Register + KratosComponents
     KRATOS_REGISTER_GEOMETRY("Point2D", mPoint2DPrototype);
     KRATOS_REGISTER_GEOMETRY("Point3D", mPoint3DPrototype);

@@ -348,7 +348,7 @@ class FluidSolver(PythonSolver):
                             domain_size)
                 # BDF2 time integration scheme
                 elif self.settings["time_scheme"].GetString() == "bdf2":
-                    scheme = KratosCFD.GearScheme()
+                    scheme = KratosCFD.BDF2TurbulentScheme()
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
                     scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
