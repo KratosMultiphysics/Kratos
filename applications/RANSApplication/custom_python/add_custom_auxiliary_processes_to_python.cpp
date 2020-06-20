@@ -28,9 +28,6 @@
 #include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_low_re_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_process.h"
-#include "custom_processes/auxiliary_processes/rans_scalar_cell_center_averaging_process.h"
-#include "custom_processes/auxiliary_processes/rans_vector_align_process.h"
-#include "custom_processes/auxiliary_processes/rans_vector_cell_center_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
 
 // RANS sensitivity processes
@@ -60,16 +57,6 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         m, "RansCheckVectorBoundsProcess")
         .def(py::init<Model&, Parameters&>());
 
-    using RansScalarCellCenterAveragingProcessType = RansScalarCellCenterAveragingProcess;
-    py::class_<RansScalarCellCenterAveragingProcessType, RansScalarCellCenterAveragingProcessType::Pointer, Process>(
-        m, "RansScalarCellCenterAveragingProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansVectorCellCenterAveragingProcessType = RansVectorCellCenterAveragingProcess;
-    py::class_<RansVectorCellCenterAveragingProcessType, RansVectorCellCenterAveragingProcessType::Pointer, Process>(
-        m, "RansVectorCellCenterAveragingProcess")
-        .def(py::init<Model&, Parameters&>());
-
     using RansApplyFlagProcessType = RansApplyFlagProcess;
     py::class_<RansApplyFlagProcessType, RansApplyFlagProcessType::Pointer, Process>(
         m, "RansApplyFlagProcess")
@@ -78,11 +65,6 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     using RansFindConditionParentProcessType = RansFindConditionParentProcess;
     py::class_<RansFindConditionParentProcessType, RansFindConditionParentProcessType::Pointer, Process>(
         m, "RansFindConditionParentProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansVectorAlignProcessType = RansVectorAlignProcess;
-    py::class_<RansVectorAlignProcessType, RansVectorAlignProcessType::Pointer, Process>(
-        m, "RansVectorAlignProcess")
         .def(py::init<Model&, Parameters&>());
 
     using RansWallDistanceCalculationProcessType =

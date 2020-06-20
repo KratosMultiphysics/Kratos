@@ -60,7 +60,7 @@ class PFEM2NavierStokesMonolithicSolver(NavierStokesSolverMonolithic):
                                         self.settings["move_mesh_strategy"].GetInt(),
                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
             elif self.settings["time_scheme"].GetString() == "bdf2":
-                self.time_scheme = KratosCFD.GearScheme()
+                self.time_scheme = KratosCFD.BDF2TurbulentScheme()
             elif self.settings["time_scheme"].GetString() == "steady":
                 self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
                                         self.settings["velocity_relaxation"].GetDouble(),

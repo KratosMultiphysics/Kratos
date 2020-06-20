@@ -27,7 +27,7 @@
 #include "trilinos_space.h"
 
 // FluidDynamicsApplication dependencies
-#include "custom_strategies/schemes/gear_scheme.h"
+#include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 
@@ -43,10 +43,10 @@ void AddTrilinosSchemesToPython(pybind11::module& m)
 
     using TrilinosBaseScheme = Scheme< TrilinosSparseSpace, UblasLocalSpace >;
 
-    using TrilinosGearScheme = GearScheme<TrilinosSparseSpace, UblasLocalSpace>;
-    py::class_< TrilinosGearScheme, typename TrilinosGearScheme::Pointer, TrilinosBaseScheme >( m,"TrilinosGearScheme")
-    .def(py::init<Process::Pointer >() )
+    using TrilinosBDF2TurbulentScheme = BDF2TurbulentScheme<TrilinosSparseSpace, UblasLocalSpace>;
+    py::class_< TrilinosBDF2TurbulentScheme, typename TrilinosBDF2TurbulentScheme::Pointer, TrilinosBaseScheme >( m,"TrilinosBDF2TurbulentScheme")
     .def(py::init<>()) // constructor without a turbulence model
+    .def(py::init<Process::Pointer>() ) // constructor with a turbulence model
     .def(py::init<const Variable<int>&>()) // constructor for periodic conditions
     ;
 
