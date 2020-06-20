@@ -184,6 +184,20 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/StructuralMechanicsApplication/tests/test_StructuralMechanicsApplication_mpi.py --using-mpi
 
+    - name: Running MPI Python FluidDynamicsApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/FluidDynamicsApplication/tests/test_FluidDynamicsApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python RANSApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/RANSApplication/tests/test_RANSApplication_mpi.py --using-mpi
+
 
   windows:
     runs-on: windows-latest
@@ -202,12 +216,12 @@ jobs:
         path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
-      
+
     - name: Installing dependencies
       shell: cmd
       run: |
         pip install numpy
-      
+
     - name: Build
       shell: cmd
       run: |

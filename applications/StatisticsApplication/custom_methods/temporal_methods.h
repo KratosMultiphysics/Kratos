@@ -41,7 +41,7 @@ namespace Kratos
 
 namespace TemporalMethods
 {
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor>
+template <class TContainerType, class TContainerItemType, template <class T> class TDataRetrievalFunctor, template <class T> class TDataStorageFunctor>
 class ContainerTemporalMethods
 {
 public:
@@ -67,7 +67,7 @@ using NodesContainerType = ModelPart::NodesContainerType;
 using ElementsContainerType = ModelPart::ElementsContainerType;
 using ConditionsContainerType = ModelPart::ConditionsContainerType;
 
-template <template <typename T> typename TDataStorageFunctor>
+template <template <class T> class TDataStorageFunctor>
 class HistoricalTemporalMethods
     : public ContainerTemporalMethods<NodesContainerType, NodeType, MethodUtilities::HistoricalDataValueRetrievalFunctor, TDataStorageFunctor>
 {
