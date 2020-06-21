@@ -59,7 +59,7 @@ public:
 
     typedef typename DofUpdater<TSparseSpace >::UniquePointer DofUpdaterPointerType;
 
-    typedef std::vector<std::tuple<VariableData, TDataType, TDataType>> ConvergenceVariableListType;
+    typedef std::vector<std::tuple<VariableData*, TDataType, TDataType>> ConvergenceVariableListType;
 
     typedef std::size_t KeyType;
 
@@ -77,11 +77,11 @@ public:
     TrilinosMixedGenericCriteria(const ConvergenceVariableListType& rConvergenceVariablesList)
         : ConvergenceCriteria<TSparseSpace, TDenseSpace>()
         , mVariableSize([&] (const ConvergenceVariableListType& rList) -> int {return rList.size();} (rConvergenceVariablesList))
-        , mVariableDataVector([&] (const ConvergenceVariableListType& rList) -> std::vector<std::shared_ptr<VariableData>> {
+        , mVariableDataVector([&] (const ConvergenceVariableListType& rList) -> std::vector<VariableData*> {
             int i = 0;
-            std::vector<std::shared_ptr<VariableData>> aux_vect(mVariableSize);
+            std::vector<VariableData*> aux_vect(mVariableSize);
             for (const auto &r_tup : rList) {
-                aux_vect[i++] = Kratos::make_shared<VariableData>(std::get<0>(r_tup));
+                aux_vect[i++] = std::get<0>(r_tup);
             }
             return aux_vect;
         } (rConvergenceVariablesList))
@@ -105,7 +105,7 @@ public:
             KeyType local_key = 0;
             std::unordered_map<KeyType, KeyType> aux_map;
             for (const auto &r_tup : rList) {
-                const auto *p_var_data = &(std::get<0>(r_tup));
+                const auto *p_var_data = std::get<0>(r_tup);
                 aux_map[p_var_data->Key()] = local_key++;
             }
             return aux_map;
@@ -283,7 +283,7 @@ private:
     ///@{
 
     const int mVariableSize;
-    const std::vector<std::shared_ptr<VariableData>> mVariableDataVector;
+    const std::vector<VariableData*> mVariableDataVector;
     const std::vector<TDataType> mRatioToleranceVector;
     const std::vector<TDataType> mAbsToleranceVector;
     std::unordered_map<KeyType, KeyType> mLocalKeyMap;
