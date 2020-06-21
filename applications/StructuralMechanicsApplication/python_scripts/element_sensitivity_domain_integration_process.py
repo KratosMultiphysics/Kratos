@@ -14,12 +14,7 @@ def CheckAvailabilityOfSensitivities(variable, model_part):
     variable -- traced variable within sensitivity analysis.
     model_part -- sub model part of the sensitivity model part.
     """
-
-    if sys.version_info[0] >= 3: # python3 syntax
-        return model_part.Elements.__iter__().__next__().Has(variable)
-    else: # python2 syntax
-        return model_part.Elements.__iter__().next().Has(variable)
-
+    return model_part.Elements.__iter__().__next__().Has(variable)
 
 class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
     """
