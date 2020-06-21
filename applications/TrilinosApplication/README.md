@@ -26,7 +26,7 @@ The Trilinos application also provides __MPI versions of most of the core classe
 - TrilinosResidualCriteria
 - TrilinosAndCriteria
 - TrilinosOrCriteria
-- TrilinosMixedVectorScalarCriteria
+- TrilinosMixedGenericCriteria
 
 #### Solving Strategies
 - TrilinosSolvingStrategy
