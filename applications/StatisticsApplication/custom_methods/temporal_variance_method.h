@@ -36,22 +36,23 @@ namespace Kratos
 
 namespace TemporalMethods
 {
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor>
+template <class TContainerType, class TContainerItemType, template <class T> class TDataRetrievalFunctor, template <class T> class TDataStorageFunctor>
 class TemporalVarianceMethod
 {
 public:
-    template <typename TDataType>
+    template <class TDataType>
     class ValueMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(ValueMethod);
 
-        ValueMethod(ModelPart& rModelPart,
-                    const std::string& rNormType,
-                    const Variable<TDataType>& rInputVariable,
-                    const int EchoLevel,
-                    const Variable<TDataType>& rOutputMeanVariable,
-                    const Variable<TDataType>& rOutputVarianceVariable)
+        ValueMethod(
+            ModelPart& rModelPart,
+            const std::string& rNormType,
+            const Variable<TDataType>& rInputVariable,
+            const int EchoLevel,
+            const Variable<TDataType>& rOutputMeanVariable,
+            const Variable<TDataType>& rOutputVarianceVariable)
             : TemporalMethod(rModelPart, EchoLevel),
               mrInputVariable(rInputVariable),
               mrOutputMeanVariable(rOutputMeanVariable),
@@ -70,10 +71,14 @@ public:
             KRATOS_CATCH("");
         }
 
-        void CalculateStatistics(const double DeltaTime) override
+        void CalculateStatistics() override
         {
             TContainerType& r_container =
                 MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
+
+            const double delta_time = this->GetDeltaTime();
+            const double old_total_time = this->GetTotalTime();
+            const double total_time = old_total_time + delta_time;
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -92,10 +97,9 @@ public:
 
                 TemporalVarianceMethod::CalculateMeanAndVariance<TDataType>(
                     r_output_mean_value, r_output_variance_value, r_input_value,
-                    DeltaTime, this->GetTotalTime());
+                    delta_time, old_total_time, total_time);
             }
 
-            TemporalMethod::CalculateStatistics(DeltaTime);
             KRATOS_INFO_IF("TemporalValueVarianceMethod", this->GetEchoLevel() > 1)
                 << "Calculated temporal value variance for "
                 << mrInputVariable.Name() << " input variable with "
@@ -110,8 +114,7 @@ public:
                 MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
-                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
-                                                              TDataStorageFunctor, TDataType>;
+                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor, TDataType>;
             initializer_method(r_container, mrOutputMeanVariable, mrInputVariable);
             initializer_method(r_container, mrOutputVarianceVariable, mrInputVariable);
 
@@ -129,18 +132,19 @@ public:
         const Variable<TDataType>& mrOutputVarianceVariable;
     };
 
-    template <typename TDataType>
+    template <class TDataType>
     class NormMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(NormMethod);
 
-        NormMethod(ModelPart& rModelPart,
-                   const std::string& rNormType,
-                   const Variable<TDataType>& rInputVariable,
-                   const int EchoLevel,
-                   const Variable<double>& rOutputMeanVariable,
-                   const Variable<double>& rOutputVarianceVariable)
+        NormMethod(
+            ModelPart& rModelPart,
+            const std::string& rNormType,
+            const Variable<TDataType>& rInputVariable,
+            const int EchoLevel,
+            const Variable<double>& rOutputMeanVariable,
+            const Variable<double>& rOutputVarianceVariable)
             : TemporalMethod(rModelPart, EchoLevel),
               mNormType(rNormType),
               mrInputVariable(rInputVariable),
@@ -160,13 +164,17 @@ public:
             KRATOS_CATCH("");
         }
 
-        void CalculateStatistics(const double DeltaTime) override
+        void CalculateStatistics() override
         {
             TContainerType& r_container =
                 MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             const auto& norm_method =
                 MethodUtilities::GetNormMethod(mrInputVariable, mNormType);
+
+            const double delta_time = this->GetDeltaTime();
+            const double old_total_time = this->GetTotalTime();
+            const double total_time = old_total_time + delta_time;
 
             const int number_of_items = r_container.size();
 #pragma omp parallel for
@@ -183,10 +191,9 @@ public:
 
                 TemporalVarianceMethod::CalculateMeanAndVariance<double>(
                     r_output_mean_value, r_output_variance_value,
-                    input_norm_value, DeltaTime, this->GetTotalTime());
+                    input_norm_value, delta_time, old_total_time, total_time);
             }
 
-            TemporalMethod::CalculateStatistics(DeltaTime);
             KRATOS_INFO_IF("TemporalNormVarianceMethod", this->GetEchoLevel() > 1)
                 << "Calculated temporal norm variance for " << mrInputVariable.Name()
                 << " input variable with " << mrOutputMeanVariable.Name()
@@ -286,20 +293,21 @@ public:
     }
 
 private:
-    template <typename TDataType>
-    void static CalculateMeanAndVariance(TDataType& rMean,
-                                         TDataType& rVariance,
-                                         const TDataType& rNewDataPoint,
-                                         const double DeltaTime,
-                                         const double TotalTime)
+    template <class TDataType>
+    void static CalculateMeanAndVariance(
+        TDataType& rMean,
+        TDataType& rVariance,
+        const TDataType& rNewDataPoint,
+        const double DeltaTime,
+        const double OldTotalTime,
+        const double CurrentTotalTime)
     {
-        const double new_total_time = TotalTime + DeltaTime;
         const TDataType new_mean =
-            (rMean * TotalTime + rNewDataPoint * DeltaTime) * (1.0 / new_total_time);
+            (rMean * OldTotalTime + rNewDataPoint * DeltaTime) * (1.0 / CurrentTotalTime);
         rVariance =
-            ((rVariance + MethodUtilities::RaiseToPower<TDataType>(rMean, 2)) * TotalTime +
+            ((rVariance + MethodUtilities::RaiseToPower<TDataType>(rMean, 2)) * OldTotalTime +
              MethodUtilities::RaiseToPower<TDataType>(rNewDataPoint, 2) * DeltaTime) *
-                (1 / new_total_time) -
+                (1 / CurrentTotalTime) -
             MethodUtilities::RaiseToPower<TDataType>(new_mean, 2);
         rMean = new_mean;
     }

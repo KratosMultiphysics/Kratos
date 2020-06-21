@@ -34,8 +34,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
 ///@}
 ///@name  Enum's
 ///@{

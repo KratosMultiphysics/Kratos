@@ -56,7 +56,7 @@ public:
 
     typedef Element::DofsVectorType DofsVectorType;
     typedef Node<3>::Pointer PointTypePointer;
-    typedef Variable<double> VariableComponentType;
+    typedef Variable<double> DoubleVariableType;
 
     ///@}
     ///@name Pointer Definitions

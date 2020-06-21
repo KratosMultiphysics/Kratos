@@ -42,11 +42,11 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, pare
 
     return convergence_criteria
 
-def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_echo_level):
+def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_coupled_solver_process_info, parent_echo_level):
     coupling_operations = {}
     for coupling_operation_name, coupling_operation_settings in coupling_operations_settings_dict.items():
         AddEchoLevelToSettings(coupling_operation_settings, parent_echo_level)
-        coupling_operations[coupling_operation_name] = CreateCouplingOperation(coupling_operation_settings, solvers)
+        coupling_operations[coupling_operation_name] = CreateCouplingOperation(coupling_operation_settings, solvers, parent_coupled_solver_process_info)
 
     return coupling_operations
 

@@ -96,9 +96,9 @@ void GenerateDemProcess::Execute()
                     const int id = this->GetMaximumDEMId() + 1;
                     
                     if (mrDEMModelPart.Elements().size() == 0)
-                        this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, radius, r_node);
+                        this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, 0.8*radius, r_node);
                     else 
-                        this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, radius, r_node);
+                        this->CreateDEMParticle(id, r_coordinates, p_DEM_properties,0.8* radius, r_node);
                 }
             }
             it_elem->SetValue(DEM_GENERATED, true);

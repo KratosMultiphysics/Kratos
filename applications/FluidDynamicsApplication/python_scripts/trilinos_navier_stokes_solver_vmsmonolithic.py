@@ -184,7 +184,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                             domain_size)
                 # BDF2 time integration scheme
                 elif self.settings["time_scheme"].GetString() == "bdf2":
-                    scheme = TrilinosFluid.TrilinosGearScheme()
+                    scheme = TrilinosFluid.TrilinosBDF2TurbulentScheme()
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
                     scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
