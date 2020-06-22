@@ -160,7 +160,7 @@ namespace Kratos
 					// }
 				}
 
-				if (sliverEliminationCriteria == false)
+				if (sliverEliminationCriteria == false && dimension == 3)
 				{
 
 					array_1d<double, 3> nodeA = itElem->GetGeometry()[0].Coordinates();
