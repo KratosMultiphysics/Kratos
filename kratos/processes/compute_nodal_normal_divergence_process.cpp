@@ -23,12 +23,15 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     // Set to zero
     ClearDivergence();
 
+    // Auxiliary containers
+    Matrix J0, InvJ0, DN_DX;
+
     // First element iterator
     const auto it_element_begin = mrModelPart.ElementsBegin();
 
     if (!mNonHistoricalOriginVariable) {
         // Iterate over the elements
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(J0, InvJ0, DN_DX)
         for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
             auto it_elem = it_element_begin + i_elem;
             auto& r_geometry = it_elem->GetGeometry();
@@ -48,7 +51,7 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Getting the jacobians and local shape functions gradient
                 double detJ0;
-                Matrix J0, InvJ0, DN_DX;
+
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
                 MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
@@ -81,7 +84,7 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
         }
     } else{
         // Iterate over the elements
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(J0, InvJ0, DN_DX)
         for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
             auto it_elem = it_element_begin + i_elem;
             auto& r_geometry = it_elem->GetGeometry();
@@ -101,7 +104,7 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Getting the jacobians and local shape functions gradient
                 double detJ0;
-                Matrix J0, InvJ0, DN_DX;
+
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
                 MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
@@ -266,7 +269,7 @@ template <>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::PonderateDivergence()
 {
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-            rNode.FastGetSolutionStepValue(*mpDivergenceVariable) /= 
+            rNode.FastGetSolutionStepValue(*mpDivergenceVariable) /=
                 rNode.GetValue(*mpAreaVariable);
         });
 }
@@ -278,7 +281,7 @@ template <>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::PonderateDivergence()
 {
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-            rNode.GetValue(*mpDivergenceVariable) /= 
+            rNode.GetValue(*mpDivergenceVariable) /=
                 rNode.GetValue(*mpAreaVariable);
         });
 }
