@@ -112,7 +112,7 @@ for dim in dim_vector:
     rhs_stab_2_convection_1 = q_gauss * (v_gauss.transpose() * grad_phi)
     rhs_stab_2_convection_2 = q_gauss * phi_gauss * div_v
     rhs_stab_2_diffusion = k * grad_phi.transpose() * grad_q
-    rhs_stab_2_mass_subgrid_old = tau * q_gauss.transpose() * phi_subscale_gauss
+    rhs_stab_2_mass_subgrid_old = (1/tau) * q_gauss.transpose() * phi_subscale_gauss
     rhs_stab_2 = rhs_stab_2_forcing + rhs_stab_2_mass + rhs_stab_2_convection_1 + rhs_stab_2_convection_2 + rhs_stab_2_diffusion + rhs_stab_2_mass_subgrid_old
     # OSS term of mass term
     rhs_stab_2_oss = - q_gauss.transpose() * prj_gauss

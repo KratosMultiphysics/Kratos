@@ -266,7 +266,7 @@ const double clhs18 =             clhs17*clhs6;
             lhs(2,2)=-pow(N[2], 2)*clhs0 + N[2]*clhs18 + clhs11*clhs17 + pow(clhs12, 2)*tau;
 
 
-    const double crhs0 =             phi_subscale_gauss*tau;
+    const double crhs0 =             phi_subscale_gauss/tau;
 const double crhs1 =             N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2];
 const double crhs2 =             (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]))/(RK_time_coefficient*delta_time);
 const double crhs3 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2];
@@ -355,7 +355,7 @@ const double clhs26 =             clhs25*clhs7;
             lhs(3,3)=-pow(N[3], 2)*clhs0 + N[3]*clhs26 + clhs15*clhs25 + pow(clhs16, 2)*tau;
 
 
-    const double crhs0 =             phi_subscale_gauss*tau;
+    const double crhs0 =             phi_subscale_gauss/tau;
 const double crhs1 =             N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2] + N[3]*prj[3];
 const double crhs2 =             (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]))/(RK_time_coefficient*delta_time);
 const double crhs3 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2] + N[3]*f[3];
