@@ -49,7 +49,7 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
             auto& r_geometry = it_elem->GetGeometry();
 
             // Current geometry information
-            const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
+            //const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
             const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
             // Resize if needed
