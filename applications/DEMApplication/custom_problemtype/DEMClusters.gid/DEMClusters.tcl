@@ -106,6 +106,10 @@ proc AfterMeshGeneration {fail} {
 
 proc OneClickGo {} {
 
+    # This part is a problem
+    # DeleteSpheresMesh
+    # DeleteSpheresGeometry
+
     # Generate OBJ and MSH files on Calculate
     GiD_Process Mescape Utilities Calculate MEscape 
 
@@ -117,6 +121,7 @@ proc OneClickGo {} {
 
     # Generate cluster defined by spheres over the current tetrahedra mesh
     #ReadClusterFileintoMesh
+    ReadClusterFileintoGeometry
 }
 
 
@@ -124,8 +129,6 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 
     source [file join $problemtypedir OBJFile.tcl]
     set OBJOutput [GenerateOBJFile $basename $dir $problemtypedir]
-
-    DeleteSpheres
 
     set modelname [GiD_Info Project ModelName]
     set export_msh [file join ${modelname}.gid generic.msh]
@@ -542,17 +545,27 @@ proc ReadClusterFileintoMesh { } {
     #     }
     # }
 
-    # W "2"
-    # set sphere_nodes [list]
-    # foreach line $data {
-    #     if {[llength $line] >3} {
-    # #         set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
-    # #         GiD_Mesh create node append [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] ;
-    # #         lappend sphere_nodes {*}$nodes ;  
-    #           lappend sphere_nodes [GiD_Mesh create node append [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2]] ;  
-    #     }
-    # }
-    # W $sphere_nodes
+    W "2"
+    set sphere_nodes [list]
+    foreach line $data {
+        if {[llength $line] >3} {
+    #       set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
+    #       GiD_Mesh create node append [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] ;
+    #       lappend sphere_nodes {*}$nodes ;  
+            #lappend sphere_nodes [GiD_Mesh create node append {[lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2]}] ;  
+            #GiD_Mesh create node append [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2];
+       		set x [lrange $line 0 0]
+            set y [lrange $line 1 1]
+            set z [lrange $line 2 2]
+            W $x
+            W $y
+            W $z
+            set node_id [GiD_Mesh create node append {-100 0 0}] ;
+            set node_id [GiD_Mesh create node append {$x $y $z}] ; 
+            lappend sphere_nodes {*}$node_id ;       
+        }
+    }
+    W $sphere_nodes
 
     # foreach node $sphere_nodes {
     #     GiD_Mesh create element append Sphere 1 1 <radius>
