@@ -369,8 +369,9 @@ void VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsHistorica
     Vector& rVector
     )
 {
-    for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node)
+    for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node) {
         rVector[i_node] = rGeometry[i_node].FastGetSolutionStepValue(rVariable);
+    }
 }
 
 /***********************************************************************************/
@@ -383,8 +384,9 @@ void VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistor
     Vector& rVector
     )
 {
-    for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node)
+    for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node) {
         rVector[i_node] = rGeometry[i_node].GetValue(rVariable);
+    }
 }
 
 /***********************************************************************************/

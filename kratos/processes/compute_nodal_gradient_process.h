@@ -75,6 +75,7 @@ struct AuxiliarVariableVectorRetriever
         Vector& rVector
         )
     {
+        KRATOS_ERROR << "Calling base class implementation" << std::endl;
     }
 };
 
