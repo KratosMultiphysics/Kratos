@@ -55,7 +55,9 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateSPH" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateCLU" ] 2 PRE [list GenerateClusterFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster" ] 3 PRE [list ReadClusterFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in mesh" ] 3 PRE [list ReadClusterFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in geom" ] 4 PRE [list ReadClusterFileintoGeometry] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "All-in-One" ] 5 PRE [list OneClickGo] "" ""
         GiDMenu::UpdateMenus
     }
 
@@ -104,22 +106,26 @@ proc AfterMeshGeneration {fail} {
 
 proc OneClickGo {} {
 
-    # GiD_Process Mescape Utilities Calculate MEscape Files WriteCalcFile Mescape
-    # new proc
-    # 0delete old spheres from geometry
-    # 1 calculate
-    # 2 GenerateSPH
-    # 3Generateclu
-    # 4visualize
+    # Generate OBJ and MSH files on Calculate
+    GiD_Process Mescape Utilities Calculate MEscape 
+
+    # Generate SPH file from OBJ
+    GenerateSPHFileFromOBJFile
+
+    # Generate CLU file from MSH and SPH
+    GenerateClusterFile
+
+    # Generate cluster defined by spheres over the current tetrahedra mesh
+    #ReadClusterFileintoMesh
 }
 
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
-    # add HERE proc to delete all geometry spheres
-
     source [file join $problemtypedir OBJFile.tcl]
     set OBJOutput [GenerateOBJFile $basename $dir $problemtypedir]
+
+    DeleteSpheres
 
     set modelname [GiD_Info Project ModelName]
     set export_msh [file join ${modelname}.gid generic.msh]
@@ -127,15 +133,6 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 }
 
 proc AfterRunCalculation {basename dir problemtypedir where error errorfilename} {
-
-    ::KUtils::IsProcessRunningVar Set 0
-
-    # GenerateSPHFileFromOBJFile
-    # GenerateClusterFile
-    # ReadClusterFile
-
-
-    # return nowindow
     return 0
 }
 
@@ -352,27 +349,27 @@ proc DEMClusters::call_makeTreeOctree { } {
 
 proc GenerateClusterFile { } {
 
-    set all [GiD_Tools geometry mass_properties 1]
+    # set all [GiD_Tools geometry mass_properties 1]
 
-    set mass [lrange $all 0 0]
-    W $mass
+    # set mass [lrange $all 0 0]
+    # W $mass
 
-    set a [join [lrange $all 1 1]]
-    set centerX [lindex $a 0]
-    set centerY [lindex $a 1]
-    set centerZ [lindex $a 2]
-    W $centerX
-    W $centerY
-    W $centerZ
+    # set a [join [lrange $all 1 1]]
+    # set centerX [lindex $a 0]
+    # set centerY [lindex $a 1]
+    # set centerZ [lindex $a 2]
+    # W $centerX
+    # W $centerY
+    # W $centerZ
 
-    set a [join [lrange $all 2 2]]
-    set Ixx [expr {[lindex $a 0]/$mass}]
-    set Iyy [expr {[lindex $a 1]/$mass}]
-    set Izz [expr {[lindex $a 2]/$mass}]
-    W $Ixx
-    W $Iyy
-    W $Izz
-    W "xxx"
+    # set a [join [lrange $all 2 2]]
+    # set Ixx [expr {[lindex $a 0]/$mass}]
+    # set Iyy [expr {[lindex $a 1]/$mass}]
+    # set Izz [expr {[lindex $a 2]/$mass}]
+    # W $Ixx
+    # W $Iyy
+    # W $Izz
+    # W "xxx"
 
     
     # It returns a list with 3 items: mass {center_x center_y center_z} {Ixx Iyy Izz Ixy Iyz Ixz}
@@ -423,11 +420,18 @@ proc GenerateClusterFile { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
     }
 
+
+    #TODO: on windows seems to be working but no file is generated. Write access?
+    W $program
+    W $genericMSHFilename
+    W $genericSPHFilename
+
     
-    exec $program $argv_number $genericMSHFilename $genericSPHFilename
+    exec $program 2 $genericMSHFilename $genericSPHFilename
     # FOR DEBUG - 
     # exec $program $argv_number $genericMSHFilename $genericSPHFilename > [file join $::DEMClusters::ProblemPath output.txt]
-    # REGENERATE EXEC FOR WINDOWS : exec>g++ -static-libgcc -static-libstdc++ -o create_cluster.exe mesh_to_clu_converter.cpp
+    # REGENERATE EXEC FOR WINDOWS : exec> g++ -static-libgcc -static-libstdc++ -o create_cluster.exe mesh_to_clu_converter.cpp
+    # g++ -o create_cluster.exe mesh_to_clu_converter.cpp
 }
 
 
@@ -477,7 +481,7 @@ proc AlignSurfNormals {direction} {
 
 
 
-proc ReadClusterFile { } {
+proc ReadClusterFileintoGeometry { } {
 
     set modelname [GiD_Info Project ModelName]
     set clustername [file join ${modelname}.gid generic_cluster.clu]
@@ -506,24 +510,53 @@ proc ReadClusterFileintoMesh { } {
     lreplace $file_data end end
     close $FileVar
 
-    GiD_Process Mescape Meshing EditMesh CreateElement Sphere 10 1 1 1 escape escape
+    W "1"
+
+    #GiD_Process Mescape Meshing EditMesh CreateElement Sphere 10 1 1 1 escape escape
+
+
+    #GiD_Mesh create node append <x y z>
+
+    # GiD_Mesh create element append Sphere 1 1 <radius> 
+
+    # <num>|append : <num> is the identifier (integer > 0) for the node. You can use the word 'append' to set a new number automatically. The number of the created entity is returned as the result.
+    # <elemtype> : must be one of "Point | Line | Triangle | Quadrilateral | Tetrahedra | Hexahedra | Prism | Pyramid | Sphere | Circle"
+    # <nnode> is the number of nodes an element has
+    # <N1 ... Nnnode> is a Tcl list with the element connectivities
+    # <radius> is the element radius, only for sphere and circle elements
+    # <nx> <ny> <nz> is the normal of the plane that contain the circle, must be specified for circle elements only
+    # <matname> is the optional element material name
 
 
     #  Process data file
     set data [split $file_data "\n"]
     set data [lreplace $data end-14 end]
-    foreach line $data {
-        if {[llength $line] >3} {
-            W $line
-            W [lrange $line 3 3]
-            W [lrange $line 0 0]
-            W [lrange $line 1 1]
-            W [lrange $line 2 2]
-            # GiD_Process Mescape
-            GiD_Process Mescape Meshing EditMesh CreateElement Sphere [lrange $line 3 3] [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] escape escape
-            # GiD_Process Mescape
-        }
-    }
+    # foreach line $data {
+    #     if {[llength $line] >3} {
+    #         W $line
+    #         W [lrange $line 3 3]
+    #         W [lrange $line 0 0]
+    #         W [lrange $line 1 1]
+    #         W [lrange $line 2 2]
+    #         GiD_Process Mescape Meshing EditMesh CreateElement Sphere [lrange $line 3 3] [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] Mescape escape ;
+    #     }
+    # }
+
+    # W "2"
+    # set sphere_nodes [list]
+    # foreach line $data {
+    #     if {[llength $line] >3} {
+    # #         set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
+    # #         GiD_Mesh create node append [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] ;
+    # #         lappend sphere_nodes {*}$nodes ;  
+    #           lappend sphere_nodes [GiD_Mesh create node append [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2]] ;  
+    #     }
+    # }
+    # W $sphere_nodes
+
+    # foreach node $sphere_nodes {
+    #     GiD_Mesh create element append Sphere 1 1 <radius>
+    # }
 }
 
 

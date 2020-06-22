@@ -1,3 +1,12 @@
+proc DeleteSpheres { } {
+
+    set spheres [GiD_Mesh list -element_type {sphere} element]
+    W $spheres
+    foreach element_id $spheres { ;
+        GiD_Mesh delete element element_id ;                            
+    }
+}
+
 proc GenerateOBJFile { basename dir problemtypedir } {
 
     ## Source auxiliar procedures
