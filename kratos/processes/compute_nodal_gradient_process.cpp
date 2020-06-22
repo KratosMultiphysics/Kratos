@@ -57,11 +57,11 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
         J0.resize(dimension, local_space_dimension_first_element);
 
     // Variable retriever
-    AuxiliarVariableVectorRetriever variable_retriever;
+    AuxiliarVariableVectorRetriever* p_variable_retriever = nullptr;
     if (mNonHistoricalVariable) {
-        variable_retriever = VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistoricalVariable>();
+        p_variable_retriever = new VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistoricalVariable>();
     } else {
-        variable_retriever = VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsHistoricalVariable>();
+        p_variable_retriever = new VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsHistoricalVariable>();
     }
 
     // Iterate over the elements
@@ -85,7 +85,7 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
         const std::size_t number_of_integration_points = r_integration_points.size();
 
         // Fill vector
-        variable_retriever.GetVariableVector(r_geometry, *mpOriginVariable, values);
+        p_variable_retriever->GetVariableVector(r_geometry, *mpOriginVariable, values);
 
         // The containers of the shape functions and the local gradients
         const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
@@ -120,6 +120,8 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
     }
 
     PonderateGradient();
+
+    delete p_variable_retriever;
 
     KRATOS_CATCH("")
 }

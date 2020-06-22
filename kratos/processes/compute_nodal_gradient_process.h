@@ -63,6 +63,11 @@ struct ComputeNodalGradientProcessSettings
  */
 struct AuxiliarVariableVectorRetriever
 {
+    /// Destructor.
+    virtual ~AuxiliarVariableVectorRetriever()
+    {
+    }
+
     /**
      * @brief This method fills the vector of values
      * @param rGeometry The geometry where values are stored
@@ -86,6 +91,11 @@ template<bool THistorical>
 struct VariableVectorRetriever
     : public AuxiliarVariableVectorRetriever
 {
+    /// Destructor.
+    ~VariableVectorRetriever() override
+    {
+    }
+
     /**
      * @brief This method fills the vector of values
      * @param rGeometry The geometry where values are stored
