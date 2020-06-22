@@ -569,6 +569,8 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     ElementalData<TNumNodes, TDim> data;
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
+    TestAssemblyFunction(rCurrentProcessInfo);
+
     const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
 
     const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
@@ -1016,14 +1018,14 @@ array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNum
     current_element_ids.resize(TNumNodes, false);
     array_1d<size_t, TNumNodes> upwind_node_key;
 
-    for (int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        current_element_ids[i] = rGeom[i].Id();
+        current_element_ids[i] = rGeom[i].GetDof(VELOCITY_POTENTIAL).EquationId();
     }
 
     for (int i = 0; i < TNumNodes; i++) { 
         auto current_id = std::find(current_element_ids.begin(), current_element_ids.end(),
-                rUpwindGeom[i].Id());
+                rUpwindGeom[i].GetDof(VELOCITY_POTENTIAL).EquationId());
 
         if( current_id == current_element_ids.end()) {
             upwind_node_key[i] = TNumNodes;
