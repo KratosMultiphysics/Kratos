@@ -49,9 +49,11 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
             const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
 
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+                // Getting the shape functions
+                const auto& N = row(rNcontainer, point_number);
+
                 // Getting the jacobians and local shape functions gradient
                 double detJ0;
-
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
                 MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
@@ -73,12 +75,12 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
                     double& r_divergence = GetDivergence(r_geometry, i_node);
 
                     #pragma omp atomic
-                    r_divergence += (row(rNcontainer, point_number))[i_node] * gauss_point_volume * divergence;
+                    r_divergence += N[i_node] * gauss_point_volume * divergence;
 
                     double& vol = r_geometry[i_node].GetValue(*mpAreaVariable);
 
                     #pragma omp atomic
-                    vol += (row(rNcontainer, point_number))[i_node] * gauss_point_volume;
+                    vol += N[i_node] * gauss_point_volume;
                 }
             }
         }
@@ -102,9 +104,11 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
             const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
 
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+                // Getting the shape functions
+                const auto& N = row(rNcontainer, point_number);
+
                 // Getting the jacobians and local shape functions gradient
                 double detJ0;
-
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
                 MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
@@ -126,12 +130,12 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
                     double& r_divergence = GetDivergence(r_geometry, i_node);
 
                     #pragma omp atomic
-                    r_divergence += (row(rNcontainer, point_number))[i_node] * gauss_point_volume * divergence;
+                    r_divergence += N[i_node] * gauss_point_volume * divergence;
 
                     double& vol = r_geometry[i_node].GetValue(*mpAreaVariable);
 
                     #pragma omp atomic
-                    vol += (row(rNcontainer, point_number))[i_node] * gauss_point_volume;
+                    vol += N[i_node] * gauss_point_volume;
                 }
             }
         }
