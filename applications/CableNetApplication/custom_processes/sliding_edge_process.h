@@ -33,7 +33,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
+class SlidingEdgeProcess
     : public Process
 {
   public:

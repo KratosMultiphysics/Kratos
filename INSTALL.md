@@ -7,7 +7,7 @@
   * [Specific Application Dependencies](#specific-application-dependencies)
 * [Basic Configuration](#basic-configuration)
 * [Adding Applications](#adding-applications)
-* [Adding Kratos to Path](#adding-kratos-to-path)
+* [Post Compilation](#post-compilation)
 * [Examples](#examples)
   * [Linux](#linux)
   * [Windows](#windows)
@@ -150,7 +150,7 @@ CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
 CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
 ```
 
-## Adding Kratos to Path
+## Post Compilation
 
 As Kratos is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the Kratos install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
 
@@ -164,6 +164,22 @@ If you are in windows instead do:
 ```cmd
 set PYTHONPATH=%PYTHONPATH%;C:/Kratos/bin/Release
 set PATH=%PATH%;C:/Kratos/bin/Release/libs
+```
+
+You can then test your compilation by executing an example script or trying to import the python module
+
+```python
+from KratosMultiphysics import *
+```
+
+The result should be:
+
+```
+   |  /           |             
+   ' /   __| _` | __|  _ \   __|
+   . \  |   (   | |   (   |\__ \ 
+  _|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 8.0
 ```
 
 ## Examples
@@ -407,14 +423,14 @@ Enables colored output of the Logger. If switched on, e.g. warning level message
 
 `-DUSE_METIS_5=ON/OFF`
 
-Specifies if the metis version is 5 or greater (OFF by default).
+Specifies if the metis version is 5 or greater (ON by default). Note that using metis 4 is deprecated and will be removed in the future.
 
 `-DMETIS_ROOT_DIR=String`
 
 Root directory for Metis library
 
 #### Trilinos
-On Ubuntu 18.04, the following command installs the necessary files:
+From Ubuntu 18.04 onwards, the following command installs the necessary files:
 
 ```Shell
 sudo apt-get install trilinos-all-dev
@@ -438,3 +454,10 @@ Indicates the prefix of the trilinos libraries in case they have:
 libepetra.so          -> No prefix
 libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
 ```
+If trilinos was installed using the package manager usually the following lines have to be used:
+```
+-DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
+-DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
+-DTRILINOS_LIBRARY_PREFIX="trilinos_" \
+```
+

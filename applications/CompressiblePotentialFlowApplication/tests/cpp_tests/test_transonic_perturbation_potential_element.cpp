@@ -37,6 +37,7 @@ void GenerateTransonicPerturbationElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.3;
     rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.99;
+    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
 
     BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
     free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) * rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
@@ -128,14 +129,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, Compress
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
-    std::array<double, 16> reference{ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037, 0.0,
+    std::array<double, 16> reference{ 0.061142784644415527,-0.1306215050744058, 0.06947872042999037, 0.0,
                                      -0.1306215050744058, 0.6710758508914103,-0.5404543458170046, 0.0,
                                       0.06947872042999037,-0.5404543458170046,0.4709756253870142, 0.0,
                                       0.0, 0.0, 0.0, 0.0};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 4 + j], 1e-16);
+            KRATOS_CHECK_RELATIVE_NEAR(LHS(i, j), reference[i * 4 + j], 1e-15);
         }
     }
 }
@@ -158,8 +159,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowInletElementLHS, Com
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
-    std::array<double, 9> reference{ 0.06114278464441542,-0.1306215050744058, 0.06947872042999037,
-                                     -0.1306215050744058, 0.6710758508914103,-0.5404543458170046,
+    std::array<double, 9> reference{ 0.061142784644415527,-0.1306215050744058, 0.06947872042999037,
+                                     -0.1306215050744058, 0.67107585089141042,-0.5404543458170046,
                                       0.06947872042999037,-0.5404543458170046,0.4709756253870142};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
@@ -332,11 +333,11 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, Comp
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
     // Check the LHS values
-    std::array<double,36> reference{0.06114278464441542,-0.1306215050744058,0.06947872042999037,0,0,0,
-    -0.1306215050744058,0.6710758508914103,-0.5404543458170046,0.1306215050744058,-0.6710758508914103,0.5404543458170046,
+    std::array<double,36> reference{0.061142784644415527,-0.1306215050744058,0.06947872042999037,0,0,0,
+    -0.1306215050744058,0.67107585089141042,-0.5404543458170046,0.1306215050744058,-0.67107585089141042,0.5404543458170046,
     0.06947872042999037,-0.5404543458170046,0.4709756253870142,-0.06947872042999037,0.5404543458170046,-0.4709756253870142,
-    -0.06114278464441542,0.1306215050744058,-0.06947872042999037,0.06114278464441542,-0.1306215050744058,0.06947872042999037,
-    0,0,0,-0.1306215050744058,0.6710758508914103,-0.5404543458170046,
+    -0.061142784644415527,0.1306215050744058,-0.06947872042999037,0.061142784644415527,-0.1306215050744058,0.06947872042999037,
+    0,0,0,-0.1306215050744058,0.67107585089141042,-0.5404543458170046,
     0,0,0,0.06947872042999037,-0.5404543458170046,0.4709756253870142};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {

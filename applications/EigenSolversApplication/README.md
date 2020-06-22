@@ -33,17 +33,19 @@ The application provides the following direct sparse solvers:
 
 The application provides the following direct solvers for dense systems of equations:
 
-| Python class                          | solver_type                         | Matrix requirements | Domain  | Dependencies |
-| ------------------------------------- | ----------------------------------- | :-----------------: | :-----: | :----------: |
-| DenseColPivHouseholderQRSolver        | `dense_col_piv_householder_qr`      |        None         |  Real   |     None     |
-| DenseHouseholderQRSolver              | `dense_householder_qr`              |        None         |  Real   |     None     |
-| DenseLLTSolver                        | `dense_llt`                         |        SPD*         |  Real   |     None     |
-| DensePartialPivLUSolver               | `dense_partial_piv_lu`              |     Invertible      |  Real   |     None     |
-| ComplexDenseColPivHouseholderQRSolver | `complex_dense_col_piv_householder_qr` |        None         | Complex |     None     |
-| ComplexDenseHouseholderQRSolver       | `complex_dense_householder_qr`       |        None         | Complex |     None     |
-| ComplexDensePartialPivLUSolver        | `complex_dense_partial_piv_lu`       |     Invertible      | Complex |     None     |
+| Python class                            | solver_type                            | Matrix requirements | Domain  | Dependencies |
+| --------------------------------------- | -------------------------------------- | :-----------------: | :-----: | :----------: |
+| DenseColPivHouseholderQRSolver**        | `dense_col_piv_householder_qr`         |        None         |  Real   |     None     |
+| DenseHouseholderQRSolver**              | `dense_householder_qr`                 |        None         |  Real   |     None     |
+| DenseLLTSolver**                        | `dense_llt`                            |        SPD*         |  Real   |     None     |
+| DensePartialPivLUSolver**               | `dense_partial_piv_lu`                 |     Invertible      |  Real   |     None     |
+| ComplexDenseColPivHouseholderQRSolver   | `complex_dense_col_piv_householder_qr` |        None         | Complex |     None     |
+| ComplexDenseHouseholderQRSolver         | `complex_dense_householder_qr`         |        None         | Complex |     None     |
+| ComplexDensePartialPivLUSolver          | `complex_dense_partial_piv_lu`         |     Invertible      | Complex |     None     |
 
 *SPD = Symmetric Positive Definite
+
+**Can also be used to solve equation systems with multiple right hand sides.
 
 ## Generalized eigensystem solvers
 
