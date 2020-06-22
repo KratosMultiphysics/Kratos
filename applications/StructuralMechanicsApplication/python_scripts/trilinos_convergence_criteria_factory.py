@@ -23,7 +23,7 @@ class convergence_criterion:
 
         rotation_dofs = False
         if convergence_criterion_parameters.Has("rotation_dofs"):
-            rotation_dofs = convergence_criterion_parameters["rotation_dofs"].GetBool():
+            rotation_dofs = convergence_criterion_parameters["rotation_dofs"].GetBool()
 
         if(echo_level >= 1):
             KratosMultiphysics.Logger.PrintInfo("::[Mechanical Solver]::", "MPI CONVERGENCE CRITERION : " + convergence_criterion_parameters["convergence_criterion"].GetString())
