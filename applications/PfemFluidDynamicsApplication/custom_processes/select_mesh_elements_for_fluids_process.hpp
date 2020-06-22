@@ -180,10 +180,10 @@ namespace Kratos
                     unsigned int previouslyIsolatedNodes = 0;
                     unsigned int sumPreviouslyIsolatedFreeSurf = 0;
                     unsigned int sumIsolatedFreeSurf = 0;
-                    // array_1d<double, 3> nodeA(3, 0.0);
-                    // array_1d<double, 3> nodeB(3, 0.0);
-                    // array_1d<double, 3> nodeC(3, 0.0);
-                    // array_1d<double, 3> nodeD(3, 0.0);
+                    array_1d<double, 3> nodeA(3, 0.0);
+                    array_1d<double, 3> nodeB(3, 0.0);
+                    array_1d<double, 3> nodeC(3, 0.0);
+                    array_1d<double, 3> nodeD(3, 0.0);
                     for (unsigned int pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
@@ -261,25 +261,25 @@ namespace Kratos
                                 SetAlphaForRefinedZones3D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
                             }
                         }
-                        // if (dimension == 3)
-                        // {
-                        //     if (pn == 0)
-                        //     {
-                        //         nodeA = vertices.back().Coordinates();
-                        //     }
-                        //     else if (pn == 1)
-                        //     {
-                        //         nodeB = vertices.back().Coordinates();
-                        //     }
-                        //     else if (pn == 2)
-                        //     {
-                        //         nodeC = vertices.back().Coordinates();
-                        //     }
-                        //     else if (pn == 3)
-                        //     {
-                        //         nodeD = vertices.back().Coordinates();
-                        //     }
-                        // }
+                        if (dimension == 3)
+                        {
+                            if (pn == 0)
+                            {
+                                nodeA = vertices.back().Coordinates();
+                            }
+                            else if (pn == 1)
+                            {
+                                nodeB = vertices.back().Coordinates();
+                            }
+                            else if (pn == 2)
+                            {
+                                nodeC = vertices.back().Coordinates();
+                            }
+                            else if (pn == 3)
+                            {
+                                nodeD = vertices.back().Coordinates();
+                            }
+                        }
                     }
 
                     if (box_side_element || wrong_added_node)
@@ -373,7 +373,7 @@ namespace Kratos
                     {
                         if (dimension == 2)
                         {
-                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid==0)
+                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid == 0)
                             {
                                 if (checkedNodes == nds)
                                 {
@@ -397,7 +397,7 @@ namespace Kratos
                         }
                         else if (dimension == 3)
                         {
-                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid==0)
+                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid == 0)
                             {
                                 if (checkedNodes == nds)
                                 {
@@ -414,76 +414,76 @@ namespace Kratos
                                     }
                                 }
                             }
-                            Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
-                            double elementVolume = tetrahedron->Volume();
-                            if (elementVolume < CriticalVolume)
-                            {
-                                accepted = false;
-                                // std::cout << "ATTENTION!!! ELEMENT WITH VOLUME = " << elementVolume << " versus critical volume " << CriticalVolume << std::endl;
-                            }
                         }
                     }
 
-                    // // // to control that the element has a good shape
+                    // // to control that the element has a good shape
                     // if (dimension == 3 && accepted && (previouslyIsolatedNodes > 2 || previouslyFreeSurfaceNodes > 2 || numfreesurf > 2 || numisolated > 2))
-                    // {
-                    //     Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
-                    //     double Volume = tetrahedron->Volume();
+                    if (dimension == 3 && accepted && numrigid == 0 &&
+                        (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4))
+                    {
+                        Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
+                        double Volume = tetrahedron->Volume();
 
-                    //     double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                    //     double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                    //     double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                    //     a1 = (nodeB[1] - nodeA[1]) * (nodeC[2] - nodeA[2]) - (nodeC[1] - nodeA[1]) * (nodeB[2] - nodeA[2]);
-                    //     b1 = (nodeB[2] - nodeA[2]) * (nodeC[0] - nodeA[0]) - (nodeC[2] - nodeA[2]) * (nodeB[0] - nodeA[0]);
-                    //     c1 = (nodeB[0] - nodeA[0]) * (nodeC[1] - nodeA[1]) - (nodeC[0] - nodeA[0]) * (nodeB[1] - nodeA[1]);
-                    //     double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                    //     double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                    //     double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                    //     a2 = (nodeB[1] - nodeA[1]) * (nodeD[2] - nodeA[2]) - (nodeD[1] - nodeA[1]) * (nodeB[2] - nodeA[2]);
-                    //     b2 = (nodeB[2] - nodeA[2]) * (nodeD[0] - nodeA[0]) - (nodeD[2] - nodeA[2]) * (nodeB[0] - nodeA[0]);
-                    //     c2 = (nodeB[0] - nodeA[0]) * (nodeD[1] - nodeA[1]) - (nodeD[0] - nodeA[0]) * (nodeB[1] - nodeA[1]);
-                    //     double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                    //     double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                    //     double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                    //     a3 = (nodeB[1] - nodeC[1]) * (nodeD[2] - nodeC[2]) - (nodeD[1] - nodeC[1]) * (nodeB[2] - nodeC[2]);
-                    //     b3 = (nodeB[2] - nodeC[2]) * (nodeD[0] - nodeC[0]) - (nodeD[2] - nodeC[2]) * (nodeB[0] - nodeC[0]);
-                    //     c3 = (nodeB[0] - nodeC[0]) * (nodeD[1] - nodeC[1]) - (nodeD[0] - nodeC[0]) * (nodeB[1] - nodeC[1]);
-                    //     double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                    //     double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                    //     double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                    //     a4 = (nodeA[1] - nodeC[1]) * (nodeD[2] - nodeC[2]) - (nodeD[1] - nodeC[1]) * (nodeA[2] - nodeC[2]);
-                    //     b4 = (nodeA[2] - nodeC[2]) * (nodeD[0] - nodeC[0]) - (nodeD[2] - nodeC[2]) * (nodeA[0] - nodeC[0]);
-                    //     c4 = (nodeA[0] - nodeC[0]) * (nodeD[1] - nodeC[1]) - (nodeD[0] - nodeC[0]) * (nodeA[1] - nodeC[1]);
+                        double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        a1 = (nodeB[1] - nodeA[1]) * (nodeC[2] - nodeA[2]) - (nodeC[1] - nodeA[1]) * (nodeB[2] - nodeA[2]);
+                        b1 = (nodeB[2] - nodeA[2]) * (nodeC[0] - nodeA[0]) - (nodeC[2] - nodeA[2]) * (nodeB[0] - nodeA[0]);
+                        c1 = (nodeB[0] - nodeA[0]) * (nodeC[1] - nodeA[1]) - (nodeC[0] - nodeA[0]) * (nodeB[1] - nodeA[1]);
+                        double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        a2 = (nodeB[1] - nodeA[1]) * (nodeD[2] - nodeA[2]) - (nodeD[1] - nodeA[1]) * (nodeB[2] - nodeA[2]);
+                        b2 = (nodeB[2] - nodeA[2]) * (nodeD[0] - nodeA[0]) - (nodeD[2] - nodeA[2]) * (nodeB[0] - nodeA[0]);
+                        c2 = (nodeB[0] - nodeA[0]) * (nodeD[1] - nodeA[1]) - (nodeD[0] - nodeA[0]) * (nodeB[1] - nodeA[1]);
+                        double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        a3 = (nodeB[1] - nodeC[1]) * (nodeD[2] - nodeC[2]) - (nodeD[1] - nodeC[1]) * (nodeB[2] - nodeC[2]);
+                        b3 = (nodeB[2] - nodeC[2]) * (nodeD[0] - nodeC[0]) - (nodeD[2] - nodeC[2]) * (nodeB[0] - nodeC[0]);
+                        c3 = (nodeB[0] - nodeC[0]) * (nodeD[1] - nodeC[1]) - (nodeD[0] - nodeC[0]) * (nodeB[1] - nodeC[1]);
+                        double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        a4 = (nodeA[1] - nodeC[1]) * (nodeD[2] - nodeC[2]) - (nodeD[1] - nodeC[1]) * (nodeA[2] - nodeC[2]);
+                        b4 = (nodeA[2] - nodeC[2]) * (nodeD[0] - nodeC[0]) - (nodeD[2] - nodeC[2]) * (nodeA[0] - nodeC[0]);
+                        c4 = (nodeA[0] - nodeC[0]) * (nodeD[1] - nodeC[1]) - (nodeD[0] - nodeC[0]) * (nodeA[1] - nodeC[1]);
 
-                    //     double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                    //     double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-                    //     double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
-                    //     double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                    //     double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                    //     double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+                        double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+                        double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+                        double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
+                        double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+                        double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+                        double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
 
-                    //     if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
-                    //     {
-                    //         accepted = false;
-                    //         number_of_slivers++;
-                    //         delete tetrahedron;
-                    //     }
-                    //     else if (numrigid == 0 &&
-                    //              (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4) &&
-                    //              (fabs(cosAngle12) > 0.93 || fabs(cosAngle13) > 0.93 || fabs(cosAngle14) > 0.93 || fabs(cosAngle23) > 0.93 || fabs(cosAngle24) > 0.93 || fabs(cosAngle34) > 0.93)) // if two faces are coplanar, I will erase the element (which is probably a sliver)
-                    //     {
-                    //         accepted = false;
-                    //         number_of_slivers++;
-                    //         delete tetrahedron;
-                    //     }
-                    //     else if (Volume <= CriticalVolume && numrigid < 2)
-                    //     {
-                    //         accepted = false;
-                    //         number_of_slivers++;
-                    //         delete tetrahedron;
-                    //         std::cout << " Volume= " << Volume << " CriticalVolume= " << CriticalVolume << std::endl;
-                    //     }
-                    // }
+                        if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
+                        {
+                            accepted = false;
+                            number_of_slivers++;
+                            delete tetrahedron;
+                        }else if (Volume <= CriticalVolume)
+                        {
+                            accepted = false;
+                            number_of_slivers++;
+                            delete tetrahedron;
+                        }
+                        // else if (numrigid == 0 &&
+                        //          (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4) &&
+                        //          (fabs(cosAngle12) > 0.93 || fabs(cosAngle13) > 0.93 || fabs(cosAngle14) > 0.93 || fabs(cosAngle23) > 0.93 || fabs(cosAngle24) > 0.93 || fabs(cosAngle34) > 0.93)) // if two faces are coplanar, I will erase the element (which is probably a sliver)
+                        // {
+                        //     accepted = false;
+                        //     number_of_slivers++;
+                        //     delete tetrahedron;
+                        // }
+                        // else if (Volume <= CriticalVolume && numrigid < 2)
+                        // {
+                        //     accepted = false;
+                        //     number_of_slivers++;
+                        //     delete tetrahedron;
+                        //     std::cout << " Volume= " << Volume << " CriticalVolume= " << CriticalVolume << std::endl;
+                        // }
+                    }
 
                     // // to control that the element has a good shape
                     // if (accepted && (numfreesurf > 0 || numrigid == nds))
@@ -546,7 +546,7 @@ namespace Kratos
                     //         }
                     //         delete tetrahedron;
                     //     }
-                    // }
+                    //}
 
                     if (accepted)
                     {
