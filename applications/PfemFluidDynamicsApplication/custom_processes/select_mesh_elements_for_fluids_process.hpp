@@ -111,9 +111,9 @@ namespace Kratos
             std::fill(mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0);
             mrRemesh.MeshElementsSelectedFlag = true;
 
-            // MesherUtilities MesherUtils;
-            // double ModelPartVolume = MesherUtils.ComputeModelPartVolume(mrModelPart);
-            // double CriticalVolume = 0.05 * ModelPartVolume / double(mrModelPart.Elements().size());
+            MesherUtilities MesherUtils;
+            double ModelPartVolume = MesherUtils.ComputeModelPartVolume(mrModelPart);
+            double CriticalVolume = 0.05 * ModelPartVolume / double(mrModelPart.Elements().size());
 
             mrRemesh.Info->NumberOfElements = 0;
 
@@ -178,6 +178,7 @@ namespace Kratos
                     bool increaseAlfa = false;
                     unsigned int previouslyFreeSurfaceNodes = 0;
                     unsigned int previouslyIsolatedNodes = 0;
+                    unsigned int sumPreviouslyIsolatedFreeSurf = 0;
                     unsigned int sumIsolatedFreeSurf = 0;
                     // array_1d<double, 3> nodeA(3, 0.0);
                     // array_1d<double, 3> nodeB(3, 0.0);
@@ -300,28 +301,11 @@ namespace Kratos
                         }
                     }
 
+                    sumIsolatedFreeSurf = numisolated + numfreesurf;
+                    sumPreviouslyIsolatedFreeSurf = previouslyFreeSurfaceNodes + previouslyIsolatedNodes;
+
                     if (dimension == 2)
                     {
-                        if ((numfreesurf == nds || (numisolated + numfreesurf) == nds) && firstMesh == false)
-                        {
-                            if (checkedNodes == nds)
-                            {
-                                const double maxValue = 1.5;
-                                const double minValue = 1.0 / maxValue;
-                                if (normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[1] < minValue ||
-                                    normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[2] < minValue ||
-                                    normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[2] < minValue)
-                                {
-                                    Alpha *= 0;
-                                }
-                            }
-                            else
-                            {
-                                KRATOS_INFO("ATTENTION!!! CHECKED NODES= ") << checkedNodes << " and the nodes are " << nds << std::endl;
-                                Alpha *= 0;
-                            }
-                        }
-
                         if (numrigid == 0 && numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
                             Alpha *= 1.75;
@@ -337,30 +321,6 @@ namespace Kratos
                     }
                     else if (dimension == 3)
                     {
-                        // if (numfreesurf == nds || (numisolated + numfreesurf) == nds)
-                        // {
-                        //     if (checkedNodes == nds)
-                        //     {
-                        //         const double maxValue = 1.5;
-                        //         const double minValue = 1.0 / maxValue;
-                        //         if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
-                        //             normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] < maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
-                        //             normVelocityP[1] / normVelocityP[2] < minValue || normVelocityP[1] / normVelocityP[3] < minValue ||
-                        //             normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[3] < maxValue ||
-                        //             normVelocityP[2] / normVelocityP[3] < minValue ||
-                        //             normVelocityP[2] / normVelocityP[3] > maxValue)
-                        //         {
-                        //             Alpha *= 0;
-                        //         }
-                        //     }
-                        //     else
-                        //     {
-                        //         std::cout << "ATTENTION!!! CHECKED NODES= " << checkedNodes << " and the nodes are " << nds << std::endl;
-                        //         Alpha *= 0;
-                        //     }
-                        // }
-                        sumIsolatedFreeSurf = previouslyFreeSurfaceNodes + previouslyIsolatedNodes;
-
                         if (numrigid == 0 && numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
                             Alpha *= 1.75;
@@ -369,7 +329,7 @@ namespace Kratos
                         {
                             Alpha *= 1.125;
                         }
-                        else if (numfreesurf < 4 && numisolated < 4 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes < 4 && sumIsolatedFreeSurf < 4)
+                        else if (numfreesurf < 4 && numisolated < 4 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes < 4 && sumPreviouslyIsolatedFreeSurf < 4 && sumIsolatedFreeSurf < 4)
                         {
                             Alpha *= 1.05;
                         }
@@ -401,13 +361,67 @@ namespace Kratos
                     }
 
                     bool accepted = false;
-                    MesherUtilities MesherUtils;
 
                     accepted = MesherUtils.AlphaShape(Alpha, vertices, dimension, MeanMeshSize);
 
                     if (numrigid == nds || noremesh == true)
                     {
                         accepted = false;
+                    }
+
+                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds) && firstMesh == false)
+                    {
+                        if (dimension == 2)
+                        {
+                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid==0)
+                            {
+                                if (checkedNodes == nds)
+                                {
+                                    const double maxValue = 1.5;
+                                    const double minValue = 1.0 / maxValue;
+                                    if (normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[1] < minValue ||
+                                        normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[2] < minValue ||
+                                        normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[2] < minValue)
+                                    {
+                                        accepted = false;
+                                    }
+                                }
+                            }
+                            Geometry<Node<3>> *triangle = new Triangle2D3<Node<3>>(vertices);
+                            double elementArea = triangle->Area();
+                            if (elementArea < CriticalVolume)
+                            {
+                                accepted = false;
+                                // std::cout << "ATTENTION!!! ELEMENT WITH AREA = " << elementArea << " versus critical area " << CriticalVolume << std::endl;
+                            }
+                        }
+                        else if (dimension == 3)
+                        {
+                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid==0)
+                            {
+                                if (checkedNodes == nds)
+                                {
+                                    const double maxValue = 1.5;
+                                    const double minValue = 1.0 / maxValue;
+                                    if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
+                                        normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
+                                        normVelocityP[1] / normVelocityP[2] < minValue || normVelocityP[1] / normVelocityP[3] < minValue ||
+                                        normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[3] > maxValue ||
+                                        normVelocityP[2] / normVelocityP[3] < minValue ||
+                                        normVelocityP[2] / normVelocityP[3] > maxValue)
+                                    {
+                                        accepted = false;
+                                    }
+                                }
+                            }
+                            Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
+                            double elementVolume = tetrahedron->Volume();
+                            if (elementVolume < CriticalVolume)
+                            {
+                                accepted = false;
+                                // std::cout << "ATTENTION!!! ELEMENT WITH VOLUME = " << elementVolume << " versus critical volume " << CriticalVolume << std::endl;
+                            }
+                        }
                     }
 
                     // // // to control that the element has a good shape
