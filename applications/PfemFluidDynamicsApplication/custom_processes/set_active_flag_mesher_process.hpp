@@ -355,11 +355,14 @@ namespace Kratos
 				(itElem)->Set(ACTIVE, true);
 			}
 		}
-		//if (sliversDetected > 0)
-		//{
-		//	std::cout << "I have set ACTIVE=false to " << sliversDetected << " slivers." << std::endl;
-		//}
-
+		// if (sliversDetectedFromShape > 0)
+		// {
+		// 	std::cout << "I have set ACTIVE=false to " << sliversDetectedFromShape << " slivers due to shape." << std::endl;
+		// }
+		// if (sliversDetectedFromVolume > 0)
+		// {
+		// 	std::cout << "I have set ACTIVE=false to " << sliversDetectedFromVolume << " slivers due to volume." << std::endl;
+		// }
 	}
 
 	KRATOS_CATCH(" ")
