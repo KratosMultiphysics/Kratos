@@ -34,7 +34,7 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
 
     // Auxiliar containers
     Matrix DN_DX, J0, InvJ0;
-    Vector N;
+    Vector N, values;
     double detJ0 = 0.0;
 
     // First element iterator
@@ -51,8 +51,18 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
         DN_DX.resize(number_of_nodes_first_element, dimension);
     if (N.size() != number_of_nodes_first_element)
         N.resize(number_of_nodes_first_element);
+    if (values.size() != number_of_nodes_first_element)
+        values.resize(number_of_nodes_first_element);
     if (J0.size1() != dimension || J0.size2() != local_space_dimension_first_element)
         J0.resize(dimension, local_space_dimension_first_element);
+
+    // Variable retriever
+    AuxiliarVariableVectorRetriever variable_retriever;
+    if (mNonHistoricalVariable) {
+        variable_retriever = VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistoricalVariable>();
+    } else {
+        variable_retriever = VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsHistoricalVariable>();
+    }
 
     // Iterate over the elements
     #pragma omp parallel for firstprivate(DN_DX,  N, J0, InvJ0, detJ0)
@@ -66,20 +76,16 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
         // Resize if needed
         if (N.size() != number_of_nodes)
             N.resize(number_of_nodes);
+        if (values.size() != number_of_nodes)
+            values.resize(number_of_nodes);
 
         // The integration points
         const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
         const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
         const std::size_t number_of_integration_points = r_integration_points.size();
 
-        Vector values(number_of_nodes);
-        if (!mNonHistoricalVariable) {
-            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
-                values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(*mpOriginVariable);
-        } else {
-            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
-                values[i_node] = r_geometry[i_node].GetValue(*mpOriginVariable);
-        }
+        // Fill vector
+        variable_retriever.GetVariableVector(r_geometry, *mpOriginVariable, values);
 
         // The containers of the shape functions and the local gradients
         const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
@@ -356,6 +362,34 @@ void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonH
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <>
+void VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsHistoricalVariable>::GetVariableVector(
+    const Geometry<Node<3>>& rGeometry,
+    const Variable<double>& rVariable,
+    Vector& rVector
+    )
+{
+    for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node)
+        rVector[i_node] = rGeometry[i_node].FastGetSolutionStepValue(rVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistoricalVariable>::GetVariableVector(
+    const Geometry<Node<3>>& rGeometry,
+    const Variable<double>& rVariable,
+    Vector& rVector
+    )
+{
+    for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node)
+        rVector[i_node] = rGeometry[i_node].GetValue(rVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<bool THistorical>
 const Parameters ComputeNodalGradientProcess<THistorical>::GetDefaultParameters() const
 {
@@ -367,6 +401,12 @@ const Parameters ComputeNodalGradientProcess<THistorical>::GetDefaultParameters(
 
     return default_parameters;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template struct VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsHistoricalVariable>;
+template struct VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistoricalVariable>;
 
 /***********************************************************************************/
 /***********************************************************************************/

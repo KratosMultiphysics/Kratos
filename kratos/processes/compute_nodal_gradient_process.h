@@ -54,6 +54,48 @@ struct ComputeNodalGradientProcessSettings
     // Defining clearer options
     constexpr static bool SaveAsHistoricalVariable = true;
     constexpr static bool SaveAsNonHistoricalVariable = false;
+    constexpr static bool GetAsHistoricalVariable = true;
+    constexpr static bool GetAsNonHistoricalVariable = false;
+};
+
+/**
+ * @brief This struct is an auxiliar base class of the VariableVectorRetriever
+ */
+struct AuxiliarVariableVectorRetriever
+{
+    /**
+     * @brief This method fills the vector of values
+     * @param rGeometry The geometry where values are stored
+     * @param rVariable The variable to retrieve
+     * @param rVector The vector to fill
+     */
+    virtual void GetVariableVector(
+        const Geometry<Node<3>>& rGeometry,
+        const Variable<double>& rVariable,
+        Vector& rVector
+        )
+    {
+    }
+};
+
+/**
+ * @brief This struct is used in order to retrieve values without loosing performance
+ */
+template<bool THistorical>
+struct VariableVectorRetriever
+    : public AuxiliarVariableVectorRetriever
+{
+    /**
+     * @brief This method fills the vector of values
+     * @param rGeometry The geometry where values are stored
+     * @param rVariable The variable to retrieve
+     * @param rVector The vector to fill
+     */
+    void GetVariableVector(
+        const Geometry<Node<3>>& rGeometry,
+        const Variable<double>& rVariable,
+        Vector& rVector
+        ) override;
 };
 
 /**
