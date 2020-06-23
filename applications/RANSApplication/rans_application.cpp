@@ -52,7 +52,20 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmKOmegaKCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKOmegaKCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mRansEvmKOmegaOmegaCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansEvmKOmegaOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
+      mRansEvmKOmegaOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      // k-omega-sst turbulence model elements
+      mRansEvmKOmegaSSTKAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTKAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTOmegaAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTOmegaAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTKRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTKRFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTOmegaRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTOmegaRFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTKCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTKCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmKOmegaSSTOmegaCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaSSTOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
 {
 }
 
@@ -83,6 +96,15 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA )
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA )
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_GAMMA )
+
+    // k-omega-sst turbulence modelling specific additional variables
+    KRATOS_REGISTER_VARIABLE( TURBULENT_KINETIC_ENERGY_SIGMA_1 )
+    KRATOS_REGISTER_VARIABLE( TURBULENT_KINETIC_ENERGY_SIGMA_2 )
+    KRATOS_REGISTER_VARIABLE( TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1 )
+    KRATOS_REGISTER_VARIABLE( TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2 )
+    KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA_1 )
+    KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA_2 )
+    KRATOS_REGISTER_VARIABLE( WALL_VON_KARMAN )
 
     // registering elements
     // registering k-epsilon algebraic flux correction based elements
@@ -120,5 +142,23 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansEvmKOmegaKCWD3D4N", mRansEvmKOmegaKCWD3D);
     KRATOS_REGISTER_ELEMENT("RansEvmKOmegaOmegaCWD2D3N", mRansEvmKOmegaOmegaCWD2D);
     KRATOS_REGISTER_ELEMENT("RansEvmKOmegaOmegaCWD3D4N", mRansEvmKOmegaOmegaCWD3D);
+
+    // registering k-omega-sst algebraic flux correction based elements
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKAFC2D3N", mRansEvmKOmegaSSTKAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKAFC3D4N", mRansEvmKOmegaSSTKAFC3D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaAFC2D3N", mRansEvmKOmegaSSTOmegaAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaAFC3D4N", mRansEvmKOmegaSSTOmegaAFC3D);
+
+    // registering k-omega-sst residual fc based elements
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKRFC2D3N", mRansEvmKOmegaSSTKRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKRFC3D4N", mRansEvmKOmegaSSTKRFC3D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaRFC2D3N", mRansEvmKOmegaSSTOmegaRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaRFC3D4N", mRansEvmKOmegaSSTOmegaRFC3D);
+
+    // registering k-omega-sst cross wind stabilized elements
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKCWD2D3N", mRansEvmKOmegaSSTKCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKCWD3D4N", mRansEvmKOmegaSSTKCWD3D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaCWD2D3N", mRansEvmKOmegaSSTOmegaCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaCWD3D4N", mRansEvmKOmegaSSTOmegaCWD3D);
 }
 } // namespace Kratos.
