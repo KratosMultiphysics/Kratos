@@ -28,7 +28,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianMixturesFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry)
 {
-    BaseType::BaseType(NewId, pGeometry);
+    GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry);
 
     if (mAcumulatedPlasticStrains.size() != NumberOfEdges)
         mAcumulatedPlasticStrains.resize(NumberOfEdges);
@@ -54,7 +54,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianMixturesFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties)
 {
-    BaseType::BaseType(NewId, pGeometry, pProperties);
+    GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry, pProperties);
 
     if (mAcumulatedPlasticStrains.size() != NumberOfEdges)
         mAcumulatedPlasticStrains.resize(NumberOfEdges);
@@ -78,7 +78,7 @@ GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::GenericTotalLagra
 template<unsigned int TDim, unsigned int TyieldSurf>
 Element::Pointer GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive<GenericTotalLagrangianMixturesFemDemElement>( NewId, this->GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<GenericTotalLagrangianMixturesFemDemElement>(NewId, this->GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //************************************************************************************
@@ -87,7 +87,7 @@ Element::Pointer GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::C
 template<unsigned int TDim, unsigned int TyieldSurf>
 Element::Pointer GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive<GenericTotalLagrangianMixturesFemDemElement>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<GenericTotalLagrangianMixturesFemDemElement>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
