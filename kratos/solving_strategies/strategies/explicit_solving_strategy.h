@@ -176,6 +176,9 @@ public:
             // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
             mpExplicitBuilderAndSolver->Initialize(mrModelPart);
 
+            // Initialize the solution values
+            InitializeDofSetValues();
+
             // Set the mInitializeWasPerformed flag
             mInitializeWasPerformed = true;
         }
@@ -249,9 +252,6 @@ public:
 
         // Call the builder and solver initialize solution step
         mpExplicitBuilderAndSolver->InitializeSolutionStep(mrModelPart);
-
-        // Initialize the solution values
-        InitializeDofSetValues();
 
         // Set the mInitializeSolutionStepWasPerformed flag
         mInitializeSolutionStepWasPerformed = true;

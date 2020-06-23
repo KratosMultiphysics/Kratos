@@ -167,6 +167,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -191,17 +192,17 @@ protected:
         KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
 
         // Set the previous step solution in the current buffer position
-        // Note that we only do this for the DOFs that are not fixed
-        // Contrairiwise, we save in an auxiliary vector the value of the fixed DOFs
+        // Note that we set the 0 position of the buffer to be equal to the values in step n (not n+1)
+        // Additionally, we save in an auxiliary vector the value of the fixed DOFs, which is also taken from the previous time step
 #pragma omp parallel for firstprivate(dof_size)
         for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
             auto it_dof = r_dof_set.begin() + i_dof;
-            double& r_u = it_dof->GetSolutionStepValue(0);
-            if (!it_dof->IsFixed()) {
-                r_u = it_dof->GetSolutionStepValue(1);
-            } else {
-                u_n(i_dof) = it_dof->GetSolutionStepValue(1);
+            double& r_u_0 = it_dof->GetSolutionStepValue(0);
+            const double& r_u_1 = it_dof->GetSolutionStepValue(1);
+            if (it_dof->IsFixed()) {
+                u_n(i_dof) = r_u_1;
             }
+            r_u_0 = r_u_1;
         }
 
         // Calculate the RK4 intermediate sub steps
@@ -227,16 +228,116 @@ protected:
     }
 
     /**
-     * @brief Initialize the Runge-Kutta substep
-     * This method is intended to implement all the operations required before each Runge-Kutta substep
+     * @brief Initialize the Runge-Kutta intermediate substep
+     * This method is intended to implement all the operations required before each Runge-Kutta intermediate substep
      */
-    virtual void InitializeRungeKuttaSubStep() {};
+    virtual void InitializeRungeKuttaIntermediateSubStep() {};
 
     /**
-     * @brief Finalize the Runge-Kutta substep
-     * This method is intended to implement all the operations required after each Runge-Kutta substep
+     * @brief Finalize the Runge-Kutta intermediate substep
+     * This method is intended to implement all the operations required after each Runge-Kutta intermediate substep
      */
-    virtual void FinalizeRungeKuttaSubStep() {};
+    virtual void FinalizeRungeKuttaIntermediateSubStep() {};
+
+    /**
+     * @brief Initialize the Runge-Kutta last substep
+     * This method is intended to implement all the operations required before each Runge-Kutta last substep
+     */
+    virtual void InitializeRungeKuttaLastSubStep() {};
+
+    /**
+     * @brief Finalize the Runge-Kutta last substep
+     * This method is intended to implement all the operations required after each Runge-Kutta last substep
+     */
+    virtual void FinalizeRungeKuttaLastSubStep() {};
+
+    /**
+     * @brief Performs an intermediate RK4 step
+     * This functions performs all the operations required in an intermediate RK4 sub step
+     * @param SubStepIndex The sub step index
+     * @param SubStepCoefficient The sub step coefficient (these are saved as member variables)
+     * @param rFixedDofsValues The vector containing the step n+1 values of the fixed DOFs
+     * @param rIntermediateStepResidualVector The vector to store the intermediate sub step residual
+     */
+    virtual void PerformRungeKuttaIntermediateSubStep(
+        const IndexType SubStepIndex,
+        const double SubStepCoefficient,
+        const LocalSystemVectorType& rFixedDofsValues,
+        LocalSystemVectorType& rIntermediateStepResidualVector)
+    {
+        // Get the required data from the explicit builder and solver
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        auto& r_dof_set = p_explicit_bs->GetDofSet();
+        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
+        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
+
+        // Get model part and information
+        const double dt = BaseType::GetDeltaTime();
+        KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
+        auto& r_model_part = BaseType::GetModelPart();
+        auto& r_process_info = r_model_part.GetProcessInfo();
+
+        // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
+        r_process_info.GetValue(RUNGE_KUTTA_STEP) = SubStepIndex;
+
+        // Perform the intermidate sub step update
+        InitializeRungeKuttaIntermediateSubStep();
+        p_explicit_bs->BuildRHS(r_model_part);
+
+#pragma omp parallel for firstprivate(dof_size)
+        for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
+            auto it_dof = r_dof_set.begin() + i_dof;
+            // Save current value in the corresponding vector
+            const double& r_res = it_dof->GetSolutionStepReactionValue();
+            rIntermediateStepResidualVector(i_dof) = r_res;
+            // Do the DOF update
+            double& r_u = it_dof->GetSolutionStepValue(0);
+            const double& r_u_old = it_dof->GetSolutionStepValue(1);
+            if (!it_dof->IsFixed()) {
+                const double mass = r_lumped_mass_vector(i_dof);
+                r_u = r_u_old + SubStepCoefficient * (dt / mass) * r_res;
+            } else {
+                const double delta_u = rFixedDofsValues(i_dof) - r_u_old;
+                r_u = r_u_old + SubStepCoefficient * delta_u;
+            }
+        }
+
+        FinalizeRungeKuttaIntermediateSubStep();
+    }
+
+    /**
+     * @brief Performs the last RK4 step
+     * This functions performs all the operations required in the last RK4 sub step
+     * @param rLastStepResidualVector The vector to store the last sub step residual
+     */
+    virtual void PerformRungeKuttaLastSubStep(LocalSystemVectorType& rLastStepResidualVector)
+    {
+        // Get the required data from the explicit builder and solver
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        auto& r_dof_set = p_explicit_bs->GetDofSet();
+        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
+
+        // Get model part
+        auto& r_model_part = BaseType::GetModelPart();
+        auto& r_process_info = r_model_part.GetProcessInfo();
+
+        // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
+        r_process_info.GetValue(RUNGE_KUTTA_STEP) = 4;
+
+        // Perform the last sub step residual calculation
+        InitializeRungeKuttaLastSubStep();
+        p_explicit_bs->BuildRHS(r_model_part);
+
+#pragma omp parallel for firstprivate(dof_size)
+        for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
+            const auto it_dof = r_dof_set.begin() + i_dof;
+            // Save current value in the corresponding vector
+            const double& r_res = it_dof->GetSolutionStepReactionValue();
+            rLastStepResidualVector(i_dof) = r_res;
+        }
+
+        FinalizeRungeKuttaLastSubStep();
+    }
 
     ///@}
     ///@name Protected  Access
@@ -279,94 +380,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Performs an intermediate RK4 step
-     * This functions performs all the operations required in an intermediate RK4 sub step
-     * @param SubStepIndex The sub step index
-     * @param SubStepCoefficient The sub step coefficient (these are saved as member variables)
-     * @param rFixedDofsValues The vector containing the step n+1 values of the fixed DOFs
-     * @param rIntermediateStepResidualVector The vector to store the intermediate sub step residual
-     */
-    void PerformRungeKuttaIntermediateSubStep(
-        const IndexType SubStepIndex,
-        const double SubStepCoefficient,
-        const LocalSystemVectorType& rFixedDofsValues,
-        LocalSystemVectorType& rIntermediateStepResidualVector)
-    {
-        // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
-        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
-
-        // Get model part and information
-        const double dt = BaseType::GetDeltaTime();
-        KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
-        auto& r_model_part = BaseType::GetModelPart();
-        auto& r_process_info = r_model_part.GetProcessInfo();
-
-        // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
-        r_process_info.GetValue(RUNGE_KUTTA_STEP) = SubStepIndex;
-
-        // Perform the intermidate sub step update
-        InitializeRungeKuttaSubStep();
-        p_explicit_bs->BuildRHS(r_model_part);
-
-#pragma omp parallel for firstprivate(dof_size)
-        for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
-            // Save current value in the corresponding vector
-            const double& r_res = it_dof->GetSolutionStepReactionValue();
-            rIntermediateStepResidualVector(i_dof) = r_res;
-            // Do the DOF update
-            double& r_u = it_dof->GetSolutionStepValue(0);
-            const double& r_u_old = it_dof->GetSolutionStepValue(1);
-            if (!it_dof->IsFixed()) {
-                const double mass = r_lumped_mass_vector(i_dof);
-                r_u = r_u_old + SubStepCoefficient * (dt / mass) * r_res;
-            } else {
-                const double delta_u = rFixedDofsValues(i_dof) - r_u_old;
-                r_u = r_u_old + SubStepCoefficient * delta_u;
-            }
-        }
-
-        FinalizeRungeKuttaSubStep();
-    }
-
-    /**
-     * @brief Performs the last RK4 step
-     * This functions performs all the operations required in the last RK4 sub step
-     * @param rLastStepResidualVector The vector to store the last sub step residual
-     */
-    void PerformRungeKuttaLastSubStep(LocalSystemVectorType& rLastStepResidualVector)
-    {
-        // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
-
-        // Get model part
-        auto& r_model_part = BaseType::GetModelPart();
-        auto& r_process_info = r_model_part.GetProcessInfo();
-
-        // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
-        r_process_info.GetValue(RUNGE_KUTTA_STEP) = 4;
-
-        // Perform the last sub step residual calculation
-        InitializeRungeKuttaSubStep();
-        p_explicit_bs->BuildRHS(r_model_part);
-
-#pragma omp parallel for firstprivate(dof_size)
-        for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
-            const auto it_dof = r_dof_set.begin() + i_dof;
-            // Save current value in the corresponding vector
-            const double& r_res = it_dof->GetSolutionStepReactionValue();
-            rLastStepResidualVector(i_dof) = r_res;
-        }
-
-        FinalizeRungeKuttaSubStep();
-    }
 
 
     ///@}

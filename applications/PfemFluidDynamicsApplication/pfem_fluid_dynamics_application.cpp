@@ -119,6 +119,10 @@ void KratosPfemFluidDynamicsApplication::Register()
   KRATOS_REGISTER_VARIABLE(YIELD_SHEAR);
   KRATOS_REGISTER_VARIABLE(ADAPTIVE_EXPONENT);
 
+  //Frictional Viscoplastic variables
+  KRATOS_REGISTER_VARIABLE(FRICTION_ANGLE);
+  KRATOS_REGISTER_VARIABLE(COHESION);
+
   //mu(I)-rheology variables
   KRATOS_REGISTER_VARIABLE(STATIC_FRICTION);
   KRATOS_REGISTER_VARIABLE(DYNAMIC_FRICTION);
@@ -214,6 +218,8 @@ void KratosPfemFluidDynamicsApplication::Register()
   //Register Fluid Constitutive Laws
   KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham2DLaw", mBingham2DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplastic2DLaw", mFrictionalViscoplastic2DLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplastic3DLaw", mFrictionalViscoplastic3DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent2DLaw", mBinghamTemperatureDependent2DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent3DLaw", mBinghamTemperatureDependent3DLaw);
   KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian2DLaw", mNewtonian2DLaw);

@@ -567,7 +567,8 @@ namespace Kratos
 
             typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
             py::class_<ExplicitSolvingStrategyRungeKutta4Type, typename ExplicitSolvingStrategyRungeKutta4Type::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta4")
-                .def(py::init<ModelPart &, bool, int>())
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
                 .def(py::init<ModelPart&, typename ExplicitBuilderAndSolverType::Pointer, bool, int>())
                 ;
 

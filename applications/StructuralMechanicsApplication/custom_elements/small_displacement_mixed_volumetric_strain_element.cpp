@@ -1149,7 +1149,9 @@ void SmallDisplacementMixedVolumetricStrainElement::save(Serializer& rSerializer
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainElement::BaseType);
     int IntMethod = int(this->GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
-    rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("AnisotropyTensor", mAnisotropyTensor);
+    rSerializer.save("InverseAnisotropyTensor", mInverseAnisotropyTensor);
 }
 
 /***********************************************************************************/
@@ -1162,6 +1164,8 @@ void SmallDisplacementMixedVolumetricStrainElement::load(Serializer& rSerializer
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("AnisotropyTensor", mAnisotropyTensor);
+    rSerializer.load("InverseAnisotropyTensor", mInverseAnisotropyTensor);
 }
 
 } // Namespace Kratos
