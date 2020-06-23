@@ -418,7 +418,6 @@ namespace Kratos
                     }
 
                     // // to control that the element has a good shape
-                    // if (dimension == 3 && accepted && (previouslyIsolatedNodes > 2 || previouslyFreeSurfaceNodes > 2 || numfreesurf > 2 || numisolated > 2))
                     if (dimension == 3 && accepted && numrigid == 0 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4))
                     {
@@ -468,21 +467,6 @@ namespace Kratos
                             number_of_slivers++;
                             delete tetrahedron;
                         }
-                        // else if (numrigid == 0 &&
-                        //          (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4) &&
-                        //          (fabs(cosAngle12) > 0.93 || fabs(cosAngle13) > 0.93 || fabs(cosAngle14) > 0.93 || fabs(cosAngle23) > 0.93 || fabs(cosAngle24) > 0.93 || fabs(cosAngle34) > 0.93)) // if two faces are coplanar, I will erase the element (which is probably a sliver)
-                        // {
-                        //     accepted = false;
-                        //     number_of_slivers++;
-                        //     delete tetrahedron;
-                        // }
-                        // else if (Volume <= CriticalVolume && numrigid < 2)
-                        // {
-                        //     accepted = false;
-                        //     number_of_slivers++;
-                        //     delete tetrahedron;
-                        //     std::cout << " Volume= " << Volume << " CriticalVolume= " << CriticalVolume << std::endl;
-                        // }
                     }
 
                     // // to control that the element has a good shape
