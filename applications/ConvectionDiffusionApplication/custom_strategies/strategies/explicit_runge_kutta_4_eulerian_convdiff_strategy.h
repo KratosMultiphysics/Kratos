@@ -206,6 +206,45 @@ protected:
         r_process_info.GetValue(OSS_SWITCH) = 0;
     };
 
+    /**
+     * @brief Initialize the Runge-Kutta substep
+     * The Orthogonal Subgrid Scale step is run
+     */
+    virtual void FinalizeRungeKuttaStep() override
+    {
+        // Get the required data from the explicit builder and solver
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        auto& r_dof_set = p_explicit_bs->GetDofSet();
+        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
+
+        // Perform Orthogonal Subgrid Scale step if USE_OSS is active
+        auto& r_model_part = BaseType::GetModelPart();
+        auto& r_process_info = r_model_part.GetProcessInfo();
+        if (r_process_info.GetValue(USE_OSS) == 1)
+        {
+            if (r_process_info.GetValue(RUNGE_KUTTA_STEP) == 4)
+            {
+                // Activate OSS flag used inside the element
+                r_process_info.GetValue(OSS_SWITCH) = 1;
+                p_explicit_bs->BuildRHS(r_model_part);
+
+                ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+                auto& r_settings = *p_settings;
+                const auto number_of_nodes = r_model_part.NumberOfNodes();
+#pragma omp parallel for firstprivate(number_of_nodes)
+                for (unsigned int i_node = 0; i_node < number_of_nodes; i_node++)
+                {
+                    auto& current_node = r_model_part.GetNode(i_node+1);
+                    const double mass = r_lumped_mass_vector(i_node);
+                    current_node.FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = current_node.FastGetSolutionStepValue(r_settings.GetReactionVariable()) / mass;
+                }
+                // End OSS step
+            }
+        }
+        // Deactivate OSS flag used inside the element
+        r_process_info.GetValue(OSS_SWITCH) = 0;
+    };
+
     ///@}
     ///@name Protected  Access
     ///@{

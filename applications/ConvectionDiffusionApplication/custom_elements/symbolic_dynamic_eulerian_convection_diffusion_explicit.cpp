@@ -114,14 +114,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
         // Compute tau
         this->CalculateTau(rVariables);
         // Retrieve unknown belonging to subgrid scale space on gauss integration point g
-        if (rCurrentProcessInfo.GetValue(RUNGE_KUTTA_STEP)==1)
-        {
-            rVariables.unknown_subscale = 0; // because temporal derivative is zero, and delta time is zero
-        }
-        else
-        {
-            rVariables.unknown_subscale = mUnknownSubScale(g);
-        }
+        rVariables.unknown_subscale = mUnknownSubScale(g);
 
         // Execute standard RHS-LHS build or OSS step
         if (rCurrentProcessInfo.GetValue(OSS_SWITCH) == 1)
@@ -268,8 +261,8 @@ const double clhs18 =             clhs17*clhs6;
 
     const double crhs0 =             phi_subscale_gauss/tau;
 const double crhs1 =             N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2];
-const double crhs2 =             1/(RK_time_coefficient*delta_time);
-const double crhs3 =             crhs2*(N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]));
+const double crhs2 =             1.0/delta_time;
+const double crhs3 =             crhs2*(N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]))/RK_time_coefficient;
 const double crhs4 =             N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0);
 const double crhs5 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1);
 const double crhs6 =             tau*(DN(0,0)*crhs4 + DN(0,1)*crhs5);
@@ -359,8 +352,8 @@ const double clhs26 =             clhs25*clhs7;
 
     const double crhs0 =             phi_subscale_gauss/tau;
 const double crhs1 =             N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2] + N[3]*prj[3];
-const double crhs2 =             1/(RK_time_coefficient*delta_time);
-const double crhs3 =             crhs2*(N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]));
+const double crhs2 =             1.0/delta_time;
+const double crhs3 =             crhs2*(N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]))/RK_time_coefficient;
 const double crhs4 =             N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0);
 const double crhs5 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1);
 const double crhs6 =             N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2);
@@ -406,21 +399,19 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussPoint
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
-    const double crhs0 =             1/(RK_time_coefficient*delta_time);
-const double crhs1 =             N[0]*crhs0;
+    const double crhs0 =             1.0/delta_time;
+const double crhs1 =             crhs0*phi_subscale_gauss;
 const double crhs2 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2];
 const double crhs3 =             DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2];
 const double crhs4 =             crhs3*k;
 const double crhs5 =             DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2];
 const double crhs6 =             crhs5*k;
-const double crhs7 =             N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]);
+const double crhs7 =             crhs0*(N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]))/RK_time_coefficient;
 const double crhs8 =             (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1));
 const double crhs9 =             crhs3*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0)) + crhs5*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1));
-const double crhs10 =             N[1]*crhs0;
-const double crhs11 =             N[2]*crhs0;
-            rhs[0]=DN(0,0)*crhs4 + DN(0,1)*crhs6 - N[0]*crhs2 + N[0]*crhs8 + N[0]*crhs9 + crhs1*crhs7 - crhs1*phi_subscale_gauss;
-            rhs[1]=DN(1,0)*crhs4 + DN(1,1)*crhs6 - N[1]*crhs2 + N[1]*crhs8 + N[1]*crhs9 + crhs10*crhs7 - crhs10*phi_subscale_gauss;
-            rhs[2]=DN(2,0)*crhs4 + DN(2,1)*crhs6 - N[2]*crhs2 + N[2]*crhs8 + N[2]*crhs9 + crhs11*crhs7 - crhs11*phi_subscale_gauss;
+            rhs[0]=DN(0,0)*crhs4 + DN(0,1)*crhs6 - N[0]*crhs1 - N[0]*crhs2 + N[0]*crhs7 + N[0]*crhs8 + N[0]*crhs9;
+            rhs[1]=DN(1,0)*crhs4 + DN(1,1)*crhs6 - N[1]*crhs1 - N[1]*crhs2 + N[1]*crhs7 + N[1]*crhs8 + N[1]*crhs9;
+            rhs[2]=DN(2,0)*crhs4 + DN(2,1)*crhs6 - N[2]*crhs1 - N[2]*crhs2 + N[2]*crhs7 + N[2]*crhs8 + N[2]*crhs9;
 
 
     noalias(rRightHandSideVector) += rhs * rVariables.weight;
@@ -449,8 +440,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussPoint
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
-    const double crhs0 =             1/(RK_time_coefficient*delta_time);
-const double crhs1 =             N[0]*crhs0;
+    const double crhs0 =             1.0/delta_time;
+const double crhs1 =             crhs0*phi_subscale_gauss;
 const double crhs2 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2] + N[3]*f[3];
 const double crhs3 =             DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2] + DN(3,0)*phi[3];
 const double crhs4 =             crhs3*k;
@@ -458,16 +449,13 @@ const double crhs5 =             DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2
 const double crhs6 =             crhs5*k;
 const double crhs7 =             DN(0,2)*phi[0] + DN(1,2)*phi[1] + DN(2,2)*phi[2] + DN(3,2)*phi[3];
 const double crhs8 =             crhs7*k;
-const double crhs9 =             N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]);
+const double crhs9 =             crhs0*(N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]))/RK_time_coefficient;
 const double crhs10 =             (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2] + N[3]*phi[3])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(0,2)*v(0,2) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(1,2)*v(1,2) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1) + DN(2,2)*v(2,2) + DN(3,0)*v(3,0) + DN(3,1)*v(3,1) + DN(3,2)*v(3,2));
 const double crhs11 =             crhs3*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) + crhs5*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) + crhs7*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2));
-const double crhs12 =             N[1]*crhs0;
-const double crhs13 =             N[2]*crhs0;
-const double crhs14 =             N[3]*crhs0;
-            rhs[0]=DN(0,0)*crhs4 + DN(0,1)*crhs6 + DN(0,2)*crhs8 + N[0]*crhs10 + N[0]*crhs11 - N[0]*crhs2 + crhs1*crhs9 - crhs1*phi_subscale_gauss;
-            rhs[1]=DN(1,0)*crhs4 + DN(1,1)*crhs6 + DN(1,2)*crhs8 + N[1]*crhs10 + N[1]*crhs11 - N[1]*crhs2 + crhs12*crhs9 - crhs12*phi_subscale_gauss;
-            rhs[2]=DN(2,0)*crhs4 + DN(2,1)*crhs6 + DN(2,2)*crhs8 + N[2]*crhs10 + N[2]*crhs11 - N[2]*crhs2 + crhs13*crhs9 - crhs13*phi_subscale_gauss;
-            rhs[3]=DN(3,0)*crhs4 + DN(3,1)*crhs6 + DN(3,2)*crhs8 + N[3]*crhs10 + N[3]*crhs11 - N[3]*crhs2 + crhs14*crhs9 - crhs14*phi_subscale_gauss;
+            rhs[0]=DN(0,0)*crhs4 + DN(0,1)*crhs6 + DN(0,2)*crhs8 - N[0]*crhs1 + N[0]*crhs10 + N[0]*crhs11 - N[0]*crhs2 + N[0]*crhs9;
+            rhs[1]=DN(1,0)*crhs4 + DN(1,1)*crhs6 + DN(1,2)*crhs8 - N[1]*crhs1 + N[1]*crhs10 + N[1]*crhs11 - N[1]*crhs2 + N[1]*crhs9;
+            rhs[2]=DN(2,0)*crhs4 + DN(2,1)*crhs6 + DN(2,2)*crhs8 - N[2]*crhs1 + N[2]*crhs10 + N[2]*crhs11 - N[2]*crhs2 + N[2]*crhs9;
+            rhs[3]=DN(3,0)*crhs4 + DN(3,1)*crhs6 + DN(3,2)*crhs8 - N[3]*crhs1 + N[3]*crhs10 + N[3]*crhs11 - N[3]*crhs2 + N[3]*crhs9;
 
 
     noalias(rRightHandSideVector) += rhs * rVariables.weight;

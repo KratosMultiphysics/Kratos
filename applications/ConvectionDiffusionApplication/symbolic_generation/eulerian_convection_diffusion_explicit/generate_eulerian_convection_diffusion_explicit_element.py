@@ -105,7 +105,7 @@ for dim in dim_vector:
     if OSS_stabilization:
         rhs_stab_1 += rhs_stab_1_oss
     # dynamic term of convective term
-    rhs_stab_1_dynamic = tau * (v_gauss.transpose() * grad_q) * phi_subscale_gauss/(RK_time_coefficient*delta_time)
+    rhs_stab_1_dynamic = tau * (v_gauss.transpose() * grad_q) * phi_subscale_gauss/delta_time
     if dynamic_subscales:
         rhs_stab_1 += rhs_stab_1_dynamic
 
@@ -132,7 +132,7 @@ for dim in dim_vector:
     # with lhs we refer to the fact we take the strong equation on the left side
     lhs_OSS_forcing = - q_gauss.transpose() * f_gauss
     lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time))
-    lhs_OSS_mass_subscale = - q_gauss.transpose() * (phi_subscale_gauss/(RK_time_coefficient*delta_time))
+    lhs_OSS_mass_subscale = - q_gauss.transpose() * (phi_subscale_gauss/delta_time)
     lhs_OSS_diffusion = k * grad_phi.transpose() * grad_q
     lhs_OSS_convective_1 = q_gauss * (v_gauss.transpose() * grad_phi)
     lhs_OSS_convective_2 = q_gauss * phi_gauss * div_v

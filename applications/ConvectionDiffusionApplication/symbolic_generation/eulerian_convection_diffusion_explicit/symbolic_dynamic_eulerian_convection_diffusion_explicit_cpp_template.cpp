@@ -114,14 +114,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
         // Compute tau
         this->CalculateTau(rVariables);
         // Retrieve unknown belonging to subgrid scale space on gauss integration point g
-        if (rCurrentProcessInfo.GetValue(RUNGE_KUTTA_STEP)==1)
-        {
-            rVariables.unknown_subscale = 0; // because temporal derivative is zero, and delta time is zero
-        }
-        else
-        {
-            rVariables.unknown_subscale = mUnknownSubScale(g);
-        }
+        rVariables.unknown_subscale = mUnknownSubScale(g);
 
         // Execute standard RHS-LHS build or OSS step
         if (rCurrentProcessInfo.GetValue(OSS_SWITCH) == 1)
