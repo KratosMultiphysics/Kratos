@@ -708,11 +708,11 @@ public:
             for (std::size_t j = 0; j < derivative_index; j++)
             {
                 this->GetBasis(j, basis_j);
-                Mred(i,j) = inner_prod(basis_i, prod(rMassMatrix, basis_j));
+                Mred(i,j) = prec_inner_prod(basis_i, prec_prod(rMassMatrix, basis_j));
                 if (mDerivativeTypeFlag)
-                    Kred(i,j) = inner_prod(basis_i, prod(rStiffnessMatrix, basis_j));
+                    Kred(i,j) = prec_inner_prod(basis_i, prec_prod(rStiffnessMatrix, basis_j));
                 else
-                    Kred(i,j) = inner_prod(basis_i, prod(rA, basis_j));
+                    Kred(i,j) = prec_inner_prod(basis_i, prec_prod(rA, basis_j));
             }
         }
 
