@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_CONVECTION_DIFFUSION_REACTION_RESIDUAL_BASED_FC_ELEMENT_H_INCLUDED)
-#define KRATOS_CONVECTION_DIFFUSION_REACTION_RESIDUAL_BASED_FC_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_CONVECTION_DIFFUSION_REACTION_RESIDUAL_BASED_FLUX_CORRECTED_ELEMENT_H_INCLUDED)
+#define KRATOS_CONVECTION_DIFFUSION_REACTION_RESIDUAL_BASED_FLUX_CORRECTED_ELEMENT_H_INCLUDED
 
 // System includes
 #include <cmath>
@@ -27,9 +27,9 @@
 #include "utilities/time_discretization.h"
 
 // Application includes
+#include "convection_diffusion_reaction_stabilization_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
-#include "stabilized_convection_diffusion_reaction_utilities.h"
 
 namespace Kratos
 {
@@ -53,7 +53,7 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-class ConvectionDiffusionReactionResidualBasedFCElement : public Element
+class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement : public Element
 {
 public:
     ///@name Type Definitions
@@ -88,12 +88,12 @@ public:
     using ConvectionDiffusionReactionDataType = TConvectionDiffusionReactionData;
 
     using CurrentElementType =
-        ConvectionDiffusionReactionResidualBasedFCElement<TDim, TNumNodes, TConvectionDiffusionReactionData>;
+        ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>;
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of ConvectionDiffusionReactionResidualBasedFCElement
-    KRATOS_CLASS_POINTER_DEFINITION(ConvectionDiffusionReactionResidualBasedFCElement);
+    /// Pointer definition of ConvectionDiffusionReactionResidualBasedFluxCorrectedElement
+    KRATOS_CLASS_POINTER_DEFINITION(ConvectionDiffusionReactionResidualBasedFluxCorrectedElement);
 
     ///@}
     ///@name Life Cycle
@@ -102,7 +102,7 @@ public:
     /**
      * Constructor.
      */
-    explicit ConvectionDiffusionReactionResidualBasedFCElement(IndexType NewId = 0)
+    explicit ConvectionDiffusionReactionResidualBasedFluxCorrectedElement(IndexType NewId = 0)
         : Element(NewId)
     {
     }
@@ -110,8 +110,8 @@ public:
     /**
      * Constructor using an array of nodes
      */
-    ConvectionDiffusionReactionResidualBasedFCElement(IndexType NewId,
-                                                      const NodesArrayType& ThisNodes)
+    ConvectionDiffusionReactionResidualBasedFluxCorrectedElement(IndexType NewId,
+                                                                 const NodesArrayType& ThisNodes)
         : Element(NewId, ThisNodes)
     {
     }
@@ -119,7 +119,8 @@ public:
     /**
      * Constructor using Geometry
      */
-    ConvectionDiffusionReactionResidualBasedFCElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    ConvectionDiffusionReactionResidualBasedFluxCorrectedElement(IndexType NewId,
+                                                                 GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
     }
@@ -127,9 +128,8 @@ public:
     /**
      * Constructor using Properties
      */
-    ConvectionDiffusionReactionResidualBasedFCElement(IndexType NewId,
-                                                      GeometryType::Pointer pGeometry,
-                                                      PropertiesType::Pointer pProperties)
+    ConvectionDiffusionReactionResidualBasedFluxCorrectedElement(
+        IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
     }
@@ -137,8 +137,8 @@ public:
     /**
      * Copy Constructor
      */
-    ConvectionDiffusionReactionResidualBasedFCElement(
-        ConvectionDiffusionReactionResidualBasedFCElement const& rOther)
+    ConvectionDiffusionReactionResidualBasedFluxCorrectedElement(
+        ConvectionDiffusionReactionResidualBasedFluxCorrectedElement const& rOther)
         : Element(rOther)
     {
     }
@@ -146,7 +146,7 @@ public:
     /**
      * Destructor
      */
-    ~ConvectionDiffusionReactionResidualBasedFCElement() override = default;
+    ~ConvectionDiffusionReactionResidualBasedFluxCorrectedElement() override = default;
 
     ///@}
     ///@name Operators
@@ -357,7 +357,7 @@ public:
             const double source = r_current_data.CalculateSourceTerm(
                 gauss_shape_functions, r_shape_derivatives);
 
-            const double tau = StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
+            const double tau = ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
                 element_length, norm_2(velocity), reaction, effective_kinematic_viscosity,
                 bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
 
@@ -443,11 +443,11 @@ public:
 
         BoundedMatrix<double, TNumNodes, TNumNodes> discrete_diffusion_matrix;
         double matrix_norm;
-        StabilizedConvectionDiffusionReactionUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
+        ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
             matrix_norm, discrete_diffusion_matrix, local_matrix);
 
         double diagonal_coefficient =
-            StabilizedConvectionDiffusionReactionUtilities::CalculatePositivityPreservingMatrix(
+            ConvectionDiffusionReactionStabilizationUtilities::CalculatePositivityPreservingMatrix(
                 local_matrix);
 
         diagonal_coefficient *= diagonal_positivity_preserving_coefficient * scalar_multiplier;
@@ -624,7 +624,7 @@ public:
             const double reaction = r_current_data.CalculateReactionTerm(
                 gauss_shape_functions, r_shape_derivatives);
 
-            const double tau = StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
+            const double tau = ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
                 element_length, velocity_magnitude, reaction, effective_kinematic_viscosity,
                 bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
 
@@ -729,7 +729,7 @@ public:
             const double reaction = r_current_data.CalculateReactionTerm(
                 gauss_shape_functions, r_shape_derivatives);
 
-            const double tau = StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
+            const double tau = ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
                 element_length, norm_2(velocity), reaction, effective_kinematic_viscosity,
                 bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
 
@@ -836,7 +836,9 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ConvectionDiffusionReactionResidualBasedFCElement #" << Id();
+        buffer
+            << "ConvectionDiffusionReactionResidualBasedFluxCorrectedElement #"
+            << Id();
         return buffer.str();
     }
     void PrintInfo(std::ostream& rOStream) const override
@@ -956,7 +958,7 @@ private:
 
     ///@}
 
-}; // Class ConvectionDiffusionReactionResidualBasedFCElement
+}; // Class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement
 
 ///@}
 
@@ -970,13 +972,13 @@ private:
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 inline std::istream& operator>>(
     std::istream& rIStream,
-    ConvectionDiffusionReactionResidualBasedFCElement<TDim, TNumNodes, TConvectionDiffusionReactionData>& rThis);
+    ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>& rThis);
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const ConvectionDiffusionReactionResidualBasedFCElement<TDim, TNumNodes, TConvectionDiffusionReactionData>& rThis)
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -988,4 +990,4 @@ inline std::ostream& operator<<(
 
 } // namespace Kratos.
 
-#endif // KRATOS_CONVECTION_DIFFUSION_REACTION_RESIDUAL_BASED_FC_ELEMENT_H_INCLUDED defined
+#endif // KRATOS_CONVECTION_DIFFUSION_REACTION_RESIDUAL_BASED_FLUX_CORRECTED_ELEMENT_H_INCLUDED defined

@@ -20,6 +20,17 @@
 // Project includes
 #include "includes/kratos_application.h"
 
+// Application includes
+
+// stabilized generic convection diffusion reaction elements
+#include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
+#include "custom_elements/convection_diffusion_reaction_element.h"
+#include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_element.h"
+
+// k-epsilon turbulence model element data
+#include "custom_elements/element_data/evm_k_epsilon_high_re/epsilon_element_data.h"
+#include "custom_elements/element_data/evm_k_epsilon_high_re/k_element_data.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -159,6 +170,28 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    /// k-epsilon turbulence model elements
+    /// Algebraic flux correction based elements
+    const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonHighReElementData::KElementData<2>> mRansEvmKEpsilonHighReKAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKEpsilonHighReElementData::KElementData<3>> mRansEvmKEpsilonHighReKAFC3D;
+
+    const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonHighReElementData::EpsilonElementData<2>> mRansEvmKEpsilonHighReEpsilonAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKEpsilonHighReElementData::EpsilonElementData<3>> mRansEvmKEpsilonHighReEpsilonAFC3D;
+
+    /// Residual based flux corrected elements
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, EvmKEpsilonHighReElementData::KElementData<2>> mRansEvmKEpsilonHighReKRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, EvmKEpsilonHighReElementData::KElementData<3>> mRansEvmKEpsilonHighReKRFC3D;
+
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, EvmKEpsilonHighReElementData::EpsilonElementData<2>> mRansEvmKEpsilonHighReEpsilonRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, EvmKEpsilonHighReElementData::EpsilonElementData<3>> mRansEvmKEpsilonHighReEpsilonRFC3D;
+
+    /// Cross wind stabilization based elements
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonHighReElementData::KElementData<2>> mRansEvmKEpsilonHighReKCWD2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonHighReElementData::KElementData<3>> mRansEvmKEpsilonHighReKCWD3D;
+
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonHighReElementData::EpsilonElementData<2>> mRansEvmKEpsilonHighReEpsilonCWD2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonHighReElementData::EpsilonElementData<3>> mRansEvmKEpsilonHighReEpsilonCWD3D;
 
     ///@}
     ///@name Private Operators

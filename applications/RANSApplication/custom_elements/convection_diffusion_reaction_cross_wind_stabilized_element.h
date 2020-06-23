@@ -27,8 +27,8 @@
 #include "utilities/time_discretization.h"
 
 // Application includes
+#include "convection_diffusion_reaction_stabilization_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "stabilized_convection_diffusion_reaction_utilities.h"
 
 namespace Kratos
 {
@@ -371,7 +371,7 @@ public:
                 gauss_shape_functions, r_shape_derivatives);
 
             double tau, element_length;
-            StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
+            ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
                 tau, element_length, velocity, contravariant_metric_tensor,
                 reaction, effective_kinematic_viscosity, bossak_alpha,
                 bossak_gamma, delta_time, dynamic_tau);
@@ -618,7 +618,7 @@ public:
                 gauss_shape_functions, r_shape_derivatives);
 
             double tau, element_length;
-            StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
+            ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
                 tau, element_length, velocity, contravariant_metric_tensor,
                 reaction, effective_kinematic_viscosity, bossak_alpha,
                 bossak_gamma, delta_time, dynamic_tau);
@@ -643,7 +643,7 @@ public:
                 residual -= source;
                 residual = std::abs(residual);
 
-                StabilizedConvectionDiffusionReactionUtilities::CalculateCrossWindDiffusionParameters(
+                ConvectionDiffusionReactionStabilizationUtilities::CalculateCrossWindDiffusionParameters(
                     chi, k1, k2, velocity_magnitude, tau,
                     effective_kinematic_viscosity, reaction, bossak_alpha,
                     bossak_gamma, delta_time, element_length, dynamic_tau);
@@ -753,7 +753,7 @@ public:
                 gauss_shape_functions, r_shape_derivatives);
 
             double tau, element_length;
-            StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
+            ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
                 tau, element_length, velocity, contravariant_metric_tensor,
                 reaction, effective_kinematic_viscosity, bossak_alpha,
                 bossak_gamma, delta_time, dynamic_tau);
