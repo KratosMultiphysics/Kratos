@@ -400,20 +400,20 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
     BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 
     if (rVariable == FIBER_STRESS_VECTOR) {
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+        const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
         const SizeType number_of_integration_points = integration_points.size();
         if ( rOutput.size() != number_of_integration_points )
             rOutput.resize( number_of_integration_points );
         // Create and initialize element variables:
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters cl_values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
         // Set constitutive law flags:
         Flags& cl_options=cl_values.GetOptions();
@@ -461,8 +461,8 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
     BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     std::vector<Vector> stress_vector;
 
@@ -519,9 +519,9 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateAll(
     }
 
     // Reading integration points
-    const auto& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const auto& integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters cl_values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
     // Set constitutive law flags:
     Flags& cl_options = cl_values.GetOptions();
