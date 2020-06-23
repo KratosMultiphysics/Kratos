@@ -131,8 +131,8 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedConstitutiveLaw(
     const std::string& rYieldSurface,
     ConstitutiveLaw::Parameters& rValues,
-    const ConstitutiveVariables& rThisConstVars,
-    const KinematicVariables& rKinVariables,
+    const BaseSolidElement::ConstitutiveVariables& rThisConstVars,
+    const BaseSolidElement::KinematicVariables& rKinVariables,
     Vector& rStrainVector,
     double& rDamageElement,
     bool& rIsDamaging,
@@ -413,11 +413,11 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
 
         // Set constitutive law flags:
         Flags& cl_options=cl_values.GetOptions();
-        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
         cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -470,9 +470,9 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
         this->CalculateOnIntegrationPoints(FIBER_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
 
         // Loop integration points
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+        for (IndexType point_number = 0; point_number < this->mConstitutiveLawVector.size(); ++point_number) {
             if (rOutput[point_number].size2() != dimension)
-                rOutput[point_number].resize( dimension, dimension, false);
+                rOutput[point_number].resize(dimension, dimension, false);
 
             rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
         }
@@ -521,11 +521,11 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateAll(
     // Reading integration points
     const auto& integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
 
     // Set constitutive law flags:
     Flags& cl_options = cl_values.GetOptions();
-    cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+    cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
     cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     if ( CalculateStiffnessMatrixFlag ) {
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
