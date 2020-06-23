@@ -103,7 +103,7 @@ public:
     static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
 
     /// We define the number of edges
-    static constexpr SizeType NumberOfEdges = (TDim == 3) ? 6 : 3;
+    // static constexpr SizeType NumberOfEdges = (TDim == 3) ? 6 : 3;
 
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
