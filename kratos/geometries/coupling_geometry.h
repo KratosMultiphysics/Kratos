@@ -302,7 +302,6 @@ public:
     void RemoveGeometryPart(const IndexType Index) override
     {
         KRATOS_ERROR_IF(Index == 0) << "Master geometry should not be removed from the CouplingGeometry" << std::endl;
-        mpGeometries[Index] = nullptr;
         mpGeometries.erase(mpGeometries.begin() + Index);
     }
 
