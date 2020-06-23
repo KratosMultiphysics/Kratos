@@ -17,6 +17,12 @@ Following table summarize capabilities of Statistics Application.
 | [Norm methods](#norm-methods)         | [Index](#index-based)         |                                                               |                                                                              |            |
 |                                       | [Component](#component-based) |                                                               |                                                                              |            |
 
+## JSON Examples
+
+### Spatial statistics process
+
+### Temporal statistics process
+
 ## Method definitions
 
 There are two types of methods under each **Spatial** and **Temporal** method groups. They are namely **Value** and **Norm** methods. In these methods, `i` index refers to spatial domain element index, and `k` index refers to time step.
