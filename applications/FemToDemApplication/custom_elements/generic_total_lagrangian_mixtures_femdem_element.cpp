@@ -409,8 +409,8 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
+        BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
@@ -499,8 +499,8 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateAll(
     const auto strain_size           = this->GetStrainSize();
     const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-    ConstitutiveVariables this_constitutive_variables(strain_size);
+    BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
