@@ -7,7 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Dharmin Shah (https://github.com/sdharmin)
+//                   Bence Rochlitz (https://github.com/bencerochlitz)
+//
+//  Supervised by:   Jordi Cotela (https://github.com/jcotela)
+//                   Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
 // System includes
@@ -18,9 +22,8 @@
 #include "includes/variables.h"
 
 // Application includes
-#include "custom_elements/element_data/evm_k_epsilon_high_re/element_data_utilities.h"
+#include "custom_elements/convection_diffusion_reaction_element_data/evm_k_epsilon_high_re/element_data_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "element_data_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -28,7 +31,7 @@
 
 namespace Kratos
 {
-namespace EvmKOmegaSSTElementData
+namespace EvmKOmegaElementData
 {
 template <unsigned int TDim>
 const Variable<double>& OmegaElementData<TDim>::GetScalarVariable()
@@ -66,7 +69,6 @@ void OmegaElementData<TDim>::Check(const GeometryType& rGeometry, const ProcessI
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(
             TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
     }
@@ -82,12 +84,9 @@ GeometryData::IntegrationMethod OmegaElementData<TDim>::GetIntegrationMethod()
 template <unsigned int TDim>
 void OmegaElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
 {
-    mBeta1 = rCurrentProcessInfo[TURBULENCE_RANS_BETA_1];
-    mBeta2 = rCurrentProcessInfo[TURBULENCE_RANS_BETA_2];
-    mSigmaOmega1 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1];
-    mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
-    mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    mKappa = rCurrentProcessInfo[WALL_VON_KARMAN];
+    mBeta = rCurrentProcessInfo[TURBULENCE_RANS_BETA];
+    mGamma = rCurrentProcessInfo[TURBULENCE_RANS_GAMMA];
+    mSigmaOmega = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA];
 }
 
 template <unsigned int TDim>
@@ -97,51 +96,19 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
 {
     KRATOS_TRY
 
-    using namespace RansCalculationUtilities;
+    mTurbulentKineticEnergy = RansCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions, Step);
+    mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions, Step);
+    mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions, Step);
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    mVelocityDivergence = RansCalculationUtilities::GetDivergence(
+        this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
 
-    mTurbulentKineticEnergy =
-        EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, rShapeFunctions);
-    mTurbulentSpecificEnergyDissipationRate = EvaluateInPoint(
-        r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rShapeFunctions);
-    mKinematicViscosity = EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, rShapeFunctions);
-    mWallDistance = EvaluateInPoint(r_geometry, DISTANCE, rShapeFunctions);
-    KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
-
-    mTurbulentKinematicViscosity =
-        EvaluateInPoint(r_geometry, TURBULENT_VISCOSITY, rShapeFunctions);
-
-    CalculateGradient(mTurbulentKineticEnergyGradient, r_geometry,
-                      TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives, Step);
-
-    CalculateGradient(mTurbulentSpecificEnergyDissipationRateGradient,
-                      r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
-                      rShapeFunctionDerivatives, Step);
-
-    mCrossDiffusion = EvmKOmegaSSTElementData::CalculateCrossDiffusionTerm(
-        mSigmaOmega2, mTurbulentSpecificEnergyDissipationRate,
-        mTurbulentKineticEnergyGradient, mTurbulentSpecificEnergyDissipationRateGradient);
-
-    mF1 = EvmKOmegaSSTElementData::CalculateF1(
-        mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
-        mKinematicViscosity, mWallDistance, mBetaStar, mCrossDiffusion, mSigmaOmega2);
-
-    mBlendedSigmaOmega =
-        EvmKOmegaSSTElementData::CalculateBlendedPhi(mSigmaOmega1, mSigmaOmega2, mF1);
-    mBlendedBeta = EvmKOmegaSSTElementData::CalculateBlendedPhi(mBeta1, mBeta2, mF1);
-
-    const double gamma_1 = EvmKOmegaSSTElementData::CalculateGamma(
-        mBeta1, mBetaStar, mSigmaOmega1, mKappa);
-    const double gamma_2 = EvmKOmegaSSTElementData::CalculateGamma(
-        mBeta2, mBetaStar, mSigmaOmega2, mKappa);
-
-    mBlendedGamma = EvmKOmegaSSTElementData::CalculateBlendedPhi(gamma_1, gamma_2, mF1);
-
-    mVelocityDivergence = GetDivergence(r_geometry, VELOCITY, rShapeFunctionDerivatives);
-
-    CalculateGradient<TDim>(mVelocityGradient, r_geometry, VELOCITY,
-                            rShapeFunctionDerivatives, Step);
+    RansCalculationUtilities::CalculateGradient<TDim>(
+        this->mVelocityGradient, this->GetGeometry(), VELOCITY,
+        rShapeFunctionDerivatives, Step);
 
     KRATOS_CATCH("");
 }
@@ -160,18 +127,16 @@ template <unsigned int TDim>
 double OmegaElementData<TDim>::CalculateEffectiveKinematicViscosity(
     const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
 {
-    return mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
+    return mKinematicViscosity + mTurbulentKinematicViscosity * mSigmaOmega;
 }
 
 template <unsigned int TDim>
 double OmegaElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctions,
                                                      const Matrix& rShapeFunctionDerivatives) const
 {
-    const double omega = std::max(mTurbulentSpecificEnergyDissipationRate, 1e-12);
-    double value = mBlendedBeta * omega;
-    value -= (1.0 - mF1) * mCrossDiffusion / omega;
-    value += mBlendedGamma * 2.0 * mVelocityDivergence / 3.0;
-    return std::max(value, 0.0);
+    return std::max(mBeta * mTurbulentKineticEnergy / mTurbulentKinematicViscosity +
+                        mGamma * 2.0 * mVelocityDivergence / 3.0,
+                    0.0);
 }
 
 template <unsigned int TDim>
@@ -183,7 +148,7 @@ double OmegaElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions
     production = EvmKEpsilonHighReElementData::CalculateSourceTerm<TDim>(
         mVelocityGradient, mTurbulentKinematicViscosity);
 
-    production *= (mBlendedGamma / mTurbulentKinematicViscosity);
+    production *= (mGamma / mTurbulentKinematicViscosity);
 
     return production;
 }
@@ -193,6 +158,6 @@ double OmegaElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions
 template class OmegaElementData<2>;
 template class OmegaElementData<3>;
 
-} // namespace EvmKOmegaSSTElementData
+} // namespace EvmKOmegaElementData
 
 } // namespace Kratos
