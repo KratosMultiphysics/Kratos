@@ -164,37 +164,36 @@ int main(int argc, char * argv[]){
     }
     std::cout << "Total mass: " << Vmaspiedra << '\n';
 
-    // TODO: remove move centers
     //Calculo del centro de gravedad del cluster o piedra
-    // double Valor1=0.0;
-    // double Valor2=0.0;
-    // double Valor3=0.0;
+    double Valor1=0.0;
+    double Valor2=0.0;
+    double Valor3=0.0;
 
-    // for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
+    for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
 
-    //     Valor1+=Vmass[element_counter]*BARIC[0][element_counter];
-    //     Valor2+=Vmass[element_counter]*BARIC[1][element_counter];
-    //     Valor3+=Vmass[element_counter]*BARIC[2][element_counter];
-    // }
+        Valor1+=Vmass[element_counter]*BARIC[0][element_counter];
+        Valor2+=Vmass[element_counter]*BARIC[1][element_counter];
+        Valor3+=Vmass[element_counter]*BARIC[2][element_counter];
+    }
 
-    // double Xcdgrav=Valor1/Vmaspiedra;
-    // double Ycdgrav=Valor2/Vmaspiedra;
-    // double Zcdgrav=Valor3/Vmaspiedra;
-    // std::cout << "Centroid: " << Xcdgrav << " " << Ycdgrav << " " << Zcdgrav << "\n\n";
+    double Xcdgrav=Valor1/Vmaspiedra;
+    double Ycdgrav=Valor2/Vmaspiedra;
+    double Zcdgrav=Valor3/Vmaspiedra;
+    std::cout << "Centroid: " << Xcdgrav << " " << Ycdgrav << " " << Zcdgrav << "\n\n";
 
-    // // Movemos el objecto y lo dejamos colocado tal que su centroide coincida con el origen:
-    // for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
-    //     tcoord[0][node_counter] -= Xcdgrav;
-    //     tcoord[1][node_counter] -= Ycdgrav;
-    //     tcoord[2][node_counter] -= Zcdgrav;
-    // }
+    // Movemos el objecto y lo dejamos colocado tal que su centroide coincida con el origen:
+    for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
+        tcoord[0][node_counter] += Xcdgrav;
+        tcoord[1][node_counter] += Ycdgrav;
+        tcoord[2][node_counter] += Zcdgrav;
+    }
 
-    // // Movemos las esferas y las dejamos colocadas tal que su centroide coincida con el origen:
-    // for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
-    //     xcoords[spheres_counter] -= Xcdgrav;
-    //     ycoords[spheres_counter] -= Ycdgrav;
-    //     zcoords[spheres_counter] -= Zcdgrav;
-    // }
+    // Movemos las esferas y las dejamos colocadas tal que su centroide coincida con el origen:
+    for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
+        xcoords[spheres_counter] += Xcdgrav;
+        ycoords[spheres_counter] += Ycdgrav;
+        zcoords[spheres_counter] += Zcdgrav;
+    }
 
     // Calculo del tensor de inercias de cada elemento con respecto al CDG de cada piedra o cluster
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {

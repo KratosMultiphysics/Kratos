@@ -6,23 +6,10 @@
 # 4. Generate Cluster.clu via mesh_to_cluster_converter.cpp passing SPH + MSH as arguments
 #    modified and precompiled executable will be required to do this
 
-
-# current order and links
-# 1AfterMeshGeneration
-# -ExtractSurfaceTriangles - aux run on calculate, folder and file save
-
-# 2OnCalculateExecution
-# -Generate_OBJFile
-
-# 3GenerateSPHFileFromOBJFile
-# -call_SphereTree
-
-# 4Generate.ClusterFile
-
-
-
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ##
+# - issue with cluster visualization
+# - issue with cluster creation in windows. process ok no clu file generated
 
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -204,8 +191,8 @@ proc DEMClusters::call_TreeMedial { } {
 
     exec $program {*}$argv
 
-    # MakeTreeMedial -depth 3 -branch 8 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
-    #set program [lindex $argv 0]
+    # MakeTreeMedial -depth 1 -branch 100 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
+    # set program [lindex $argv 0]
     # set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
     # set arguments [lrange $argv 1 end]
     # exec $program {*}$arguments
@@ -512,14 +499,10 @@ proc ReadClusterFileintoMesh { } {
     set file_data [read $FileVar]
     lreplace $file_data end end
     close $FileVar
-
     W "1"
 
-    #GiD_Process Mescape Meshing EditMesh CreateElement Sphere 10 1 1 1 escape escape
-
-
-    #GiD_Mesh create node append <x y z>
-
+    # GiD_Process Mescape Meshing EditMesh CreateElement Sphere 10 1 1 1 escape escape
+    # GiD_Mesh create node append <x y z>
     # GiD_Mesh create element append Sphere 1 1 <radius> 
 
     # <num>|append : <num> is the identifier (integer > 0) for the node. You can use the word 'append' to set a new number automatically. The number of the created entity is returned as the result.
@@ -534,42 +517,34 @@ proc ReadClusterFileintoMesh { } {
     #  Process data file
     set data [split $file_data "\n"]
     set data [lreplace $data end-14 end]
-    # foreach line $data {
-    #     if {[llength $line] >3} {
-    #         W $line
-    #         W [lrange $line 3 3]
-    #         W [lrange $line 0 0]
-    #         W [lrange $line 1 1]
-    #         W [lrange $line 2 2]
-    #         GiD_Process Mescape Meshing EditMesh CreateElement Sphere [lrange $line 3 3] [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] Mescape escape ;
-    #     }
-    # }
-
-    W "2"
     set sphere_nodes [list]
+    set i 0
     foreach line $data {
         if {[llength $line] >3} {
-    #       set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
-    #       GiD_Mesh create node append [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] ;
     #       lappend sphere_nodes {*}$nodes ;  
             #lappend sphere_nodes [GiD_Mesh create node append {[lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2]}] ;  
             #GiD_Mesh create node append [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2];
-       		set x [lrange $line 0 0]
-            set y [lrange $line 1 1]
-            set z [lrange $line 2 2]
+       		set x [lindex $line 0]
+            set y [lindex $line 1]
+            set z [lindex $line 2]
             W $x
             W $y
             W $z
-            set node_id [GiD_Mesh create node append {-100 0 0}] ;
+            #set node_id [GiD_Mesh create node append {-100 0 0}] ;
             set node_id [GiD_Mesh create node append {$x $y $z}] ; 
-            lappend sphere_nodes {*}$node_id ;       
+            lappend sphere_nodes {*}$node_id ;    
+            incr i 1   
         }
     }
     W $sphere_nodes
 
-    # foreach node $sphere_nodes {
-    #     GiD_Mesh create element append Sphere 1 1 <radius>
-    # }
+    foreach line $data {
+        if {[llength $line] >3} {
+            set i 0
+            GiD_Mesh create element sphere_nodes[i] Sphere 1 1 [lindex $line 3]
+            incr i 1   
+        }
+    }
 }
 
 
