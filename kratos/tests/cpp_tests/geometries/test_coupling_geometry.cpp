@@ -124,8 +124,8 @@ namespace Kratos {
                 KRATOS_CHECK_LESS(norm_2(r_geometry_1[i].Coordinates() - r_geometry_slave[i].Coordinates()), 1.0e-6);
             }
 
-            p_coupling_geometry->RemoveGeometryPart(p_triangle_second_slave);
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 2);
+            //p_coupling_geometry->RemoveGeometryPart(p_triangle_second_slave);
+            //KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 2);
         }
 
         /**
