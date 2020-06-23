@@ -28,7 +28,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianMixturesFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry)
 {
-    GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry);
+    GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry);
 
     if (mAcumulatedPlasticStrains.size() != NumberOfEdges)
         mAcumulatedPlasticStrains.resize(NumberOfEdges);
@@ -54,7 +54,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianMixturesFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties)
 {
-    GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry, pProperties);
+    GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties);
 
     if (mAcumulatedPlasticStrains.size() != NumberOfEdges)
         mAcumulatedPlasticStrains.resize(NumberOfEdges);
