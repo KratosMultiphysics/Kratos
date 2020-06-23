@@ -268,18 +268,20 @@ const double clhs18 =             clhs17*clhs6;
 
     const double crhs0 =             phi_subscale_gauss/tau;
 const double crhs1 =             N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2];
-const double crhs2 =             (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]))/(RK_time_coefficient*delta_time);
-const double crhs3 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2];
+const double crhs2 =             1/(RK_time_coefficient*delta_time);
+const double crhs3 =             crhs2*(N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]));
 const double crhs4 =             N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0);
 const double crhs5 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1);
 const double crhs6 =             tau*(DN(0,0)*crhs4 + DN(0,1)*crhs5);
-const double crhs7 =             (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1));
-const double crhs8 =             crhs4*(DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2]) + crhs5*(DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2]);
-const double crhs9 =             tau*(DN(1,0)*crhs4 + DN(1,1)*crhs5);
-const double crhs10 =             tau*(DN(2,0)*crhs4 + DN(2,1)*crhs5);
-            rhs[0]=N[0]*crhs0 - N[0]*crhs1 + N[0]*crhs2 + crhs1*crhs6 - crhs2*crhs6 + crhs3*crhs6 - crhs6*crhs7 - crhs6*crhs8;
-            rhs[1]=N[1]*crhs0 - N[1]*crhs1 + N[1]*crhs2 + crhs1*crhs9 - crhs2*crhs9 + crhs3*crhs9 - crhs7*crhs9 - crhs8*crhs9;
-            rhs[2]=N[2]*crhs0 - N[2]*crhs1 + N[2]*crhs2 + crhs1*crhs10 - crhs10*crhs2 + crhs10*crhs3 - crhs10*crhs7 - crhs10*crhs8;
+const double crhs7 =             crhs2*phi_subscale_gauss;
+const double crhs8 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2];
+const double crhs9 =             (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1));
+const double crhs10 =             crhs4*(DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2]) + crhs5*(DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2]);
+const double crhs11 =             tau*(DN(1,0)*crhs4 + DN(1,1)*crhs5);
+const double crhs12 =             tau*(DN(2,0)*crhs4 + DN(2,1)*crhs5);
+            rhs[0]=N[0]*crhs0 - N[0]*crhs1 + N[0]*crhs3 + crhs1*crhs6 - crhs10*crhs6 - crhs3*crhs6 + crhs6*crhs7 + crhs6*crhs8 - crhs6*crhs9;
+            rhs[1]=N[1]*crhs0 - N[1]*crhs1 + N[1]*crhs3 + crhs1*crhs11 - crhs10*crhs11 - crhs11*crhs3 + crhs11*crhs7 + crhs11*crhs8 - crhs11*crhs9;
+            rhs[2]=N[2]*crhs0 - N[2]*crhs1 + N[2]*crhs3 + crhs1*crhs12 - crhs10*crhs12 - crhs12*crhs3 + crhs12*crhs7 + crhs12*crhs8 - crhs12*crhs9;
 
 
     noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
@@ -357,21 +359,23 @@ const double clhs26 =             clhs25*clhs7;
 
     const double crhs0 =             phi_subscale_gauss/tau;
 const double crhs1 =             N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2] + N[3]*prj[3];
-const double crhs2 =             (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]))/(RK_time_coefficient*delta_time);
-const double crhs3 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2] + N[3]*f[3];
+const double crhs2 =             1/(RK_time_coefficient*delta_time);
+const double crhs3 =             crhs2*(N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]));
 const double crhs4 =             N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0);
 const double crhs5 =             N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1);
 const double crhs6 =             N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2);
 const double crhs7 =             tau*(DN(0,0)*crhs4 + DN(0,1)*crhs5 + DN(0,2)*crhs6);
-const double crhs8 =             (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2] + N[3]*phi[3])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(0,2)*v(0,2) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(1,2)*v(1,2) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1) + DN(2,2)*v(2,2) + DN(3,0)*v(3,0) + DN(3,1)*v(3,1) + DN(3,2)*v(3,2));
-const double crhs9 =             crhs4*(DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2] + DN(3,0)*phi[3]) + crhs5*(DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2] + DN(3,1)*phi[3]) + crhs6*(DN(0,2)*phi[0] + DN(1,2)*phi[1] + DN(2,2)*phi[2] + DN(3,2)*phi[3]);
-const double crhs10 =             tau*(DN(1,0)*crhs4 + DN(1,1)*crhs5 + DN(1,2)*crhs6);
-const double crhs11 =             tau*(DN(2,0)*crhs4 + DN(2,1)*crhs5 + DN(2,2)*crhs6);
-const double crhs12 =             tau*(DN(3,0)*crhs4 + DN(3,1)*crhs5 + DN(3,2)*crhs6);
-            rhs[0]=N[0]*crhs0 - N[0]*crhs1 + N[0]*crhs2 + crhs1*crhs7 - crhs2*crhs7 + crhs3*crhs7 - crhs7*crhs8 - crhs7*crhs9;
-            rhs[1]=N[1]*crhs0 - N[1]*crhs1 + N[1]*crhs2 + crhs1*crhs10 - crhs10*crhs2 + crhs10*crhs3 - crhs10*crhs8 - crhs10*crhs9;
-            rhs[2]=N[2]*crhs0 - N[2]*crhs1 + N[2]*crhs2 + crhs1*crhs11 - crhs11*crhs2 + crhs11*crhs3 - crhs11*crhs8 - crhs11*crhs9;
-            rhs[3]=N[3]*crhs0 - N[3]*crhs1 + N[3]*crhs2 + crhs1*crhs12 - crhs12*crhs2 + crhs12*crhs3 - crhs12*crhs8 - crhs12*crhs9;
+const double crhs8 =             crhs2*phi_subscale_gauss;
+const double crhs9 =             N[0]*f[0] + N[1]*f[1] + N[2]*f[2] + N[3]*f[3];
+const double crhs10 =             (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2] + N[3]*phi[3])*(DN(0,0)*v(0,0) + DN(0,1)*v(0,1) + DN(0,2)*v(0,2) + DN(1,0)*v(1,0) + DN(1,1)*v(1,1) + DN(1,2)*v(1,2) + DN(2,0)*v(2,0) + DN(2,1)*v(2,1) + DN(2,2)*v(2,2) + DN(3,0)*v(3,0) + DN(3,1)*v(3,1) + DN(3,2)*v(3,2));
+const double crhs11 =             crhs4*(DN(0,0)*phi[0] + DN(1,0)*phi[1] + DN(2,0)*phi[2] + DN(3,0)*phi[3]) + crhs5*(DN(0,1)*phi[0] + DN(1,1)*phi[1] + DN(2,1)*phi[2] + DN(3,1)*phi[3]) + crhs6*(DN(0,2)*phi[0] + DN(1,2)*phi[1] + DN(2,2)*phi[2] + DN(3,2)*phi[3]);
+const double crhs12 =             tau*(DN(1,0)*crhs4 + DN(1,1)*crhs5 + DN(1,2)*crhs6);
+const double crhs13 =             tau*(DN(2,0)*crhs4 + DN(2,1)*crhs5 + DN(2,2)*crhs6);
+const double crhs14 =             tau*(DN(3,0)*crhs4 + DN(3,1)*crhs5 + DN(3,2)*crhs6);
+            rhs[0]=N[0]*crhs0 - N[0]*crhs1 + N[0]*crhs3 + crhs1*crhs7 - crhs10*crhs7 - crhs11*crhs7 - crhs3*crhs7 + crhs7*crhs8 + crhs7*crhs9;
+            rhs[1]=N[1]*crhs0 - N[1]*crhs1 + N[1]*crhs3 + crhs1*crhs12 - crhs10*crhs12 - crhs11*crhs12 - crhs12*crhs3 + crhs12*crhs8 + crhs12*crhs9;
+            rhs[2]=N[2]*crhs0 - N[2]*crhs1 + N[2]*crhs3 + crhs1*crhs13 - crhs10*crhs13 - crhs11*crhs13 - crhs13*crhs3 + crhs13*crhs8 + crhs13*crhs9;
+            rhs[3]=N[3]*crhs0 - N[3]*crhs1 + N[3]*crhs3 + crhs1*crhs14 - crhs10*crhs14 - crhs11*crhs14 - crhs14*crhs3 + crhs14*crhs8 + crhs14*crhs9;
 
 
     noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;

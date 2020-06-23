@@ -104,6 +104,10 @@ for dim in dim_vector:
     rhs_stab_1_oss = tau * (v_gauss.transpose() * grad_q) * prj_gauss
     if OSS_stabilization:
         rhs_stab_1 += rhs_stab_1_oss
+    # dynamic term of convective term
+    rhs_stab_1_dynamic = tau * (v_gauss.transpose() * grad_q) * phi_subscale_gauss/(RK_time_coefficient*delta_time)
+    if dynamic_subscales:
+        rhs_stab_1 += rhs_stab_1_dynamic
 
     # Mass conservation residual
     # mass term
