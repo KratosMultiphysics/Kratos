@@ -426,11 +426,11 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
         // Reading integration points
         for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+            this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
             //call the constitutive law to update material variables
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+            this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
 
             if ( rOutput[point_number].size() != strain_size ) {}
                 rOutput[point_number].resize(strain_size, false);
