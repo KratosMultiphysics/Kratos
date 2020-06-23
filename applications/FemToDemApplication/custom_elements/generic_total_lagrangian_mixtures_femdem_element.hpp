@@ -184,7 +184,7 @@ protected:
      * this performs the smooting and integrates the CL and returns the integrated Stress
      */
     Vector IntegrateSmoothedConstitutiveLaw(const std::string &rYieldSurface, ConstitutiveLaw::Parameters &rValues,
-                                            const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables,
+                                            const BaseSolidElement::ConstitutiveVariables &rThisConstVars, const BaseSolidElement::KinematicVariables &rKinVariables,
                                             Vector &rStrainVector, double &rDamageElement, bool &rIsDamaging, const double CharacteristicLength,
                                             const bool SaveIntVars) override;
 
@@ -259,9 +259,9 @@ protected:
         const Properties& rProperties
         ) override
     {
-        if (mDamage >= 0.98 && this->CalculateAverageAcumulatedPlasticStrain() >= rProperties[MAX_PLASTIC_STRAIN]) {
+        if (this->mDamage >= 0.98 && this->CalculateAverageAcumulatedPlasticStrain() >= rProperties[MAX_PLASTIC_STRAIN]) {
             this->Set(ACTIVE, false);
-            mDamage = 0.98;
+            this->mDamage = 0.98;
             // We set a "flag" to generate the DEM 
             rCurrentProcessInfo[GENERATE_DEM] = true;
         }
