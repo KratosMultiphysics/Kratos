@@ -113,7 +113,9 @@ Following example illustrates different methods used in different containers wit
 
 ### Temporal statistics process example
 
-Following is an example on how to use `temporal_statistics_process` in json. The output variables data type should be matched with the input variables order and the data type for `"norm_type" = "none"`. If `"norm_type" != "none"`, then output variables should be `scalars`. If `"container" = "nodal_historical_historical"` is used as the container type, then output variables should be added to `NodalSolutionStepVariables` list in Kratos since this container type outputs temporal statistics variables to nodal historical container.
+Following is an example on how to use `temporal_statistics_process` in json. The output variables data type should be matched with the input variables order and the data type for `"norm_type" = "none"`. If `"norm_type" != "none"`, then output variables should be `scalars`. If `"container" = "nodal_historical_historical"` is used as the container type, then output variables should be added to `NodalSolutionStepVariables` list in Kratos since this container type outputs temporal statistics variables to nodal historical container. This json settings also can be added to `auxiliary_processe` list.
+
+For details about all the available statistical methods, norm_types, etc, please refer to rest of the `README.md` file.
 
 ```json
         {
