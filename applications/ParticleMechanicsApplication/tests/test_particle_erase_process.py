@@ -62,6 +62,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, initial_mp.Conditions)
         for condition in initial_mp.Conditions:
             condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, 0)
+            condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, 1)
 
     def _search_element(self, current_model):
         # Default
