@@ -65,7 +65,7 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
     }
 
     // Iterate over the elements
-    #pragma omp parallel for firstprivate(DN_DX,  N, J0, InvJ0, detJ0)
+    #pragma omp parallel for firstprivate(DN_DX, N, J0, InvJ0, detJ0, values)
     for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
         auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
