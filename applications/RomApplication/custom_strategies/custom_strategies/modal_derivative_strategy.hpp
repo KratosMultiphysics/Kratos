@@ -454,15 +454,19 @@ public:
                         this->pGetBuilderAndSolver()->ApplyRHSConstraints(p_scheme, r_model_part, rb);
                     }
 
+                    // Apply dynamic derivative constraint
+                    std::size_t fixed_dof_index;
+                    this->ApplyDynamicDerivativeConstraint(basis, fixed_dof_index);
+
                     // Apply Dirichlet conditions
                     this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
-
-                    // Apply dynamic derivative constraint
-                    this->ApplyDynamicDerivativeConstraint(basis);
 
                     // Solve for the modal derivative
                     this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
                     // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
+
+                    // Reconstruct solution
+                    this->ReconstructSolution(rDx, basis, fixed_dof_index);
                 }
                 
                 // Mass orthonormalization
@@ -589,39 +593,86 @@ public:
      * @details
      * { 
      * The dynamic derivative LHS is singular since A_ij = K - lambda_i*M ,
-     * thus the dynamic derivative constraint has to be applied with; Basis_i^T @ M dBasis_i_dalpha_j = 0
-     * This function applies the constraint using the given Basis_i to the first found free DOF
+     * thus the dynamic derivative constraint has to be applied with; Basis_i^T @ M @ dBasis_i_dalpha_j = 0
+     * This function applies a Dirichlet constraint on the DOF with the maximum absolute value
      * } 
      */  
-    void ApplyDynamicDerivativeConstraint(TSystemVectorType& rBasis)
+    void ApplyDynamicDerivativeConstraint(TSystemVectorType& rBasis, std::size_t& fixed_dof_index)
     {
         KRATOS_TRY
 
-        TSystemMatrixType& rA = *mpA;
-        TSystemMatrixType& rMassMatrix = *mpMassMatrix;
-
         DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
 
-        TSystemVectorType constraint;
-        constraint = prec_prod(rMassMatrix, rBasis);
-
+        // Find the DOF with the maximum absolute value in the considered basis
+        double max_abs_value = 0.0;
+        double temp_abs_value = 0.0;
         for (auto dof_i : r_dof_set)
         {
-            // If the DOF is free
-            if (dof_i.IsFree())
+            temp_abs_value = abs(rBasis[dof_i.EquationId()]);
+            if (temp_abs_value > max_abs_value)
             {
-                // then add the constraint only to the first free DOF's row and column
-                for (auto dof_j : r_dof_set)
-                {
-                    // Set row
-                    rA(dof_i.EquationId(),dof_j.EquationId()) += constraint[dof_j.EquationId()];
-                    // Set column
-                    rA(dof_j.EquationId(),dof_i.EquationId()) += constraint[dof_j.EquationId()];
-                }
-                return;
+                max_abs_value = temp_abs_value;
+                fixed_dof_index = dof_i.EquationId();
             }
         }
+
+        // Fix the found DOF
+        auto p_dof = r_dof_set.begin()+fixed_dof_index;
+        p_dof->FixDof();
+
+        // // Below is a self manifactured implementation which does not necessarily give optimum results for some cases
+        // // It is still kept here for future correspondence
+        // TSystemMatrixType& rA = *mpA;
+        // TSystemMatrixType& rMassMatrix = *mpMassMatrix;
+
+        // DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+
+        // TSystemVectorType constraint;
+        // constraint = prec_prod(rMassMatrix, rBasis);
+
+        // for (auto dof_i : r_dof_set)
+        // {
+        //     // If the DOF is free
+        //     if (dof_i.IsFree())
+        //     {
+        //         // then add the constraint only to the first free DOF's row and column
+        //         for (auto dof_j : r_dof_set)
+        //         {
+        //             // Set row
+        //             rA(dof_i.EquationId(),dof_j.EquationId()) += constraint[dof_j.EquationId()];
+        //             // Set column
+        //             rA(dof_j.EquationId(),dof_i.EquationId()) += constraint[dof_j.EquationId()];
+        //         }
+        //         return;
+        //     }
+        // }
         
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function reconstructs the full solution from the constrained solution
+     * @details
+     * { 
+     * } 
+     */ 
+    void ReconstructSolution(TSystemVectorType& rDx, TSystemVectorType& rBasis, std::size_t& fixed_dof_index)
+    {
+        KRATOS_TRY
+
+        TSystemMatrixType& rMassMatrix = *mpMassMatrix;
+        DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+
+        // Free the DOF that is previously fixed
+        auto p_dof = r_dof_set.begin()+fixed_dof_index;
+        p_dof->FreeDof();
+
+        // Component c for the null space solution
+        double c = prec_inner_prod(rDx, prec_prod(rMassMatrix, rBasis));
+
+        // Particular solution
+        rDx += c*rBasis;
+
         KRATOS_CATCH("")
     }
 
