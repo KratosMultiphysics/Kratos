@@ -157,8 +157,8 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
             this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
             if (!SaveIntVars) {
-                damages_edges[edge] = mDamages[edge];
-                double threshold = mThresholds[edge];
+                damages_edges[edge] = this->mDamages[edge];
+                double threshold    = this->mThresholds[edge];
 
                 // Matrix constitutive damage model
                 this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge,
@@ -181,8 +181,8 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
                 this->IntegrateStressDamageMechanics(this->mThresholds[edge], this->mDamages[edge], average_strain_edge,
                                                      average_stress_edge, edge, CharacteristicLength, rValues,
                                                      rIsDamaging);
-                mDamage = this->CalculateElementalDamage(mDamages);
-                rDamageElement = mDamage;
+                this->mDamage = this->CalculateElementalDamage(this->mDamages);
+                rDamageElement = this->mDamage;
 
                 Vector r_fiber_stress = this->IntegrateStressPlasticity(rValues, average_strain_edge,
                                                                         this->mPlasticStrains[edge], this->mAcumulatedPlasticStrains[edge],
