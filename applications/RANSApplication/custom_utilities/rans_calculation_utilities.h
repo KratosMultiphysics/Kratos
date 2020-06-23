@@ -31,7 +31,8 @@ namespace RansCalculationUtilities
 {
 /// Node type
 using NodeType = ModelPart::NodeType;
-
+using ElementType = ModelPart::ElementType;
+using ConditionType = ModelPart::ConditionType;
 /// Geometry type (using with given NodeType)
 using GeometryType = Geometry<NodeType>;
 
@@ -50,6 +51,11 @@ void CalculateGeometryData(const GeometryType& rGeometry,
                            Vector& rGaussWeights,
                            Matrix& rNContainer,
                            GeometryType::ShapeFunctionsGradientsType& rDN_DX);
+
+void CalculateConditionGeometryData(const GeometryType& rGeometry,
+                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                    Vector& rGaussWeights,
+                                    Matrix& rNContainer);
 
 GeometryType::ShapeFunctionsGradientsType CalculateGeometryParameterDerivatives(
     const GeometryType& rGeometry, const GeometryData::IntegrationMethod& rIntegrationMethod);
@@ -70,6 +76,11 @@ array_1d<double, 3> EvaluateInPoint(const GeometryType& rGeometry,
                                     const Vector& rShapeFunction,
                                     const int Step = 0);
 
+template <typename TDataType>
+TDataType EvaluateInParentCenter(const Variable<TDataType>& rVariable,
+                                 const ConditionType& rCondition,
+                                 const int Step = 0);
+
 template <unsigned int TDim>
 double CalculateMatrixTrace(const BoundedMatrix<double, TDim, TDim>& rMatrix);
 
@@ -86,6 +97,16 @@ void CalculateGradient(array_1d<double, 3>& rOutput,
                        const Matrix& rShapeDerivatives,
                        const int Step = 0);
 
+double GetDivergence(const Geometry<ModelPart::NodeType>& rGeometry,
+                     const Variable<array_1d<double, 3>>& rVariable,
+                     const Matrix& rShapeDerivatives,
+                     const int Step = 0);
+
+template <unsigned int TNumNodes>
+void CalculateGaussSensitivities(BoundedVector<double, TNumNodes>& rGaussSensitivities,
+                                 const BoundedVector<double, TNumNodes>& rNodalSensitivities,
+                                 const Vector& rGaussShapeFunctions);
+
 template <unsigned int TDim>
 Vector GetVector(const array_1d<double, 3>& rVector);
 
@@ -96,6 +117,21 @@ double KRATOS_API(RANS_APPLICATION)
                                    const double Beta,
                                    const int MaxIterations = 20,
                                    const double Tolerance = 1e-6);
+
+void CalculateYPlusAndUtau(double& rYPlus,
+                           double& rUTau,
+                           const double WallVelocity,
+                           const double WallHeight,
+                           const double KinematicViscosity,
+                           const double Kappa,
+                           const double Beta,
+                           const int MaxIterations = 20,
+                           const double Tolerance = 1e-6);
+
+double CalculateWallHeight(const ConditionType& rCondition,
+                           const array_1d<double, 3>& rNormal);
+
+array_1d<double, 3> CalculateWallVelocity(const ConditionType& rCondition);
 
 } // namespace RansCalculationUtilities
 
