@@ -964,7 +964,7 @@ BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<T
     const GeometryType& r_geom = this->GetGeometry();
     const GeometryType& r_upwind_geom = pGetUpwindElement()->GetGeometry();
 
-    const array_1d<size_t, TNumNodes> upwind_node_key = GetAssemblyKey(r_geom, r_upwind_geom);
+    const array_1d<size_t, TNumNodes> upwind_node_key = GetAssemblyKey(r_geom, r_upwind_geom, rCurrentProcessInfo);
 
     ElementalData<TNumNodes, TDim> currentElementdata;
     ElementalData<TNumNodes, TDim> upwindElementdata;
@@ -990,27 +990,21 @@ BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<T
 template <int TDim, int TNumNodes>
 array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAssemblyKey(
     const GeometryType& rGeom,
-    const GeometryType& rUpwindGeom)
+    const GeometryType& rUpwindGeom,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    std::vector<size_t> current_element_ids;
-    current_element_ids.resize(TNumNodes, false);
     array_1d<size_t, TNumNodes> upwind_node_key;
+    auto current_process_info = rCurrentProcessInfo;
+    EquationIdVectorType upwind_element_ids, current_element_ids;
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
-    {
-        current_element_ids[i] = rGeom[i].GetDof(VELOCITY_POTENTIAL).EquationId();
-    }
+    pGetUpwindElement()->EquationIdVector(upwind_element_ids, current_process_info);
+    this->EquationIdVector(current_element_ids, current_process_info);
 
-    for (int i = 0; i < TNumNodes; i++) { 
+    for (int i = 0; i < TNumNodes; i++) {
         auto current_id = std::find(current_element_ids.begin(), current_element_ids.end(),
-                rUpwindGeom[i].GetDof(VELOCITY_POTENTIAL).EquationId());
+                upwind_element_ids[i]);
 
-        if( current_id == current_element_ids.end()) {
-            upwind_node_key[i] = TNumNodes;
-        }
-        else {
-            upwind_node_key[i] = std::distance(current_element_ids.begin(), current_id);
-        }  
+        upwind_node_key[i] = std::distance(current_element_ids.begin(), current_id);
     }
 
     return upwind_node_key;
