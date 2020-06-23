@@ -483,7 +483,7 @@ class ConstitutiveLawUtilities
         double& rThreshold)
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-        const double cohesion = r_material_properties[COHESION];
+        const double cohesion = r_material_properties[COHESION_MC];
         const double friction_angle = r_material_properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0;
         rThreshold = cohesion * std::cos(friction_angle);
     }
@@ -600,7 +600,7 @@ class ConstitutiveLawUtilities
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
         const double young_modulus = r_material_properties[YOUNG_MODULUS];
-        const double cohesion = r_material_properties[COHESION];
+        const double cohesion = r_material_properties[COHESION_MC];
         rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(cohesion, 2)) - 0.5);
         KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
     }

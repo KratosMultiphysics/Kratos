@@ -36,7 +36,7 @@ class TestStructuralMechanicsStaticROM(StructuralMechanicsAnalysisROM):
 
 
 if __name__ == "__main__":
-    with open("ProjectParameters.json",'r') as parameter_file:
+    with open("ProjectParametersROM.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     model = KratosMultiphysics.Model()
     Simulation = TestStructuralMechanicsStaticROM(model,parameters)
