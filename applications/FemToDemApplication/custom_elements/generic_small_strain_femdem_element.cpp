@@ -29,7 +29,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry)
 {
-    GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry);
+    GenericSmallStrainFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry);
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -39,7 +39,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties)
 {
-    GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry, pProperties);
+    GenericSmallStrainFemDemElement<TDim,TyieldSurf>::BaseType(NewId, pGeometry, pProperties);
 }
 
 /***********************************************************************************/
