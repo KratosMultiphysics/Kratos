@@ -394,6 +394,7 @@ namespace Kratos
                                 accepted = false;
                                 // std::cout << "ATTENTION!!! ELEMENT WITH AREA = " << elementArea << " versus critical area " << CriticalVolume << std::endl;
                             }
+                            delete triangle;
                         }
                         else if (dimension == 3)
                         {
@@ -460,13 +461,13 @@ namespace Kratos
                         {
                             accepted = false;
                             number_of_slivers++;
-                            delete tetrahedron;
-                        }else if (Volume <= CriticalVolume)
+                        }
+                        else if (Volume <= CriticalVolume)
                         {
                             accepted = false;
                             number_of_slivers++;
-                            delete tetrahedron;
                         }
+                        delete tetrahedron;
                     }
 
                     // // to control that the element has a good shape
