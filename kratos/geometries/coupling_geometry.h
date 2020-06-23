@@ -312,7 +312,7 @@ public:
      */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        if (Index <= NumberOfGeometryParts() - 1) {
+        if (Index < NumberOfGeometryParts()) {
             return true;
         } else {
             return false;
