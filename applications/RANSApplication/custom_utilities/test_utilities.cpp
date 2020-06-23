@@ -29,7 +29,7 @@
 
 namespace Kratos
 {
-namespace RansModellingApplicationTestUtilities
+namespace RansApplicationTestUtilities
 {
 template <>
 void AssignRandomValues(double& rValue, const std::string& rSeed, const double MinValue, const double MaxValue)
@@ -192,5 +192,5 @@ template void RandomFillContainerVariable<ModelPart::ConditionsContainerType, do
 template void RandomFillContainerVariable<ModelPart::ElementsContainerType, double>(
     ModelPart&, const Variable<double>&, const double, const double);
 
-} // namespace RansModellingApplicationTestUtilities
+} // namespace RansApplicationTestUtilities
 } // namespace Kratos

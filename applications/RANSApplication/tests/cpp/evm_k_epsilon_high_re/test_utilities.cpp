@@ -44,7 +44,7 @@ ModelPart& RansEvmKEpsilonHighReK2D3N_SetUp(Model& rModel, const std::string& rE
         rModelPart.AddNodalSolutionStepVariable(RANS_AUXILIARY_VARIABLE_1);
     };
 
-    using namespace RansModellingApplicationTestUtilities;
+    using namespace RansApplicationTestUtilities;
 
     ModelPart& r_model_part =
         CreateTestModelPart(rModel, rElementName, "LineCondition2D2N",
@@ -78,7 +78,7 @@ ModelPart& RansEvmKEpsilonHighReEpsilon2D3N_SetUp(Model& rModel, const std::stri
         rModelPart.AddNodalSolutionStepVariable(RANS_AUXILIARY_VARIABLE_2);
     };
 
-    using namespace RansModellingApplicationTestUtilities;
+    using namespace RansApplicationTestUtilities;
 
     ModelPart& r_model_part = CreateTestModelPart(
         rModel, rElementName, "LineCondition2D2N", add_variables_function,

@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-namespace RansModellingApplicationTestUtilities
+namespace RansApplicationTestUtilities
 {
 using IndexType = std::size_t;
 
@@ -60,7 +60,7 @@ void RandomFillContainerVariable(ModelPart& rModelPart,
 void TestEquationIdVector(ModelPart& rModelPart);
 void TestGetDofList(ModelPart& rModelPart, const Variable<double>& rVariable);
 
-} // namespace RansModellingApplicationTestUtilities
+} // namespace RansApplicationTestUtilities
 } // namespace Kratos
 
 #endif
