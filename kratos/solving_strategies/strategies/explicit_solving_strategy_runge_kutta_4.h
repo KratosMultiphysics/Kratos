@@ -193,15 +193,16 @@ protected:
 
         // Set the previous step solution in the current buffer position
         // Note that we set the 0 position of the buffer to be equal to the values in step n (not n+1)
-        // Additionally, we save in an auxiliary vector the value of the fixed DOFs
+        // Additionally, we save in an auxiliary vector the value of the fixed DOFs, which is also taken from the previous time step
 #pragma omp parallel for firstprivate(dof_size)
         for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
             auto it_dof = r_dof_set.begin() + i_dof;
-            double& r_u = it_dof->GetSolutionStepValue(0);
+            double& r_u_0 = it_dof->GetSolutionStepValue(0);
+            const double& r_u_1 = it_dof->GetSolutionStepValue(1);
             if (it_dof->IsFixed()) {
-                u_n(i_dof) = r_u;
+                u_n(i_dof) = r_u_1;
             }
-            r_u = it_dof->GetSolutionStepValue(1);
+            r_u_0 = r_u_1;
         }
 
         // Calculate the RK4 intermediate sub steps
@@ -227,16 +228,28 @@ protected:
     }
 
     /**
-     * @brief Initialize the Runge-Kutta substep
-     * This method is intended to implement all the operations required before each Runge-Kutta substep
+     * @brief Initialize the Runge-Kutta intermediate substep
+     * This method is intended to implement all the operations required before each Runge-Kutta intermediate substep
      */
-    virtual void InitializeRungeKuttaSubStep() {};
+    virtual void InitializeRungeKuttaIntermediateSubStep() {};
 
     /**
-     * @brief Finalize the Runge-Kutta substep
-     * This method is intended to implement all the operations required after each Runge-Kutta substep
+     * @brief Finalize the Runge-Kutta intermediate substep
+     * This method is intended to implement all the operations required after each Runge-Kutta intermediate substep
      */
-    virtual void FinalizeRungeKuttaSubStep() {};
+    virtual void FinalizeRungeKuttaIntermediateSubStep() {};
+
+    /**
+     * @brief Initialize the Runge-Kutta last substep
+     * This method is intended to implement all the operations required before each Runge-Kutta last substep
+     */
+    virtual void InitializeRungeKuttaLastSubStep() {};
+
+    /**
+     * @brief Finalize the Runge-Kutta last substep
+     * This method is intended to implement all the operations required after each Runge-Kutta last substep
+     */
+    virtual void FinalizeRungeKuttaLastSubStep() {};
 
     /**
      * @brief Performs an intermediate RK4 step
@@ -268,7 +281,7 @@ protected:
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = SubStepIndex;
 
         // Perform the intermidate sub step update
-        InitializeRungeKuttaSubStep();
+        InitializeRungeKuttaIntermediateSubStep();
         p_explicit_bs->BuildRHS(r_model_part);
 
 #pragma omp parallel for firstprivate(dof_size)
@@ -289,7 +302,7 @@ protected:
             }
         }
 
-        FinalizeRungeKuttaSubStep();
+        FinalizeRungeKuttaIntermediateSubStep();
     }
 
     /**
@@ -312,7 +325,7 @@ protected:
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = 4;
 
         // Perform the last sub step residual calculation
-        InitializeRungeKuttaSubStep();
+        InitializeRungeKuttaLastSubStep();
         p_explicit_bs->BuildRHS(r_model_part);
 
 #pragma omp parallel for firstprivate(dof_size)
@@ -323,7 +336,7 @@ protected:
             rLastStepResidualVector(i_dof) = r_res;
         }
 
-        FinalizeRungeKuttaSubStep();
+        FinalizeRungeKuttaLastSubStep();
     }
 
     ///@}
