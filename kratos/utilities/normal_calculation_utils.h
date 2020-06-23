@@ -169,7 +169,7 @@ public:
                 }
             }
 
-            rModelPart.GetCommunicator().SynchronizeAndNodalFlags(VISITED);
+            rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
 
             for(auto & node: rModelPart.Nodes()) {
                 if(node.Is(VISITED)) {

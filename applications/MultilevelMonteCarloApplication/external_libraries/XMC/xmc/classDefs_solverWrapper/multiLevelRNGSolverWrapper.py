@@ -22,24 +22,28 @@ class MultiLevelRNGSolverWrapper(sw.SolverWrapper):
     # TODO update documentation above ('rates' is of length 6)
     def __init__(self, **keywordArgs):
         super().__init__(**keywordArgs)
+        if self.outputDimension is None:
+            self.outputDimension = 1
+        self.parameters = keywordArgs.get('parameters')
         self.mean = self.parameters[0] * np.exp(-(self.parameters[1]*self.solverWrapperIndex[0]))
         self.standardDeviation = 1 + self.parameters[2] * np.exp(-(self.parameters[3]*self.solverWrapperIndex[0]))
         self.waitForTime = self.parameters[4] * np.exp(-(self.parameters[5]*self.solverWrapperIndex[0]))
 
     @ExaquteTask(returns=2)
-    def solveForOneQoI_Task(self,randomInput):
-        qoi = None
+    def _drawSample_Task(self,randomInput):
+        sample = None
         if all([component>=0 for component in self.solverWrapperIndex]):
-            qoi = self.mean + self.standardDeviation*randomInput[0]
+            sample = self.mean + self.standardDeviation*randomInput
         else:
-            qoi = 0
-        return qoi, self.waitForTime
+            sample = 0
+        return sample, self.waitForTime
 
     def solve(self, randomInput):
-        # TODO Change hard coding
-        number_of_qoi = 1
-        # TODO Everything will work if the solve method returns a list of QoI-futures
-        # and an associated time-future that it took to compute the list
-        qoi,time_for_all_qoi = self.solveForOneQoI_Task(randomInput)
-        list_of_qoi = [qoi]*number_of_qoi
-        return list_of_qoi,time_for_all_qoi
+        # TODO is it necessary to call a task here?
+        sample,totalTime = self._drawSample_Task(randomInput)
+        # Make it a list of expected size
+        if isinstance(self.outputDimension,int):
+            sample = [sample]*self.outputDimension
+        else: # list of integers
+            sample = [[sample]*dim for dim in self.outputDimension] 
+        return sample,totalTime
