@@ -45,10 +45,10 @@ namespace Kratos
 namespace EvmKEpsilonHighReElementData
 {
 template <unsigned int TDim>
-class EpsilonElementData : public ScalarConvectionDiffusionReactionElementData
+class EpsilonElementData : public ConvectionDiffusionReactionElementData
 {
 public:
-    using BaseType = ScalarConvectionDiffusionReactionElementData;
+    using BaseType = ConvectionDiffusionReactionElementData;
     using NodeType = Node<3>;
     using GeomtryType = BaseType::GeometryType;
 

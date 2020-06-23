@@ -31,6 +31,10 @@
 #include "custom_elements/element_data/evm_k_epsilon_high_re/epsilon_element_data.h"
 #include "custom_elements/element_data/evm_k_epsilon_high_re/k_element_data.h"
 
+// k-omega turbulence model element data
+#include "custom_elements/element_data/evm_k_omega/k_element_data.h"
+#include "custom_elements/element_data/evm_k_omega/omega_element_data.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -192,6 +196,29 @@ private:
 
     const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonHighReElementData::EpsilonElementData<2>> mRansEvmKEpsilonHighReEpsilonCWD2D;
     const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonHighReElementData::EpsilonElementData<3>> mRansEvmKEpsilonHighReEpsilonCWD3D;
+
+    /// k-omega turbulence model elements
+    /// Algebraic flux correction based elements
+    const ConvectionDiffusionReactionElement<2, 3, EvmKOmegaElementData::KElementData<2>> mRansEvmKOmegaKAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKOmegaElementData::KElementData<3>> mRansEvmKOmegaKAFC3D;
+
+    const ConvectionDiffusionReactionElement<2, 3, EvmKOmegaElementData::OmegaElementData<2>> mRansEvmKOmegaOmegaAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKOmegaElementData::OmegaElementData<3>> mRansEvmKOmegaOmegaAFC3D;
+
+    /// Residual based flux corrected elements
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, EvmKOmegaElementData::KElementData<2>> mRansEvmKOmegaKRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, EvmKOmegaElementData::KElementData<3>> mRansEvmKOmegaKRFC3D;
+
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, EvmKOmegaElementData::OmegaElementData<2>> mRansEvmKOmegaOmegaRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, EvmKOmegaElementData::OmegaElementData<3>> mRansEvmKOmegaOmegaRFC3D;
+
+    /// Cross wind stabilization based elements
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKOmegaElementData::KElementData<2>> mRansEvmKOmegaKCWD2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKOmegaElementData::KElementData<3>> mRansEvmKOmegaKCWD3D;
+
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKOmegaElementData::OmegaElementData<2>> mRansEvmKOmegaOmegaCWD2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKOmegaElementData::OmegaElementData<3>> mRansEvmKOmegaOmegaCWD3D;
+
 
     ///@}
     ///@name Private Operators

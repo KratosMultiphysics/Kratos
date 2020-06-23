@@ -7,11 +7,15 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Dharmin Shah (https://github.com/sdharmin)
+//                   Bence Rochlitz (https://github.com/bencerochlitz)
+//
+//  Supervised by:   Jordi Cotela (https://github.com/jcotela)
+//                   Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_EVM_K_EPSILON_HIGH_RE_ELEMENT_DATA_K_ELEMENT_DATA_H_INCLUDED)
-#define KRATOS_EVM_K_EPSILON_HIGH_RE_ELEMENT_DATA_K_ELEMENT_DATA_H_INCLUDED
+#if !defined(KRATOS_EVM_K_OMEGA_ELEMENT_DATA_K_ELEMENT_DATA_H_INCLUDED)
+#define KRATOS_EVM_K_OMEGA_ELEMENT_DATA_K_ELEMENT_DATA_H_INCLUDED
 
 // System includes
 
@@ -42,7 +46,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-namespace EvmKEpsilonHighReElementData
+namespace EvmKOmegaElementData
 {
 template <unsigned int TDim>
 class KElementData : public ConvectionDiffusionReactionElementData
@@ -62,7 +66,7 @@ public:
 
     static const std::string GetName()
     {
-        return "KEpsilonKElementData";
+        return "KOmegaKElementData";
     }
 
     KElementData(const GeomtryType& rGeometry) : BaseType(rGeometry)
@@ -89,18 +93,17 @@ public:
 
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
-
-    double mGamma;
     double mTurbulentKinematicViscosity;
+    double mTurbulentKineticEnergy;
     double mKinematicViscosity;
     double mVelocityDivergence;
-    double mInvTkeSigma;
-    double mCmu;
+    double mSigmaK;
+    double mBetaStar;
 };
 
 ///@}
 
-} // namespace EvmKEpsilonHighReElementData
+} // namespace EvmKOmegaElementData
 
 } // namespace Kratos
 

@@ -48,12 +48,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class ScalarConvectionDiffusionReactionElementData
+class ConvectionDiffusionReactionElementData
 {
 public:
     using GeometryType = Geometry<Node<3>>;
 
-    ScalarConvectionDiffusionReactionElementData(const GeometryType& rGeometry)
+    ConvectionDiffusionReactionElementData(const GeometryType& rGeometry)
         : mrGeometry(rGeometry)
     {
     }
