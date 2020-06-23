@@ -491,6 +491,13 @@ proc ReadClusterFileintoGeometry { } {
     }
 }
 
+
+
+
+
+
+
+
 proc ReadClusterFileintoMesh { } {
 
     set modelname [GiD_Info Project ModelName]
@@ -499,7 +506,6 @@ proc ReadClusterFileintoMesh { } {
     set file_data [read $FileVar]
     lreplace $file_data end end
     close $FileVar
-    W "1"
 
     # GiD_Process Mescape Meshing EditMesh CreateElement Sphere 10 1 1 1 escape escape
     # GiD_Mesh create node append <x y z>
@@ -513,7 +519,6 @@ proc ReadClusterFileintoMesh { } {
     # <nx> <ny> <nz> is the normal of the plane that contain the circle, must be specified for circle elements only
     # <matname> is the optional element material name
 
-
     #  Process data file
     set data [split $file_data "\n"]
     set data [lreplace $data end-14 end]
@@ -521,28 +526,20 @@ proc ReadClusterFileintoMesh { } {
     set i 0
     foreach line $data {
         if {[llength $line] >3} {
-    #       lappend sphere_nodes {*}$nodes ;  
-            #lappend sphere_nodes [GiD_Mesh create node append {[lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2]}] ;  
-            #GiD_Mesh create node append [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2];
        		set x [lindex $line 0]
             set y [lindex $line 1]
             set z [lindex $line 2]
-            W $x
-            W $y
-            W $z
-            #set node_id [GiD_Mesh create node append {-100 0 0}] ;
-            set node_id [GiD_Mesh create node append {$x $y $z}] ; 
+            set node_id [GiD_Mesh create node append  [list $x $y $z]] ; 
             lappend sphere_nodes {*}$node_id ;    
             incr i 1   
         }
     }
     W $sphere_nodes
-
+    set count 0
     foreach line $data {
         if {[llength $line] >3} {
-            set i 0
-            GiD_Mesh create element sphere_nodes[i] Sphere 1 1 [lindex $line 3]
-            incr i 1   
+            GiD_Mesh create element [lindex $sphere_nodes $count] append Sphere 1 1 [lindex $line 3]
+            incr count 1   
         }
     }
 }
