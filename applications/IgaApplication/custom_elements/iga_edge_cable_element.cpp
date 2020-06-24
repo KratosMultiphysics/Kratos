@@ -37,7 +37,6 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-
     array_1d<double, 3> IgaEdgeCableElement::GetActualBaseVector(const Matrix& r_DN_De, const ConfigurationType& rConfiguration) 
     {
         const GeometryType& r_geometry = GetGeometry();
@@ -48,9 +47,8 @@ namespace Kratos
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
         array_1d<double, 3> actual_base_vector = ZeroVector(dimension);
 
-        int step = 0;
         Vector current_displacement = ZeroVector(dimension*number_of_nodes);
-        if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement,step);
+        if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement);
 
         //basis vectors g1 and g2
         Vector g1 = ZeroVector(dimension);
@@ -111,17 +109,12 @@ namespace Kratos
             const double& integration_weight = r_integration_points[point_number].Weight();
             const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
 
-            mReferenceBaseVector[point_number] = GetActualBaseVector(r_DN_De, ConfigurationType::Reference);  
+            mReferenceBaseVector[point_number] = GetActualBaseVector(r_DN_De, ConfigurationType::Reference);
+            const double reference_a = norm_2(mReferenceBaseVector[point_number]);    
 
             // compute base vectors
             const array_1d<double, 3> actual_base_vector = GetActualBaseVector(r_DN_De, ConfigurationType::Current);
     
-            const double reference_a = norm_2(mReferenceBaseVector[point_number]);
-            const double actual_a = norm_2(actual_base_vector);
-
-            const double actual_aa = actual_a * actual_a;
-            const double reference_aa = reference_a * reference_a;        
-        
             // green-lagrange strain
             const double e11_membrane = 0.5 * (inner_prod(actual_base_vector, actual_base_vector) - inner_prod(mReferenceBaseVector[point_number], mReferenceBaseVector[point_number]));
 
@@ -262,14 +255,9 @@ namespace Kratos
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
             double integration_weight = r_integration_points[point_number].Weight();
-            const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(point_number);
 
             double area = this->GetProperties().GetValue(CROSS_AREA);
             double density = this->GetProperties().GetValue(DENSITY);
-            
-            double reference_a = norm_2(mReferenceBaseVector[point_number]);
-
-            double length = reference_a;
 
             double mass = area * density * norm_2(mReferenceBaseVector[point_number]) * integration_weight;
 
@@ -315,7 +303,6 @@ namespace Kratos
         }
 
         //get properties
-        const Vector& t = GetProperties()[TANGENTS];
         const double E = GetProperties()[YOUNG_MODULUS];
         const double A = GetProperties()[CROSS_AREA];
         const double prestress = GetProperties()[PRESTRESS_CAUCHY];
@@ -325,7 +312,6 @@ namespace Kratos
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
             {
                 // get integration data
-                const double& integration_weight = r_integration_points[point_number].Weight();
                 const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
 
                 const array_1d<double, 3> actual_base_vector = GetActualBaseVector(r_DN_De, ConfigurationType::Current);
@@ -352,7 +338,7 @@ namespace Kratos
 
     void IgaEdgeCableElement::GetValuesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -373,7 +359,7 @@ namespace Kratos
 
     void IgaEdgeCableElement::GetFirstDerivativesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -393,7 +379,7 @@ namespace Kratos
 
     void IgaEdgeCableElement::GetSecondDerivativesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;

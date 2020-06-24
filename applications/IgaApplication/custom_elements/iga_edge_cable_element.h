@@ -199,15 +199,15 @@ public:
 
     void GetValuesVector(
         Vector& rValues,
-        int Step) override;
+        int Step = 0) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step) override;
+        int Step = 0) const override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step) override;
+        int Step = 0) const override;
 
     enum class ConfigurationType {
       Current,
