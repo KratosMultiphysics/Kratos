@@ -209,11 +209,6 @@ public:
     ///@}
 protected:
 
-    double ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputeDensityDerivative(const double density,
-                                    const ProcessInfo& rCurrentProcessInfo) const;
-
 private:
     ///@}
     ///@name Member Variables
@@ -227,6 +222,10 @@ private:
 
     void GetWakeDistances(array_1d<double,
                          TNumNodes>& distances) const;
+
+    void GetEquationIdVectorExtendedElement(EquationIdVectorType& rResult) const;
+
+    void AddUpwindEquationId(EquationIdVectorType& rResult) const;
 
     void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
 
@@ -284,6 +283,10 @@ private:
                                     const BoundedVector<double, TNumNodes>& rWake_rhs,
                                     const ElementalData<TNumNodes, TDim>& rData,
                                     unsigned int& rRow) const;
+    
+    BoundedVector<double, TNumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
+
+    array_1d<size_t, TNumNodes> GetAssemblyKey(const GeometryType& rGeom, const GeometryType& rUpwindGeom, const ProcessInfo& rCurrentProcessInfo);
 
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
@@ -298,6 +301,8 @@ private:
 
     void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,
                              GlobalPointersVector<Element>& rUpwindElementCandidates);
+
+    int GetAdditionalUpwindNodeIndex() const;
 
     ///@}
     ///@name Private Operations

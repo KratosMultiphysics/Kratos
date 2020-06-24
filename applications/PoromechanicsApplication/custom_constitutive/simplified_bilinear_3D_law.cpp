@@ -69,49 +69,6 @@ void SimplifiedBilinear3DLaw::InitializeMaterial( const Properties& rMaterialPro
     mStateVariable = 1.0;
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void SimplifiedBilinear3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
-{
-    //Check
-    rValues.CheckAllParameters();
-
-    //Initialize main variables
-    Flags& Options = rValues.GetOptions();
-    ConstitutiveLawVariables Variables;
-    this->InitializeConstitutiveLawVariables(Variables,rValues);
-
-    this->ComputeEquivalentStrain(Variables,rValues);
-    this->CheckLoadingFunction(Variables,rValues);
-
-    if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
-    {
-        if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
-        {
-            // COMPUTE_CONSTITUTIVE_TENSOR
-            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-
-            this->ComputeConstitutiveMatrix(rConstitutiveMatrix,Variables,rValues);
-        }
-        else
-        {
-            // COMPUTE_CONSTITUTIVE_TENSOR && COMPUTE_STRESS
-            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-            Vector& rStressVector = rValues.GetStressVector();
-
-            this->ComputeConstitutiveMatrix(rConstitutiveMatrix,Variables,rValues);
-            this->ComputeStressVector(rStressVector,Variables,rValues);
-        }
-    }
-    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
-    {
-        // COMPUTE_STRESS
-        Vector& rStressVector = rValues.GetStressVector();
-
-        this->ComputeStressVector(rStressVector,Variables,rValues);
-    }
-}
-
 //----------------------------------------------------------------------------------------
 
 void SimplifiedBilinear3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
@@ -213,69 +170,90 @@ void SimplifiedBilinear3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
     if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
     {
         // Unloading -> Tensile constitutive matrix
-		if (mStateVariable == 0.0)
-		{
-			rVariables.YieldStress= rVariables.YoungModulus * 1.0e-7;
+        if (mStateVariable == 1.0) // Unbroken joint
+        {
+			rConstitutiveMatrix(0,0) = rVariables.YieldStress;
+			rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
+			rConstitutiveMatrix(2,2) = rConstitutiveMatrix(0,0);
+			rConstitutiveMatrix(0,1) = 0.0;
+			rConstitutiveMatrix(1,0) = 0.0;
+			rConstitutiveMatrix(2,0) = 0.0;
+			rConstitutiveMatrix(2,1) = 0.0;
+			rConstitutiveMatrix(0,2) = 0.0;
+			rConstitutiveMatrix(1,2) = 0.0;
 		}
 
-        rConstitutiveMatrix(0,0) = rVariables.YieldStress;
-        rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
-        rConstitutiveMatrix(2,2) = rConstitutiveMatrix(0,0);
-
-        rConstitutiveMatrix(0,1) = 0.0;
-        rConstitutiveMatrix(0,2) = 0.0;
-        rConstitutiveMatrix(1,2) = 0.0;
-        rConstitutiveMatrix(1,0) = 0.0;
-        rConstitutiveMatrix(2,0) = 0.0;
-        rConstitutiveMatrix(2,1) = 0.0;
-
+		if (mStateVariable == 0.0) // Broken joint
+		{
+            double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
+			rConstitutiveMatrix(0,0) = broken_YieldStress;
+			rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
+			rConstitutiveMatrix(2,2) = rConstitutiveMatrix(0,0);
+			rConstitutiveMatrix(0,1) = 0.0;
+			rConstitutiveMatrix(1,0) = 0.0;
+			rConstitutiveMatrix(2,0) = 0.0;
+			rConstitutiveMatrix(2,1) = 0.0;
+			rConstitutiveMatrix(0,2) = 0.0;
+			rConstitutiveMatrix(1,2) = 0.0;
+		}
     }
 
     else // Contact between interfaces
     {
         // Unloading -> Compresive constitutive matrix
-		if (mStateVariable == 0.0)
-		{
-			rVariables.YieldStress= rVariables.YoungModulus * 1.0e-7;
+        if (mStateVariable == 1.0) // Unbroken joint
+        {
+			rConstitutiveMatrix(0,0) = rVariables.YieldStress;
+			rConstitutiveMatrix(1,1) = rVariables.YieldStress;
+			rConstitutiveMatrix(2,2) = rVariables.YoungModulus;
+			rConstitutiveMatrix(0,1) = 0.0;
+			rConstitutiveMatrix(1,0) = 0.0;
+			rConstitutiveMatrix(2,0) = 0.0;
+			rConstitutiveMatrix(2,1) = 0.0;
+			rConstitutiveMatrix(0,2) = 0.0;
+			rConstitutiveMatrix(1,2) = 0.0;
 		}
 
-        rConstitutiveMatrix(0,0) = rVariables.YieldStress;
-        rConstitutiveMatrix(1,1) = rVariables.YieldStress;
-        rConstitutiveMatrix(2,2) = rVariables.YoungModulus;
+		if (mStateVariable == 0.0) // Broken joint
+		{
+			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
+			rConstitutiveMatrix(0,0) = broken_YieldStress;
+			rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
+			rConstitutiveMatrix(2,2) = rVariables.YoungModulus;
+			rConstitutiveMatrix(0,1) = 0.0;
+			rConstitutiveMatrix(1,0) = 0.0;
+			rConstitutiveMatrix(2,0) = 0.0;
+			rConstitutiveMatrix(2,1) = 0.0;
 
-        rConstitutiveMatrix(0,1) = 0.0;
+			const double eps = std::numeric_limits<double>::epsilon();
 
-        const double eps = std::numeric_limits<double>::epsilon();
+			if(StrainVector[0] > eps)
+			{
+				rConstitutiveMatrix(0,2) =-rVariables.YoungModulus * rVariables.FrictionCoefficient;
+			}
+			else if(StrainVector[0] < -eps)
+			{
+				rConstitutiveMatrix(0,2) = rVariables.YoungModulus * rVariables.FrictionCoefficient;
+			}
+			else
+			{
+				rConstitutiveMatrix(0,2) = 0.0;
+			}
 
-        if(StrainVector[0] > eps)
-        {
-            rConstitutiveMatrix(0,2) =-rVariables.YoungModulus * rVariables.FrictionCoefficient;
-        }
-        else if(StrainVector[0] < -eps)
-        {
-            rConstitutiveMatrix(0,2) = rVariables.YoungModulus * rVariables.FrictionCoefficient;
-        }
-        else
-        {
-            rConstitutiveMatrix(0,2) = 0.0;
-        }
+			if(StrainVector[1] > eps)
+			{
+				rConstitutiveMatrix(1,2) =-rVariables.YoungModulus * rVariables.FrictionCoefficient;
+			}
+			else if(StrainVector[1] < -eps)
+			{
+				rConstitutiveMatrix(1,2) = rVariables.YoungModulus * rVariables.FrictionCoefficient;
+			}
+			else
+			{
+				rConstitutiveMatrix(1,2) = 0.0;
+			}
+		}
 
-        if(StrainVector[1] > eps)
-        {
-            rConstitutiveMatrix(1,2) =-rVariables.YoungModulus * rVariables.FrictionCoefficient;
-        }
-        else if(StrainVector[1] < -eps)
-        {
-            rConstitutiveMatrix(1,2) = rVariables.YoungModulus * rVariables.FrictionCoefficient;
-        }
-        else
-        {
-            rConstitutiveMatrix(1,2) = 0.0;
-        }
-
-        rConstitutiveMatrix(1,0) = 0.0;
-        rConstitutiveMatrix(2,0) = 0.0;
-        rConstitutiveMatrix(2,1) = 0.0;
     }
 }
 
@@ -290,64 +268,86 @@ void SimplifiedBilinear3DLaw::ComputeStressVector(Vector& rStressVector,
     if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
     {
 		// Tensile stress
-		if (mStateVariable==0.0)
-		{
-			rVariables.YieldStress = rVariables.YoungModulus * 1.0e-7;
+		if (mStateVariable == 1.0) // Unbroken joint
+        {
+			rStressVector[0] = rVariables.YieldStress * StrainVector[0];
+			rStressVector[1] = rVariables.YieldStress * StrainVector[1];
+			rStressVector[2] = rVariables.YieldStress * StrainVector[2];
 		}
 
-		rStressVector[0] = rVariables.YieldStress * StrainVector[0];
-        rStressVector[1] = rVariables.YieldStress * StrainVector[1];
-        rStressVector[2] = rVariables.YieldStress * StrainVector[2];
+		if (mStateVariable == 0.0) // Broken joint
+		{
+			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
+			rStressVector[0] = broken_YieldStress * StrainVector[0];
+			rStressVector[1] = broken_YieldStress * StrainVector[1];
+			rStressVector[2] = broken_YieldStress * StrainVector[2];
+		}
+
+
     }
     else // Contact between interfaces
     {
         // Note: StrainVector[1] < 0.0, rStressVector[1] < 0.0 -> Compresive stress
-        if (mStateVariable==0.0)
-		{
-			rVariables.YieldStress = rVariables.YoungModulus * 1.0e-7;
+        if (mStateVariable == 1.0) // Unbroken joint
+        {
+			rStressVector[0] = rVariables.YieldStress * StrainVector[0];
+			rStressVector[1] = rVariables.YieldStress * StrainVector[1];
+			rStressVector[2] = rVariables.YoungModulus * StrainVector[2];
 		}
 
-        rStressVector[2] = rVariables.YoungModulus * StrainVector[2];
 
-        const double shear_modulus = rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));
+        if (mStateVariable==0.0) // Broken joint
+		{
+			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
+			rStressVector[2] = rVariables.YoungModulus * StrainVector[2];
 
-        double tangential_strain_vector_modulus = sqrt(StrainVector[0] * StrainVector[0] + StrainVector[1] * StrainVector[1]);
+			if (rVariables.FrictionCoefficient == 0.0)
+			{
+				rStressVector[0] = broken_YieldStress * StrainVector[0];
+				rStressVector[1] = broken_YieldStress * StrainVector[1];
+			}
 
-        double friction_stress0 = fabs(shear_modulus * StrainVector[0]);
-        double max_friction_stress0 = fabs(rVariables.FrictionCoefficient * rStressVector[2] * StrainVector[0] / tangential_strain_vector_modulus);
-        if (friction_stress0 > max_friction_stress0) friction_stress0 = max_friction_stress0;
+			else {
+				double tangential_strain_vector_modulus = sqrt(StrainVector[0] * StrainVector[0] + StrainVector[1] * StrainVector[1]);
+				const double shear_modulus =  rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));
 
-        double friction_stress1 = fabs(shear_modulus * StrainVector[1]);
-        double max_friction_stress1 = fabs(rVariables.FrictionCoefficient * rStressVector[2] * StrainVector[1] / tangential_strain_vector_modulus);
-        if (friction_stress1 > max_friction_stress1) friction_stress1 = max_friction_stress1;
+				double friction_stress = fabs(shear_modulus * tangential_strain_vector_modulus);
+				double max_friction_stress = fabs(rVariables.FrictionCoefficient * rStressVector[2]);
 
-        const double eps = std::numeric_limits<double>::epsilon();
+				if (friction_stress > max_friction_stress) friction_stress = max_friction_stress;
 
-        if(StrainVector[0] > eps)
-        {
-            rStressVector[0] = rVariables.YieldStress * StrainVector[0] + friction_stress0;
-        }
-        else if(StrainVector[0] < -eps)
-        {
-            rStressVector[0] = rVariables.YieldStress * StrainVector[0] - friction_stress0;
-        }
-        else
-        {
-            rStressVector[0] = 0.0;
-        }
+				double friction_stress0 = fabs(friction_stress * StrainVector[0] / tangential_strain_vector_modulus);
+				double friction_stress1 = fabs(friction_stress * StrainVector[1] / tangential_strain_vector_modulus);
 
-        if(StrainVector[1] > eps)
-        {
-            rStressVector[1] = rVariables.YieldStress * StrainVector[1] + friction_stress1;
-        }
-        else if(StrainVector[1] < -eps)
-        {
-            rStressVector[1] = rVariables.YieldStress * StrainVector[1] - friction_stress1;
-        }
-        else
-        {
-            rStressVector[1] = 0.0;
-        }
+				const double eps = std::numeric_limits<double>::epsilon();
+
+				if(StrainVector[0] > eps)
+				{
+					rStressVector[0] = broken_YieldStress * StrainVector[0] + friction_stress0;
+				}
+				else if(StrainVector[0] < -eps)
+				{
+					rStressVector[0] = broken_YieldStress * StrainVector[0] - friction_stress0;
+				}
+				else
+				{
+					rStressVector[0] = 0.0;
+				}
+
+				if(StrainVector[1] > eps)
+				{
+					rStressVector[1] = broken_YieldStress * StrainVector[1] + friction_stress1;
+				}
+				else if(StrainVector[1] < -eps)
+				{
+					rStressVector[1] = broken_YieldStress * StrainVector[1] - friction_stress1;
+				}
+				else
+				{
+					rStressVector[1] = 0.0;
+				}
+			}
+		}
     }
 }
 

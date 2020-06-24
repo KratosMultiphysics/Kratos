@@ -142,23 +142,23 @@ int BarkerMuIRheology3DLaw::Check(const Properties& rMaterialProperties, const G
     KRATOS_CHECK_VARIABLE_KEY(ALPHA_PARAMETER);
     KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
 
-    if (rMaterialProperties[STATIC_FRICTION] <= 0.0) {
+    if (rMaterialProperties[STATIC_FRICTION] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing STATIC_FRICTION provided in process info for BarkerMuIRheology3DLaw: "
                      << rMaterialProperties[STATIC_FRICTION] << std::endl;
     }
 
-    if (rMaterialProperties[DYNAMIC_FRICTION] <= 0.0) {
+    if (rMaterialProperties[DYNAMIC_FRICTION] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing DYNAMIC_FRICTION provided in process info for BarkerMuIRheology3DLaw: "
                      << rMaterialProperties[DYNAMIC_FRICTION] << std::endl;
     }
 
-    if (rMaterialProperties[INERTIAL_NUMBER_ZERO] <= 0.0) {
+    if (rMaterialProperties[INERTIAL_NUMBER_ZERO] < 0.0) {
         KRATOS_ERROR
             << "Incorrect or missing INERTIAL_NUMBER_ZERO provided in process info for BarkerMuIRheology3DLaw: "
             << rMaterialProperties[INERTIAL_NUMBER_ZERO] << std::endl;
     }
 
-    if (rMaterialProperties[INERTIAL_NUMBER_ONE] <= 0.0) {
+    if (rMaterialProperties[INERTIAL_NUMBER_ONE] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing INERTIAL_NUMBER_ONE provided in process info for BarkerMuIRheology3DLaw: "
                      << rMaterialProperties[INERTIAL_NUMBER_ONE] << std::endl;
     }
@@ -173,12 +173,12 @@ int BarkerMuIRheology3DLaw::Check(const Properties& rMaterialProperties, const G
                      << rMaterialProperties[GRAIN_DENSITY] << std::endl;
     }
 
-    if (rMaterialProperties[INFINITE_FRICTION] <= 0.0) {
+    if (rMaterialProperties[INFINITE_FRICTION] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing INFINITE_FRICTION provided in process info for BarkerMuIRheology3DLaw: "
                      << rMaterialProperties[INFINITE_FRICTION] << std::endl;
     }
 
-    if (rMaterialProperties[ALPHA_PARAMETER] <= 0.0) {
+    if (rMaterialProperties[ALPHA_PARAMETER] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing ALPHA_PARAMETER provided in process info for BarkerMuIRheology3DLaw: "
                      << rMaterialProperties[ALPHA_PARAMETER] << std::endl;
     }
@@ -196,9 +196,7 @@ double BarkerMuIRheology3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
 }
 
 double BarkerMuIRheology3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
-    const Properties& r_prop = rParameters.GetMaterialProperties();
-    const double effective_density = r_prop[DENSITY];
-    return effective_density;
+    return rParameters.GetMaterialProperties()[DENSITY];
 }
 
 void BarkerMuIRheology3DLaw::save(Serializer& rSerializer) const {
