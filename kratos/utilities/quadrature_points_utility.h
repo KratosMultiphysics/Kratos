@@ -280,6 +280,37 @@ namespace Kratos
         }
 
         ///@}
+        ///@name Update functions
+        ///@{
+
+        /* @brief This function updates the location of the respective
+        *         QuadraturePointGeometry and resets the point vector and the parent.
+         */
+        static void UpdateFromLocalCoordinates(
+            typename GeometryType::Pointer pGeometry,
+            const array_1d<double, 3>& rLocalCoordinates,
+            const double rIntegrationWeight,
+            GeometryType& rParentGeometry)
+        {
+            IntegrationPoint<3> int_p(rLocalCoordinates, rIntegrationWeight);
+
+            Vector N;
+            pGeometry->ShapeFunctionsValues(N, rLocalCoordinates);
+            Matrix N_matrix(1, N.size());
+            for (IndexType i = 0; i < N.size(); ++i) {
+                N_matrix(0, i) = N[i];
+            }
+
+            Matrix DN_De;
+            pGeometry->ShapeFunctionsLocalGradients(DN_De, rLocalCoordinates);
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                pGeometry->GetDefaultIntegrationMethod(), int_p, N_matrix, DN_De);
+
+            pGeometry->Points() = rParentGeometry.Points();
+            pGeometry->SetGeometryShapeFunctionContainer(data_container);
+            pGeometry->SetGeometryParent(&rParentGeometry);
+        }
 
     };
     ///@} // Kratos Classes
