@@ -76,9 +76,6 @@ file(
     GLOB_RECURSE
     KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/perturb_geometry_base_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/perturb_geometry_subgrid_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/perturb_geometry_sparse_process.cpp
 )
 
 ###############################################################
