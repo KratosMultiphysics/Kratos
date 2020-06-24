@@ -377,6 +377,7 @@ protected:
     Parameters mMapperSettings;
     FilterFunction::Pointer mpFilterFunction;
     bool mIsMappingInitialized = false;
+    SparseMatrixType mMappingMatrix;
 
     ///@}
     ///@name Protected Operators
@@ -391,6 +392,52 @@ protected:
     {
         mpSearchTree.reset();
         mMappingMatrix.clear();
+    }
+
+    // --------------------------------------------------------------------------
+    virtual void ComputeMappingMatrix()
+    {
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
+
+        for(auto& node_i : mrDestinationModelPart.Nodes())
+        {
+            NodeVector neighbor_nodes( max_number_of_neighbors );
+            std::vector<double> resulting_squared_distances( max_number_of_neighbors );
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+                                                                             filter_radius,
+                                                                             neighbor_nodes.begin(),
+                                                                             resulting_squared_distances.begin(),
+                                                                             max_number_of_neighbors );
+
+
+
+            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
+            double sum_of_weights = 0.0;
+
+            if(number_of_neighbors >= max_number_of_neighbors)
+                KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
+
+            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
+                                        NodeVector& neighbor_nodes,
+                                        unsigned int number_of_neighbors,
+                                        std::vector<double>& list_of_weights,
+                                        double& sum_of_weights )
+    {
+        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        {
+            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
+
+            list_of_weights[neighbor_itr] = weight;
+            sum_of_weights += weight;
+        }
     }
 
     ///@}
@@ -425,7 +472,6 @@ private:
     KDTree::Pointer mpSearchTree;
 
     // Variables for mapping
-    SparseMatrixType mMappingMatrix;
     std::vector<Vector> mValuesOrigin;
     std::vector<Vector> mValuesDestination;
 
@@ -488,52 +534,6 @@ private:
     void CreateSearchTreeWithAllNodesInOriginModelPart()
     {
         mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginModelPart.begin(), mListOfNodesInOriginModelPart.end(), mBucketSize));
-    }
-
-    // --------------------------------------------------------------------------
-    void ComputeMappingMatrix()
-    {
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
-        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
-
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            NodeVector neighbor_nodes( max_number_of_neighbors );
-            std::vector<double> resulting_squared_distances( max_number_of_neighbors );
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             filter_radius,
-                                                                             neighbor_nodes.begin(),
-                                                                             resulting_squared_distances.begin(),
-                                                                             max_number_of_neighbors );
-
-
-
-            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
-            double sum_of_weights = 0.0;
-
-            if(number_of_neighbors >= max_number_of_neighbors)
-                KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
-
-            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
-    {
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
-
-            list_of_weights[neighbor_itr] = weight;
-            sum_of_weights += weight;
-        }
     }
 
     // --------------------------------------------------------------------------

@@ -26,6 +26,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "matrix_free_filtering"      : false,
         "consistent_mapping"         : false,
         "improved_integration"       : false,
+        "mesh_independent"           : false,
         "integration_method"         : "gauss_integration",
         "number_of_gauss_points"     : 5,
         "in_plane_morphing"                   : false,
@@ -41,11 +42,15 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
              raise ValueError ("Matrix free mapper has no option to map consistently yet!")
         if mapper_settings["improved_integration"].GetBool():
              raise ValueError ("Matrix free mapper does not yet allow for an improved integration!")
+        if mapper_settings["mesh_independent"].GetBool():
+             raise ValueError ("Matrix free mapper does not yet allow for an mesh_independent mapping!")
         else:
             return KSO.MapperVertexMorphingMatrixFree(origin_model_part, destination_model_part, mapper_settings)
     else:
         if mapper_settings["improved_integration"].GetBool():
             return KSO.MapperVertexMorphingImprovedIntegration(origin_model_part, destination_model_part, mapper_settings)
+        if mapper_settings["mesh_independent"].GetBool():
+            return KSO.MapperVertexMorphingMeshIndependent(origin_model_part, destination_model_part, mapper_settings)
         else:
             return KSO.MapperVertexMorphing(origin_model_part, destination_model_part, mapper_settings)
 
