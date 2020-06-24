@@ -20,7 +20,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 from importlib import import_module
 
 class MechanicalSolver(PythonSolver):
-    is_imported = False
     """The base class for structural mechanics solvers.
 
     This class provides functions for importing and exporting models,
@@ -151,10 +150,6 @@ class MechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-
-        #Todo: Add if statement here
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
@@ -196,9 +191,7 @@ class MechanicalSolver(PythonSolver):
     def ImportModelPart(self):
         """This function imports the ModelPart
         """
-        if( MechanicalSolver.is_imported == False):
-            self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
-
+        self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
         if not self.is_restarted():
