@@ -38,13 +38,12 @@ namespace Kratos
 
         std::vector<Matrix> DN_DX_vec(rGeom.IntegrationPointsNumber());
         GetCartesianDerivatives(DN_DX_vec, rGeom);
-        double weight;
         IndexType active_node_counter;
 
         for (size_t int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p)
         {
             active_node_counter = 0;
-            weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
+            double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
             for (IndexType i = 0; i < number_of_nodes; i++)
             {
                 if (rGeom.ShapeFunctionValue(int_p,i) >= 0.0)
@@ -151,10 +150,9 @@ namespace Kratos
         // Calculate the MP displacement and acceleration for this timestep
         array_1d<double, 3> delta_xg = ZeroVector(3);
         array_1d<double, 3> MP_Acceleration = ZeroVector(3);
-        double weight;
 
         for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p) {
-            weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
+            double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
             for (IndexType i = 0; i < number_of_nodes; i++)
             {
                 if (rGeom.ShapeFunctionValue(int_p, i) >= 0.0)
@@ -236,10 +234,9 @@ namespace Kratos
         std::vector<double> MP_Mass;
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, MP_Velocity, rCurrentProcessInfo);
         rElement.CalculateOnIntegrationPoints(MP_MASS, MP_Mass, rCurrentProcessInfo);
-        double weight;
 
         for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p) {
-            weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
+            double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
             for (IndexType i = 0; i < number_of_nodes; i++)
             {
                 if (rGeom.ShapeFunctionValue(int_p, i) >= 0.0)
@@ -286,11 +283,10 @@ namespace Kratos
 
         //Calculate velocity gradients
         Matrix velocityGradient = (StrainSize == 3) ? Matrix(2, 2, 0.0) : Matrix(3, 3, 0.0);
-        double weight;
         IndexType active_node_counter;
 
         for (IndexType int_p = 0; int_p < rGeom.IntegrationPointsNumber(); ++int_p) {
-            weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
+            double weight = (rGeom.IntegrationPointsNumber() > 1) ? rGeom.IntegrationPoints()[int_p].Weight() : 1.0;
             active_node_counter = 0;
             for (IndexType nodeIndex = 0; nodeIndex < number_of_nodes; nodeIndex++)
             {

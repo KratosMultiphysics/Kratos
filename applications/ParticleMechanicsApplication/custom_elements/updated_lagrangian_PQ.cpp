@@ -81,10 +81,9 @@ void UpdatedLagrangianPQ::CalculateAndAddExternalForces(
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    double weight;
     for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
     {
-        weight = (GetGeometry().IntegrationPointsNumber() > 1) ? GetGeometry().IntegrationPoints()[int_p].Weight() : 1.0;
+        double weight = (GetGeometry().IntegrationPointsNumber() > 1) ? GetGeometry().IntegrationPoints()[int_p].Weight() : 1.0;
         for (IndexType i = 0; i < number_of_nodes; ++i)
         {
             if (GetGeometry().ShapeFunctionValue(int_p, i) >= 0.0) // skip inactive nodes
@@ -112,13 +111,12 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
     // Calculating shape functions
     array_1d<double, 3> nodal_momentum = ZeroVector(3);
     array_1d<double, 3>  nodal_inertia = ZeroVector(3);
-    double weight;
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         for (IndexType int_p = 0; int_p < GetGeometry().IntegrationPointsNumber(); ++int_p)
         {
-            weight = (GetGeometry().IntegrationPointsNumber() > 1) ? GetGeometry().IntegrationPoints()[int_p].Weight() : 1.0;
+            double weight = (GetGeometry().IntegrationPointsNumber() > 1) ? GetGeometry().IntegrationPoints()[int_p].Weight() : 1.0;
             if (r_geometry.ShapeFunctionValue(int_p, i) >= 0.0) // skip inactive nodes
             {
                 for (unsigned int j = 0; j < dimension; j++)
