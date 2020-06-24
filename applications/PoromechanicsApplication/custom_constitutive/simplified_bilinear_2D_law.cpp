@@ -98,7 +98,7 @@ void SimplifiedBilinear2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
 			rConstitutiveMatrix(0,0) = broken_YieldStress;
 		}
 
-        rConstitutiveMatrix(1,1) = rVariables.YoungModulus;
+        rConstitutiveMatrix(1,1) = 1.0e20;
 
         const double eps = std::numeric_limits<double>::epsilon();
 
@@ -157,14 +157,14 @@ void SimplifiedBilinear2DLaw::ComputeStressVector(Vector& rStressVector,
         if (mStateVariable==0.0) // Broken joint
 		{
 			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
-			rStressVector[1] = broken_YieldStress * StrainVector[1];
+			rStressVector[1] = 1.0e20 * StrainVector[1];
 
 			if (rVariables.FrictionCoefficient == 0.0) rStressVector[0] = broken_YieldStress * StrainVector[0];
 
 			else {
 				const double shear_modulus = rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));
 				double friction_stress = fabs(shear_modulus * StrainVector[0]);
-				double max_friction_stress = fabs(rVariables.FrictionCoefficient * rStressVector[1]);
+				double max_friction_stress = fabs(rVariables.FrictionCoefficient * broken_YieldStress * StrainVector[1]);
 				if (friction_stress > max_friction_stress) friction_stress = max_friction_stress;
 
 				const double eps = std::numeric_limits<double>::epsilon();
