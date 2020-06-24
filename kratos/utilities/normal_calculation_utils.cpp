@@ -40,11 +40,7 @@ void NormalCalculationUtils::InitializeNormals<Condition>(ModelPart& rModelPart)
 
         rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
 
-        for(auto& r_node: rModelPart.Nodes()) {
-            if(r_node.Is(VISITED)) {
-                noalias(r_node.FastGetSolutionStepValue(NORMAL)) = zero;
-            }
-        }
+        VariableUtils().SetVariable(NORMAL, zero, rModelPart.Nodes(), VISITED);
     } else {
         // In serial iteratre normally over the condition nodes
         for(auto& r_cond: rModelPart.Conditions()) {
@@ -76,11 +72,7 @@ void NormalCalculationUtils::InitializeNormals<Element>(ModelPart& rModelPart)
 
         rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
 
-        for(auto& r_node: rModelPart.Nodes()) {
-            if(r_node.Is(VISITED)) {
-                noalias(r_node.FastGetSolutionStepValue(NORMAL)) = zero;
-            }
-        }
+        VariableUtils().SetVariable(NORMAL, zero, rModelPart.Nodes(), VISITED);
     } else {
         // In serial iteratre normally over the element nodes
         for(auto& r_cond: rModelPart.Elements()) {
