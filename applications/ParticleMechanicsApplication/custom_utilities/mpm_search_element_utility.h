@@ -183,16 +183,13 @@ namespace MPMSearchElementUtility
 
             if (is_found)
             {
-                auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                    r_found_geom, local_coordinates,
-                    element_itr->GetGeometry().IntegrationPoints()[0].Weight());
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    element_itr->pGetGeometry(), local_coordinates,
+                    element_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
 
                 if (IsExplicitAndNeedsCorrection(p_new_geometry, rBackgroundGridModelPart.GetProcessInfo()))
                     is_found = false;
                 else {
-                    // Update geometry of particle element
-                    element_itr->SetGeometry(p_new_geometry);
-
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
                         r_found_geom.Points()[j].Set(ACTIVE);
                 }
@@ -306,12 +303,12 @@ namespace MPMSearchElementUtility
                         }
                     }
                     pelem->Set(ACTIVE);
-                    auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                        pelem->pGetGeometry(), xg[0],
-                        element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
-                    // Update geometry of particle element
-                    element_itr->SetGeometry(p_new_geometry);
+                    array_1d<double, 3> local_coordinates;
+                    pGeometry->PointLocalCoordinates(local_coordinates, rCoordinates);
+                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                        element_itr->pGetGeometry(), local_coordinates,
+                        element_itr->GetGeometry().IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 
                     for (IndexType j = 0; j < p_new_geometry->PointsNumber(); ++j)
                         (*p_new_geometry)[j].Set(ACTIVE);
