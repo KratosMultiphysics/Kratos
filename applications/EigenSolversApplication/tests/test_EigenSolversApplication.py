@@ -10,6 +10,7 @@ from test_eigen_direct_solver import TestEigenDirectSolver as TTestEigenDirectSo
 from test_eigensystem_solver import TestEigensystemSolver as TTestEigenSystemSolver
 from test_eigen_dense_direct_solver import TestEigenDenseDirectSolver as TTestEigenDenseDirectSolver
 from test_feast_eigensystem_solver import TestFeastEigensystemSolver as TTestFeastEigensystemSolver
+from test_perturb_geometry_process import TestPerturbGeometryProcess as TTestPerturbGeometryProcess
 
 
 def AssembleTestSuites():
@@ -33,6 +34,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenSystemSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenDenseDirectSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestFeastEigensystemSolver]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryProcess]))
 
     # Create a test suit with the selected tests
     nightSuite = suites['nightly']
