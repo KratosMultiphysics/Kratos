@@ -637,6 +637,9 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<TDim, TNumNodes>(upwind_mach_number_squared, rCurrentProcessInfo);
 
     const size_t upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<TDim, TNumNodes>(upwind_factor_options);
+
+    std::cout << "\nInside element\n";
+    KRATOS_WATCH(upwind_factor_case);
     
     double DrhoDu2 = 0.0;
     double DrhoDu2_up = 0.0;
@@ -660,6 +663,9 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
         DrhoDu2_up = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<TDim, TNumNodes>(
             upwind_velocity, local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
     }
+
+    KRATOS_WATCH(DrhoDu2);
+    KRATOS_WATCH(DrhoDu2_up);
 
     AssembleSupersonicLeftHandSide(rLeftHandSideMatrix, DrhoDu2, DrhoDu2_up, velocity, upwind_velocity, rCurrentProcessInfo);
 
