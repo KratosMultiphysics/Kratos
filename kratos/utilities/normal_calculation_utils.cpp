@@ -113,11 +113,11 @@ void NormalCalculationUtils::SwapNormals(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    for(ModelPart::ConditionsContainerType::iterator it=rModelPart.ConditionsBegin(); it!=rModelPart.ConditionsEnd(); it++) {
-        Node<3>::Pointer paux = it->GetGeometry()(0);
-        it->GetGeometry()(0) = it->GetGeometry()(1);
-        it->GetGeometry()(1) = paux;
-        //it->GetGeometry()(0).swap(it->GetGeometry()(1));
+    for(auto& r_cond : rModelPart.Conditions()) {
+        GeometryType& r_geometry = r_cond.GetGeometry();
+        Node<3>::Pointer paux = r_geometry(0);
+        r_geometry(0) = r_geometry(1);
+        r_geometry(1) = paux;
     }
 
     KRATOS_CATCH("")
