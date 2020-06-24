@@ -219,7 +219,7 @@ void SimplifiedBilinear3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
 			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
 			rConstitutiveMatrix(0,0) = broken_YieldStress;
 			rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
-			rConstitutiveMatrix(2,2) = 1.0e20;
+			rConstitutiveMatrix(2,2) = rVariables.YoungModulus;
 			rConstitutiveMatrix(0,1) = 0.0;
 			rConstitutiveMatrix(1,0) = 0.0;
 			rConstitutiveMatrix(2,0) = 0.0;
@@ -299,7 +299,7 @@ void SimplifiedBilinear3DLaw::ComputeStressVector(Vector& rStressVector,
         if (mStateVariable==0.0) // Broken joint
 		{
 			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
-			rStressVector[2] = 1.0e20 * StrainVector[2];
+			rStressVector[2] = rVariables.YoungModulus * StrainVector[2];
 
 			if (rVariables.FrictionCoefficient == 0.0)
 			{

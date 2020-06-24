@@ -87,17 +87,18 @@ void SimplifiedBilinear2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
     else // Contact between interfaces
     {
         // Compresive constitutive matrix
+        double Rigid_YoungModulus = 1.0e20;
         if (mStateVariable == 1.0) // Unbroken joint
 		{
-			rConstitutiveMatrix(0,0) = rVariables.YieldStress;
-			rConstitutiveMatrix(1,1) = rVariables.YoungModulus;
+			rConstitutiveMatrix(0,0) = Rigid_YoungModulus;
+			rConstitutiveMatrix(1,1) = Rigid_YoungModulus;
 		}
 
 		if (mStateVariable == 0.0) // Broken joint
 		{
 			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
 			rConstitutiveMatrix(0,0) = broken_YieldStress;
-			rConstitutiveMatrix(1,1) = 1.0e20;
+			rConstitutiveMatrix(1,1) = Rigid_YoungModulus;
 		}
 
         const double eps = std::numeric_limits<double>::epsilon();
@@ -147,17 +148,17 @@ void SimplifiedBilinear2DLaw::ComputeStressVector(Vector& rStressVector,
     else // Contact between interfaces
     {
         // Note: StrainVector[1] < 0.0, rStressVector[1] < 0.0 -> Compresive stress
-
+		double Rigid_YoungModulus = 1.0e20;
         if (mStateVariable==1.0) // Unbroken joint
 		{
-			rStressVector[0] = rVariables.YieldStress * StrainVector[0];
-			rStressVector[1] = rVariables.YoungModulus * StrainVector[1];
+			rStressVector[0] = Rigid_YoungModulus * StrainVector[0];
+			rStressVector[1] = Rigid_YoungModulus * StrainVector[1];
 		}
 
         if (mStateVariable==0.0) // Broken joint
 		{
 			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
-			rStressVector[1] = 1.0e20 * StrainVector[1];
+			rStressVector[1] = Rigid_YoungModulus * StrainVector[1];
 
 			if (rVariables.FrictionCoefficient == 0.0) rStressVector[0] = broken_YieldStress * StrainVector[0];
 
