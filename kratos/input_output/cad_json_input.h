@@ -291,7 +291,7 @@ private:
 
         auto p_brep_curve_on_surface
             = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                pNurbsSurface, brep_active_range, p_trimming_curve, curve_direction);
+                pNurbsSurface, p_trimming_curve, brep_active_range, curve_direction);
 
         if (rParameters.Has("trim_index")) {
             p_brep_curve_on_surface->SetId(rParameters["trim_index"].GetInt());
