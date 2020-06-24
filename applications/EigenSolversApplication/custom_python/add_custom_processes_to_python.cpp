@@ -31,12 +31,14 @@ void AddCustomProcessesToPython(pybind11::module& m)
     /// Processes
     py::class_<PerturbGeometrySubgridProcess, PerturbGeometrySubgridProcess::Pointer, Process>(m,"PerturbGeometrySubgridProcess")
         .def(py::init<ModelPart&,double>())
+        .def("SetEchoLevel", &PerturbGeometrySubgridProcess::SetEchoLevel)
         .def("CreateEigenvectors", &PerturbGeometrySubgridProcess::CreateEigenvectors)
         .def("AssembleEigenvectors", &PerturbGeometrySubgridProcess::AssembleEigenvectors)
         ;
 
     py::class_<PerturbGeometrySparseProcess, PerturbGeometrySparseProcess::Pointer, Process>(m,"PerturbGeometrySparseProcess")
         .def(py::init<ModelPart&,double>())
+        .def("SetEchoLevel", &PerturbGeometrySparseProcess::SetEchoLevel)
         .def("CreateEigenvectors", &PerturbGeometrySparseProcess::CreateEigenvectors)
         .def("AssembleEigenvectors", &PerturbGeometrySparseProcess::AssembleEigenvectors)
         ;

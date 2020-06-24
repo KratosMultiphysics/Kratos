@@ -27,6 +27,10 @@
 namespace Kratos
 {
 
+void PerturbGeometryBaseProcess::SetEchoLevel( int EchoLevel ){
+    mEchoLevel = EchoLevel;
+}
+
 void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart, const std::vector<double>& variables )
 {
     KRATOS_TRY;
@@ -43,9 +47,7 @@ void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart
         << "Number of eigenvectors: " << num_of_eigenvectors
         << std::endl;
 
-
     std::vector<double> random_field(num_of_nodes,0.0);
-
     #pragma omp parallel
     {
         #pragma omp for
@@ -85,15 +87,15 @@ void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart
 
             // Get normal direction of original model
             normal =  it_node_original->FastGetSolutionStepValue(NORMAL);
-            //it_node_perturb->GetInitialPosition().Coordinates() += normal*random_field[i];
+            it_node_perturb->GetInitialPosition().Coordinates() += normal*random_field[i];
 
             //For visualization
-            it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_X) += normal(0)*random_field[i];
-            it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Y) += normal(1)*random_field[i];
-            it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Z) += normal(2)*random_field[i];
+            // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_X) += normal(0)*random_field[i];
+            // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Y) += normal(1)*random_field[i];
+            // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Z) += normal(2)*random_field[i];
         }
     }
-    KRATOS_INFO("PerturbGeometrySubgridProcess: Apply Random Field to Geometry Time")
+    KRATOS_INFO_IF("PerturbGeometryBaseProcess: Apply Random Field to Geometry Time", mEchoLevel > 0)
         << assemble_eigenvectors_timer.ElapsedSeconds() << std::endl;
 
     KRATOS_CATCH("")

@@ -114,7 +114,7 @@ public:
     ///@name Operations
     ///@{
 
-    int CreateEigenvectors(ModelPart& rThisModelPart, double correlationLength, double truncationTolerance );
+    int CreateEigenvectors(ModelPart& rThisModelPart, double correlationLength, double truncationTolerance, Parameters eigenvalueSettings );
 
     ///@}
     ///@name Access

@@ -63,14 +63,14 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
             reduced_space_nodes.push_back(itNode);
             results = {};
             searcher.SearchNodesInRadiusExclusiveImplementation(nodes,itNode->GetId()-1,radius,results);
-            for( int i = 0; i < results.size(); i++ ){
+            for( size_t i = 0; i < results.size(); i++ ){
                 results[i]->Set(VISITED,true);
             }
         }
     }
     const int num_nodes_reduced_space = reduced_space_nodes.size();
 
-    KRATOS_INFO("PerturbGeometrySubgridProcess: Find Reduced Space Time")
+    KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Find Reduced Space Time", mEchoLevel > 0)
         << reduced_space_timer.ElapsedSeconds() << std::endl
         << "Number of Nodes in Reduced Space: " << num_nodes_reduced_space << " / " << num_of_nodes << std::endl;
 
@@ -93,19 +93,19 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
             }
         }
     }
-    KRATOS_INFO("PerturbGeometrySubgridProcess: Build Correlation Matrix Time")
+    KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Build Correlation Matrix Time", mEchoLevel > 0)
         << build_cl_matrix_timer.ElapsedSeconds() << std::endl;
 
     // Construct eigensolver and solve eigenproblem
     BuiltinTimer eigensolver_time;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(num_nodes_reduced_space);
     es.compute(CorrelationMatrix,Eigen::ComputeEigenvectors);
-    KRATOS_INFO("PerturbGeometrySubgridProcess: Eigensolver Time")
+    KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Eigensolver Time", mEchoLevel > 0)
             << eigensolver_time.ElapsedSeconds() << std::endl;
 
     if( es.info() != Eigen::Success)
     {
-        KRATOS_INFO("PerturbGeometrySubgridProcess")
+        KRATOS_INFO("PerturbGeometrySubgridProcess: Eigensolver")
         << "Decomposition failed" << std::endl;
     }
 
@@ -125,7 +125,7 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
         num_eigenvalues_required++;
         if( reduced_sum_eigenvalues > (1 - truncationTolerance)*total_sum_eigenvalues)
         {
-            KRATOS_INFO("PerturbGeometrySubgridProcess")
+            KRATOS_INFO_IF("PerturbGeometrySubgridProcess", mEchoLevel > 0)
                 << "Truncation Error (" <<  truncationTolerance
                 << ") is achieved with " << num_eigenvalues_required << " Eigenvalues" << std::endl;
             break;
@@ -172,7 +172,7 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
             }
         }
     }
-    KRATOS_INFO("PerturbGeometrySubgridProcess: Assemble Random Field Time")
+    KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Assemble Random Field Time", mEchoLevel > 0)
             << assemble_random_field_time.ElapsedSeconds() << std::endl;
 
 

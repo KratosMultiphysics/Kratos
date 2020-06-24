@@ -90,6 +90,7 @@ public:
         KRATOS_TRY
         MortarUtilities::ComputeNodesMeanNormalModelPart( mrInitialModelPart, false );
         mpPerturbationMatrix = TDenseSpaceType::CreateEmptyMatrixPointer();
+        mEchoLevel = 0;
         KRATOS_CATCH("")
     }
 
@@ -120,6 +121,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void SetEchoLevel( int EchoLevel );
 
     void AssembleEigenvectors(ModelPart& rThisModelPart, const std::vector<double>& variables );
 
@@ -173,6 +176,8 @@ protected:
     ///@{
 
     DenseMatrixPointerType mpPerturbationMatrix;
+
+    int mEchoLevel;
 
     ///@}
     ///@name Protected Operators
