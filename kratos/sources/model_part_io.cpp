@@ -4500,8 +4500,10 @@ bool& ModelPartIO::ExtractValue(std::string rWord, bool & rValue)
 
     if (rWord == "1" || rWord == "true" || rWord == "True") {
         rValue = true;
+    } else if (rWord == "0" || rWord == "false" || rWord == "False") {
+        rValue = false;
     } else {
-          rValue = false;
+        KRATOS_ERROR << "Boolean argument could not be determined: " << rWord << std::endl;
     }
 
     return rValue;
