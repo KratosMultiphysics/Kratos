@@ -58,7 +58,7 @@ public:
         FindConditionsNeighboursProcess find_conditions_neighbours_process(mrModelPart, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
         find_conditions_neighbours_process.Execute();
 
-        mLumpedAreas.resize(mrModelPart.Nodes().size(), 0.0);
+        mLumpedAreas = ZeroVector(mrModelPart.Nodes().size());
         const auto nodes_begin = mrModelPart.NodesBegin();
         #pragma omp parallel for
         for(int i=0; i<mrModelPart.Nodes().size(); ++i)

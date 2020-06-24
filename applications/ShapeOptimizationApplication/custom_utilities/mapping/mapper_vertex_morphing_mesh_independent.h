@@ -107,7 +107,7 @@ public:
         Vector diagonal_mass_matrix(mrOriginModelPart.Nodes().size());
         SparseSpaceType::TransposeMult(mMappingMatrix, mDestinationNodalAreas, diagonal_mass_matrix);
 
-        mSqrtOfInverseDiagonalMassMatrix.resize(diagonal_mass_matrix.size());
+        mSqrtOfInverseDiagonalMassMatrix.resize(diagonal_mass_matrix.size(), false);
 
         // diagonal_mass_matrix *= 1.0/norm_inf(diagonal_mass_matrix);
 
