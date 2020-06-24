@@ -1005,7 +1005,6 @@ namespace MPMSearchElementUtility
             : false;
 
         // Search background grid and make element active
-        const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
         Vector N;
         const int max_result = 1000;
 
@@ -1028,7 +1027,7 @@ namespace MPMSearchElementUtility
                 bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                 if (is_found == true) {
-                    if (IsFixExplicitAndOnElementEdge(N, r_process_info)) {
+                    if (IsFixExplicitAndOnElementEdge(N, r_process_info) && !is_pqmpm) {
                         // MP is exactly on the edge. Now we give it a little 'nudge'
                         array_1d<double, 3> xg_nudged = array_1d<double, 3>(xg[0]);
                         std::vector<array_1d<double, 3>> mp_vel;
