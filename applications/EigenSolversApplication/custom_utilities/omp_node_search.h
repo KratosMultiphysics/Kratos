@@ -161,13 +161,13 @@ class OMP_NodeSearch
       virtual std::string Info() const
       {
           std::stringstream buffer;
-          buffer << "OpenMPDemSearch" ;
+          buffer << "OpenMPNodeSearch" ;
 
           return buffer.str();
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "OpenMPDemSearch";}
+      virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "OpenMPNodeSearch";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const  {}

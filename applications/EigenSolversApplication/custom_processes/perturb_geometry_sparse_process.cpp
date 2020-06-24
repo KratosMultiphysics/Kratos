@@ -19,8 +19,6 @@
 #include "custom_processes/perturb_geometry_sparse_process.h"
 #include "custom_utilities/omp_node_search.h"
 #include "utilities/builtin_timer.h"
-#include "custom_utilities/ublas_wrapper.h"
-
 
 
 namespace Kratos
@@ -35,7 +33,7 @@ namespace Kratos
 /**
  * @brief Creates Eigenvectors of a sparse correlation matrix
  * @details Generates sparse correlation matrix. Decomposes correlation matrix.
- * @param CorrelationMatrix Correlation matrix. Stores correlation vaue for all nodes.
+ * @param correlation_matrix Correlation matrix. Stores correlation value for all nodes.
  * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
  */
 int PerturbGeometrySparseProcess::CreateEigenvectors( ModelPart& rModelPart, double correlationLength, double truncationTolerance, Parameters eigenvalueSettings ){
@@ -48,9 +46,9 @@ int PerturbGeometrySparseProcess::CreateEigenvectors( ModelPart& rModelPart, dou
     // Construct and initialize required containers
     const ModelPart::NodesContainerType nodes = rModelPart.Nodes();
     ResultNodesContainerType  results;
-    SparseMatrixType CorrelationMatrix;
-    CorrelationMatrix.resize(number_of_nodes,number_of_nodes);
-    TSparseSpaceType::SetToZero(CorrelationMatrix);
+    SparseMatrixType correlation_matrix;
+    correlation_matrix.resize(number_of_nodes,number_of_nodes);
+    TSparseSpaceType::SetToZero(correlation_matrix);
     // Construct and initialize searcher
     OMP_NodeSearch searcher;
     searcher.InitializeSearch(nodes);
@@ -70,7 +68,7 @@ int PerturbGeometrySparseProcess::CreateEigenvectors( ModelPart& rModelPart, dou
             int index = results[j]->GetId() - 1;
             auto it_node_results = it_node_begin + index;
 
-            CorrelationMatrix(i , index ) =  CorrelationFunction( it_node, it_node_results , correlationLength);
+            correlation_matrix(i , index ) =  CorrelationFunction( it_node, it_node_results , correlationLength);
         }
     }
 
@@ -85,7 +83,7 @@ int PerturbGeometrySparseProcess::CreateEigenvectors( ModelPart& rModelPart, dou
 
     EigensystemSolver<> eigensolver(eigenvalueSettings);
     eigensolver.Solve(  identity_matrix,
-                        CorrelationMatrix,
+                        correlation_matrix,
                         eigenvalues,
                         eigenvectors);
 
@@ -128,7 +126,6 @@ int PerturbGeometrySparseProcess::CreateEigenvectors( ModelPart& rModelPart, dou
     // Construct and initialize perturbation matrix
     DenseMatrixType& rPerturbationMatrix = *mpPerturbationMatrix;
     rPerturbationMatrix.resize(number_of_nodes,number_of_random_variables);
-    DenseVectorType CorrelationVector;
 
     // Assemble perturbation matrix
     BuiltinTimer assemble_random_field_time;
@@ -136,7 +133,7 @@ int PerturbGeometrySparseProcess::CreateEigenvectors( ModelPart& rModelPart, dou
     for( int i = 0; i < number_of_nodes; i++){
         for( int j = 0; j < number_of_random_variables; j++)
         {
-            rPerturbationMatrix(i,j) = sqrt( eigenvalues(j) ) * inner_prod( row(eigenvectors,j),  row( CorrelationMatrix, i));
+            rPerturbationMatrix(i,j) = sqrt( eigenvalues(j) ) * inner_prod( row(eigenvectors,j),  row( correlation_matrix, i));
         }
     }
 

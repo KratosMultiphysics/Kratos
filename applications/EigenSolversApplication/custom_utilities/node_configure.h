@@ -7,6 +7,7 @@
 //             /____/
 //
 //  Author: Manuel Messmer
+//
 // This file is partly copied from "DEMApplication/custom_utilities/node_configure.h" and modified
 */
 

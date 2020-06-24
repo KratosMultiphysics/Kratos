@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 try:
     import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
@@ -39,11 +40,25 @@ class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
                 counter = counter + 1
                 mp.CreateNewNode(counter,x/(NumOfNodes-1)*length,y/(NumOfNodes-1)*length,0.0)
 
+    def _create_elements(self,mp,NumOfNodes):
+        element_name = "ShellThinElementCorotational3D4N"
+        counter = 0
+        for y in range( NumOfNodes-1 ):
+            for x in range(NumOfNodes - 1):
+                # Aligned counter-clockwise
+                counter = counter + 1
+                node1 = NumOfNodes*(y)+(x+1)
+                node2 = NumOfNodes*(y)+(x+2)
+                node3 = NumOfNodes*(y+1) + (x+2)
+                node4 = NumOfNodes*(y+1) + (x+1)
+                mp.CreateNewElement( element_name, counter, [ node1, node2, node3, node4 ],mp.GetProperties()[0] )
+
     def _set_up_system(self,model,NumOfNodes,length):
         mp = model.CreateModelPart("Structure")
         self._add_variables(mp)
         self._create_nodes(mp,NumOfNodes,length)
         self._add_dofs(mp)
+        self._create_elements(mp,NumOfNodes)
         return mp
 
     def _compare_random_field_vectors(self, mp1, mp2):
@@ -52,6 +67,7 @@ class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
         sum = 0
         for node1, node2 in zip(nodes1,nodes2):
             sum += (node1.Z0 - node2.Z0)**2
+
         self.assertLess( np.sqrt(sum), 1.0e-10)
 
 class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):

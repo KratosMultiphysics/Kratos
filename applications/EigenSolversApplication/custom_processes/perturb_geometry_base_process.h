@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "custom_utilities/omp_node_search.h"
 #include "utilities/mortar_utilities.h"
+#include "spaces/ublas_space.h"
 
 
 namespace Kratos

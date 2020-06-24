@@ -27,10 +27,10 @@ namespace Kratos
 typedef ModelPart::NodesContainerType::ContainerType                 ResultNodesContainerType;
 
 /**
- * @brief Creates Eigenvectors of correlation matrix
- * @details Finds a subgrid (coarse mesh). Generates correlation matrix in subgrid (coarser mesh). Decomposes correlation matrix.
- * @param CorrelationMatrix Correlation matrix. Stored correlation vaue for all nodes in the subgrid.
- * @param rPerturbationMatrix Perturbations matrix. Stores eigenvectors of correlation matrix.
+ * @brief Creates Eigenvectors of correlation matrix in a subgrid
+ * @details Finds a subgrid (coarser mesh). Generates correlation matrix in subgrid. Decomposes correlation matrix.
+ * @param correlation_matrix Correlation matrix. Stores correlation value for all nodes in the subgrid.
+ * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
  */
 int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart, double minDistance, double correlationLength, double truncationTolerance ){
     KRATOS_TRY;
@@ -62,13 +62,13 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
     }
 
     // Generate reduced space
-    for (ModelPart::NodeIterator itNode =rThisModelPart.NodesBegin(); itNode != rThisModelPart.NodesEnd(); itNode++)
+    for (ModelPart::NodeIterator it_node =rThisModelPart.NodesBegin(); it_node != rThisModelPart.NodesEnd(); it_node++)
     {
-        if( !itNode->Is(VISITED) ) {
-            itNode->Set(VISITED,true);
-            reduced_space_nodes.push_back(itNode);
+        if( !it_node->Is(VISITED) ) {
+            it_node->Set(VISITED,true);
+            reduced_space_nodes.push_back(it_node);
             results = {};
-            searcher.SearchNodesInRadiusExclusiveImplementation(nodes,itNode->GetId()-1,radius,results);
+            searcher.SearchNodesInRadiusExclusiveImplementation(nodes,it_node->GetId()-1,radius,results);
             for( size_t i = 0; i < results.size(); i++ ){
                 results[i]->Set(VISITED,true);
             }
@@ -82,8 +82,8 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
 
     // Construct and initialize correlation matrix
     BuiltinTimer build_cl_matrix_timer;
-    Eigen::MatrixXd CorrelationMatrix;
-    CorrelationMatrix.resize(num_nodes_reduced_space,num_nodes_reduced_space);
+    Eigen::MatrixXd correlation_matrix;
+    correlation_matrix.resize(num_nodes_reduced_space,num_nodes_reduced_space);
     // Assemble correlation matrix
     #pragma omp parallel
     {
@@ -95,7 +95,7 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
             for( int column_counter = 0; column_counter < num_nodes_reduced_space; column_counter++)
             {
                 auto it_node_2 = it_node_begin + column_counter;
-                CorrelationMatrix(row_counter ,column_counter ) = CorrelationFunction( *it_node, *it_node_2, correlationLength);
+                correlation_matrix(row_counter ,column_counter ) = CorrelationFunction( *it_node, *it_node_2, correlationLength);
             }
         }
     }
@@ -105,7 +105,7 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
     // Construct eigensolver and solve eigenproblem
     BuiltinTimer eigensolver_time;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(num_nodes_reduced_space);
-    es.compute(CorrelationMatrix,Eigen::ComputeEigenvectors);
+    es.compute(correlation_matrix,Eigen::ComputeEigenvectors);
     KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Eigensolver Time", mEchoLevel > 0)
             << eigensolver_time.ElapsedSeconds() << std::endl;
 
