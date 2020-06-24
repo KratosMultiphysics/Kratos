@@ -47,10 +47,9 @@ namespace Kratos
 /**
  * @class PerturbGeometryBaseProcess
  *
- * @ingroup StructuralMechanicsApplication
+ * @ingroup EigenSolversApplication
  *
  * @brief Base class for geometry perturbation process
- * @details It takes into account all elements in the ModelPart
  *
  * @author Manuel Messmer
  */

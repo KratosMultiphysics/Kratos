@@ -18,14 +18,9 @@
 
 // Project includes
 #include "includes/define.h"
-#include "linear_solvers/direct_solver.h"
 #include "custom_processes/perturb_geometry_base_process.h"
 #include "includes/model_part.h"
-#include "custom_solvers/eigensystem_solver.h"
-#include "custom_solvers/eigen_direct_solver.h"
 #include "custom_utilities/omp_node_search.h"
-#include "utilities/mortar_utilities.h"
-
 
 namespace Kratos
 {
@@ -47,10 +42,10 @@ namespace Kratos
 /**
  * @class PerturbGeometrySubgridProcess
  *
- * @ingroup StructuralMechanicsApplication
+ * @ingroup EigenSolversApplication
  *
- * @brief This method computes the center of gravity
- * @details It takes into account all elements in the ModelPart
+ * @brief This class generates a random field based on a reduced correlation matrix
+ * @details Random field is used to perturb initial geometry
  *
  * @author Manuel Messmer
  */

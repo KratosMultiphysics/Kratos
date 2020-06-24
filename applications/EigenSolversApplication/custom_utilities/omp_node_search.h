@@ -1,13 +1,17 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: clabra $
-//   Date:                $Date: 2007-03-29 19:37:47 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
+//  Main authors:    Manuel Messmer
 //
+// This file is partly copied from "DEMApplication/custom_utilities/omp_dem_search.h" and modified
 
-#if !defined(KRATOS_OMP_DEM_SEARCH_H_INCLUDED )
-#define  KRATOS_OMP_DEM_SEARCH_H_INCLUDED
+#if !defined(KRATOS_OMP_NODE_SEARCH_H_INCLUDED )
+#define  KRATOS_OMP_NODE_SEARCH_H_INCLUDED
 
 // System includes
 #include <string>
@@ -29,16 +33,6 @@
 #include "spatial_containers/bins_dynamic.h"
 
 // External includes
-
-/* Timer defines */
-#include "utilities/timer.h"
-#ifdef CUSTOMTIMER
-#define KRATOS_TIMER_START(t) Timer::Start(t);
-#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
-#else
-#define KRATOS_TIMER_START(t)
-#define KRATOS_TIMER_STOP(t)
-#endif
 
 namespace Kratos
 {
@@ -62,9 +56,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class OMP_NodeSearch
+ *
+ * @ingroup EigenSolversApplication
+ *
+ * @brief This class searches for neighbours of one node within a certain radius
+ *
+ * @author Manuel Messmer
+ */
 
 class OMP_NodeSearch
 {
@@ -79,15 +79,9 @@ class OMP_NodeSearch
       typedef NodeConfigure<3>                              NodeConfigureType;          //Node
       typedef ModelPart::NodesContainerType                 NodesContainerType;
       //Bin Types
-      typedef BinsObjectDynamic<NodeConfigureType>      NodeBinsType;
+      typedef BinsObjectDynamic<NodeConfigureType>          NodeBinsType;
 
       typedef NodesContainerType::ContainerType             ResultNodesContainerType;
-      typedef std::vector<ResultNodesContainerType>         VectorResultNodesContainerType;
-
-      typedef std::vector<double>                           RadiusArrayType;
-
-      typedef std::vector<double>                           DistanceType;
-      typedef std::vector<DistanceType>                     VectorDistanceType;
 
       ///@}
       ///@name Life Cycle
@@ -95,8 +89,7 @@ class OMP_NodeSearch
 
       /// Default constructor.
 
-      OMP_NodeSearch(const double domain_min_x = 0.0, const double domain_min_y = 0.0, const double domain_min_z = 0.0,
-                    const double domain_max_x = -1.0, const double domain_max_y = -1.0, const double domain_max_z = -1.0)
+      OMP_NodeSearch()
       {
           mIsInitialized = false;
       }
@@ -126,36 +119,6 @@ class OMP_NodeSearch
         }
         KRATOS_CATCH("");
       }
-      /*
-      void SearchNodesInRadiusExclusiveImplementation (
-          NodesContainerType const& rStructureNodes,
-          NodesContainerType const& rNodes,
-          const RadiusArrayType & Radius,
-          VectorResultNodesContainerType& rResults )
-      {
-          KRATOS_TRY
-          int MaxNumberOfNodes = rStructureNodes.size();
-
-          NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
-
-          #pragma omp parallel
-          {
-              ResultNodesContainerType  localResults(MaxNumberOfNodes);
-              std::size_t               NumberOfResults = 0;
-
-              #pragma omp for
-              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-              {
-                  ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
-
-                  NumberOfResults = mBins->SearchObjectsInRadiusExclusive(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
-
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-              }
-          }
-
-          KRATOS_CATCH("")
-      }*/
 
       void SearchNodesInRadiusExclusiveImplementation (
           NodesContainerType const& rStructureNodes,
@@ -176,7 +139,6 @@ class OMP_NodeSearch
             NumberOfResults = mBins->SearchObjectsInRadiusExclusive( nodes_array[Id],Radius,ResultsPointer,MaxNumberOfNodes);
 
             rResults.insert(rResults.begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-
 
           KRATOS_CATCH("")
       }
@@ -317,20 +279,6 @@ class OMP_NodeSearch
   ///@name Input and output
   ///@{
 
-  /// input stream function
-//   inline std::istream& operator >> (std::istream& rIStream,
-//                     DEMSearch& rThis){return rIStream;}
-//
-//   /// output stream function
-//   inline std::ostream& operator << (std::ostream& rOStream,
-//                     const DEMSearch& rThis)
-//   {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-//   }
 
   ///@}
 
@@ -338,6 +286,6 @@ class OMP_NodeSearch
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DEM_SEARCH_H_INCLUDED  defined
+#endif // KRATOS_NODE_SEARCH_H_INCLUDED  defined
 
 

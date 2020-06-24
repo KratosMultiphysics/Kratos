@@ -27,16 +27,18 @@
 namespace Kratos
 {
     typedef TUblasSparseSpace<double> TSparseSpaceType;
-    typedef TUblasDenseSpace<double> TDenseSpaceType;
 
     typedef ModelPart::NodesContainerType::ContainerType                ResultNodesContainerType;
 
     typedef typename TSparseSpaceType::MatrixType                       SparseMatrixType;
 
-    typedef typename TDenseSpaceType::VectorType                        DenseVectorType;
 
-    typedef typename TDenseSpaceType::MatrixType                        DenseMatrixType;
-
+/**
+ * @brief Creates Eigenvectors of a sparse correlation matrix
+ * @details Generates sparse correlation matrix. Decomposes correlation matrix.
+ * @param CorrelationMatrix Correlation matrix. Stores correlation vaue for all nodes.
+ * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
+ */
 int PerturbGeometrySparseProcess::CreateEigenvectors( ModelPart& rModelPart, double correlationLength, double truncationTolerance, Parameters eigenvalueSettings ){
     KRATOS_TRY;
 
@@ -90,39 +92,39 @@ int PerturbGeometrySparseProcess::CreateEigenvectors( ModelPart& rModelPart, dou
 
     // Find number of required eigenvalues to statisfy convergence criterion
     double sum_eigenvalues =  1 / eigenvalues(0);
-    int number_required_eigevalues = 0;
+    int number_required_eigenvalues = 0;
     double epsilon;
     for( size_t i = 1; i < eigenvalues.size(); i++)
     {
         epsilon = 1 - sum_eigenvalues / ( sum_eigenvalues + 1 / eigenvalues(i) );
         if( epsilon < truncationTolerance)
         {
-            number_required_eigevalues = i + 1;
+            number_required_eigenvalues = i + 1;
             KRATOS_INFO_IF("PerturbGeometrySparseProcess", mEchoLevel > 0)
                 << "Truncation Error  (" << truncationTolerance
-                << ") is achieved with " << number_required_eigevalues << " Eigenvalues" << std::endl;
+                << ") is achieved with " << number_required_eigenvalues << " Eigenvalues" << std::endl;
 
             break;
         }
         else if( i == eigenvalues.size() - 1)
         {
-            number_required_eigevalues = eigenvalues.size();
+            number_required_eigenvalues = eigenvalues.size();
             KRATOS_INFO_IF("PerturbGeometrySparseProcess", mEchoLevel > 0)
                 << "Truncation Error is NOT achieved:  " << epsilon << " / " << truncationTolerance << std::endl
-                << "Maximum number of computed eigenvalues is used: " << number_required_eigevalues << std::endl;
+                << "Maximum number of computed eigenvalues is used: " << number_required_eigenvalues << std::endl;
         }
         sum_eigenvalues += 1/eigenvalues(i);
     }
 
     // Normalize required eigenvectors
     double eucledian_norm = 0;
-    for( int i =  0; i < number_required_eigevalues; i++)
+    for( int i =  0; i < number_required_eigenvalues; i++)
     {
         eucledian_norm =  norm_2( row(eigenvectors,i) );
         row(eigenvectors,i) = 1.0 / eucledian_norm * row(eigenvectors,i);
     }
 
-    int number_of_random_variables = number_required_eigevalues;
+    int number_of_random_variables = number_required_eigenvalues;
 
     // Construct and initialize perturbation matrix
     DenseMatrixType& rPerturbationMatrix = *mpPerturbationMatrix;

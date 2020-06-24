@@ -1,6 +1,14 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
+//  Main authors:    Manuel Messmer
+//
+// This file is partly copied from "DEMApplication/custom_utilities/node_configure.h" and modified
 
 
 
@@ -9,7 +17,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cmath>
 
 // Kratos includes
@@ -20,14 +28,14 @@
 
 namespace Kratos
 {
-    
+
 template <std::size_t TDimension>
 class NodeConfigure
 {
 
 public:
-  
-    enum { 
+
+    enum {
         Dimension = TDimension,
         DIMENSION = TDimension,
         MAX_LEVEL = 16,
@@ -36,23 +44,22 @@ public:
 
     /// Pointer definition of SpatialContainersConfigure
     KRATOS_CLASS_POINTER_DEFINITION(NodeConfigure);
-    
+
     typedef SpatialSearch                                           SearchType;
 
     typedef SearchType::PointType                                   PointType;
-    typedef SearchType::NodesContainerType::ContainerType        ContainerType;
-    typedef SearchType::NodesContainerType                       NodesContainerType;  // * Comentar -> Create_and_destroy.h
-    
-    typedef SearchType::NodeType                                 NodeType;
+    typedef SearchType::NodesContainerType::ContainerType           ContainerType;
+    typedef SearchType::NodesContainerType                          NodesContainerType;
+
+    typedef SearchType::NodeType                                    NodeType;
     typedef ContainerType::value_type                               PointerType;
     typedef ContainerType::iterator                                 IteratorType;
-    
-    typedef SearchType::NodesContainerType::ContainerType        ResultContainerType;
-//     typedef SearchType::ResultDistanceType::ContainerType             ResultDistanceType;
-    
+
+    typedef SearchType::NodesContainerType::ContainerType           ResultContainerType;
+
     typedef ResultContainerType::iterator                           ResultIteratorType;
     typedef std::vector<double>::iterator                           DistanceIteratorType;
-    
+
     typedef ContactPair<PointerType>                                ContactPairType;
     typedef std::vector<ContactPairType>                            ContainerContactType;
     typedef ContainerContactType::iterator                          IteratorContactType;
@@ -63,7 +70,7 @@ public:
     virtual ~NodeConfigure(){}
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
-    {    
+    {
         for(std::size_t i = 0; i < 3; i++)
         {
             rHighPoint[i] = rLowPoint[i]  = (*rObject)[i];
@@ -76,14 +83,14 @@ public:
         {
             rHighPoint[i] = rLowPoint[i]  = (*rObject)[i];
         }
-        
+
         for(std::size_t i = 0; i < 3; i++)
         {
             rLowPoint[i]  += -Radius;
             rHighPoint[i] += Radius;
         }
     }
-        
+
     static inline void CalculateCenter(const PointerType& rObject, PointType& rCenter)
     {
         for(std::size_t i = 0; i < 3; i++)
@@ -92,79 +99,62 @@ public:
         }
     }
 
-    //******************************************************************************************************************
-
-    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
-    {
-        array_1d<double, 3> rObj_2_to_rObj_1;
-        
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rObj_2_to_rObj_1[i]  = (*rObj_1)[i] - (*rObj_2)[i];
-        }
-        
-        double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
-
-        bool intersect         = floatle((distance_2),0);
-        
-        return intersect;
-    }
-
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
     {
         array_1d<double, 3> rObj_2_to_rObj_1;
-        
+
         for(std::size_t i = 0; i < 3; i++)
         {
             rObj_2_to_rObj_1[i]  = (*rObj_1)[i] - (*rObj_2)[i];
         }
-        
+
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         double radius_sum = 2*Radius;
 
-        bool intersect         = floatle(distance_2 - radius_sum*radius_sum,0);
+        bool intersect = floatle(distance_2 - radius_sum*radius_sum,0);
 
         return intersect;
     }
-    
+
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
         array_1d<double, 3> center_of_particle;
-        
+
         for(std::size_t i = 0; i < 3; i++)
         {
             center_of_particle[i]  = (*rObject)[i];
         }
 
         bool intersect = (
-          floatle(rLowPoint[0] ,center_of_particle[0]) && 
-          floatle(rLowPoint[1] ,center_of_particle[1]) && 
+          floatle(rLowPoint[0] ,center_of_particle[0]) &&
+          floatle(rLowPoint[1] ,center_of_particle[1]) &&
           floatle(rLowPoint[2] ,center_of_particle[2]) &&
-          floatge(rHighPoint[0] ,center_of_particle[0]) && 
-          floatge(rHighPoint[1] ,center_of_particle[1]) && 
+          floatge(rHighPoint[0] ,center_of_particle[0]) &&
+          floatge(rHighPoint[1] ,center_of_particle[1]) &&
           floatge(rHighPoint[2] ,center_of_particle[2]));
 
-        return  intersect; 
+        return  intersect;
     }
 
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
     {
         array_1d<double, 3> center_of_particle;
-        
+
         for(std::size_t i = 0; i < 3; i++)
         {
             center_of_particle[i]  = (*rObject)[i];
         }
 
-        double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
+        double radius = Radius;
+
         bool intersect = (
-          floatle(rLowPoint[0]  - radius,center_of_particle[0]) && 
-          floatle(rLowPoint[1]  - radius,center_of_particle[1]) && 
+          floatle(rLowPoint[0]  - radius,center_of_particle[0]) &&
+          floatle(rLowPoint[1]  - radius,center_of_particle[1]) &&
           floatle(rLowPoint[2]  - radius,center_of_particle[2]) &&
-          floatge(rHighPoint[0] + radius,center_of_particle[0]) && 
-          floatge(rHighPoint[1] + radius,center_of_particle[1]) && 
+          floatge(rHighPoint[0] + radius,center_of_particle[0]) &&
+          floatge(rHighPoint[1] + radius,center_of_particle[1]) &&
           floatge(rHighPoint[2] + radius,center_of_particle[2]));
 
         return  intersect;
@@ -174,7 +164,7 @@ public:
     {
         array_1d<double, 3> center_of_particle1;
         array_1d<double, 3> center_of_particle2;
-                
+
         for(std::size_t i = 0; i < 3; i++)
         {
             center_of_particle1[i]  = (*rObj_1)[i];
@@ -184,7 +174,7 @@ public:
                         (center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
                         (center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
     }
-     
+
     /// Turn back information as a string.
     virtual std::string Info() const {return " Spatial Containers Configure for Particles"; }
 
@@ -195,22 +185,19 @@ public:
     virtual void PrintData(std::ostream& rOStream) const {}
 
 
-
-
 protected:
 
-    
 
-private:    
-    
+private:
+
     static inline bool floateq(double a, double b) {
         return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
     }
-    
+
     static inline bool floatle(double a, double b) {
         return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a < b;
     }
-    
+
     static inline bool floatge(double a, double b) {
         return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a > b;
     }
@@ -235,7 +222,7 @@ private:
 
     ///@}
 
-    }; // Class ParticleConfigure
+    }; // Class NodeConfigure
 
     ///@}
 
@@ -261,7 +248,7 @@ private:
 
         return rOStream;
         }
-        
+
     ///@}
 
 }   // namespace Kratos.

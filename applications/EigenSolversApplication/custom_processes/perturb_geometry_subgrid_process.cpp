@@ -27,10 +27,17 @@ namespace Kratos
 
 typedef ModelPart::NodesContainerType::ContainerType                 ResultNodesContainerType;
 
+/**
+ * @brief Creates Eigenvectors of correlation matrix
+ * @details Finds a subgrid (coarse mesh). Generates correlation matrix in subgrid (coarser mesh). Decomposes correlation matrix.
+ * @param CorrelationMatrix Correlation matrix. Stored correlation vaue for all nodes in the subgrid.
+ * @param rPerturbationMatrix Perturbations matrix. Stores eigenvectors of correlation matrix.
+ */
 int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart, double minDistance, double correlationLength, double truncationTolerance ){
     KRATOS_TRY;
 
     int num_of_nodes = rThisModelPart.NumberOfNodes();
+    // Search radius. Defines the minimum distance among the nodes in the subgrid
     double radius = minDistance;
 
     // Get all nodes
@@ -139,11 +146,11 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
     // Truncate eigenvector matrix
     // Attention: eigenvectors are sorted according to ascending order of eigenvalues
     int cut_off = num_nodes_reduced_space - num_random_variables;
-    Eigen::MatrixXd Eigenvectors = Eigen::Map<Eigen::MatrixXd,0,Eigen::OuterStride<> >(
+    Eigen::MatrixXd eigenvectors_truncated = Eigen::Map<Eigen::MatrixXd,0,Eigen::OuterStride<> >(
     eigenvectors.real().data() + cut_off , es.eigenvectors().real().rows(), num_random_variables, Eigen::OuterStride<>(es.eigenvectors().outerStride()) ) ;
 
     // Retrieve and truncate eigenvalue vector
-    Eigen::VectorXd Eigenvalues = es.eigenvalues().real().tail(num_random_variables);
+    Eigen::VectorXd eigenvalues = es.eigenvalues().real().tail(num_random_variables);
 
     // Get and resize final displacement matrix
     DenseMatrixType& rPerturbationMatrix = *mpPerturbationMatrix;
@@ -158,17 +165,17 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
         #pragma omp for
         for( int i = 0; i < num_of_nodes; i++){
 
-            Eigen::VectorXd CorrelationVector = Eigen::RowVectorXd::Zero(num_nodes_reduced_space);
+            Eigen::VectorXd correlation_vector = Eigen::RowVectorXd::Zero(num_nodes_reduced_space);
             auto it_node = it_node_begin + i;
             const auto it_node_reduced_begin = reduced_space_nodes.begin();
             // Assemble correlation vector
             for( int j = 0; j < num_nodes_reduced_space; j++){
                 auto it_node_reduced = it_node_reduced_begin + j;
-                CorrelationVector(j) = CorrelationFunction( it_node, *it_node_reduced, correlationLength);
+                correlation_vector(j) = CorrelationFunction( it_node, *it_node_reduced, correlationLength);
             }
             // Assemble perturbation field
             for( int j = 0; j < num_random_variables; j++){
-                rPerturbationMatrix(i,j) = sqrt( 1/Eigenvalues(j) ) * (CorrelationVector).dot(Eigenvectors.col(j));
+                rPerturbationMatrix(i,j) = sqrt( 1/eigenvalues(j) ) * (correlation_vector).dot(eigenvectors_truncated.col(j));
             }
         }
     }
@@ -177,6 +184,7 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors( ModelPart& rThisModelPart
 
 
     return num_random_variables;
+
     KRATOS_CATCH("");
 }
 

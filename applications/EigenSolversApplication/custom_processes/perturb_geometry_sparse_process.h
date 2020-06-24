@@ -18,14 +18,9 @@
 
 // Project includes
 #include "custom_solvers/eigensystem_solver.h"
-#include "custom_solvers/eigen_direct_solver.h"
 #include "custom_processes/perturb_geometry_base_process.h"
 #include "includes/define.h"
-#include "linear_solvers/direct_solver.h"
-#include "processes/process.h"
 #include "includes/model_part.h"
-
-
 
 namespace Kratos
 {
@@ -49,8 +44,8 @@ namespace Kratos
  *
  * @ingroup EigenSolversApplication
  *
- * @brief This method computes the center of gravity
- * @details It takes into account all elements in the ModelPart
+ * @brief This class generates a random field based on a sparse correlation matrix
+ * @details Random field is used to perturb initial geometry
  *
  * @author Manuel Messmer
  */
@@ -63,19 +58,6 @@ public:
 
     /// Pointer definition of PerturbGeometrySparseProcess
     KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometrySparseProcess);
-
-    typedef TUblasSparseSpace<double> TSparseSpaceType;
-    typedef TUblasDenseSpace<double> TDenseSpaceType;
-
-    typedef typename TSparseSpaceType::VectorPointerType SparseVectorPointerType;
-
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
-
-    typedef typename TDenseSpaceType::VectorType DenseVectorType;
-
-    typedef typename TDenseSpaceType::MatrixPointerType DenseMatrixPointerType;
-
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
     ///@}
     ///@name Life Cycle

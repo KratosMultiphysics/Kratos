@@ -22,15 +22,22 @@
 
 #include "utilities/openmp_utils.h"
 
-
-
 namespace Kratos
 {
 
+/**
+ * @brief SetEchoLevel
+ * @param mEchoLevel Echo level
+ */
 void PerturbGeometryBaseProcess::SetEchoLevel( int EchoLevel ){
     mEchoLevel = EchoLevel;
 }
 
+/**
+ * @brief Assemble random field and apply to initial geometry
+ * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
+ * @param random_field Random field vector. Stores nodal deviations.
+ */
 void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart, const std::vector<double>& variables )
 {
     KRATOS_TRY;
@@ -41,7 +48,7 @@ void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart
     const int num_of_nodes = rThisModelPart.NumberOfNodes();
 
     KRATOS_WARNING_IF("PerturbGeometryBaseProcess",
-                    num_of_random_variables != num_of_random_variables)
+                    num_of_random_variables != num_of_eigenvectors)
         << "Number of random variables does not match number of eigenvectors: "
         << "Number of random variables: " << num_of_random_variables << ", "
         << "Number of eigenvectors: " << num_of_eigenvectors
@@ -68,7 +75,7 @@ void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart
     double min_disp = *std::min_element(random_field.begin(), random_field.end());
     double max_abs_disp = std::max( std::abs(max_disp), std::abs(min_disp) );
 
-    // Scale random field to maximum deviation
+    // Scale random field to maximum displacement
     double multiplier = mMaximalDisplacement/max_abs_disp;
     std::for_each( random_field.begin(), random_field.end(),
         [multiplier](double& element) {element *= multiplier; } );
@@ -101,7 +108,10 @@ void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart
     KRATOS_CATCH("")
 }
 
-
+/**
+ * @brief Correlation function
+ * @return Correlation value of two nodes
+ */
 double PerturbGeometryBaseProcess::CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLength)
 {
     array_1d<double, 3> coorrdinate;
