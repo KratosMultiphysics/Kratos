@@ -898,7 +898,7 @@ class ResidualBasedNewtonRaphsonStrategy
         if (iteration_number >= mMaxIterationNumber) {
             MaxIterationsExceeded();
         } else {
-            KRATOS_ERROR_IF("NR-Strategy", this->GetEchoLevel() > 0)
+            KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / "
                 << mMaxIterationNumber << " iterations" << std::endl;
         }
@@ -1189,6 +1189,7 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
             << "ATTENTION: max iterations ( " << mMaxIterationNumber
             << " ) exceeded!" << std::endl;
+        KRATOS_ERROR << "HOLA" << std::endl;
     }
 
     /**
