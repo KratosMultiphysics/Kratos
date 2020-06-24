@@ -129,7 +129,6 @@ public:
         const std::size_t Dimension = 0
         );
 
-
     /**
      * @brief This function swaps the normal of all of the conditions in a model part
      * @details This is done by swapping the two first nodes in the geometry and is thus appropriate for simplicial elements
