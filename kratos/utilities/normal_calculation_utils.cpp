@@ -22,6 +22,123 @@
 
 namespace Kratos
 {
+template<>
+void NormalCalculationUtils::InitializeNormals<Condition>(ModelPart& rModelPart)
+{
+    // Resetting the normals
+    const array_1d<double,3> zero = ZeroVector(3);
+
+    if (rModelPart.GetCommunicator().GetDataCommunicator().IsDistributed()) {
+        // If Parallel make sure normals are reset in all partitions
+        VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
+
+        for(auto& r_cond : rModelPart.Conditions()) {
+            for(auto& r_node: r_cond.GetGeometry()) {
+                r_node.Set(VISITED, true);
+            }
+        }
+
+        rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
+
+        for(auto& r_node: rModelPart.Nodes()) {
+            if(r_node.Is(VISITED)) {
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) = zero;
+            }
+        }
+    } else {
+        // In serial iteratre normally over the condition nodes
+        for(auto& r_cond: rModelPart.Conditions()) {
+            for(auto& r_node: r_cond.GetGeometry()) {
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) = zero;
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void NormalCalculationUtils::InitializeNormals<Element>(ModelPart& rModelPart)
+{
+    // Resetting the normals
+    const array_1d<double,3> zero = ZeroVector(3);
+
+    if (rModelPart.GetCommunicator().GetDataCommunicator().IsDistributed()) {
+        // If Parallel make sure normals are reset in all partitions
+        VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
+
+        for(auto& r_cond : rModelPart.Elements()) {
+            for(auto& r_node: r_cond.GetGeometry()) {
+                r_node.Set(VISITED, true);
+            }
+        }
+
+        rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
+
+        for(auto& r_node: rModelPart.Nodes()) {
+            if(r_node.Is(VISITED)) {
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) = zero;
+            }
+        }
+    } else {
+        // In serial iteratre normally over the element nodes
+        for(auto& r_cond: rModelPart.Elements()) {
+            for(auto& r_node: r_cond.GetGeometry()) {
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) = zero;
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void NormalCalculationUtils::CalculateNormals<Condition>(ModelPart& rModelPart)
+{
+    // Initialize the normals
+    InitializeNormals<Condition>(rModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void NormalCalculationUtils::CalculateNormals<Element>(ModelPart& rModelPart)
+{
+    // Initialize the normals
+    InitializeNormals<Element>(rModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void NormalCalculationUtils::CalculateUnitNormals<Condition>(ModelPart& rModelPart)
+{
+    // Compute area normals
+    CalculateNormals<Condition>(rModelPart);
+
+    // Compute unit normals
+    ComputeUnitNormalsFromAreaNormals(rModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void NormalCalculationUtils::CalculateUnitNormals<Element>(ModelPart& rModelPart)
+{
+    // Compute area normals
+    CalculateNormals<Element>(rModelPart);
+
+    // Compute unit normals
+    ComputeUnitNormalsFromAreaNormals(rModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void NormalCalculationUtils::CalculateOnSimplex(
     ConditionsArrayType& rConditions,
@@ -69,41 +186,18 @@ void NormalCalculationUtils::CalculateOnSimplex(
     const std::size_t Dimension
     )
 {
-    // Resetting the normals
-    const array_1d<double,3> zero = ZeroVector(3);
+    // Initialize the normals
+    InitializeNormals<Condition>(rModelPart);
 
-    if (rModelPart.GetCommunicator().GetDataCommunicator().IsDistributed()) {
-        // If Parallel make sure normals are reset in all partitions
-        VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
-
-        for(auto& r_cond : rModelPart.Conditions()) {
-            for(auto& r_node: r_cond.GetGeometry()) {
-                r_node.Set(VISITED, true);
-            }
-        }
-
-        rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
-
-        for(auto& r_node: rModelPart.Nodes()) {
-            if(r_node.Is(VISITED)) {
-                r_node.FastGetSolutionStepValue(NORMAL) = zero;
-            }
-        }
-    } else {
-        // In serial iteratre normally over the condition nodes
-        for(auto& r_cond: rModelPart.Conditions()) {
-            for(auto& r_node: r_cond.GetGeometry()) {
-                r_node.FastGetSolutionStepValue(NORMAL) = zero;
-            }
-        }
-    }
-
+    // Calling CalculateOnSimplex for conditions
     const auto& r_process_info = rModelPart.GetProcessInfo();
     const bool has_domain_size = r_process_info.Has(DOMAIN_SIZE);
     KRATOS_ERROR_IF(has_domain_size && Dimension == 0) << "Dimension not defined" << std::endl;
     const SizeType dimension_in_model_part = has_domain_size ? r_process_info.GetValue(DOMAIN_SIZE) : Dimension;
     KRATOS_WARNING_IF("NormalCalculationUtils", dimension_in_model_part != Dimension) << "Inconsistency between DOMAIN_SIZE and Dimension provided" << std::endl;
     this->CalculateOnSimplex(rModelPart.Conditions(), dimension_in_model_part);
+
+    // Synchronize the normal
     rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
 }
 
@@ -122,6 +216,28 @@ void NormalCalculationUtils::SwapNormals(ModelPart& rModelPart)
     }
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NormalCalculationUtils::ComputeUnitNormalsFromAreaNormals(ModelPart& rModelPart)
+{
+    // We iterate over nodes
+    auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
+
+    #pragma omp parallel for
+    for (int i = 0; i < num_nodes; ++i) {
+        auto it_node = it_node_begin + i;
+
+        array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
+        const double norm_normal = norm_2(r_normal);
+
+        if (norm_normal > std::numeric_limits<double>::epsilon()) r_normal /= norm_normal;
+        else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
+    }
 }
 
 /***********************************************************************************/

@@ -90,6 +90,22 @@ public:
     ///@{
 
     /**
+     * @brief It computes the mean of the normal in the entities and in all the nodes
+     * @param rModelPart The model part to compute
+     * @tparam TEntity The entity type considered
+     */
+    template<class TEntity>
+    void CalculateNormals(ModelPart& rModelPart);
+
+    /**
+     * @brief It computes the mean of the normal in the entities and in all the nodes (unit normal version)
+     * @param rModelPart The model part to compute
+     * @tparam TEntity The entity type considered
+     */
+    template<class TEntity>
+    void CalculateUnitNormals(ModelPart& rModelPart);
+
+    /**
      * @brief Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
      * @details This is done on the base of the Conditions provided which should be understood as the surface elements of the area of interest.
      * @param rConditions A set of conditions defining the "skin" of a model
@@ -438,6 +454,20 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief It initializes the normal in the entites and in all the nodes
+     * @param rModelPart The model part to compute
+     * @tparam TEntity The entity type considered
+     */
+    template<class TEntity>
+    void InitializeNormals(ModelPart& rModelPart);
+
+    /**
+     * @brief It computes the unit normals from the area normals
+     * @param rModelPart The model part to compute
+     */
+    void ComputeUnitNormalsFromAreaNormals(ModelPart& rModelPart);
 
     /**
      * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
