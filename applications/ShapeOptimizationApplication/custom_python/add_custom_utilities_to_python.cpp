@@ -34,6 +34,7 @@
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/lumped_integration_utility.h"
+#include "custom_utilities/response_functions/surface_area_response_function_utility.h"
 
 // ==============================================================================
 
@@ -250,6 +251,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateLumpedAreas", &LumpedIntegrationUtility::CalculateLumpedAreas)
         .def("Integrate", IntegrateVectorVariable)
         .def("Integrate", IntegrateScalarVariable)
+        ;
+
+    py::class_<SurfaceAreaResponseFunctionUtility>(m, "SurfaceAreaResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("CalculateValue", &SurfaceAreaResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &SurfaceAreaResponseFunctionUtility::CalculateGradient)
         ;
 }
 
