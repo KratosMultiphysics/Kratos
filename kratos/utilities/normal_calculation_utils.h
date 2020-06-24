@@ -59,7 +59,20 @@ class KRATOS_API(KRATOS_CORE) NormalCalculationUtils
 public:
     ///@name Type Definitions
     ///@{
-    
+
+    /// The index type definition
+    typedef std::size_t IndexType;
+
+    /// The size type definition
+    typedef std::size_t SizeType;
+
+    // Node definitions
+    typedef Node<3> NodeType;
+
+    /// Definition of geometries
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Conditions array definition
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     ///@}
