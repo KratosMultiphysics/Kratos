@@ -90,7 +90,7 @@ class TestNormalUtils(KratosUnittest.TestCase):
 
         for node in model_part.Nodes:
             normal = []
-            norm = -math.sqrt(node.X**2+node.Y**2+node.Z**2)
+            norm = math.sqrt(node.X**2+node.Y**2+node.Z**2)
             normal.append(node.X/norm)
             normal.append(node.Y/norm)
             normal.append(node.Z/norm)
