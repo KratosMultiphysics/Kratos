@@ -49,7 +49,7 @@ void NormalCalculationUtils::CalculateOnSimplex(
     // Adding the normals to the nodes
     for(ConditionsArrayType::iterator it =  rConditions.begin(); it !=rConditions.end(); it++) {
         Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
-        double coeff = 1.00/pGeometry.size();
+        double coeff = 1.0/pGeometry.size();
         const array_1d<double,3>& r_normal = it->GetValue(NORMAL);
         for(unsigned int i = 0; i<pGeometry.size(); i++) {
             noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * r_normal;
