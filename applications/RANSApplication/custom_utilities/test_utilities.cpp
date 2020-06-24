@@ -141,14 +141,15 @@ void RandomFillContainerVariable(ModelPart& rModelPart,
     }
 }
 
+template <class TContainerType>
 void TestEquationIdVector(ModelPart& rModelPart)
 {
     auto eqn_ids = std::vector<IndexType>{};
-    for (auto& r_element : rModelPart.Elements())
+    for (auto& r_item : GetContainer<TContainerType>(rModelPart))
     {
-        r_element.EquationIdVector(eqn_ids, rModelPart.GetProcessInfo());
-        KRATOS_CHECK_EQUAL(eqn_ids.size(), r_element.GetGeometry().PointsNumber());
-        const auto& r_geometry = r_element.GetGeometry();
+        r_item.EquationIdVector(eqn_ids, rModelPart.GetProcessInfo());
+        KRATOS_CHECK_EQUAL(eqn_ids.size(), r_item.GetGeometry().PointsNumber());
+        const auto& r_geometry = r_item.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
             KRATOS_CHECK_EQUAL(eqn_ids[i_node], r_geometry[i_node].Id());
@@ -156,14 +157,15 @@ void TestEquationIdVector(ModelPart& rModelPart)
     }
 }
 
+template <class TContainerType>
 void TestGetDofList(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
     auto dofs = Element::DofsVectorType{};
-    for (auto& r_element : rModelPart.Elements())
+    for (auto& r_item : GetContainer<TContainerType>(rModelPart))
     {
-        r_element.GetDofList(dofs, rModelPart.GetProcessInfo());
-        KRATOS_CHECK_EQUAL(dofs.size(), r_element.GetGeometry().PointsNumber());
-        const auto& r_geometry = r_element.GetGeometry();
+        r_item.GetDofList(dofs, rModelPart.GetProcessInfo());
+        KRATOS_CHECK_EQUAL(dofs.size(), r_item.GetGeometry().PointsNumber());
+        const auto& r_geometry = r_item.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
             KRATOS_CHECK_EQUAL(dofs[i_node]->GetVariable(), rVariable);
@@ -173,6 +175,14 @@ void TestGetDofList(ModelPart& rModelPart, const Variable<double>& rVariable)
 }
 
 // template instantiations
+template void TestEquationIdVector<ModelPart::ElementsContainerType>(ModelPart&);
+template void TestEquationIdVector<ModelPart::ConditionsContainerType>(ModelPart&);
+
+template void TestGetDofList<ModelPart::ElementsContainerType>(ModelPart&,
+                                                               const Variable<double>&);
+template void TestGetDofList<ModelPart::ConditionsContainerType>(ModelPart&,
+                                                                 const Variable<double>&);
+
 template void RandomFillNodalHistoricalVariable<double>(
     ModelPart&, const Variable<double>&, const double, const double, const int);
 template void RandomFillNodalHistoricalVariable<array_1d<double, 3>>(

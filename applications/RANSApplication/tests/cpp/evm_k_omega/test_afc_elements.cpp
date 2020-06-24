@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaKAFC2D3N_EquationIdVector, KratosRansFast
     auto& r_model_part = RansEvmKOmegaKAFC2D3N_SetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector(r_model_part);
+    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaKAFC2D3N_GetDofList, KratosRansFastSuite)
@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaKAFC2D3N_GetDofList, KratosRansFastSuite)
     auto& r_model_part = RansEvmKOmegaKAFC2D3N_SetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestGetDofList(r_model_part, TURBULENT_KINETIC_ENERGY);
+    RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(r_model_part, TURBULENT_KINETIC_ENERGY);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaKAFC2D3N_CalculateLocalSystem, KratosRansFastSuite)
@@ -208,7 +208,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaAFC2D3N_EquationIdVector, KratosRans
     auto& r_model_part = RansEvmKOmegaOmegaAFC2D3N_SetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector(r_model_part);
+    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaAFC2D3N_GetDofList, KratosRansFastSuite)
@@ -218,7 +218,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaAFC2D3N_GetDofList, KratosRansFastSu
     auto& r_model_part = RansEvmKOmegaOmegaAFC2D3N_SetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestGetDofList(
+    RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(
         r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
 }
 

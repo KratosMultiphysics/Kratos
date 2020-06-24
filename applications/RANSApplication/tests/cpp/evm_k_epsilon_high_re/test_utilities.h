@@ -33,6 +33,8 @@ namespace EvmKEpsilonHighReTestUtilities
 ModelPart& RansEvmKEpsilonHighReK2D3N_SetUp(Model& rModel, const std::string& rElementName);
 
 ModelPart& RansEvmKEpsilonHighReEpsilon2D3N_SetUp(Model& rModel, const std::string& rElementName);
+
+ModelPart& RansEvmKEpsilonHighReEpsilon2D2N_SetUp(Model& rModel, const std::string& rConditionName);
 } // namespace EvmKEpsilonHighReTestUtilities
 } // namespace Kratos
 

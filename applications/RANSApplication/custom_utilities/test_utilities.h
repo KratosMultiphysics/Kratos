@@ -56,8 +56,9 @@ void RandomFillContainerVariable(ModelPart& rModelPart,
                                  const Variable<TDataType>& rVariable,
                                  const double MinValue = 0.0,
                                  const double MaxValue = 1.0);
-
+template <class TContainerType>
 void TestEquationIdVector(ModelPart& rModelPart);
+template <class TContainerType>
 void TestGetDofList(ModelPart& rModelPart, const Variable<double>& rVariable);
 
 } // namespace RansApplicationTestUtilities
