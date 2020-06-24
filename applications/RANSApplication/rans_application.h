@@ -22,6 +22,10 @@
 
 // Application includes
 
+// incompressible potential flow elements
+#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
+#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
+
 // stabilized generic convection diffusion reaction elements
 #include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
 #include "custom_elements/convection_diffusion_reaction_element.h"
@@ -192,6 +196,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    /// incompressible potential flow elements
+    const IncompressiblePotentialFlowVelocityElement<2, 3> mIncompressiblePotentialFlowVelocity2D;
+    const IncompressiblePotentialFlowVelocityElement<3, 4> mIncompressiblePotentialFlowVelocity3D;
+    const IncompressiblePotentialFlowPressureElement<2, 3> mIncompressiblePotentialFlowPressure2D;
+    const IncompressiblePotentialFlowPressureElement<3, 4> mIncompressiblePotentialFlowPressure3D;
 
     /// k-epsilon turbulence model elements
     /// Algebraic flux correction based elements

@@ -27,6 +27,11 @@ namespace Kratos
 {
 KratosRANSApplication::KratosRANSApplication()
     : KratosApplication("RANSApplication"),
+      // incompressible potential flow elements
+      mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mIncompressiblePotentialFlowPressure2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mIncompressiblePotentialFlowPressure3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       // k-epsilon turbulence model elements
       mRansEvmKEpsilonHighReKAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonHighReKAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -86,6 +91,10 @@ void KratosRANSApplication::Register()
 {
     KRATOS_INFO("") << "Initializing KratosRANSApplication..." << std::endl;
 
+    // incompressible potential flow specific variables
+    KRATOS_REGISTER_VARIABLE( VELOCITY_POTENTIAL )
+    KRATOS_REGISTER_VARIABLE( PRESSURE_POTENTIAL )
+
     // residual based flux corrected stabilization variables
     KRATOS_REGISTER_VARIABLE( RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT )
@@ -127,6 +136,12 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FRICTION_VELOCITY )
 
     // registering elements
+    // registering incompressible potential flow elements
+    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
+    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
+    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure2D3N", mIncompressiblePotentialFlowPressure2D);
+    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure3D4N", mIncompressiblePotentialFlowPressure3D);
+
     // registering k-epsilon algebraic flux correction based elements
     KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonHighReKAFC2D3N", mRansEvmKEpsilonHighReKAFC2D);
     KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonHighReKAFC3D4N", mRansEvmKEpsilonHighReKAFC3D);
