@@ -211,10 +211,9 @@ namespace Kratos
         const SizeType number_of_nodes = GetGeometry().size();
         Vector g1 = ZeroVector(dimension);
         Vector g2 = ZeroVector(dimension);
-        int step = 0;
 
         Vector current_displacement = ZeroVector(dimension*number_of_nodes);
-        if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement,step);
+        if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement);
 
         for (SizeType i=0;i<number_of_nodes;++i){
             g1[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 0);
@@ -516,7 +515,6 @@ namespace Kratos
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
             double integration_weight = r_integration_points[point_number].Weight();
-            const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(point_number);
 
             double thickness = this->GetProperties().GetValue(THICKNESS);
             double density = this->GetProperties().GetValue(DENSITY);
@@ -562,7 +560,7 @@ namespace Kratos
 
         array_1d<double, 3> t1_n = t1_z/norm_2(t1_z);
         array_1d<double, 3> t2_n = t2/norm_2(t2);
-        array_1d<double, 3> t3_n = rActualKinematic.a3/norm_2(rActualKinematic.a3);
+        //array_1d<double, 3> t3_n = rActualKinematic.a3/norm_2(rActualKinematic.a3);
 
         //Contravariant metric g_ab_con
         double inv_det_g_ab = 1.0 /
@@ -574,7 +572,7 @@ namespace Kratos
         a_ab_contravariant[1] =  inv_det_g_ab * rActualKinematic.a_ab_covariant[0];
         a_ab_contravariant[2] = -inv_det_g_ab * rActualKinematic.a_ab_covariant[2];
 
-        array_1d<double, 3> a_con_1 = rActualKinematic.a1*a_ab_contravariant[0] + rActualKinematic.a2*a_ab_contravariant[2];
+        //array_1d<double, 3> a_con_1 = rActualKinematic.a1*a_ab_contravariant[0] + rActualKinematic.a2*a_ab_contravariant[2];
         array_1d<double, 3> a_con_2 = rActualKinematic.a1*a_ab_contravariant[2] + rActualKinematic.a2*a_ab_contravariant[1]; 
 
         //local cartesian coordinates oriented along the 1st base vector in the ref. config.
@@ -648,7 +646,7 @@ namespace Kratos
 
     void IgaMembraneElement::GetValuesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -669,7 +667,7 @@ namespace Kratos
 
     void IgaMembraneElement::GetFirstDerivativesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -689,7 +687,7 @@ namespace Kratos
 
     void IgaMembraneElement::GetSecondDerivativesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -857,9 +855,7 @@ namespace Kratos
 
         if (rVariable == STRESSES)
         {
-            Vector n = ZeroVector(8);
             Vector sigma_top = ZeroVector(3);
-            double thickness = GetProperties()[THICKNESS];
 
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
             {
@@ -910,7 +906,6 @@ namespace Kratos
                 //Transform PK2 stress into Cauchy stress
                 //Deformation Gradient F
                 Matrix deformation_gradient = ZeroMatrix(2);
-                double det_deformation_gradient;
 
                 array_1d<Vector,2> rCurrentCovariantBase;
                 rCurrentCovariantBase[0] = kinematic_variables.a1;
