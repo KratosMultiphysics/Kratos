@@ -87,7 +87,10 @@ void NormalCalculationUtils::InitializeNormals<Element>(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<>
-void NormalCalculationUtils::CalculateNormals<Condition>(ModelPart& rModelPart)
+void NormalCalculationUtils::CalculateNormals<Condition>(
+    ModelPart& rModelPart,
+    const bool EnforceGenericAlgorithm
+    )
 {
     // Getting process info
     const auto& r_process_info = rModelPart.GetProcessInfo();
@@ -101,7 +104,7 @@ void NormalCalculationUtils::CalculateNormals<Condition>(ModelPart& rModelPart)
 
     // Checking if we can compute with simplex
     const GeometryData::KratosGeometryType geometry_type = it_cond_begin->GetGeometry().GetGeometryType();
-    const bool use_simplex = dimension == 2 ? geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 : geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3;
+    const bool use_simplex = EnforceGenericAlgorithm ? false : dimension == 2 ? geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 : geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3;
 
     if (use_simplex) {
         CalculateOnSimplex(rModelPart, dimension);
@@ -154,7 +157,10 @@ void NormalCalculationUtils::CalculateNormals<Condition>(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<>
-void NormalCalculationUtils::CalculateNormals<Element>(ModelPart& rModelPart)
+void NormalCalculationUtils::CalculateNormals<Element>(
+    ModelPart& rModelPart,
+    const bool EnforceGenericAlgorithm
+    )
 {
     // Initialize the normals
     InitializeNormals<Element>(rModelPart);
@@ -206,10 +212,13 @@ void NormalCalculationUtils::CalculateNormals<Element>(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<>
-void NormalCalculationUtils::CalculateUnitNormals<Condition>(ModelPart& rModelPart)
+void NormalCalculationUtils::CalculateUnitNormals<Condition>(
+    ModelPart& rModelPart,
+    const bool EnforceGenericAlgorithm
+    )
 {
     // Compute area normals
-    CalculateNormals<Condition>(rModelPart);
+    CalculateNormals<Condition>(rModelPart, EnforceGenericAlgorithm);
 
     // Compute unit normals
     ComputeUnitNormalsFromAreaNormals(rModelPart);
@@ -219,10 +228,13 @@ void NormalCalculationUtils::CalculateUnitNormals<Condition>(ModelPart& rModelPa
 /***********************************************************************************/
 
 template<>
-void NormalCalculationUtils::CalculateUnitNormals<Element>(ModelPart& rModelPart)
+void NormalCalculationUtils::CalculateUnitNormals<Element>(
+    ModelPart& rModelPart,
+    const bool EnforceGenericAlgorithm
+    )
 {
     // Compute area normals
-    CalculateNormals<Element>(rModelPart);
+    CalculateNormals<Element>(rModelPart, EnforceGenericAlgorithm);
 
     // Compute unit normals
     ComputeUnitNormalsFromAreaNormals(rModelPart);

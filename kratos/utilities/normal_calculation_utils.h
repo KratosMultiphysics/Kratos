@@ -92,18 +92,26 @@ public:
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes
      * @param rModelPart The model part to compute
+     * @param EnforceGenericAlgorithm If enforce the generic algorithm
      * @tparam TEntity The entity type considered
      */
     template<class TEntity>
-    void CalculateNormals(ModelPart& rModelPart);
+    void CalculateNormals(
+        ModelPart& rModelPart,
+        const bool EnforceGenericAlgorithm = false
+        );
 
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes (unit normal version)
      * @param rModelPart The model part to compute
+     * @param EnforceGenericAlgorithm If enforce the generic algorithm
      * @tparam TEntity The entity type considered
      */
     template<class TEntity>
-    void CalculateUnitNormals(ModelPart& rModelPart);
+    void CalculateUnitNormals(
+        ModelPart& rModelPart,
+        const bool EnforceGenericAlgorithm = false
+        );
 
     /**
      * @brief Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
