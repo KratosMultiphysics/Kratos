@@ -47,7 +47,7 @@ void GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(
 }
 
 template <>
-void GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint<double>(
+void KRATOS_API(KRATOS_CORE) GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint<double>(
     double& rOutput,
     const GeometryType& rGeometry,
     const Variable<double>& rVariable,
@@ -116,7 +116,7 @@ void GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(
 
 // template instantiations
 
-template void GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint<array_1d<double, 3>>(
+template void KRATOS_API(KRATOS_CORE) GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint<array_1d<double, 3>>(
     array_1d<double, 3>& rOutput,
     const GeometryType&,
     const Variable<array_1d<double, 3>>&,

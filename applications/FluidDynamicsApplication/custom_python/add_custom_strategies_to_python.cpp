@@ -33,7 +33,7 @@
 #include "custom_strategies/strategies/fractional_step_strategy.h"
 
 //schemes
-#include "custom_strategies/schemes/gear_scheme.h"
+#include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
@@ -106,9 +106,9 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     ;
 
     py::class_<
-        GearScheme<SparseSpaceType, LocalSpaceType>,
-        typename GearScheme<SparseSpaceType, LocalSpaceType>::Pointer,
-        BaseSchemeType>(m, "GearScheme")
+        BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>,
+        typename BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "BDF2TurbulentScheme")
     .def(py::init<>())                 // default constructor
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
