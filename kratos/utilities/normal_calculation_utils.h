@@ -9,6 +9,7 @@
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -53,6 +54,7 @@ namespace Kratos
  * @brief Tool to evaluate the normals on nodes based on the normals of a set of surface conditions
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) NormalCalculationUtils
 {
