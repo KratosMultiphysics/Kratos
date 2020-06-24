@@ -48,9 +48,9 @@ ModelPart& RansEvmKOmegaSSTK2D3N_SetUp(Model& rModel, const std::string& rElemen
 
     using namespace RansApplicationTestUtilities;
 
-    ModelPart& r_model_part =
-        CreateTestModelPart(rModel, rElementName, "LineCondition2D2N",
-                            add_variables_function, TURBULENT_KINETIC_ENERGY, 1);
+    ModelPart& r_model_part = CreateScalarVariableTestModelPart(
+        rModel, rElementName, "LineCondition2D2N", add_variables_function,
+        TURBULENT_KINETIC_ENERGY, 1);
 
     // set nodal historical variables
     RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
@@ -88,7 +88,7 @@ ModelPart& RansEvmKOmegaSSTOmega2D3N_SetUp(Model& rModel, const std::string& rEl
 
     using namespace RansApplicationTestUtilities;
 
-    ModelPart& r_model_part = CreateTestModelPart(
+    ModelPart& r_model_part = CreateScalarVariableTestModelPart(
         rModel, rElementName, "LineCondition2D2N", add_variables_function,
         TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1);
 

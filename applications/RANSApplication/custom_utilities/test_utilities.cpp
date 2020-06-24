@@ -60,7 +60,7 @@ ModelPart& CreateTestModelPart(Model& rModel,
                                const std::string& rElementName,
                                const std::string& rConditionName,
                                const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
-                               const Variable<double>& rDofVariable,
+                               const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
                                const int BufferSize)
 {
     ModelPart& r_model_part = rModel.CreateModelPart("test", BufferSize);
@@ -72,7 +72,7 @@ ModelPart& CreateTestModelPart(Model& rModel,
 
     for (auto& r_node : r_model_part.Nodes())
     {
-        r_node.AddDof(rDofVariable).SetEquationId(r_node.Id());
+        rAddDofsFunction(r_node);
     }
 
     Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
@@ -86,6 +86,27 @@ ModelPart& CreateTestModelPart(Model& rModel,
     r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_elem_prop);
 
     r_model_part.Elements().front().Check(r_model_part.GetProcessInfo());
+    r_model_part.Conditions().front().Check(r_model_part.GetProcessInfo());
+
+    return r_model_part;
+}
+
+ModelPart& CreateScalarVariableTestModelPart(Model& rModel,
+                                             const std::string& rElementName,
+                                             const std::string& rConditionName,
+                                             const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
+                                             const Variable<double>& rDofVariable,
+                                             const int BufferSize)
+{
+    ModelPart& r_model_part = CreateTestModelPart(
+        rModel, rElementName, rConditionName, rAddNodalSolutionStepVariablesFuncion,
+        [rDofVariable](ModelPart::NodeType& rNode) {
+            rNode.AddDof(rDofVariable).SetEquationId(rNode.Id());
+        },
+        BufferSize);
+
+    r_model_part.Elements().front().Initialize();
+    r_model_part.Conditions().front().Initialize();
 
     return r_model_part;
 }

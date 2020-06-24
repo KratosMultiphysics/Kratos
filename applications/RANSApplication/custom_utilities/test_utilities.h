@@ -38,8 +38,15 @@ ModelPart& CreateTestModelPart(Model& rModel,
                                const std::string& rElementName,
                                const std::string& rConditionName,
                                const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
-                               const Variable<double>& rDofVariable,
+                               const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
                                const int BufferSize = 2);
+
+ModelPart& CreateScalarVariableTestModelPart(Model& rModel,
+                                             const std::string& rElementName,
+                                             const std::string& rConditionName,
+                                             const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
+                                             const Variable<double>& rDofVariable,
+                                             const int BufferSize = 2);
 
 template <class TDataType>
 void RandomFillNodalHistoricalVariable(ModelPart& rModelPart,
