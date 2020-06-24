@@ -122,6 +122,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, Compress
     GenerateTransonicPerturbationElement(model_part);
     Element::Pointer pElement = model_part.pGetElement(1);
 
+    pElement->SetFlags(INLET);
+
     AssignPotentialsToNormalTransonicPerturbationElement(pElement);
 
     // Compute LHS
@@ -180,6 +182,8 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS, Comp
     GenerateTransonicPerturbationElement(model_part);
     Element::Pointer pElement = model_part.pGetElement(1);
     const unsigned int number_of_nodes = pElement->GetGeometry().size();
+
+    pElement->SetFlags(INLET);
 
     AssignPotentialsToNormalTransonicPerturbationElement(pElement);
 
