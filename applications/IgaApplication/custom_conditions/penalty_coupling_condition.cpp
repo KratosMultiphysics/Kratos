@@ -67,22 +67,22 @@ namespace Kratos
             for (IndexType i = 0; i < number_of_nodes_master; i++)
             {
                 IndexType index = 3 * i;
-                if (Is(IgaFlags::FIX_DISPLACEMENT_X))
+                //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
                     H(0, index) = N_master(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
+                //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
                     H(1, index + 1) = N_master(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
+                //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
                     H(2, index + 2) = N_master(point_number, i);
             }
 
             for (IndexType i = 0; i < number_of_nodes_slave; i++)
             {
-                IndexType index = 3 * i + number_of_nodes_master;
-                if (Is(IgaFlags::FIX_DISPLACEMENT_X))
+                IndexType index = 3 * (i + number_of_nodes_master);
+                //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
                     H(0, index) = -N_slave(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
+                //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
                     H(1, index + 1) = -N_slave(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
+                //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
                     H(2, index + 2) = -N_slave(point_number, i);
             }
 
@@ -109,7 +109,7 @@ namespace Kratos
                 for (IndexType i = 0; i < number_of_nodes_slave; i++)
                 {
                     const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
-                    IndexType index = 3 * i + number_of_nodes_master;
+                    IndexType index = 3 * (i + number_of_nodes_master);
                     u[index]     = disp[0];
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
@@ -147,7 +147,7 @@ namespace Kratos
         }
 
         for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
-            const IndexType index = i * 3 + number_of_nodes_master;
+            const IndexType index = 3 * (i + number_of_nodes_master);
             const auto& r_node = r_geometry_slave[i];
             rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
