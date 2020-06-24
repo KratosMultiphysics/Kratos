@@ -11,7 +11,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // include kratos definitions
 #include "includes/define.h"
@@ -46,18 +46,18 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-///@} 
+///@}
 ///@name Type Definitions
-///@{ 
+///@{
 
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
-///@name  Functions 
+///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -66,21 +66,21 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class OMP_NodeSearch 
+class OMP_NodeSearch
 {
     public:
       ///@name Type Definitions
       ///@{
-    
+
       /// Pointer definition of OMP_NodeSearch
       KRATOS_CLASS_POINTER_DEFINITION(OMP_NodeSearch);
-      
+
       //Configure Types
       typedef NodeConfigure<3>                              NodeConfigureType;          //Node
       typedef ModelPart::NodesContainerType                 NodesContainerType;
       //Bin Types
       typedef BinsObjectDynamic<NodeConfigureType>      NodeBinsType;
-     
+
       typedef NodesContainerType::ContainerType             ResultNodesContainerType;
       typedef std::vector<ResultNodesContainerType>         VectorResultNodesContainerType;
 
@@ -88,11 +88,11 @@ class OMP_NodeSearch
 
       typedef std::vector<double>                           DistanceType;
       typedef std::vector<DistanceType>                     VectorDistanceType;
-      
+
       ///@}
-      ///@name Life Cycle 
+      ///@name Life Cycle
       ///@{
-      
+
       /// Default constructor.
 
       OMP_NodeSearch(const double domain_min_x = 0.0, const double domain_min_y = 0.0, const double domain_min_z = 0.0,
@@ -104,13 +104,13 @@ class OMP_NodeSearch
       /// Destructor.
       ~OMP_NodeSearch(){
       }
-      
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
-      
-      
+
+
       ///@}
       ///@name Operations
       ///@{
@@ -126,171 +126,171 @@ class OMP_NodeSearch
         }
         KRATOS_CATCH("");
       }
-      /* 
+      /*
       void SearchNodesInRadiusExclusiveImplementation (
           NodesContainerType const& rStructureNodes,
           NodesContainerType const& rNodes,
-          const RadiusArrayType & Radius, 
+          const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults )
-      {     
+      {
           KRATOS_TRY
           int MaxNumberOfNodes = rStructureNodes.size();
-          
+
           NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
 
           #pragma omp parallel
           {
               ResultNodesContainerType  localResults(MaxNumberOfNodes);
               std::size_t               NumberOfResults = 0;
-       
+
               #pragma omp for
               for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
                   ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
-                
+
                   NumberOfResults = mBins->SearchObjectsInRadiusExclusive(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
-                  
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
+
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
               }
           }
-          
+
           KRATOS_CATCH("")
       }*/
 
       void SearchNodesInRadiusExclusiveImplementation (
           NodesContainerType const& rStructureNodes,
           int const Id,
-          double const Radius, 
+          double const Radius,
           ResultNodesContainerType& rResults )
-      {     
+      {
             KRATOS_TRY
             int MaxNumberOfNodes = rStructureNodes.size();
-            
+
             NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
 
             ResultNodesContainerType  localResults(MaxNumberOfNodes);
             std::size_t               NumberOfResults = 0;
-            
+
             ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
-        
+
             NumberOfResults = mBins->SearchObjectsInRadiusExclusive( nodes_array[Id],Radius,ResultsPointer,MaxNumberOfNodes);
-            
-            rResults.insert(rResults.begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
-                    
-          
+
+            rResults.insert(rResults.begin(),localResults.begin(),localResults.begin()+NumberOfResults);
+
+
           KRATOS_CATCH("")
       }
-      
+
       ///@}
       ///@name Access
-      ///@{ 
-      
-      
+      ///@{
+
+
       ///@}
       ///@name Inquiry
       ///@{
-      
-      
-      ///@}      
+
+
+      ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const 
+      virtual std::string Info() const
       {
           std::stringstream buffer;
           buffer << "OpenMPDemSearch" ;
-          
+
           return buffer.str();
       }
-      
+
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "OpenMPDemSearch";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const  {}
-      
-            
-      ///@}      
+
+
+      ///@}
       ///@name Friends
       ///@{
-      
-            
+
+
       ///@}
-      
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
+      ///@name Protected static Member Variables
       ///@{
-        
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
+
+
       ///@}
-      
+      ///@name Protected member Variables
+      ///@{
+
+
+
+      ///@}
+      ///@name Protected Operators
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operations
+      ///@{
+
+
+      ///@}
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+
+      ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
+      ///@name Static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Member Variables
+      ///@{
       NodeBinsType* mBins;
 
       bool mIsInitialized;
-      ///@} 
+      ///@}
       ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
+      ///@{
+
+
+      ///@}
       ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
+      ///@{
+
+
+      ///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
       ///
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
+
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
       /// Assignment operator.
       OMP_NodeSearch& operator=(OMP_NodeSearch const& rOther)
       {
@@ -303,42 +303,41 @@ class OMP_NodeSearch
           *this = rOther;
       }
 
-        
-      ///@}    
-        
+      ///@}
+
     }; // Class DEMSearch
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
   /// input stream function
-//   inline std::istream& operator >> (std::istream& rIStream, 
+//   inline std::istream& operator >> (std::istream& rIStream,
 //                     DEMSearch& rThis){return rIStream;}
-// 
+//
 //   /// output stream function
-//   inline std::ostream& operator << (std::ostream& rOStream, 
+//   inline std::ostream& operator << (std::ostream& rOStream,
 //                     const DEMSearch& rThis)
 //   {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 //   }
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_DEM_SEARCH_H_INCLUDED  defined 
+#endif // KRATOS_DEM_SEARCH_H_INCLUDED  defined
 
 
