@@ -96,7 +96,9 @@ ModelPart& CreateScalarVariableTestModelPart(Model& rModel,
                                              const std::string& rConditionName,
                                              const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
                                              const Variable<double>& rDofVariable,
-                                             const int BufferSize)
+                                             const int BufferSize,
+                                             const bool DoInitializeElements,
+                                             const bool DoInitializeConditions)
 {
     ModelPart& r_model_part = CreateTestModelPart(
         rModel, rElementName, rConditionName, rAddNodalSolutionStepVariablesFuncion,
@@ -105,8 +107,11 @@ ModelPart& CreateScalarVariableTestModelPart(Model& rModel,
         },
         BufferSize);
 
-    r_model_part.Elements().front().Initialize();
-    r_model_part.Conditions().front().Initialize();
+    if (DoInitializeElements)
+        r_model_part.Elements().front().Initialize();
+
+    if (DoInitializeConditions)
+        r_model_part.Conditions().front().Initialize();
 
     return r_model_part;
 }

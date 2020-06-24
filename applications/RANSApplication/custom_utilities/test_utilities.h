@@ -46,7 +46,9 @@ ModelPart& CreateScalarVariableTestModelPart(Model& rModel,
                                              const std::string& rConditionName,
                                              const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
                                              const Variable<double>& rDofVariable,
-                                             const int BufferSize = 2);
+                                             const int BufferSize = 2,
+                                             const bool DoInitializeElements = true,
+                                             const bool DoInitializeConditions = true);
 
 template <class TDataType>
 void RandomFillNodalHistoricalVariable(ModelPart& rModelPart,
