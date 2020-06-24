@@ -1,14 +1,14 @@
 import KratosMultiphysics
-import KratosMultiphysics.IgaApplication as IgaApplication
+#import KratosMultiphysics.IgaApplication as IgaApplication
 
 from matplotlib import pyplot as plt
 from matplotlib.pylab import *
-from mpl_toolkits.axes_grid1 import host_subplot
-import matplotlib.animation as animation
-import numpy
+#from mpl_toolkits.axes_grid1 import host_subplot
+#import matplotlib.animation as animation
+#import numpy
 
 def Factory(settings, model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return OuputReactionProcess(model, settings["Parameters"])
 
