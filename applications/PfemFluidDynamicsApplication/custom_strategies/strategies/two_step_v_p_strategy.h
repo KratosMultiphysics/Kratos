@@ -259,7 +259,7 @@ public:
     /* 	momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations,fixedTimeStep); */
     /* }else{ */
 
-    this->UnactiveSliverElements();
+      // this->UnactiveSliverElements(); //this is done in set_active_flag_mesher_process which is activated from fluid_pre_refining_mesher.py
 
     for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
     {
