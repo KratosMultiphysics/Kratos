@@ -17,6 +17,7 @@ namespace Kratos
     // incompressible potential flow specific variables
     KRATOS_CREATE_VARIABLE( double, VELOCITY_POTENTIAL )
     KRATOS_CREATE_VARIABLE( double, PRESSURE_POTENTIAL )
+    KRATOS_CREATE_VARIABLE( int, RANS_IS_INLET )
 
     // residual based flux corrected stabilization variables
     KRATOS_CREATE_VARIABLE( double, RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT )

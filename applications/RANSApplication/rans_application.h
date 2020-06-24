@@ -57,6 +57,10 @@
 // vms monolithic wall conditions
 #include "custom_conditions/vms_monolithic_k_based_wall_condition.h"
 
+// incompressible potential flow conditions
+#include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_inlet_condition.h"
+#include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_body_force_condition.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -286,6 +290,12 @@ private:
     // vms monolithic k based wall conditions
     const VMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWall2D2N;
     const VMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWall3D3N;
+
+    // incompressible potential flow conditions
+    const IncompressiblePotentialFlowVelocityInletCondition<2, 2> mIncompressiblePotentialFlowVelocityInlet2D2N;
+    const IncompressiblePotentialFlowVelocityInletCondition<3, 3> mIncompressiblePotentialFlowVelocityInlet3D3N;
+    const IncompressiblePotentialFlowPressureBodyForceCondition<2, 2> mIncompressiblePotentialFlowPressureBodyForce2D2N;
+    const IncompressiblePotentialFlowPressureBodyForceCondition<3, 3> mIncompressiblePotentialFlowPressureBodyForce3D3N;
 
     ///@}
     ///@name Private Operators

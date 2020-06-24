@@ -83,7 +83,12 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // vms monolithic k based wall conditions
       mRansVMSMonolithicKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mRansVMSMonolithicKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
+      mRansVMSMonolithicKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // incompressible potential flow conditions
+      mIncompressiblePotentialFlowVelocityInlet2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mIncompressiblePotentialFlowVelocityInlet3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mIncompressiblePotentialFlowPressureBodyForce2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mIncompressiblePotentialFlowPressureBodyForce3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -94,6 +99,7 @@ void KratosRANSApplication::Register()
     // incompressible potential flow specific variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_POTENTIAL )
     KRATOS_REGISTER_VARIABLE( PRESSURE_POTENTIAL )
+    KRATOS_REGISTER_VARIABLE( RANS_IS_INLET )
 
     // residual based flux corrected stabilization variables
     KRATOS_REGISTER_VARIABLE( RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT )
@@ -214,5 +220,11 @@ void KratosRANSApplication::Register()
     // registering vms monolithic conditions
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWall2D2N", mRansVMSMonolithicKBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWall3D3N", mRansVMSMonolithicKBasedWall3D3N);
+
+    // registering incompressible potential flow conditions
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet2D2N", mIncompressiblePotentialFlowVelocityInlet2D2N);
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet3D3N", mIncompressiblePotentialFlowVelocityInlet3D3N);
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressureBodyForce2D2N", mIncompressiblePotentialFlowPressureBodyForce2D2N);
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressureBodyForce3D3N", mIncompressiblePotentialFlowPressureBodyForce3D3N);
 }
 } // namespace Kratos.
