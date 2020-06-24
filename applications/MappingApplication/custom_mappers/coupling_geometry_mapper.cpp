@@ -153,27 +153,6 @@ std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
 
 
 template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeMapper()
-{
-    mpModeler = (ModelerFactory::Create(mMapperSettings["modeler_name"].GetString(), mrModel, mMapperSettings["modeler_parameters"]));
-    mpModeler->SetupGeometryModel();
-    mpModeler->PrepareGeometryModel();
-
-    // here use whatever ModelPart(s) was created by the Modeler
-    mpCouplingMP = &(mrModel.GetModelPart("coupling"));
-    mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
-    mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
-
-    mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
-    mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
-
-    mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
-
-    this->InitializeInterface();
-}
-
-
-template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
 {
     // @tteschemachen here kann man theoretisch auch das Origin-MP nehmen

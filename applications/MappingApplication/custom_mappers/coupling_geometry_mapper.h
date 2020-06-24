@@ -113,25 +113,36 @@ public:
     // Default constructor, needed for registration
     CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination)
-                        : mrModel(rModelPartOrigin.GetModel()){}
-
-
-    CouplingGeometryMapper(Model& rModel,
-        Parameters JsonParameters)
-        : mrModel(rModel),
-        mMapperSettings(JsonParameters)
-    {
-        InitializeMapper();
-    }
+                        : mrModelPartOrigin(rModelPartOrigin),
+                          mrModelPartDestination(rModelPartDestination){}
 
 
     CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
                          Parameters JsonParameters)
-                         : mrModel(rModelPartOrigin.GetModel()),
-                           mMapperSettings(JsonParameters)
+                        : mrModelPartOrigin(rModelPartOrigin),
+                          mrModelPartDestination(rModelPartDestination),
+                          mMapperSettings(JsonParameters)
     {
-        InitializeMapper();
+
+        // Enable when mappers in the core take std::vector<Model&> as constructor
+        //mpModeler = (ModelerFactory::Create(mMapperSettings["modeler_name"].GetString(), models_vector, mMapperSettings["modeler_parameters"]));
+
+        mModeler = MappingGeometriesModeler(rModelPartOrigin, rModelPartDestination, mMapperSettings["modeler_parameters"]);
+        mModeler.SetupGeometryModel();
+        mModeler.PrepareGeometryModel();
+
+        // here use whatever ModelPart(s) was created by the Modeler
+        mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
+        mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
+        mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
+
+        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
+        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
+
+        mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
+
+        this->InitializeInterface();
     }
 
     /// Destructor.
@@ -145,7 +156,7 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
-        mpModeler->PrepareGeometryModel();
+        mModeler.PrepareGeometryModel();
 
         AssignInterfaceEquationIds();
 
@@ -228,15 +239,8 @@ public:
                                   Parameters JsonParameters) const override
     {
         return Kratos::make_unique<CouplingGeometryMapper<TSparseSpace, TDenseSpace>>(
-            rModelPartOrigin.GetModel(),
-            JsonParameters);
-    }
-
-    MapperUniquePointerType Clone(Model& rModel,
-                                  Parameters JsonParameters) const
-    {
-        return Kratos::make_unique<CouplingGeometryMapper<TSparseSpace, TDenseSpace>>(
-            rModel,
+            rModelPartOrigin,
+            rModelPartDestination,
             JsonParameters);
     }
 
@@ -270,9 +274,11 @@ private:
 
     ///@name Private Operations
     ///@{
-    typename Modeler::Pointer mpModeler = nullptr;
+    //typename Modeler::Pointer mpModeler = nullptr;
+    MappingGeometriesModeler mModeler;
 
-    Model& mrModel;
+    ModelPart& mrModelPartOrigin;
+    ModelPart& mrModelPartDestination;
     ModelPart* mpCouplingMP = nullptr;
     ModelPart* mpCouplingInterfaceOrigin = nullptr;
     ModelPart* mpCouplingInterfaceDestination = nullptr;
@@ -288,8 +294,6 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
-
-    void InitializeMapper();
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
@@ -364,7 +368,8 @@ private:
     void InitializeInverseMapper()
     {
         KRATOS_ERROR << "Inverse Mapping is not supported yet!" << std::endl;
-        mpInverseMapper = this->Clone(mrModel,
+        mpInverseMapper = this->Clone(mrModelPartDestination,
+                                      mrModelPartOrigin,
                                       mMapperSettings);
     }
 

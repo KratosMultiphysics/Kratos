@@ -23,18 +23,18 @@ namespace Kratos
         CheckParameters();
 
         const std::string origin_model_part_name = mParameters["origin_model_part_name"].GetString();
-        ModelPart& origin_model_part = mpModel->HasModelPart(origin_model_part_name)
-            ? mpModel->GetModelPart(origin_model_part_name)
-            : mpModel->CreateModelPart(origin_model_part_name);
+        ModelPart& origin_model_part = (mpModels[0]->HasModelPart(origin_model_part_name))
+            ? mpModels[0]->GetModelPart(origin_model_part_name)
+            : mpModels[0]->CreateModelPart(origin_model_part_name);
 
         const std::string destination_model_part_name = mParameters["destination_model_part_name"].GetString();
-        ModelPart& destination_model_part = mpModel->HasModelPart(destination_model_part_name)
-            ? mpModel->GetModelPart(destination_model_part_name)
-            : mpModel->CreateModelPart(destination_model_part_name);
+        ModelPart& destination_model_part = (mpModels.back()->HasModelPart(destination_model_part_name))
+            ? mpModels.back()->GetModelPart(destination_model_part_name)
+            : mpModels.back()->CreateModelPart(destination_model_part_name);
 
-        ModelPart& coupling_model_part = mpModel->HasModelPart("coupling")
-            ? mpModel->GetModelPart("coupling")
-            : mpModel->CreateModelPart("coupling");
+        ModelPart& coupling_model_part = (mpModels[0]->HasModelPart("coupling"))
+            ? mpModels[0]->GetModelPart("coupling")
+            : mpModels[0]->CreateModelPart("coupling");
 
         std::string origin_interface_sub_model_part_name;
         std::string destination_interface_sub_model_part_name;
@@ -54,13 +54,13 @@ namespace Kratos
         }
 
         // Transfer everything into the coupling modelpart
-        ModelPart& coupling_interface_origin = coupling_model_part.HasSubModelPart("interface_origin")
+        ModelPart& coupling_interface_origin = (coupling_model_part.HasSubModelPart("interface_origin"))
             ? coupling_model_part.GetSubModelPart("interface_origin")
             : coupling_model_part.CreateSubModelPart("interface_origin");
         CopySubModelPart(coupling_interface_origin,
             origin_model_part.GetSubModelPart(origin_interface_sub_model_part_name));
 
-        ModelPart& coupling_interface_destination = coupling_model_part.HasSubModelPart("interface_destination")
+        ModelPart& coupling_interface_destination = (coupling_model_part.HasSubModelPart("interface_destination"))
             ? coupling_model_part.GetSubModelPart("interface_destination")
             : coupling_model_part.CreateSubModelPart("interface_destination");
         CopySubModelPart(coupling_interface_destination,

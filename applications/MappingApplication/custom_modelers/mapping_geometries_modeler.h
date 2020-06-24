@@ -61,8 +61,20 @@ public:
         Model& rModel,
         Parameters ModelerParameters = Parameters())
         : Modeler(rModel, ModelerParameters)
-        , mpModel(&rModel)
     {
+        mpModels.resize(1);
+        mpModels[0] = &rModel;
+    }
+
+    MappingGeometriesModeler(
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        Parameters ModelerParameters = Parameters())
+        : Modeler(rModelPartOrigin.GetModel(), ModelerParameters)
+    {
+        mpModels.resize(2);
+        mpModels[0] = &(rModelPartOrigin.GetModel());
+        mpModels[1] = &(rModelPartDestination.GetModel());
     }
 
     /// Destructor.
@@ -108,7 +120,7 @@ private:
     ///@name Iga functionalities
     ///@{
 
-    Model* mpModel = nullptr;
+    std::vector<Model*> mpModels;
 
     void CopySubModelPart(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
     {
