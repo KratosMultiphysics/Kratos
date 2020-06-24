@@ -1,13 +1,13 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+/*
+//  KRATOS _______
+//        / ____(_)___ ____  ____
+//       / __/ / / __ `/ _ \/ __ \
+//      / /___/ / /_/ /  __/ / / /
+//     /_____/_/\__, /\___/_/ /_/ SolversApplication
+//             /____/
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
-//
-//  Main authors:    Manuel Messmer
-//
+//  Author: Manuel Messmer
+*/
 
 #if !defined(KRATOS_PERTURB_GEOMETRY_PROCESS)
 #define KRATOS_PERTURB_GEOMETRY_PROCESS
@@ -18,11 +18,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "linear_solvers/direct_solver.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "custom_solvers/eigensystem_solver.h"
-#include "custom_solvers/eigen_direct_solver.h"
 #include "custom_utilities/omp_node_search.h"
 #include "utilities/mortar_utilities.h"
 

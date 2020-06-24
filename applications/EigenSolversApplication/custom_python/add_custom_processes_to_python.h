@@ -1,13 +1,13 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+/*
+//  KRATOS _______
+//        / ____(_)___ ____  ____
+//       / __/ / / __ `/ _ \/ __ \
+//      / /___/ / /_/ /  __/ / / /
+//     /_____/_/\__, /\___/_/ /_/ SolversApplication
+//             /____/
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
-//
-//  Main authors:    Manuel Messmer
-//
+//  Author: Manuel Messmer
+*/
 
 
 #if !defined(KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED )
@@ -28,7 +28,7 @@ namespace Kratos
 
 namespace Python
 {
-	
+
 void  AddCustomProcessesToPython(pybind11::module& m);
 
 }  // namespace Python.
