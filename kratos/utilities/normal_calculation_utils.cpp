@@ -138,7 +138,7 @@ void NormalCalculationUtils::CalculateNormal2D(
     rAn[2] =    0.00;
 
     array_1d<double,3>& r_normal = itCond->GetValue(NORMAL);
-    noalias(r_normal) = An;
+    noalias(r_normal) = rAn;
 }
 
 /***********************************************************************************/
