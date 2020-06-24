@@ -426,6 +426,11 @@ void CalculateYPlusAndUtau(double& rYPlus,
     }
 }
 
+bool IsWall(const ConditionType& rCondition)
+{
+    return rCondition.GetValue(RANS_IS_WALL);
+}
+
 // template instantiations
 
 template double CalculateMatrixTrace<2>(const BoundedMatrix<double, 2, 2>&);

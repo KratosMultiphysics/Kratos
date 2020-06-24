@@ -65,7 +65,12 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmKOmegaSSTKCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKOmegaSSTKCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mRansEvmKOmegaSSTOmegaCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansEvmKOmegaSSTOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
+      mRansEvmKOmegaSSTOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      // k-epsilon turbulence model conditions
+      mRansEvmKEpsilonHighReEpsilonKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansEvmKEpsilonHighReEpsilonKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansEvmKEpsilonHighReEpsilonUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansEvmKEpsilonHighReEpsilonUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -105,6 +110,13 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA_1 )
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA_2 )
     KRATOS_REGISTER_VARIABLE( WALL_VON_KARMAN )
+
+    // wall function condition specific additional variables
+    KRATOS_REGISTER_VARIABLE( RANS_Y_PLUS )
+    KRATOS_REGISTER_VARIABLE( RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT )
+    KRATOS_REGISTER_VARIABLE( WALL_SMOOTHNESS_BETA )
+    KRATOS_REGISTER_VARIABLE( RANS_IS_WALL )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FRICTION_VELOCITY )
 
     // registering elements
     // registering k-epsilon algebraic flux correction based elements
@@ -160,5 +172,13 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTKCWD3D4N", mRansEvmKOmegaSSTKCWD3D);
     KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaCWD2D3N", mRansEvmKOmegaSSTOmegaCWD2D);
     KRATOS_REGISTER_ELEMENT("RansEvmKOmegaSSTOmegaCWD3D4N", mRansEvmKOmegaSSTOmegaCWD3D);
+
+    // registering conditions
+    // registering k-epsilon conditions
+    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonHighReEpsilonKBasedWall2D2N", mRansEvmKEpsilonHighReEpsilonKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonHighReEpsilonKBasedWall3D3N", mRansEvmKEpsilonHighReEpsilonKBasedWall3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonHighReEpsilonUBasedWall2D2N", mRansEvmKEpsilonHighReEpsilonUBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonHighReEpsilonUBasedWall3D3N", mRansEvmKEpsilonHighReEpsilonUBasedWall3D3N);
 }
 } // namespace Kratos.

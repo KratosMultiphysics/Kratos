@@ -39,6 +39,13 @@
 #include "custom_elements/convection_diffusion_reaction_element_data/evm_k_omega_sst/k_element_data.h"
 #include "custom_elements/convection_diffusion_reaction_element_data/evm_k_omega_sst/omega_element_data.h"
 
+// generic scalar wall flux condition
+#include "custom_conditions/scalar_wall_flux_condition.h"
+
+// k-epsilon turbulence model condition data
+#include "custom_conditions/scalar_wall_flux_condition_data/evm_k_epsilon_high_re/epsilon_k_based_wall_condition_data.h"
+#include "custom_conditions/scalar_wall_flux_condition_data/evm_k_epsilon_high_re/epsilon_u_based_wall_condition_data.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -244,6 +251,13 @@ private:
 
     const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKOmegaSSTElementData::OmegaElementData<2>> mRansEvmKOmegaSSTOmegaCWD2D;
     const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKOmegaSSTElementData::OmegaElementData<3>> mRansEvmKOmegaSSTOmegaCWD3D;
+
+    // k-epsilon turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, EvmKEpsilonHighReWallConditionData::EpsilonKBasedWallConditionData> mRansEvmKEpsilonHighReEpsilonKBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, EvmKEpsilonHighReWallConditionData::EpsilonKBasedWallConditionData> mRansEvmKEpsilonHighReEpsilonKBasedWall3D3N;
+
+    const ScalarWallFluxCondition<2, 2, EvmKEpsilonHighReWallConditionData::EpsilonUBasedWallConditionData> mRansEvmKEpsilonHighReEpsilonUBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, EvmKEpsilonHighReWallConditionData::EpsilonUBasedWallConditionData> mRansEvmKEpsilonHighReEpsilonUBasedWall3D3N;
 
     ///@}
     ///@name Private Operators

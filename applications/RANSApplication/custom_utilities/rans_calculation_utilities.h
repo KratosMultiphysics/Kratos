@@ -133,6 +133,8 @@ double CalculateWallHeight(const ConditionType& rCondition,
 
 array_1d<double, 3> CalculateWallVelocity(const ConditionType& rCondition);
 
+bool IsWall(const ConditionType& rCondition);
+
 } // namespace RansCalculationUtilities
 
 ///@}
