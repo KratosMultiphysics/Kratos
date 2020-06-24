@@ -49,6 +49,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.analyzer = analyzer
         self.communicator = communicator
         self.model_part_controller = model_part_controller
+        self.lumped_integration_utility = None
 
         self.design_surface = None
         self.mapper = None
@@ -161,12 +162,24 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         if surface_normals_required:
             self.model_part_controller.ComputeUnitSurfaceNormals()
 
+        integration_required = self.objectives[0]["lumped_integration"].GetBool()
+        for constraint in self.constraints:
+            if constraint["lumped_integration"].GetBool():
+                integration_required = True
+
+        if integration_required:
+            self.lumped_integration_utility = KSO.LumpedIntegrationUtility(self.design_surface)
+            self.lumped_integration_utility.CalculateLumpedAreas()
+
         # project and damp objective gradients
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
+
+        if self.objectives[0]["lumped_integration"].GetBool():
+            self.lumped_integration_utility.Integrate(KSO.DF1DX)
 
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
 
@@ -179,6 +192,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             if constraint["project_gradient_on_surface_normals"].GetBool():
                 self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(gradient_variable)
+
+            if constraint["lumped_integration"].GetBool():
+                self.lumped_integration_utility.Integrate(gradient_variable)
 
             self.model_part_controller.DampNodalVariableIfSpecified(gradient_variable)
 

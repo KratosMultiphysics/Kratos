@@ -33,6 +33,7 @@
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
+#include "custom_utilities/lumped_integration_utility.h"
 
 // ==============================================================================
 
@@ -103,6 +104,16 @@ inline void AssembleMatrixForVariableList(
         variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
     }
     return utils.AssembleMatrix(rMatrix, variables_vector);
+}
+
+inline void IntegrateScalarVariable(LumpedIntegrationUtility& util, const Variable< double >& variable)
+{
+    util.Integrate(variable);
+}
+
+inline void IntegrateVectorVariable(LumpedIntegrationUtility& util, const Variable< array_1d<double, 3> >& variable)
+{
+    util.Integrate(variable);
 }
 
 // ==============================================================================
@@ -234,6 +245,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("FlagNodesInRadius", &SearchBasedFunctions::FlagNodesInRadius)
         ;
 
+    py::class_<LumpedIntegrationUtility>(m, "LumpedIntegrationUtility")
+        .def(py::init<ModelPart&>())
+        .def("CalculateLumpedAreas", &LumpedIntegrationUtility::CalculateLumpedAreas)
+        .def("Integrate", IntegrateVectorVariable)
+        .def("Integrate", IntegrateScalarVariable)
+        ;
 }
 
 }  // namespace Python.

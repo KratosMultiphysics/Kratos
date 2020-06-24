@@ -78,7 +78,8 @@ def _ValidateObjectiveSettingsRecursively(objective_settings):
         "combination_type"                    : "sum",
         "combined_responses"                  : [],
         "weight"                              : 1.0,
-        "project_gradient_on_surface_normals" : false
+        "project_gradient_on_surface_normals" : false,
+        "lumped_integration" : false
     }""")
     for itr in range(objective_settings.size()):
         objective_settings[itr].ValidateAndAssignDefaults(default_settings)
@@ -97,7 +98,8 @@ def _ValidateConstraintSettings(constraint_settings):
         "reference_value"                     : 1.0,
         "analyzer"                            : "external",
         "response_settings"                   : {},
-        "project_gradient_on_surface_normals" : false
+        "project_gradient_on_surface_normals" : false,
+        "lumped_integration" : false
     }""")
     for itr in range(constraint_settings.size()):
         constraint_settings[itr].ValidateAndAssignDefaults(default_settings)
