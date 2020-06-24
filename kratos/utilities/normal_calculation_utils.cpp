@@ -127,45 +127,45 @@ void NormalCalculationUtils::SwapNormals(ModelPart& rModelPart)
 /***********************************************************************************/
 
 void NormalCalculationUtils::CalculateNormal2D(
-    ConditionsArrayType::iterator it,
-    array_1d<double,3>& An
+    ConditionsArrayType::iterator itCond,
+    array_1d<double,3>& rAn
     )
 {
-    Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
+    const GeometryType& r_geometry = itCond->GetGeometry();
 
-    An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
-    An[1] = - (pGeometry[1].X() - pGeometry[0].X());
-    An[2] =    0.00;
+    rAn[0] =    r_geometry[1].Y() - r_geometry[0].Y();
+    rAn[1] = - (r_geometry[1].X() - r_geometry[0].X());
+    rAn[2] =    0.00;
 
-    array_1d<double,3>& normal = (it)->GetValue(NORMAL);
-    noalias(normal) = An;
+    array_1d<double,3>& r_normal = itCond->GetValue(NORMAL);
+    noalias(r_normal) = An;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void NormalCalculationUtils::CalculateNormal3D(
-    ConditionsArrayType::iterator it,
-    array_1d<double,3>& An,
-    array_1d<double,3>& v1,
-    array_1d<double,3>& v2
+    ConditionsArrayType::iterator itCond,
+    array_1d<double,3>& rAn,
+    array_1d<double,3>& rv1,
+    array_1d<double,3>& rv2
     )
 {
-    Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
+    const GeometryType& r_geometry = itCond->GetGeometry();
 
-    v1[0] = pGeometry[1].X() - pGeometry[0].X();
-    v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
-    v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+    rv1[0] = r_geometry[1].X() - r_geometry[0].X();
+    rv1[1] = r_geometry[1].Y() - r_geometry[0].Y();
+    rv1[2] = r_geometry[1].Z() - r_geometry[0].Z();
 
-    v2[0] = pGeometry[2].X() - pGeometry[0].X();
-    v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
-    v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+    rv2[0] = r_geometry[2].X() - r_geometry[0].X();
+    rv2[1] = r_geometry[2].Y() - r_geometry[0].Y();
+    rv2[2] = r_geometry[2].Z() - r_geometry[0].Z();
 
-    MathUtils<double>::CrossProduct(An,v1,v2);
-    An *= 0.5;
+    MathUtils<double>::CrossProduct(rAn,rv1,rv2);
+    rAn *= 0.5;
 
-    array_1d<double,3>& normal = (it)->GetValue(NORMAL);
-    noalias(normal) = An;
+    array_1d<double,3>& r_normal = itCond->GetValue(NORMAL);
+    noalias(r_normal) = rAn;
 }
 
 } // namespace Kratos
