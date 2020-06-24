@@ -96,7 +96,7 @@ public:
      * @tparam TEntity The entity type considered
      */
     template<class TEntity>
-    void CalculateNormals(
+    void KRATOS_API(KRATOS_CORE) CalculateNormals(
         ModelPart& rModelPart,
         const bool EnforceGenericAlgorithm = false
         );
@@ -108,7 +108,7 @@ public:
      * @tparam TEntity The entity type considered
      */
     template<class TEntity>
-    void CalculateUnitNormals(
+    void KRATOS_API(KRATOS_CORE) CalculateUnitNormals(
         ModelPart& rModelPart,
         const bool EnforceGenericAlgorithm = false
         );
