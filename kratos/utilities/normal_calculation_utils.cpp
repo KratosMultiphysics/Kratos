@@ -37,8 +37,7 @@ void NormalCalculationUtils::CalculateOnSimplex(
                 CalculateNormal2D(it,An);
         }
     } else if(Dimension == 3) {
-        array_1d<double,3> v1;
-        array_1d<double,3> v2;
+        array_1d<double,3> v1, v2;
         for(ConditionsArrayType::iterator it =  rConditions.begin(); it !=rConditions.end(); it++) {
             // Calculate the normal on the given condition
             if (it->GetGeometry().PointsNumber() == 3)
@@ -50,9 +49,9 @@ void NormalCalculationUtils::CalculateOnSimplex(
     for(ConditionsArrayType::iterator it =  rConditions.begin(); it !=rConditions.end(); it++) {
         Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
         double coeff = 1.00/pGeometry.size();
-        const array_1d<double,3>& normal = it->GetValue(NORMAL);
+        const array_1d<double,3>& r_normal = it->GetValue(NORMAL);
         for(unsigned int i = 0; i<pGeometry.size(); i++) {
-            noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;
+            noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * r_normal;
         }
     }
 
@@ -98,7 +97,12 @@ void NormalCalculationUtils::CalculateOnSimplex(
         }
     }
 
-    this->CalculateOnSimplex(rModelPart.Conditions(),Dimension);
+    const auto& r_process_info = rModelPart.GetProcessInfo();
+    const bool has_domain_size = r_process_info.Has(DOMAIN_SIZE);
+    KRATOS_ERROR_IF(has_domain_size && Dimension == 0) << "Dimension not defined" << std::endl;
+    const SizeType dimension_in_model_part = has_domain_size ? r_process_info.GetValue(DOMAIN_SIZE) : Dimension;
+    KRATOS_WARNING_IF("NormalCalculationUtils", dimension_in_model_part != Dimension) << "Inconsistency between DOMAIN_SIZE and Dimension provided" << std::endl;
+    this->CalculateOnSimplex(rModelPart.Conditions(), dimension_in_model_part);
     rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
 }
 

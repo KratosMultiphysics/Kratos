@@ -90,12 +90,12 @@ public:
      * @brief Calculates the area normal (vector oriented as the normal with a dimension proportional to the area).
      * @details This is done on the base of the Conditions provided which should be  understood as the surface elements of the area of interest.
      * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
-     * @param dimension Spatial dimension (2 or 3)
+     * @param Dimension Spatial dimension (2 or 3)
      * @note Use this fuction instead of its overload taking a Conditions array for MPI applications, as it will take care of communication between partitions.
      */
     void CalculateOnSimplex(
         ModelPart& rModelPart,
-        const std::size_t Dimension
+        const std::size_t Dimension = 0
         );
 
 
