@@ -29,6 +29,7 @@ mapper_params = KM.Parameters("""{
     "consistency_scaling" : false,
     "modeler_name" : "MappingGeometriesModeler",
     "modeler_parameters":{
+        "debug_define_coupling_conditions_in_python" : false,
         "origin_model_part_name" : "origin",
         "destination_model_part_name" : "destination",
         "is_interface_sub_model_parts_specified" : true,
@@ -37,32 +38,29 @@ mapper_params = KM.Parameters("""{
     }
 }""")
 
-# ======== Left in here because this is a temporary technique to construct coupling geoms =======
-# Create dummy line conditions on submodel parts to couple together
 origin_interface_sub_model_part_name = (mapper_params["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString())
 originInterface = model_part_origin.GetSubModelPart(origin_interface_sub_model_part_name)
-originProps = originInterface.GetProperties()[1]
-nodeOffset = 327
-for conditionIndex in range(1,6):
-    cNode = nodeOffset + conditionIndex
-    originInterface.CreateNewCondition("LineCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
-
 destination_interface_sub_model_part_name = (mapper_params["modeler_parameters"]["destination_interface_sub_model_part_name"].GetString())
 destinationInterface = model_part_destination.GetSubModelPart(destination_interface_sub_model_part_name)
-destProps = destinationInterface.GetProperties()[1]
-destinationInterface.CreateNewCondition("LineCondition2D2N", 101, [1,3], destProps)
-destinationInterface.CreateNewCondition("LineCondition2D2N", 102, [3,6], destProps)
-destinationInterface.CreateNewCondition("LineCondition2D2N", 103, [6,10], destProps)
-# ===============================================================================================
+
+if mapper_params["modeler_parameters"]["debug_define_coupling_conditions_in_python"].GetBool():
+    # Create dummy line conditions on submodel parts to couple together
+    originProps = originInterface.GetProperties()[1]
+    nodeOffset = 327
+    for conditionIndex in range(1,6):
+        cNode = nodeOffset + conditionIndex
+        originInterface.CreateNewCondition("LineCondition2D2N", conditionIndex+100, [cNode,cNode+1], originProps)
+
+    destProps = destinationInterface.GetProperties()[1]
+    destinationInterface.CreateNewCondition("LineCondition2D2N", 101, [1,3], destProps)
+    destinationInterface.CreateNewCondition("LineCondition2D2N", 102, [3,6], destProps)
+    destinationInterface.CreateNewCondition("LineCondition2D2N", 103, [6,10], destProps)
+
 
 
 
 mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_params)
 #mapper = KratosMapping.MapperFactory.CreateMapper(current_model, mapper_params) # TODO @phil could you add this to the mapper_factory please
-
-
-
-
 
 
 # Small test. The energy error should be zero
