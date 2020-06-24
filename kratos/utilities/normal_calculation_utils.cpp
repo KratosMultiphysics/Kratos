@@ -230,6 +230,9 @@ void NormalCalculationUtils::ComputeUnitNormalsFromAreaNormals(ModelPart& rModel
         if (norm_normal > std::numeric_limits<double>::epsilon()) r_normal /= norm_normal;
         else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
     }
+
+    // For MPI: correct values on partition boundaries
+    rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
 }
 
 /***********************************************************************************/
