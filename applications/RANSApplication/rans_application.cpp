@@ -70,7 +70,12 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmKEpsilonHighReEpsilonKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansEvmKEpsilonHighReEpsilonKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonHighReEpsilonUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mRansEvmKEpsilonHighReEpsilonUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
+      mRansEvmKEpsilonHighReEpsilonUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // k-omega turbulence model conditions
+      mRansEvmKOmegaOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansEvmKOmegaOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansEvmKOmegaOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansEvmKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -180,5 +185,12 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansEvmKEpsilonHighReEpsilonUBasedWall2D2N", mRansEvmKEpsilonHighReEpsilonUBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansEvmKEpsilonHighReEpsilonUBasedWall3D3N", mRansEvmKEpsilonHighReEpsilonUBasedWall3D3N);
+
+    // registering k-omega conditions
+    KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaKBasedWall2D2N", mRansEvmKOmegaOmegaKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaKBasedWall3D3N", mRansEvmKOmegaOmegaKBasedWall3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaUBasedWall2D2N", mRansEvmKOmegaOmegaUBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaUBasedWall3D3N", mRansEvmKOmegaOmegaUBasedWall3D3N);
 }
 } // namespace Kratos.
