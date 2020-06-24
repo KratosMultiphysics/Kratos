@@ -205,7 +205,7 @@ void SimplifiedBilinear3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
         {
 			rConstitutiveMatrix(0,0) = rVariables.YieldStress;
 			rConstitutiveMatrix(1,1) = rVariables.YieldStress;
-			rConstitutiveMatrix(2,2) = 1.0e20;
+			rConstitutiveMatrix(2,2) = rVariables.YoungModulus;
 			rConstitutiveMatrix(0,1) = 0.0;
 			rConstitutiveMatrix(1,0) = 0.0;
 			rConstitutiveMatrix(2,0) = 0.0;

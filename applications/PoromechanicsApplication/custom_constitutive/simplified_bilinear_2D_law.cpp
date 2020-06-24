@@ -27,7 +27,7 @@ void SimplifiedBilinear2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
         rVariables.EquivalentStrain = 1.0;
         if (mStateVariable == 1.0)
         {
-            if(fabs(StrainVector[0] * rVariables.YieldStress) > rVariables.MaxTensileStress)
+            if(fabs(rVariables.YieldStress * StrainVector[0]) > rVariables.MaxTensileStress)
             {
 			    rVariables.EquivalentStrain = 0.0;
 			}
@@ -43,7 +43,7 @@ void SimplifiedBilinear2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
         rVariables.EquivalentStrain = 1.0;
         if (mStateVariable == 1.0)
         {
-		    if(fabs(StrainVector[0] * rVariables.YieldStress) > rVariables.MaxTensileStress)
+		    if(fabs(rVariables.YieldStress * StrainVector[0]) > rVariables.MaxTensileStress)
             {
 			    rVariables.EquivalentStrain = 0.0;
 			}
@@ -90,15 +90,15 @@ void SimplifiedBilinear2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
         if (mStateVariable == 1.0) // Unbroken joint
 		{
 			rConstitutiveMatrix(0,0) = rVariables.YieldStress;
+			rConstitutiveMatrix(1,1) = rVariables.YoungModulus;
 		}
 
 		if (mStateVariable == 0.0) // Broken joint
 		{
 			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
 			rConstitutiveMatrix(0,0) = broken_YieldStress;
+			rConstitutiveMatrix(1,1) = 1.0e20;
 		}
-
-        rConstitutiveMatrix(1,1) = 1.0e20;
 
         const double eps = std::numeric_limits<double>::epsilon();
 
