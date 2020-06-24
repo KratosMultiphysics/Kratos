@@ -437,18 +437,26 @@ private:
     ///@name Private Operations
     ///@{
 
-    //this function adds the Contribution of one of the geometries
-    //to the corresponding nodes
+    /**
+     * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
+     * @param rAn Area normal
+     */
     static void CalculateNormal2D(
-        ConditionsArrayType::iterator it,
-        array_1d<double,3>& An
+        ConditionsArrayType::iterator itCond,
+        array_1d<double,3>& rAn
         );
 
+    /**
+     * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
+     * @param rAn Area normal
+     * @param rv1 First tangent vector
+     * @param rv2 Second tangent vector
+     */
     static void CalculateNormal3D(
-        ConditionsArrayType::iterator it,
-        array_1d<double,3>& An,
-        array_1d<double,3>& v1,
-        array_1d<double,3>& v2
+        ConditionsArrayType::iterator itCond,
+        array_1d<double,3>& rAn,
+        array_1d<double,3>& rv1,
+        array_1d<double,3>& rv2
         );
 
     ///@}
