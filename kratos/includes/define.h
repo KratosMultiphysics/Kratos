@@ -810,6 +810,36 @@ namespace Kratos
 //Print Trace if defined
 #define KRATOS_WATCH(variable) std::cout << #variable << " : " << variable << std::endl;
 
+// Print vector values with precision
+#define KRATOS_WATCH_VECTOR_WITH_PRECISION(variable, precision)                           \
+    {                                                                                     \
+        std::stringstream values;                                                         \
+        values << std::scientific << std::setprecision(precision);                        \
+        for (std::size_t i = 0; i < variable.size(); i++)                                 \
+        {                                                                                 \
+            values << #variable << "[" << i << "] = " << variable[i] << ";" << std::endl; \
+        }                                                                                 \
+        std::cout << #variable << " : " << std::endl                                      \
+                  << values.str() << std::endl;                                           \
+    }
+
+// Print matrix values with precision
+#define KRATOS_WATCH_MATRIX_WITH_PRECISION(variable, precision)         \
+    {                                                                   \
+        std::stringstream values;                                       \
+        values << std::scientific << std::setprecision(precision);      \
+        for (std::size_t i = 0; i < variable.size1(); i++)              \
+        {                                                               \
+            for (std::size_t j = 0; j < variable.size2(); j++)          \
+            {                                                           \
+                values << #variable << "(" << i << ", " << j            \
+                       << ") = " << variable(i, j) << ";" << std::endl; \
+            }                                                           \
+        }                                                               \
+        std::cout << #variable << " : " << std::endl                    \
+                  << values.str() << std::endl;                         \
+    }
+
 }  /* namespace Kratos.*/
 
 #define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
