@@ -164,7 +164,7 @@ void SimplifiedBilinear2DLaw::ComputeStressVector(Vector& rStressVector,
 			else {
 				const double shear_modulus = rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));
 				double friction_stress = fabs(shear_modulus * StrainVector[0]);
-				double max_friction_stress = fabs(rVariables.FrictionCoefficient * broken_YieldStress * StrainVector[1]);
+				double max_friction_stress = fabs(rVariables.FrictionCoefficient * rStressVector[1]);
 				if (friction_stress > max_friction_stress) friction_stress = max_friction_stress;
 
 				const double eps = std::numeric_limits<double>::epsilon();
