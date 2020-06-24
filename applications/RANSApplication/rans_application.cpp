@@ -75,7 +75,10 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmKOmegaOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansEvmKOmegaOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansEvmKOmegaOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mRansEvmKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
+      mRansEvmKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // vms monolithic k based wall conditions
+      mRansVMSMonolithicKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansVMSMonolithicKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -192,5 +195,9 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaUBasedWall2D2N", mRansEvmKOmegaOmegaUBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansEvmKOmegaOmegaUBasedWall3D3N", mRansEvmKOmegaOmegaUBasedWall3D3N);
+
+    // registering vms monolithic conditions
+    KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWall2D2N", mRansVMSMonolithicKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWall3D3N", mRansVMSMonolithicKBasedWall3D3N);
 }
 } // namespace Kratos.

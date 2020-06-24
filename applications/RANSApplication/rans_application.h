@@ -50,6 +50,9 @@
 #include "custom_conditions/scalar_wall_flux_condition_data/evm_k_omega/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/scalar_wall_flux_condition_data/evm_k_omega/omega_u_based_wall_condition_data.h"
 
+// vms monolithic wall conditions
+#include "custom_conditions/vms_monolithic_k_based_wall_condition.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -269,6 +272,10 @@ private:
 
     const ScalarWallFluxCondition<2, 2, EvmKOmegaWallConditionData::OmegaUBasedWallConditionData> mRansEvmKOmegaOmegaUBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, EvmKOmegaWallConditionData::OmegaUBasedWallConditionData> mRansEvmKOmegaOmegaUBasedWall3D3N;
+
+    // vms monolithic k based wall conditions
+    const VMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWall2D2N;
+    const VMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWall3D3N;
 
     ///@}
     ///@name Private Operators
