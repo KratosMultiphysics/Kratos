@@ -415,6 +415,7 @@ public:
     {
         KRATOS_TRY
 
+        BaseType::MoveMesh();
         ModelPart& rModelPart = BaseType::GetModelPart();
         SchemePointerType& pScheme = this->pGetScheme();
         BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
@@ -591,7 +592,7 @@ public:
                 KRATOS_INFO_IF("Prebuckling Analysis: ", BaseType::GetEchoLevel() > 0)
                 << "Convergence not achieved yet " << mLambda/mLambdaPrev << " / " << mConvergenceRatio << std::endl;
             }
-            
+
         }
 
         mLoadStepIteration++;
