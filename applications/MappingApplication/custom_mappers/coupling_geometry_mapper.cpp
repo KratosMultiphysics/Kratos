@@ -72,7 +72,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
     const auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
 
-    const bool is_dual_mortar = (!mIsProjection && mpGeom->GetValue(IS_DUAL_MORTAR))
+    const bool is_dual_mortar = (!mIsProjection && mIsDualMortar)
         ? true
         : false;
 
@@ -167,12 +167,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeMapper()
     mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
     mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
 
-
-    // TODO update
-    for (auto condition_itr = mpCouplingMP->ConditionsBegin();
-        condition_itr != mpCouplingMP->ConditionsEnd();
-        ++condition_itr)
-        condition_itr->GetGeometry().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
+    mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
 
     this->InitializeInterface();
 }
@@ -191,7 +186,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     AssignInterfaceEquationIds(); // Has to be done every time in case of overlapping interfaces!
 
     // assemble projector interface mass matrix - interface_matrix_projector
-    const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes(); // fix up and put in the mapper parameters
+    const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes();
     const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
     Matrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
 
