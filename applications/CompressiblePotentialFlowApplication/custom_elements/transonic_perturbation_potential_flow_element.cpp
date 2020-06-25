@@ -86,13 +86,17 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
             if (rRightHandSideVector.size() != TNumNodes + 1) {
                 rRightHandSideVector.resize(TNumNodes + 1, false);
             }
+
+            rRightHandSideVector.clear();
+            CalculateRightHandSideSupersonicElement(rRightHandSideVector, rCurrentProcessInfo);
         } else {
             if (rRightHandSideVector.size() != TNumNodes) {
                 rRightHandSideVector.resize(TNumNodes, false);
             }
+
+            rRightHandSideVector.clear();
+            CalculateRightHandSideSubsonicElement(rRightHandSideVector, rCurrentProcessInfo);
         }
-        rRightHandSideVector.clear();
-        CalculateRightHandSideSubsonicElement(rRightHandSideVector, rCurrentProcessInfo);
     }
     else { // Wake element
         CalculateRightHandSideWakeElement(rRightHandSideVector, rCurrentProcessInfo);
@@ -663,6 +667,40 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 
     AssembleSupersonicLeftHandSide(rLeftHandSideMatrix, DrhoDu2, DrhoDu2_up, velocity, upwind_velocity, rCurrentProcessInfo);
 
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideSupersonicElement(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(r_this, rCurrentProcessInfo);
+    const array_1d<double, TDim> upwind_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*pGetUpwindElement(), rCurrentProcessInfo);
+
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+    
+    const double critical_mach = rCurrentProcessInfo[CRITICAL_MACH];
+
+    if (local_mach_number_squared < std::pow(critical_mach, 2.0)) { // subsonic, not inlet
+        // gets [TNumNodes + 1] size vector
+        CalculateRightHandSideSubsonicElement(rRightHandSideVector, rCurrentProcessInfo);
+        return;
+    }   
+
+    // Calculate shape functions
+    ElementalData<TNumNodes, TDim> data;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    const double density = PotentialFlowUtilities::ComputeUpwindedDensity<TDim, TNumNodes>(velocity, upwind_velocity, rCurrentProcessInfo);
+
+    const BoundedVector<double, TNumNodes> current_rhs = - data.vol * density * prod(data.DN_DX, velocity);
+
+    for (int i = 0; i < TNumNodes; i++)
+    {
+        rRightHandSideVector[i] = current_rhs[i];
+    }
 }
 
 template <int TDim, int TNumNodes>

@@ -87,6 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS, Compress
 
     GenerateTransonicPerturbationElement(model_part);
     Element::Pointer pElement = model_part.pGetElement(1);
+    pElement->SetFlags(INLET);
 
     AssignPotentialsToNormalTransonicPerturbationElement(pElement);
 
@@ -95,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS, Compress
 
     pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
-    std::vector<double> reference{146.2643261263345,-122.1426284341492,-24.12169769218525, 0.0};
+    std::vector<double> reference{146.2643261263345,-122.1426284341492,-24.12169769218525};
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
@@ -215,6 +216,62 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
             KRATOS_CHECK_RELATIVE_NEAR(LHS(i, j), reference[i * 4 + j], 1e-15);
         }
     }
+}
+
+/** Checks the TransonicPerturbationPotentialFlowElement.
+ * Checks the Supersonic RHS computation.
+ */
+KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementRHS, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    GenerateTransonicPerturbationUpwindElement(model_part);
+
+    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer pUpwindElement = model_part.pGetElement(2);
+
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
+
+    // velocity[0] : 394.18
+    // velocity[1] : -50
+    // local_mach_number_squared : 1.705
+    AssignPotentialsToSupersonicTransonicPerturbationElement(pElement);
+
+    // upwind_velocity[0] : 154.18
+    // upwind_velocity[1] : 149
+    // upwind_mach_number_squared : 0.3999
+    AssignPotentialsToNormalTransonicPerturbationElement(pUpwindElement);
+
+    for (auto& r_node : model_part.Nodes()){
+        r_node.AddDof(VELOCITY_POTENTIAL);
+    }
+
+    Element::DofsVectorType CurrentElementalDofList;
+    pElement->GetDofList(CurrentElementalDofList, model_part.GetProcessInfo());
+
+    Element::DofsVectorType UpwindElementalDofList;
+    pUpwindElement->GetDofList(UpwindElementalDofList, model_part.GetProcessInfo());
+
+    std::vector<int> current_ids{23, 74, 55};
+    std::vector<int> upwind_ids{23, 74, 67};
+    for (int i = 0; i < 3; i++) {
+        CurrentElementalDofList[i]->SetEquationId(current_ids[i]);
+        UpwindElementalDofList[2]->SetEquationId(upwind_ids[i]);
+    }
+
+    pElement->Initialize(model_part.GetProcessInfo());
+    pUpwindElement->SetFlags(INLET);
+    
+    // Compute RHS
+    Vector RHS = ZeroVector(4);
+
+    pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
+
+    std::vector<double> reference{185.25633340652948,-231.20512387394589,45.948790467416408,0.0};
+
+    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-15);
 }
 
 /** Checks the TransonicPerturbationPotentialFlowElement.
