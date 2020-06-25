@@ -40,11 +40,11 @@ proc InitGIDProject { dir } {
         GiDMenu::Create "Sphere Cluster Creation" PRE
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenConditions \"SphereTree\"" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateSPH" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateCLU" ] 2 PRE [list GenerateClusterFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate SPH file" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate CLU file" ] 2 PRE [list GenerateClusterFile] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in mesh" ] 4 PRE [list ReadClusterFileintoMesh] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 3 PRE [list ReadClusterFileintoGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "All-in-One" ] 4 PRE [list OneClickGo] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate all and visualize" ] 4 PRE [list OneClickGo] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 5 PRE [list DeleteSpheresGeometry] "" ""
 
         GiDMenu::UpdateMenus

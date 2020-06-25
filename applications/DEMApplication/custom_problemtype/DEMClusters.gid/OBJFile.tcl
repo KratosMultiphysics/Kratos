@@ -8,31 +8,6 @@ proc DeleteSpheresMesh { } {
     GiD_Mesh delete element spheres
 }
 
-proc DeleteSpheresGeometry { } {
-    W "1delete sphere geom"
-
-    # GiD_Geometry delete volume [GiD_Geometry list volume 2:end]
-    # foreach volume_id [GiD_Geometry list volume 2:end] {
-    #     GiD_Geometry delete volume volume_id
-    # }
-
-    set volume_id [GiD_Geometry list volume 2:end]
-    W $volume_id
-
-    GiD_Layers create spheres_to_delete
-    W "2delete sphere geom"
-
-    # GiD_EntitiesLayers assign spheres_to_delete -also_lower_entities volume volume_id
-    # W "3delete sphere geom"
-
-    # GiD_Layers delete spheres_to_delete
-
-}
-
-
-
-
-
 proc GenerateOBJFile { basename dir problemtypedir } {
 
     ## Source auxiliar procedures
