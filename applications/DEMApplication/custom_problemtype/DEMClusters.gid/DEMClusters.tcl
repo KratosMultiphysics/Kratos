@@ -191,7 +191,7 @@ proc DEMClusters::call_TreeMedial { } {
 
     exec $program {*}$argv
 
-    # MakeTreeMedial -depth 1 -branch 100 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
+    # MakeTreeMedial -depth 1 -branch 100 -numCover 1000 -minCover 10 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
     # set program [lindex $argv 0]
     # set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
     # set arguments [lrange $argv 1 end]
@@ -199,7 +199,7 @@ proc DEMClusters::call_TreeMedial { } {
 
     # TreeMedial ValidArgs:
     # -depth              Depth of the sphere-tree
-    # -branch             Branching factor of sphere-tree
+    # -branch             Branching factor of sphere-tree - for depth 1, branch=num of spheres
     # -numCover           Number of sample points to cover object with
     # -minCover           Minimum number of sample points per triangle
     # -initSpheres        Initial number of spheres in medial axis approx.
@@ -398,6 +398,7 @@ proc GenerateClusterFile { } {
     }
 
     set genericMSHFilename [file join $::DEMClusters::ProblemPath generic.msh]
+    set ouputpath [file join $::DEMClusters::ProblemPath generic_cluster.clu]
     # set genericMSHFilename "\"$genericMSHFilename\""
     set argv_number 2
     package require platform
@@ -410,12 +411,9 @@ proc GenerateClusterFile { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
     }
 
-    #TODO: works ok on linux. on windows seems to be working but no file is generated. Write access?
-    W $program
-    W $genericMSHFilename
-    W $genericSPHFilename
+    #TODO: REQUIRES RECOMPILE IN WINDOWS
 
-    exec $program 2 $genericMSHFilename $genericSPHFilename
+    exec $program 3 $genericMSHFilename $genericSPHFilename $ouputpath
     # FOR DEBUG -
     # exec $program $argv_number $genericMSHFilename $genericSPHFilename > [file join $::DEMClusters::ProblemPath output.txt]
     # REGENERATE EXEC FOR WINDOWS : exec> g++ -static-libgcc -static-libstdc++ -o create_cluster.exe mesh_to_clu_converter.cpp

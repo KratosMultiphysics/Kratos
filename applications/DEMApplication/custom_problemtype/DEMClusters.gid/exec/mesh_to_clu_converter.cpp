@@ -16,6 +16,7 @@ int main(int argc, char * argv[]){
 
     std::cout << argv[2] << std::endl;
     std::cout << argv[3] << std::endl;
+    std::cout << argv[4] << std::endl;
     std::cout << "lectura correcta de archivos" << std::endl;
 
 
@@ -383,7 +384,10 @@ int main(int argc, char * argv[]){
 
     std::cout << "\nThe size ratio is: " << diameter/characteristic_size << "\n\n";
 
-    std::ofstream outputfile("generic_cluster.clu", std::ios_base::out);
+
+
+    //std::ofstream outputfile("generic_cluster.clu", std::ios_base::out);
+    std::ofstream outputfile(argv[4], std::ios_base::out);
 
     outputfile << "Name\nCluster\n\nBegin centers_and_radii\n";
     for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
@@ -394,7 +398,10 @@ int main(int argc, char * argv[]){
     outputfile << "Size\n" << diameter << "\n\n" << "Volume\n" << total_volume << "\n\n";
     outputfile << "Inertia unit mass\n" << D[0][0] << '\n' << D[1][1] << '\n' << D[2][2] << '\n';
 
+    outputfile.flush();
     outputfile.close();
+
+    return 0;
 }
 
 // Slightly modified version of  Stan Melax's code for 3x3 matrix diagonalization
