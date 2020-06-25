@@ -17,7 +17,7 @@
             "stiffness_averaging_time_interval": 2.0e-6,
             "velocity_averaging_time_interval": 2.0e-4,
             "reaction_averaging_time_interval": 6.0e-8,
-            "output_interval": 1
+            "output_interval": 2
         },
         "list_of_actuators" : [{
             "Parameters"    : {
