@@ -10,7 +10,9 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/kratos_parameters.h"
+#include "linear_solvers/linear_solver.h"
 #include "processes/process.h"
+#include "spaces/ublas_space.h"
 
 // Application includes
 #include "custom_processes/rans_k_turbulent_intensity_inlet_process.h"
@@ -19,6 +21,11 @@
 #include "custom_processes/rans_nut_k_epsilon_high_re_update_process.h"
 #include "custom_processes/rans_omega_turbulent_mixing_inlet_process.h"
 #include "custom_processes/rans_nut_k_omega_update_process.h"
+#include "custom_processes/rans_wall_distance_calculation_process.h"
+#include "custom_processes/rans_nut_k_omega_sst_update_process.h"
+
+// Include base h
+#include "custom_python/add_custom_processes_to_python.h"
 
 namespace Kratos
 {
@@ -27,6 +34,10 @@ namespace Python
 void AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
     using RansKTurbulentIntensityInletProcessType = RansKTurbulentIntensityInletProcess;
     py::class_<RansKTurbulentIntensityInletProcessType, RansKTurbulentIntensityInletProcessType::Pointer, Process>(m, "RansKTurbulentIntensityInletProcess")
@@ -59,6 +70,16 @@ void AddCustomProcessesToPython(pybind11::module& m)
         m, "RansNutKOmegaUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const int>());
+
+    // k-omega-sst specific processes
+    using RansWallDistanceCalculationProcessType = RansWallDistanceCalculationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    py::class_<RansWallDistanceCalculationProcessType, RansWallDistanceCalculationProcessType::Pointer, Process>(m, "RansWallDistanceCalculationProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    using RansNutKOmegaSSTUpdateProcessType = RansNutKOmegaSSTUpdateProcess;
+    py::class_<RansNutKOmegaSSTUpdateProcessType, RansNutKOmegaSSTUpdateProcessType::Pointer, Process>(m, "RansNutKOmegaSSTUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const double, const int>());
 
 }
 
