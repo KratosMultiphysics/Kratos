@@ -174,9 +174,10 @@ void NormalCalculationUtils::CalculateNormals<Condition>(
         // Declare auxiliar coordinates
         Point::CoordinatesArrayType aux_coords;
 
-        // Adding the normal contribution of each node
-        for (Condition& r_cond : r_conditions_array) {
-            GeometryType& r_geometry = r_cond.GetGeometry();
+        #pragma omp parallel for firstprivate(aux_coords)
+        for (int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
+            GeometryType& r_geometry = it_cond->GetGeometry();
 
             // Avoid not "flat" conditions
             if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
@@ -188,7 +189,9 @@ void NormalCalculationUtils::CalculateNormals<Condition>(
             for (NodeType& r_node : r_geometry) {
                 r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
                 const array_1d<double, 3> normal = r_geometry.Normal(aux_coords);
+                r_node.SetLock();
                 noalias(r_node.FastGetSolutionStepValue(NORMAL)) += normal * coefficient;
+                r_node.UnSetLock();
             }
         }
 
@@ -215,9 +218,13 @@ void NormalCalculationUtils::CalculateNormals<Element>(
     // Declare auxiliar coordinates
     Point::CoordinatesArrayType aux_coords;
 
-    // Adding the normal contribution of each node
-    for (Element& r_elem : rModelPart.Elements()) {
-        GeometryType& r_geometry = r_elem.GetGeometry();
+    auto& r_elements_array = rModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+
+    #pragma omp parallel for firstprivate(aux_coords)
+    for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = it_elem_begin + i;
+        GeometryType& r_geometry = it_elem->GetGeometry();
 
         // Avoid not "flat" elements
         if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
@@ -229,7 +236,9 @@ void NormalCalculationUtils::CalculateNormals<Element>(
         for (NodeType& r_node : r_geometry) {
             r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
             const array_1d<double, 3> normal = r_geometry.Normal(aux_coords);
+            r_node.SetLock();
             noalias(r_node.FastGetSolutionStepValue(NORMAL)) += normal * coefficient;
+            r_node.UnSetLock();
         }
     }
 
