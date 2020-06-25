@@ -421,7 +421,7 @@ void NormalCalculationUtils::CalculateNormal3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-#if KRATOS_COMPILED_IN_WINDOWS
+#if defined(_WIN32) || defined(_WIN64)
     template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<Condition>(ModelPart& rModelPart);
     template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<Element>(ModelPart& rModelPart);
     template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>(ModelPart& rModelPart, const bool EnforceGenericAlgorithm);
