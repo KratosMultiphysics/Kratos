@@ -232,3 +232,13 @@ def GetConvergenceInfo(variable,
             absolute_error, absolute_tolerance)
     info += " ] - " + str(variable.Name())
     return info
+
+def InitializeYPlusVariablesInConditions(model_part):
+    if (not RansVariableUtilities.IsAnalysisStepCompleted(
+            model_part, "CONDITION_TURBULENCE_VARIABLE_INITIALIZATION")):
+        VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.RANS_Y_PLUS, model_part.Conditions)
+        VariableUtils().SetNonHistoricalVariableToZero(KratosRANS.FRICTION_VELOCITY, model_part.Conditions)
+        RansVariableUtilities.AddAnalysisStep(model_part,
+                                              "CONDITION_TURBULENCE_VARIABLE_INITIALIZATION")
+        Kratos.Logger.PrintInfo("Initialization",
+                                "Initialized condition variables.")
