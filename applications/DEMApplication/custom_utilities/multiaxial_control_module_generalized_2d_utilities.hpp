@@ -178,7 +178,49 @@ MultiaxialControlModuleGeneralized2DUtilities(ModelPart& rDemModelPart,
         mOrderedMapKeys.push_back(actuator_name);
     }
 
-    mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
+        // Initialize Variables
+        mrDemModelPart.GetProcessInfo().SetValue(TARGET_STRESS_Z,0.0);
+        array_1d<double,3> zero_vector = ZeroVector(3);
+        // Iterate through all actuators
+        for(unsigned int map_index = 0; map_index < mOrderedMapKeys.size(); map_index++) {
+            const std::string actuator_name = mOrderedMapKeys[map_index];
+            std::vector<ModelPart*> FEMSubModelPartList = mFEMBoundariesSubModelParts[actuator_name];
+            std::vector<ModelPart*> DEMSubModelPartList = mDEMBoundariesSubModelParts[actuator_name];
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < FEMSubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(FEMSubModelPartList[i]);
+                // Iterate through nodes of Fem boundary
+                const int NNodes = static_cast<int>(rSubModelPart.Nodes().size());
+                ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
+                #pragma omp parallel for
+                for(int j = 0; j<NNodes; j++) {
+                    ModelPart::NodesContainerType::iterator it = it_begin + j;
+                    it->SetValue(TARGET_STRESS,zero_vector);
+                    it->SetValue(REACTION_STRESS,zero_vector);
+                    it->SetValue(SMOOTHED_REACTION_STRESS,zero_vector);
+                    it->SetValue(ELASTIC_REACTION_STRESS,zero_vector);
+                    it->SetValue(SMOOTHED_ELASTIC_REACTION_STRESS,zero_vector);
+                    it->SetValue(LOADING_VELOCITY,zero_vector);
+                }
+            }
+            // Iterate through all DEMBoundaries
+            for (unsigned int i = 0; i < DEMSubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(DEMSubModelPartList[i]);
+                // Iterate through nodes of DEM boundary
+                const int NNodes = static_cast<int>(rSubModelPart.Nodes().size());
+                ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
+                #pragma omp parallel for
+                for(int j = 0; j<NNodes; j++) {
+                    ModelPart::NodesContainerType::iterator it = it_begin + j;
+                    it->SetValue(TARGET_STRESS,zero_vector);
+                    it->SetValue(REACTION_STRESS,zero_vector);
+                    it->SetValue(SMOOTHED_REACTION_STRESS,zero_vector);
+                    it->SetValue(ELASTIC_REACTION_STRESS,zero_vector);
+                    it->SetValue(SMOOTHED_ELASTIC_REACTION_STRESS,zero_vector);
+                    it->SetValue(LOADING_VELOCITY,zero_vector);
+                }
+            }
+        }
 
     CalculateCharacteristicReactionVariationRate();
 

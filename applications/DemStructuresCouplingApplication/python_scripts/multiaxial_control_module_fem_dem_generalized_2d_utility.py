@@ -33,38 +33,40 @@ class MultiaxialControlModuleFEMDEMGeneralized2DUtility(MultiaxialControlModuleG
         time = self.fem_model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.times.append(time)
 
+        # Pa to psi
+        unit_trans = 0.000145038
+
         for name in self.actuator_names:
             if name == 'Z':
                 for node in self.fem_submodelparts[name][0].Nodes:
-                    self.reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Z))
-                    self.target_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Z))
-                    self.velocities[name].append(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Z))
+                    self.reactions[name].append(abs(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Z))*unit_trans)
+                    self.target_reactions[name].append(abs(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Z))*unit_trans)
+                    self.velocities[name].append(abs(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Z))*unit_trans)
                     break
-
             elif name == 'X':
                 for node in self.fem_submodelparts[name][0].Nodes:
-                    self.reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))
-                    self.target_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X))
-                    self.velocities[name].append(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X))
+                    self.reactions[name].append(abs(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))*unit_trans)
+                    self.target_reactions[name].append(abs(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X))*unit_trans)
+                    self.velocities[name].append(abs(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X))*unit_trans)
                     break
             elif name == 'Y':
                 for node in self.fem_submodelparts[name][0].Nodes:
-                    self.reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))
-                    self.target_reactions[name].append(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y))
-                    self.velocities[name].append(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y))
+                    self.reactions[name].append(abs(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))*unit_trans)
+                    self.target_reactions[name].append(abs(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y))*unit_trans)
+                    self.velocities[name].append(abs(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y))*unit_trans)
                     break
             elif name == 'Radial':
                 for node in self.fem_submodelparts[name][0].Nodes:
-                    value_x = node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X)
-                    value_y = node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y)
+                    value_x = abs(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_X))*unit_trans
+                    value_y = abs(node.GetValue(KratosMultiphysics.DEMApplication.REACTION_STRESS_Y))*unit_trans
                     norm = (value_x**2 + value_y**2)**0.5
                     self.reactions[name].append(norm)
-                    value_x = node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X)
-                    value_y = node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y)
+                    value_x = abs(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_X))*unit_trans
+                    value_y = abs(node.GetValue(KratosMultiphysics.DEMApplication.TARGET_STRESS_Y))*unit_trans
                     norm = (value_x**2 + value_y**2)**0.5
                     self.target_reactions[name].append(norm)
-                    value_x = node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X)
-                    value_y = node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y)
+                    value_x = abs(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_X))*unit_trans
+                    value_y = abs(node.GetValue(KratosMultiphysics.DEMApplication.LOADING_VELOCITY_Y))*unit_trans
                     norm = (value_x**2 + value_y**2)**0.5
                     self.velocities[name].append(norm)
                     break
@@ -95,17 +97,19 @@ class MultiaxialControlModuleFEMDEMGeneralized2DUtility(MultiaxialControlModuleG
                     linewidth=self.target_reactions['linewidth'],
                     label='target_reaction_' + name)
 
-        plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
-        # plt.legend()
+        # plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+        plt.legend()
         max_stress = 0
         for name in self.actuator_names:
             max_stress = max(max(abs(min(self.target_reactions[name])),max(self.target_reactions[name])), max_stress)
-        plt.ylim(-2*max_stress,2*max_stress)
+        plt.ylim(-0.1*max_stress,1.1*max_stress)
+
+        plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 
         # naming the x axis
-        plt.xlabel('time (s)')
+        plt.xlabel('Time (s)')
         # naming the y axis
-        plt.ylabel('stress (Pa)')
+        plt.ylabel('Stress (Psi)')
         # giving a title to my graph
         plt.title('Reaction vs target stresses')
 
@@ -122,8 +126,10 @@ class MultiaxialControlModuleFEMDEMGeneralized2DUtility(MultiaxialControlModuleG
 
         plt.legend()
 
+        plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
+
         # naming the x axis
-        plt.xlabel('time (s)')
+        plt.xlabel('Time (s)')
         # naming the y axis
         plt.ylabel('velocity (m/s)')
         # giving a title to my graph

@@ -114,7 +114,27 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
     mYCounter = 2;
     mZCounter = 3;
 
-    mrDemModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
+    // Initialize Variables
+    mrDemModelPart.GetProcessInfo().SetValue(TARGET_STRESS_Z,0.0);
+    int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
+    ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
+    array_1d<double,3> zero_vector = ZeroVector(3);
+    #pragma omp parallel for
+    for(int i = 0; i<NNodes; i++) {
+        ModelPart::NodesContainerType::iterator it = it_begin + i;
+        it->SetValue(TARGET_STRESS,zero_vector);
+        it->SetValue(REACTION_STRESS,zero_vector);
+        it->SetValue(LOADING_VELOCITY,zero_vector);
+    }
+    NNodes = static_cast<int>(mrDemModelPart.Nodes().size());
+    it_begin = mrDemModelPart.NodesBegin();
+    #pragma omp parallel for
+    for(int i = 0; i<NNodes; i++) {
+        ModelPart::NodesContainerType::iterator it = it_begin + i;
+        it->SetValue(TARGET_STRESS,zero_vector);
+        it->SetValue(REACTION_STRESS,zero_vector);
+        it->SetValue(LOADING_VELOCITY,zero_vector);
+    }
 
     mApplyCM = false;
 

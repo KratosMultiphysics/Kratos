@@ -90,7 +90,18 @@ public:
         mCMTimeStep = rParameters["control_module_time_step"].GetDouble();
         mStep = 0;
 
-        mrModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
+        // Initialize Variables
+        mrModelPart.GetProcessInfo().SetValue(TARGET_STRESS_Z,0.0);
+        const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        array_1d<double,3> zero_vector = ZeroVector(3);
+        #pragma omp parallel for
+        for(int i = 0; i<NNodes; i++) {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            it->SetValue(TARGET_STRESS,zero_vector);
+            it->SetValue(REACTION_STRESS,zero_vector);
+            it->SetValue(LOADING_VELOCITY,zero_vector);
+        }
 
         KRATOS_CATCH("");
     }

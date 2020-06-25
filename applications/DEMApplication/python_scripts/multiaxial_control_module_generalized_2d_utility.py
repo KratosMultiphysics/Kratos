@@ -108,6 +108,7 @@ class MultiaxialControlModuleGeneralized2DUtility(object):
                     label='velocity_' + name)
 
         plt.legend()
+
         plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 
         # naming the x axis
