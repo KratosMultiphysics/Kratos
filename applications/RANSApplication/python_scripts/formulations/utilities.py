@@ -138,3 +138,23 @@ def CreateFormulationModelPart(formulation, element_name, condition_name):
         formulation.GetBaseModelPart(),
         formulation.GetName() + "_" + element_name + "_" + condition_name,
         element_name, condition_name, "")
+
+def IsBufferInitialized(formulation):
+    return (formulation.GetBaseModelPart().ProcessInfo[Kratos.STEP] + 1 >= formulation.GetMinimumBufferSize())
+
+def InitializePeriodicConditions(base_model_part, model_part, variables_list):
+    properties = model_part.CreateNewProperties(
+        model_part.NumberOfProperties() + 1)
+    pcu = KratosCFD.PeriodicConditionUtilities(
+        model_part, model_part.ProcessInfo[Kratos.DOMAIN_SIZE])
+    for variable in variables_list:
+        pcu.AddPeriodicVariable(properties, variable)
+
+    index = model_part.NumberOfConditions()
+    for condition in base_model_part.Conditions:
+        if condition.Is(Kratos.PERIODIC):
+            index += 1
+            node_id_list = [node.Id for node in condition.GetNodes()]
+            periodic_condition = model_part.CreateNewCondition(
+                "PeriodicCondition", index, node_id_list, properties)
+            periodic_condition.Set(Kratos.PERIODIC)
