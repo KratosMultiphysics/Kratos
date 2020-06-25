@@ -16,7 +16,7 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
 # Import the tests or test_classes to create the suits
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
-
+from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -40,6 +40,12 @@ def AssembleTestSuites():
     nightlyMPISuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlowMPI')))
     nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureSteadyMPI')))
     nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureTransientMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeSteadyMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocitySteadyMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeSteadyMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocitySteadyMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeTransientMPI')))
+    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocityTransientMPI')))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']

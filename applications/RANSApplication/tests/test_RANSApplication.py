@@ -15,6 +15,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import run_cpp_unit_tests
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
+from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -40,6 +41,12 @@ def AssembleTestSuites():
     nightSuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlow')))
     nightSuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureSteady')))
     nightSuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureTransient')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeSteady')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocitySteady')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeSteady')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocitySteady')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeTransient')))
+    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocityTransient')))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
