@@ -677,17 +677,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
 
     const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(r_this, rCurrentProcessInfo);
-    const array_1d<double, TDim> upwind_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*pGetUpwindElement(), rCurrentProcessInfo);
-
-    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
-    
-    const double critical_mach = rCurrentProcessInfo[CRITICAL_MACH];
-
-    if (local_mach_number_squared < std::pow(critical_mach, 2.0)) { // subsonic, not inlet
-        // gets [TNumNodes + 1] size vector
-        CalculateRightHandSideSubsonicElement(rRightHandSideVector, rCurrentProcessInfo);
-        return;
-    }   
+    const array_1d<double, TDim> upwind_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*pGetUpwindElement(), rCurrentProcessInfo);  
 
     // Calculate shape functions
     ElementalData<TNumNodes, TDim> data;
