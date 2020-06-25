@@ -148,8 +148,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
                                         self.settings["absolute_pressure_tolerance"].GetDouble())
             scheme = dynamic_scheme(bossak_alpha,
                                     self.settings["move_mesh_strategy"].GetInt(),
-                                    domain_size,
-                                    self.settings["velocity_relaxation"].GetDouble())
+                                    domain_size)
 
         builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(
                                     self.linear_solver,

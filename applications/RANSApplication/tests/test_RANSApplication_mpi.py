@@ -15,6 +15,7 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
 
 # Import the tests or test_classes to create the suits
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
+from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 
 
 def AssembleTestSuites():
@@ -37,6 +38,8 @@ def AssembleTestSuites():
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
     nightlyMPISuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlowMPI')))
+    nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureSteadyMPI')))
+    nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureTransientMPI')))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']

@@ -14,6 +14,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 # Import the tests o test_classes to create the suites
 import run_cpp_unit_tests
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
+from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -37,6 +38,8 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
 
     nightSuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlow')))
+    nightSuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureSteady')))
+    nightSuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureTransient')))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
