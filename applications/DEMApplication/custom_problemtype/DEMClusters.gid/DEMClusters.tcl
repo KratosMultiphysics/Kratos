@@ -42,9 +42,11 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateSPH" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "GenerateCLU" ] 2 PRE [list GenerateClusterFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in mesh" ] 3 PRE [list ReadClusterFileintoMesh] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in geom" ] 4 PRE [list ReadClusterFileintoGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "All-in-One" ] 5 PRE [list OneClickGo] "" ""
+        #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in mesh" ] 4 PRE [list ReadClusterFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 3 PRE [list ReadClusterFileintoGeometry] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "All-in-One" ] 4 PRE [list OneClickGo] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 5 PRE [list DeleteSpheresGeometry] "" ""
+
         GiDMenu::UpdateMenus
     }
 
@@ -60,6 +62,17 @@ proc InitGIDProject { dir } {
     set ::DEMClusters::ProblemTypePath $dir
 }
 
+
+proc DeleteSpheresGeometry { } {
+    set volume_id_list [GiD_Geometry list volume 2:end]
+    GiD_Layers create spheres_to_delete
+    foreach id $volume_id_list { ;
+        GiD_EntitiesLayers assign spheres_to_delete -also_lower_entities volume $id
+    }
+    GiD_Layers delete spheres_to_delete
+    GiD_Process 'Render Normal
+
+}
 
 proc AfterReadGIDProject { filename } {
 
@@ -400,7 +413,7 @@ proc GenerateClusterFile { } {
     set genericMSHFilename [file join $::DEMClusters::ProblemPath generic.msh]
     set ouputpath [file join $::DEMClusters::ProblemPath generic_cluster.clu]
     # set genericMSHFilename "\"$genericMSHFilename\""
-    set argv_number 2
+    set argv_number 3
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
@@ -481,7 +494,6 @@ proc ReadClusterFileintoGeometry { } {
     set data [lreplace $data end-14 end]
     foreach line $data {
         if {[llength $line] >3} {
-            W $line
             GiD_Process Mescape Geometry Create Object Sphere [lrange $line 0 0] [lrange $line 1 1] [lrange $line 2 2] [lrange $line 3 3] escape escape
         }
     }

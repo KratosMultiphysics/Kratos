@@ -3,7 +3,7 @@ proc DeleteSpheresMesh { } {
     set spheres [GiD_Mesh list -element_type {sphere} element]
     W $spheres
     # foreach element_id $spheres { ;
-    #     GiD_Mesh delete element element_id ;                            
+    #     GiD_Mesh delete element element_id ;
     # }
     GiD_Mesh delete element spheres
 }
@@ -18,14 +18,12 @@ proc DeleteSpheresGeometry { } {
 
     set volume_id [GiD_Geometry list volume 2:end]
     W $volume_id
-    
-    GiD_Layers delete spheres_to_delete
-    
+
     GiD_Layers create spheres_to_delete
     W "2delete sphere geom"
 
-    GiD_EntitiesLayers assign spheres_to_delete -also_lower_entities volume volume_id
-    W "3delete sphere geom"
+    # GiD_EntitiesLayers assign spheres_to_delete -also_lower_entities volume volume_id
+    # W "3delete sphere geom"
 
     # GiD_Layers delete spheres_to_delete
 
@@ -47,11 +45,11 @@ proc GenerateOBJFile { basename dir problemtypedir } {
 
     set triangles [GiD_Mesh list -element_type {triangle} element]
     set tetrahedra [GiD_Mesh list -element_type {tetrahedra} element]
-    
+
     set triangle_nodes [list]
     foreach element_id $triangles { ;
         set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
-        lappend triangle_nodes {*}$nodes ;                              
+        lappend triangle_nodes {*}$nodes ;
     }
 
     ## Nodes only if belong to any triangle
@@ -70,7 +68,7 @@ proc GenerateOBJFile { basename dir problemtypedir } {
         puts $FileVar " "
         dict set position_list_dict [lindex $Nodes $i] $position
         }
-        
+
     }
 
     set aux 1
@@ -86,12 +84,12 @@ proc GenerateOBJFile { basename dir problemtypedir } {
     dict set node_db_counter $aux 0
     dict unset node_db_counter $aux
 
-    foreach element_id $triangles { ;       
+    foreach element_id $triangles { ;
         set nodes [lrange [GiD_Mesh get element $element_id] 3 end] ;
-        set ElementNormal_x [lrange [GiD_Mesh get element $element_id normal] 0 0] ; 
-        set ElementNormal_y [lrange [GiD_Mesh get element $element_id normal] 1 1] ; 
-        set ElementNormal_z [lrange [GiD_Mesh get element $element_id normal] 2 2] ; 
-        
+        set ElementNormal_x [lrange [GiD_Mesh get element $element_id normal] 0 0] ;
+        set ElementNormal_y [lrange [GiD_Mesh get element $element_id normal] 1 1] ;
+        set ElementNormal_z [lrange [GiD_Mesh get element $element_id normal] 2 2] ;
+
         foreach node $nodes {
             if {[dict exists $node_db_x $node]} {
                 set old_value [dict get $node_db_x $node]
@@ -138,21 +136,21 @@ proc GenerateOBJFile { basename dir problemtypedir } {
 
     foreach item [dict keys $node_db_x] {
             set val [dict get $node_db_x $item]
-            lappend normals_x $val ;        
+            lappend normals_x $val ;
     }
 
     foreach item [dict keys $node_db_y] {
             set val [dict get $node_db_y $item]
-            lappend normals_y $val ;          
+            lappend normals_y $val ;
     }
 
     foreach item [dict keys $node_db_z] {
             set val [dict get $node_db_z $item]
-            lappend normals_z $val ;         
+            lappend normals_z $val ;
     }
 
 
-    # normalization is not required according to documentation. 
+    # normalization is not required according to documentation.
     # List of vertex normals in (x,y,z) form; normals might not be unit vectors.
     # verify that your geometry have all the normals pointing coherent.
     foreach component1 $normals_x component2 $normals_y component3 $normals_z {
