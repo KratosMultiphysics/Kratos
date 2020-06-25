@@ -32,7 +32,7 @@
 #elif defined(__APPLE__) && defined(__MACH__)
     #define KRATOS_COMPILED_IN_OSX
 
-#elif defined(_WIN32) || defined(_WIN64)
+#elif defined(_WIN32)
     #define KRATOS_COMPILED_IN_WINDOWS
 #endif
 
