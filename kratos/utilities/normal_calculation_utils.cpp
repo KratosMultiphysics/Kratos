@@ -421,13 +421,11 @@ void NormalCalculationUtils::CalculateNormal3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-#if defined(_WIN32) || defined(_WIN64)
-    template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<Condition>(ModelPart& rModelPart);
-    template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<Element>(ModelPart& rModelPart);
-    template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>(ModelPart& rModelPart, const bool EnforceGenericAlgorithm);
-    template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Element>(ModelPart& rModelPart, const bool EnforceGenericAlgorithm);
-    template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Condition>(ModelPart& rModelPart, const bool EnforceGenericAlgorithm);
-    template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Element>(ModelPart& rModelPart, const bool EnforceGenericAlgorithm);
-#endif
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<Condition>(ModelPart& rModelPart);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<Element>(ModelPart& rModelPart);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>(ModelPart& rModelPart, const bool EnforceGenericAlgorithm);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Element>(ModelPart& rModelPart, const bool EnforceGenericAlgorithm);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Condition>(ModelPart& rModelPart, const bool EnforceGenericAlgorithm);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Element>(ModelPart& rModelPart, const bool EnforceGenericAlgorithm);
 
 } // namespace Kratos
