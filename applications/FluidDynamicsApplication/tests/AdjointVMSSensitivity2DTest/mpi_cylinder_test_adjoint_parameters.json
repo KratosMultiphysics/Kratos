@@ -6,26 +6,6 @@
         "parallel_type"   : "MPI",
         "echo_level"      : 0
     },
-    "output_configuration"             : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteUndeformed",
-                "WriteConditionsFlag"   : "WriteElementsOnly",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "time",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : false,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["ADJOINT_FLUID_VECTOR_1","ADJOINT_FLUID_SCALAR_1"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
-    },
     "solver_settings" : {
         "solver_type" : "Monolithic",
         "scheme_settings" : {

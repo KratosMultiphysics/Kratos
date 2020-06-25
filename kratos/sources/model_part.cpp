@@ -448,6 +448,14 @@ ModelPart& ModelPart::GetRootModelPart()
         return *this;
 }
 
+const ModelPart& ModelPart::GetRootModelPart() const
+{
+    if (IsSubModelPart())
+        return mpParentModelPart->GetRootModelPart();
+    else
+        return *this;
+}
+
 void ModelPart::SetNodalSolutionStepVariablesList()
 {
     KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
@@ -898,6 +906,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
         ModelPart::IndexType Id, std::vector<ModelPart::IndexType> ElementNodeIds,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     if (IsSubModelPart())
     {
         ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(ElementName, Id, ElementNodeIds, pProperties, ThisIndex);
@@ -913,6 +922,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     }
 
     return CreateNewElement(ElementName, Id, pElementNodes, pProperties, ThisIndex);
+    KRATOS_CATCH("");
 }
 
 /** Inserts an element in the mesh with ThisIndex.
@@ -1218,61 +1228,6 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
 
 }
 
-ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    ModelPart::IndexType Id,
-                                                                                    ModelPart::NodeType& rMasterNode,
-                                                                                    const ModelPart::VariableComponentType& rMasterVariable,
-                                                                                    ModelPart::NodeType& rSlaveNode,
-                                                                                    const ModelPart::VariableComponentType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant,
-                                                                                    IndexType ThisIndex)
-{
-
-    KRATOS_TRY
-    if (rMasterNode.HasDofFor(rMasterVariable) && rSlaveNode.HasDofFor(rSlaveVariable) )
-    {
-        if (IsSubModelPart())
-        {
-                ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode,
-                                                                                                                            rMasterVariable,
-                                                                                                                            rSlaveNode,
-                                                                                                                            rSlaveVariable,
-                                                                                                                            Weight,
-                                                                                                                            Constant,
-                                                                                                                            ThisIndex);
-
-                GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-                GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
-                return p_new_constraint;
-        }
-
-        auto existing_constraint_iterator = GetMesh(ThisIndex).MasterSlaveConstraints().find(Id);
-        KRATOS_ERROR_IF(existing_constraint_iterator != GetMesh(ThisIndex).MasterSlaveConstraintsEnd() )
-            << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
-
-
-            //create the new element
-        ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
-        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = r_clone_constraint.Create(Id, rMasterNode,
-                                                                                                rMasterVariable,
-                                                                                                rSlaveNode,
-                                                                                                rSlaveVariable,
-                                                                                                Weight,
-                                                                                                Constant);
-
-        GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-        GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
-        return p_new_constraint;
-    } else
-    {
-        KRATOS_ERROR << "Master or Slave node does not have requested DOF " <<std::endl;
-    }
-
-    KRATOS_CATCH("")
-
-}
-
 /** Remove the master-slave constraint with given Id from this modelpart and all its subs.
 */
 void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId,  IndexType ThisIndex)
@@ -1440,6 +1395,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
         ModelPart::IndexType Id, std::vector<IndexType> ConditionNodeIds,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     Geometry< Node < 3 > >::PointsArrayType pConditionNodes;
 
     for (unsigned int i = 0; i < ConditionNodeIds.size(); i++)
@@ -1448,6 +1404,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     }
 
     return CreateNewCondition(ConditionName, Id, pConditionNodes, pProperties, ThisIndex);
+    KRATOS_CATCH("")
 }
 
 /** Inserts a condition in the mesh with ThisIndex.
@@ -1675,9 +1632,25 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
     return *p_model_part;
 }
 
+ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
+{
+    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    return *i;
+}
+
+ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
+{
+    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    return (i.base()->second).get();
+}
+
 /** Remove a sub modelpart with given name.
 */
-void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
+void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 {
     // finding the sub model part
     SubModelPartIterator i_sub_model_part = mSubModelParts.find(ThisSubModelPartName);
@@ -1691,7 +1664,7 @@ void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 
 /** Remove given sub model part.
 */
-void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
+void ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
 {
     std::string name = ThisSubModelPart.Name();
     // finding the sub model part
@@ -1700,6 +1673,21 @@ void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
     KRATOS_ERROR_IF(i_sub_model_part == mSubModelParts.end()) << "The sub model part  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
 
     mSubModelParts.erase(name);
+}
+
+
+ModelPart* ModelPart::GetParentModelPart() const
+{
+    if (IsSubModelPart()) {
+        return mpParentModelPart;
+    } else {
+        return const_cast<ModelPart*>(this);
+    }
+}
+
+bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
+{
+    return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
 }
 
 std::vector<std::string> ModelPart::GetSubModelPartNames()

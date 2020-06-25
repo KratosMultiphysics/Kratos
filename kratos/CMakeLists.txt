@@ -61,6 +61,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_normal_divergence_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
@@ -104,10 +105,14 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/delaunator_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/properties_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/string_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/result_dabatase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometry_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/normal_calculation_utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_io_modeler.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/ausas_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/triangle_2d_3_modified_shape_functions.cpp;
@@ -199,7 +204,7 @@ set_target_properties(KratosVersion PROPERTIES COMPILE_DEFINITIONS "KRATOS_VERSI
 target_compile_definitions(KratosVersion PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
-    KRATOS_PATCH_VERSION=${KratosMultiphysics_PATCH_VERSION}
+    KRATOS_PATCH_VERSION="${KratosMultiphysics_PATCH_VERSION}"
     KRATOS_SHA1_NUMBER="${KratosMultiphysics_SHA1_NUMBER}"
     KRATOS_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
 )

@@ -26,6 +26,8 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     # conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_coupling_condition.cpp
+    # modelers
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/iga_modeler.cpp;
 )
 
 ## generate variables with the testing sources
@@ -36,6 +38,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES} ${KRATOS_IGA_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosIgaApplication PRIVATE KratosCore)
+set_target_properties(KratosIgaApplication PROPERTIES COMPILE_DEFINITIONS "IGA_APPLICATION=EXPORT,API")
 set_target_properties(KratosIgaApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
