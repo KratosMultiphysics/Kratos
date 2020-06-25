@@ -19,6 +19,8 @@ if (IsDistributedRun()
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import TrilinosPeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import TrilinosBlockBuilderAndSolver as block_builder_and_solver
     from KratosMultiphysics.TrilinosApplication import TrilinosResidualBasedIncrementalUpdateStaticScheme as incremental_update_static_scheme
+    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
+    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIAlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
 elif (not IsDistributedRun()):
     from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSApplication import GenericScalarConvergenceCriteria as residual_criteria
@@ -27,9 +29,12 @@ elif (not IsDistributedRun()):
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import PeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import BlockBuilderAndSolver as block_builder_and_solver
     from KratosMultiphysics import ResidualBasedIncrementalUpdateStaticScheme as incremental_update_static_scheme
+    from KratosMultiphysics.RANSApplication import GenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
+    from KratosMultiphysics.RANSApplication import AlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
 
 else:
     raise Exception("Distributed run requires TrilinosApplication")
+
 
 def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
                              element_name, condition_name,
@@ -139,8 +144,11 @@ def CreateFormulationModelPart(formulation, element_name, condition_name):
         formulation.GetName() + "_" + element_name + "_" + condition_name,
         element_name, condition_name, "")
 
+
 def IsBufferInitialized(formulation):
-    return (formulation.GetBaseModelPart().ProcessInfo[Kratos.STEP] + 1 >= formulation.GetMinimumBufferSize())
+    return (formulation.GetBaseModelPart().ProcessInfo[Kratos.STEP] + 1 >=
+            formulation.GetMinimumBufferSize())
+
 
 def InitializePeriodicConditions(base_model_part, model_part, variables_list):
     properties = model_part.CreateNewProperties(
@@ -158,3 +166,67 @@ def InitializePeriodicConditions(base_model_part, model_part, variables_list):
             periodic_condition = model_part.CreateNewCondition(
                 "PeriodicCondition", index, node_id_list, properties)
             periodic_condition.Set(Kratos.PERIODIC)
+
+
+def CreateSteadyScalarScheme(relaxation_factor):
+    return steady_scalar_scheme(relaxation_factor)
+
+
+def CreateSteadyAlgeraicFluxCorrectedTransportScheme(relaxation_factor,
+                                                     boundary_flags,
+                                                     is_periodic):
+    if (is_periodic):
+        return afc_steady_scalar_scheme(relaxation_factor, boundary_flags,
+                                        KratosCFD.PATCH_INDEX)
+    else:
+        return afc_steady_scalar_scheme(relaxation_factor, boundary_flags)
+
+
+def CreateBossakScalarScheme(bossak_value, relaxation_factor, scalar_variable,
+                             scalar_rate_variable,
+                             relaxed_scalar_rate_variable):
+    return bossak_scheme(bossak_value, relaxation_factor, scalar_variable,
+                         scalar_rate_variable, relaxed_scalar_rate_variable)
+
+
+def GetBoundaryFlags(boundary_flags_parameters):
+    if (boundary_flags_parameters.size == 0):
+        raise Exception("No boundary flags were found")
+
+    flags = Kratos.KratosGlobals.GetFlag(
+        boundary_flags_parameters[0].GetString())
+    for i in range(1, boundary_flags_parameters.size()):
+        flags |= Kratos.KratosGlobals.GetFlag(
+            boundary_flags_parameters[i].GetString())
+
+    return (flags)
+
+
+def GetDefaultConditionName(model_part):
+    process_info = model_part.ProcessInfo
+    if (process_info.Has(Kratos.DOMAIN_SIZE)):
+        domain_size = process_info[Kratos.DOMAIN_SIZE]
+        if (domain_size == 2):
+            return "LineCondition"
+        elif (domain_size == 3):
+            return "SurfaceCondition"
+        else:
+            raise Exception("Unsupported domain size. [ DOMAIN_SIZE = " +
+                            str(domain_size) + " ].")
+    else:
+        raise Exception("DOMAIN_SIZE is not found in process info of " +
+                        model_part.Name() + ".")
+
+
+def GetConvergenceInfo(variable,
+                       relative_error,
+                       relative_tolerance,
+                       absolute_error=-1.0,
+                       absolute_tolerance=-1.0):
+    info = "[ Obtained ratio: {0:6e}; Expected ratio: {1:6e}".format(
+        relative_error, relative_tolerance)
+    if (absolute_error >= 0.0 and absolute_tolerance >= 0.0):
+        info += "; Absolute norm: {0:6e}; Expected norm: {1:6e}".format(
+            absolute_error, absolute_tolerance)
+    info += " ] - " + str(variable.Name())
+    return info
