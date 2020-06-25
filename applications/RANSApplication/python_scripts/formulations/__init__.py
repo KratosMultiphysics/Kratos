@@ -5,6 +5,7 @@ from .incompressible_potential_flow import IncompressiblePotentialFlowFormulatio
 from .monolithic_vms.monolithic_velocity_pressure_formulation import MonolithicVelocityPressureFormulation
 from .monolithic_vms.monolithic_k_epsilon_high_re_formulation import MonolithicKEpsilonHighReFormulation
 from .monolithic_vms.monolithic_k_omega_formulation import MonolithicKOmegaFormulation
+from .monolithic_vms.monolithic_k_omega_sst_formulation import MonolithicKOmegaSSTFormulation
 
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
@@ -12,7 +13,8 @@ def Factory(model_part, settings):
         ["incompressible_potential_flow", IncompressiblePotentialFlowFormulation],
         ["monolithic", MonolithicVelocityPressureFormulation],
         ["monolithic_k_epsilon_high_re", MonolithicKEpsilonHighReFormulation],
-        ["monolithic_k_omega", MonolithicKOmegaFormulation]
+        ["monolithic_k_omega", MonolithicKOmegaFormulation],
+        ["monolithic_k_omega_sst", MonolithicKOmegaSSTFormulation]
     ]
 
     formulation_names_list = [

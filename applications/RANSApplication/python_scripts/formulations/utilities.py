@@ -22,6 +22,7 @@ if (IsDistributedRun()
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIAlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
     from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedBossakVelocityDynamicScalarScheme as bossak_scheme
+    from KratosMultiphysics.RANSApplication.TrilinosExtension import TrilinosRansWallDistanceCalculationProcess as wall_distance_calculation_process
 elif (not IsDistributedRun()):
     from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSApplication import GenericScalarConvergenceCriteria as residual_criteria
@@ -33,7 +34,7 @@ elif (not IsDistributedRun()):
     from KratosMultiphysics.RANSApplication import GenericResidualBasedSimpleSteadyScalarScheme as steady_scalar_scheme
     from KratosMultiphysics.RANSApplication import AlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
     from KratosMultiphysics.RANSApplication import GenericResidualBasedBossakVelocityDynamicScalarScheme as bossak_scheme
-
+    from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess as wall_distance_calculation_process
 else:
     raise Exception("Distributed run requires TrilinosApplication")
 
@@ -242,3 +243,6 @@ def InitializeYPlusVariablesInConditions(model_part):
                                               "CONDITION_TURBULENCE_VARIABLE_INITIALIZATION")
         Kratos.Logger.PrintInfo("Initialization",
                                 "Initialized condition variables.")
+
+def CreateWallDistanceCalculationProcess(model, settings):
+    return wall_distance_calculation_process(model, settings)
