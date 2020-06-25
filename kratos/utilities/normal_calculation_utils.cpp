@@ -360,8 +360,7 @@ void NormalCalculationUtils::CalculateNormal2D(
     rAn[1] = - (r_geometry[1].X() - r_geometry[0].X());
     rAn[2] =    0.00;
 
-    array_1d<double,3>& r_normal = itCond->GetValue(NORMAL);
-    noalias(r_normal) = rAn;
+    itCond->SetValue(NORMAL, rAn);
 }
 
 /***********************************************************************************/
@@ -387,8 +386,7 @@ void NormalCalculationUtils::CalculateNormal3D(
     MathUtils<double>::CrossProduct(rAn,rv1,rv2);
     rAn *= 0.5;
 
-    array_1d<double,3>& r_normal = itCond->GetValue(NORMAL);
-    noalias(r_normal) = rAn;
+    itCond->SetValue(NORMAL, rAn);
 }
 
 } // namespace Kratos
