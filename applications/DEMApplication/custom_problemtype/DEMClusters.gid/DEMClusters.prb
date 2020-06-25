@@ -22,15 +22,15 @@ VALUE: 2
 HELP: Controls the number of points to use to represent a sphere when evaluating fit.
 
 QUESTION: numCover
-VALUE: 1000
+VALUE: 10000
 HELP: Number of sample points to cover object with
 
 QUESTION: minCover
-VALUE: 5
+VALUE: 10
 HELP: Minimum number of sample points per triangle
 
 QUESTION: initSpheres
-VALUE: 100
+VALUE: 1000
 HELP: Initial number of spheres in medial axis approx
 
 QUESTION: minSpheres

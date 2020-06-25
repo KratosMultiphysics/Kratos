@@ -191,7 +191,7 @@ proc DEMClusters::call_TreeMedial { } {
 
     exec $program {*}$argv
 
-    # MakeTreeMedial -depth 1 -branch 100 -numCover 1000 -minCover 10 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
+    # makeTreeMedial -depth 1 -branch 100 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
     # set program [lindex $argv 0]
     # set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
     # set arguments [lrange $argv 1 end]
