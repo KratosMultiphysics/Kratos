@@ -637,9 +637,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     upwind_factor_options[2] = PotentialFlowUtilities::ComputeUpwindFactor<TDim, TNumNodes>(upwind_mach_number_squared, rCurrentProcessInfo);
 
     const size_t upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<TDim, TNumNodes>(upwind_factor_options);
-
-    std::cout << "\nInside element\n";
-    KRATOS_WATCH(upwind_factor_case);
     
     double DrhoDu2 = 0.0;
     double DrhoDu2_up = 0.0;
@@ -663,9 +660,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
         DrhoDu2_up = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<TDim, TNumNodes>(
             upwind_velocity, local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
     }
-
-    KRATOS_WATCH(DrhoDu2);
-    KRATOS_WATCH(DrhoDu2_up);
 
     AssembleSupersonicLeftHandSide(rLeftHandSideMatrix, DrhoDu2, DrhoDu2_up, velocity, upwind_velocity, rCurrentProcessInfo);
 
@@ -1067,8 +1061,8 @@ BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<T
     GeometryUtils::CalculateGeometryData(r_geom, currentElementdata.DN_DX, currentElementdata.N, currentElementdata.vol);
     GeometryUtils::CalculateGeometryData(r_upwind_geom, upwindElementdata.DN_DX, upwindElementdata.N, upwindElementdata.vol);
 
-    const BoundedVector<double, TNumNodes> current_DNV = prod(currentElementdata.DN_DX, velocity);
-    const BoundedVector<double, TNumNodes> upwind_DNV = prod(upwindElementdata.DN_DX, upwindVelocity);
+    const BoundedVector<double, TNumNodes> current_DNV = densityDerivativeWRTVelocitySquared * prod(currentElementdata.DN_DX, velocity);
+    const BoundedVector<double, TNumNodes> upwind_DNV = densityDerivativeWRTUpwindVelocitySquared * prod(upwindElementdata.DN_DX, upwindVelocity);
 
     BoundedVector<double, TNumNodes + 1> assembly_DNV;
 
@@ -1079,7 +1073,6 @@ BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<T
     }
 
     return assembly_DNV;
-
 }
 
 template <int TDim, int TNumNodes>

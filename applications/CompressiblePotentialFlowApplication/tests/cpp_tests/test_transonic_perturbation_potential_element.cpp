@@ -173,45 +173,15 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
     pElement->Initialize(model_part.GetProcessInfo());
     pUpwindElement->SetFlags(INLET);
 
-    // // Calculate shape functions
-    // double vol;
-    // BoundedMatrix<double, 3, 2> DN_DX;
-    // array_1d<double, 3> N;
-    // GeometryUtils::CalculateGeometryData(pElement->GetGeometry(), DN_DX, N, vol);
-
-    // std::cout.precision(17);
-    // std::cout << "\n";
-    // for (unsigned int i = 0; i < DN_DX.size1(); i++) {
-    //     for (unsigned int j = 0; j < DN_DX.size2(); j++) {
-    //         KRATOS_WATCH(DN_DX(i,j));
-    //     }
-    // }
-
     // velocity[0] : 394.18
     // velocity[1] : -50
     // local_mach_number_squared : 1.705
     AssignPotentialsToSupersonicTransonicPerturbationElement(pElement);
 
-    // auto velocity = PotentialFlowUtilities::ComputePerturbedVelocity<2,3>(*pElement, model_part.GetProcessInfo());
-    // const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2,3>(velocity, model_part.GetProcessInfo());
-
-    // std::cout << "\n";
-    // KRATOS_WATCH(velocity[0]);
-    // KRATOS_WATCH(velocity[1]);
-    // KRATOS_WATCH(local_mach_number_squared);
-
     // upwind_velocity[0] : 154.18
     // upwind_velocity[1] : 149
     // upwind_mach_number_squared : 0.3999
     AssignPotentialsToNormalTransonicPerturbationElement(pUpwindElement);
-
-    // auto upwind_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<2,3>(*pUpwindElement, model_part.GetProcessInfo());
-    // const double upwind_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2,3>(upwind_velocity, model_part.GetProcessInfo());
-
-    // std::cout << "\n";
-    // KRATOS_WATCH(upwind_velocity[0]);
-    // KRATOS_WATCH(upwind_velocity[1]);
-    // KRATOS_WATCH(upwind_mach_number_squared);
 
     for (auto& r_node : model_part.Nodes()){
         r_node.AddDof(VELOCITY_POTENTIAL);
@@ -230,30 +200,21 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
         UpwindElementalDofList[2]->SetEquationId(upwind_ids[i]);
     }
     
-    // pUpwindElement->GetGeometry()[2].AddDof(VELOCITY_POTENTIAL);
-
     // // Compute LHS
     Matrix LHS = ZeroMatrix(4, 4);
 
     pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
-    // std::cout.precision(17);
-    // for (unsigned int i = 0; i < LHS.size1(); i++) {
-    //     for (unsigned int j = 0; j < LHS.size2(); j++) {
-    //         KRATOS_WATCH(LHS(i,j));
-    //     }
-    // }
+    std::array<double, 16> reference{ 0.37708651121240516,-0.54915594944726343,0.17743192602659938,-0.0053624877917411414,
+                                     -0.35664864389216139,1.0308840557120569,-0.68092794767744869,0.0066925358575532206,
+                                     -0.020437867320243799,-0.48172810626479345,0.50349602165084928,-0.0013300480658120792,
+                                      0.0,0.0,0.0,0.0};
 
-    // std::array<double, 16> reference{ 0.061142784644415527,-0.1306215050744058, 0.06947872042999037, 0.0,
-    //                                  -0.1306215050744058, 0.6710758508914103,-0.5404543458170046, 0.0,
-    //                                   0.06947872042999037,-0.5404543458170046,0.4709756253870142, 0.0,
-    //                                   0.0, 0.0, 0.0, 0.0};
-
-    // for (unsigned int i = 0; i < LHS.size1(); i++) {
-    //     for (unsigned int j = 0; j < LHS.size2(); j++) {
-    //         KRATOS_CHECK_RELATIVE_NEAR(LHS(i, j), reference[i * 4 + j], 1e-15);
-    //     }
-    // }
+    for (unsigned int i = 0; i < LHS.size1(); i++) {
+        for (unsigned int j = 0; j < LHS.size2(); j++) {
+            KRATOS_CHECK_RELATIVE_NEAR(LHS(i, j), reference[i * 4 + j], 1e-15);
+        }
+    }
 }
 
 /** Checks the TransonicPerturbationPotentialFlowElement.
