@@ -148,7 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
     auto& r_condition = r_model_part.Conditions().front();
 
     // checking for no-wall function
-    r_condition.SetValue(RANS_IS_WALL, 0);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
     r_condition.CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
@@ -160,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
-    r_condition.SetValue(RANS_IS_WALL, 1);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
     r_condition.CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
@@ -183,7 +183,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
     auto& r_condition = r_model_part.Conditions().front();
 
     // checking for no-wall function
-    r_condition.SetValue(RANS_IS_WALL, 0);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
     r_condition.CalculateLeftHandSide(LHS, r_model_part.GetProcessInfo());
 
@@ -193,7 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
-    r_condition.SetValue(RANS_IS_WALL, 1);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
     r_condition.CalculateLeftHandSide(LHS, r_model_part.GetProcessInfo());
 
@@ -214,7 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
     auto& r_condition = r_model_part.Conditions().front();
 
     // checking for no-wall function
-    r_condition.SetValue(RANS_IS_WALL, 0);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
     r_condition.CalculateRightHandSide(RHS, r_model_part.GetProcessInfo());
 
@@ -224,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 
     // checking for wall function
-    r_condition.SetValue(RANS_IS_WALL, 1);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
     r_condition.CalculateRightHandSide(RHS, r_model_part.GetProcessInfo());
 
@@ -245,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
     auto& r_condition = r_model_part.Conditions().front();
 
     // checking for no-wall function
-    r_condition.SetValue(RANS_IS_WALL, 0);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
     r_condition.CalculateDampingMatrix(LHS, r_model_part.GetProcessInfo());
 
@@ -255,7 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
-    r_condition.SetValue(RANS_IS_WALL, 1);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
     r_condition.CalculateDampingMatrix(LHS, r_model_part.GetProcessInfo());
 
@@ -285,7 +285,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     auto& r_condition = r_model_part.Conditions().front();
 
     // checking for no-wall function
-    r_condition.SetValue(RANS_IS_WALL, 0);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
     r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_model_part.GetProcessInfo());
 
@@ -299,7 +299,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
-    r_condition.SetValue(RANS_IS_WALL, 1);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
     r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_model_part.GetProcessInfo());
 

@@ -103,7 +103,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize()
 {
     KRATOS_TRY;
 
-    if (RansCalculationUtilities::IsWall(*this))
+    if (RansCalculationUtilities::IsWallFunctionActive(*this))
     {
         const array_1d<double, 3>& rNormal = this->GetValue(NORMAL);
         KRATOS_ERROR_IF(norm_2(rNormal) == 0.0)
@@ -145,7 +145,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 {
     KRATOS_TRY
 
-    if (RansCalculationUtilities::IsWall(*this))
+    if (RansCalculationUtilities::IsWallFunctionActive(*this))
     {
         const GeometryType& r_geometry = this->GetGeometry();
         // Get Shape function data

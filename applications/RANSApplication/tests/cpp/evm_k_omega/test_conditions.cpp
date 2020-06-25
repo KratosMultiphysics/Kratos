@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaKBasedWall2D2N_CalculateLocalSystem,
     auto& r_condition = r_model_part.Conditions().front();
 
     // checking for no-wall function
-    r_condition.SetValue(RANS_IS_WALL, 0);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
     // setting reference values
     ref_RHS = ZeroVector(2);
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaKBasedWall2D2N_CalculateLocalSystem,
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
-    r_condition.SetValue(RANS_IS_WALL, 1);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
     // setting reference values
     ref_RHS[0] = 1.9460396765785567e+03;
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaKBasedWall2D2N_CalculateRightHandSid
     auto& r_condition = r_model_part.Conditions().front();
 
     // checking for no-wall function
-    r_condition.SetValue(RANS_IS_WALL, 0);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.CalculateRightHandSide(RHS, r_model_part.GetProcessInfo());
     // setting reference values
     ref_RHS = ZeroVector(2);
@@ -120,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaKBasedWall2D2N_CalculateRightHandSid
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 
     // checking for wall function
-    r_condition.SetValue(RANS_IS_WALL, 1);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.CalculateRightHandSide(RHS, r_model_part.GetProcessInfo());
     // setting reference values
     ref_RHS[0] = 1.9460396765785567e+03;
@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaUBasedWall2D2N_CalculateLocalSystem,
     auto& r_condition = r_model_part.Conditions().front();
 
     // checking for no-wall function
-    r_condition.SetValue(RANS_IS_WALL, 0);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
     // setting reference values
     ref_RHS = ZeroVector(2);
@@ -172,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaUBasedWall2D2N_CalculateLocalSystem,
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
-    r_condition.SetValue(RANS_IS_WALL, 1);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
     // setting reference values
     ref_RHS[0] = 8.3262170750205513e+01;
@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaUBasedWall2D2N_CalculateRightHandSid
     auto& r_condition = r_model_part.Conditions().front();
 
     // checking for no-wall function
-    r_condition.SetValue(RANS_IS_WALL, 0);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.CalculateRightHandSide(RHS, r_model_part.GetProcessInfo());
     // setting reference values
     ref_RHS = ZeroVector(2);
@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKOmegaOmegaUBasedWall2D2N_CalculateRightHandSid
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 
     // checking for wall function
-    r_condition.SetValue(RANS_IS_WALL, 1);
+    r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.CalculateRightHandSide(RHS, r_model_part.GetProcessInfo());
     // setting reference values
     ref_RHS[0] = 8.3262170750205513e+01;

@@ -426,9 +426,9 @@ void CalculateYPlusAndUtau(double& rYPlus,
     }
 }
 
-bool IsWall(const ConditionType& rCondition)
+bool IsWallFunctionActive(const ConditionType& rCondition)
 {
-    return rCondition.GetValue(RANS_IS_WALL);
+    return rCondition.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE);
 }
 
 bool IsInlet(const ConditionType& rCondition)

@@ -33,12 +33,22 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)
         .def("GetMinimumScalarValue", &RansVariableUtilities::GetMinimumScalarValue)
         .def("GetMaximumScalarValue", &RansVariableUtilities::GetMaximumScalarValue)
-        .def("CopyNodalSolutionStepVariablesList",
-             &RansVariableUtilities::CopyNodalSolutionStepVariablesList);
+        .def("AddAnalysisStep", &RansVariableUtilities::AddAnalysisStep)
+        .def("IsAnalysisStepCompleted", &RansVariableUtilities::IsAnalysisStepCompleted)
+        .def("CopyNodalSolutionStepVariablesList", &RansVariableUtilities::CopyNodalSolutionStepVariablesList)
+        .def("AssignConditionVariableValuesToNodes", &RansVariableUtilities::AssignConditionVariableValuesToNodes<double>, py::arg("model_part"), py::arg("variable"), py::arg("flag"), py::arg("flag_value") = true)
+        .def("AssignConditionVariableValuesToNodes", &RansVariableUtilities::AssignConditionVariableValuesToNodes<array_1d<double, 3>>, py::arg("model_part"), py::arg("variable"), py::arg("flag"), py::arg("flag_value") = true)
+        .def("AssignBoundaryFlagsToGeometries", &RansVariableUtilities::AssignBoundaryFlagsToGeometries)
+        .def("FixFlaggedDofs", &RansVariableUtilities::FixFlaggedDofs, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true)
+        .def("CopyNodalFlaggedVariableFromHistoricalToNonHistorical", &RansVariableUtilities::CopyNodalFlaggedVariableFromHistoricalToNonHistorical<double>, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true)
+        .def("CopyNodalFlaggedVariableFromHistoricalToNonHistorical", &RansVariableUtilities::CopyNodalFlaggedVariableFromHistoricalToNonHistorical<array_1d<double, 3>>, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true)
+        .def("CopyNodalFlaggedVariableFromNonHistoricalToHistorical", &RansVariableUtilities::CopyNodalFlaggedVariableFromNonHistoricalToHistorical<double>, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true)
+        .def("CopyNodalFlaggedVariableFromNonHistoricalToHistorical", &RansVariableUtilities::CopyNodalFlaggedVariableFromNonHistoricalToHistorical<array_1d<double, 3>>, py::arg("model_part"), py::arg("variable"), py::arg("check_flag"), py::arg("check_value") = true)
+        .def("CalculateMagnitudeSquareForNodal3DVariable", &RansVariableUtilities::CalculateMagnitudeSquareForNodal3DVariable)
+        ;
 
     m.def_submodule("RansCalculationUtilities")
-        .def("CalculateLogarithmicYPlusLimit",
-             &RansCalculationUtilities::CalculateLogarithmicYPlusLimit);
+        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit);
 }
 
 } // namespace Python.

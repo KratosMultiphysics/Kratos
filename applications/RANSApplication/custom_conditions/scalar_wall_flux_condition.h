@@ -310,7 +310,7 @@ public:
 
         noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-        if (RansCalculationUtilities::IsWall(*this))
+        if (RansCalculationUtilities::IsWallFunctionActive(*this))
         {
             const GeometryType& r_geometry = this->GetGeometry();
             // Get Shape function data

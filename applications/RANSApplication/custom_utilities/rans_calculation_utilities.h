@@ -133,7 +133,7 @@ double CalculateWallHeight(const ConditionType& rCondition,
 
 array_1d<double, 3> CalculateWallVelocity(const ConditionType& rCondition);
 
-bool IsWall(const ConditionType& rCondition);
+bool IsWallFunctionActive(const ConditionType& rCondition);
 
 bool IsInlet(const ConditionType& rCondition);
 
