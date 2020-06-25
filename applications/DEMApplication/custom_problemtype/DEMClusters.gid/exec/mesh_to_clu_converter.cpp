@@ -85,7 +85,6 @@ int main(int argc, char * argv[]){
         int a;
         double b, c, d, e;
         if (iss >> a >> b >> c >> d >> e) {
-            std::cout << line << std::endl;
             Nconec[0][element_counter] = b;
             Nconec[1][element_counter] = c;
             Nconec[2][element_counter] = d;
@@ -111,9 +110,8 @@ int main(int argc, char * argv[]){
     while (std::getline(infilesph, linesph)) {
         std::istringstream iss(linesph);
         double Xcoord, Ycoord, Zcoord, Rad, one;
-        if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad >> one) {            
+        if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad >> one) {
             if (Rad>=0) {
-                std::cout << linesph << std::endl;
                 xcoords.push_back(Xcoord);
                 ycoords.push_back(Ycoord);
                 zcoords.push_back(Zcoord);
@@ -198,9 +196,10 @@ int main(int argc, char * argv[]){
     // Calculo del tensor de inercias de cada elemento con respecto al CDG de cada piedra o cluster
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
 
-        Local[0][element_counter]= BARIC[0][element_counter];
-        Local[1][element_counter]= BARIC[1][element_counter];
-        Local[2][element_counter]= BARIC[2][element_counter];
+        Local[0][element_counter]= BARIC[0][element_counter]-Xcdgrav;
+        Local[1][element_counter]= BARIC[1][element_counter]-Ycdgrav;
+        Local[2][element_counter]= BARIC[2][element_counter]-Zcdgrav;
+
         Vnerc[0][element_counter]= Vmass[element_counter]*(Local[1][element_counter]*Local[1][element_counter]+Local[2][element_counter]*Local[2][element_counter]);
         Vnerc[1][element_counter]= -Vmass[element_counter]*Local[0][element_counter]*Local[1][element_counter];
         Vnerc[2][element_counter]= -Vmass[element_counter]*Local[0][element_counter]*Local[2][element_counter];

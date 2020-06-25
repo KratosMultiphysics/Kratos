@@ -98,7 +98,7 @@ proc OneClickGo {} {
     # DeleteSpheresGeometry
 
     # Generate OBJ and MSH files on Calculate
-    GiD_Process Mescape Utilities Calculate MEscape 
+    GiD_Process Mescape Utilities Calculate MEscape
 
     # Generate SPH file from OBJ
     GenerateSPHFileFromOBJFile
@@ -361,7 +361,7 @@ proc GenerateClusterFile { } {
     # W $Izz
     # W "xxx"
 
-    
+
     # It returns a list with 3 items: mass {center_x center_y center_z} {Ixx Iyy Izz Ixy Iyz Ixz}
 
     # GiD_Tools mesh mass_properties <tetrahedra_ids> | -boundary_elements <triangle_ids>
@@ -406,19 +406,17 @@ proc GenerateClusterFile { } {
         set cluster_exec create_cluster_unix
         set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
     } else {
-        set cluster_exec create_cluster.exe
+        set cluster_exec create_cluster
         set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
     }
 
-
-    #TODO: on windows seems to be working but no file is generated. Write access?
+    #TODO: works ok on linux. on windows seems to be working but no file is generated. Write access?
     W $program
     W $genericMSHFilename
     W $genericSPHFilename
 
-    
     exec $program 2 $genericMSHFilename $genericSPHFilename
-    # FOR DEBUG - 
+    # FOR DEBUG -
     # exec $program $argv_number $genericMSHFilename $genericSPHFilename > [file join $::DEMClusters::ProblemPath output.txt]
     # REGENERATE EXEC FOR WINDOWS : exec> g++ -static-libgcc -static-libstdc++ -o create_cluster.exe mesh_to_clu_converter.cpp
     # g++ -o create_cluster.exe mesh_to_clu_converter.cpp
@@ -493,11 +491,6 @@ proc ReadClusterFileintoGeometry { } {
 
 
 
-
-
-
-
-
 proc ReadClusterFileintoMesh { } {
 
     set modelname [GiD_Info Project ModelName]
@@ -509,7 +502,7 @@ proc ReadClusterFileintoMesh { } {
 
     # GiD_Process Mescape Meshing EditMesh CreateElement Sphere 10 1 1 1 escape escape
     # GiD_Mesh create node append <x y z>
-    # GiD_Mesh create element append Sphere 1 1 <radius> 
+    # GiD_Mesh create element append Sphere 1 1 <radius>
 
     # <num>|append : <num> is the identifier (integer > 0) for the node. You can use the word 'append' to set a new number automatically. The number of the created entity is returned as the result.
     # <elemtype> : must be one of "Point | Line | Triangle | Quadrilateral | Tetrahedra | Hexahedra | Prism | Pyramid | Sphere | Circle"
@@ -529,9 +522,9 @@ proc ReadClusterFileintoMesh { } {
        		set x [lindex $line 0]
             set y [lindex $line 1]
             set z [lindex $line 2]
-            set node_id [GiD_Mesh create node append  [list $x $y $z]] ; 
-            lappend sphere_nodes {*}$node_id ;    
-            incr i 1   
+            set node_id [GiD_Mesh create node append  [list $x $y $z]] ;
+            lappend sphere_nodes {*}$node_id ;
+            incr i 1
         }
     }
     W $sphere_nodes
@@ -539,7 +532,7 @@ proc ReadClusterFileintoMesh { } {
     foreach line $data {
         if {[llength $line] >3} {
             GiD_Mesh create element [lindex $sphere_nodes $count] append Sphere 1 1 [lindex $line 3]
-            incr count 1   
+            incr count 1
         }
     }
 }
