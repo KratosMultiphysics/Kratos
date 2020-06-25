@@ -16,6 +16,7 @@ import run_cpp_unit_tests
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
+from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -41,12 +42,22 @@ def AssembleTestSuites():
     nightSuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlow')))
     nightSuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureSteady')))
     nightSuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureTransient')))
+
+    # adding monolithic k-epsilon high re tests
     nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeSteady')))
     nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocitySteady')))
     nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeSteady')))
     nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocitySteady')))
     nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeTransient')))
     nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocityTransient')))
+
+    # adding monolithic k-omega tests
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcTkeSteady')))
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcVelocitySteady')))
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeSteady')))
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocitySteady')))
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeTransient')))
+    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocityTransient')))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
