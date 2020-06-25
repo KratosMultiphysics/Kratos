@@ -45,14 +45,14 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage):
         super(DEM2D_ControlModuleTestSolution, self).Initialize()
 
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
-        sp_project_parameters_file_name = os.path.join(path, "sp_2d_rigid_fem_parameters.json")
+        cm_project_parameters_file_name = os.path.join(path, "cm_parameters.json")
 
-        with open(sp_project_parameters_file_name,'r') as parameters_file:
-            self.sp_project_parameters = KratosMultiphysics.Parameters(parameters_file.read())
+        with open(cm_project_parameters_file_name,'r') as parameters_file:
+            self.cm_project_parameters = KratosMultiphysics.Parameters(parameters_file.read())
 
         #NOTE: We will transform CM utility into a process eventually
         from KratosMultiphysics.DEMApplication.multiaxial_control_module_generalized_2d_utility import MultiaxialControlModuleGeneralized2DUtility
-        self.multiaxial_control_module = MultiaxialControlModuleGeneralized2DUtility(self.model, self.sp_project_parameters)
+        self.multiaxial_control_module = MultiaxialControlModuleGeneralized2DUtility(self.model, self.cm_project_parameters)
         self.multiaxial_control_module.ExecuteInitialize()
 
     def InitializeSolutionStep(self):

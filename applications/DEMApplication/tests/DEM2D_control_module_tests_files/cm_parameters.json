@@ -1,13 +1,4 @@
 {
-    "test_number" : 4,
-    "gmesh_with_inner_skin" : false,
-    "use_gid_skin_mesh": false,
-    "compute_skin_factor" : 0.9,
-    "inner_mesh_diameter" : 0.006,
-    "outer_mesh_diameter" : 0.006,
-    "inner_skin_factor" : 2.4,
-    "outer_skin_factor" : 0.8,
-    "respect_preprocessor_marked_skin": false,
     "multiaxial_control_module_generalized_2d_utility" : {
         "Parameters"    : {
             "control_module_delta_time": 2.0e-8,
@@ -17,7 +8,7 @@
             "stiffness_averaging_time_interval": 2.0e-6,
             "velocity_averaging_time_interval": 2.0e-4,
             "reaction_averaging_time_interval": 6.0e-8,
-            "output_interval": 2
+            "output_interval": 0
         },
         "list_of_actuators" : [{
             "Parameters"    : {
