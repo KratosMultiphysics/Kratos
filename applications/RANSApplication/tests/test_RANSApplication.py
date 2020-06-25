@@ -17,6 +17,7 @@ from incompressible_potential_flow_solver_formulation_tests import Incompressibl
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
 from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
+from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -58,6 +59,14 @@ def AssembleTestSuites():
     nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocitySteady')))
     nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeTransient')))
     nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocityTransient')))
+
+    # adding monolithic k-omega-sst tests
+    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcTkeSteady')))
+    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcVelocitySteady')))
+    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcTkeSteady')))
+    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcVelocitySteady')))
+    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcTkeTransient')))
+    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcVelocityTransient')))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']

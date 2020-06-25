@@ -18,6 +18,7 @@ from incompressible_potential_flow_solver_formulation_tests import Incompressibl
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
 from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
+from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -42,7 +43,7 @@ def AssembleTestSuites():
     nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureSteadyMPI')))
     nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureTransientMPI')))
 
-    # adding k-epsilon high re tests
+    # adding monolithic k-epsilon high re tests
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeSteadyMPI')))
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocitySteadyMPI')))
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeSteadyMPI')))
@@ -50,13 +51,21 @@ def AssembleTestSuites():
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeTransientMPI')))
     nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocityTransientMPI')))
 
-    # adding k-omega tests
+    # adding monolithic k-omega tests
     nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcTkeSteadyMPI')))
     nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcVelocitySteadyMPI')))
     nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeSteadyMPI')))
     nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocitySteadyMPI')))
     nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeTransientMPI')))
     nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocityTransientMPI')))
+
+    # adding monolithic k-omega-sst tests
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcTkeSteadyMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcVelocitySteadyMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcTkeSteadyMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcVelocitySteadyMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcTkeTransientMPI')))
+    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcVelocityTransientMPI')))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
