@@ -157,7 +157,7 @@ def ExportMesh(conn_name, identifier):
         print "TAU SOLVER ExportMesh"
     # identifier is the data-name in json
     if identifier == "Fluid.Interface":
-        nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, para_path_mod)
+        nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step)
     else:
         raise Exception(
             'TauSolver::ExportMesh::identifier "{}" not valid! Please use Fluid.Interface'.format(identifier))
