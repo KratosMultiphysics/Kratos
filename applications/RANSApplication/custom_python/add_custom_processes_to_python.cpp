@@ -17,6 +17,8 @@
 #include "custom_processes/rans_nut_y_plus_wall_function_update_process.h"
 #include "custom_processes/rans_epsilon_turbulent_mixing_inlet_process.h"
 #include "custom_processes/rans_nut_k_epsilon_high_re_update_process.h"
+#include "custom_processes/rans_omega_turbulent_mixing_inlet_process.h"
+#include "custom_processes/rans_nut_k_omega_update_process.h"
 
 namespace Kratos
 {
@@ -46,6 +48,18 @@ void AddCustomProcessesToPython(pybind11::module& m)
         m, "RansNutKEpsilonHighReUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const int>());
+
+    // k-omega specific processes
+    using RansOmegaTurbulentMixingLengthInletProcessType = RansOmegaTurbulentMixingLengthInletProcess;
+    py::class_<RansOmegaTurbulentMixingLengthInletProcessType, RansOmegaTurbulentMixingLengthInletProcessType::Pointer, Process>(m, "RansOmegaTurbulentMixingLengthInletProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    using RansNutKOmegaUpdateProcessType = RansNutKOmegaUpdateProcess;
+    py::class_<RansNutKOmegaUpdateProcessType, RansNutKOmegaUpdateProcessType::Pointer, Process>(
+        m, "RansNutKOmegaUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const int>());
+
 }
 
 } // namespace Python.

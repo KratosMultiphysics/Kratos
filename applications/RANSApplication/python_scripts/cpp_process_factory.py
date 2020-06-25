@@ -20,6 +20,10 @@ def Factory(settings, Model):
         [
             "EpsilonTurbulentMixingLengthInletProcess",
             KratosRANS.RansEpsilonTurbulentMixingLengthInletProcess
+        ],
+        [
+            "OmegaTurbulentMixingLengthInletProcess",
+            KratosRANS.RansOmegaTurbulentMixingLengthInletProcess
         ]
     ]
 
