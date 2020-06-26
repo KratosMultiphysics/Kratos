@@ -21,6 +21,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder_and_solver.h"
 
 namespace Kratos
@@ -416,14 +417,13 @@ public:
         KRATOS_ERROR_IF(GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
         auto& r_nodes_array = GetModelPart().Nodes();
-        const int n_nodes = static_cast<int>(r_nodes_array.size());
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_nodes_array.begin() + i_node;
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-        }
+        IndexPartition<unsigned int>(r_nodes_array.size()).for_each(
+            [&](int i_node){
+                auto it_node = r_nodes_array.begin() + i_node;
+                noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+                noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            }
+        );
 
         KRATOS_INFO_IF("ExplicitSolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) << " MESH MOVED " << std::endl;
 
@@ -464,12 +464,12 @@ public:
 
         // Calculate the residual norm
         double res_norm = 0.0;
-#pragma omp parallel for firstprivate(dof_size) reduction(+:res_norm)
-        for (int i_dof = 0; i_dof < static_cast<int>(dof_size); ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
-            // Save current value in the corresponding vector
-            res_norm += it_dof->GetSolutionStepReactionValue();
-        }
+        res_norm = IndexPartition<int>(dof_size).for_each<SumReduction<double>>(
+            [&](int i_dof) {
+                auto it_dof = r_dof_set.begin() + i_dof;
+                return it_dof->GetSolutionStepReactionValue();
+            }
+        );
 
         return res_norm;
     }
@@ -626,13 +626,13 @@ private:
     {
         // Initialize the DOF values
         auto& r_dof_set = mpExplicitBuilderAndSolver->GetDofSet();
-        const unsigned int n_dofs = r_dof_set.size();
-#pragma omp parallel for
-        for (int i_dof = 0; i_dof < n_dofs; ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
-            auto &r_value = it_dof->GetSolutionStepValue();
-            r_value = 0.0;
-        }
+        IndexPartition<int>(r_dof_set.size()).for_each(
+            [&](int i_dof){
+                auto it_dof = r_dof_set.begin() + i_dof;
+                auto &r_value = it_dof->GetSolutionStepValue();
+                r_value = 0.0;
+            }
+        );
     }
 
     /**
@@ -645,13 +645,13 @@ private:
     void InitializeContainer(TContainerType &rContainer)
     {
         const auto it_begin = rContainer.begin();
-        const unsigned int size = rContainer.size();
         const auto& r_process_info = GetModelPart().GetProcessInfo();
-#pragma omp parallel for firstprivate(it_begin, size, r_process_info)
-        for(int i = 0; i < static_cast<int>(size); ++i) {
-            auto it = it_begin + i;
-            it->Initialize(r_process_info);
-        }
+        IndexPartition<int>(rContainer.size()).for_each(
+            [&](int i){
+                auto it = it_begin + i;
+                it->Initialize(r_process_info);
+            }
+        );
     }
 
     /**
@@ -664,13 +664,13 @@ private:
     void InitializeSolutionStepContainer(TContainerType &rContainer)
     {
         const auto it_begin = rContainer.begin();
-        const unsigned int size = rContainer.size();
         const auto& r_process_info = GetModelPart().GetProcessInfo();
-#pragma omp parallel for firstprivate(it_begin, size, r_process_info)
-        for(int i = 0; i < static_cast<int>(size); ++i) {
-            auto it = it_begin + i;
-            it->InitializeSolutionStep(r_process_info);
-        }
+        IndexPartition<int>(rContainer.size()).for_each(
+            [&](int i){
+                auto it = it_begin + i;
+                it->InitializeSolutionStep(r_process_info);
+            }
+        );
     }
 
     /**
@@ -683,13 +683,13 @@ private:
     void FinalizeSolutionStepContainer(TContainerType &rContainer)
     {
         const auto it_begin = rContainer.begin();
-        const unsigned int size = rContainer.size();
         const auto& r_process_info = GetModelPart().GetProcessInfo();
-#pragma omp parallel for firstprivate(it_begin, size, r_process_info)
-        for(int i = 0; i < static_cast<int>(size); ++i) {
-            auto it = it_begin + i;
-            it->FinalizeSolutionStep(r_process_info);
-        }
+        IndexPartition<int>(rContainer.size()).for_each(
+            [&](int i){
+                auto it = it_begin + i;
+                it->FinalizeSolutionStep(r_process_info);
+            }
+        );
     }
 
     ///@}
