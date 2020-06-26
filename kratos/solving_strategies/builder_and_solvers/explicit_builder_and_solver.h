@@ -300,7 +300,6 @@ public:
         // Gets the array of elements, conditions and constraints from the modeler
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_conditions_array = rModelPart.Conditions();
-        const auto &r_constraints_array = rModelPart.MasterSlaveConstraints();
         const int n_elems = static_cast<int>(r_elements_array.size());
         const int n_conds = static_cast<int>(r_conditions_array.size());
 
@@ -719,7 +718,7 @@ protected:
         LocalSystemMatrixType elem_mass_matrix;
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_process_info = rModelPart.GetProcessInfo();
-        const SizeType n_elems = static_cast<int>(r_elements_array.size());
+        const int n_elems = static_cast<int>(r_elements_array.size());
 
 #pragma omp for private(elem_mass_vector, elem_mass_matrix) schedule(guided, 512) nowait
         for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
