@@ -8,8 +8,7 @@
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ##
-# - issue with cluster visualization
-# - issue with cluster creation in windows. process ok no clu file generated
+# - issue with cluster visualization over mesh
 
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -106,10 +105,6 @@ proc AfterMeshGeneration {fail} {
 
 proc OneClickGo {} {
 
-    # This part is a problem
-    # DeleteSpheresMesh
-    # DeleteSpheresGeometry
-
     # Generate OBJ and MSH files on Calculate
     GiD_Process Mescape Utilities Calculate MEscape
 
@@ -119,8 +114,7 @@ proc OneClickGo {} {
     # Generate CLU file from MSH and SPH
     GenerateClusterFile
 
-    # Generate cluster defined by spheres over the current tetrahedra mesh
-    #ReadClusterFileintoMesh
+    # Visualize cluster
     ReadClusterFileintoGeometry
 }
 
@@ -201,7 +195,6 @@ proc DEMClusters::call_TreeMedial { } {
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
-
     exec $program {*}$argv
 
     # makeTreeMedial -depth 1 -branch 100 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
@@ -256,7 +249,15 @@ proc DEMClusters::call_makeTreeGrid { } {
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
-    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    package require platform
+    set tcl_platform [platform::generic]
+    if { $tcl_platform == "linux-x86_64" } {
+        # SphereTree should be installed the linux system (compiled and installed)
+        set program makeTreeGrid
+    } else {
+        set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    }
+
     exec $program {*}$argv
 
     # makeTreeGrid ValidArgs:
@@ -286,7 +287,15 @@ proc DEMClusters::call_makeTreeSpawn { } {
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
-    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    package require platform
+    set tcl_platform [platform::generic]
+    if { $tcl_platform == "linux-x86_64" } {
+        # SphereTree should be installed the linux system (compiled and installed)
+        set program makeTreeSpawn
+    } else {
+        set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    }
+
     exec $program {*}$argv
 
     # makeTreeSpawn ValidArgs:
@@ -321,7 +330,15 @@ proc DEMClusters::call_makeTreeHubbard { } {
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     set argv "-depth $depth -branch $branch -numSamples $numSamples -minSamples $minSamples -nopause $genericOBJFilename"
-    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    package require platform
+    set tcl_platform [platform::generic]
+    if { $tcl_platform == "linux-x86_64" } {
+        # SphereTree should be installed the linux system (compiled and installed)
+        set program makeTreeHubbard
+    } else {
+        set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    }
+
     exec $program {*}$argv
 
     # makeTreeHubbard ValidArgs:
@@ -342,7 +359,16 @@ proc DEMClusters::call_makeTreeOctree { } {
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
     set argv "-depth $depth -nopause $genericOBJFilename"
-    set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    package require platform
+    set tcl_platform [platform::generic]
+    if { $tcl_platform == "linux-x86_64" } {
+        # SphereTree should be installed the linux system (compiled and installed)
+        set program makeTreeOctree
+    } else {
+        set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
+    }
+
+
     exec $program {*}$argv
 
     # makeTreeOctree ValidArgs:
