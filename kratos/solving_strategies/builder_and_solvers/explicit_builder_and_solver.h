@@ -306,7 +306,7 @@ public:
 
         const auto& r_process_info = rModelPart.GetProcessInfo();
 
-#pragma omp parallel firstprivate(n_elems, n_conds, n_constraints)
+#pragma omp parallel firstprivate(n_elems, n_conds)
         {
 #pragma omp for schedule(guided, 512) nowait
             // Assemble all elements
