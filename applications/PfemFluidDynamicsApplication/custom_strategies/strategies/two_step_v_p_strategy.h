@@ -265,9 +265,6 @@ namespace Kratos
 
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
       {
-        if (BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-          std::cout << "----- > iteration: " << it << std::endl;
-
         momentumConverged = this->SolveMomentumIteration(it, maxNonLinearIterations, fixedTimeStep, velocityNorm);
 
         this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
@@ -762,7 +759,6 @@ namespace Kratos
 
       if (it == 0)
       {
-        velocityNorm = 0;
         this->ComputeVelocityNorm(velocityNorm);
       }
       double DvErrorNorm = NormDv / velocityNorm;
@@ -770,19 +766,22 @@ namespace Kratos
       // ConvergedMomentum = this->CheckVelocityConvergence(NormDv, DvErrorNorm);
 
       unsigned int iterationForCheck = 2;
-      KRATOS_INFO("TwoStepVPStrategy") << "iteration(" << it << ") Velocity error: " << DvErrorNorm << "velocityNorm " << velocityNorm << " velTol: " << mVelocityTolerance << std::endl;
+      // KRATOS_INFO("TwoStepVPStrategy") << "iteration(" << it << ") Velocity error: " << DvErrorNorm  << " velTol: " << mVelocityTolerance << std::endl;
 
       // Check convergence
       if (it == maxIt - 1)
       {
-
-        KRATOS_INFO("TwoStepVPStrategy") << "iteration(" << it << ") Final Velocity error: " << DvErrorNorm << " velTol: " << mVelocityTolerance << std::endl;
-
+        KRATOS_INFO("Iteration") << it << "  Final Velocity error: " << DvErrorNorm << std::endl;
         fixedTimeStep = this->FixTimeStepMomentum(DvErrorNorm);
       }
       else if (it > iterationForCheck)
       {
+        KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
         fixedTimeStep = this->CheckMomentumConvergence(DvErrorNorm);
+      }
+      else
+      {
+        KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
       }
 
       // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -845,7 +844,6 @@ namespace Kratos
 
       if (it == 0)
       {
-        NormP = 0;
         this->ComputePressureNorm(NormP);
       }
 
@@ -853,13 +851,17 @@ namespace Kratos
 
       // double DpErrorNorm = 0;
       // ConvergedContinuity = this->CheckPressureConvergence(NormDp, DpErrorNorm, NormP);
-      KRATOS_INFO("TwoStepVPStrategy") << "                    iteration(" << it << ") Pressure error: " << DpErrorNorm << " NormDP: " << NormDp << " NormP: " << NormP << " presTol: " << mPressureTolerance << std::endl;
+      // KRATOS_INFO("TwoStepVPStrategy") << "                    iteration(" << it << ") Pressure error: " << DpErrorNorm  << " presTol: " << mPressureTolerance << std::endl;
 
       // Check convergence
       if (it == (maxIt - 1))
       {
-        KRATOS_INFO("TwoStepVPStrategy") << "       iteration(" << it << ") Final Pressure error: " << DpErrorNorm << " presTol: " << mPressureTolerance << std::endl;
+        KRATOS_INFO("       Final Pressure error") << DpErrorNorm << std::endl;
         ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm);
+      }
+      else
+      {
+        KRATOS_INFO("       Pressure error") << DpErrorNorm << std::endl;
       }
 
       // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -1190,7 +1192,7 @@ namespace Kratos
       myfileVelocity.close();
     }
 
-    void ComputeVelocityNorm(double & NormV)
+    void ComputeVelocityNorm(double &NormV)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
 

@@ -305,14 +305,14 @@ namespace Kratos
                         {
                             Alpha *= 1.75;
                         }
-                        else if (numrigid > 0 && numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
+                        else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
                             Alpha *= 1.1;
                         }
-                        // else
-                        // {
-                        //     Alpha *= 1.04;
-                        // }
+                        else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
+                        {
+                            Alpha *= 1.05;
+                        }
                     }
                     else if (dimension == 3)
                     {
@@ -323,7 +323,7 @@ namespace Kratos
                         else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
                             Alpha *= 1.125;
-                        }else // else if (numfreesurf < 4 && numisolated < 4 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes < 4 && sumPreviouslyIsolatedFreeSurf < 4 && sumIsolatedFreeSurf < 4)
+                        }else // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
                         {
                             Alpha *= 1.05;
                         }
