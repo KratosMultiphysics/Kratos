@@ -65,6 +65,7 @@ for dim in dim_vector:
     k = Symbol('k',positive= True)     # diffusion coefficient
     v = DefineMatrix('v',nnodes,dim)   # convective velocity
     tau = Symbol('tau',positive= True) # stabilization coefficient
+    qstau = Symbol('qstau',positive= True) # stabilization coefficient
     delta_time = Symbol('delta_time',positive= True) # time current time step
     RK_time_coefficient = Symbol('RK_time_coefficient',positive= True) # time coefficient for RK scheme
     prj = DefineVector('prj',nnodes)       # OSS projection term
@@ -116,7 +117,7 @@ for dim in dim_vector:
     rhs_stab_2_convection_1 = q_gauss * (v_gauss.transpose() * grad_phi)
     rhs_stab_2_convection_2 = q_gauss * phi_gauss * div_v
     rhs_stab_2_diffusion = k * grad_phi.transpose() * grad_q
-    rhs_stab_2_mass_subgrid_old = (1/tau) * q_gauss.transpose() * phi_subscale_gauss
+    rhs_stab_2_mass_subgrid_old = (1/qstau) * q_gauss.transpose() * phi_subscale_gauss
     rhs_stab_2 = rhs_stab_2_forcing + rhs_stab_2_mass + rhs_stab_2_convection_1 + rhs_stab_2_convection_2 + rhs_stab_2_diffusion + rhs_stab_2_mass_subgrid_old
     # OSS term of mass term
     rhs_stab_2_oss = - q_gauss.transpose() * prj_gauss

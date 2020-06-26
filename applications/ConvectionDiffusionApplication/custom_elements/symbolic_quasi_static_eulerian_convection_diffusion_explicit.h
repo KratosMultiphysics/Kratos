@@ -160,6 +160,7 @@ protected:
         double specific_heat;
         double lumping_factor;
         double tau;
+        double qstau;
         double weight;
         double delta_time;
         double RK_time_coefficient;

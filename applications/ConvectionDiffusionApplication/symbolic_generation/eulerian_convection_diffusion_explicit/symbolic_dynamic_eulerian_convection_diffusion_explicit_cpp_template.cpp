@@ -224,6 +224,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointCon
     const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
+    const auto qstau = rVariables.qstau;
     const auto prj = rVariables.oss_projection;
     const auto phi_subscale_gauss = rVariables.unknown_subscale;
     auto lhs = rVariables.lhs;
@@ -256,6 +257,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointCon
     const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
+    const auto qstau = rVariables.qstau;
     const auto prj = rVariables.oss_projection;
     const auto phi_subscale_gauss = rVariables.unknown_subscale;
     auto lhs = rVariables.lhs;
@@ -426,6 +428,18 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     // Limiting
     inv_tau = std::max(inv_tau, 1e-2);
     rVariables.tau = (rVariables.density*rVariables.specific_heat) / inv_tau;
+    // Estimate quasi-static tau
+    double inv_qstau = 0;
+    // Convection
+    inv_qstau += 2.0 * norm_velocity / h;
+    inv_qstau += 1.0*div_vel; // unitary coefficient in front of \nabla \cdot convective_velocity term in the strong equation
+    // Dynamic and convection terms are multiplyied by density*specific_heat to have consistent dimensions
+    inv_qstau *= rVariables.density * rVariables.specific_heat;
+    // Diffusion
+    inv_qstau += 4.0 * rVariables.diffusivity / (h*h);
+    // Limiting
+    inv_qstau = std::max(inv_qstau, 1e-2);
+    rVariables.qstau = (rVariables.density*rVariables.specific_heat) / inv_qstau;
 }
 
 /***********************************************************************************/
