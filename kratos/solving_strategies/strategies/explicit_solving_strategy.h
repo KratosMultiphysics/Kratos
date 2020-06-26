@@ -574,7 +574,7 @@ protected:
      * This method returns the DELTA_TIME from the ProcessInfo container
      * @return const double
      */
-    virtual inline const double GetDeltaTime()
+    virtual inline double GetDeltaTime()
     {
         return GetModelPart().GetProcessInfo().GetValue(DELTA_TIME);
     }

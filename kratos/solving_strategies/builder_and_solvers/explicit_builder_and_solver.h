@@ -604,9 +604,9 @@ protected:
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_conditions_array = rModelPart.Conditions();
         const auto &r_constraints_array = rModelPart.MasterSlaveConstraints();
-        const SizeType n_elems = static_cast<int>(r_elements_array.size());
-        const SizeType n_conds = static_cast<int>(r_conditions_array.size());
-        const SizeType n_constraints = static_cast<int>(r_constraints_array.size());
+        const int n_elems = static_cast<int>(r_elements_array.size());
+        const int n_conds = static_cast<int>(r_conditions_array.size());
+        const int n_constraints = static_cast<int>(r_constraints_array.size());
 
         // Global dof set
         DofSetType dof_global_set;
