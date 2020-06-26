@@ -22,33 +22,26 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "geometry_element"                   : "Quadrilateral",
+        "max_iteration"                      : 20,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"],
         "grid_model_import_settings"         : {
             "input_type"     : "mdpa",
             "input_filename" : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_Grid"
         },
-        "particle_per_element"               : 4,
-        "pressure_dofs"                      : false,
-        "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false
-        }
+        "pressure_dofs"                      : false
     },
     "processes"        : {
         "constraints_process_list" : [{
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Background_Grid.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],

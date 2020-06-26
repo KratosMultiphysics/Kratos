@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -246,11 +246,11 @@ struct iluk {
                 }
             }
 
-            typename std::vector<nonzero>::iterator begin() {
+            typename std::deque<nonzero>::iterator begin() {
                 return nz.begin();
             }
 
-            typename std::vector<nonzero>::iterator end() {
+            typename std::deque<nonzero>::iterator end() {
                 return nz.end();
             }
 

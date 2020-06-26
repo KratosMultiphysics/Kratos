@@ -69,7 +69,7 @@ public:
     ///@{
 
     /// Pointer definition of FractionalStepDiscontinuous
-    KRATOS_CLASS_POINTER_DEFINITION(FractionalStepDiscontinuous);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FractionalStepDiscontinuous);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
@@ -95,8 +95,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
@@ -184,12 +182,12 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             Element::PropertiesType::Pointer pProperties) const override
     {
-	return Kratos::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+	return Kratos::make_intrusive< FractionalStepDiscontinuous<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
     {
-	  return Kratos::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, pGeom, pProperties);
+	  return Kratos::make_intrusive< FractionalStepDiscontinuous<TDim> >(NewId, pGeom, pProperties);
     }
 
     ///@}

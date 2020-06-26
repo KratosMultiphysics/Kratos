@@ -6,7 +6,7 @@ def AssignMaterial(Properties):
 
     prop_id = 1
     prop = Properties[prop_id]
-    mat = KratosMaterial.NewtonianPlaneStrain2DLaw()
+    mat = KratosMaterial.NewtonianFluidPlaneStrain2DLaw()
     prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, mat.Clone())
 
     prop_id = 2
@@ -22,5 +22,5 @@ def AssignMaterial(Properties):
 
     prop_id = 3
     prop = Properties[prop_id]
-    mat = KratosMaterial.Newtonian3DLaw()
+    mat = KratosMaterial.NewtonianFluid3DLaw()
     prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, mat.Clone())

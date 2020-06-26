@@ -1,27 +1,20 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-class KratosGlobals:
+class KratosGlobalsImpl(object):
 
-    def __init__(self, ThisKernel, ThisCaller, ApplicationsRoot):
+    def __init__(self, ThisKernel, ApplicationsRoot):
         self.__dict__["Kernel"] = ThisKernel
-        self.__dict__["RequestedApplications"] = dict()
-        self.__dict__["AuthorizedCaller"] = ThisCaller
         self.__dict__["ApplicationsRoot"] = ApplicationsRoot
-        self.__dict__["ApplicationsInterfaceIsDeprecated"] = False
 
     def __setattr__(self, name, value):
         if name in self.__dict__:
-            # self.__dict__[name] = value
             print("Ignoring request to set KratosGlobals attribute", name)
         else:
             print("Ignoring request to set unknown KratosGlobals attribute:", name)
 
     def echo(self):
         print("Kernel:", self.Kernel)
-        print("RequestedApplications:", self.RequestedApplications)
-        print("Main Python script:", self.AuthorizedCaller)
         print("Kratos Applications base folder:", self.ApplicationsRoot)
-        return
 
     def GetFlag(self, FlagName):
         """ This method returns the flag with the given name
@@ -30,12 +23,7 @@ class KratosGlobals:
         self -- It signifies an instance of a class.
         FlagName -- The name of the flag to return
         """
-        kernel = self.Kernel
-
-        if kernel.HasFlag(FlagName):
-            return kernel.GetFlag(FlagName)
-        else:
-            raise ValueError("\nKernel.GetFlag() ERROR: Flag {0} is unknown. Check that is properly spelled\n".format(FlagName))
+        return self.Kernel.GetFlag(FlagName)
 
     def GetVariable(self, VarName):
         """ This method returns the variable with the given name
@@ -50,8 +38,12 @@ class KratosGlobals:
             return kernel.GetDoubleVariable(VarName)
         elif kernel.HasArrayVariable(VarName):
             return kernel.GetArrayVariable(VarName)
-        elif kernel.HasVariableComponent(VarName):
-            return kernel.GetVariableComponent(VarName)
+        elif kernel.HasArray4Variable(VarName):
+            return kernel.GetArray4Variable(VarName)
+        elif kernel.HasArray6Variable(VarName):
+            return kernel.GetArray6Variable(VarName)
+        elif kernel.HasArray9Variable(VarName):
+            return kernel.GetArray9Variable(VarName)
         elif kernel.HasBoolVariable(VarName):
             return kernel.GetBoolVariable(VarName)
         elif kernel.HasIntVariable(VarName):
@@ -84,7 +76,11 @@ class KratosGlobals:
             return True
         elif kernel.HasArrayVariable(VarName):
             return True
-        elif kernel.HasVariableComponent(VarName):
+        elif kernel.HasArray4Variable(VarName):
+            return True
+        elif kernel.HasArray6Variable(VarName):
+            return True
+        elif kernel.HasArray9Variable(VarName):
             return True
         elif kernel.HasBoolVariable(VarName):
             return True
@@ -101,7 +97,7 @@ class KratosGlobals:
         elif kernel.HasFlagsVariable(VarName):
             return True
         elif kernel.HasVariableData(VarName):
-            raise True
+            return True
         else:
             return False
 
@@ -124,14 +120,18 @@ class KratosGlobals:
             return "Double"
         elif kernel.HasArrayVariable(VarName):
             return "Array"
+        elif kernel.HasArray4Variable(VarName):
+            return "Array4"
+        elif kernel.HasArray6Variable(VarName):
+            return "Array6"
+        elif kernel.HasArray9Variable(VarName):
+            return "Array9"
         elif kernel.HasVectorVariable(VarName):
             return "Vector"
         elif kernel.HasMatrixVariable(VarName):
             return "Matrix"
         elif kernel.HasStringVariable(VarName):
             return "String"
-        elif kernel.HasVariableComponent(VarName):
-            return "Component"
         elif kernel.HasFlagsVariable(VarName):
             return "Flag"
         else:
@@ -139,9 +139,6 @@ class KratosGlobals:
 
     def GetConstitutiveLaw(self, ConstitutiveLawName):
         """ This method returns the constitutive law with the given name
-        It throws an error if the ConstitutiveLawName does not exist/is not
-        registered in KratosComponenets. In this case it prints the names
-        of the registeres constitutive laws
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -156,9 +153,4 @@ class KratosGlobals:
         self -- It signifies an instance of a class.
         ConstitutiveLawName -- The name of the constitutive law to check
         """
-        if self.Kernel.HasConstitutiveLaw(ConstitutiveLawName):
-            return True
-        else:
-            return False
-
-
+        return self.Kernel.HasConstitutiveLaw(ConstitutiveLawName)

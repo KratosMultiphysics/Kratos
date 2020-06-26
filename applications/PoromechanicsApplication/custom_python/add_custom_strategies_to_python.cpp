@@ -65,10 +65,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def( py::init<  double, double, double >());
     py::class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkQuasistaticDampedUPwScheme")
-    .def( py::init<  double, double, double, double, double >());
+    .def( py::init<  double, double, double >());
     py::class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkDynamicUPwScheme")
-    .def( py::init<  double, double, double, double, double >());
+    .def( py::init<  double, double, double >());
 
     py::class_< PoromechanicsNewtonRaphsonStrategyType, typename PoromechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsNewtonRaphsonStrategy")

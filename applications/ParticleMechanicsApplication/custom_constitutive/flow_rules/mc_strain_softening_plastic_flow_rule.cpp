@@ -21,7 +21,7 @@
 // Project includes
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -60,9 +60,9 @@ MCStrainSofteningPlasticFlowRule::MCStrainSofteningPlasticFlowRule(MCStrainSofte
 }
 
 //*******   CLONE ********
-MPMFlowRule::Pointer MCStrainSofteningPlasticFlowRule::Clone() const
+ParticleFlowRule::Pointer MCStrainSofteningPlasticFlowRule::Clone() const
 {
-    MPMFlowRule::Pointer p_clone(new MCStrainSofteningPlasticFlowRule(*this));
+    ParticleFlowRule::Pointer p_clone(new MCStrainSofteningPlasticFlowRule(*this));
     return p_clone;
 }
 
@@ -104,12 +104,12 @@ void MCStrainSofteningPlasticFlowRule::UpdateMaterialParameters()
 
 void MCStrainSofteningPlasticFlowRule::save( Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMFlowRule )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleFlowRule )
 }
 
 void MCStrainSofteningPlasticFlowRule::load( Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMFlowRule )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleFlowRule )
 
 }
 

@@ -57,7 +57,7 @@ namespace Kratos
   Condition::Pointer EPPointRigidContactPenalty2DCondition::Create(IndexType NewId, NodesArrayType
 								 const& ThisNodes,  PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<EPPointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<EPPointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -73,7 +73,7 @@ namespace Kratos
       // in the constructor of NewCondition I create a new friction law and here I clone the this->
       NewCondition.mpFrictionLaw = this->mpFrictionLaw->Clone();
 
-      return Kratos::make_shared<EPPointRigidContactPenalty2DCondition>(NewCondition);
+      return Kratos::make_intrusive<EPPointRigidContactPenalty2DCondition>(NewCondition);
    }
 
   //************************************************************************************
@@ -95,14 +95,12 @@ namespace Kratos
      if ( dimension != 2)
         return Area;
 
-
-     WeakPointerVector<Element >& rNeighbourElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
-
+     ElementWeakPtrVectorType& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
 
      std::vector< double > AreaVector;
-     for ( unsigned int el = 0; el < rNeighbourElements.size() ; el++) {
-
-        const Geometry< Node < 3 > > & rElemGeom = rNeighbourElements[el].GetGeometry();
+     for(auto& i_nelem : nElements)
+     {
+        const Geometry< Node < 3 > > & rElemGeom = i_nelem.GetGeometry();
         unsigned int nBoundary = 0;
 
         std::vector< unsigned int > BoundaryNodes;

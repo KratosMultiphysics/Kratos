@@ -3,17 +3,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
-# Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
-# Other imports
-import math
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SimplifiedNodalContactProcess(Model, settings["Parameters"])
 
@@ -121,9 +114,8 @@ class SimplifiedNodalContactProcess(KratosMultiphysics.Process):
 
         #computing distance from the contact surface on the background mesh
         distance_linear_solver_settings = KratosMultiphysics.Parameters( """{
-                                       "solver_type" : "AMGCL"
+                                       "solver_type" : "amgcl"
                                    } """)
-        import linear_solver_factory
         distance_linear_solver = linear_solver_factory.ConstructSolver(distance_linear_solver_settings)
 
         max_iterations=30

@@ -22,10 +22,14 @@
 #include "custom_processes/prism_neighbours_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
+#include "custom_processes/compute_center_of_gravity_process.h"
+#include "custom_processes/compute_mass_moment_of_inertia_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
+#include "custom_processes/impose_z_strain_process.h"
+#include "custom_processes/distribute_load_on_surface_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -41,6 +45,14 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")
         .def(py::init<ModelPart&>())
         .def_static("CalculateElementMass", &TotalStructuralMassProcess::CalculateElementMass);
+        ;
+
+    py::class_<ComputeCenterOfGravityProcess, ComputeCenterOfGravityProcess::Pointer, Process>(m,"ComputeCenterOfGravityProcess")
+        .def(py::init<ModelPart&>())
+        ;
+
+    py::class_<ComputeMassMomentOfInertiaProcess, ComputeMassMomentOfInertiaProcess::Pointer, Process>(m,"ComputeMassMomentOfInertiaProcess")
+        .def(py::init<ModelPart&, const Point&, const Point&>())
         ;
 
     py::class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
@@ -77,6 +89,14 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
         ;
+
+    py::class_<ImposeZStrainProcess, ImposeZStrainProcess::Pointer, Process>(m, "ImposeZStrainProcess")
+        .def(py::init< ModelPart&, Parameters >())
+        ;
+
+    py::class_<DistributeLoadOnSurfaceProcess, DistributeLoadOnSurfaceProcess::Pointer, Process>(m,"DistributeLoadOnSurfaceProcess")
+        .def(py::init<ModelPart&, Parameters>());
+
 }
 
 }  // namespace Python.

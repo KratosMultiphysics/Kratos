@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/line_load_condition.h"
 
 namespace Kratos
 {
@@ -45,14 +45,14 @@ namespace Kratos
  */
 
 class AxisymLineLoadCondition2D
-    : public LineLoadCondition2D
+    : public LineLoadCondition<2>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Counted pointer of AxisymLineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymLineLoadCondition2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymLineLoadCondition2D);
 
     ///@}
     ///@name Life Cycle
@@ -72,19 +72,42 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
-
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
 
-    //std::string Info() const;
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
+        ) const override;
 
     ///@}
     ///@name Access
@@ -98,13 +121,26 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "AxisymLineLoadCondition2D #" << Id();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "AxisymLineLoadCondition2D #" << Id();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -121,7 +157,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    AxisymLineLoadCondition2D() : LineLoadCondition2D()
+    AxisymLineLoadCondition2D() : LineLoadCondition<2>()
     {
     }
 
@@ -165,7 +201,7 @@ private:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const SizeType PointNumber,
         const double detJ
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Private  Access

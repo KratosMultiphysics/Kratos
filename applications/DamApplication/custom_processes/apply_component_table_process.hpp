@@ -44,7 +44,11 @@ public:
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
                 "value" : 1.0,
-                "table" : 1
+                "table" : 1,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )" );
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -87,7 +91,7 @@ public:
     {
         KRATOS_TRY;
 
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+        typedef Variable<double> component_type;
         component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
 
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
@@ -118,7 +122,7 @@ public:
     {
         KRATOS_TRY;
 
-        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+        typedef Variable<double> component_type;
         component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
 
         const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;

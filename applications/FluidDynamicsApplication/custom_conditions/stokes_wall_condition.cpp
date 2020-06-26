@@ -132,41 +132,37 @@ void StokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
 template<unsigned int TDim, unsigned int TNumNodes>
 void StokesWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector)
 {
-    if (this->GetValue(IS_STRUCTURE) == 0.0)
+    const unsigned int LocalSize = TDim+1;
+    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const unsigned int NumGauss = IntegrationPoints.size();
+
+    MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+    array_1d<double,3> Normal;
+    this->CalculateNormal(Normal); //this already contains the area
+    double A = norm_2(Normal);
+    Normal /= A;
+
+    // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines 
+    double J = (TDim == 2) ? 0.5*A : 2.0*A;
+
+    for (unsigned int g = 0; g < NumGauss; g++)
     {
-        const unsigned int LocalSize = TDim+1;
-        const GeometryType& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const unsigned int NumGauss = IntegrationPoints.size();
+        Vector N = row(NContainer,g);
+        double Weight = J * IntegrationPoints[g].Weight();
 
-        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-        array_1d<double,3> Normal;
-        this->CalculateNormal(Normal); //this already contains the area
-        double A = norm_2(Normal);
-        Normal /= A;
-
-        // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines 
-        double J = (TDim == 2) ? 0.5*A : 2.0*A;
-
-        for (unsigned int g = 0; g < NumGauss; g++)
+        // Neumann boundary condition
+        for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Vector N = row(NContainer,g);
-            double Weight = J * IntegrationPoints[g].Weight();
-
-            // Neumann boundary condition
-            for (unsigned int i = 0; i < TNumNodes; i++)
+            //unsigned int row = i*LocalSize;
+            const NodeType& rConstNode = this->GetGeometry()[i];
+            const double pext = rConstNode.FastGetSolutionStepValue(EXTERNAL_PRESSURE);
+            for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                //unsigned int row = i*LocalSize;
-                const NodeType& rConstNode = this->GetGeometry()[i];
-                const double pext = rConstNode.FastGetSolutionStepValue(EXTERNAL_PRESSURE);
-
-                for (unsigned int j = 0; j < TNumNodes; j++)
-                {
-                    unsigned int row = j*LocalSize;
-                    for (unsigned int d = 0; d < TDim;d++)
-                        rLocalVector[row+d] -= Weight*N[j]*N[i]*pext*Normal[d];
-                }
+                unsigned int row = j*LocalSize;
+                for (unsigned int d = 0; d < TDim;d++)
+                    rLocalVector[row+d] -= Weight*N[j]*N[i]*pext*Normal[d];
             }
         }
     }

@@ -32,6 +32,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -70,7 +71,7 @@ public:
     ///@{
 
     /// Pointer definition of StokesWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(StokesWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesWallCondition);
 
     typedef Node < 3 > NodeType;
 
@@ -93,8 +94,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -178,7 +177,7 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<StokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<StokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
 
@@ -189,7 +188,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
-        return Kratos::make_shared< StokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< StokesWallCondition >(NewId, pGeom, pProperties);
     }
 
 
@@ -212,6 +211,11 @@ public:
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            ApplyNeumannCondition(rLeftHandSideMatrix,rRightHandSideVector);
+        }
     }
 
     /// Return a matrix of the correct size, filled with zeros (for compatibility with time schemes).
@@ -244,6 +248,12 @@ public:
             rRightHandSideVector.resize(LocalSize);
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            Matrix tmp;
+            ApplyNeumannCondition(tmp,rRightHandSideVector);
+        }
     }
 
 
@@ -270,8 +280,6 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
             if(VISCOSITY.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-            if(IS_STRUCTURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
              if(EXTERNAL_PRESSURE.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.","");
 

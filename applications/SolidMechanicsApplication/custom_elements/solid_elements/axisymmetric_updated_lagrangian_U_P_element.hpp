@@ -63,7 +63,7 @@ public:
     typedef LargeDisplacementUPElement::ElementDataType ElementDataType;
 
     /// Counted pointer of AxisymmetricUpdatedLagrangianUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricUpdatedLagrangianUPElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymmetricUpdatedLagrangianUPElement );
 
     ///@}
     ///@name Life Cycle
@@ -120,7 +120,7 @@ public:
     /**
      * Set a double  Value on the Element Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //GET:

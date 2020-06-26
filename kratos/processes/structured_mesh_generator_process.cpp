@@ -31,22 +31,9 @@ namespace Kratos
 		, mrGeometry(rGeometry)
         , mrOutputModelPart(rOutputModelPart) {
 
-		Parameters default_parameters(R"(
-            {
-	            "create_skin_sub_model_part": true,
-	            "start_node_id":1,
-                "start_element_id":1,
-                "start_condition_id":1,
-                "number_of_divisions":1,
-                "elements_properties_id":0,
-                "conditions_properties_id":0,
-                "element_name": "PLEASE SPECIFY IT",
-                "condition_name": "PLEASE SPECIFY IT"
-            }  )");
-
 		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
 
-		TheParameters.ValidateAndAssignDefaults(default_parameters);
+		TheParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
 		mStartNodeId = TheParameters["start_node_id"].GetInt();
 		mStartElementId = TheParameters["start_element_id"].GetInt();
@@ -60,7 +47,6 @@ namespace Kratos
         mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
 
         Check();
-
     }
 
 	StructuredMeshGeneratorProcess::~StructuredMeshGeneratorProcess() {
@@ -78,6 +64,23 @@ namespace Kratos
 			KRATOS_ERROR << "Not supported geometry is given" << std::endl;
 
 	}
+
+	const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
+	{
+        const Parameters default_parameters(R"(
+        {
+            "create_skin_sub_model_part": true,
+            "start_node_id":1,
+            "start_element_id":1,
+            "start_condition_id":1,
+            "number_of_divisions":1,
+            "elements_properties_id":0,
+            "conditions_properties_id":0,
+            "element_name": "PLEASE SPECIFY IT",
+            "condition_name": "PLEASE SPECIFY IT"
+        }  )");
+        return default_parameters;
+    }
 
 	std::string StructuredMeshGeneratorProcess::Info() const {
 		return "StructuredMeshGeneratorProcess";
@@ -116,7 +119,7 @@ namespace Kratos
 		local_element_size /= mNumberOfDivisions;
 		//const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
 		Point local_coordinates = rMinPoint;
-		Point global_coordinates = ZeroVector(3);
+		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t j = 0; j <= mNumberOfDivisions; j++) {
@@ -141,7 +144,7 @@ namespace Kratos
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size /= mNumberOfDivisions;
 		Point local_coordinates = rMinPoint;
-		Point global_coordinates = ZeroVector(3);
+		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t k = 0; k <= mNumberOfDivisions; k++) {
@@ -169,7 +172,7 @@ namespace Kratos
 	void StructuredMeshGeneratorProcess::GenerateTriangularElements() {
 		std::size_t element_id = mStartElementId;
 
-		Properties::Pointer p_properties = mrOutputModelPart.pGetProperties(mElementPropertiesId);
+		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 		std::vector<ModelPart::IndexType> element_connectivity(3);
 
 		for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
@@ -184,7 +187,7 @@ namespace Kratos
 	}
 
 	void StructuredMeshGeneratorProcess::GenerateTetrahedraElements() {
-		Properties::Pointer p_properties = mrOutputModelPart.pGetProperties(mElementPropertiesId);
+		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 
 		for (std::size_t k = 0; k < mNumberOfDivisions; k++) {
 			for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
@@ -236,7 +239,7 @@ namespace Kratos
 		}
 	}
 
-    void StructuredMeshGeneratorProcess::Check()
+    int StructuredMeshGeneratorProcess::Check()
     {
         KRATOS_TRY
 
@@ -248,6 +251,8 @@ namespace Kratos
             KRATOS_ERROR << "An unsupported geometry was given. Only Quadrilateral2D4 and Hexahedra3D8 are supported and given geometry is : " << mrGeometry << std::endl;
 
         KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions, 0);
+
+        return 0;
 
         KRATOS_CATCH("")
     }

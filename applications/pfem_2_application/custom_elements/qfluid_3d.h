@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author Julio Marti
 //
-	           
+
 
 //#define FIRST
 
@@ -34,7 +34,6 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h"
 
 
 namespace Kratos
@@ -81,7 +80,7 @@ namespace Kratos
     QFluid3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~QFluid3D();
+    virtual ~QFluid3D() override;
 
 
     ///@}
@@ -93,18 +92,18 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -177,9 +176,9 @@ namespace Kratos
   private:
     ///@name Static Member Variables
     ///@{
-    static boost::numeric::ublas::bounded_matrix<double,4,4> msaux_matrix;
-    static boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors;
-    static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; //cartesian coords
+    static BoundedMatrix<double,4,4> msaux_matrix;
+    static BoundedMatrix<double,4,4> msMassFactors;
+    static BoundedMatrix<double,4,3> msDN_DX; //cartesian coords
     static array_1d<double,4> msN; //dimension = number of nodes
     static array_1d<double,3> ms_aux; //dimesion coincides with space dimension
     static array_1d<double,3> ms_vel_gauss; //dimesion coincides with space dimension
@@ -194,7 +193,7 @@ namespace Kratos
       msMassFactors(2,2) = 0.25;
       msMassFactors(3,3) = 0.25;
     }
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -217,9 +216,9 @@ namespace Kratos
 
     inline double CalculateH(double Volume);
 
-    void CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double& nu,const double& dt );
+    void CalculateViscousMatrix(MatrixType& K, const BoundedMatrix<double,4,3>& DN_DX, const double& nu,const double& dt );
 
-    inline void  ExpandAndAddReducedMatrix(MatrixType& Destination,	boost::numeric::ublas::bounded_matrix<double,4,4>& ReducedMatrix, const unsigned int dimension);
+    inline void  ExpandAndAddReducedMatrix(MatrixType& Destination,	BoundedMatrix<double,4,4>& ReducedMatrix, const unsigned int dimension);
     ///@}
     ///@name Private Operations
     ///@{
@@ -279,6 +278,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FLUID_3D_COUPLED_H_INCLUDED  defined 
-
-
+#endif // KRATOS_FLUID_3D_COUPLED_H_INCLUDED  defined

@@ -75,7 +75,7 @@ UpdatedLagrangianUPElement&  UpdatedLagrangianUPElement::operator=(UpdatedLagran
 
 Element::Pointer UpdatedLagrangianUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< UpdatedLagrangianUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< UpdatedLagrangianUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -121,7 +121,7 @@ Element::Pointer UpdatedLagrangianUPElement::Clone( IndexType NewId, NodesArrayT
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< UpdatedLagrangianUPElement >(NewElement);
+    return Kratos::make_intrusive< UpdatedLagrangianUPElement >(NewElement);
 }
 
 
@@ -139,7 +139,7 @@ UpdatedLagrangianUPElement::~UpdatedLagrangianUPElement()
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void UpdatedLagrangianUPElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -158,7 +158,7 @@ void UpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<dou
   }
   else{
 
-    LargeDisplacementUPElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementUPElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -236,7 +236,7 @@ void UpdatedLagrangianUPElement::InitializeElementData (ElementDataType & rVaria
     LargeDisplacementUPElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //set variables including all integration points values
 
@@ -364,7 +364,7 @@ void UpdatedLagrangianUPElement::CalculateDeformationGradient(Matrix& rF,
     KRATOS_TRY
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( dimension );
 
@@ -455,5 +455,3 @@ void UpdatedLagrangianUPElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

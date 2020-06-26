@@ -56,6 +56,31 @@ page 232)
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementBbar
         : public BaseSolidElement
 {
+protected:
+/**
+* Internal variables used in the kinematic calculations
+*/
+struct KinematicVariablesBbar
+    : public KinematicVariables
+{
+    Vector Bh;
+
+    /**
+    * The default constructor
+    * @param StrainSize The size of the strain vector in Voigt notation
+    * @param Dimension The problem dimension: 2D or 3D
+    * @param NumberOfNodes The number of nodes in the element
+    */
+    KinematicVariablesBbar(
+        const SizeType StrainSize,
+        const SizeType Dimension,
+        const SizeType NumberOfNodes
+        ) : KinematicVariables(StrainSize, Dimension, NumberOfNodes)
+    {
+        Bh = ZeroVector(Dimension * NumberOfNodes);
+    }
+};
+
 public:
     ///@name Type Definitions
     ///@{
@@ -76,7 +101,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of SmallDisplacementStrElement
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementBbar);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementBbar);
 
     ///@}
     ///@name Life Cycle
@@ -127,15 +152,6 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
-
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Calculate a Matrix Variable on the Element Constitutive Law
@@ -198,7 +214,7 @@ protected:
     /**
     * @brief This method returns if the element provides the strain
     */
-    bool UseElementProvidedStrain() override;
+    bool UseElementProvidedStrain() const override;
 
     /**
     * This functions updates the kinematics variables
@@ -206,40 +222,57 @@ protected:
     * @param PointNumber The integration point considered
     */
     void CalculateKinematicVariables(
-            KinematicVariables& rThisKinematicVariables,
-            const IndexType PointNumber,
-            const GeometryType::IntegrationMethod& rIntegrationMethod
-            ) override;
+        KinematicVariables& rThisKinematicVariables,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationMethod& rIntegrationMethod
+        ) override;
 
     /**
     * Calculation of the RHS
     */
     void CalculateAndAddResidualVector(
-            VectorType& rRightHandSideVector,
-            const KinematicVariables& rThisKinematicVariables,
-            const ProcessInfo& rCurrentProcessInfo,
-            const Vector& rBodyForce,
-            const Vector& rStressVector,
-            const double IntegrationWeight
-            ) override ;
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& rCurrentProcessInfo,
+        const array_1d<double, 3>& rBodyForce,
+        const Vector& rStressVector,
+        const double IntegrationWeight
+        ) const override;
 
     /**
-    * This functions updates the constitutive variables
-    * @param rThisKinematicVariables The kinematic variables to be calculated
-    * @param rThisConstitutiveVariables The constitutive variables
-    * @param rValues The CL parameters
-    * @param PointNumber The integration point considered
-    * @param IntegrationPoints The list of integration points
-    * @param ThisStressMeasure The stress measure considered
-    */
+     * This functions updates the data structure passed to the CL
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     * @param ThisStressMeasure The stress measure considered
+     */
+    void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        ) override;
+
+    /**
+     * This functions updates the constitutive variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     * @param ThisStressMeasure The stress measure considered
+     */
     void CalculateConstitutiveVariables(
-            KinematicVariables& rThisKinematicVariables,
-            ConstitutiveVariables& rThisConstitutiveVariables,
-            ConstitutiveLaw::Parameters& rValues,
-            const IndexType PointNumber,
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-            const ConstitutiveLaw::StressMeasure ThisStressMeasure
-            ) override;
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure
+        ) override;
 
     /**
     * This functions calculates both the RHS and the LHS
@@ -250,12 +283,12 @@ protected:
     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
     */
     void CalculateAll(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo,
-            const bool CalculateStiffnessMatrixFlag,
-            const bool CalculateResidualVectorFlag
-            ) override;
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        ) override;
 
     /**
     * Calculation of the Deformation Matrix B
@@ -263,8 +296,8 @@ protected:
     * @param DN_DX The derivatives of the shape functions
     */
     void CalculateB(
-            Matrix& rB,
-            const Matrix& DN_DX
+        Matrix& rB,
+        const Matrix& DN_DX
     );
 
     Matrix ComputeEquivalentF(const Vector& rStrainTensor);
@@ -275,10 +308,10 @@ protected:
         * @param PointNumber The integration point considered
         */
     void CalculateKinematicVariablesBbar(
-            KinematicVariables& rThisKinematicVariables,
-            const IndexType PointNumber,
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-            );
+        KinematicVariablesBbar& rThisKinematicVariables,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        );
 
     /**
     * Calculation of the Deformation Matrix Bbar
@@ -286,11 +319,11 @@ protected:
     * @param DN_DX The derivatives of the shape functions
     */
     void CalculateBbar(
-            Matrix &rB,
-            Vector &rBh,
-            const Matrix &DN_DX,
-            const GeometryType::IntegrationPointsArrayType &IntegrationPoints,
-            const IndexType PointNumber
+        Matrix &rB,
+        Vector &rBh,
+        const Matrix &DN_DX,
+        const GeometryType::IntegrationPointsArrayType &IntegrationPoints,
+        const IndexType PointNumber
     );
 
     // Compute Bbar components
@@ -298,7 +331,7 @@ protected:
     * This functions updates the kinematics variables
     * @param rThisKinematicVariables The kinematic variables to be calculated
     */
-    void CalculateHydrostaticDeformationMatrix(KinematicVariables& rThisKinematicVariables);
+    void CalculateHydrostaticDeformationMatrix(KinematicVariablesBbar& rThisKinematicVariables);
 
 private:
 

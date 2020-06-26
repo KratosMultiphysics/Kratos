@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "KratosDEM.py", line 1, in <module>
-    import KratosMultiphysics
-  File "/home/latorre/Kratos/KratosMultiphysics/__init__.py", line 13, in <module>
-    from Kratos import *
-ImportError: /home/latorre/Kratos/libs/Kratos.so: undefined symbol: _ZN6Kratos25SimpleMortarMapperProcessILm2ELm2ENS_8VariableIdEELNS_16HistoricalValuesE0ELS3_0EE7ExecuteEv

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -144,7 +144,7 @@ class cg {
 
             backend::residual(rhs, A, x, *r);
             scalar_type norm_rhs = norm(rhs);
-            if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
+            if (norm_rhs < amgcl::detail::eps<scalar_type>(1)) {
                 backend::clear(x);
                 return std::make_tuple(0, norm_rhs);
             }

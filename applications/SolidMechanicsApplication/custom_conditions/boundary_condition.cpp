@@ -62,7 +62,7 @@ namespace Kratos
 					       NodesArrayType const& ThisNodes,
 					       PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<BoundaryCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<BoundaryCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -79,7 +79,7 @@ namespace Kratos
     NewCondition.SetFlags(this->GetFlags());
 
 
-    return Kratos::make_shared<BoundaryCondition>(NewCondition);
+    return Kratos::make_intrusive<BoundaryCondition>(NewCondition);
   }
 
 
@@ -99,7 +99,6 @@ namespace Kratos
 
     typedef VectorComponentAdaptor<array_1d<double,3> >  VectorComponentType;
     const VariableComponent<VectorComponentType>& var_x  = KratosComponents<VariableComponent<VectorComponentType> >::Get(rVariable.Name()+"_X");
-
     //usually if the dofs do not exist condition adds them, standard conditions do not work like this
     if( GetGeometry()[0].HasDofFor(var_x) == true )
       return true;
@@ -167,20 +166,20 @@ namespace Kratos
 
     for (SizeType i = 0; i < number_of_nodes; i++)
       {
-        if( HasVariableDof(DISPLACEMENT) ){
+        if( HasVariableDof(DISPLACEMENT_X) ){
           rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
           rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
           if( dimension == 3 )
             rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
         }
-        else if( HasVariableDof(VELOCITY) ){
+        else if( HasVariableDof(VELOCITY_X) ){
           rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
           rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
           if( dimension == 3 )
             rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
         }
 
-	if( HasVariableDof(ROTATION) ){
+	if( HasVariableDof(ROTATION_X) ){
 	  if( dimension == 2 ){
 	    rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	  }
@@ -214,7 +213,7 @@ namespace Kratos
 
     unsigned int index = 0;
 
-    if( HasVariableDof(ROTATION) && HasVariableDof(DISPLACEMENT) ){
+    if( HasVariableDof(ROTATION_X) && HasVariableDof(DISPLACEMENT_X) ){
       if( dimension == 2 ){
 	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
@@ -238,7 +237,7 @@ namespace Kratos
 	  }
       }
     }
-    else if( HasVariableDof(DISPLACEMENT) ){
+    else if( HasVariableDof(DISPLACEMENT_X) ){
 
       for (SizeType i = 0; i < number_of_nodes; i++)
 	{
@@ -249,7 +248,7 @@ namespace Kratos
 	    rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
 	}
     }
-    else if( HasVariableDof(VELOCITY) ){
+    else if( HasVariableDof(VELOCITY_X) ){
 
       for (SizeType i = 0; i < number_of_nodes; i++)
 	{
@@ -931,64 +930,6 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  //*************************COMPUTE DELTA POSITION*************************************
-  //************************************************************************************
-
-  Matrix& BoundaryCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition.resize(number_of_nodes , dimension, false);
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( SizeType j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-	  }
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //*************************COMPUTE TOTAL DELTA POSITION*******************************
-  //************************************************************************************
-
-
-  Matrix& BoundaryCondition::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition.resize(number_of_nodes , dimension, false);
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-        for ( SizeType j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j];
-	  }
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
 
   //************************************************************************************
   //************************************************************************************

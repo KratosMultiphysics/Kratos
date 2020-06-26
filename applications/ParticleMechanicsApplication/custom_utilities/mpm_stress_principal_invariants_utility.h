@@ -60,9 +60,9 @@ namespace Kratos
 
                   for(unsigned int i=0; i<3; i++)
                   {
-                        principal_direction_1(i) = rMainDirections(0,i);
-                        principal_direction_2(i) = rMainDirections(1,i);
-                        principal_direction_3(i) = rMainDirections(2,i);
+                        principal_direction_1[i] = rMainDirections(0,i);
+                        principal_direction_2[i] = rMainDirections(1,i);
+                        principal_direction_3[i] = rMainDirections(2,i);
                   }
 
                   // Reorder and swap
@@ -96,9 +96,9 @@ namespace Kratos
                   // Copy back to original matrix
                   for(unsigned int i=0; i<3; i++)
                   {
-                        rMainDirections(i,0) = principal_direction_1(i);
-                        rMainDirections(i,1) = principal_direction_2(i);
-                        rMainDirections(i,2) = principal_direction_3(i);
+                        rMainDirections(i,0) = principal_direction_1[i];
+                        rMainDirections(i,1) = principal_direction_2[i];
+                        rMainDirections(i,2) = principal_direction_3[i];
                   }
             }
 
@@ -202,10 +202,10 @@ namespace Kratos
                         CalculateTensorInvariants(rVector, i_1, j_2);
 
                         // d2I1/d2tensor
-                        rD2I1 = ZeroMatrix(3);
+                        rD2I1 = ZeroMatrix(3,3);
 
                         // d2J2/d2tensor = delta_mp * delta_nq - 1/3 delta_pq * delta_mn
-                        rD2J2 = ZeroMatrix(3);
+                        rD2J2 = ZeroMatrix(3,3);
                         for (unsigned int i = 0; i < 3; ++i)
                               for (unsigned int j = 0; j < 3; ++j)
                               {
@@ -214,7 +214,7 @@ namespace Kratos
                               }
 
                         // d2J3/d2tensor
-                        rD2J3 = ZeroMatrix(3);
+                        rD2J3 = ZeroMatrix(3,3);
                         Vector s_vector = rVector;
                         for (unsigned int i = 0; i < 3; ++i)
                               s_vector[i] -= i_1/3.0;
@@ -268,7 +268,7 @@ namespace Kratos
 
                   rLodeAngle   = -j_3 / 2.0 * std::pow(3.0/j_2, 1.5);
                   if ( std::abs( rLodeAngle ) > 1.0 )                                           // if current rLodeAngle magnitude is larger than 1.0
-                        rLodeAngle = ( GetPI() / 6.0 ) * rLodeAngle / std::abs(rLodeAngle);
+                        rLodeAngle = ( Globals::Pi / 6.0 ) * rLodeAngle / std::abs(rLodeAngle);
                   else                                                                          // otherwise
                         rLodeAngle = std::asin( rLodeAngle ) / 3.0;
 
@@ -370,10 +370,10 @@ namespace Kratos
                         CalculateStressInvariants( rStress, p, q);
 
                         // d2P/d2stress
-                        r2C1 = ZeroMatrix(3);
+                        r2C1 = ZeroMatrix(3,3);
 
                         // d2Q/d2stress
-                        r2C2 = ZeroMatrix(3);
+                        r2C2 = ZeroMatrix(3,3);
                         if (std::abs(q) > tolerance)
                         {
                               Vector s_vector = rStress;
@@ -430,7 +430,7 @@ namespace Kratos
                         double lode_angle;
                         CalculateThirdStressInvariant(rStress, lode_angle);
 
-                        r2C3 = ZeroMatrix(3);
+                        r2C3 = ZeroMatrix(3,3);
                         if (std::abs(j_2) > tolerance)
                         {
                               if (std::abs(j_3) < tolerance) j_3 = tolerance;
@@ -441,14 +441,14 @@ namespace Kratos
 
                               // Then we need to compute the derivative of each component with respect to stress
                               // 1. d(AT * J3')/dstress = dAT * J3' + AT * J3''
-                              Matrix first_component = ZeroMatrix(3);
+                              Matrix first_component = ZeroMatrix(3,3);
                               Vector aux_dAT = ZeroVector(3);
                               aux_dAT = AT * (-3.0/2.0/j_2 * dj_2 + 3.0 * std::tan(3*lode_angle) * dlode_angle);
                               first_component = MathUtils<double>::TensorProduct3(aux_dAT, dj_3);
                               first_component += AT * d2j_3;
 
                               // 2. d(AS * J2')/dstress = dAS * J2' + AS * J2''
-                              Matrix second_component = ZeroMatrix(3);
+                              Matrix second_component = ZeroMatrix(3,3);
                               Vector aux_dAS = ZeroVector(3);
                               aux_dAS = AS * (-5.0/2.0/j_2 * dj_2 + 3.0 * std::tan(3*lode_angle) * dlode_angle + 1.0/j_3 * dj_3);
                               second_component = MathUtils<double>::TensorProduct3(aux_dAS, dj_2);
@@ -473,7 +473,7 @@ namespace Kratos
              */
             static Matrix PrincipalVectorToMatrix(const Vector& rVector, const unsigned int& rSize)
             {
-                  Matrix matrix = ZeroMatrix(3);
+                  Matrix matrix = ZeroMatrix(3,3);
                   if (rSize == 3)
                   {
                         for(unsigned int i=0; i<3; ++i)
@@ -508,11 +508,30 @@ namespace Kratos
                   return vector;
             }
 
-            static double GetPI()
+
+            static double CalculateMatrixDoubleContraction(const Matrix& rInput)
             {
-                  return std::atan(1.0)*4.0;
+                double result = 0.0;
+                KRATOS_ERROR_IF(rInput.size1() != rInput.size2()) 
+                    << "CalculateMatrixDoubleContraction only takes square matrices\n";
+                for (size_t i = 0; i < rInput.size1(); ++i)
+                {
+                    for (size_t j = 0; j < rInput.size2(); ++j)
+                    {
+                        result += rInput(i, j) * rInput(i, j);
+                    }
+                }
+                return result;
             }
 
+
+            static double CalculateMatrixTrace(const Matrix& rInput)
+            {
+                KRATOS_ERROR_IF(rInput.size1() != rInput.size2()) << "Can only calculate trace of square matrices";
+                double trace = 0.0;
+                for (size_t i = 0; i < rInput.size1(); ++i) trace += rInput(i, i);
+                return trace;
+            }
    }; // end Class MPMStressPrincipalInvariantsUtility
 
 } // end namespace Kratos

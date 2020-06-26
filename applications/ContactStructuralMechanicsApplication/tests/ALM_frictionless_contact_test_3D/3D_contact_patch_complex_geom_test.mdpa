@@ -5,12 +5,6 @@ End ModelPartData
 Begin Properties 0
 End Properties
 
-Begin Properties 3
-End Properties
-
-Begin Properties 4
-End Properties
-
 Begin Nodes
     1   0.2928932188   0.2928932188   2.7071067812
     2  -0.2071067812  -0.2071067812   2.0000000000
@@ -32,11 +26,11 @@ End Nodes
 
 
 Begin Elements SmallDisplacementElement3D8N// GUI group identifier: Parts Auto1
-         2          3          5          4          6          8          3          1          2          7 
+         2          0          5          4          6          8          3          1          2          7
 End Elements
 
 Begin Elements SmallDisplacementElement3D8N// GUI group identifier: Parts Auto2
-         1          4         12         10         15         16         11          9         13         14 
+         1          0         12         10         15         16         11          9         13         14
 End Elements
 
 Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts

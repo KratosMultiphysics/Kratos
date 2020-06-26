@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -340,13 +340,13 @@ namespace detail {
 template <typename Val>
 typename std::enable_if<is_complex<Val>::value, std::ostream&>::type
 write_value(std::ostream &s, Val v) {
-    return s << std::real(v) << " " << std::imag(v);
+    return s << std::scientific << std::setprecision(20) << std::real(v) << " " << std::imag(v);
 }
 
 template <typename Val>
 typename std::enable_if<!is_complex<Val>::value, std::ostream&>::type
 write_value(std::ostream &s, Val v) {
-    return s << v;
+    return s << std::scientific << std::setprecision(20) << v;
 }
 
 } // namespace detail

@@ -149,6 +149,7 @@ namespace Kratos
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue )  override;
 
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )  override;
     ///@}
     ///@name Inquiry
     ///@{

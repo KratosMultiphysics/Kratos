@@ -6,13 +6,11 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:
+//  Main authors:    Quirin Aumann
 //
 
 #if !defined(KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED )
 #define  KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED
-
-// TODO: Add rotational stiffness
 
 // System includes
 
@@ -48,7 +46,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Counted pointer of SpringDamperElement3D2N
-    KRATOS_CLASS_POINTER_DEFINITION( SpringDamperElement3D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SpringDamperElement3D2N);
     ///@}
 
 public:
@@ -114,55 +112,27 @@ public:
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize() override;
-
-    /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
     //************* COMPUTING  METHODS
@@ -226,7 +196,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -245,6 +215,10 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
+    static constexpr int msNumberOfNodes = 2;
+    static constexpr int msDimension = 3;
+    static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
+    static constexpr unsigned int msElementSize = msLocalSize * 2;
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -259,13 +233,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-
-    /**
-     * Clear Nodal Forces
-     */
-    void ClearNodalForces ();
-
     ///@}
     ///@name Protected  Access
     ///@{

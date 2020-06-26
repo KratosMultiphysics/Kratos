@@ -54,7 +54,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
 
 
   /// Counted pointer of ThermalElement
-  KRATOS_CLASS_POINTER_DEFINITION(ThermalElement);
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThermalElement);
 
 
  protected:
@@ -220,7 +220,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * interface to the constitutive law!
    * Note, that these functions expect a std::vector of values for the
    * specified variable type that contains a value for each integration point!
-   * SetValueOnIntegrationPoints: set the values for given Variable.
+   * SetValuesOnIntegrationPoints: set the values for given Variable.
    * GetValueOnIntegrationPoints: get the values for given Variable.
    */
 
@@ -228,17 +228,17 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
   /**
    * Set a double  Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Set a Vector Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Set a Matrix Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
   //GET:
@@ -494,12 +494,6 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    */
   virtual void CalculateKinematics(GeneralVariables& rVariables,
                                    const double& rPointNumber);
-
-
-  /**
-   * Calculation of the Position increment
-   */
-  Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
 
   /**

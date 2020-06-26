@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined (KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED)
-#define  KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_NEWTONIAN_FLUID_3D_LAW_H_INCLUDED)
+#define  KRATOS_NEWTONIAN_FLUID_3D_LAW_H_INCLUDED
 
 // System includes
 
@@ -21,39 +21,39 @@
 namespace Kratos
 {
   /**
-   * Defines a Newtonian constitutive law
+   * Defines a NewtonianFluid constitutive law
    * This material law is defined by the parameters:
    * 1) DYNAMIC_VISCOSITY
    */
 
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) Newtonian3DLaw : public ConstitutiveLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NewtonianFluid3DLaw : public ConstitutiveLaw
   {
   public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of Newtonian3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(Newtonian3DLaw);
+    /// Pointer definition of NewtonianFluid3DLaw
+    KRATOS_CLASS_POINTER_DEFINITION(NewtonianFluid3DLaw);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    Newtonian3DLaw();
+    NewtonianFluid3DLaw();
 
     /// Copy constructor.
-    Newtonian3DLaw (const Newtonian3DLaw& rOther);
+    NewtonianFluid3DLaw (const NewtonianFluid3DLaw& rOther);
 
     /// Clone.
     ConstitutiveLaw::Pointer Clone() const override;
 
     /// Assignment operator.
-    Newtonian3DLaw& operator=(const Newtonian3DLaw& rOther);
+    NewtonianFluid3DLaw& operator=(const NewtonianFluid3DLaw& rOther);
 
     /// Destructor.
-    ~Newtonian3DLaw() override;
+    ~NewtonianFluid3DLaw() override;
 
     ///@}
     ///@name Operators
@@ -129,20 +129,20 @@ namespace Kratos
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Newtonian3DLaw";
+        buffer << "NewtonianFluid3DLaw";
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Newtonian3DLaw";
+        rOStream << "NewtonianFluid3DLaw";
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Newtonian3DLaw Data";
+      rOStream << "NewtonianFluid3DLaw Data";
     }
 
 
@@ -241,7 +241,7 @@ namespace Kratos
     ///@{
 
     ///@}
-  }; // Class Newtonian3DLaw
+  }; // Class NewtonianFluid3DLaw
 
   ///@}
 
@@ -258,4 +258,4 @@ namespace Kratos
   ///@} addtogroup block
 
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED  defined
+#endif // KRATOS_NEWTONIAN_FLUID_3D_LAW_H_INCLUDED  defined

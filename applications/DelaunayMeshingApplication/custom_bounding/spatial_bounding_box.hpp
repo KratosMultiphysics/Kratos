@@ -444,7 +444,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    SpatialBoundingBox(ModelPart &rModelPart, const double& rRadius)
+    SpatialBoundingBox(ModelPart &rModelPart, const double& rRadius, double factor = 0)
     {
       KRATOS_TRY
 
@@ -517,9 +517,9 @@ public:
       mBox.Radius = rRadius + 0.5*(MaxRadius);
 
       PointType Side(dimension);
-      Side[0] = mBox.Radius;
-      Side[1] = mBox.Radius;
-      Side[2] = mBox.Radius;
+      Side[0] = mBox.Radius + mBox.Radius * factor;
+      Side[1] = mBox.Radius + mBox.Radius * factor;
+      Side[2] = mBox.Radius + mBox.Radius * factor;
 
       mBox.UpperPoint = mBox.Center + Side;
       mBox.LowerPoint = mBox.Center - Side;
@@ -1367,7 +1367,7 @@ protected:
 
       for(NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); ++iii)
       	{
-      	  NodeType::DofType& rDof = *iii;
+      	  NodeType::DofType& rDof = **iii;
       	  Node->pAddDof( rDof );
       	}
 
@@ -1376,7 +1376,7 @@ protected:
 
       for(NodeType::DofsContainerType::iterator iii = new_dofs.begin(); iii != new_dofs.end(); ++iii)
       	{
-      	  NodeType::DofType& rDof = *iii;
+      	  NodeType::DofType& rDof = **iii;
 	  rDof.FixDof(); // dofs free
       	}
 

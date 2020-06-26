@@ -128,8 +128,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
      typedef array_1d<double, TNumNodes> ShapeFunctionsType;
      typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
 
@@ -2402,7 +2400,7 @@ protected:
 	    fsign4 = fsign4/abs(fsign4);
 
 	    int num_neighs_l = 0;
-	    WeakPointerVector< Node<3> >& neighb_l = this->GetGeometry()[ll].GetValue(NEIGHBOUR_NODES);
+	    GlobalPointersVector< Node<3> >& neighb_l = this->GetGeometry()[ll].GetValue(NEIGHBOUR_NODES);
 	    for (unsigned int i = 0; i < neighb_l.size(); i++)
 	    {
 	      if (neighb_l[i].FastGetSolutionStepValue(IS_BOUNDARY) != 0.0)

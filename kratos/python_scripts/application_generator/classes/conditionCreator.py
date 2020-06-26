@@ -37,8 +37,8 @@ class ConditionCreator(ClassCreator):
         - @{KRATOS_CONDITION_LIST_DOFS}:
             The dof list
 
-        - @{KRATOS_CONDITION_ECUATION_ID_DOFS}:
-            The dof list for the ecuation id's
+        - @{KRATOS_CONDITION_EQUATION_ID_DOFS}:
+            The dof list for the equation id's
     '''
 
     def __init__(
@@ -54,7 +54,7 @@ class ConditionCreator(ClassCreator):
         self.rules += [
             {'token': '@{KRATOS_CLASS_LOCAL_FLAGS}', 'value': ''},
             {'token': '@{KRATOS_CONDITION_LIST_DOFS}', 'value': ''},
-            {'token': '@{KRATOS_CONDITION_ECUATION_ID_DOFS}', 'value': ''},
+            {'token': '@{KRATOS_CONDITION_EQUATION_ID_DOFS}', 'value': ''},
             {'token': '@{KRATOS_CLASS_BASE_DIR}', 'value': 'custom_conditions'}
         ]
 
@@ -110,8 +110,8 @@ class ConditionCreator(ClassCreator):
             - @{KRATOS_CONDITION_LIST_DOFS}:
                 The dof list
 
-            - @{KRATOS_CONDITION_ECUATION_ID_DOFS}:
-                The dof list for the ecuation id's
+            - @{KRATOS_CONDITION_EQUATION_ID_DOFS}:
+                The dof list for the equation id's
         '''
 
         # Dof are used to fill a couple of macros. Dofs can only be replaced, not modified (add/remove)
@@ -123,7 +123,7 @@ class ConditionCreator(ClassCreator):
             '\n'
         ]
 
-        # EcuationID's
+        # EquationID's
         localDofEidValue = ''
         localDofEidDefinition = [
             ctab * 1 + 'for (unsigned int i = 0; i < number_of_nodes; i++)\n',
@@ -143,7 +143,7 @@ class ConditionCreator(ClassCreator):
 
         # Locate the rules and replace the values
         dofListRule = self.GetRule('@{KRATOS_CONDITION_LIST_DOFS}')
-        dofEidRule = self.GetRule('@{KRATOS_CONDITION_ECUATION_ID_DOFS}')
+        dofEidRule = self.GetRule('@{KRATOS_CONDITION_EQUATION_ID_DOFS}')
 
         dofListRule['value'] = localDofListValue
         dofEidRule['value'] = localDofEidValue

@@ -30,7 +30,6 @@
 #include "includes/kratos_flags.h"
 #include "utilities/math_utils.h"
 
-#include "particle_mechanics_application.h"
 
 namespace Kratos
 {
@@ -106,10 +105,17 @@ public:
     {
         KRATOS_TRY;
 
-		
+        const int initial_num_element = mr_model_part.NumberOfElements();
         mr_model_part.RemoveElements( TO_ERASE );
-        int num_element = mr_model_part.NumberOfElements();
-		KRATOS_WATCH(num_element);
+        const int num_element = mr_model_part.NumberOfElements();
+
+        KRATOS_INFO("ParticleEraseProcess") << "WARNING: " << num_element - initial_num_element << " particle elements have been erased.";
+
+        const int initial_num_condition = mr_model_part.NumberOfConditions();
+        mr_model_part.RemoveConditions( TO_ERASE );
+        const int num_condition = mr_model_part.NumberOfConditions();
+
+        KRATOS_INFO("ParticleEraseProcess") << "WARNING: " << num_condition - initial_num_condition << " particle conditions have been erased.";
 
         KRATOS_CATCH("");
     }

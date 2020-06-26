@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author Julio Marti
 //
-	           
+
 
 //#define FIRST
 
@@ -34,13 +34,12 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "includes/serializer.h"
 
 
 namespace Kratos
 {
-  
+
   ///@name Kratos Globals
   ///@{
 
@@ -51,7 +50,7 @@ namespace Kratos
   ///@}
   ///@name  Enum's
   ///@{
-  
+
   ///@}
   ///@name  Functions
   ///@{
@@ -94,8 +93,7 @@ namespace Kratos
     QFluid2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~QFluid2D();
-
+    virtual ~QFluid2D() override;
 
     ///@}
     ///@name Operators
@@ -106,25 +104,23 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     //void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
-    //void CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu);
-    void CalculateViscousMatrix(MatrixType& K  , const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& deltat, const double& bulk); //, const double& k);
+    //void CalculateViscousMatrix(MatrixType& K, const BoundedMatrix<double,3,2>& DN_DX, const double& nu);
+    void CalculateViscousMatrix(MatrixType& K  , const BoundedMatrix<double,3,2>& DN_DX, const double& nu, const double& deltat, const double& bulk); //, const double& k);
 
-
-
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -142,14 +138,14 @@ namespace Kratos
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
       return "QFluid2D #";
     }
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << Info() << Id();
     }
@@ -162,7 +158,7 @@ namespace Kratos
     ///@name Friends
     ///@{
 
-    
+
     ///@}
 
   protected:
@@ -198,10 +194,10 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
-    
+
+
     ///@}
-    
+
   private:
     ///@name Static Member Variables
     ///@{
@@ -219,17 +215,17 @@ namespace Kratos
     ///@{
     void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);//, unsigned int ComponentIndex);
     void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    // inline double CalculateTau(boost::numeric::ublas::bounded_matrix<double, 3,2 > & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
-    double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,
+    // inline double CalculateTau(BoundedMatrix<double, 3,2 > & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
+    double ComputeSmagorinskyViscosity(const BoundedMatrix<double, 3, 2 > & DN_DX,
                                        const double& h,
                                        const double& C,
                                        const double nu
 				       );
-    
+
     ///@}
     ///@name Private Operations
     ///@{
-    
+
 
     ///@}
     ///@name Private  Access
@@ -247,48 +243,47 @@ namespace Kratos
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    
-  QFluid2D() : Element()
-      {
-      }
-    
-    virtual void save(Serializer& rSerializer) const
+
+    QFluid2D() : Element()
     {
-      
+    }
+
+    virtual void save(Serializer& rSerializer) const override
+    {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
-    
-    virtual void load(Serializer& rSerializer)
+
+    virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{
-    
+
     /// Assignment operator.
     //QFluid2D& operator=(const QFluid2D& rOther);
-    
+
     /// Copy constructor.
     //QFluid2D(const QFluid2D& rOther);
-    
-    
+
+
     ///@}
-    
+
   }; // Class QFluid2D
- 
+
   ///@}
- 
+
   ///@name Type Definitions
   ///@{
- 
- 
+
+
   ///@}
   ///@name Input and output
   ///@{
 
- 
+
   /// input stream function
   /*  inline std::istream& operator >> (std::istream& rIStream,
       QFluid2D& rThis);
@@ -300,14 +295,11 @@ namespace Kratos
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
       rThis.PrintData(rOStream);
-    
+
       return rOStream;
       }*/
   ///@}
- 
+
 } // namespace Kratos.
 
-#endif // KRATOS_FLUID_2D_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_FLUID_2D_H_INCLUDED  defined

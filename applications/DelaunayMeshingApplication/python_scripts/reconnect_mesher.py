@@ -3,11 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the mesh mesher (the base class for the mesher derivation)
-import mesher
+from KratosMultiphysics.DelaunayMeshingApplication import mesher
 
 def CreateMesher(main_model_part, meshing_parameters):
     return ReconnectMesher(main_model_part, meshing_parameters)

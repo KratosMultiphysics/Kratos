@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_mc_strain_softening_3D_law.hpp"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -31,9 +31,9 @@ namespace Kratos
 HenckyMCStrainSofteningPlastic3DLaw::HenckyMCStrainSofteningPlastic3DLaw()
     : HenckyElasticPlastic3DLaw()
 {
-    mpHardeningLaw   = MPMHardeningLaw::Pointer( new ExponentialStrainSofteningLaw() );
-    mpYieldCriterion = MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule    = MPMFlowRule::Pointer( new MCStrainSofteningPlasticFlowRule(mpYieldCriterion) );
+    mpHardeningLaw   = ParticleHardeningLaw::Pointer( new ExponentialStrainSofteningLaw() );
+    mpYieldCriterion = ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpMPMFlowRule    = ParticleFlowRule::Pointer( new MCStrainSofteningPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -43,7 +43,7 @@ HenckyMCStrainSofteningPlastic3DLaw::HenckyMCStrainSofteningPlastic3DLaw()
 HenckyMCStrainSofteningPlastic3DLaw::HenckyMCStrainSofteningPlastic3DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  ParticleYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 

@@ -121,7 +121,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         Matrix F = identity_matrix<double>(TDim);
         double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
         ConstitutiveParameters.SetStressVector(StressVectorDynamic);
         ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -354,8 +355,9 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixTyp
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
-    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     
     //Element variables
     InterfaceElementVariables Variables;
@@ -421,7 +423,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorTyp
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
-    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     
     //Element variables
     InterfaceElementVariables Variables;

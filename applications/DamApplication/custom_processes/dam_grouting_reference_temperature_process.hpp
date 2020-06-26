@@ -48,7 +48,11 @@ public:
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name"      : "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "initial_value"      : 0.0,
-                "time_grouting"      : 0.0
+                "time_grouting"      : 0.0,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )" );
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -87,7 +91,7 @@ public:
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
@@ -98,16 +102,11 @@ public:
             double time = mrModelPart.GetProcessInfo()[TIME];
             time = time / mTimeUnitConverter;
 
-            if (time == mTimeGrouting)
+            #pragma omp parallel for
+            for(int i = 0; i<nnodes; i++)
             {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    const double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
-                    it->FastGetSolutionStepValue(var) = current_temp;
-
-                }
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->FastGetSolutionStepValue(var) = mInitialValue;
             }
         }
 
@@ -117,12 +116,12 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep() override
+    void ExecuteFinalizeSolutionStep() override
     {
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 

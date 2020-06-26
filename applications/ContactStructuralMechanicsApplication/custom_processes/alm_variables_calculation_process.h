@@ -56,13 +56,23 @@ public:
     /// Pointer definition of ALMVariablesCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(ALMVariablesCalculationProcess);
 
-    // General type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Point                                        PointType;
-    typedef Geometry<NodeType>                           GeometryType;
-    typedef Geometry<PointType>                     GeometryPointType;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    /// Size type definition
+    typedef std::size_t SizeType;
+
+    /// Index type definition
+    typedef std::size_t IndexType;
+
+    /// Node type definition
+    typedef Node<3> NodeType;
+
+    /// Geometry type definition
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Nodes container definition
+    typedef ModelPart::NodesContainerType NodesArrayType;
+
+    /// Conditions container definition
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -78,21 +88,12 @@ public:
     {
         KRATOS_TRY
 
-        Parameters default_parameters = Parameters(R"(
-        {
-            "stiffness_factor"                     : 10.0,
-            "penalty_scale_factor"                 : 1.0
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
         mFactorStiffness = ThisParameters["stiffness_factor"].GetDouble();
         mPenaltyScale = ThisParameters["penalty_scale_factor"].GetDouble();
 
-        if (rThisModelPart.GetNodalSolutionStepVariablesList().Has( rNodalLengthVariable ) == false ) // TODO: Ask Riccardo if it is necessary to use GetNodalSolutionStepVariablesList (REQUIRES BUFFER!!!!)
-        {
-            KRATOS_ERROR << "Missing variable " << rNodalLengthVariable;
-        }
+        KRATOS_ERROR_IF_NOT(rThisModelPart.HasNodalSolutionStepVariable( rNodalLengthVariable )) << "Missing variable " << rNodalLengthVariable;
 
         KRATOS_CATCH("")
     }
@@ -131,6 +132,20 @@ public:
     ///@{
 
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "stiffness_factor"                     : 10.0,
+            "penalty_scale_factor"                 : 1.0
+        })" );
+
+        return default_parameters;
+    }
 
     ///@}
     ///@name Access

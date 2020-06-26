@@ -3,8 +3,6 @@
 
 
 // System includes
-#include "includes/define.h"
-#include "includes/element.h"
 #include "includes/variables.h"
 
 // External includes
@@ -129,7 +127,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Counted pointer of SurfaceBaseDiscreteElement
-    KRATOS_CLASS_POINTER_DEFINITION(SurfaceBaseDiscreteElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceBaseDiscreteElement);
     ///@}
     ///@name Life Cycle
     ///@{
@@ -192,7 +190,7 @@ protected:
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    );
+    ) override;
 
     /**
     * Calculation of the Material Stiffness Matrix. Km = B^T * D *B

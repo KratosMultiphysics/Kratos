@@ -8,8 +8,124 @@ import math
 
 class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         
-    def test_SurfaceLoadCondition3D4N(self):
-        dim = 2
+    def _SimplestSurfaceLoadCondition3D4N(self, prefix = ""):
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,1.0,0.0,0.0)
+        mp.CreateNewNode(3,1.0,1.0,0.0)
+        mp.CreateNewNode(4,0.0,1.0,0.0)
+
+        #ensure that the property 1 is created
+        mp.GetProperties()[1]
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        cond = mp.CreateNewCondition(prefix + "SurfaceLoadCondition3D4N", 1, [1,2,3,4], mp.GetProperties()[1])
+
+        #cond.Check()
+
+        lhs = KratosMultiphysics.Matrix(0,0)
+        rhs = KratosMultiphysics.Vector(0)
+
+        #first we apply a constant SURFACE_LOAD to theh condition
+        load_on_cond = KratosMultiphysics.Vector(3)
+        load_on_cond[0] =  0.0
+        load_on_cond[1] =  0.0
+        load_on_cond[2] = -1.0
+        cond.SetValue(StructuralMechanicsApplication.SURFACE_LOAD,load_on_cond)
+        cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
+
+        reference_res = [0,0,-0.25,0,0,-0.25,0,0,-0.25,0,0,-0.25]
+
+        for i in range(len(rhs)):
+            self.assertAlmostEqual(rhs[i],reference_res[i])
+
+    def _SimpleOrientationSurfaceLoadCondition3D4N(self, prefix = ""):
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+
+        #create nodes
+        mp.CreateNewNode(1,4.0,6.0,4.7)
+        mp.CreateNewNode(2,4.7,6.0,4.7)
+        mp.CreateNewNode(3,4.0,6.0,4.0)
+        mp.CreateNewNode(4,4.7,6.0,4.0)
+
+        #ensure that the property 1 is created
+        mp.GetProperties()[1]
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        cond = mp.CreateNewCondition(prefix + "SurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
+
+        #cond.Check()
+
+        lhs = KratosMultiphysics.Matrix(0,0)
+        rhs = KratosMultiphysics.Vector(0)
+
+        #first we apply a constant SURFACE_LOAD to theh condition
+        load_on_cond = KratosMultiphysics.Vector(3)
+        load_on_cond[0] =  0.0
+        load_on_cond[1] = -1.0
+        load_on_cond[2] =  0.0
+        cond.SetValue(StructuralMechanicsApplication.SURFACE_LOAD,load_on_cond)
+        cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
+
+        reference_res = [0,-0.1225,0,0,-0.1225,0,0,-0.1225,0,0,-0.1225,0]
+
+        for i in range(len(rhs)):
+            self.assertAlmostEqual(rhs[i],reference_res[i])
+
+    def _SimpleSurfaceLoadCondition3D4N(self, prefix = ""):
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,0.0,0.0)
+        mp.CreateNewNode(3,2.0,1.0,0.0)
+        mp.CreateNewNode(4,0.0,1.0,0.0)
+
+        #ensure that the property 1 is created
+        mp.GetProperties()[1]
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        cond = mp.CreateNewCondition(prefix + "SurfaceLoadCondition3D4N", 1, [1,2,3,4], mp.GetProperties()[1])
+
+        #cond.Check()
+
+        lhs = KratosMultiphysics.Matrix(0,0)
+        rhs = KratosMultiphysics.Vector(0)
+
+        #first we apply a constant SURFACE_LOAD to theh condition
+        load_on_cond = KratosMultiphysics.Vector(3)
+        load_on_cond[0] =  0.0
+        load_on_cond[1] =  0.0
+        load_on_cond[2] = -1.0
+        cond.SetValue(StructuralMechanicsApplication.SURFACE_LOAD,load_on_cond)
+        cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
+
+        reference_res = [0,0,-0.5,0,0,-0.5,0,0,-0.5,0,0,-0.5]
+
+        for i in range(len(rhs)):
+            self.assertAlmostEqual(rhs[i],reference_res[i])
+
+    def _SurfaceLoadCondition3D4N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -32,8 +148,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-
-        cond = mp.CreateNewCondition("SurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition(prefix + "SurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
 
         #cond.Check()
 
@@ -44,7 +159,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         load_on_cond = KratosMultiphysics.Vector(3)
         load_on_cond[0] = 1.0
         load_on_cond[1] = 2.0
-        load_on_cond[2] = 0.0 #note that this is a 2D condition
+        load_on_cond[2] = 0.0
         cond.SetValue(StructuralMechanicsApplication.SURFACE_LOAD,load_on_cond)
         cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
         self.assertAlmostEqual(rhs[0],0.25*lenght); self.assertAlmostEqual(rhs[1],0.5*1.0*lenght); self.assertAlmostEqual(rhs[2],0.0)
@@ -84,6 +199,30 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         reference_res = [-44.872685126136794,46.372685126136815,0.0,-44.87268512613681,46.3726851261368,0.0,-56.657798145912594,58.1577981459126,0.0,-56.65779814591261,58.157798145912615,0.0]
         for i in range(len(rhs)):
             self.assertAlmostEqual(rhs[i],reference_res[i])
+
+    def test_SDSimplestSurfaceLoadCondition3D4N(self):
+        self._SimplestSurfaceLoadCondition3D4N("SmallDisplacement")
+
+    def test_SimplestSurfaceLoadCondition3D4N(self):
+        self._SimplestSurfaceLoadCondition3D4N()
+
+    def test_SDSimpleOrientationSurfaceLoadCondition3D4N(self):
+        self._SimpleOrientationSurfaceLoadCondition3D4N("SmallDisplacement")
+
+    def test_SimpleOrientationSurfaceLoadCondition3D4N(self):
+        self._SimpleOrientationSurfaceLoadCondition3D4N()
+
+    def test_SDSimpleSurfaceLoadCondition3D4N(self):
+        self._SimpleSurfaceLoadCondition3D4N("SmallDisplacement")
+
+    def test_SimpleSurfaceLoadCondition3D4N(self):
+        self._SimpleSurfaceLoadCondition3D4N()
+
+    def test_SDSurfaceLoadCondition3D4N(self):
+        self._SurfaceLoadCondition3D4N("SmallDisplacement")
+
+    def test_SurfaceLoadCondition3D4N(self):
+        self._SurfaceLoadCondition3D4N()
 
 if __name__ == '__main__':
     KratosUnittest.main()

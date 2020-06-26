@@ -31,7 +31,7 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "element_finite_difference_utility.h"
+#include "finite_difference_utility.h"
 
 // ==============================================================================
 
@@ -92,7 +92,6 @@ public:
 		else
 			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
 
-		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 	}
 
 	/// Destructor.
@@ -118,7 +117,7 @@ public:
 	{
 		KRATOS_TRY;
 
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 		double strain_energy = 0.0;
 
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
@@ -159,7 +158,7 @@ public:
 		//                 + \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} - \frac{\partial K}{\partial x} )
 
 		// First gradients are initialized
-		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+		VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
 
 		// Gradient calculation
@@ -171,9 +170,6 @@ public:
 		CalculateResponseDerivativePartByFiniteDifferencing();
 		CalculateAdjointField();
 		CalculateStateDerivativePartByFiniteDifferencing();
-
-		if (mConsiderDiscretization)
-			this->ConsiderDiscretization();
 
 		KRATOS_CATCH("");
 	}
@@ -247,7 +243,7 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 		// Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
 		for (auto& elem_i : mrModelPart.Elements())
@@ -270,15 +266,15 @@ protected:
 				Vector derived_RHS = Vector(0);
 
 				// x-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
 
                 // y-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
 
                 // z-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
 
 				// Assemble sensitivity to node
@@ -351,7 +347,7 @@ protected:
 		KRATOS_TRY;
 
 		// Working variables
-		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 		// Computation of \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} )
 		for (auto& cond_i : mrModelPart.Conditions())
@@ -409,33 +405,6 @@ protected:
 		KRATOS_CATCH("");
 	}
 
-	// --------------------------------------------------------------------------
-  	virtual void ConsiderDiscretization()
-	{
-
-
-		// Start process to identify element neighbors for every node
-		FindNodalNeighboursProcess neigbhorFinder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
-		neigbhorFinder.Execute();
-
-		std::cout<< "> Considering discretization size!" << std::endl;
-		for(auto& node_i : mrModelPart.Nodes())
-		{
-			WeakPointerVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
-
-			double scaling_factor = 0.0;
-			for(std::size_t i = 0; i < ng_elem.size(); i++)
-			{
-				Kratos::Element& ng_elem_i = ng_elem[i];
-				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
-
-				scaling_factor += element_geometry.DomainSize();
-			}
-
-			node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
-		}
-	}
-
 	// ==============================================================================
 
 	///@}
@@ -462,7 +431,6 @@ private:
 
 	ModelPart &mrModelPart;
 	double mDelta;
-	bool mConsiderDiscretization;
 
 	///@}
 ///@name Private Operators

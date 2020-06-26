@@ -49,7 +49,7 @@ public:
     ///@{
 
     /// Counted pointer of SmallDisplacementBeamElement
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementBeamElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementBeamElement );
 
     ///@}
     ///@name Life Cycle

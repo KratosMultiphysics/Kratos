@@ -93,7 +93,7 @@ public:
             for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
             {
                 if (itDof->IsFree())
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
+                    itDof->GetSolutionStepValue() = TSparseSpace::GetValue(Dx, itDof->EquationId());
             }
         }
 

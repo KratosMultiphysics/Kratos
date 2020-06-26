@@ -59,7 +59,11 @@ class DamBofangConditionTemperatureProcess : public Process
                 "Water_level"                                      : 0.0,
                 "Water_level_Table"                                : 0,
                 "Month"                                            : 1.0,
-                "Month_Table"                                      : 0
+                "Month_Table"                                      : 0,
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -115,7 +119,7 @@ class DamBofangConditionTemperatureProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
 
@@ -160,7 +164,7 @@ class DamBofangConditionTemperatureProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         // Getting the values of table in case that it exist
         if (mTableIdWater != 0)
@@ -221,7 +225,7 @@ class DamBofangConditionTemperatureProcess : public Process
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
@@ -244,13 +248,13 @@ class DamBofangConditionTemperatureProcess : public Process
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "BofangConditionTemperatureProcess";
+        return "DamBofangConditionTemperatureProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "BofangConditionTemperatureProcess";
+        rOStream << "DamBofangConditionTemperatureProcess";
     }
 
     /// Print object's data.

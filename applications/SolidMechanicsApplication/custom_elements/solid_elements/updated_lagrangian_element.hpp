@@ -61,7 +61,7 @@ public:
     typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of UpdatedLagrangianElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianElement );
     ///@}
     ///@name Life Cycle
     ///@{
@@ -118,7 +118,7 @@ public:
     /**
      * Set a double  Value on the Element Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //GET:

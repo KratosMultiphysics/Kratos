@@ -1,12 +1,13 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![Release][release-image]][releases] [![License][license-image]][license] [![Master][kratos-master-status]][travis-branches] [![appveyor-image]][appveyor-master]
+[![Release][release-image]][releases] [![License][license-image]][license] [![Master][kratos-master-status]][travis-branches] [![appveyor-image]][appveyor-master] [![GitHub CI](https://github.com/KratosMultiphysics/Kratos/workflows/CI/badge.svg)](https://github.com/KratosMultiphysics/Kratos/actions?query=branch%3Amaster)
+
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
 **Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
-[release-image]: https://img.shields.io/badge/release-6.0-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-7.0-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -27,16 +28,16 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 **Kratos** provides a core which defines the common framework and several application which work like plug-ins that can be extended in diverse fields.
 
 Its main applications are:
-- [DEM](applications/DEM_application) for cohesive and non cohesive shperic and non spheric particles simultion
+- [DEM](applications/DEMApplication) for cohesive and non cohesive spheric and non spheric particles simultion
 - [Fluid Dynamics](applications/FluidDynamicsApplication/README.md) Provides 2D and 3D incompressible fluids formulation
-- [Fluid Structure Interaction](applications/FSIapplication/README.md) for solution of different FSI problems
+- [Fluid Structure Interaction](applications/FSIApplication/README.md) for solution of different FSI problems
 - [Structural Mechanics](applications/StructuralMechanicsApplication/README.md) Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
 - [Contact Structural Mechanics](applications/ContactStructuralMechanicsApplication/README.md) For contact problems used along the [Structural Mechanics application](applications/StructuralMechanicsApplication/README.md)
 
 Some main modules are:
 - [External Solvers](applications/ExternalSolversApplication/README.md)
-- [Trilinos](applications/trilinos_application/README.md)
-- [Metis](applications/metis_application/README.md)
+- [Trilinos](applications/TrilinosApplication/README.md)
+- [Metis](applications/MetisApplication/README.md)
 - [Meshing](applications/MeshingApplication/README.md)
 
 # Examples of use
@@ -49,7 +50,7 @@ Kratos has been used for simulation of many different problems in a wide variety
 <br>
 
 # Contributors
-Organizations contributing to Kratos: 
+Organizations contributing to Kratos:
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
 </br></br><p>International Center for Numerical Methods in Engineering</p>
@@ -58,6 +59,9 @@ Organizations contributing to Kratos:
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" width="128">
 </br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
+
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
+</br><p>Altair Engineering</p>
 
 # Our Users
 Some users of the technologies developed in Kratos are:
@@ -74,13 +78,8 @@ Some users of the technologies developed in Kratos are:
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" width="128">
 <p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
 </span>
-<span>
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
-</br><p>Altair Engineering</p>
-</span>
 
-
-Looking forward to seeing your logo here! 
+Looking forward to seeing your logo here!
 
 # Special Thanks To
 In Kratos Core:
@@ -88,9 +87,10 @@ In Kratos Core:
 - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
 - [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
+- [JSON](https://github.com/nlohmann/json) JSON for Modern C++
+- [filesystem](https://github.com/gulrak/filesystem) Header-only single-file std::filesystem compatible helper library, based on the C++17 specs
 - [ZLib](https://zlib.net/) The compression library
 
 In applications
 - [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in trilinos application
 - [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in metis application
-

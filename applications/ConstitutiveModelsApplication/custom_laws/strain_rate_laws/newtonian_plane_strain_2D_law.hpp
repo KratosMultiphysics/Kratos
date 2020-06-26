@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_NEWTONIAN_PLANE_STRAIN_2D_LAW_H_INCLUDED )
-#define  KRATOS_NEWTONIAN_PLANE_STRAIN_2D_LAW_H_INCLUDED
+#if !defined(KRATOS_NEWTONIAN_FLUID_PLANE_STRAIN_2D_LAW_H_INCLUDED )
+#define  KRATOS_NEWTONIAN_FLUID_PLANE_STRAIN_2D_LAW_H_INCLUDED
 
 // System includes
 
@@ -44,41 +44,41 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class NewtonianPlaneStrain2DLaw : public Newtonian3DLaw
+  class NewtonianFluidPlaneStrain2DLaw : public NewtonianFluid3DLaw
     {
     public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of NewtonianPlaneStrain2DLawg
-      KRATOS_CLASS_POINTER_DEFINITION(NewtonianPlaneStrain2DLaw);
+      /// Pointer definition of NewtonianFluidPlaneStrain2DLawg
+      KRATOS_CLASS_POINTER_DEFINITION(NewtonianFluidPlaneStrain2DLaw);
 
       ///@}
       ///@name Life Cycle
       ///@{
 
       /// Default constructor.
-      NewtonianPlaneStrain2DLaw() : Newtonian3DLaw() {}
+      NewtonianFluidPlaneStrain2DLaw() : NewtonianFluid3DLaw() {}
 
 
       /// Copy constructor.
-      NewtonianPlaneStrain2DLaw(const NewtonianPlaneStrain2DLaw& rOther) : Newtonian3DLaw(rOther) {}
+      NewtonianFluidPlaneStrain2DLaw(const NewtonianFluidPlaneStrain2DLaw& rOther) : NewtonianFluid3DLaw(rOther) {}
 
       /// Assignment operator.
-      NewtonianPlaneStrain2DLaw& operator=(NewtonianPlaneStrain2DLaw const& rOther)
+      NewtonianFluidPlaneStrain2DLaw& operator=(NewtonianFluidPlaneStrain2DLaw const& rOther)
       {
-	Newtonian3DLaw::operator=(rOther);
+	NewtonianFluid3DLaw::operator=(rOther);
 	return *this;
       }
 
       /// Clone.
       ConstitutiveLaw::Pointer Clone() const override
       {
-        return Kratos::make_shared<NewtonianPlaneStrain2DLaw>(*this);
+        return Kratos::make_shared<NewtonianFluidPlaneStrain2DLaw>(*this);
       }
 
       /// Destructor.
-      ~NewtonianPlaneStrain2DLaw() override{}
+      ~NewtonianFluidPlaneStrain2DLaw() override{}
 
 
       ///@}
@@ -136,12 +136,12 @@ namespace Kratos
       std::string Info() const override
       {
 	std::stringstream buffer;
-        buffer << "NewtonianPlaneStrain2DLaw" ;
+        buffer << "NewtonianFluidPlaneStrain2DLaw" ;
         return buffer.str();
       }
 
       /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream) const override {rOStream << "NewtonianPlaneStrain2DLaw";}
+      void PrintInfo(std::ostream& rOStream) const override {rOStream << "NewtonianFluidPlaneStrain2DLaw";}
 
       /// Print object's data.
       void PrintData(std::ostream& rOStream) const override {}
@@ -289,12 +289,12 @@ namespace Kratos
 
       void save(Serializer& rSerializer) const override
       {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Newtonian3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NewtonianFluid3DLaw )
       }
 
       void load(Serializer& rSerializer) override
       {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Newtonian3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NewtonianFluid3DLaw )
       }
 
 
@@ -304,7 +304,7 @@ namespace Kratos
 
       ///@}
 
-    }; // Class NewtonianPlaneStrain2DLaw
+    }; // Class NewtonianFluidPlaneStrain2DLaw
 
   ///@}
 
@@ -323,4 +323,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NEWTONIAN_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined
+#endif // KRATOS_NEWTONIAN_FLUID_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined

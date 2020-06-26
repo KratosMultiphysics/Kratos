@@ -16,9 +16,8 @@
 
 // Project includes
 #include "custom_elements/isotropic_shell_element.hpp"
-// #include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -42,7 +41,7 @@ IsotropicShellElement::IsotropicShellElement(IndexType NewId, GeometryType::Poin
 
 Element::Pointer IsotropicShellElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //************************************************************************************
@@ -50,7 +49,7 @@ Element::Pointer IsotropicShellElement::Create(IndexType NewId, NodesArrayType c
 
 Element::Pointer IsotropicShellElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< IsotropicShellElement >(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive< IsotropicShellElement >(NewId, pGeom, pProperties);
 }
 
 IsotropicShellElement::~IsotropicShellElement()
@@ -701,7 +700,7 @@ void IsotropicShellElement::CalculateAllMatrices(
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = 3;
     if(rResult.size() != 18)
@@ -723,7 +722,7 @@ void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, Proc
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
     ElementalDofList.reserve(18);
@@ -742,7 +741,7 @@ void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList,ProcessI
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetValuesVector(Vector& values, int Step)
+void IsotropicShellElement::GetValuesVector(Vector& values, int Step) const
 {
     const unsigned int number_of_nodes = 3;
     //const unsigned int dim = 3;
@@ -938,17 +937,6 @@ void IsotropicShellElement::NicePrint(const Matrix& A)
         std::cout << std::endl;
     }
 }
-
-
-//************************************************************************************
-//************************************************************************************
-void IsotropicShellElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
 
 
 //************************************************************************************
@@ -1549,7 +1537,7 @@ void IsotropicShellElement::CalculateProjectionOperator(
     rho(14,0) = 1.0/y31;
 
     //completing the calculation of the projections
-    noalias(rProjOperator) = IdentityMatrix(18,18);
+    noalias(rProjOperator) = IdentityMatrix(18);
     //noalias(rProjOperator) -= prod(trans(psi),rho);
     noalias(rProjOperator) -= prod(psi,trans(rho));
 
@@ -1621,7 +1609,7 @@ void IsotropicShellElement::UpdateNodalReferenceSystem(
 
         double temp = 1.0/(1.0 + 0.25*omega_scalar_2);
 
-        noalias(Ttilde) = IdentityMatrix(3,3);
+        noalias(Ttilde) = IdentityMatrix(3);
         noalias(Ttilde) += temp * Omega;
         noalias(Ttilde) += 0.5*temp * prod( Omega, Omega);
 
@@ -1656,9 +1644,9 @@ void IsotropicShellElement::SaveOriginalReference(
     }
 
     //initializing nodal triad matrices
-    noalias(mTs[0]) = IdentityMatrix(3,3);
-    noalias(mTs[1]) = IdentityMatrix(3,3);
-    noalias(mTs[2]) = IdentityMatrix(3,3);
+    noalias(mTs[0]) = IdentityMatrix(3);
+    noalias(mTs[1]) = IdentityMatrix(3);
+    noalias(mTs[2]) = IdentityMatrix(3);
 
 
     KRATOS_CATCH( "" )
@@ -1698,11 +1686,11 @@ void IsotropicShellElement::CalculatePureDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //extract pure rotations from Omega
@@ -1765,11 +1753,11 @@ void IsotropicShellElement::CalculatePureMembraneDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config
@@ -1828,11 +1816,11 @@ void IsotropicShellElement::CalculatePureBendingDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config
@@ -1865,7 +1853,7 @@ void IsotropicShellElement::InvertMatrix(const BoundedMatrix<double,3,3>& InputM
 {
     KRATOS_TRY
     if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)
-        InvertedMatrix.resize(3,3);
+        InvertedMatrix.resize(3,3, false);
 
     //filling the inverted matrix with the algebraic complements
     //first column
@@ -1943,7 +1931,7 @@ void IsotropicShellElement::SetupOrientationAngles()
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::Initialize()
+void IsotropicShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //calculate local coordinates and rotation matrix
@@ -2017,9 +2005,9 @@ void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 
     CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,area);
 
-    double h = GetProperties()[THICKNESS];
-    double density = GetProperties()[DENSITY];
-    double node_mass = area * density * h / 3.00;
+    const double h = GetProperties()[THICKNESS];
+    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    const double node_mass = area * density * h / 3.00;
 
     //lumped
     unsigned int MatSize = 18;
@@ -2045,7 +2033,7 @@ void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step)
+void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize)   values.resize(MatSize,false);
@@ -2062,7 +2050,7 @@ void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step)
 }
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step)
+void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize) values.resize(MatSize,false);
@@ -2088,7 +2076,7 @@ void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step)
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

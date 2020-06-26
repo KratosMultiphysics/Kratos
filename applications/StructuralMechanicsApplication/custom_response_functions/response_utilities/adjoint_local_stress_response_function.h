@@ -55,6 +55,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Element::DofsVectorType DofsVectorType;
+    typedef Variable<double>* Array1DComponentsPointerType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of AdjointLocalStressResponseFunction
@@ -78,11 +81,41 @@ public:
     ///@name Operations
     ///@{
 
+    void FinalizeSolutionStep() override;
+
+    using AdjointStructuralResponseFunction::CalculateGradient;
+
+    void CalculateGradient(const Element& rAdjointElement,
+                                   const Matrix& rResidualGradient,
+                                   Vector& rResponseGradient,
+                                   const ProcessInfo& rProcessInfo) override;
+
+    void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override;
+
+    void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override;
+
+    void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override;
+
+    void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override;
+
     double CalculateValue(ModelPart& rModelPart) override;
 
-    void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
-                                Vector& rResponseGradient,
-                                ProcessInfo& rProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -118,32 +151,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
-    void CalculateSensitivityGradient(Element& rAdjointElem,
-                                      const Variable<double>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override;
-
-    void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                     const Variable<double>& rVariable,
-                                     const Matrix& rDerivativesMatrix,
-                                     Vector& rResponseGradient,
-                                     ProcessInfo& rProcessInfo) override;
-
-    void CalculateSensitivityGradient(Element& rAdjointElem,
-                                      const Variable<array_1d<double,3>>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override;
-
-    void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                      const Variable<array_1d<double,3>>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override;
-
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -170,6 +177,7 @@ private:
     Element::Pointer mpTracedElement;
     StressTreatment mStressTreatment;
     TracedStressType mTracedStressType;
+    bool mAddParticularSolution = false;
 
 
     ///@}
@@ -186,17 +194,29 @@ private:
 
     double CalculateNodeStress(ModelPart& rModelPart);
 
-    void CalculateElementContributionToSensitivityGradient(Element& rAdjointElem,
+    void CalculateElementContributionToPartialSensitivity(Element& rAdjointElement,
                                       const std::string& rVariableName,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo);
+                                      const Matrix& rSensitivityMatrix,
+                                      Vector& rSensitivityGradient,
+                                      const ProcessInfo& rProcessInfo);
 
     void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 
     void ExtractNodeStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 
     void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
+
+    void CalculateParticularSolution() const;
+
+    void CalculateParticularSolutionLinearElement2N(Vector& rResult) const;
+
+    void CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
+
+    void CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
+
+    void CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
+
+    void FindVariableComponent(Array1DComponentsPointerType& rTracedDof) const;
 
     ///@}
     ///@name Private  Access

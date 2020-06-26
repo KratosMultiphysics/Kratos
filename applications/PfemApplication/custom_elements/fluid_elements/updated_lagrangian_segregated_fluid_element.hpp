@@ -59,8 +59,10 @@ public:
   ///Type for size
   typedef GeometryData::SizeType SizeType;
 
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+
   /// Counted pointer of UpdatedLagrangianSegregatedFluidElement
-  KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianSegregatedFluidElement );
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianSegregatedFluidElement );
   ///@}
 
   enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};
@@ -280,6 +282,18 @@ protected:
   void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                           ElementDataType& rVariables) override;
 
+
+  /**
+   * Calculation and addition of the matrices of the LHS
+   */
+  void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
+                                 ElementDataType& rVariables) override;
+
+  /**
+   * Calculation and addition of the vectors of the RHS
+   */
+  void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
+                                 ElementDataType& rVariables) override;
 
   /**
    * Get element size from the dofs

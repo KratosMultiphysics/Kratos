@@ -13,7 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_H_INCLUDED )
+#if !defined(KRATOS_MAPPER_H_INCLUDED)
 #define  KRATOS_MAPPER_H_INCLUDED
 
 // System includes
@@ -22,53 +22,23 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_utilities/mapper_communicator.h"
-#include "custom_utilities/mapper_utilities.h"
-#include "custom_utilities/mapper_flags.h"
-
-// For MPI-parallel Mapper
-#ifdef KRATOS_USING_MPI
-#include "mpi.h"
-#include "custom_utilities/mapper_mpi_communicator.h"
-#endif
+#include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
+#include "containers/flags.h"
 
 
 namespace Kratos
 {
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
 
 ///@}
 ///@name Kratos Classes
 ///@{
 
 /// Base Class for all Mappers
-/** This is the base class for every mapper.
-* It contains the three pure virtual functions that have to be implemented by every mapper:
-* - Map: Basic function that maps a field from one ModelPart to another Modelpart
-*        Mapping Direction: Origin => Destionation
-* - InverseMap: This function does the opposite of the "Map" function
-*               Mapping Direction: Destination => Origin
-* - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and 
-*   other information related to the relations btw entities (node, elements,...) on the interfaces
-* It is also responsible for initializing the MapperCommunicator or the MapperMPICommuniator
-* For information abt the available echo_levels and the JSON default-parameters
-* look into the class description of the MapperCommunicator
+/** This is the base class for every mapper. This is the equivalent to a Kratos-SolvingStrategy.
+ * It provides the basic interface for the mapping operations
 */
-
+template<class TSparseSpace, class TDenseSpace>
 class Mapper
 {
 public:
@@ -80,19 +50,19 @@ public:
     /// Pointer definition of Mapper
     KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
+    typedef Kratos::unique_ptr<Mapper> MapperUniquePointerType;
+
+    typedef typename TSparseSpace::MatrixType TMappingMatrixType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination) :
-        mModelPartOrigin(rModelPartOrigin),
-        mModelPartDestination(rModelPartDestination),
-        mJsonParameters(Parameters(R"({})")) {}
+    /// Constructor.
+    Mapper() = default;
 
     /// Destructor.
-    virtual ~Mapper()
-    {
-    }
+    virtual ~Mapper() = default;
 
     ///@}
     ///@name Operators
@@ -102,44 +72,91 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) = 0;
+    /**
+    * @brief Updates the mapping-system after the geometry/mesh has changed
+    * After changes in the topology (e.g. remeshing or sliding interfaces)
+    * the relations for the mapping have to be recomputed. This means that
+    * the search has to be conducted again and the mapping-system has to be
+    * rebuilt, hence this is expensive
+    * @param MappingOptions flags used to specify how the update has to be done
+    * @param SearchRadius search radius used for the search
+    */
+    virtual void UpdateInterface(
+        Kratos::Flags MappingOptions,
+        double SearchRadius) = 0;
 
-    /* This function maps from Origin to Destination */
-    virtual void Map(const Variable<double>& rOriginVariable,
-                     const Variable<double>& rDestinationVariable,
-                     Kratos::Flags MappingOptions) = 0;
+    /**
+    * @brief Mapping from Origin to Destination, Scalar Variable
+    * Data is exchanged on the Interface, from the Origin-Modelpart
+    * to the Destination-ModelPart (the modelparts were specified in the
+    * construction Phase of the Mapper)
+    * @param rOriginVariable Variable on the Origin-ModelPart
+    * @param rDestinationVariable Variable on the Destination-ModelPart
+    * @param MappingOptions flags used to specify options for the mapping
+    * @see InverseMap
+    */
+    virtual void Map(
+        const Variable<double>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        Kratos::Flags MappingOptions) = 0;
 
-    /* This function maps from Origin to Destination */
-    virtual void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
-                     const Variable< array_1d<double, 3> >& rDestinationVariable,
-                     Kratos::Flags MappingOptions) = 0;
+    /**
+    * @brief Mapping from Origin to Destination, Vector Variable
+    * Same as Map, but maps an array3-variable
+    * @see Map
+    */
+    virtual void Map(
+        const Variable< array_1d<double, 3> >& rOriginVariable,
+        const Variable< array_1d<double, 3> >& rDestinationVariable,
+        Kratos::Flags MappingOptions) = 0;
 
-    /* This function maps from Destination to Origin */
-    virtual void InverseMap(const Variable<double>& rOriginVariable,
-                            const Variable<double>& rDestinationVariable,
-                            Kratos::Flags MappingOptions) = 0;
+    /**
+    * @brief Mapping from Destination to Origin, Scalar Variable
+    * Data is exchanged on the Interface, from the Destination-Modelpart
+    * to the Origin-ModelPart (the modelparts were specified in the
+    * construction Phase of the Mapper)
+    * It does the opposite of Map
+    * @param rOriginVariable Variable on the Origin-ModelPart
+    * @param rDestinationVariable Variable on the Destination-ModelPart
+    * @param MappingOptions flags used to specify options for the mapping
+    * @see Map
+    */
+    virtual void InverseMap(
+        const Variable<double>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        Kratos::Flags MappingOptions) = 0;
 
-    /* This function maps from Destination to Origin */
-    virtual void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
-                            const Variable< array_1d<double, 3> >& rDestinationVariable,
-                            Kratos::Flags MappingOptions) = 0;
+    /**
+    * @brief Mapping from Destination to Origin, Vector Variable
+    * Same as InveseMap, but maps an array3-variable
+    * @see InverseMap
+    */
+    virtual void InverseMap(
+        const Variable< array_1d<double, 3> >& rOriginVariable,
+        const Variable< array_1d<double, 3> >& rDestinationVariable,
+        Kratos::Flags MappingOptions) = 0;
 
-    virtual Mapper::Pointer Clone(ModelPart& rModelPartOrigin, 
-                                  ModelPart& rModelPartDestination,
-                                  Parameters JsonParameters) = 0;
-
-    MapperCommunicator::Pointer pGetMapperCommunicator()
-    {
-        return mpMapperCommunicator;
-    }
+    /**
+    * @brief Cloning the Mapper
+    * returns a clone of the current Mapper
+    * pure virtual, has to be implemented in every derived mapper,
+    * used in the creation of the Mappers
+    * @see MapperFactory
+    */
+    virtual MapperUniquePointerType Clone(
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        Parameters JsonParameters) const = 0;
 
     ///@}
     ///@name Access
     ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+    /**
+     * @brief This method returns the mapping-matrix
+     * @return The mapping-matrix
+     */
+    virtual TMappingMatrixType* pGetMappingMatrix() = 0;
 
     ///@}
     ///@name Input and output
@@ -160,174 +177,27 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-    }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    ModelPart& mModelPartOrigin;
-    ModelPart& mModelPartDestination;
-
-    Parameters mJsonParameters;
-
-    MapperCommunicator::Pointer mpMapperCommunicator;
-
-    // global, aka of the entire submodel-parts
-    int mNumConditionsOrigin;
-    int mNumConditionsDestination;
-
-    int mNumNodesOrigin;
-    int mNumNodesDestination;
-
-    int mEchoLevel = 0;
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    // Constructor, can only be called by derived classes (actual mappers)
-    Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-           Parameters JsonParameters) :
-        mModelPartOrigin(rModelPartOrigin),
-        mModelPartDestination(rModelPartDestination),
-        mJsonParameters(JsonParameters)
-    {
-        ComputeNumberOfNodesAndConditions();
-
-        // Create the mapper communicator
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        int mpi_initialized;
-        MPI_Initialized(&mpi_initialized);
-        if (mpi_initialized)   // parallel execution, i.e. mpi imported in python
-        {
-            int comm_size;
-            MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-            if (comm_size > 1)
-            {
-                mpMapperCommunicator = MapperCommunicator::Pointer (
-                                           new MapperMPICommunicator(mModelPartOrigin,
-                                                   mModelPartDestination,
-                                                   mJsonParameters) );
-            }
-            else     // mpi importet in python, but execution with one process only
-            {
-                InitializeSerialCommunicator();
-            }
-        }
-        else     // serial execution, i.e. mpi NOT imported in python
-        {
-            InitializeSerialCommunicator();
-        }
-
-#else // serial compilation
-        InitializeSerialCommunicator();
-#endif
-        // Access the Parameters only after the communicator is constructed,
-        // bcs they are checked and validated there!
-        mEchoLevel = JsonParameters["echo_level"].GetInt();
-    }
-
-    void ComputeNumberOfNodesAndConditions()
-    {
-        // Compute the quantities of the local model_parts
-        mNumConditionsOrigin = mModelPartOrigin.GetCommunicator().LocalMesh().NumberOfConditions();
-        mNumConditionsDestination = mModelPartDestination.GetCommunicator().LocalMesh().NumberOfConditions();
-
-        mNumNodesOrigin = mModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
-        mNumNodesDestination = mModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
-
-        // Compute the quantities of the global model_parts
-        mModelPartOrigin.GetCommunicator().SumAll(mNumConditionsOrigin);
-        mModelPartDestination.GetCommunicator().SumAll(mNumConditionsDestination);
-
-        mModelPartOrigin.GetCommunicator().SumAll(mNumNodesOrigin);
-        mModelPartDestination.GetCommunicator().SumAll(mNumNodesDestination);
-    }
-
-    void ProcessMappingOptions(const Kratos::Flags& rMappingOptions,
-                               double& Factor)
-    {
-        if (rMappingOptions.Is(MapperFlags::SWAP_SIGN))
-        {
-            Factor *= (-1);
+        rOStream << "Mapper working in: ";
+        if (TSparseSpace::IsDistributed()){
+            rOStream << "MPI";
+        } else {
+            rOStream << "OpenMP";
         }
     }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    void InitializeSerialCommunicator()
-    {
-        mpMapperCommunicator = MapperCommunicator::Pointer (
-                                   new MapperCommunicator(mModelPartOrigin,
-                                           mModelPartDestination,
-                                           mJsonParameters) );
-    }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    Mapper& operator=(Mapper const& rOther);
-
-    /// Copy constructor.
-    //Mapper(Mapper const& rOther);
-
-    ///@}
 
 }; // Class Mapper
+
+/// output stream function
+template<class TSparseSpace, class TDenseSpace>
+inline std::ostream & operator << (
+    std::ostream& rOStream,
+    const Mapper<TSparseSpace, TDenseSpace>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << ":" << std::endl;
+    rThis.PrintData(rOStream);
+    return rOStream;
+}
 
 }  // namespace Kratos.
 

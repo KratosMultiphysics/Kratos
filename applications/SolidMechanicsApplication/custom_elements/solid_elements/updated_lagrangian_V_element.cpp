@@ -76,7 +76,7 @@ UpdatedLagrangianVElement&  UpdatedLagrangianVElement::operator=(UpdatedLagrangi
 
 Element::Pointer UpdatedLagrangianVElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< UpdatedLagrangianVElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< UpdatedLagrangianVElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -122,7 +122,7 @@ Element::Pointer UpdatedLagrangianVElement::Clone( IndexType NewId, NodesArrayTy
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< UpdatedLagrangianVElement >(NewElement);
+    return Kratos::make_intrusive< UpdatedLagrangianVElement >(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -136,7 +136,7 @@ UpdatedLagrangianVElement::~UpdatedLagrangianVElement()
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void UpdatedLagrangianVElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void UpdatedLagrangianVElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -156,7 +156,7 @@ void UpdatedLagrangianVElement::SetValueOnIntegrationPoints( const Variable<doub
   }
   else{
 
-    LargeDisplacementVElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementVElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -231,7 +231,7 @@ void UpdatedLagrangianVElement::InitializeElementData (ElementDataType& rVariabl
     LargeDisplacementVElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //set variables including all integration points values
 

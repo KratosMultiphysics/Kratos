@@ -1,7 +1,4 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class FluidAnalysisWithoutSolution(FluidDynamicsAnalysis):
     """A fluid dynamics analyis variant that skips calls to solver.Predict() and solver.SolveSolutionStep().

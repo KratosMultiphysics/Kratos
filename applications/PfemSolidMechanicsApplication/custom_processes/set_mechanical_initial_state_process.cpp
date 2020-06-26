@@ -134,6 +134,7 @@ namespace Kratos
       if( EchoLevel > 0 )
          std::cout << "    number of meshes: " << NumberOfMeshes << " meshes" << std::endl;
 
+      std::cout << " nEl " << rModelPart.NumberOfElements() << std::endl;
 
       if ( rModelPart.NumberOfElements() ) {
 	ModelPart::ElementsContainerType::const_iterator FirstElement = rModelPart.ElementsBegin();
@@ -165,9 +166,18 @@ namespace Kratos
 
       ProcessInfo SomeProcessInfo;
 
+      ModelPart::ElementsContainerType::const_iterator  pFirstElement = rModelPart.ElementsBegin();
+      Element::GeometryType& rGeom = pFirstElement->GetGeometry();
+      GeometryData::IntegrationMethod MyIntegrationMethod = pFirstElement->GetIntegrationMethod();
+      const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
+      unsigned int numberOfGP = IntegrationPoints.size();
+      for (unsigned int i = 0; i < numberOfGP; i++)
+         StressVector.push_back(ThisVector);
+
+
       for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement != rModelPart.ElementsEnd() ; pElement++)
       {
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo); 
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo); 
       }
       // AND NOW SET THE WATER PRESSURE
 
@@ -245,7 +255,8 @@ namespace Kratos
       VerticalStress = rS1 - Pressure;
       HorizontalStress = rS2 - Pressure;
 
-      unsigned int Properties = 1;
+      unsigned int Properties = rModelPart.NumberOfProperties();
+      Properties -= 1;
       const double Young = rModelPart.GetProperties(Properties)[ YOUNG_MODULUS ];
       const double Poisson = rModelPart.GetProperties(Properties)[ POISSON_RATIO ];
 
@@ -275,7 +286,7 @@ namespace Kratos
       for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement != rModelPart.ElementsEnd(); pElement++)
       {
          //pElement->SetInitialMechanicalState( StressVector );  // to be ...
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
       }
 
    }
@@ -285,7 +296,8 @@ namespace Kratos
    void SetMechanicalInitialStateProcess::SetMechanicalStateUP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
 
-      unsigned int Properties = 1;
+      unsigned int Properties = rModelPart.NumberOfProperties();
+      Properties -= 1;
       double Density = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
       const double Young = rModelPart.GetProperties(Properties)[ YOUNG_MODULUS ];
@@ -360,7 +372,7 @@ namespace Kratos
             StressVector.push_back(ThisVector);
          }
 
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
       }
 
 
@@ -368,7 +380,8 @@ namespace Kratos
 
    void SetMechanicalInitialStateProcess::SetMechanicalStateU( ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
-      unsigned int Properties = 1;
+      unsigned int Properties = rModelPart.NumberOfProperties();
+      Properties -= 1;
       double MixtureDensity = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
 
@@ -404,7 +417,7 @@ namespace Kratos
             StressVector.push_back(ThisVector);
          }
          //pElement->SetInitialMechanicalState( StressVector ); to be ...
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
       }
 
       // THE PART TO PUT THE PRESSURE FOR THE NEW ELEMENTS.
@@ -433,7 +446,8 @@ namespace Kratos
    void SetMechanicalInitialStateProcess::SetMechanicalStateUwP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
 
-      unsigned int Properties = 1;
+      unsigned int Properties = rModelPart.NumberOfProperties();
+      Properties -= 1;
       const double WaterDensity = rModelPart.GetProperties(Properties)[ DENSITY_WATER ];
       double MixtureDensity = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
@@ -503,7 +517,7 @@ namespace Kratos
             ThisVector(2) = HorizontalStress;
             StressVector.push_back(ThisVector);
          }
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
       }
 
 

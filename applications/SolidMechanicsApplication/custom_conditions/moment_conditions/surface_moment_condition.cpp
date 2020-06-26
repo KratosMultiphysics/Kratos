@@ -45,7 +45,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer SurfaceMomentCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<SurfaceMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SurfaceMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -58,7 +58,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared<SurfaceMomentCondition>(NewCondition);
+    return Kratos::make_intrusive<SurfaceMomentCondition>(NewCondition);
   }
 
 
@@ -82,13 +82,13 @@ namespace Kratos
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
     //Calculate Delta Position
-    //rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    //ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     //rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
     //Calculate Total Delta Position
-    rVariables.DeltaPosition = this->CalculateTotalDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateTotalDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_0/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );

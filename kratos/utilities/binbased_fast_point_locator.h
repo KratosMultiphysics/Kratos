@@ -27,7 +27,6 @@
 #include "includes/node.h"
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 
@@ -107,7 +106,7 @@ public:
      * @brief This is the default constructor
      * @param rModelPart The model part of the mesh used in the search
      */
-    BinBasedFastPointLocator(ModelPart& rModelPart)
+    explicit BinBasedFastPointLocator(ModelPart& rModelPart)
         : mrModelPart(rModelPart)
     {
     }
@@ -186,7 +185,7 @@ public:
         )
     {
         // Ask to the container for the list of candidate entities
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
@@ -235,12 +234,12 @@ public:
         )
     {
         // Ask to the container for the list of candidate entities
-        const int results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
+        const int results_found = mpBinsObjectDynamic->SearchObjectsInCell(typename BinsObjectDynamic<ConfigureType>::PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
             for (IndexType i = 0; i < static_cast<IndexType>(results_found); i++) {
-              
+
                 GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
 
                 // Find local position
@@ -353,26 +352,26 @@ private:
      * @param The corresponding element array
      */
     static inline void GetContainer(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         PointerVectorSet<Element, IndexedObject>::ContainerType& rContainerArray
         )
     {
         rContainerArray = rModelPart.ElementsArray();
     }
-    
+
     /**
      * @brief This operation is defined to the the corresponding container type
      * @param rModelPart The model part to get the condition container
      * @param The corresponding condition array
      */
     static inline void GetContainer(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         PointerVectorSet<Condition, IndexedObject>::ContainerType& rContainerArray
         )
     {
         rContainerArray = rModelPart.ConditionsArray();
     }
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -390,9 +389,7 @@ private:
     ///@{
     ///@}
 };
-    
+
 } // namespace Kratos.
 
 #endif // KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED  defined
-
-

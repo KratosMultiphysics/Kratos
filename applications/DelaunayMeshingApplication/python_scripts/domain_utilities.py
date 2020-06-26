@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
-KratosMultiphysics.CheckForPreviousImport()
 
 class DomainUtilities(object):
 
@@ -28,6 +27,9 @@ class DomainUtilities(object):
 
             # set the domain labels to conditions
             mesher_utils.SetModelPartNameToConditions(model_part)
+
+            # set the domain labels to elements
+            mesher_utils.SetModelPartNameToElements(model_part)
 
             # find skin and boundary normals
             if( model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
@@ -157,17 +159,17 @@ class DomainUtilities(object):
 
             print("::[--Domain Utilities-]:: Add boundary nodes to fluid domains ")
 
-            try:
-                import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-            except:
-                raise Exception("SolidMechanicsApplication not imported and needed in this operation")
-
-            transfer_flags = [KratosMultiphysics.BOUNDARY,KratosMultiphysics.NOT_FLUID]
+            transfer_flags = [KratosMultiphysics.BOUNDARY, (KratosMultiphysics.FLUID).AsFalse()]
             entity_type = "Nodes"
             for fluid_part in model_part.SubModelParts:
                 if (fluid_part.IsNot(KratosMultiphysics.ACTIVE) and fluid_part.Is(KratosMultiphysics.FLUID)):
                     for part in model_part.SubModelParts:
                         if part.IsNot(KratosMultiphysics.ACTIVE):
                             if( part.Is(KratosMultiphysics.SOLID) or part.Is(KratosMultiphysics.RIGID) ):
-                                transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags)
+                                transfer_process = KratosDelaunay.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags)
                                 transfer_process.Execute()
+    #
+    @classmethod
+    def GetVariables(self):
+        nodal_variables = ['NORMAL', 'NODAL_H', 'SHRINK_FACTOR']
+        return nodal_variables

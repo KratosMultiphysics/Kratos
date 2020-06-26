@@ -194,6 +194,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Proce
     ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
     ConstitutiveParameters.SetDeterminantF(detF);
     ConstitutiveParameters.SetDeformationGradientF(F);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     // Auxiliar output variables
     unsigned int NumGPoints = mConstitutiveLawVector.size();
@@ -369,7 +371,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
             GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -400,7 +402,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
         }
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -409,7 +411,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -435,7 +437,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
         this->CalculateOnIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -444,7 +446,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -470,7 +472,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
         this->CalculateOnIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -482,7 +484,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -594,6 +596,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
         ConstitutiveParameters.SetStressVector(StressVectorDynamic);
         ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -996,6 +999,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& r
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     InterfaceElementVariables Variables;
@@ -1063,6 +1067,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType& r
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     InterfaceElementVariables Variables;

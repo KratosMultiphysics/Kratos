@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: janosch $
-//   Date:                $Date: 2008-07-23 14:47:45 $
-//   Revision:            $Revision: 1.3 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
@@ -11,7 +15,6 @@
 #if defined(KRATOS_PYTHON)
 // External includes
 #include <pybind11/pybind11.h>
-
 
 // Project includes
 #include "includes/define.h"

@@ -31,7 +31,6 @@
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
-
 namespace Kratos
 {
 
@@ -106,6 +105,8 @@ public:
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > ResidualBasedEliminationBuilderAndSolverType;
+
     typedef typename BaseType::TSchemeType TSchemeType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -130,16 +131,42 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ResidualBasedEliminationBuilderAndSolverSlip(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"        : "ResidualBasedEliminationBuilderAndSolverSlip",
+            "domain_size" : 3,
+            "variable_x"  : "VELOCITY_X",
+            "variable_y"  : "VELOCITY_Y",
+            "variable_z"  : "VELOCITY_Z"
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mdim = ThisParameters["domain_size"].GetInt();
+        mrVar_x = KratosComponents<TVariableType>::Get(ThisParameters["variable_x"].GetString());
+        mrVar_y = KratosComponents<TVariableType>::Get(ThisParameters["variable_y"].GetString());
+        mrVar_z = KratosComponents<TVariableType>::Get(ThisParameters["variable_z"].GetString());
+    }
+
+    /**
+     * @brief Default constructor.
      */
     ResidualBasedEliminationBuilderAndSolverSlip(
         typename TLinearSolver::Pointer pNewLinearSystemSolver, unsigned int dim, TVariableType const& Var_x, TVariableType const& Var_y, TVariableType const& Var_z)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
+        : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
         , mdim(dim), mrVar_x(Var_x), mrVar_y(Var_y), mrVar_z(Var_z)
     {
 
@@ -246,12 +273,12 @@ public:
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
-            //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            //const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
-            WeakPointerVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + nodes_partition[k];
-            WeakPointerVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + nodes_partition[k + 1];
+            GlobalPointersVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + nodes_partition[k];
+            GlobalPointersVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + nodes_partition[k + 1];
 
-            for (WeakPointerVector< Node < 3 > >::iterator it = it_begin;
+            for (GlobalPointersVector< Node < 3 > >::iterator it = it_begin;
                     it != it_end; it++)
             {
                 // 				  KRATOS_WATCH(it->GetValue(IS_STRUCTURE));
@@ -303,7 +330,7 @@ public:
 
                     }
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
@@ -360,7 +387,7 @@ public:
         BaseType::mDofSet.clear();
         BaseType::mDofSet.reserve(mActiveNodes.size());
 
-        for (WeakPointerVector< Node < 3 > >::iterator iii = mActiveNodes.begin(); iii != mActiveNodes.end(); iii++)
+        for (GlobalPointersVector< Node < 3 > >::iterator iii = mActiveNodes.begin(); iii != mActiveNodes.end(); iii++)
         {
             BaseType::mDofSet.push_back(iii->pGetDof(mrVar_x).get());
             BaseType::mDofSet.push_back(iii->pGetDof(mrVar_y).get());
@@ -453,13 +480,14 @@ public:
                 ParallelConstructGraph(A);
             }
         }
-        if (Dx.size() != BaseType::mEquationSystemSize)
+        if (Dx.size() != BaseType::mEquationSystemSize) {
             Dx.resize(BaseType::mEquationSystemSize, false);
-        if (b.size() != BaseType::mEquationSystemSize)
+        }
+        TSparseSpace::SetToZero(Dx);
+        if (b.size() != BaseType::mEquationSystemSize) {
             b.resize(BaseType::mEquationSystemSize, false);
-
-        //
-        // KRATOS_WATCH("builder 459")
+        }
+        TSparseSpace::SetToZero(b);
 
 
         //if needed resize the vector for the calculation of reactions
@@ -578,10 +606,10 @@ protected:
         #pragma omp parallel for firstprivate(number_of_threads,pos_x,pos_y,pos_z) schedule(static,1)
         for (int k = 0; k < number_of_threads; k++)
         {
-            WeakPointerVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + partition[k];
-            WeakPointerVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + partition[k + 1];
+            GlobalPointersVector< Node < 3 > >::iterator it_begin = mActiveNodes.begin() + partition[k];
+            GlobalPointersVector< Node < 3 > >::iterator it_end = mActiveNodes.begin() + partition[k + 1];
 
-            for (WeakPointerVector< Node < 3 > >::iterator in = it_begin;
+            for (GlobalPointersVector< Node < 3 > >::iterator in = it_begin;
                     in != it_end; in++)
             {
                 Node < 3 > ::DofType& current_dof_x = in->GetDof(mrVar_x, pos_x);
@@ -595,7 +623,7 @@ protected:
                 if (current_dof_x.IsFixed() == false)
                 {
                     std::size_t index_i = (current_dof_x).EquationId();
-                    WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                     std::vector<std::size_t>& indices = index_list[index_i];
                     indices.reserve(neighb_nodes.size() + 4);
@@ -616,7 +644,7 @@ protected:
 
                     //filling the first neighbours list
 
-                    for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin();
+                    for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin();
                             i != neighb_nodes.end(); i++)
                     {
 
@@ -640,7 +668,7 @@ protected:
                 if (current_dof_y.IsFixed() == false)
                 {
                     std::size_t index_i = (current_dof_y).EquationId();
-                    WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                     std::vector<std::size_t>& indices = index_list[index_i];
                     indices.reserve(neighb_nodes.size() + 4);
@@ -659,7 +687,7 @@ protected:
                         indices.push_back(index_i);
                     }
 
-                    for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin();
+                    for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin();
                             i != neighb_nodes.end(); i++)
                     {
 
@@ -687,7 +715,7 @@ protected:
                     if (current_dof_z.IsFixed() == false)
                     {
                         std::size_t index_i = (current_dof_z).EquationId();
-                        WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                        GlobalPointersVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                         std::vector<std::size_t>& indices = index_list[index_i];
                         indices.reserve(neighb_nodes.size() + 4);
@@ -703,7 +731,7 @@ protected:
                         {
                             indices.push_back(index_i);
                         }
-                        for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin();
+                        for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin();
                                 i != neighb_nodes.end(); i++)
                         {
 
@@ -826,7 +854,7 @@ protected:
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
             typename ElementsArrayType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k + 1];
 
@@ -848,7 +876,7 @@ protected:
                     EquationId[i] = geom[i].GetDof(rLocalVar, pos).EquationId();
 
                 //assemble the elemental contribution
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 #else
                 this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
@@ -872,7 +900,7 @@ protected:
 
             Condition::EquationIdVectorType EquationId;
 
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
             typename ConditionsArrayType::ptr_iterator it_begin = ConditionsArray.ptr_begin() + condition_partition[k];
             typename ConditionsArrayType::ptr_iterator it_end = ConditionsArray.ptr_begin() + condition_partition[k + 1];
@@ -896,7 +924,7 @@ protected:
                 }
 
                 //assemble the elemental contribution
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 #else
                 this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
@@ -952,7 +980,7 @@ private:
     TVariableType const & mrVar_x;
     TVariableType const & mrVar_y;
     TVariableType const & mrVar_z;
-    WeakPointerVector<Node < 3 > > mActiveNodes;
+    GlobalPointersVector<Node < 3 > > mActiveNodes;
 
     /*@} */
     /**@name Private Operators*/

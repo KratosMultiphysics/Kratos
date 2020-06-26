@@ -26,7 +26,6 @@
 #include "custom_processes/metrics_error_process.h"
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
-#include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
 #include "custom_processes/multiscale_refining_process.h"
 
 #ifdef INCLUDE_MMG
@@ -39,8 +38,6 @@ namespace Kratos
 namespace Python
 {
 namespace py = pybind11;
-
-typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
 
 void  AddProcessesToPython(pybind11::module& m)
 {
@@ -62,12 +59,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
-    // The process to recover internal variables
-    py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    ;
-
     /* METRICS PROCESSES */
     // Fast metric initializer
     py::class_<MetricFastInit<2>, MetricFastInit<2>::Pointer, Process>(m, "MetricFastInit2D")
@@ -80,36 +71,26 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // LEVEL SET
     py::class_<ComputeLevelSetSolMetricProcess<2>, ComputeLevelSetSolMetricProcess<2>::Pointer, Process>(m, "ComputeLevelSetSolMetricProcess2D")
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>>())
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>& >())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>& , Parameters>())
     ;
 
     py::class_<ComputeLevelSetSolMetricProcess<3>, ComputeLevelSetSolMetricProcess<3>::Pointer, Process>(m, "ComputeLevelSetSolMetricProcess3D")
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>>())
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>& >())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>&, Parameters>())
     ;
 
-    // HESSIAN DOUBLE
-    py::class_<ComputeHessianSolMetricProcess<2, Variable<double>>, ComputeHessianSolMetricProcess<2, Variable<double>>::Pointer, Process>(m, "ComputeHessianSolMetricProcess2D")
+    // HESSIAN PROCESS
+    py::class_<ComputeHessianSolMetricProcess, ComputeHessianSolMetricProcess::Pointer, Process>(m, "ComputeHessianSolMetricProcess")
+    .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&>())
     .def(py::init<ModelPart&, Variable<double>&, Parameters>())
     ;
 
-    py::class_<ComputeHessianSolMetricProcess<3, Variable<double>>, ComputeHessianSolMetricProcess<3, Variable<double>>::Pointer, Process>(m, "ComputeHessianSolMetricProcess3D")
-    .def(py::init<ModelPart&, Variable<double>&>())
-    .def(py::init<ModelPart&, Variable<double>&, Parameters>())
-    ;
-
-    // HESSIAN ARRAY 1D
-    py::class_<ComputeHessianSolMetricProcess<2, ComponentType>, ComputeHessianSolMetricProcess<2, ComponentType>::Pointer, Process>(m, "ComputeHessianSolMetricProcessComp2D")
-    .def(py::init<ModelPart&, ComponentType&>())
-    .def(py::init<ModelPart&, ComponentType&, Parameters>())
-    ;
-
-    py::class_<ComputeHessianSolMetricProcess<3, ComponentType>, ComputeHessianSolMetricProcess<3, ComponentType>::Pointer, Process>(m, "ComputeHessianSolMetricProcessComp3D")
-    .def(py::init<ModelPart&, ComponentType&>())
-    .def(py::init<ModelPart&, ComponentType&, Parameters>())
-    ;
+    m.attr("ComputeHessianSolMetricProcess2D") = m.attr("ComputeHessianSolMetricProcess");
+    m.attr("ComputeHessianSolMetricProcess3D") = m.attr("ComputeHessianSolMetricProcess");
+    m.attr("ComputeHessianSolMetricProcessComp2D") = m.attr("ComputeHessianSolMetricProcess");
+    m.attr("ComputeHessianSolMetricProcessComp3D") = m.attr("ComputeHessianSolMetricProcess");
 
     // ERROR
     py::class_<MetricErrorProcess<2>, MetricErrorProcess<2>::Pointer, Process>(m, "MetricErrorProcess2D")
@@ -128,18 +109,19 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, ModelPart&, Parameters>())
     .def("ExecuteRefinement", &MultiscaleRefiningProcess::ExecuteRefinement)
     .def("ExecuteCoarsening", &MultiscaleRefiningProcess::ExecuteCoarsening)
-    .def("InitializeNewModelPart", &MultiscaleRefiningProcess::InitializeNewModelPart)
-    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart)
+    .def("InitializeVisualizationModelPart", &MultiscaleRefiningProcess::InitializeVisualizationModelPart)
+    .def("InitializeRefinedModelPart", &MultiscaleRefiningProcess::InitializeRefinedModelPart)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<double>>)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<array_1d<double,3>>>)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<array_1d<double,4>>>)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<array_1d<double,6>>>)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<array_1d<double,9>>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<double>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,3>>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,4>>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,6>>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,9>>>)
     .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<Variable<double>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,4>>>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,6>>>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,9>>>>)
     .def("GetCoarseModelPart", &MultiscaleRefiningProcess::GetCoarseModelPart)
     .def("GetRefinedModelPart", &MultiscaleRefiningProcess::GetRefinedModelPart)
     .def("GetVisualizationModelPart", &MultiscaleRefiningProcess::GetVisualizationModelPart)
@@ -148,21 +130,27 @@ void  AddProcessesToPython(pybind11::module& m)
     /* MMG PROCESS */
 #ifdef INCLUDE_MMG
     // 2D
-    py::class_<MmgProcess<MMGLibray::MMG2D>, MmgProcess<MMGLibray::MMG2D>::Pointer, Process>(m, "MmgProcess2D")
+    py::class_<MmgProcess<MMGLibrary::MMG2D>, MmgProcess<MMGLibrary::MMG2D>::Pointer, Process>(m, "MmgProcess2D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG2D>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMG2D>::CleanSuperfluousNodes)
     ;
 
     // 3D
-    py::class_<MmgProcess<MMGLibray::MMG3D>, MmgProcess<MMGLibray::MMG3D>::Pointer, Process>(m, "MmgProcess3D")
+    py::class_<MmgProcess<MMGLibrary::MMG3D>, MmgProcess<MMGLibrary::MMG3D>::Pointer, Process>(m, "MmgProcess3D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG3D>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMG3D>::CleanSuperfluousNodes)
     ;
 
     // 3D surfaces
-    py::class_<MmgProcess<MMGLibray::MMGS>, MmgProcess<MMGLibray::MMGS>::Pointer, Process>(m, "MmgProcess3DSurfaces")
+    py::class_<MmgProcess<MMGLibrary::MMGS>, MmgProcess<MMGLibrary::MMGS>::Pointer, Process>(m, "MmgProcess3DSurfaces")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &MmgProcess<MMGLibrary::MMGS>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMGS>::CleanSuperfluousNodes)
     ;
 #endif
 }
@@ -170,5 +158,3 @@ void  AddProcessesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-
-

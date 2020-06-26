@@ -29,7 +29,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -61,7 +60,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of BaseShellElement
-    KRATOS_CLASS_POINTER_DEFINITION(BaseShellElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BaseShellElement);
 
     typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
@@ -111,25 +110,25 @@ public:
     * @param rResult: the elemental equation ID vector
     * @param rCurrentProcessInfo: the current process info instance
     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const override;
 
     /**
     * determines the elemental list of DOFs
     * @param ElementalDofList: the list of DOFs
     * @param rCurrentProcessInfo: the current process info instance
     */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
 
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     void ResetConstitutiveLaw() override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
@@ -140,63 +139,11 @@ public:
                               ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+                               ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-	                            ProcessInfo& rCurrentProcessInfo) override;
+                                ProcessInfo& rCurrentProcessInfo) override;
 
-    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
-    // They will be removed from the derived elements; i.e. the implementation
-    // should be in CalculateOnIntegrationPoints!
-    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
-    void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
-					     std::vector<bool>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
-					     std::vector<int>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					     std::vector<array_1d<double, 6 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
 
     /**
     * This method provides the place to perform checks on the completeness of the input
@@ -207,7 +154,7 @@ public:
     * @param rCurrentProcessInfo
     * this method is: MANDATORY
     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
     * returns the used integration method. In the general case this is the
@@ -277,11 +224,9 @@ protected:
     {
     }
 
-    SizeType GetNumberOfDofs();
+    SizeType GetNumberOfDofs() const;
 
-    SizeType GetNumberOfGPs();
-
-    void SetBaseMembers();
+    SizeType GetNumberOfGPs() const;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -294,7 +239,7 @@ protected:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );
@@ -309,10 +254,10 @@ protected:
 
     virtual void SetupOrientationAngles();
 
-    void CheckVariables();
-    void CheckDofs();
-    void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
-    void CheckSpecificProperties();
+    void CheckVariables() const;
+    void CheckDofs() const;
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
+    void CheckSpecificProperties() const;
 
     /**
     * computes the local axis of the element (for visualization)
@@ -322,11 +267,13 @@ protected:
     */
     template <typename T>
     void ComputeLocalAxis(const Variable<array_1d<double, 3> >& rVariable,
-        std::vector<array_1d<double, 3> >& rOutput,
-        const T& rpCoordinateTransformation)
+                          std::vector<array_1d<double, 3> >& rOutput,
+                          const T& rpCoordinateTransformation) const
     {
         const SizeType num_gps = GetNumberOfGPs();
-        if (rOutput.size() != num_gps) rOutput.resize(num_gps);
+        if (rOutput.size() != num_gps) {
+            rOutput.resize(num_gps);
+        }
 
         for (IndexType i=1; i<num_gps; ++i) {
             noalias(rOutput[i]) = ZeroVector(3);
@@ -335,14 +282,11 @@ protected:
         const auto localCoordinateSystem(rpCoordinateTransformation->CreateLocalCoordinateSystem());
         if (rVariable == LOCAL_AXIS_1) {
             noalias(rOutput[0]) = localCoordinateSystem.Vx();
-        }
-        else if (rVariable == LOCAL_AXIS_2) {
+        } else if (rVariable == LOCAL_AXIS_2) {
             noalias(rOutput[0]) = localCoordinateSystem.Vy();
-        }
-        else if (rVariable == LOCAL_AXIS_3) {
+        } else if (rVariable == LOCAL_AXIS_3) {
             noalias(rOutput[0]) = localCoordinateSystem.Vz();
-        }
-        else {
+        } else {
             KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
         }
     }
@@ -355,13 +299,15 @@ protected:
     */
     template <typename T>
     void ComputeLocalMaterialAxis(const Variable<array_1d<double, 3> >& rVariable,
-        std::vector<array_1d<double, 3> >& rOutput,
-        const T& rpCoordinateTransformation)
+                                  std::vector<array_1d<double, 3> >& rOutput,
+                                  const T& rpCoordinateTransformation) const
     {
         const double mat_angle = Has(MATERIAL_ORIENTATION_ANGLE) ? GetValue(MATERIAL_ORIENTATION_ANGLE) : 0.0;
 
         const SizeType num_gps = GetNumberOfGPs();
-        if (rOutput.size() != num_gps) rOutput.resize(num_gps);
+        if (rOutput.size() != num_gps) {
+            rOutput.resize(num_gps);
+        }
 
         for (IndexType i=1; i<num_gps; ++i) {
             noalias(rOutput[i]) = ZeroVector(3);
@@ -374,15 +320,12 @@ protected:
         if (rVariable == LOCAL_MATERIAL_AXIS_1) {
             const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
             q.RotateVector3(localCoordinateSystem.Vx(), rOutput[0]);
-        }
-        else if (rVariable == LOCAL_MATERIAL_AXIS_2) {
+        } else if (rVariable == LOCAL_MATERIAL_AXIS_2) {
             const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
             q.RotateVector3(localCoordinateSystem.Vy(), rOutput[0]);
-        }
-        else if (rVariable == LOCAL_MATERIAL_AXIS_3) {
+        } else if (rVariable == LOCAL_MATERIAL_AXIS_3) {
             noalias(rOutput[0]) = eZ;
-        }
-        else {
+        } else {
             KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
         }
     }
@@ -392,7 +335,7 @@ protected:
     * Returns the behavior of this shell (thin/thick)
     * @return the shell behavior
     */
-    virtual ShellCrossSection::SectionBehaviorType GetSectionBehavior();
+    virtual ShellCrossSection::SectionBehaviorType GetSectionBehavior() const;
 
     ///@}
     ///@name Protected  Access

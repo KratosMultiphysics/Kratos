@@ -28,8 +28,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
   namespace py = pybind11;
 
-  typedef TableKeyVariables<double,double>  TableKeyScalarVariablesType;
-
   py::class_<PropertiesLayout, PropertiesLayout::Pointer>(m,"PropertiesLayout")
       .def(py::init<>())
       .def("Clone", &PropertiesLayout::Clone)

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -183,6 +183,12 @@ namespace math {
 template <class T, int N, int M>
 struct scalar_of< static_matrix<T, N, M> > {
     typedef typename scalar_of<T>::type type;
+};
+
+/// Replace scalar type in the static matrix.
+template <class T, int N, int M, class S>
+struct replace_scalar<static_matrix<T, N, M>, S> {
+    typedef static_matrix<S, N, M> type;
 };
 
 /// RHS type corresponding to a non-scalar type.

@@ -53,7 +53,7 @@ public:
 
     ///@{
     // Counted pointer of RigidBodyPointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( RigidBodyPointRigidContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidBodyPointRigidContactCondition );
     ///@}
 
     ///@name Life Cycle
@@ -287,7 +287,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    WeakPointerVector<Element > mMasterElements;
+    ElementWeakPtrVectorType mMasterElements;
 
     ///@}
     ///@name Private Operators

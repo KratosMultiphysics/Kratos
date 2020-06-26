@@ -1,0 +1,278 @@
+{
+"ElementType" : "SphericSwimmingParticle3D",
+
+"time_stepping" : {
+    "automatic_time_step" : false,
+    "time_step" : 0.1
+},
+
+"problem_data" : {
+    "problem_name" : "cube",
+    "parallel_type" : "OpenMP",
+    "echo_level" : 1,
+    "start_time" : 0.0,
+    "end_time" : 1
+},
+
+"do_print_results_option" : false,
+"gradient_calculation_type" : 1,
+"gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
+"laplacian_calculation_type" : 0,
+"laplacian_calculation_type_comment" : "(Not calculated (0), Finite element projection (1), Superconvergent recovery(2))",
+"print_particles_results_option" : false,
+"add_each_hydro_force_option" : true,
+"add_each_hydro_force_option_comment" : " add each of the hydrodynamic forces (drag, lift and virtual mass)",
+
+"print_debug_info_option" : false,
+"print_debug_info_option_comment" : " print a summary of global physical measures",
+"print_particles_results_cycle" : 1,
+"print_particles_results_cycle_comment" : " number of 'ticks' per printing cycle",
+"debug_tool_cycle" : 10,
+"debug_tool_cycle_comment" : " number of 'ticks' per debug computations cycle",
+"drag_modifier_type" : 2,
+"drag_modifier_type_comment" : " Hayder (2), Chien (3) # problemtype option",
+
+
+"output_interval" : 0.1,
+
+"properties": [{
+    "model_part_name": "settling_particles",
+    "properties_id": 1,
+    "hydrodynamic_law_parameters": {
+        "name": "HydrodynamicInteractionLaw",
+        "buoyancy_parameters": {
+            "name":"ArchimedesBuoyancyLaw"
+        },
+        "inviscid_force_parameters": {
+            "name":"AutonHuntPrudhommeInviscidForceLaw",
+            "do_apply_faxen_corrections": false
+        },
+        "drag_parameters": {
+            "name":"StokesDragLaw"
+        },
+        "history_force_parameters": {
+            "name":"default",
+            "quadrature_order": 2,
+            "mae_parameters": {
+                "do_use_mae": false,
+                "m": 10,
+                "window_time_interval": 0.1,
+                "type":4
+            }
+        }
+    }
+}],
+
+"processes" : {
+    "check_interpolated_fluid_velocity": [        {
+        "python_module" : "check_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help" : "",
+        "process_name" : "FromAnalyticCheckResultProcess",
+        "Parameters" : {
+            "mesh_id" : 1,
+            "model_part_name" : "SpheresPart",
+            "variable_name" : "FLUID_VEL_PROJECTED",
+            "interval" : [0.1, 1e30],
+            "value" : ["0.1 * x*t", "0.2 * y*3.**t", "0.3 * z*t"],
+            "tolerance_rank" : 12,
+            "reference_conf" : false,
+            "local_axes" : {}
+        }
+    }]
+},
+
+"sdem_output_processes" : {
+    "gid_output" : [{
+        "python_module" : "gid_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name" : "GiDOutputProcess",
+            "help" : "This process writes postprocessing files for GiD",
+        "Parameters" : {
+            "model_part_name" : "MixedPart",
+            "output_name" : "cube",
+            "postprocess_parameters" : {
+                "result_file_configuration" : {
+                    "gidpost_flags" : {
+                        "GiDPostMode" : "GiD_PostBinary",
+                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                        "WriteConditionsFlag" : "WriteConditions",
+                        "MultiFileFlag" : "MultipleFiles"
+                    },
+                    "file_label" : "time",
+                    "output_control_type" : "step",
+                    "output_interval" : 1,
+                    "body_output" : true,
+                    "node_output" : true,
+                    "skin_output" : false,
+                    "plane_output" : [],
+                    "nodal_results" : ["VELOCITY","PRESSURE","VISCOSITY"],
+                    "gauss_point_results" : []
+                },
+                "point_data_configuration" : []
+            }
+        }
+    }]
+},
+"fluid_parameters" : {
+    "problem_data" : {
+        "parallel_type" : "OpenMP",
+        "echo_level" : 0,
+        "start_time" : 0.0,
+        "end_time" : 1
+      },
+
+      "solver_settings" : {
+        "model_part_name" : "FluidModelPart",
+        "domain_size" : 3,
+        "solver_type" : "Monolithic",
+        "model_import_settings" : {
+            "input_type" : "mdpa",
+            "input_filename" : "interpolation_tests/cubeFluid"
+        },
+
+        "formulation" : {
+            "element_type" : "vms",
+            "dynamic_tau" : 1.0,
+            "use_orthogonal_subscales" : false
+        },
+
+        "echo_level" : 0,
+        "compute_reactions" : false,
+        "maximum_iterations" : 10,
+        "relative_velocity_tolerance" : 0.001,
+        "absolute_velocity_tolerance" : 1e-5,
+        "relative_pressure_tolerance" : 0.001,
+        "absolute_pressure_tolerance" : 1e-5,
+        "volume_model_part_name" : "Parts_fluid",
+              "skin_parts" : ["NoSlip3D_walls"],
+              "no_skin_parts" : [],
+        "time_stepping" : {
+            "automatic_time_step" : false,
+            "time_step" : 0.1
+        }
+      },
+      "processes" : {
+        "initial_conditions_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters" : {
+                "model_part_name" : "FluidModelPart.VELOCITY_fluid",
+                "variable_name" : "VELOCITY",
+                "constrained" : [false,false,false],
+                "value" : [0.0,0.0,0.0]
+            }
+        }],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters" : {
+                      "model_part_name" : "FluidModelPart.NoSlip3D_walls"
+            }
+        }],
+        "gravity" : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name" : "AssignVectorByDirectionProcess",
+            "Parameters" : {
+                "model_part_name" : "FluidModelPart.Parts_fluid",
+                "variable_name" : "BODY_FORCE",
+                "modulus" : 9.81,
+                "constrained" : false,
+                "direction" : [0.0,0.0,-1.0]
+            }
+        }]
+
+    }
+},
+
+"custom_dem" : {
+    "do_solve_dem" : true,
+    "do_search_neighbours" : false,
+        "type_of_dem_inlet" : "VelocityImposed",
+        "type_of_dem_inlet_comment" : "VelocityImposed or ForceImposed",
+        "translational_integration_scheme" : "Hybrid_Bashforth"
+},
+
+"dem_parameters" : {
+    "problem_data" : {
+        "problem_name" : "cube",
+        "parallel_type" : "OpenMP",
+        "echo_level" : 0,
+        "start_time" : 0.0,
+        "end_time" : 1
+    },
+    "do_print_results_option" : false,
+    "Dimension" : 3,
+    "PeriodicDomainOption" : false,
+    "BoundingBoxOption" : true,
+    "AutomaticBoundingBoxOption" : false,
+    "BoundingBoxEnlargementFactor" : 1.0,
+    "BoundingBoxStartTime" : 0.0,
+    "BoundingBoxStopTime" : 1000.0,
+    "BoundingBoxMaxX" : 1000.0,
+    "BoundingBoxMaxY" : 1000.0,
+    "BoundingBoxMaxZ" : 1000.0,
+    "BoundingBoxMinX" : -1000.0,
+    "BoundingBoxMinY" : -1000.0,
+    "BoundingBoxMinZ" : -1000.0,
+
+    "dem_inlet_option" : true,
+    "GravityX" : 0.0,
+    "GravityY" : 0.0,
+    "GravityZ" : -9.81,
+
+    "VelocityTrapOption" : false,
+    "RotationOption" : true,
+    "CleanIndentationsOption" : false,
+    "RemoveBallsInEmbeddedOption" : true,
+
+    "solver_settings" : {
+            "strategy" : "swimming_sphere_strategy",
+            "RemoveBallsInitiallyTouchingWalls" : false
+    },
+
+
+    "DeltaOption" : "Absolute",
+    "SearchTolerance" : 0.0001,
+    "CoordinationNumber" : 10,
+    "AmplifiedSearchRadiusExtension" : 0.0,
+    "ModelDataInfo" : false,
+    "VirtualMassCoefficient" : 1.0,
+    "RollingFrictionOption" : false,
+    "DontSearchUntilFailure" : false,
+    "ContactMeshOption" : false,
+            "Multifile" : "multiple_files",
+
+    "TranslationalIntegrationScheme" : "Hybrid_Bashforth",
+    "RotationalIntegrationScheme" : "Direct_Integration",
+    "DeltaTimeSafetyFactor" : 1.0,
+    "MaxTimeStep" : 5e-5,
+    "FinalTime" : 1.0,
+    "NeighbourSearchFrequency" : 1,
+    "ElementType" : "SwimmingDEMElement",
+    "problem_name" : "cube",
+    "GraphExportFreq" : 1e-3,
+    "VelTrapGraphExportFreq" : 1e-3,
+    "PostDisplacement" : true,
+    "PostVelocity" : true,
+    "PostElasticForces" : false,
+    "PostContactForces" : false,
+    "PostRigidElementForces" : false,
+    "PostTangentialElasticForces" : false,
+    "PostTotalForces" : false,
+    "PostShearStress" : false,
+    "PostNonDimensionalVolumeWear" : false,
+    "PostNodalArea" : false,
+    "PostRHS" : false,
+    "PostDampForces" : false,
+    "PostAppliedForces" : false,
+    "PostRadius" : true,
+    "PostGroupId" : false,
+    "PostExportId" : false,
+    "PostAngularVelocity" : false,
+    "PostParticleMoment" : false,
+    "PostEulerAngles" : false,
+    "PostBoundingBox" : false
+}
+}

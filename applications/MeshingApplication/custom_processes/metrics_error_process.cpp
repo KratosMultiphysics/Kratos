@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix
+//                   Anna Rehr
 //
 
 // System includes
@@ -15,8 +16,10 @@
 // External includes
 
 // Project includes
+#include "meshing_application_variables.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/metrics_error_process.h"
+#include "custom_utilities/meshing_utilities.h"
 
 namespace Kratos
 {
@@ -26,32 +29,7 @@ MetricErrorProcess<TDim>::MetricErrorProcess(
         Parameters ThisParameters
         ):mrThisModelPart(rThisModelPart)
 {
-    /**
-     * We configure using the following parameters:
-     * minimal_size: The minimal size to consider on the remeshing
-     * maximal_size: The maximal size to consider on the remeshing
-     * target_error: The target error
-     * set_target_number_of_elements: If the number of elements will be forced or not
-     * target_number_of_elements: The estimated/desired number of elements
-     * perform_nodal_h_averaging: If the nodal size to consider will be averaged over the mesh
-     * echo_level: The verbosity
-     */
-    Parameters default_parameters = Parameters(R"(
-    {
-        "minimal_size"                        : 0.01,
-        "maximal_size"                        : 1.0,
-        "error_strategy_parameters":
-        {
-            "target_error"                        : 0.01,
-            "set_target_number_of_elements"       : false,
-            "target_number_of_elements"           : 1000,
-            "perform_nodal_h_averaging"           : false
-        },
-        "echo_level"                          : 0
-    })"
-    );
-
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
@@ -73,18 +51,14 @@ void MetricErrorProcess<TDim>::Execute()
     /******************************************************************************
     --1-- Initialize metric --1--
     ******************************************************************************/
-    // Tensor variable definition
-    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
-
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-    KRATOS_DEBUG_ERROR_IF(nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
-    if (nodes_array.begin()->Has(tensor_variable) == false) {
-        const TensorArrayType zero_array(3 * (TDim - 1), 0.0);
-
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+    KRATOS_DEBUG_ERROR_IF(r_nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
+    if (!r_nodes_array.begin()->Has(METRIC_SCALAR)) {
+        const auto it_node_begin = r_nodes_array.begin();
         // We iterate over the nodes
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-            (nodes_array.begin() + i)->SetValue(tensor_variable, zero_array);
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)
+            (it_node_begin + i)->SetValue(METRIC_SCALAR, 0.0);
     }
 
     /******************************************************************************
@@ -122,7 +96,7 @@ void MetricErrorProcess<TDim>::CalculateElementSize()
         auto it_elem = elements_array.begin() + i_elem;
 
         //Compute the current element size h
-        ComputeElementSize(it_elem);
+        MeshingUtilities::ComputeElementSize(it_elem);
 
         // Compute new element size
         const double element_error = it_elem->GetValue(ELEMENT_ERROR);
@@ -154,25 +128,22 @@ template<SizeType TDim>
 void MetricErrorProcess<TDim>::CalculateMetric()
 {
     // Array of nodes
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
 
     // We do a find of neighbours
     {
         FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
-        if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+        if (r_nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
         find_neighbours.Execute();
     }
 
-    // Tensor variable definition
-    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
-
     // Iteration over all nodes
-    const int num_nodes = static_cast<int>(nodes_array.size());
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
     KRATOS_DEBUG_ERROR_IF(num_nodes == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
 
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = nodes_array.begin() + i_node;
+        auto it_node = r_nodes_array.begin() + i_node;
         /**************************************************************************
         ** Determine nodal element size h:
         ** if mAverageNodalH == true : the nodal element size is averaged from the element size of neighboring elements
@@ -193,18 +164,10 @@ void MetricErrorProcess<TDim>::CalculateMetric()
         // Average Nodal H
         if(mAverageNodalH) h_min = h_min/static_cast<double>(neigh_elements.size());
 
-        // Set metric
-        BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
-        for(IndexType i = 0;i < TDim; ++i)
-            metric_matrix(i,i) = 1.0/std::pow(h_min, 2);
-
-        // Transform metric matrix to a vector
-        const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
-
         // Setting value
-        it_node->SetValue(tensor_variable, metric);
+        it_node->SetValue(METRIC_SCALAR, h_min);
 
-        KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
+        KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< h_min << std::endl;
     }
 }
 
@@ -212,19 +175,34 @@ void MetricErrorProcess<TDim>::CalculateMetric()
 /***********************************************************************************/
 
 template<SizeType TDim>
-void MetricErrorProcess<TDim>::ComputeElementSize(ElementItType itElement)
+const Parameters MetricErrorProcess<TDim>::GetDefaultParameters() const
 {
-    auto& this_geometry = itElement->GetGeometry();
+    /**
+     * We configure using the following parameters:
+     * minimal_size: The minimal size to consider on the remeshing
+     * maximal_size: The maximal size to consider on the remeshing
+     * target_error: The target error
+     * set_target_number_of_elements: If the number of elements will be forced or not
+     * target_number_of_elements: The estimated/desired number of elements
+     * perform_nodal_h_averaging: If the nodal size to consider will be averaged over the mesh
+     * echo_level: The verbosity
+     */
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "minimal_size"                        : 0.01,
+        "maximal_size"                        : 1.0,
+        "error_strategy_parameters":
+        {
+            "target_error"                        : 0.01,
+            "set_target_number_of_elements"       : false,
+            "target_number_of_elements"           : 1000,
+            "perform_nodal_h_averaging"           : false
+        },
+        "echo_level"                          : 0
+    })"
+    );
 
-    // Here we compute the element size. This process is designed for triangles and tetrahedra, so we only specify for this geometries. Otherwise we take the length (and we throw a warning)
-    if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3){ // Triangular elements
-        itElement->SetValue(ELEMENT_H, 2.0 * this_geometry.Circumradius());
-    } else if(this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){ // Tetrahedral elements
-        itElement->SetValue(ELEMENT_H,std::pow(12.0 * this_geometry.Volume()/std::sqrt(2.0), 1.0/3.0));
-    } else { // In any othe case just considers the length of the element
-        KRATOS_WARNING("MetricErrorProcess") << "This process is designed for tetrahedra (3D) and triangles (2D). Error expected" << std::endl;
-        itElement->SetValue(ELEMENT_H, this_geometry.Length());
-    }
+    return default_parameters;
 }
 
 /***********************************************************************************/

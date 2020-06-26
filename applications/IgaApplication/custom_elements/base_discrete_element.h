@@ -18,7 +18,6 @@
 // System includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/variables.h"
 
 // External includes
 
@@ -49,7 +48,7 @@ namespace Kratos
 /**
 * @class BaseDiscreteElement
 * @ingroup IGAStructuralMechanicsApplication
-* @brief This is base clase used to define discrete elements, 
+* @brief This is base clase used to define discrete elements,
 *        it is based on displacement degrees of freedom
 * @author Tobias Teschemacher
 */
@@ -61,7 +60,7 @@ public:
     ///@{
 
     /// Counted pointer of BaseDiscreteElement
-    KRATOS_CLASS_POINTER_DEFINITION( BaseDiscreteElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseDiscreteElement );
 
     ///@}
     ///@name Life Cycle
@@ -76,7 +75,7 @@ public:
     {};
 
     // Constructor using an array of nodes with properties
-    BaseDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) 
+    BaseDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         :Element(NewId, pGeometry, pProperties)
     {};
 
@@ -92,7 +91,7 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer BaseDiscreteElement::Create(
+    Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override
@@ -269,7 +268,7 @@ public:
 
 
 /********************************************************************/
-/*    SetValueOnIntegrationPoints                                   */
+/*    SetValuesOnIntegrationPoints                                   */
 /********************************************************************/
     /**
     * @brief Set a double Value on the Element Constitutive Law
@@ -277,7 +276,7 @@ public:
     * @param rValues The values to set in the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -289,7 +288,7 @@ public:
     * @param rValues The values to set in the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -301,7 +300,7 @@ public:
     * @param rValues The values to set in the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -313,7 +312,7 @@ public:
     * @param rValues The values to set in the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -336,7 +335,8 @@ public:
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override
+    {
         pGetGeometry()->PrintData(rOStream);
     }
     ///@}
@@ -374,14 +374,14 @@ protected:
     * Jacobian computes the mapping from Geometry to Parameter Space.
     *
     * @param[in] DN_De derivatives of shape functions in two directions.
-    * @param[out] Jacobian calculated Jacobian. 
+    * @param[out] Jacobian calculated Jacobian.
     * @param[in] rWorkingSpaceDimension GeometrySpace coordinates. For surfaces default 3.
     * @param[in] rLocalSpaceDimension ParameterSpace coordinates For surfaces default 2.
     */
     void Jacobian(const Matrix& DN_De,
         Matrix& Jacobian,
-        const int rWorkingSpaceDimension = 3,
-        const int rLocalSpaceDimension = 2) const;
+        const unsigned int rWorkingSpaceDimension = 3,
+        const unsigned int rLocalSpaceDimension = 2) const;
 
     ///@}
 private:

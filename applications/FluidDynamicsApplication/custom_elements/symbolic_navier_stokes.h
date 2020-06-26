@@ -57,7 +57,7 @@ public:
     ///@{
 
     /// Pointer definition of SymbolicNavierStokes
-    KRATOS_CLASS_POINTER_DEFINITION(SymbolicNavierStokes);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SymbolicNavierStokes);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;

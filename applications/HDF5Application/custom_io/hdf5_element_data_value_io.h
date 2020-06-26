@@ -24,12 +24,13 @@
 #include "includes/define.h"
 
 // Application includes
-#include "hdf5_application_define.h"
+#include "custom_io/hdf5_container_component_io.h"
 #include "custom_io/hdf5_file.h"
+#include "hdf5_application_define.h"
+#include "includes/communicator.h"
 
 namespace Kratos
 {
-
 class Parameters;
 
 namespace HDF5
@@ -41,11 +42,25 @@ namespace HDF5
 ///@{
 
 /// A class for IO of element data in HDF5.
-class ElementDataValueIO
+class ElementDataValueIO : public ContainerComponentIO<ElementsContainerType,
+                                                       ElementType,
+                                                       Variable<array_1d<double, 3>>,
+                                                       Variable<double>,
+                                                       Variable<int>,
+                                                       Variable<Vector<double>>,
+                                                       Variable<Matrix<double>>>
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    using BaseType = ContainerComponentIO<ElementsContainerType,
+                                          ElementType,
+                                          Variable<array_1d<double, 3>>,
+                                          Variable<double>,
+                                          Variable<int>,
+                                          Variable<Vector<double>>,
+                                          Variable<Matrix<double>>>;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(ElementDataValueIO);
@@ -55,15 +70,24 @@ public:
     ///@{
 
     /// Constructor.
-    ElementDataValueIO(Parameters Settings, File::Pointer pFile);
+    ElementDataValueIO(Parameters Settings, File::Pointer pFile)
+        : BaseType(Settings, pFile, "/ElementDataValues")
+    {
+    }
 
     ///@}
     ///@name Operations
     ///@{
 
-    void WriteElementResults(ElementsContainerType const& rElements);
+    void WriteElementResults(ElementsContainerType const& rElements)
+    {
+        this->WriteContainerComponents(rElements);
+    }
 
-    void ReadElementResults(ElementsContainerType& rElements);
+    void ReadElementResults(ElementsContainerType& rElements, Communicator& rComm)
+    {
+        this->ReadContainerComponents(rElements, rComm);
+    }
 
     ///@}
 
@@ -75,13 +99,9 @@ protected:
 private:
     ///@name Member Variables
     ///@{
-    File::Pointer mpFile;
-    std::string mPrefix;
-    std::vector<std::string> mVariableNames;
     ///@}
     ///@name Private Operations
     ///@{
-
     ///@}
 
 }; // class ElementDataValueIO.

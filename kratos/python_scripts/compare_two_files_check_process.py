@@ -13,7 +13,7 @@ import os
 import math
 
 def Factory(settings, current_model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return CompareTwoFilesCheckProcess(settings["Parameters"])
 
@@ -45,10 +45,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 raise Exception('Conflicting settings specified, please remove "decimal_places"')
             decimal_places = params["decimal_places"].GetInt()
             params.RemoveValue("decimal_places")
-            warning  = 'Deprecated setting found: "decimal_places".\n'
-            warning += 'Please specify "tolerance" and "relative_tolerance" instead'
-            warning = '\n::[CompareTwoFilesCheckProcess]:: W-A-R-N-I-N-G: You have specified "decimal_places", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            warning =  'W-A-R-N-I-N-G: You have specified "decimal_places", '
+            warning += 'which is deprecated and will be removed soon.\n'
+            warning += 'Please specify "tolerance" and "relative_tolerance" instead!'
             KratosMultiphysics.Logger.PrintWarning("CompareTwoFilesCheckProcess", warning)
             tol = 0.1**decimal_places
             params.AddEmptyValue("tolerance").SetDouble(tol)
@@ -73,28 +72,19 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                                     params.PrettyPrintJsonString()
                                 ])
 
-    def ExecuteInitialize(self):
-        pass
-
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
+    def Execute(self):
+        """Executes all functions required to compare the files
+        Intended to be directly used within python-scripts
+        """
+        self.ExecuteFinalize()
 
     def ExecuteFinalize(self):
         """The files are compared in this function
         Please see the respective files for details on the format of the files
         """
+
+        KratosMultiphysics.DataCommunicator.GetDefault().Barrier()
+
         if (self.comparison_type == "deterministic"):
             value = filecmp.cmp(self.reference_file_name, self.output_file_name)
             self.assertTrue(value, msg = self.info_msg)
@@ -106,10 +96,14 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             self.__ComparePostResFile()
         elif (self.comparison_type == "dat_file"):
             self.__CompareDatFile()
+        elif (self.comparison_type == "dat_file_variables_time_history"):
+            self.__CompareDatFileVariablesTimeHistory()
+        elif (self.comparison_type == "vtk"):
+            self.__CompareVtkFile()
         else:
             raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
 
-        if self.remove_output_file == True:
+        if self.remove_output_file:
             kratos_utils.DeleteFileIfExisting(self.output_file_name)
 
     def __GetFileLines(self):
@@ -234,6 +228,33 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         # assert values are equal up to given tolerance
         self.__CompareDatFileResults(lines_ref, lines_out)
 
+    def __CompareDatFileVariablesTimeHistory(self):
+        """This function compares files with tabular data.
+        => *.dat
+        Lines starting with "#" are comments and therefore compared for equality
+        Other lines are compared to be almost equal with the specified tolerance
+        If the comparison fails, it prints the location of failure with details
+        The expected format is the one written by the PointOutputProcess:
+
+        # some basic file information
+        # time var_name_1 var_name_2
+        0.1 1.2345 2.852
+        0.2 0.889 -89.444
+        .
+        .
+        .
+        """
+        lines_ref, lines_out = self.__GetFileLines()
+
+        # extracting the names of output variables eg: time, VELOCITY_X, VELOCITY_Y, VELOCITY_Z
+        variable_names = lines_ref[1].split()[2:]
+
+        # assert headers are the same
+        lines_ref, lines_out = self.__CompareDatFileComments(lines_ref, lines_out)
+
+        # assert values are equal up to given tolerance
+        self.__CompareDatFileResultsWithLocation(lines_ref, lines_out, variable_names)
+
     def __CompareDatFileComments(self, lines_ref, lines_out):
         """This function compares the comments of files with tabular data
         The lines starting with "#" are being compared
@@ -252,10 +273,25 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         """This function compares the data of files with tabular data
         The comment lines were removed beforehand
         """
-
         for line_ref, line_out in zip(lines_ref, lines_out):
             for v1, v2 in zip(line_ref.split(), line_out.split()):
                 self.__CheckCloseValues(float(v1), float(v2))
+
+    def __CompareDatFileResultsWithLocation(self, lines_ref, lines_out, variable_names):
+        """This function compares the data of files with tabular data
+        It also prints the exact location where data doesnt match each other
+        The comment lines were removed beforehand
+        """
+        for line_ref, line_out in zip(lines_ref, lines_out):
+            for i_var, (v1, v2) in enumerate(zip(line_ref.split(), line_out.split())):
+                if i_var == 0: # comparing time:
+                    additional_info = 'Different time found!'
+                    self.__CheckCloseValues(float(v1), float(v2), additional_info)
+                    current_time = v1
+                else: # comparing variables
+                    additional_info  = 'Failed for variable ' + variable_names[i_var-1]
+                    additional_info += ' at time: ' + current_time
+                    self.__CheckCloseValues(float(v1), float(v2), additional_info)
 
     def __CompareMeshVerticesFile(self):
         """This function compares the output of the MMG meshing library
@@ -268,7 +304,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         for line1 in lines_ref:
             numline += 1
 
-            if("Vertices" in line1):
+            if "Vertices" in line1:
                 line = lines_ref[numline]
                 nvertices = int(line)
                 numline += 1
@@ -278,7 +314,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         for i in range(numline, nvertices + numline):
             tmp1 = ConvertStringToListFloat(lines_ref[i], "", "\n")
             tmp2 = ConvertStringToListFloat(lines_out[i], "", "\n")
-            if (self.dimension == 2):
+            if self.dimension == 2:
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2)
             else:
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
@@ -297,7 +333,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         for line1 in lines_ref:
             numline += 1
 
-            if("SolAtVertices" in line1):
+            if "SolAtVertices" in line1:
                 line = lines_ref[numline]
                 nvertices = int(line)
                 numline += 2
@@ -309,25 +345,174 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 space = " "
                 end_line = " \n"
             else:
-                space = "  "
+                space = " "
                 end_line = "  \n"
 
-            if (lines_ref[i][0] == " "):
+            if lines_ref[i][0] == " ":
                 tmp1 = ConvertStringToListFloat(lines_ref[i][1:], space, end_line)
             else:
                 tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
-            if (lines_out[i][0] == " "):
+            if lines_out[i][0] == " ":
                 tmp2 = ConvertStringToListFloat(lines_out[i][1:], space, end_line)
             else:
                 tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
-            if (self.dimension == 2):
-                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
+            if len(tmp1) == 1:
+                error += tmp1[0] - tmp2[0]
             else:
-                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
+                if self.dimension == 2:
+                    error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
+                else:
+                    error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
 
         error /= nvertices
         self.assertTrue(error < self.tol, msg = self.info_msg)
+
+    def __CompareVtkFile(self):
+        """This function compares vtk files in ASCII format
+        """
+
+        def ReadVectorFromLine(line, conversion_fct, delimiter=' '):
+            return [conversion_fct(word) for word in line.split(delimiter)]
+
+        def CheckHeader(first_lines_file):
+            # Expected header:
+            '''
+            # vtk DataFile Version 4.0
+            vtk output
+            ASCII
+            DATASET UNSTRUCTURED_GRID
+            '''
+            if first_lines_file[2] != "ASCII":
+                raise Exception("Only acsii files can be compared!")
+            if first_lines_file[3] != "DATASET UNSTRUCTURED_GRID":
+                raise Exception("unknown dataset")
+
+        def ComparePoints(lines_ref, lines_out, line_counter):
+            if not lines_out[line_counter].startswith("POINTS"):
+                raise Exception('output-file is missing "POINTS" in the same location (expected line: {})'.format(line_counter))
+
+            num_points_ref = int(lines_ref[line_counter].split(" ")[1])
+            num_points_out = int(lines_out[line_counter].split(" ")[1])
+            if not num_points_ref == num_points_out:
+                raise Exception('output-file has wrong number of points: ref: {}, out: {}'.format(num_points_ref, num_points_out))
+
+            # Comparing point coordinates
+            for i in range(1, num_points_ref+1):
+                ref_coords = ReadVectorFromLine(lines_ref[line_counter+i], float)
+                out_coords = ReadVectorFromLine(lines_out[line_counter+i], float)
+
+                for val_1, val_2 in zip(ref_coords, out_coords):
+                    self.__CheckCloseValues(val_1, val_2)
+
+        def CompareCells(lines_ref, lines_out, line_counter):
+            if not lines_out[line_counter].startswith("CELLS"):
+                raise Exception('output-file is missing "CELLS" in the same location (expected line: {})'.format(line_counter))
+
+            num_cells_ref = int(lines_ref[line_counter].split(" ")[1])
+            num_cells_out = int(lines_out[line_counter].split(" ")[1])
+            if not num_cells_ref == num_cells_out:
+                raise Exception('output-file has wrong number of cells: ref: {}, out: {}'.format(num_cells_ref, num_cells_out))
+
+            num_connectivities_ref = int(lines_ref[line_counter].split(" ")[2])
+            num_connectivities_out = int(lines_out[line_counter].split(" ")[2])
+            if not num_connectivities_ref == num_connectivities_out:
+                raise Exception('output-file has wrong number of connectivities: ref: {}, out: {}'.format(num_connectivities_ref, num_connectivities_out))
+
+            # Comparing connectivities
+            for i in range(1, num_cells_ref+1):
+                ref_connectivities = ReadVectorFromLine(lines_ref[line_counter+i], int)
+                out_connectivities = ReadVectorFromLine(lines_out[line_counter+i], int)
+
+                for val_1, val_2 in zip(ref_connectivities, out_connectivities):
+                    self.assertTrue(val_1 == val_2, msg='Wrong connectivity in line {}: ref: {}, out: {}'.format(line_counter+i+1, val_1, val_2))
+
+        def CompareCellTypes(lines_ref, lines_out, line_counter):
+            if not lines_out[line_counter].startswith("CELL_TYPES"):
+                raise Exception('output-file is missing "CELL_TYPES" in the same location (expected line: {})'.format(line_counter))
+
+            num_cells_ref = int(lines_ref[line_counter].split(" ")[1])
+            num_cells_out = int(lines_out[line_counter].split(" ")[1])
+            if not num_cells_ref == num_cells_out:
+                raise Exception('output-file has wrong number of cells: ref: {}, out: {}'.format(num_cells_ref, num_cells_out))
+
+            # Comparing cell types
+            for i in range(1, num_cells_ref+1):
+                ref_cell_type = ReadVectorFromLine(lines_ref[line_counter+i], int)
+                out_cell_type = ReadVectorFromLine(lines_out[line_counter+i], int)
+                self.assertTrue(ref_cell_type[0] == out_cell_type[0], msg='Wrong cell type in line {}: ref: {}, out: {}'.format(line_counter+i+1, ref_cell_type[0], out_cell_type[0]))
+
+        def CompareData(lines_ref, lines_out, line_counter):
+            def CompareFieldData(lines_ref, lines_out, line_counter, num_entities):
+                ref_line_splitted = lines_ref[line_counter].split(" ")
+                name_ref = ref_line_splitted[0]
+                dim_ref = int(ref_line_splitted[1])
+                num_entities_ref = int(ref_line_splitted[2])
+
+                out_line_splitted = lines_out[line_counter].split(" ")
+                name_out = out_line_splitted[0]
+                dim_out = int(out_line_splitted[1])
+                num_entities_out = int(out_line_splitted[2])
+
+                if not num_entities_ref == num_entities:
+                    raise Exception('Num entities is wrong in ref: expected: {}, got: {}'.format(num_entities_ref, num_entities))
+                if not num_entities_out == num_entities:
+                    raise Exception('Num entities is wrong in out: expected: {}, got: {}'.format(num_entities_out, num_entities))
+
+                if not name_ref == name_out:
+                    raise Exception('name of field is not matching: ref: {}, out: {}'.format(name_ref, name_out))
+
+                if not dim_ref == dim_out:
+                    raise Exception('dimension of field is not matching: ref: {}, out: {}'.format(dim_ref, dim_out))
+
+                # Compare the values
+                for i in range(1, num_entities+1):
+                    ref_vals = ReadVectorFromLine(lines_ref[line_counter+i], float)
+                    out_vals = ReadVectorFromLine(lines_out[line_counter+i], float)
+
+                    for val_1, val_2 in zip(ref_vals, out_vals):
+                        self.__CheckCloseValues(val_1, val_2)
+
+
+            # Check if POINT_DATA or CELL_DATA
+            data_type_ref = lines_ref[line_counter].split(" ")[0]
+            data_type_out = lines_out[line_counter].split(" ")[0]
+            if data_type_ref != data_type_out:
+                raise Exception('data type is not matching: ref: {}, out: {}'.format(data_type_ref, data_type_out))
+
+            num_entities_ref = int(lines_ref[line_counter].split(" ")[1])
+            num_entities_out = int(lines_out[line_counter].split(" ")[1])
+            if not num_entities_ref == num_entities_out:
+                raise Exception('output-file has wrong number of entities for: {}: ref: {}, out: {}'.format(data_type_ref, num_entities_ref, num_entities_out))
+
+            if not lines_ref[line_counter+1].startswith("FIELD"):
+                raise Exception('reference-file is missing "FIELD" (expected in line: {})'.format(line_counter))
+            if not lines_out[line_counter+1].startswith("FIELD"):
+                raise Exception('output-file is missing "FIELD" (expected in line: {})'.format(line_counter))
+
+            num_fields_ref = int(lines_ref[line_counter+1].split(" ")[2])
+            num_fields_out = int(lines_out[line_counter+1].split(" ")[2])
+            if not num_fields_ref == num_fields_out:
+                raise Exception('output-file has wrong number of fields for: {}: ref: {}, out: {}'.format(data_type_ref, num_fields_ref, num_fields_out))
+
+            for i in range(num_fields_ref):
+                CompareFieldData(lines_ref, lines_out, line_counter+2 + i*(num_entities_ref+1), num_entities_ref)
+
+        ######
+        lines_ref, lines_out = self.__GetFileLines()
+
+        CheckHeader(lines_ref[0:4])
+        CheckHeader(lines_out[0:4])
+
+        for line_counter, line_ref in enumerate(lines_ref):
+            if line_ref.startswith("POINTS"):
+                ComparePoints(lines_ref, lines_out, line_counter)
+            if line_ref.startswith("CELLS"):
+                CompareCells(lines_ref, lines_out, line_counter)
+            if line_ref.startswith("CELL_TYPES"):
+                CompareCellTypes(lines_ref, lines_out, line_counter)
+            if line_ref.startswith("POINT_DATA") or line_ref.startswith("CELL_DATA"):
+                CompareData(lines_ref, lines_out, line_counter)
 
     def __CheckCloseValues(self, val_a, val_b, additional_info=""):
         isclosethis = t_isclose(val_a, val_b, rel_tol=self.reltol, abs_tol=self.tol)
@@ -345,7 +530,7 @@ def ConvertStringToListFloat(line, space = " ", endline = ""):
     list_values = []
     string_values = (line.replace(endline,"")).split(space)
     for string in string_values:
-        if (string != ""):
+        if string != "":
             list_values.append(float(string))
 
     return list_values

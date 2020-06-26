@@ -42,10 +42,9 @@ void SetErrorVariable(MesherUtilities::RefiningParameters& rRefiningParameters, 
   rRefiningParameters.SetErrorVariable(rVariable);
 }
 
-Variable<double> GetThresholdVariable(MesherUtilities::RefiningParameters& rRefiningParameters)
+const Variable<double>& GetThresholdVariable(MesherUtilities::RefiningParameters& rRefiningParameters)
 {
   return rRefiningParameters.GetThresholdVariable();
-
 }
 // remeshing methods
 
@@ -96,6 +95,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
   //***************DOMAIN SET**************//
   py::class_<MesherUtilities>(m,"MesherUtilities")
       .def(py::init<>())
+      .def("SetModelPartNameToElements",&MesherUtilities::SetModelPartNameToElements)
       .def("SetModelPartNameToConditions",&MesherUtilities::SetModelPartNameToConditions)
       .def("SetModelPartNameToNodes",&MesherUtilities::SetModelPartNameToNodes)
       .def("CheckCriticalRadius",&MesherUtilities::CheckCriticalRadius)
@@ -139,6 +139,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
       .def_readonly_static("SELECT_TESSELLATION_ELEMENTS",&MesherUtilities::SELECT_TESSELLATION_ELEMENTS)
       .def_readonly_static("KEEP_ISOLATED_NODES",&MesherUtilities::KEEP_ISOLATED_NODES)
+      .def_readonly_static("REFINE_WALL_CORNER",&MesherUtilities::REFINE_WALL_CORNER)
       ;
 
 
@@ -265,6 +266,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("GetOptions",&MesherUtilities::MeshingParameters::GetOptions)
       .def("InitializeMeshing",&MesherUtilities::MeshingParameters::InitializeMeshing)
       .def("FinalizeMeshing",&MesherUtilities::MeshingParameters::FinalizeMeshing)
+      .def("SetUseBoundingBox",&MesherUtilities::MeshingParameters::SetUseBoundingBox)
+      .def("SetBoundingBoxLowerPoint",&MesherUtilities::MeshingParameters::SetBoundingBoxLowerPoint)
+      .def("SetBoundingBoxUpperPoint",&MesherUtilities::MeshingParameters::SetBoundingBoxUpperPoint)
+      .def("SetBoundingBoxTimeInterval",&MesherUtilities::MeshingParameters::SetBoundingBoxTimeInterval)
+      .def("SetUseRefiningBox",&MesherUtilities::MeshingParameters::SetUseRefiningBox)
+      .def("SetRefiningBoxMinimumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxMinimumPoint)
+      .def("SetRefiningBoxMaximumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxMaximumPoint)
+      .def("SetRefiningBoxTimeInterval",&MesherUtilities::MeshingParameters::SetRefiningBoxTimeInterval)
+      .def("SetRefiningBoxMeshSize",&MesherUtilities::MeshingParameters::SetRefiningBoxMeshSize)
       ;
 
 }
@@ -272,4 +282,3 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

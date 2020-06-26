@@ -35,6 +35,7 @@
 #include "custom_utilities/integration_point_to_node_transformation_utility.h"
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
+#include "custom_utilities/acceleration_limitation_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -69,7 +70,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMin)
         .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMax)
         .def("EstimateDt",&EstimateDtUtility < 2 > ::EstimateDt)
-        .def("CalculateLocalCFL",&EstimateDtUtility < 2 > ::CalculateLocalCFL)
+        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &EstimateDtUtility<2>::CalculateLocalCFL )
         ;
 
     py::class_<EstimateDtUtility < 3 > >(m,"EstimateDtUtility3D")
@@ -79,7 +80,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMin)
         .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMax)
         .def("EstimateDt",&EstimateDtUtility < 3 > ::EstimateDt)
-        .def("CalculateLocalCFL",&EstimateDtUtility < 3 > ::CalculateLocalCFL)
+        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &EstimateDtUtility<3>::CalculateLocalCFL )
         ;
 
     // Periodic boundary conditions utilities
@@ -167,7 +168,16 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         CompressibleElementRotationUtility<LocalSpaceType::MatrixType,LocalSpaceType::VectorType>::Pointer,
         CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double> >
         (m,"CompressibleElementRotationUtility")
-        .def(py::init<const unsigned int,const Variable<double>&>())
+        .def(py::init<const unsigned int,const Kratos::Flags&>())
+        ;
+
+    // Limit the maximal accelearation inside a time step to a physically possible value
+    py::class_<
+        AccelerationLimitationUtilities>
+        (m,"AccelerationLimitationUtilities")
+        .def(py::init< ModelPart&, const double >())
+        .def("SetLimitAsMultipleOfGravitionalAcceleration", &AccelerationLimitationUtilities::SetLimitAsMultipleOfGravitionalAcceleration)
+        .def("Execute", &AccelerationLimitationUtilities::Execute)
         ;
 
 }

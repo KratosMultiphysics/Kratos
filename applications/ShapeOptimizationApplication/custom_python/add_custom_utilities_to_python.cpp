@@ -31,7 +31,8 @@
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
-#include "custom_utilities/input_output/vtk_file_io.h"
+#include "custom_utilities/search_based_functions.h"
+
 // ==============================================================================
 
 namespace Kratos {
@@ -69,6 +70,41 @@ inline void InverseMapScalar(TMapper& mapper,
     mapper.InverseMap(origin_variable, destination_variable);
 }
 
+inline double ComputeL2NormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
+{
+    return utils.ComputeL2NormOfNodalVariable(variable);
+}
+
+inline double ComputeL2NormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
+{
+    return utils.ComputeL2NormOfNodalVariable(variable);
+}
+
+inline double ComputeMaxNormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
+{
+    return utils.ComputeMaxNormOfNodalVariable(variable);
+}
+
+inline double ComputeMaxNormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
+{
+    return utils.ComputeMaxNormOfNodalVariable(variable);
+}
+
+inline void AssembleMatrixForVariableList(
+    OptimizationUtilities& utils,
+    Matrix& rMatrix,
+    pybind11::list& rVariables)
+{
+    std::size_t list_length = pybind11::len(rVariables);
+    std::vector<Variable<OptimizationUtilities::array_3d>*> variables_vector(list_length);
+    for (std::size_t i = 0; i < list_length; i++)
+    {
+        variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
+    }
+    return utils.AssembleMatrix(rMatrix, variables_vector);
+}
+
+// ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -126,11 +162,20 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         // ----------------------------------------------------------------
         .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
         .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
+        .def("GetCorrectionScaling", &OptimizationUtilities::GetCorrectionScaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
         .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
         .def("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
+        .def("ComputeL2NormOfNodalVariable", ComputeL2NormScalar)
+        .def("ComputeL2NormOfNodalVariable", ComputeL2NormVector)
+        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormScalar)
+        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
+        .def("AssembleVector", &OptimizationUtilities::AssembleVector)
+        .def("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
+        .def("AssembleMatrix", &AssembleMatrixForVariableList)
+        .def("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         ;
 
     // ========================================================================
@@ -140,7 +185,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&>())
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
+        .def("ProjectNodalVariableOnDirection", &GeometryUtilities::ProjectNodalVariableOnDirection)
+        .def("ProjectNodalVariableOnTangentPlane", &GeometryUtilities::ProjectNodalVariableOnTangentPlane)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
+        .def("ComputeDistancesToBoundingModelPart", &GeometryUtilities::ComputeDistancesToBoundingModelPart)
         ;
 
     // ========================================================================
@@ -149,10 +197,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
         .def(py::init<ModelPart&>())
         .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
+        .def("RevertMeshUpdateAccordingInputVariable", &MeshControllerUtilities::RevertMeshUpdateAccordingInputVariable)
         .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
         .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
         .def("SetReferenceMeshToMesh", &MeshControllerUtilities::SetReferenceMeshToMesh)
         .def("SetDeformationVariablesToZero", &MeshControllerUtilities::SetDeformationVariablesToZero)
+        .def("WriteCoordinatesToVariable", &MeshControllerUtilities::WriteCoordinatesToVariable)
+        .def("SubtractCoordinatesFromVariable", &MeshControllerUtilities::SubtractCoordinatesFromVariable)
+        .def("AddFirstVariableToSecondVariable", &MeshControllerUtilities::AddFirstVariableToSecondVariable)
         ;
 
     // ========================================================================
@@ -163,11 +215,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
         ;
-    py::class_<VTKFileIO >(m, "VTKFileIO")
-        .def(py::init<ModelPart&, std::string, std::string, Parameters>())
-        .def("InitializeLogging", &VTKFileIO::InitializeLogging)
-        .def("LogNodalResults", &VTKFileIO::LogNodalResults)
+
+    // ========================================================================
+    // Additional operations
+    // ========================================================================
+    py::class_<SearchBasedFunctions >(m, "SearchBasedFunctions")
+        .def(py::init<ModelPart&>())
+        .def("FlagNodesInRadius", &SearchBasedFunctions::FlagNodesInRadius)
         ;
+
 }
 
 }  // namespace Python.

@@ -28,29 +28,25 @@
 #include "external_includes/superlu_iterative_solver.h"
 #include "external_includes/gmres_solver.h"
 
-#ifdef INCLUDE_FEAST
-  #include "external_includes/feast_solver.h"
-#endif
-
 #ifdef INCLUDE_PASTIX
   #include "external_includes/pastix_solver.h"
   #include "external_includes/pastix_complex_solver.h"
 #endif
 
 #include "externalsolvers_application.h"
-#include "includes/standard_linear_solver_factory.h"
+#include "factories/standard_linear_solver_factory.h"
 
 namespace Kratos {
 namespace Python {
 
 template <class TDataType>
-using TSpaceType = UblasSpace<TDataType, compressed_matrix<TDataType>, vector<TDataType>>;
+using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
 template <class TDataType>
-using TLocalSpaceType = UblasSpace<TDataType, matrix<TDataType>, vector<TDataType>>;
+using TLocalSpaceType = UblasSpace<TDataType, DenseMatrix<TDataType>, DenseVector<TDataType>>;
 template <class TDataType>
 using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
 template <class TDataType>
-using TDirectSolverType = DirectSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+using TDirectSolverType = DirectSolver<TUblasSparseSpace<TDataType>, TUblasDenseSpace<TDataType>>;
 
 void  AddLinearSolversToPython(pybind11::module& m)
 {
@@ -69,14 +65,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     //***************************************************************************
     // Linear solvers
     //***************************************************************************
-#ifdef INCLUDE_FEAST
-    typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;                          //SOME PROBLEM WITH THE SKYLINE_CUSTOM ... TO BE FIXED
-    py::class_<FEASTSolverType, FEASTSolverType::Pointer, LinearSolverType >
-        (m, "FEASTSolver")
-        .def(py::init<Parameters>() )
-        .def(py::init<Parameters, TLinearSolverType<std::complex<double>>::Pointer>())
-        ;
-#endif
 
     py::class_<SuperLUSolverType, typename SuperLUSolverType::Pointer,DirectSolverType>
     (m, "SuperLUSolver")
@@ -138,26 +126,19 @@ ExternalSolversApplicationRegisterLinearSolvers::ExternalSolversApplicationRegis
     static auto SuperLUSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,SuperLUSolverType>();
     static auto SuperLUIterativeSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,SuperLUIterativeSolverType>();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("GMRESSolver", GMRESSolverFactory);
-    KRATOS_REGISTER_LINEAR_SOLVER("Super_LU", SuperLUSolverFactory); // NOTE: This is duplicated by retrocompatibility
-    KRATOS_REGISTER_LINEAR_SOLVER("SuperLUSolver", SuperLUSolverFactory);
-    KRATOS_REGISTER_LINEAR_SOLVER("SuperLUIterativeSolver", SuperLUIterativeSolverFactory);
+    KRATOS_REGISTER_LINEAR_SOLVER("gmres", GMRESSolverFactory);
+    KRATOS_REGISTER_LINEAR_SOLVER("super_lu", SuperLUSolverFactory);
+    KRATOS_REGISTER_LINEAR_SOLVER("super_lu_iterative", SuperLUIterativeSolverFactory);
 
 #ifdef INCLUDE_PASTIX
     typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
     typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
     typedef PastixSolver<SpaceType,  LocalSpaceType> PastixSolverType;
     static auto PastixSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,PastixSolverType>();
-    KRATOS_REGISTER_LINEAR_SOLVER("PastixSolver", PastixSolverFactory);
+    KRATOS_REGISTER_LINEAR_SOLVER("pastix", PastixSolverFactory);
     typedef PastixComplexSolver<ComplexSpaceType, ComplexLocalSpaceType> PastixComplexSolverType;
     static auto PastixComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, PastixComplexSolverType>();
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("PastixComplexSolver", PastixComplexSolverFactory);
-#endif
-
-#ifdef INCLUDE_FEAST
-    typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
-    static auto FEASTSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,FEASTSolverType>();
-    KRATOS_REGISTER_LINEAR_SOLVER("FEASTSolver", FEASTSolverFactory);
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pastix_complex", PastixComplexSolverFactory);
 #endif
 }
 

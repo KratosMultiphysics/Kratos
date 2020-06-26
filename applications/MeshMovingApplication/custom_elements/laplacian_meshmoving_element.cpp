@@ -16,10 +16,11 @@
 // External includes
 
 // Project includes
-#include "custom_elements/laplacian_meshmoving_element.h"
-#include "mesh_moving_application.h"
-#include "custom_utilities/move_mesh_utilities.h"
+#include "includes/checks.h"
+#include "includes/mesh_moving_variables.h"
 #include "utilities/math_utils.h"
+#include "custom_elements/laplacian_meshmoving_element.h"
+#include "custom_utilities/move_mesh_utilities.h"
 
 namespace Kratos {
 
@@ -37,7 +38,7 @@ Element::Pointer
 LaplacianMeshMovingElement::Create(IndexType NewId,
                                    NodesArrayType const &rThisNodes,
                                    PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<LaplacianMeshMovingElement>(
+  return Kratos::make_intrusive<LaplacianMeshMovingElement>(
       NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
@@ -46,15 +47,18 @@ LaplacianMeshMovingElement::Create(IndexType NewId,
 Element::Pointer
 LaplacianMeshMovingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
                                    PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<LaplacianMeshMovingElement>(NewId, pGeom,
+  return Kratos::make_intrusive<LaplacianMeshMovingElement>(NewId, pGeom,
                                                          pProperties);
 }
 
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::CalculateDeltaPosition(
-    VectorType &rIntermediateDisplacements, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rIntermediateDisplacements, const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
+
+  KRATOS_DEBUG_ERROR_IF_NOT(rCurrentProcessInfo.Has(LAPLACIAN_DIRECTION))
+    << "LAPLACIAN_DIRECTION not defined in the ProcessInfo!" << std::endl;
 
   const unsigned int component_index =
       rCurrentProcessInfo[LAPLACIAN_DIRECTION] - 1;
@@ -73,7 +77,7 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::CheckElementMatrixDimension(
-    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) {
+    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) const {
   const SizeType num_nodes = this->GetGeometry().PointsNumber();
 
   if (rLeftHandSideMatrix.size1() != num_nodes)
@@ -90,7 +94,7 @@ void LaplacianMeshMovingElement::CheckElementMatrixDimension(
 //******************************************************************************
 void LaplacianMeshMovingElement::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   GeometryType &rgeom = this->GetGeometry();
@@ -140,10 +144,13 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::EquationIdVector(
-    EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo) {
+    EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  KRATOS_DEBUG_ERROR_IF_NOT(rCurrentProcessInfo.Has(LAPLACIAN_DIRECTION))
+    << "LAPLACIAN_DIRECTION not defined in the ProcessInfo!" << std::endl;
+
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -181,10 +188,13 @@ void LaplacianMeshMovingElement::EquationIdVector(
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
-                                            ProcessInfo &rCurrentProcessInfo) {
+                                            const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  KRATOS_DEBUG_ERROR_IF_NOT(rCurrentProcessInfo.Has(LAPLACIAN_DIRECTION))
+    << "LAPLACIAN_DIRECTION not defined in the ProcessInfo!" << std::endl;
+
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -216,13 +226,37 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
 // Called in function "CalculateReactions" within the component wise builder and
 // solver
 void LaplacianMeshMovingElement::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   MatrixType LHS;
   CalculateLocalSystem(LHS, rRightHandSideVector, rCurrentProcessInfo);
 
   KRATOS_CATCH("");
+}
+
+int LaplacianMeshMovingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    Element::Check(rCurrentProcessInfo);
+
+    // Verify that the variables are correctly initialized
+    KRATOS_CHECK_VARIABLE_KEY(MESH_DISPLACEMENT)
+    KRATOS_CHECK_VARIABLE_KEY(LAPLACIAN_DIRECTION)
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( const auto& r_node : GetGeometry() ) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_DISPLACEMENT,r_node)
+
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_X, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_Y, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_Z, r_node)
+    }
+
+    return 0;
+
+    KRATOS_CATCH( "" );
 }
 
 } // Namespace Kratos

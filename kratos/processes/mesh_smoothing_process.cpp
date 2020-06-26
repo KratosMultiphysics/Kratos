@@ -91,7 +91,7 @@ namespace Kratos
 				ModelPart coarse_model_part;
 				coarse_model_part.GetMeshes().clear();
 				coarse_model_part.GetMeshes().push_back(ModelPart::MeshType::Pointer(new ModelPart::MeshType(r_coars_mesh1)));
-				FindNodalNeighboursProcess find_neighbour_process(coarse_model_part, 10, 10);
+				FindNodalNeighboursProcess find_neighbour_process(coarse_model_part);
 				find_neighbour_process.Execute();
 				PerformCoarsening(r_coars_mesh1, r_coars_mesh2);
 			}
@@ -99,7 +99,7 @@ namespace Kratos
 			ModelPart coarse_model_part;
 			coarse_model_part.GetMeshes().clear();
 			coarse_model_part.GetMeshes().push_back(ModelPart::MeshType::Pointer(new ModelPart::MeshType(r_coars_mesh2)));
-			FindNodalNeighboursProcess find_neighbour_process(coarse_model_part, 10, 10);
+			FindNodalNeighboursProcess find_neighbour_process(coarse_model_part);
 			find_neighbour_process.Execute();
 			MeshSmoothingProcess coarse_smoothing_process(coarse_model_part, LAPLACIAN_SMOOTHING, 10);
 			coarse_smoothing_process.Execute();
@@ -220,8 +220,8 @@ namespace Kratos
 		//		i_node->Set(VISITED);
 		//		rCoarsMesh.AddNode(*(i_node.base()));
 		//		i_node->GetValue(FATHER_NODES).push_back(*(i_node.base()));
-		//		WeakPointerVector< Node<3> >& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
-		//		for (WeakPointerVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
+		//		GlobalPointersVector< Node<3> >& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
+		//		for (GlobalPointersVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
 		//		{
 		//			loop_counter++;
 		//			if ((i_neighbour_node->IsNot(VISITED)) && (i_neighbour_node->IsNot(BOUNDARY)))
@@ -250,8 +250,8 @@ namespace Kratos
 		//		if (i_node->Is(VISITED))
 		//		{
 		//			i_node->GetSolutionStepValue(PRESSURE) = 10.00; // cluster_number;
-		//			WeakPointerVector< Node<3> >& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
-		//			for (WeakPointerVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
+		//			GlobalPointersVector< Node<3> >& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
+		//			for (GlobalPointersVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
 		//			{
 		//				loop_counter++;
 		//				if ((i_neighbour_node->IsNot(VISITED)))
@@ -264,8 +264,8 @@ namespace Kratos
 		//		else 
 		//		{
 		//			bool is_seed = true; // as a candidate
-		//			WeakPointerVector< Node<3> >& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
-		//			for (WeakPointerVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
+		//			GlobalPointersVector< Node<3> >& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
+		//			for (GlobalPointersVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
 		//			{
 		//				loop_counter++;
 		//				if ((i_neighbour_node->Is(VISITED)))
@@ -281,7 +281,7 @@ namespace Kratos
 		//				i_node->Set(VISITED);
 		//				i_node->GetValue(FATHER_NODES).push_back(*(i_node.base()));
 		//				rCoarsMesh.AddNode(*(i_node.base()));
-		//				for (WeakPointerVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
+		//				for (GlobalPointersVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
 		//				{
 		//					loop_counter++;
 		//						i_neighbour_node->Set(VISITED);
@@ -316,8 +316,8 @@ namespace Kratos
 			if (i_node->IsNot(COARSE_MESH_NODE))
 			{
 				bool is_seed = true; // as a candidate
-				WeakPointerVector< Node<3> >& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
-				for (WeakPointerVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
+				GlobalPointersVector< Node<3> >& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
+				for (GlobalPointersVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
 				{
 					if ((i_neighbour_node->Is(COARSE_MESH_NODE)))
 					{
@@ -350,10 +350,10 @@ namespace Kratos
 	{
 		double min_distance = std::numeric_limits<double>::max();
 		
-		WeakPointerVector< Node<3> >& r_neighbours = rThisNode.GetValue(NEIGHBOUR_NODES);
-		WeakPointerVector<Node<3> >::iterator i_coarse_node = r_neighbours.end();
+		GlobalPointersVector< Node<3> >& r_neighbours = rThisNode.GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector<Node<3> >::iterator i_coarse_node = r_neighbours.end();
 
-		for (WeakPointerVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
+		for (GlobalPointersVector<Node<3> >::iterator i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++)
 		{
 			if ((i_neighbour_node->Is(COARSE_MESH_NODE)))
 			{

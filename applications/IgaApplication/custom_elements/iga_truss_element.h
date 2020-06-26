@@ -14,8 +14,6 @@
 #define KRATOS_IGA_TRUSS_ELEMENT_H_INCLUDED
 
 // System includes
-#include "includes/define.h"
-#include "includes/element.h"
 
 // External includes
 
@@ -30,7 +28,7 @@ class IgaTrussElement
     : public IgaBaseElement<3>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION( IgaTrussElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( IgaTrussElement );
 
     using IgaBaseElementType::IgaBaseElementType;
 

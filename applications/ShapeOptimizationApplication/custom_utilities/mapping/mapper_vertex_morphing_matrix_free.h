@@ -113,7 +113,7 @@ public:
     void Initialize() override
     {
         BuiltinTimer timer;
-        std::cout << "> Starting initialization of matrix-free mapper..." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting initialization of matrix-free mapper..." << std::endl;
 
         CreateListOfNodesInOriginModelPart();
         CreateFilterFunction();
@@ -124,7 +124,7 @@ public:
 
         mIsMappingInitialized = true;
 
-        std::cout << "> Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -134,7 +134,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesDestination[0].clear();
@@ -142,8 +143,13 @@ public:
         mValuesDestination[2].clear();
 
         // Perform mapping
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
+            auto& node_i = *(destination_nodes_begin + node_itr);
+
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
@@ -166,15 +172,21 @@ public:
                 ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
                 array_3d& nodal_variable = node_j.FastGetSolutionStepValue(rOriginVariable);
 
+                #pragma omp atomic
                 mValuesDestination[0][node_i_mapping_id] += weight*nodal_variable[0];
+                #pragma omp atomic
                 mValuesDestination[1][node_i_mapping_id] += weight*nodal_variable[1];
+                #pragma omp atomic
                 mValuesDestination[2][node_i_mapping_id] += weight*nodal_variable[2];
             }
         }
 
         // Assign results to nodal variable
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
+            auto& node_i = *(destination_nodes_begin + node_itr);
+
             int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rDestinationVariable);
@@ -183,7 +195,7 @@ public:
             r_node_vector(2) = mValuesDestination[2][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -193,14 +205,20 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesDestination[0].clear();
 
         // Perform mapping
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
+            auto& node_i = *(destination_nodes_begin + node_itr);
+
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
@@ -221,18 +239,22 @@ public:
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
                 ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
 
+                #pragma omp atomic
                 mValuesDestination[0][node_i_mapping_id] += weight*node_j.FastGetSolutionStepValue(rOriginVariable);
             }
         }
 
         // Assign results to nodal variable
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
+            auto& node_i = *(destination_nodes_begin + node_itr);
             int i = node_i.GetValue(MAPPING_ID);
+
             node_i.FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -242,7 +264,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesOrigin[0].clear();
@@ -250,8 +273,13 @@ public:
         mValuesOrigin[2].clear();
 
         // Perform mapping
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
+            auto& node_i = *(destination_nodes_begin + node_itr);
+
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
@@ -274,15 +302,22 @@ public:
 
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
 
+                #pragma omp atomic
                 mValuesOrigin[0][neighbor_node_mapping_id] += weight*nodal_variable[0];
+                #pragma omp atomic
                 mValuesOrigin[1][neighbor_node_mapping_id] += weight*nodal_variable[1];
+                #pragma omp atomic
                 mValuesOrigin[2][neighbor_node_mapping_id] += weight*nodal_variable[2];
             }
         }
 
         // Assign results to nodal variable
-        for(auto& node_i : mrOriginModelPart.Nodes())
+        const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrOriginModelPart.NumberOfNodes()); node_itr++)
         {
+            auto& node_i = *(origin_nodes_begin + node_itr);
             int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rOriginVariable);
@@ -291,7 +326,7 @@ public:
             r_node_vector(2) = mValuesOrigin[2][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -301,14 +336,20 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesOrigin[0].clear();
 
         // Perform mapping
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
+            auto& node_i = *(destination_nodes_begin + node_itr);
+
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
@@ -331,32 +372,38 @@ public:
 
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
 
+                #pragma omp atomic
                 mValuesOrigin[0][neighbor_node_mapping_id] += weight*variable_value;
             }
         }
 
         // Assign results to nodal variable
-        for(auto& node_i : mrOriginModelPart.Nodes())
+        const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrOriginModelPart.NumberOfNodes()); node_itr++)
         {
+            auto& node_i = *(origin_nodes_begin + node_itr);
             int i = node_i.GetValue(MAPPING_ID);
+
             node_i.FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void Update() override
     {
         if (mIsMappingInitialized == false)
-            KRATOS_ERROR << "> Mapping has to be initialized before calling the Update-function!";
+            KRATOS_ERROR << "Mapping has to be initialized before calling the Update-function!";
 
         BuiltinTimer timer;
-        std::cout << "> Starting to update mapper..." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
         CreateSearchTreeWithAllNodesInOriginModelPart();
 
-        std::cout << "> Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -520,16 +567,16 @@ private:
     void CreateSearchTreeWithAllNodesInOriginModelPart()
     {
         BuiltinTimer timer;
-        std::cout << "> Creating search tree to perform mapping..." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Creating search tree to perform mapping..." << std::endl;
         mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginModelPart.begin(), mListOfNodesInOriginModelPart.end(), mBucketSize));
-        std::cout << "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void ThrowWarningIfNumberOfNeighborsExceedsLimit(ModelPart::NodeType& given_node, unsigned int number_of_neighbors)
     {
         if(number_of_neighbors >= mMaxNumberOfNeighbors)
-            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
+            KRATOS_WARNING("ShapeOpt::MapperVertexMorphingMatrixFree") << "For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
     }
 
     // --------------------------------------------------------------------------

@@ -18,6 +18,7 @@ class RestartUtility(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "input_filename"                 : "",
+            "io_foldername"                  : "",
             "echo_level"                     : 0,
             "serializer_trace"               : "no_trace",
             "restart_load_file_label"        : "",
@@ -43,7 +44,18 @@ class RestartUtility(object):
         # the path is splitted in case it already contains a path (neeeded if files are moved to a folder)
         self.raw_path, self.raw_file_name = os.path.split(settings["input_filename"].GetString())
         self.raw_path = os.path.join(os.getcwd(), self.raw_path)
-        self.folder_name = self.raw_file_name + "__restart_files"
+
+        if settings["io_foldername"].GetString() == '':
+            self.io_foldername = self.raw_file_name + "__restart_files"
+            info_msg  = 'No entry found for "io_foldername"\n'
+            info_msg += 'Using the default "' + self.io_foldername + '"'
+            KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
+
+        else:
+            self.io_foldername = settings["io_foldername"].GetString()
+            info_msg  = 'Found entry found for "io_foldername"\n'
+            info_msg += 'Using the user-defined value "' + self.io_foldername + '"'
+            KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
 
         serializer_trace = settings["serializer_trace"].GetString()
         if not serializer_trace in __serializer_flags.keys():
@@ -85,18 +97,19 @@ class RestartUtility(object):
         if restart_file_name == "": # Using the default restart file name
             # Get file name
             restart_path = self.__GetFileNameLoad()
+
         else: # Using a custom restart file name
             if restart_file_name.endswith('.rest'):
                 restart_file_name = restart_file_name[:-5] # removing ".rest" from the file name
             restart_path = restart_file_name
 
         # Check path
-        if (os.path.exists(restart_path+".rest") == False):
-            raise Exception("Restart file not found: " + restart_path + ".rest")
-        self._PrintOnRankZero("::[Restart Utility]::", "Loading restart file:", restart_path + ".rest")
+        if not os.path.exists(restart_path+".rest"):
+            raise FileNotFoundError("Restart file not found: " + restart_path + ".rest")
+        KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Loading restart file:", restart_path + ".rest")
 
         # Load the ModelPart
-        serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
+        serializer = KratosMultiphysics.FileSerializer(restart_path, self.serializer_flag)
         serializer.Load(self.model_part_name, self.model_part)
 
         self._ExecuteAfterLoad()
@@ -105,32 +118,36 @@ class RestartUtility(object):
         load_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
         self.model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
 
-        self._PrintOnRankZero("::[Restart Utility]::", "Finished loading model part from restart file.")
+        KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Finished loading model part from restart file.")
 
     def SaveRestart(self):
         """
         This function saves the restart file. It should be called at the end of a time-step.
         Use "IsRestartOutputStep" to check if a restart file should be written in this time-step
         """
-        if self.save_restart_files_in_folder:
-            folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
-                os.makedirs(folder_path)
-            self.model_part.GetCommunicator().Barrier()
-
         if self.restart_control_type_is_time:
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             control_label = self.__GetPrettyTime(time)
         else:
             control_label = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
+        self.CreateOutputFolder()
+
+        if not os.path.isdir(self.__GetFolderPathSave()):
+            err_msg  = 'The directory for saving the restart-files of modelpart "'
+            err_msg += self.model_part_name + '" does not exist!\n'
+            if self.save_restart_files_in_folder:
+                err_msg += 'Something went wrong with the creation of the folder "'
+                err_msg += self.__GetFolderPathSave()+ '"!'
+            raise Exception(err_msg)
+
         file_name = self.__GetFileNameSave(control_label)
 
         # Save the ModelPart
-        serializer = KratosMultiphysics.Serializer(file_name, self.serializer_flag)
+        serializer = KratosMultiphysics.FileSerializer(file_name, self.serializer_flag)
         serializer.Save(self.model_part.Name, self.model_part)
         if self.echo_level > 0:
-            self._PrintOnRankZero("::[Restart Utility]::", "Saved restart file", file_name + ".rest")
+            KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Saved restart file", file_name + ".rest")
 
         # Schedule next output
         if self.restart_save_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -146,6 +163,14 @@ class RestartUtility(object):
         else:
             return (self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output)
 
+    def CreateOutputFolder(self):
+        if self.save_restart_files_in_folder:
+            folder_path = self.__GetFolderPathSave()
+            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
+                os.makedirs(folder_path)
+            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+
+
     #### Protected functions ####
 
     def _GetFileLabelLoad(self):
@@ -158,21 +183,17 @@ class RestartUtility(object):
         """This function creates the communicators in MPI/trilinos"""
         pass
 
-    def _PrintOnRankZero(self, *args):
-        # This function will be overridden in the trilinos-version
-        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
-
     #### Private functions ####
 
     def __GetFolderPathLoad(self):
         if self.load_restart_files_from_folder:
-            return os.path.join(self.raw_path, self.folder_name)
+            return os.path.join(self.raw_path, self.io_foldername)
         else:
             return self.raw_path
 
     def __GetFolderPathSave(self):
         if self.save_restart_files_in_folder:
-            return os.path.join(self.raw_path, self.folder_name)
+            return os.path.join(self.raw_path, self.io_foldername)
         else:
             return self.raw_path
 

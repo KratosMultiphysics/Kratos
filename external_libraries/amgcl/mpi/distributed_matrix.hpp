@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -199,6 +199,16 @@ class comm_pattern {
 
         std::tuple<int, int> remote_info(ptrdiff_t col) const {
             return idx.at(col);
+        }
+
+        std::unordered_map<ptrdiff_t, std::tuple<int, int> >::const_iterator
+        remote_begin() const {
+            return idx.cbegin();
+        }
+
+        std::unordered_map<ptrdiff_t, std::tuple<int, int> >::const_iterator
+        remote_end() const {
+            return idx.cend();
         }
 
         size_t renumber(size_t n, ptrdiff_t *col) const {
@@ -442,7 +452,7 @@ class distributed_matrix {
                 A_loc = Backend::copy_matrix(a_loc, bprm);
             }
 
-            if (!A_rem) {
+            if (!A_rem && a_rem && a_rem->nnz > 0) {
                 C->renumber(a_rem->nnz, a_rem->col);
                 A_rem = Backend::copy_matrix(a_rem, bprm);
             }
@@ -1061,6 +1071,13 @@ struct residual_impl<mpi::distributed_matrix<Backend>, Vec1, Vec2, Vec3>
         A.residual(rhs, x, r);
     }
 };
+
+// Diagonal of the matrix
+template <class Backend>
+std::shared_ptr< numa_vector<typename Backend::value_type> >
+diagonal(const mpi::distributed_matrix<Backend> &A, bool invert = false) {
+    return diagonal(*A.local(), invert);
+}
 
 // Estimate spectral radius of the matrix.
 template <bool scale, class Backend>

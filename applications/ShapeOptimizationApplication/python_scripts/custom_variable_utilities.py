@@ -8,10 +8,6 @@
 #
 # ==============================================================================
 def WriteDictionaryDataOnNodalVariable(data, model_part, nodal_variable):
-    data_dimension = len(next(iter(data.values())))
-    if data_dimension != 3:
-        raise RuntimeError("custom_variable_utility::WriteDictionaryDataOnNodalVariable: Wrong dimension of data entries in input dictionary!")
-
     for node_id, tmp_gradient in data.items():
         model_part.Nodes[node_id].SetSolutionStepValue(nodal_variable, 0, tmp_gradient)
 

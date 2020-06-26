@@ -3,49 +3,45 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_solver
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
+from KratosMultiphysics import eigen_solver_factory
 
 def CreateSolver(main_model_part, custom_settings):
     return EigenSolver(main_model_part, custom_settings)
 
-
-class EigenSolver(structural_mechanics_solver.MechanicalSolver):
+class EigenSolver(MechanicalSolver):
     """The structural mechanics eigen solver.
 
     This class creates the mechanical solvers for eigenvalue analysis.
 
-    Public member variables:
-    eigensolver_settings -- settings for the eigenvalue solvers.
-
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        # Validation of eigensolver_settings is done in the eigenvalue solvers
-        self.eigensolver_settings = custom_settings["eigensolver_settings"]
-
-        # Validate the remaining settings in the base class.
-        structural_settings = custom_settings.Clone()
-        structural_settings.RemoveValue("eigensolver_settings")
-
-        self.structural_eigensolver_settings = KratosMultiphysics.Parameters("""
-        {
-            "scheme_type"   : "dynamic"
-        }
-        """)
-        self.validate_and_transfer_matching_settings(structural_settings, self.structural_eigensolver_settings)
-        # Validate the remaining settings in the base class.
-
         # Construct the base solver.
-        super(EigenSolver, self).__init__(main_model_part, structural_settings)
-        self.print_on_rank_zero("::[EigenSolver]:: ", "Construction finished")
+        super(EigenSolver, self).__init__(main_model_part, custom_settings)
+        KratosMultiphysics.Logger.PrintInfo("::[EigenSolver]:: ", "Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "scheme_type"         : "dynamic",
+            "compute_modal_decomposition": false,
+            "eigensolver_settings" : {
+                "solver_type"           : "eigen_eigensystem",
+                "max_iteration"         : 1000,
+                "tolerance"             : 1e-6,
+                "number_of_eigenvalues" : 5,
+                "echo_level"            : 1
+            },
+            "eigensolver_diagonal_values" : { }
+        }""")
+        this_defaults.AddMissingParameters(super(EigenSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     #### Private functions ####
 
@@ -55,7 +51,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         The scheme determines the left- and right-hand side matrices in the
         generalized eigenvalue problem.
         """
-        scheme_type = self.structural_eigensolver_settings["scheme_type"].GetString()
+        scheme_type = self.settings["scheme_type"].GetString()
         if scheme_type == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else: # here e.g. a stability scheme could be added
@@ -71,14 +67,34 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         This overrides the base class method and replaces the usual linear solver
         with an eigenvalue problem solver.
         """
-        import eigen_solver_factory
-        return eigen_solver_factory.ConstructSolver(self.eigensolver_settings)
+        return eigen_solver_factory.ConstructSolver(self.settings["eigensolver_settings"])
 
     def _create_mechanical_solution_strategy(self):
         eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
         builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
         computing_model_part = self.GetComputingModelPart()
 
+        solver_type = self.settings["eigensolver_settings"]["solver_type"].GetString()
+        if solver_type == "eigen_eigensystem":
+            mass_matrix_diagonal_value = 0.0
+            stiffness_matrix_diagonal_value = 1.0
+        elif solver_type == "feast":
+            mass_matrix_diagonal_value = 1.0
+            stiffness_matrix_diagonal_value = -1.0
+        else:
+            diag_values = self.settings["eigensolver_diagonal_values"]
+            if not diag_values.Has("mass_matrix_diagonal_value") or not diag_values.Has("stiffness_matrix_diagonal_value"):
+                err_msg  = 'For the used eigensolver "{}" no defaults for '.format(solver_type)
+                err_msg += '"mass_matrix_diagonal_value" and "stiffness_matrix_diagonal_value" exist, '
+                err_msg += 'please specify them under "eigensolver_diagonal_values"'
+                raise Exception(err_msg)
+
+            mass_matrix_diagonal_value = diag_values["mass_matrix_diagonal_value"].GetDouble()
+            stiffness_matrix_diagonal_value = diag_values["stiffness_matrix_diagonal_value"].GetDouble()
+
         return StructuralMechanicsApplication.EigensolverStrategy(computing_model_part,
                                                                   eigen_scheme,
-                                                                  builder_and_solver)
+                                                                  builder_and_solver,
+                                                                  mass_matrix_diagonal_value,
+                                                                  stiffness_matrix_diagonal_value,
+                                                                  self.settings["compute_modal_decomposition"].GetBool())

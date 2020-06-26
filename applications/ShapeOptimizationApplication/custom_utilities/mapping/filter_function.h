@@ -80,23 +80,23 @@ class FilterFunction
     FilterFunction(std::string filter_function_type, double filter_size)
         : m_filter_size(filter_size)
     {
-        // Create strings to compare to
-        std::string gaussian("gaussian");
-        std::string linear("linear");
-
         // Set type of weighting function
 
         // Type 1: Gaussian function
-        if (filter_function_type.compare(gaussian) == 0)
+        if (filter_function_type == "gaussian")
             m_filter_function_type = 1;
 
         // Type 2: Linear function
-        else if (filter_function_type.compare(linear) == 0)
+        else if (filter_function_type == "linear")
             m_filter_function_type = 2;
+
+        // Type 3: Constant function
+        else if (filter_function_type == "constant")
+            m_filter_function_type = 3;
 
         // Throw error message in case of wrong specification
         else
-            KRATOS_ERROR << "Specified filter function type not recognized. Options are: linear , gaussian. Specified: " << std::endl;
+            KRATOS_ERROR << "Specified filter function type not recognized. Options are: constant, linear , gaussian. Specified: " << std::endl;
     }
 
     /// Destructor.
@@ -142,6 +142,13 @@ class FilterFunction
             double distance = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
             // Compute weight
             weight_ij = std::max(0.0, (m_filter_size - distance) / m_filter_size);
+            break;
+        }
+        // Constant filter
+        case 3:
+        {
+            // Compute weight
+            weight_ij = 1.0;
             break;
         }
         }

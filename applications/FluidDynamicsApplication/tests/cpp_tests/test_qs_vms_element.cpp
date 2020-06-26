@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 
     // Set the element properties
-    Properties::Pointer p_properties = model_part.pGetProperties(0);
+    Properties::Pointer p_properties = model_part.CreateNewProperties(0);
     p_properties->SetValue(DENSITY, 1000.0);
     p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
     ConstitutiveLaw::Pointer pConsLaw(new Newtonian2DLaw());

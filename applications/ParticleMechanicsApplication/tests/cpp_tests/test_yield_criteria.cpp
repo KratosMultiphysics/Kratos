@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/process_info.h"
 #include "testing/testing.h"
 
 // Application includes
@@ -27,26 +26,18 @@
 #include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
 
 // Hardening law
-#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/particle_hardening_law.hpp"
 
 namespace Kratos
 {
 namespace Testing
 {
 
-    // Tolerance
-    static constexpr double tolerance = 1.0e-6;
-
-    const double GetPI()
-    {
-        return std::atan(1.0)*4.0;
-    }
-
-    typedef MPMHardeningLaw HL;
+    typedef ParticleHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
 
-    typedef MPMYieldCriterion YC;
+    typedef ParticleYieldCriterion YC;
 
     typedef MCYieldCriterion MC;
 
@@ -77,9 +68,8 @@ namespace Testing
         GenerateTestVariables(principal_stress, material_properties);
 
         // Analytical solutions of the yield surface
-        double MC_analytical, MCC_analytical;
-        MC_analytical = -5017320.508;
-        MCC_analytical = 6.770537222e13;
+        double MC_analytical = -5017320.508;
+        double MCC_analytical = 6.770537222e13;
 
         // Construct YieldCriterion
         // 1. For Mohr Coulomb yield criterion
@@ -95,7 +85,7 @@ namespace Testing
         // Test parameters
         double MC_result = 0.0, MCC_result = 0.0;
         double cohesion = 5000.0;
-        double friction_angle = GetPI()/6;
+        double friction_angle = Globals::Pi/6;
         double alpha = 0.1;
         double prev_pc = -119.4e3;
 
@@ -173,12 +163,12 @@ namespace Testing
         mcc_yc_pointer->CalculateYieldFunctionSecondDerivative(principal_stress, MCC_derivative2_result);
 
         // Check results
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[0], MCC_derivative2_analytical[0], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[1], MCC_derivative2_analytical[1], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[2], MCC_derivative2_analytical[2], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[3], MCC_derivative2_analytical[3], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[4], MCC_derivative2_analytical[4], tolerance);
-        KRATOS_CHECK_NEAR(MCC_derivative2_result[5], MCC_derivative2_analytical[5], tolerance);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[0], MCC_derivative2_analytical[0], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[1], MCC_derivative2_analytical[1], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[2], MCC_derivative2_analytical[2], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[3], MCC_derivative2_analytical[3], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[4], MCC_derivative2_analytical[4], 1e-6);
+        KRATOS_CHECK_NEAR(MCC_derivative2_result[5], MCC_derivative2_analytical[5], 1e-6);
 
     }
 

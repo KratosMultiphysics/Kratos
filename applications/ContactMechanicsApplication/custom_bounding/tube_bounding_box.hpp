@@ -533,7 +533,7 @@ protected:
 	{
 	  if( ie->GetGeometry().size() > 1){
 
-	    GeneratrixPoint = Kratos::make_shared<NodeType>(id, ie->GetGeometry()[0].X(), ie->GetGeometry()[0].Y(), ie->GetGeometry()[0].Z());
+	    GeneratrixPoint = Kratos::make_intrusive<NodeType>(id, ie->GetGeometry()[0].X(), ie->GetGeometry()[0].Y(), ie->GetGeometry()[0].Z());
 	    GeneratrixPoints.push_back( GeneratrixPoint );
 
 	    //std::cout<<" Point ["<<ie->GetGeometry()[0].X()<<", "<<ie->GetGeometry()[0].Y()<<", "<<ie->GetGeometry()[0].Z()<<"] "<<std::endl;
@@ -546,7 +546,7 @@ protected:
       ElementsContainerType::iterator LastElement = rModelPart.ElementsEnd()-1;
       int num_nodes = LastElement->GetGeometry().size()-1;
 
-      GeneratrixPoint = Kratos::make_shared<NodeType>(id,LastElement->GetGeometry()[num_nodes].X(),LastElement->GetGeometry()[num_nodes].Y(),LastElement->GetGeometry()[num_nodes].Z());
+      GeneratrixPoint = Kratos::make_intrusive<NodeType>(id,LastElement->GetGeometry()[num_nodes].X(),LastElement->GetGeometry()[num_nodes].Y(),LastElement->GetGeometry()[num_nodes].Z());
       GeneratrixPoints.push_back( GeneratrixPoint );
 
       std::cout<<"  [DEFINED BY:"<<GeneratrixPoints.size()<<" control points]"<<std::endl;
@@ -744,7 +744,7 @@ protected:
 	    FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
 
 	  pFace    = Kratos::make_shared<Quadrilateral3D4<NodeType> >(FaceNodes);
-	  pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+	  pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	  rModelPart.AddElement(pElement);
 	  pElement->Set(ACTIVE,false);
@@ -769,7 +769,7 @@ protected:
 	    FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
 
 	  pFace    = Kratos::make_shared<Quadrilateral3D4<NodeType> >(FaceNodes);
-          pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+          pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	  rModelPart.AddElement(pElement);
 	  pElement->Set(ACTIVE,false);

@@ -33,14 +33,14 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A eight node 3D quadrilateral geometry with quadratic shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
- *      3-----6-----2 
- *      |           |  
- *      |           |          
- *      7           5         
- *      |           |    
- *      |           |  
- *      0-----4-----1 
+ * The node ordering corresponds with:
+ *      3-----6-----2
+ *      |           |
+ *      |           |
+ *      7           5
+ *      |           |
+ *      |           |
+ *      0-----4-----1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -336,24 +336,6 @@ public:
     // }
 
     /**
-     * :TODO: the lumpig factors need to be reviewed and
-     * probably reimplemented
-     * (comment by janosch)
-     */
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	    if(rResult.size() != 8)
-            rResult.resize( 8, false );
-
-        for ( int i = 0; i < 4; i++ ) rResult[i] = 1.00 / 36.00;
-
-        for ( int i = 4; i < 8; i++ ) rResult[i] = 1.00 / 9.00;
-
-        return rResult;
-    }
-
-    /**
      * Information
      */
     /**
@@ -378,65 +360,67 @@ public:
         return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
-    /**
-     * This method calculates and returns area or surface area of
+    /** This method calculates and returns area or surface area of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      *
      * @return double value contains area or surface
-     * area.
+     * area.N
      * @see Length()
      * @see Volume()
      * @see DomainSize()
-     */
-    /**
-     * :TODO: the characteristic area is to be reviewed
-     * (comment by janosch)
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double Area() const override
     {
-        Vector d = this->Points()[2] - this->Points()[0];
-        return( std::sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
-    }
-
-
-    double Volume() const override
-    {
-
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
+        double Area = 0.0;
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
+            Area += temp[i] * integration_points[i].Weight();
         }
 
-        //KRATOS_WATCH(temp)
-        return Volume;
+        return Area;
     }
 
     /**
-     * This method calculates and returns length, area or volume of
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     * @todo might be necessary to reimplement
+     */
+    double Volume() const override
+    {
+        return Area();
+    }
+
+    /** This method calculates and returns length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
+     *
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
      * @see Volume()
-     */
-    /**
-     * :TODO: the characteristic domain size is to be reviewed
-     * (comment by janosch)
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double DomainSize() const override
     {
-        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Area();
     }
-    
+
     /**
      * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
@@ -446,10 +430,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         PointLocalCoordinates( rResult, rPoint );
 
@@ -472,12 +456,12 @@ public:
      */
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
-        const CoordinatesArrayType& rPoint 
+        const CoordinatesArrayType& rPoint
         ) const override
     {
         const double tol = 1.0e-8;
         const int maxiter = 1000;
-        
+
         //check orientation of surface
         std::vector< unsigned int> orientation( 3 );
 
@@ -672,7 +656,7 @@ public:
      * point index of given integration method.
      *
      * @param DeltaPosition Matrix with the nodes position increment which describes
-     * the configuration where the jacobian has to be calculated.     
+     * the configuration where the jacobian has to be calculated.
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
@@ -742,9 +726,10 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 3, 2, false );
-        noalias(rResult) = ZeroMatrix( 3, 2 );
+        // Setting up size of jacobian matrix
+        if (rResult.size1() != 3 || rResult.size2() != 2)
+            rResult.resize( 3, 2 , false);
+        rResult.clear();
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -797,9 +782,10 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 3, 2, false );
-        noalias(rResult) = ZeroMatrix( 3, 2 );
+        // Setting up size of jacobian matrix
+        if (rResult.size1() != 3 || rResult.size2() != 2)
+            rResult.resize( 3, 2 , false);
+        rResult.clear();
         //derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients(
@@ -820,33 +806,31 @@ public:
         return rResult;
     }
 
-    /** This method gives you number of all edges of this
-    geometry. This method will gives you number of all the edges
-    with one dimension less than this geometry. for example a
-    triangle would return three or a tetrahedral would return
-    four but won't return nine related to its six edge lines.
-
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
     SizeType EdgesNumber() const override
     {
         return 4;
     }
 
-    /** This method gives you all edges of this geometry. This
-     * method will gives you all the edges with one dimension less
-     * than this geometry. for example a triangle would return
-     * three lines as its edges or a tetrahedral would return four
-     * triangle as its edges but won't return its six edge
-     * lines by this method.
-     *
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
      * @return GeometriesArrayType containes this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 4 ), this->pGetPoint( 1 ) ) );
@@ -860,7 +844,7 @@ public:
      * Shape Function
      */
 
-    
+
     /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -911,7 +895,7 @@ public:
 
         return 0;
     }
-    
+
     /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -1423,6 +1407,7 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1711,14 +1696,19 @@ template<class TPointType> inline std::ostream& operator << (
     return rOStream;
 }
 
-template<class TPointType> const GeometryData
-Quadrilateral3D8<TPointType>::msGeometryData( 2, 3, 2,
+template<class TPointType>
+const GeometryData Quadrilateral3D8<TPointType>::msGeometryData(
+        &msGeometryDimension,
         GeometryData::GI_GAUSS_3,
         Quadrilateral3D8<TPointType>::AllIntegrationPoints(),
         Quadrilateral3D8<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients()
-                                            );
+);
+
+template<class TPointType>
+const GeometryDimension Quadrilateral3D8<TPointType>::msGeometryDimension(
+    2, 3, 2);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_3D_8_H_INCLUDED  defined 
+#endif // KRATOS_QUADRILATERAL_3D_8_H_INCLUDED  defined

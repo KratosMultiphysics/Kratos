@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -433,8 +433,10 @@ struct pmis {
 
         // 2. Apply PMIS algorithm to the symbolic square.
         ptrdiff_t n_undone = 0;
-        std::vector<ptrdiff_t> rem_state(Sp.recv.count(), undone);
+        std::vector<ptrdiff_t> rem_state(Sp.recv.count(), pmis::undone);
+        std::vector<int>       rem_owner(Sp.recv.count(), -1);
         std::vector<ptrdiff_t> send_state(Sp.send.count());
+        std::vector<int>       send_owner(Sp.send.count());
 
         // Remove lonely nodes.
 #pragma omp parallel for reduction(+:n_undone)
@@ -443,10 +445,10 @@ struct pmis {
             ptrdiff_t wr = S_rem.ptr[i+1] - S_rem.ptr[i];
 
             if (wl + wr == 1) {
-                loc_state[i] = deleted;
+                loc_state[i] = pmis::deleted;
                 ++n_undone;
             } else {
-                loc_state[i] = undone;
+                loc_state[i] = pmis::undone;
             }
 
             loc_owner[i] = -1;
@@ -475,7 +477,7 @@ struct pmis {
 
             if (n_undone) {
                 for(ptrdiff_t i = 0; i < n; ++i) {
-                    if (loc_state[i] != undone) continue;
+                    if (loc_state[i] != pmis::undone) continue;
 
                     if (S_rem.ptr[i+1] > S_rem.ptr[i]) {
                         // Boundary points
@@ -484,7 +486,7 @@ struct pmis {
                             int d,c;
                             std::tie(d,c) = Sp.remote_info(S_rem.col[j]);
 
-                            if (rem_state[c] == undone && Sp.recv.nbr[d] > comm.rank) {
+                            if (rem_state[c] == pmis::undone && Sp.recv.nbr[d] > comm.rank) {
                                 selectable = false;
                                 break;
                             }
@@ -501,7 +503,7 @@ struct pmis {
                         for(ptrdiff_t j = A_loc.ptr[i], e = A_loc.ptr[i+1]; j < e; ++j) {
                             ptrdiff_t c = A_loc.col[j];
                             if (c != i) {
-                                if (loc_state[c] == undone) --n_undone;
+                                if (loc_state[c] == pmis::undone) --n_undone;
                                 loc_owner[c] = comm.rank;
                                 loc_state[c] = id;
                             }
@@ -513,6 +515,7 @@ struct pmis {
                             std::tie(d,k) = Sp.remote_info(c);
 
                             rem_state[k] = id;
+
                             send_pts[d].push_back(c);
                             send_pts[d].push_back(id);
                         }
@@ -520,7 +523,7 @@ struct pmis {
                         // S gives removed neighbors
                         for(ptrdiff_t j = S_loc.ptr[i], e = S_loc.ptr[i+1]; j < e; ++j) {
                             ptrdiff_t c = S_loc.col[j];
-                            if (c != i && loc_state[c] == undone) {
+                            if (c != i && loc_state[c] == pmis::undone) {
                                 loc_owner[c] = comm.rank;
                                 loc_state[c] = id;
                                 --n_undone;
@@ -532,7 +535,7 @@ struct pmis {
                             int d,k;
                             std::tie(d,k) = Sp.remote_info(c);
 
-                            if (rem_state[k] == undone) {
+                            if (rem_state[k] == pmis::undone) {
                                 rem_state[k] = id;
                                 send_pts[d].push_back(c);
                                 send_pts[d].push_back(id);
@@ -550,8 +553,8 @@ struct pmis {
                         for(ptrdiff_t j = A_loc.ptr[i], e = A_loc.ptr[i+1]; j < e; ++j) {
                             ptrdiff_t c = A_loc.col[j];
 
-                            if (c != i && loc_state[c] != deleted) {
-                                if (loc_state[c] == undone) --n_undone;
+                            if (c != i && loc_state[c] != pmis::deleted) {
+                                if (loc_state[c] == pmis::undone) --n_undone;
                                 loc_owner[c] = comm.rank;
                                 loc_state[c] = id;
                                 nbr.push_back(c);
@@ -561,7 +564,7 @@ struct pmis {
                         for(ptrdiff_t k : nbr) {
                             for(ptrdiff_t j = A_loc.ptr[k], e = A_loc.ptr[k+1]; j < e; ++j) {
                                 ptrdiff_t c = A_loc.col[j];
-                                if (c != k && loc_state[c] == undone) {
+                                if (c != k && loc_state[c] == pmis::undone) {
                                     loc_owner[c] = comm.rank;
                                     loc_state[c] = id;
                                     --n_undone;
@@ -592,7 +595,7 @@ struct pmis {
                     ptrdiff_t c  = recv_pts[k] - Sp.loc_col_shift();
                     ptrdiff_t id = recv_pts[k+1];
 
-                    if (loc_state[c] == undone) --n_undone;
+                    if (loc_state[c] == pmis::undone) --n_undone;
 
                     loc_owner[c] = Sp.send.nbr[i];
                     loc_state[c] = id;
@@ -606,7 +609,6 @@ struct pmis {
                 MPI_Wait(&send_pts_req[i], MPI_STATUS_IGNORE);
             }
 
-
             for(ptrdiff_t i = 0, m = Sp.send.count(); i < m; ++i)
                 send_state[i] = loc_state[Sp.send.col[i]];
             Sp.exchange(&send_state[0], &rem_state[0]);
@@ -614,6 +616,85 @@ struct pmis {
             if (0 == comm.reduce(MPI_SUM, n_undone))
                 break;
         }
+
+        // Some of the aggregates could potentially vanish during expansion
+        // step (*) above. We need to exclude those and renumber the rest.
+        AMGCL_TIC("drop empty aggregates");
+        for(ptrdiff_t i = 0, m = Sp.send.count(); i < m; ++i)
+            send_owner[i] = loc_owner[Sp.send.col[i]];
+        Sp.exchange(&send_owner[0], &rem_owner[0]);
+
+        std::vector<ptrdiff_t> new_id(naggr + 1, 0);
+        for(ptrdiff_t i = 0; i < n; ++i) {
+            if (loc_owner[i] == comm.rank && loc_state[i] >= 0)
+                new_id[loc_state[i] + 1] = 1;
+        }
+
+        for(size_t i = 0; i < Sp.recv.count(); ++i) {
+            if (rem_owner[i] == comm.rank && rem_state[i] >= 0)
+                new_id[rem_state[i] + 1] = 1;
+        }
+
+        std::partial_sum(new_id.begin(), new_id.end(), new_id.begin());
+
+        if (comm.reduce(MPI_SUM, naggr - new_id.back()) > 0) {
+            naggr = new_id.back();
+
+            for(ptrdiff_t i = 0; i < n; ++i) {
+                if (loc_owner[i] == comm.rank && loc_state[i] >= 0) {
+                    loc_state[i] = new_id[loc_state[i]];
+                }
+            }
+
+            for(size_t i = 0; i < Sp.recv.nbr.size(); ++i) {
+                send_pts[i].clear();
+            }
+
+            for (auto p = Sp.remote_begin(); p!= Sp.remote_end(); ++p) {
+                ptrdiff_t c = p->first;
+
+                int d, k;
+                std::tie(d, k) = p->second;
+
+                if (rem_owner[k] == comm.rank && rem_state[k] >= 0) {
+                    send_pts[d].push_back(c);
+                    send_pts[d].push_back(new_id[rem_state[k]]);
+                }
+            }
+
+            for(size_t i = 0; i < Sp.recv.nbr.size(); ++i) {
+                int npts = send_pts[i].size();
+                MPI_Isend(&npts, 1, MPI_INT, Sp.recv.nbr[i], tag_exc_cnt, comm, &send_cnt_req[i]);
+
+                if (!npts) continue;
+                MPI_Isend(&send_pts[i][0], npts, datatype<ptrdiff_t>(), Sp.recv.nbr[i], tag_exc_pts, comm, &send_pts_req[i]);
+            }
+
+            for(size_t i = 0; i < Sp.send.nbr.size(); ++i) {
+                int npts;
+                MPI_Recv(&npts, 1, MPI_INT, Sp.send.nbr[i], tag_exc_cnt, comm, MPI_STATUS_IGNORE);
+
+                if (!npts) continue;
+                recv_pts.resize(npts);
+                MPI_Recv(&recv_pts[0], npts, datatype<ptrdiff_t>(), Sp.send.nbr[i], tag_exc_pts, comm, MPI_STATUS_IGNORE);
+
+                for(int k = 0; k < npts; k += 2) {
+                    ptrdiff_t c  = recv_pts[k] - Sp.loc_col_shift();
+                    ptrdiff_t id = recv_pts[k+1];
+
+                    loc_state[c] = id;
+                }
+            }
+
+            for(size_t i = 0; i < Sp.recv.nbr.size(); ++i) {
+                int npts = send_pts[i].size();
+                MPI_Wait(&send_cnt_req[i], MPI_STATUS_IGNORE);
+                if (!npts) continue;
+                MPI_Wait(&send_pts_req[i], MPI_STATUS_IGNORE);
+            }
+        }
+
+        AMGCL_TOC("drop empty aggregates");
         AMGCL_TOC("PMIS");
 
         return naggr;
@@ -636,7 +717,7 @@ struct pmis {
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < n; ++i) {
-            if (state[i] == deleted) continue;
+            if (state[i] == pmis::deleted) continue;
 
             if (owner[i] == comm.rank) {
                 ++P_loc.ptr[i+1];
@@ -651,7 +732,7 @@ struct pmis {
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < n; ++i) {
             ptrdiff_t s = state[i];
-            if (s == deleted) continue;
+            if (s == pmis::deleted) continue;
 
             int d = owner[i];
             if (d == comm.rank) {

@@ -40,7 +40,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class LinearPlaneStrain
  * @ingroup StructuralMechanicsApplication
@@ -49,7 +49,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropic3D 
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropic3D
     : public ConstitutiveLaw
 {
 public:
@@ -59,19 +59,23 @@ public:
 
     /// The process info type definition
     typedef ProcessInfo      ProcessInfoType;
-    
+
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw         BaseType;
-    
+
     /// The size type definition
     typedef std::size_t             SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 3;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
-    
+
+    // Adding the respective using to avoid overload conflicts
+    using BaseType::Has;
+    using BaseType::GetValue;
+
     /// Counted pointer of ElasticIsotropic3D
     KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropic3D );
 
@@ -146,7 +150,7 @@ public:
     {
         return StressMeasure_Cauchy;
     }
-    
+
     /**
      * @brief Computes the material response:
      * @details PK1 stresses and algorithmic ConstitutiveMatrix
@@ -178,6 +182,30 @@ public:
      * @see   Parameters
      */
     void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
       * @brief Updates the material response:
@@ -212,6 +240,22 @@ public:
     void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
+     * @brief If the CL requires to finalize the material response, called by the element in FinalizeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
      * @brief It calculates the value of a specified variable (double case)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -219,11 +263,11 @@ public:
      * @return rValue output: the value of the specified variable
      */
     double& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues, 
-        const Variable<double>& rThisVariable, 
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
         double& rValue
         ) override;
-        
+
     /**
      * @brief It calculates the value of a specified variable (Vector case)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -232,11 +276,11 @@ public:
      * @return rValue output: the value of the specified variable
      */
     Vector& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues, 
-        const Variable<Vector>& rThisVariable, 
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
-        
+
     /**
      * @brief It calculates the value of a specified variable (Matrix case)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -245,8 +289,8 @@ public:
      * @return rValue output: the value of the specified variable
      */
     Matrix& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues, 
-        const Variable<Matrix>& rThisVariable, 
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
 

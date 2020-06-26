@@ -48,7 +48,7 @@ public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of AxisymmetricLineLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricLineLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymmetricLineLoadCondition );
     ///@}
 
     ///@name Life Cycle

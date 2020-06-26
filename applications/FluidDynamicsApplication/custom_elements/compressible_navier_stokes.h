@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Counted pointer of
-    KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokes);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleNavierStokes);
     struct ElementDataStruct
     {
         BoundedMatrix<double, TNumNodes, BlockSize> U, Un, Unn;
@@ -123,14 +123,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< CompressibleNavierStokes < TDim,BlockSize, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_intrusive< CompressibleNavierStokes < TDim,BlockSize, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< CompressibleNavierStokes < TDim,BlockSize, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< CompressibleNavierStokes < TDim,BlockSize, TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 

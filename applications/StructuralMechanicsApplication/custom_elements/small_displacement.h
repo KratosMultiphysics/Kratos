@@ -75,7 +75,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of SmallDisplacement
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacement);
 
     ///@}
     ///@name Life Cycle
@@ -127,15 +127,16 @@ public:
         ) const override;
 
     /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The current process info instance
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    //std::string Info() const;
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
 
     ///@}
     ///@name Access
@@ -149,13 +150,25 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Small Displacement Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Small Displacement Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -179,7 +192,7 @@ protected:
      /**
      * @brief This method returns if the element provides the strain
      */
-    bool UseElementProvidedStrain() override;
+    bool UseElementProvidedStrain() const override;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -192,7 +205,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
@@ -208,7 +221,23 @@ protected:
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
 
-     /**
+    /**
+     * @brief This functions updates the data structure passed to the CL
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     */
+    void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        ) override;
+
+    /**
      * @brief This functions updates the constitutive variables
      * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param rThisConstitutiveVariables The constitutive variables
@@ -238,14 +267,17 @@ protected:
         const Matrix& rDN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
-        );
+        ) const;
 
     /**
-     * Calculation of the equivalent deformation gradient
+     * @brief Calculation of the equivalent deformation gradient
+     * @param rF The deformation gradient F
      * @param StrainVector The strain tensor (Voigt notation)
-     * @return The deformation gradient F
      */
-    virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
+    virtual void ComputeEquivalentF(
+        Matrix& rF,
+        const Vector& StrainVector
+        ) const;
 
     ///@}
     ///@name Protected Operations

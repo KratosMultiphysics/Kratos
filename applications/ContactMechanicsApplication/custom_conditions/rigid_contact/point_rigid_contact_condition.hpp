@@ -56,12 +56,14 @@ public:
     ///@name Type Definitions
 
     ///Tensor order 1 definition
-    //typedef BoundedVector<double, 3>     PointType;
-    typedef array_1d<double, 3>             PointType;
-
+    //typedef BoundedVector<double, 3>                PointType;
+    typedef array_1d<double, 3>                           PointType;
+    typedef GlobalPointersVector<Node<3> >       NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
     ///@{
     // Counted pointer of PointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PointRigidContactCondition );
     ///@}
 
 protected:

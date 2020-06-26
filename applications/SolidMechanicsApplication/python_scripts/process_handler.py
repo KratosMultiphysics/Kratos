@@ -1,9 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-
-KratosMultiphysics.CheckForPreviousImport()
-
+from importlib import import_module
 
 class ProcessHandler(KratosMultiphysics.Process):
     #
@@ -11,7 +9,7 @@ class ProcessHandler(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self.Model = Model
+        self.model = Model
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -46,7 +44,6 @@ class ProcessHandler(KratosMultiphysics.Process):
             except AttributeError:
                 # the process does not have GetVariables()
                 pass
-
         return nodal_variables
 
     #
@@ -162,10 +159,8 @@ class ProcessHandler(KratosMultiphysics.Process):
     #
     def ConstructProcess(self, process):
 
-        kratos_module = __import__(process["kratos_module"].GetString())
-        python_module = __import__(process["python_module"].GetString())
-        return(python_module.Factory(process, self.Model))
-
+        python_module = import_module(process["kratos_module"].GetString() + "." + process["python_module"].GetString())
+        return(python_module.Factory(process, self.model))
 
     #
     def ConstructList(self, process_list):

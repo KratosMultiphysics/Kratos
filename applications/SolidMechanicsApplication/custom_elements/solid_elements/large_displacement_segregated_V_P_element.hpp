@@ -63,7 +63,7 @@ public:
     typedef LargeDisplacementVElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementSegregatedVPElement
-    KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementSegregatedVPElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LargeDisplacementSegregatedVPElement );
     ///@}
 
     enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};

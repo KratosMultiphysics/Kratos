@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/process_info.h"
 #include "testing/testing.h"
 
 // Application includes
@@ -36,21 +35,17 @@ namespace Kratos
 {
 namespace Testing
 {
-
-    // Tolerance
-    static constexpr double tolerance = 1.0e-6;
-
     typedef Node<3> NodeType;
 
-    typedef MPMHardeningLaw HL;
+    typedef ParticleHardeningLaw HL;
 
     typedef CamClayHardeningLaw CCHL;
 
-    typedef MPMYieldCriterion YC;
+    typedef ParticleYieldCriterion YC;
 
     typedef ModifiedCamClayYieldCriterion MCCYC;
 
-    typedef MPMFlowRule FR;
+    typedef ParticleFlowRule FR;
 
     typedef BorjaCamClayPlasticFlowRule BCCFR;
 
@@ -58,8 +53,8 @@ namespace Testing
         Matrix& rStress, Matrix& rStrain,
         Properties &rMaterialProperties)
     {
-        rStress = ZeroMatrix(3);
-        rStrain = ZeroMatrix(3);
+        rStress = ZeroMatrix(3,3);
+        rStrain = ZeroMatrix(3,3);
         rStrain(0,0) = 5.5e-2;
         rStrain(1,1) = -12.2e-2;
         rStrain(2,2) = 8.3e-2;
@@ -98,24 +93,24 @@ namespace Testing
         stress_trial_analytic[1] = -1.412200106146e+06;
         stress_trial_analytic[2] =  8.017998938544e+05;
 
-        KRATOS_CHECK_NEAR(stress(0,0), stress_trial_analytic[0], tolerance);
-        KRATOS_CHECK_NEAR(stress(1,1), stress_trial_analytic[1], tolerance);
-        KRATOS_CHECK_NEAR(stress(2,2), stress_trial_analytic[2], tolerance);
+        KRATOS_CHECK_NEAR(stress(0,0), stress_trial_analytic[0], 1e-6);
+        KRATOS_CHECK_NEAR(stress(1,1), stress_trial_analytic[1], 1e-6);
+        KRATOS_CHECK_NEAR(stress(2,2), stress_trial_analytic[2], 1e-6);
 
         // Compute new stresses after return mapping
         Matrix dummy_deformation_gradient = IdentityMatrix(3);
         bcc_fr_pointer->CalculateReturnMapping( rma_variables, dummy_deformation_gradient, stress, strain);
 
         Vector stress_analytic = ZeroVector(3);
-        stress_analytic[0] = -3.112606631973e+04;
-        stress_analytic[1] = -7.351529252708e+04;
-        stress_analytic[2] = -2.442042601574e+04;
+        stress_analytic[0] = -3.112443504093e+04;
+        stress_analytic[1] = -7.351387390960e+04;
+        stress_analytic[2] = -2.441876109561e+04;
         const double yield_analytic = 3.919787896261e+12;
 
         KRATOS_CHECK_NEAR(rma_variables.TrialStateFunction, yield_analytic, 1.0);
-        KRATOS_CHECK_NEAR(stress(0,0), stress_analytic[0], tolerance);
-        KRATOS_CHECK_NEAR(stress(1,1), stress_analytic[1], tolerance);
-        KRATOS_CHECK_NEAR(stress(2,2), stress_analytic[2], tolerance);
+        KRATOS_CHECK_NEAR(stress(0,0), stress_analytic[0], 1e-6);
+        KRATOS_CHECK_NEAR(stress(1,1), stress_analytic[1], 1e-6);
+        KRATOS_CHECK_NEAR(stress(2,2), stress_analytic[2], 1e-6);
 
     }
 

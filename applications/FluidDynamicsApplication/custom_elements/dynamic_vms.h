@@ -109,7 +109,7 @@ public:
     ///@{
 
     /// Pointer definition of DynamicVMS
-    KRATOS_CLASS_POINTER_DEFINITION(DynamicVMS);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DynamicVMS);
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
@@ -309,7 +309,7 @@ public:
             const ProcessInfo& rCurrentProcessInfo) override
     {}
 
-    void SetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

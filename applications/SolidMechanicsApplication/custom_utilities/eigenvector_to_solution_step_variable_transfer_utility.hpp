@@ -83,7 +83,7 @@ public:
             Matrix& rNodeEigenvectors = itNode->GetValue(EIGENVECTOR_MATRIX);
             std::size_t j=0;
             for (auto itDof = std::begin(rNodeDofs); itDof != std::end(rNodeDofs); itDof++)
-                itDof->GetSolutionStepValue(step) = rNodeEigenvectors(iEigenMode,j++);
+                (*itDof)->GetSolutionStepValue(step) = rNodeEigenvectors(iEigenMode,j++);
         }
     }
 

@@ -79,7 +79,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of UpdatedLagrangian
-    KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangian);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangian);
 
     ///@}
     ///@name Life Cycle
@@ -111,7 +111,7 @@ public:
      * @brief Called to initialize the element.
      * Must be called before any calculation is done
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Called at the beginning of each solution step
@@ -124,6 +124,18 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
 
     /**
      * @brief Creates a new element
@@ -181,7 +193,7 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -193,51 +205,11 @@ public:
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-
-    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
-    // They will be removed from the derived elements; i.e. the implementation
-    // should be in CalculateOnIntegrationPoints!
-    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
-
-    /**
-     * @brief Get on rVariable a double Value from the Element Constitutive Law
-     * @param rVariable The variable we want to get
-     * @param rValues The results in the integration points
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Get on rVariable a Matrix Value from the Element Constitutive Law
-     * @param rVariable The variable we want to get
-     * @param rValues The results in the integration points
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    //std::string Info() const;
 
     ///@}
     ///@name Access
@@ -251,13 +223,25 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -282,6 +266,23 @@ protected:
 
     UpdatedLagrangian() : BaseSolidElement()
     {
+    }
+
+    /**
+     * @brief This method clones the element database
+     * @param rF0Computed To avoid computing more than once the historical total elastic deformation measure
+     * @param rDetF0 The historical total elastic deformation measure determinant
+     * @param rF0 The historical total elastic deformation measure
+     */
+    void CloneUpdatedLagrangianDatabase(
+        const bool rF0Computed,
+        const std::vector<double>& rDetF0,
+        const std::vector<Matrix>& rF0
+        )
+    {
+        mF0Computed = rF0Computed;
+        mDetF0 = rDetF0;
+        mF0 = rF0;
     }
 
     /**
@@ -310,7 +311,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
@@ -342,7 +343,7 @@ protected:
         Matrix& DN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Protected Operations

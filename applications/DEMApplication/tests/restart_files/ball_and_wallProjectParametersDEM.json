@@ -1,0 +1,82 @@
+{
+    "Dimension"                      : 3,
+    "PeriodicDomainOption"           : false,
+    "BoundingBoxOption"              : false,
+    "AutomaticBoundingBoxOption"     : false,
+    "BoundingBoxEnlargementFactor"   : 1.1,
+    "BoundingBoxStartTime"           : 0.0,
+    "BoundingBoxStopTime"            : 1000.0,
+    "BoundingBoxMaxX"                : 10,
+    "BoundingBoxMaxY"                : 10,
+    "BoundingBoxMaxZ"                : 10,
+    "BoundingBoxMinX"                : -10,
+    "BoundingBoxMinY"                : -10,
+    "BoundingBoxMinZ"                : -10,
+    "dem_inlet_option"               : false,
+    "GravityX"                       : 0.0,
+    "GravityY"                       : 0.0,
+    "GravityZ"                       : -9.81,
+    "RotationOption"                 : true,
+    "CleanIndentationsOption"        : false,
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "serializer_trace"             : "no_trace",
+            "input_filenames" : ["SpheresPart","RigidFacePart"],
+            "restart_load_file_label" : "0.03001"
+        }
+    },
+    "VirtualMassCoefficient"         : 1.0,
+    "RollingFrictionOption"          : false,
+    "GlobalDamping"                  : 0.0,
+    "ContactMeshOption"              : false,
+    "OutputFileType"                 : "Binary",
+    "Multifile"                      : "multiple_files",
+    "ElementType"                    : "SphericPartDEMElement3D",
+    "TranslationalIntegrationScheme" : "Symplectic_Euler",
+    "RotationalIntegrationScheme"    : "Direct_Integration",
+    "MaxTimeStep"                    : 1e-5,
+    "FinalTime"                      : 0.03005,
+    "GraphExportFreq"                : 0.001,
+    "VelTrapGraphExportFreq"         : 0.001,
+    "OutputTimeStep"                 : 0.01,
+    "PostBoundingBox"                : false,
+    "PostLocalContactForce"          : false,
+    "PostDisplacement"               : true,
+    "PostRadius"                     : true,
+    "PostVelocity"                   : true,
+    "PostAngularVelocity"            : false,
+    "PostElasticForces"              : true,
+    "PostContactForces"              : true,
+    "PostRigidElementForces"         : false,
+    "PostStressStrainOption"         : false,
+    "PostTangentialElasticForces"    : false,
+    "PostTotalForces"                : true,
+    "PostPressure"                   : false,
+    "PostShearStress"                : false,
+    "PostNonDimensionalVolumeWear"   : false,
+    "PostParticleMoment"             : false,
+    "PostEulerAngles"                : false,
+    "PostRollingResistanceMoment"    : false,
+    "do_print_results_option"        : false,
+    "problem_name"                   : "ball_and_wall",
+
+    "output_processes" : {
+        "restart_processes" : [
+            {
+            "python_module"   : "DEMApplication.DEM_save_restart_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"    : "DEMSaveRestartProcess",
+            "Parameters"            : {
+                "model_part_names" : ["SpheresPart","RigidFacePart"],
+                "echo_level"                   : 0,
+                "serializer_trace"             : "no_trace",
+                "restart_save_frequency"       : 0.01,
+                "restart_control_type"         : "time",
+                "save_restart_files_in_folder" : true
+            }
+        }]
+    }
+}

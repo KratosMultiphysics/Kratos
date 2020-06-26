@@ -1,15 +1,10 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 import json
-
-
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 
 def CreateSolver(main_model_part, custom_settings):
 
@@ -66,12 +61,12 @@ class DamMechanicalSolver(object):
                 "characteristic_length": 0.05,
                 "search_neighbours_step": false,
                 "linear_solver_settings":{
-                    "solver_type": "AMGCL",
+                    "solver_type": "amgcl",
                     "tolerance": 1.0e-6,
                     "max_iteration": 100,
                     "scaling": false,
                     "verbosity": 0,
-                    "preconditioner_type": "ILU0Preconditioner",
+                    "preconditioner_type": "ilu0",
                     "smoother_type": "ilu0",
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation"
@@ -90,7 +85,7 @@ class DamMechanicalSolver(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Construct the linear solver
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
 
         print("Construction of DamMechanicalSolver finished")
@@ -106,14 +101,15 @@ class DamMechanicalSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         # Add variables for the solid conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.FORCE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosStructural.POINT_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.FORCE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         # Add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         # Add variables for post-processing
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.INITIAL_NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
@@ -267,11 +263,11 @@ class DamMechanicalSolver(object):
         aux_params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part
-        import check_and_prepare_model_process_dam_mechanical
+        from KratosMultiphysics.DamApplication import check_and_prepare_model_process_dam_mechanical
         check_and_prepare_model_process_dam_mechanical.CheckAndPrepareModelProcessDamMechanical(self.main_model_part, aux_params).Execute()
 
         # Constitutive law import
-        import dam_constitutive_law_utility
+        from KratosMultiphysics.DamApplication import dam_constitutive_law_utility
         dam_constitutive_law_utility.SetConstitutiveLaw(self.main_model_part)
 
         self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )

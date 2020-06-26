@@ -3,10 +3,12 @@ import KratosMultiphysics as KM
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-class TestArray1DInterface(KratosUnittest.TestCase):
+import sys
 
+class TestArray1DInterface(KratosUnittest.TestCase):
     def CreateModelPart(self):
-        model_part = KM.ModelPart("TestModelPart")
+        current_model = KM.Model()
+        model_part = current_model.CreateModelPart("TestModelPart")
         model_part.AddNodalSolutionStepVariable(KM.VORTICITY)
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
@@ -14,7 +16,7 @@ class TestArray1DInterface(KratosUnittest.TestCase):
 
         model_part.AddProperties(KM.Properties(1))
         model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
-        model_part.CreateNewCondition("Condition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
+        model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
         return model_part
 
     def test_SetNodalArrayValueFromPython_Array3(self):

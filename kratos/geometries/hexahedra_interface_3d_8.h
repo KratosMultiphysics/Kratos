@@ -495,16 +495,6 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 8)
-           rResult.resize( 8, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 8.00 );
-        return rResult;
-    }
-
-
     /**
      * Information
      */
@@ -681,7 +671,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -783,12 +773,6 @@ public:
         return( rResult );
     }
 
-//             virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
-//             {
-//                 //rResult.Geometry() = *(this);
-//                 BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-//             }
-
     /**
      * Jacobian
      */
@@ -870,7 +854,7 @@ public:
     Matrix& Jacobian( Matrix& rResult,
                       IndexType IntegrationPointIndex,
                       IntegrationMethod ThisMethod,
-                      Matrix& DeltaPosition ) const override
+                      const Matrix& DeltaPosition ) const override
     {
         //setting up size of jacobian matrix
         rResult.resize( 3, 2 ,false);
@@ -1112,31 +1096,35 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Edge
+    ///@{
 
-    /** This method gives you number of all edges of this
-    geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
     SizeType EdgesNumber() const override
     {
         return 12;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 6;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -1179,7 +1167,31 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 6;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -1503,19 +1515,13 @@ public:
         rOStream << "    Jacobian in the origin\t : " << jacobian;
     }
 
-protected:
-
-    /**
-     * there are no protected class members
-     */
-
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    /**
-     * Static Member Variables
-     */
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1844,11 +1850,16 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData HexahedraInterface3D8<TPointType>::msGeometryData(
-    3, 3, 2, GeometryData::GI_GAUSS_2,
+    &msGeometryDimension,
+    GeometryData::GI_GAUSS_2,
     HexahedraInterface3D8<TPointType>::AllIntegrationPoints(),
     HexahedraInterface3D8<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType>
+const GeometryDimension HexahedraInterface3D8<TPointType>::msGeometryDimension(
+    3, 3, 2);
 
 }// namespace Kratos.
 

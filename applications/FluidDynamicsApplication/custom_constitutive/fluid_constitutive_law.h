@@ -158,8 +158,28 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
+    /**
+     * @brief Get the Effective Viscosity object
+     * Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
+     * @param rParameters constitutive law parameters
+     * @return double obtained effective viscosity
+     */
     virtual double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+
+    /**
+     * @brief Get the Value From Table object
+     * For an table input variable, this method returns the table output variable 
+     * value. Note that the properties container must have a table relating the
+     * input and output variables. 
+     * @param rVariableInput input variable
+     * @param rVariableOutput output variable
+     * @param rParameters constitutive law parameters container
+     * @return double output variable value
+     */
+    virtual double GetValueFromTable(
+        const Variable<double> &rVariableInput,
+        const Variable<double> &rVariableOutput,
+        ConstitutiveLaw::Parameters &rParameters) const;
 
     ///@}
 

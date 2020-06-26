@@ -7,22 +7,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from math import sqrt, sin, cos, pi, exp, atan
 
 class TestMassCalculation(KratosUnittest.TestCase):
+    # muting the output
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-
-    def _add_dofs(self,mp):
-        # Adding dofs AND their corresponding reactions
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
-
-    def _add_variables(self,mp):
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
 
     def _apply_beam_material_properties(self,mp,dim):
         #define properties
@@ -95,37 +81,17 @@ class TestMassCalculation(KratosUnittest.TestCase):
         mp.CreateNewElement(element_name, 3, [3,4,5], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 4, [4,1,5], mp.GetProperties()[1])
 
-    def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
-        # Set buffer size
-        mp.SetBufferSize(buffer_size)
-
-        # Fill buffer
-        time = mp.ProcessInfo[KratosMultiphysics.TIME]
-        time = time - delta_time * (buffer_size)
-        mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for size in range(0, buffer_size):
-            step = size - (buffer_size -1)
-            mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-            time = time + delta_time
-            #delta_time is computed from previous time in process_info
-            mp.CloneTimeStep(time)
-
-        mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-
     def test_nodal_mass(self):
         dim = 3
         nr_nodes = 4
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("structural_part")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
-        self._add_variables(mp)
 
         #create nodes
         dx = 1.2
         for i in range(nr_nodes):
             mp.CreateNewNode(i+1,i*dx,0.00,0.00)
-        #add dofs
-        self._add_dofs(mp)
 
         #create Element
         elem1 = mp.CreateNewElement("NodalConcentratedElement2D1N", 1, [1], mp.GetProperties()[0])
@@ -159,15 +125,12 @@ class TestMassCalculation(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("structural_part")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
-        self._add_variables(mp)
         self._apply_beam_material_properties(mp,dim)
 
         #create nodes
         dx = 1.20 / nr_elements
         for i in range(nr_nodes):
             mp.CreateNewNode(i+1,i*dx,0.00,0.00)
-        #add dofs
-        self._add_dofs(mp)
 
         #create Element
         for i in range(nr_elements):
@@ -200,10 +163,8 @@ class TestMassCalculation(KratosUnittest.TestCase):
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
         mp.SetBufferSize(2)
 
-        self._add_variables(mp)
         self._apply_shell_material_properties(mp)
         self._create_shell_nodes(mp)
-        self._add_dofs(mp)
         self._create_shell_elements(mp)
 
         mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
@@ -227,10 +188,8 @@ class TestMassCalculation(KratosUnittest.TestCase):
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
         mp.SetBufferSize(2)
 
-        self._add_variables(mp)
         self._apply_orthotropic_shell_material_properties(mp)
         self._create_shell_nodes(mp)
-        self._add_dofs(mp)
         self._create_shell_elements(mp)
 
         mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
@@ -252,8 +211,6 @@ class TestMassCalculation(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("structural_part")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
-        mp.SetBufferSize(2)
-        self._add_variables(mp)
         self._apply_solid_material_properties(mp)
 
         #create nodes
@@ -262,8 +219,6 @@ class TestMassCalculation(KratosUnittest.TestCase):
         mp.CreateNewNode(3,0.9,0.8,0.0)
         mp.CreateNewNode(4,0.3,0.7,0.0)
         mp.CreateNewNode(5,0.6,0.6,0.0)
-
-        self._add_dofs(mp)
 
         #create Element
         mp.CreateNewElement("TotalLagrangianElement2D3N", 1, [1,2,5], mp.GetProperties()[1])
@@ -291,8 +246,6 @@ class TestMassCalculation(KratosUnittest.TestCase):
             calculated_elemental_mass = StructuralMechanicsApplication.TotalStructuralMassProcess.CalculateElementMass(elem, domain_size)
             self.assertAlmostEqual(expected_elemental_masses_by_id[elem.Id],
                                    calculated_elemental_mass)
-
-
 
 if __name__ == '__main__':
     KratosUnittest.main()

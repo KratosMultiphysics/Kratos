@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -58,12 +58,21 @@ class profiler {
 
         /// Initialization.
         /**
-         * \param name Profile title to use with output.
          */
-        profiler(const std::string &name = "Profile") : name(name) {
-            stack.reserve(128);
-            stack.push_back(&root);
-            root.begin = counter.current();
+        profiler() : name("Profile") {
+            init();
+        }
+
+        /// Send additional parameters to counter.
+        /**
+         * \param name Profile title to use with output.
+         * \param args Counter arguments.
+         */
+        template <class... Args>
+        profiler(const std::string &name, Args&&... args)
+            : name(name), counter(std::forward<Args>(args)...)
+        {
+            init();
         }
 
         /// Starts measurement.
@@ -172,10 +181,16 @@ class profiler {
             std::map<std::string, profile_unit> children;
         };
 
-        Counter counter;
         std::string name;
+        Counter counter;
         profile_unit root;
         std::vector<profile_unit*> stack;
+
+        void init() {
+            stack.reserve(128);
+            stack.push_back(&root);
+            root.begin = counter.current();
+        }
 
         void print(std::ostream &out) {
             if (stack.back() != &root)

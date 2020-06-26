@@ -46,9 +46,13 @@ void InitializeSolutionStep(
         ConstructionUtility& rThisUtil,
         std::string ThermalSubModelPartName,
         std::string MechanicalSubModelPartName,
+        std::string HeatFluxSubModelPartName,
+        std::string HydraulicPressureSubModelPartName,
+        bool thermal_conditions,
+        bool mechanical_conditions,
         int phase)
 {
-    rThisUtil.InitializeSolutionStep(ThermalSubModelPartName, MechanicalSubModelPartName, phase);
+    rThisUtil.InitializeSolutionStep(ThermalSubModelPartName, MechanicalSubModelPartName, HeatFluxSubModelPartName, HydraulicPressureSubModelPartName, thermal_conditions, mechanical_conditions, phase);
 }
 
 
@@ -97,6 +101,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("Initialize",&ConstructionUtility::Initialize)
     .def("AssignTimeActivation", AssignTimeActivation)
     .def("InitializeSolutionStep",InitializeSolutionStep)
+    .def("CheckTemperature",&ConstructionUtility::CheckTemperature)
     .def("SearchingFluxes",&ConstructionUtility::SearchingFluxes)
     .def("ActiveHeatFluxNoorzai",ActiveHeatFluxNoorzai)
     .def("ActiveHeatFluxAzenha",ActiveHeatFluxAzenha)

@@ -168,6 +168,37 @@ double FluidConstitutiveLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& 
     return 0.0;
 }
 
+double FluidConstitutiveLaw::GetValueFromTable(
+    const Variable<double> &rVariableInput,
+    const Variable<double> &rVariableOutput,
+    ConstitutiveLaw::Parameters &rParameters) const
+{
+    // Get material properties from constitutive law parameters
+    const Properties &r_properties = rParameters.GetMaterialProperties();
+
+    double gauss_output;
+    if (r_properties.HasTable(rVariableInput,rVariableOutput)) {
+        // Get geometry and Gauss pt. data
+        const auto &r_geom = rParameters.GetElementGeometry();
+        const auto &r_N = rParameters.GetShapeFunctionsValues();
+
+        // Compute the input variable Gauss pt. value
+        double gauss_input = 0.0;
+        for (unsigned int i_node = 0; i_node < r_N.size(); ++i_node) {
+            const double &r_val = r_geom[i_node].FastGetSolutionStepValue(rVariableInput); 
+            gauss_input += r_val * r_N[i_node];
+        }
+
+        // Retrieve the output variable from the table
+        const auto &r_table = r_properties.GetTable(rVariableInput, rVariableOutput);
+        gauss_output = r_table.GetValue(gauss_input);
+    } else {
+        KRATOS_ERROR << "FluidConstitutiveLaw " << this->Info() << " has no table with variables " << rVariableInput << " " << rVariableOutput << std::endl;
+    }
+
+    return gauss_output;
+}
+
 // Serialization //////////////////////////////////////////////////////////////
 
 void FluidConstitutiveLaw::save(Serializer& rSerializer) const {

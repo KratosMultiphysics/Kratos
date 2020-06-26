@@ -19,6 +19,8 @@
 
 // Project includes
 #include "includes/element.h"
+#include "structural_mechanics_application_variables.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -48,6 +50,7 @@ namespace Kratos
  * finite differencing  (adjoint semi analytic approach). It is designed to be used in adjoint
  * sensitivity analysis
  */
+template <typename TPrimalElement>
 class AdjointFiniteDifferencingBaseElement : public Element
 {
 public:
@@ -55,7 +58,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferencingBaseElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferencingBaseElement);
     ///@}
 
     ///@name Classes
@@ -64,14 +67,33 @@ public:
 
     ///@name Life Cycle
     ///@{
-    AdjointFiniteDifferencingBaseElement() : Element()
-    {}
 
-    AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement);
+    AdjointFiniteDifferencingBaseElement(IndexType NewId = 0,
+                        bool HasRotationDofs = false)
+    : Element(NewId),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGetGeometry())),
+      mHasRotationDofs(HasRotationDofs)
+    {
+    }
 
-    AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement, bool HasRotationDofs);
+    AdjointFiniteDifferencingBaseElement(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        bool HasRotationDofs = false)
+    : Element(NewId, pGeometry),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry)),
+      mHasRotationDofs(HasRotationDofs)
+    {
+    }
 
-    ~AdjointFiniteDifferencingBaseElement() override;
+    AdjointFiniteDifferencingBaseElement(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties,
+                        bool HasRotationDofs = false)
+    : Element(NewId, pGeometry, pProperties),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties)),
+      mHasRotationDofs(HasRotationDofs)
+    {
+    }
 
     ///@}
 
@@ -82,11 +104,25 @@ public:
     ///@name Operations
     ///@{
 
-    // Basic
+    Element::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    Element::Pointer Create(IndexType NewId,
+                              GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+            NewId, pGeometry, pProperties);
+    }
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
 
     IntegrationMethod GetIntegrationMethod() const override
@@ -94,11 +130,11 @@ public:
         return mpPrimalElement->GetIntegrationMethod();
     }
 
-    void GetValuesVector(Vector& values, int Step = 0) override;
+    void GetValuesVector(Vector& values, int Step = 0) const override;
 
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->Initialize();
+        mpPrimalElement->Initialize(rCurrentProcessInfo);
     }
 
     void ResetConstitutiveLaw() override
@@ -137,19 +173,6 @@ public:
     {
         mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrix,
                                               rRightHandSideVector,
-                                              rCurrentProcessInfo);
-    }
-
-    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-                                      const std::vector< Variable< MatrixType > >& rLHSVariables,
-                                      std::vector< VectorType >& rRightHandSideVectors,
-                                      const std::vector< Variable< VectorType > >& rRHSVariables,
-                                      ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrices,
-                                              rLHSVariables,
-                                              rRightHandSideVectors,
-                                              rRHSVariables,
                                               rCurrentProcessInfo);
     }
 
@@ -241,15 +264,15 @@ public:
         mpPrimalElement->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
     }
 
-    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rCurrentProcessInfo);
     }
 
     void AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<double >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<double >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rRHSVector,
                                     rRHSVariable,
@@ -258,9 +281,9 @@ public:
     }
 
     void AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<array_1d<double,3> >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<array_1d<double,3> >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rRHSVector,
                                 rRHSVariable,
@@ -269,9 +292,9 @@ public:
     }
 
     void AddExplicitContribution(const MatrixType& rLHSMatrix,
-                                const Variable<MatrixType>& rLHSVariable,
-                                Variable<Matrix>& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override
+                                 const Variable<MatrixType>& rLHSVariable,
+                                 const Variable<Matrix>& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->AddExplicitContribution(rLHSMatrix,
                                 rLHSVariable,
@@ -309,7 +332,7 @@ public:
 					      std::vector<bool>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -318,33 +341,31 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
-    }
+					      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					      std::vector< array_1d<double, 6 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
 					      std::vector< Matrix >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     // Sensitivity functions
 
@@ -357,7 +378,7 @@ public:
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Calculates the pseudo-load of the design variable SHAPE (coordinates of nodes) contribution of the element.
+     * Calculates the pseudo-load of the design variable SHAPE_SENSITIVITY (coordinates of nodes) contribution of the element.
      * This is done by finite differencing of the RHS of the primal element when perturbing a nodal coordinate.
      * This operation is currently NOT thread-save!
      */
@@ -390,6 +411,10 @@ public:
     {
         return mpPrimalElement;
     }
+    const Element::Pointer pGetPrimalElement() const
+    {
+        return mpPrimalElement;
+    }
     ///@}
 
     ///@name Public specialized Access - Temporary
@@ -405,6 +430,58 @@ protected:
     ///@}
     ///@name Operations
     ///@{
+
+    template <typename TDataType>
+    void CalculateAdjointFieldOnIntegrationPoints(const Variable<TDataType>& rVariable, std::vector< TDataType >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        KRATOS_WARNING_IF("CalculateAdjointFieldOnIntegrationPoints", OpenMPUtils::IsInParallel() != 0)
+                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
+
+        const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+        const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+        const SizeType num_dofs = num_nodes * num_dofs_per_node;
+        Vector initial_state_variables;
+        initial_state_variables.resize(num_dofs);
+
+        Vector particular_solution = ZeroVector(num_dofs);
+        if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT)) {
+            particular_solution = this->GetValue(ADJOINT_PARTICULAR_DISPLACEMENT);
+        }
+
+        // Build vector of variables containing the DOF-variables of the primal problem
+        std::vector<Variable<double>*> primal_solution_variable_list;
+        (mHasRotationDofs) ? primal_solution_variable_list = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z, &ROTATION_X, &ROTATION_Y, &ROTATION_Z} :
+                             primal_solution_variable_list = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+
+        // Build vector of variables containing the DOF-variables of the adjoint problem
+        std::vector<Variable<double>*> adjoint_solution_variable_list;
+        (mHasRotationDofs) ? adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z, &ADJOINT_ROTATION_X, &ADJOINT_ROTATION_Y, &ADJOINT_ROTATION_Z} :
+                             adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z};
+
+        for (IndexType i = 0; i < num_nodes; ++i) {
+            const IndexType index = i * num_dofs_per_node;
+            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j) {
+                initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) =
+                                            this->GetGeometry()[i].FastGetSolutionStepValue(*adjoint_solution_variable_list[j]) +
+                                            particular_solution[index + j];
+            }
+        }
+
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+        for (IndexType i = 0; i < num_nodes; ++i) {
+            const IndexType index = i * num_dofs_per_node;
+            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j) {
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
 
     ///@}
     ///@name Member Variables
@@ -430,12 +507,12 @@ private:
     /**
      * Get the perturbation size for a scalar variable
      */
-    double GetPerturbationSize(const Variable<double>& rDesignVariable);
+    double GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
      * Get the perturbation size for a vector variable
      */
-    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
+    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
      * Get the perturbation size modification factor for a scalar variable.
@@ -443,7 +520,7 @@ private:
      * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
-    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable);
+    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable) const;
 
     /**
      * Get the perturbation size modification factor for a vector variable.
@@ -451,7 +528,7 @@ private:
      * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
-    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const;
 
     ///@}
 

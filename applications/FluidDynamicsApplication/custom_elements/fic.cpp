@@ -18,7 +18,7 @@
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 #include "custom_utilities/fluid_element_time_integration_detail.h"
 
 namespace Kratos
@@ -60,14 +60,14 @@ FIC<TElementData>::~FIC()
 template< class TElementData >
 Element::Pointer FIC<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<FIC>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<FIC>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TElementData >
 Element::Pointer FIC<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<FIC>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<FIC>(NewId, pGeom, pProperties);
 }
 
 template <class TElementData>

@@ -18,6 +18,7 @@
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "utilities/beam_math_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -61,7 +62,7 @@ public:
     typedef GeometryData::SizeType                             SizeType;
 
     /// Counted pointer of BeamElement
-    KRATOS_CLASS_POINTER_DEFINITION( BeamElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BeamElement );
 
     ///@}
 
@@ -390,7 +391,7 @@ public:
      * interface to the constitutive law!
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
+     * SetValuesOnIntegrationPoints: set the values for given Variable.
      * GetValueOnIntegrationPoints: get the values for given Variable.
      */
 
@@ -715,18 +716,6 @@ protected:
     virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber);
 
-
-    /**
-     * Calculation of the increment of position (step displacement)
-     */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-    /**
-     * Calculation of the increment of position (step displacement)
-     */
-    Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
-
-
     /**
      * Calculate Element Constitutive Matrix
      */
@@ -884,4 +873,3 @@ private:
 
 } // namespace Kratos.
 #endif //  KRATOS_BEAM_ELEMENT_H_INCLUDED defined
-

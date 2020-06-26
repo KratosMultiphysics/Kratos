@@ -68,6 +68,9 @@ public:
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     typedef MeshDataTransferUtilities::TransferParameters    TransferParametersType;
 
+    typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
     enum ContactElementType //(contact domain definition)
     {
@@ -136,6 +139,7 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG ( SELECT_TESSELLATION_ELEMENTS );
     KRATOS_DEFINE_LOCAL_FLAG ( KEEP_ISOLATED_NODES );
+    KRATOS_DEFINE_LOCAL_FLAG ( REFINE_WALL_CORNER );
 
     //execution options (tessellation) //not needed any more, just the strings definition...to set.
     KRATOS_DEFINE_LOCAL_FLAG ( NEIGHBOURS_SEARCH );
@@ -274,6 +278,8 @@ public:
       unsigned int   NumberOfElements;
       unsigned int   NumberOfNodes;
       unsigned int   NumberOfConditions;
+
+      unsigned int   InitialNumberOfNodes;
 
       //added
       unsigned int   NumberOfNewElements;
@@ -695,6 +701,24 @@ public:
       bool MeshingBoxSetFlag;
       SpatialBoundingBox::Pointer  MeshingBox;
 
+      bool UseBoundingBox;
+      double BoundingBoxInitialTime;
+      double BoundingBoxFinalTime;
+      array_1d<double, 3> BoundingBoxLowerPoint ;
+      array_1d<double, 3> BoundingBoxUpperPoint ;
+
+      bool UseRefiningBox;
+      double RefiningBoxInitialTime;
+      double RefiningBoxFinalTime;
+      double RefiningBoxMeshSize;
+      array_1d<double, 3> RefiningBoxMinimumPoint ;
+      array_1d<double, 3> RefiningBoxMaximumPoint ;
+
+      array_1d<double, 3> RefiningBoxMinInternalPoint;
+      array_1d<double, 3> RefiningBoxMinExternalPoint;
+      array_1d<double, 3> RefiningBoxMaxInternalPoint;
+      array_1d<double, 3> RefiningBoxMaxExternalPoint;
+
 
       void Set(Flags ThisFlag)
       {
@@ -860,6 +884,11 @@ public:
 	OutMesh.Initialize();
 	MidMesh.Initialize();
 
+      RefiningBoxMinInternalPoint = ZeroVector(3);
+      RefiningBoxMinExternalPoint = ZeroVector(3);
+      RefiningBoxMaxInternalPoint = ZeroVector(3);
+      RefiningBoxMaxExternalPoint = ZeroVector(3);
+
 	// RemeshInfo.Initialize();
 	// Refine.Initialize();
       };
@@ -874,6 +903,91 @@ public:
 	MeshElementsSelectedFlag   = false;
         PreservedElements.clear();
 	PreservedElements.resize(0);
+      };
+
+
+      void SetUseBoundingBox(bool rUseBoundingBox)
+      {
+      UseBoundingBox= rUseBoundingBox;
+      };
+      
+      void SetBoundingBoxLowerPoint(double rBoundingBoxLowerPointX, double rBoundingBoxLowerPointY, double rBoundingBoxLowerPointZ)
+      {
+            BoundingBoxLowerPoint[0]= rBoundingBoxLowerPointX;
+            BoundingBoxLowerPoint[1]= rBoundingBoxLowerPointY;
+            BoundingBoxLowerPoint[2]= rBoundingBoxLowerPointZ;
+      };  
+
+      void SetBoundingBoxUpperPoint(double rBoundingBoxUpperPointX, double rBoundingBoxUpperPointY, double rBoundingBoxUpperPointZ)
+      {
+            BoundingBoxUpperPoint[0]= rBoundingBoxUpperPointX;
+            BoundingBoxUpperPoint[1]= rBoundingBoxUpperPointY;
+            BoundingBoxUpperPoint[2]= rBoundingBoxUpperPointZ;
+      };
+
+      void SetBoundingBoxTimeInterval(double rBoundingBoxInitialTime, double rBoundingBoxFinalTime)
+      {
+            BoundingBoxInitialTime= rBoundingBoxInitialTime;
+            BoundingBoxFinalTime= rBoundingBoxFinalTime;
+      };
+
+      void SetUseRefiningBox(bool rUseRefiningBox)
+      {
+             UseRefiningBox= rUseRefiningBox;
+      };
+      
+      void SetRefiningBoxMinimumPoint(double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
+      {
+            RefiningBoxMinimumPoint[0]= rRefiningBoxMinimumPointX;
+            RefiningBoxMinimumPoint[1]= rRefiningBoxMinimumPointY;
+            RefiningBoxMinimumPoint[2]= rRefiningBoxMinimumPointZ;
+      };  
+
+      void SetRefiningBoxMaximumPoint(double rRefiningBoxMaximumPointX, double rRefiningBoxMaximumPointY, double rRefiningBoxMaximumPointZ)
+      {
+            RefiningBoxMaximumPoint[0]= rRefiningBoxMaximumPointX;
+            RefiningBoxMaximumPoint[1]= rRefiningBoxMaximumPointY;
+            RefiningBoxMaximumPoint[2]= rRefiningBoxMaximumPointZ;
+      };
+
+      void SetRefiningBoxMinExternalPoint(double rPointX, double rPointY, double rPointZ)
+      {
+            RefiningBoxMinExternalPoint[0]= rPointX;
+            RefiningBoxMinExternalPoint[1]= rPointY;
+            RefiningBoxMinExternalPoint[2]= rPointZ;
+      };  
+
+      void SetRefiningBoxMinInternalPoint(double rPointX, double rPointY, double rPointZ)
+      {
+            RefiningBoxMinInternalPoint[0]= rPointX;
+            RefiningBoxMinInternalPoint[1]= rPointY;
+            RefiningBoxMinInternalPoint[2]= rPointZ;
+      };  
+
+      void SetRefiningBoxMaxExternalPoint(double rPointX, double rPointY, double rPointZ)
+      {
+            RefiningBoxMaxExternalPoint[0]= rPointX;
+            RefiningBoxMaxExternalPoint[1]= rPointY;
+            RefiningBoxMaxExternalPoint[2]= rPointZ;
+      };  
+
+      void SetRefiningBoxMaxInternalPoint(double rPointX, double rPointY, double rPointZ)
+      {
+            RefiningBoxMaxInternalPoint[0]= rPointX;
+            RefiningBoxMaxInternalPoint[1]= rPointY;
+            RefiningBoxMaxInternalPoint[2]= rPointZ;
+      };  
+
+
+      void SetRefiningBoxTimeInterval(double rRefiningBoxInitialTime, double rRefiningBoxFinalTime)
+      {
+            RefiningBoxInitialTime= rRefiningBoxInitialTime;
+            RefiningBoxFinalTime= rRefiningBoxFinalTime;
+      };
+
+      void SetRefiningBoxMeshSize(double rRefiningBoxMeshSize)
+      {
+            RefiningBoxMeshSize= rRefiningBoxMeshSize;
       };
 
     };
@@ -900,9 +1014,13 @@ public:
     ///@name Operations
     ///@{
 
+    void SetModelPartNameToElements (ModelPart& rModelPart);
+
     void SetModelPartNameToConditions (ModelPart& rModelPart);
 
     void SetModelPartNameToNodes (ModelPart& rModelPart);
+
+    void SetFlagsToNodes (ModelPart& rModelPart, const std::vector<Flags> rControlFlags, const std::vector<Flags> rAssignFlags);
 
     double ComputeModelPartVolume (ModelPart& rModelPart);
 
@@ -910,6 +1028,8 @@ public:
     //*******************************************************************************************
 
     bool CheckSubdomain     (Geometry<Node<3> >& rGeometry);
+
+    bool CheckRigidOuterCentre   (Geometry<Node<3> >& rGeometry);
 
     bool CheckInnerCentre   (Geometry<Node<3> >& rGeometry);
 

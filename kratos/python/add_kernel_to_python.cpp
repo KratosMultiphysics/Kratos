@@ -24,28 +24,25 @@
 namespace Kratos {
 namespace Python {
 
-bool HasFlag(Kernel& rKernel, const std::string& flag_name) {
+bool HasFlag(Kernel& rKernel, const std::string& flag_name)
+{
     return KratosComponents<Flags>::Has(flag_name);
 }
 
-Flags GetFlag(
-    Kernel& rKernel, const std::string& flag_name) {
-    if (KratosComponents<Flags>::Has(flag_name)) {
-        return KratosComponents<Flags>::Get(flag_name);
-    } else {
-        KRATOS_ERROR << "ERROR:: Flag " << flag_name << " not defined" << std::endl;
-    }
-    return KratosComponents<Flags>::Get("ACTIVE");
+Flags GetFlag(Kernel& rKernel, const std::string& flag_name)
+{
+    return KratosComponents<Flags>::Get(flag_name);
 }
 
 template <class TVariableType>
-bool HasVariable(Kernel& rKernel, const std::string& variable_name) {
+bool HasVariable(Kernel& rKernel, const std::string& variable_name)
+{
     return KratosComponents<TVariableType>::Has(variable_name);
 }
 
 template <class TVariableType>
-const TVariableType& GetVariable(
-    Kernel& rKernel, const std::string& variable_name) {
+const TVariableType& GetVariable(Kernel& rKernel, const std::string& variable_name)
+{
     if (KratosComponents<TVariableType>::Has(variable_name)) {
         return KratosComponents<TVariableType>::Get(variable_name);
     }
@@ -53,43 +50,31 @@ const TVariableType& GetVariable(
     return TVariableType::StaticObject();
 }
 
-bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name) {
+bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name)
+{
     return KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name);
 }
 
-const ConstitutiveLaw& GetConstitutiveLaw(
-    Kernel& rKernel, const std::string& constitutive_law_name) {
-    if (KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) {
-        return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
-    } else {
-        const auto& available_constitutive_laws = KratosComponents<ConstitutiveLaw>::GetComponents();
-
-        std::stringstream err_msg;
-
-        err_msg << "The requested Constitutive Law \"" << constitutive_law_name
-                << "\" is unknown!\nMaybe you need to import the application where it is defined?\n"
-                << "The following Constitutive Laws are available:" << std::endl;
-
-        for (auto const& registered_constitutive_law : available_constitutive_laws)
-            err_msg << "\t" << registered_constitutive_law.first << "\n";
-
-        KRATOS_ERROR << err_msg.str() << std::endl;
-    }
+const ConstitutiveLaw& GetConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name)
+{
+    return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
 }
 
 template <class TVariableType>
-void PrintVariablesName(Kernel& rKernel) {
+void PrintVariablesName(Kernel& rKernel)
+{
     KratosComponents<TVariableType> kratos_components;
     kratos_components.PrintData(std::cout);
 }
+
 template <class TVariableType>
-std::string GetVariableNames(Kernel& rKernel) {
+std::string GetVariableNames(Kernel& rKernel)
+{
     KratosComponents<TVariableType> kratos_components;
     std::stringstream buffer;
     kratos_components.PrintData(buffer);
     return buffer.str();
 }
-
 
 void RegisterInPythonKernelVariables()
 {
@@ -125,12 +110,13 @@ void RegisterInPythonApplicationVariables(KratosApplication& Application)
     }
 }
 
-void AddKernelToPython(pybind11::module& m) {
-
+void AddKernelToPython(pybind11::module& m)
+{
     namespace py = pybind11;
 
     py::class_<Kernel, Kernel::Pointer>(m,"Kernel")
         .def(py::init<>())
+        .def(py::init<bool>())
         .def("Initialize", [](Kernel& self){ self.Initialize();
         /*RegisterInPythonKernelVariables();*/ }) //&Kernel::Initialize)
         .def("ImportApplication", &Kernel::ImportApplication)
@@ -138,6 +124,7 @@ void AddKernelToPython(pybind11::module& m) {
         /*RegisterInPythonApplicationVariables(App);*/ }) //&Kernel::InitializeApplication)
         //.def(""A,&Kernel::Initialize)
         .def("IsImported", &Kernel::IsImported)
+        .def_static("IsDistributedRun", &Kernel::IsDistributedRun)
         .def("HasFlag", HasFlag)
         .def("GetFlag", GetFlag)
         .def("HasBoolVariable", HasVariable<Variable<bool> >)
@@ -162,14 +149,6 @@ void AddKernelToPython(pybind11::module& m) {
         .def("GetMatrixVariable", GetVariable<Variable<Matrix> >, py::return_value_policy::reference_internal)
         .def("HasStringVariable", HasVariable<Variable<std::string> >)
         .def("GetStringVariable", GetVariable<Variable<std::string> >, py::return_value_policy::reference_internal)
-        .def("HasVariableComponent",HasVariable<VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >)
-        .def("HasVariableComponent4",HasVariable<VariableComponent< VectorComponentAdaptor<array_1d<double, 4> > > >)
-        .def("HasVariableComponent6",HasVariable<VariableComponent< VectorComponentAdaptor<array_1d<double, 6> > > >)
-        .def("HasVariableComponent9",HasVariable<VariableComponent< VectorComponentAdaptor<array_1d<double, 9> > > >)
-        .def("GetVariableComponent", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >,py::return_value_policy::reference_internal)
-        .def("GetVariableComponent4", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >,py::return_value_policy::reference_internal)
-        .def("GetVariableComponent6", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >,py::return_value_policy::reference_internal)
-        .def("GetVariableComponent9", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >,py::return_value_policy::reference_internal)
         .def("HasFlagsVariable", HasVariable<Variable<Flags> >)
         .def("GetFlagsVariable", GetVariable<Variable<Flags> >, py::return_value_policy::reference_internal)
         .def("HasVariableData", HasVariable<VariableData>)
@@ -186,10 +165,6 @@ void AddKernelToPython(pybind11::module& m) {
         .def("PrintMatrixVariables", PrintVariablesName<Variable<Matrix> >)
         .def("PrintStringVariables", PrintVariablesName<Variable<std::string> >)
         .def("PrintFlagsVariables", PrintVariablesName<Variable<Flags> >)
-        .def("PrintVariableComponentVariables",PrintVariablesName<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-        .def("PrintVariableComponent4Variables",PrintVariablesName<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
-        .def("PrintVariableComponent6Variables",PrintVariablesName<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
-        .def("PrintVariableComponent9Variables",PrintVariablesName<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
         .def("GetAllVariableNames", GetVariableNames<VariableData>)
         .def("GetBoolVariableNames", GetVariableNames<Variable<bool> >)
         .def("GetIntVariableNames", GetVariableNames<Variable<int> >)
@@ -203,19 +178,13 @@ void AddKernelToPython(pybind11::module& m) {
         .def("GetMatrixVariableNames", GetVariableNames<Variable<Matrix> >)
         .def("GetStringVariableNames", GetVariableNames<Variable<std::string> >)
         .def("GetFlagsVariableNames", GetVariableNames<Variable<Flags> >)
-        .def("GetVariableComponentVariableNames", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-        .def("GetVariableComponentVariable4Names", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
-        .def("GetVariableComponentVariable6Names", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
-        .def("GetVariableComponentVariable9Names", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
         .def("__str__", PrintObject<Kernel>)
         .def("HasConstitutiveLaw", HasConstitutiveLaw)
         .def("GetConstitutiveLaw", GetConstitutiveLaw, py::return_value_policy::reference_internal)
         .def_static("Version", &Kernel::Version)
         .def_static("BuildType", &Kernel::BuildType)
         ;
-
 }
 
 }  // namespace Python.
-
 }  // Namespace Kratos

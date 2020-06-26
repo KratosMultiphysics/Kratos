@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author Julio Marti.
@@ -112,7 +112,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    virtual void Execute() override
     {
       KRATOS_TRY
         for(ModelPart::NodesContainerType::const_iterator in = mr_model_part.NodesBegin(); in!=mr_model_part.NodesEnd(); in++)
@@ -164,19 +164,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
       return "Pfem2ApplyBCProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "Pfem2ApplyBCProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -300,6 +300,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ULF_APPLY_BC_PROCESS_INCLUDED  defined 
-
-
+#endif // KRATOS_ULF_APPLY_BC_PROCESS_INCLUDED  defined

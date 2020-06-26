@@ -11,20 +11,20 @@
 //                   Pablo Becker
 //
 
-#if !defined(KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED)
-#define  KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#ifndef KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#define KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
 
 ///@defgroup MoveShallowWaterParticleUtility
-///@brief Utility to move particles on the eulerian mesh with an 
+///@brief Utility to move particles on the eulerian mesh with an
 /// explicit scheme. This is the basic tool of the pfem2 framework
 
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -38,7 +38,8 @@
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
-#include "processes/node_erase_process.h" 
+#include "includes/global_pointer_variables.h"
+#include "processes/node_erase_process.h"
 
 #include "utilities/geometry_utilities.h"
 
@@ -46,7 +47,6 @@
 #include "includes/kratos_parameters.h"
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "utilities/spatial_containers_configure.h"
@@ -56,7 +56,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 #include "shallow_water_particle.h"
 
 #include "utilities/openmp_utils.h"
@@ -74,12 +74,12 @@ class MoveShallowWaterParticleUtility
 {
 public:
 
-    typedef SpatialContainersConfigure<TDim>                   Configure;   
-    typedef typename Configure::PointType                      PointType; 
-    typedef typename Configure::ContainerType                  ContainerType;   
-    typedef typename Configure::IteratorType                   IteratorType; 
+    typedef SpatialContainersConfigure<TDim>                   Configure;
+    typedef typename Configure::PointType                      PointType;
+    typedef typename Configure::ContainerType                  ContainerType;
+    typedef typename Configure::IteratorType                   IteratorType;
     typedef typename Configure::ResultContainerType            ResultContainerType;
-    typedef typename Configure::ResultIteratorType             ResultIteratorType; 
+    typedef typename Configure::ResultIteratorType             ResultIteratorType;
     typedef PointerVector< ShallowParticle, ShallowParticle*, std::vector<ShallowParticle*> > ParticlePointerVector;
 
     KRATOS_CLASS_POINTER_DEFINITION(MoveShallowWaterParticleUtility);
@@ -87,8 +87,8 @@ public:
     //template<unsigned int TDim>
     MoveShallowWaterParticleUtility(ModelPart& rModelPart, Parameters rParameters) :
         mrModelPart(rModelPart),
-        mScalarVar1(KratosComponents< Variable<double> >::Get( rParameters["convection_scalar_variable"].GetString() ) ),
-        mVectorVar1(KratosComponents< Variable<array_1d<double,3> > >::Get( rParameters["convection_vector_variable"].GetString() ) )
+        mScalarVar1(&KratosComponents< Variable<double> >::Get( rParameters["convection_scalar_variable"].GetString() ) ),
+        mVectorVar1(&KratosComponents< Variable<array_1d<double,3> > >::Get( rParameters["convection_vector_variable"].GetString() ) )
     {
         KRATOS_TRY
 
@@ -119,17 +119,17 @@ public:
             ielem->SetId(ii+1);
         }
         mLastElemId= (mrModelPart.ElementsEnd()-1)->Id();
-        int node_id=0;	
+        int node_id=0;
         // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
             int number_of_threads = 1;
         #endif
         OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Nodes().size(), node_partition);
-        
+
         #pragma omp parallel for
         for(int kkk=0; kkk<number_of_threads; kkk++)
         {
@@ -139,10 +139,10 @@ public:
                 array_1d<double,3> position_node;
                 double distance=0.0;
                 position_node = pnode->Coordinates();
-                WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
                 //we loop all the nodes to check all the edges
                 const double number_of_neighbours = static_cast<double>(rneigh.size());
-                for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+                for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
                 {
                     array_1d<double,3> position_difference;
                     position_difference = inode->Coordinates() - position_node;
@@ -150,8 +150,8 @@ public:
                     distance += current_distance / number_of_neighbours;
                 }
                 //and we save the largest edge.
-                pnode->FastGetSolutionStepValue(MEAN_SIZE)=distance;
-                
+                pnode->SetValue(MEAN_SIZE, distance);
+
                 node_id=pnode->GetId();
             }
         }
@@ -159,9 +159,9 @@ public:
 
         //we also calculate the element mean size in the same way, for the courant number
         //also we set the right size to the LHS column for the pressure enrichments, in order to recover correctly the enrichment pressure
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
-        
+
         //before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
         #pragma omp parallel for
         for(int kkk=0; kkk<number_of_threads; kkk++)
@@ -169,13 +169,13 @@ public:
             for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
             {
                 ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-                
-                double mElemSize;
+
+                double elem_size;
                 array_1d<double,3> Edge(3,0.0);
                 Edge = ielem->GetGeometry()[1].Coordinates() - ielem->GetGeometry()[0].Coordinates();
-                mElemSize = Edge[0]*Edge[0];
+                elem_size = Edge[0]*Edge[0];
                 for (unsigned int d = 1; d < TDim; d++)
-                    mElemSize += Edge[d]*Edge[d];
+                    elem_size += Edge[d]*Edge[d];
 
                 for (unsigned int i = 2; i < (TDim+1); i++)
                     for(unsigned int j = 0; j < i; j++)
@@ -184,10 +184,10 @@ public:
                         double Length = Edge[0]*Edge[0];
                         for (unsigned int d = 1; d < TDim; d++)
                             Length += Edge[d]*Edge[d];
-                        if (Length < mElemSize) mElemSize = Length;
+                        if (Length < elem_size) elem_size = Length;
                     }
-                mElemSize = sqrt(mElemSize);
-                ielem->GetValue(MEAN_SIZE) = mElemSize;
+                elem_size = sqrt(elem_size);
+                ielem->SetValue(MEAN_SIZE, elem_size);
             }
         }
 
@@ -200,27 +200,27 @@ public:
 
         std::cout << "  about to resize vectors" << std::endl;
 
-        //setting the right size to the vector containing the particles assigned to each element	
+        //setting the right size to the vector containing the particles assigned to each element
         //particles vector. this vector contains ALL the particles in the simulation.
         mParticlesVector.resize(mNElems*mMaxNumberOfParticles);
-        
+
         //and this vector contains the current number of particles that are in each element (currently zero)
         mNumOfParticlesInElems.resize(mNElems);
         mNumOfParticlesInElems=ZeroVector(mNElems);
-        
+
         //when moving the particles, an auxiliary vector is necessary (to store the previous number)
         mNumOfParticlesInElemsAux.resize(mNElems);
-        
+
         //each element will have a list of pointers to all the particles that are inside.
         //this vector contains the pointers to the vector of (particle) pointers of each element.
         mVectorOfParticlePointersVectors.resize(mNElems);
         //int artz;
         //std::cin >> artz;
-        int i_int=0; //careful! it's not the id, but the position inside the array!	
+        int i_int=0; //careful! it's not the id, but the position inside the array!
         std::cout << "  about to create particles" << std::endl;
         //now we seed: LOOP IN ELEMENTS
         //using loop index, DO NOT paralelize this! change lines : mparticles_in_elems_pointers((ii*mMaxNumberOfParticles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
-        
+
         mOffset=0;
         //ShallowParticle& firstparticle = mParticlesVector[0];
         for(unsigned int ii=0; ii<mrModelPart.Elements().size(); ii++)
@@ -238,10 +238,9 @@ public:
             //int & number_of_particles = ielem->GetValue(NUMBER_OF_BED_PARTICLES);
             int & number_of_particles = mNumOfParticlesInElems[ii];
             number_of_particles=0;
-            
+
             Geometry< Node<3> >& geom = ielem->GetGeometry();
             //unsigned int elem_id = ielem->Id();
-            //mareas_vector[i_int]=CalculateArea(geom); UNUSED SO COMMENTED 
             ComputeGaussPointPositions_initial(geom, pos, N); //we also have the standard (4), and 45
             //now we seed the particles in the current element
             for (unsigned int j = 0; j < pos.size1(); j++)
@@ -253,9 +252,9 @@ public:
                 //~ pparticle.Y()=pos(j,1);
                 //~ pparticle.Z()=pos(j,2);
                 pparticle.Coordinates() = row(pos,j);
-                
+
                 pparticle.GetEraseFlag()=false;
-                
+
                 array_1d<float, 3 > & vector1 = pparticle.GetVector1();
                 float & scalar1 = pparticle.GetScalar1();
                 noalias(vector1) = ZeroVector(3);
@@ -263,8 +262,8 @@ public:
 
                 for (unsigned int k = 0; k < (TDim+1); k++)
                 {
-                    scalar1          += N(j, k) * geom[k].FastGetSolutionStepValue(mScalarVar1);
-                    noalias(vector1) += N(j, k) * geom[k].FastGetSolutionStepValue(mVectorVar1);
+                    scalar1          += N(j, k) * geom[k].FastGetSolutionStepValue(*mScalarVar1);
+                    noalias(vector1) += N(j, k) * geom[k].FastGetSolutionStepValue(*mVectorVar1);
                 }
 
                 particle_pointers(j) = &pparticle;
@@ -300,7 +299,7 @@ public:
 
         typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end  ) );
         paux.swap(mpBinsObjectDynamic);
-        //BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end ); 
+        //BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end );
 
         std::cout << "  finished mounting Bins" << std::endl;
 
@@ -312,7 +311,7 @@ public:
     /** This function computes the mean velocity within an element and
      * stores it in MEAN_VEL_OVER_ELEM_SIZE variable.
      * This variable keeps the courant number aprox 0.1 in each substep
-     * 
+     *
      * @see MoveParticle
      * @see MoveParticleInverseWay
      */
@@ -320,12 +319,10 @@ public:
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
-
         const double nodal_weight = 1.0/ (1.0 + double (TDim) );
 
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -346,31 +343,30 @@ public:
                 for (unsigned int i=0; i != (TDim+1) ; i++)
                     vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
                 vector_mean_velocity *= nodal_weight;
-                
+
                 //~ const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
                 const double mean_velocity = norm_2( vector_mean_velocity );
-                ielem->GetValue(MEAN_VEL_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) ); 
+                ielem->SetValue(MEAN_VEL_OVER_ELEM_SIZE, mean_velocity / ( ielem->GetValue(MEAN_SIZE) ) );
             }
         }
         KRATOS_CATCH("")
     }
 
 
-    /// Reset the boundary conditions 
+    /// Reset the boundary conditions
     /** When a variable is fixed this function resets the nodal values
      * with the previous time step
      */
-    void ResetBoundaryConditions() 
+    void ResetBoundaryConditions()
     {
         KRATOS_TRY
 
-        typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-        component_type vector_var_x = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_X"));
-        component_type vector_var_y = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_Y"));
-        component_type vector_var_z = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_Z"));
+        const auto& vector_var_x = KratosComponents<Variable<double>>::Get(m_vector_var1_name+std::string("_X"));
+        const auto& vector_var_y = KratosComponents<Variable<double>>::Get(m_vector_var1_name+std::string("_Y"));
+        const auto& vector_var_z = KratosComponents<Variable<double>>::Get(m_vector_var1_name+std::string("_Z"));
 
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -385,9 +381,9 @@ public:
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
-                if (inode->IsFixed(mScalarVar1))
+                if (inode->IsFixed(*mScalarVar1))
                 {
-                    inode->FastGetSolutionStepValue(mScalarVar1)=inode->GetSolutionStepValue(mScalarVar1,1);
+                    inode->FastGetSolutionStepValue(*mScalarVar1)=inode->GetSolutionStepValue(*mScalarVar1,1);
                 }
                 if (inode->IsFixed(vector_var_x))
                 {
@@ -411,29 +407,29 @@ public:
     /// Auxiliar function to compute the "delta variables"
     /** Delta variables are the difference between two time steps.
      * It's value is used to update particles info
-     * 
+     *
      * @see CorrectParticlesWithoutMovingUsingDeltaVariables
      */
     void CalculateDeltaVariables()
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
             int number_of_threads = 1;
         #endif
         OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Nodes().size(), node_partition);
-        
+
         #pragma omp parallel for
         for(int kkk=0; kkk<number_of_threads; kkk++)
         {
             for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                inode->FastGetSolutionStepValue(DELTA_SCALAR1) = inode->FastGetSolutionStepValue(mScalarVar1) - inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);  //PROJECTED_SCALAR1
-                inode->FastGetSolutionStepValue(DELTA_VECTOR1) = inode->FastGetSolutionStepValue(mVectorVar1) - inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);  //PROJECTED_VECTOR1
+                inode->FastGetSolutionStepValue(DELTA_SCALAR1) = inode->FastGetSolutionStepValue(*mScalarVar1) - inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
+                inode->FastGetSolutionStepValue(DELTA_VECTOR1) = inode->FastGetSolutionStepValue(*mVectorVar1) - inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);  //PROJECTED_VECTOR1
             }
         }
         KRATOS_CATCH("")
@@ -448,14 +444,14 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
             int number_of_threads = 1;
         #endif
         OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
-        
+
         #pragma omp parallel for
         for(int kkk=0; kkk<number_of_threads; kkk++)
         {
@@ -477,14 +473,14 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
             int number_of_threads = 1;
         #endif
         OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
-        
+
         #pragma omp parallel for
         for(int kkk=0; kkk<number_of_threads; kkk++)
         {
@@ -499,18 +495,18 @@ public:
 
 
     /// Move all the particles
-    /** This function moves the particles across the streamlines 
-     * according to the velocity given by VELOCITY variable. The 
-     * movement is performed in nsubsteps, during a total time 
+    /** This function moves the particles across the streamlines
+     * according to the velocity given by VELOCITY variable. The
+     * movement is performed in nsubsteps, during a total time
      * of DELTA_TIME
-     * 
+     *
      * @see Moveparticle
      */
-    void MoveParticles() 
+    void MoveParticles()
     {
         KRATOS_TRY
 
-        ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
                                     //moveparticlesdiff reads from the pointers of one part (ie odd) and saves into the other part (ie even part)
@@ -527,12 +523,12 @@ public:
         array_1d<double,TDim+1> N;
         const unsigned int max_results = 10000;
 
-        //double integration_distance= 2.0; 
+        //double integration_distance= 2.0;
 
         mMaxSubSteps = 10;
         mMaxSubStepDt = delta_t / static_cast<double>(mMaxSubSteps);
 
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -550,9 +546,9 @@ public:
             for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
             {
                 //ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
-                
+
                 int & number_of_particles = mNumOfParticlesInElems[ii]; //old_element->GetValue(NUMBER_OF_BED_PARTICLES);
-                
+
                 mNumOfParticlesInElemsAux[ii] = number_of_particles;
                 mNumOfParticlesInElems[ii] = 0;
                 //we reset the local vectors for a faster access;
@@ -568,7 +564,7 @@ public:
         {
             ResultContainerType results(max_results);
 
-            WeakPointerVector< Element > elements_in_trajectory;
+            GlobalPointersVector< Element > elements_in_trajectory;
             elements_in_trajectory.resize(20);
 
             for(unsigned int ielem = element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
@@ -576,14 +572,14 @@ public:
                 ModelPart::ElementsContainerType::iterator old_element = ielembegin+ielem;
                 const int old_element_id = old_element->Id();
 
-                ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors(old_element_id-1);
+                ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors[old_element_id-1];
 
                 if ( (results.size()) != max_results )
                     results.resize(max_results);
 
                 unsigned int number_of_elements_in_trajectory = 0; //excluding the origin one (current one, ielem)
 
-                for(int ii=0; ii<(mNumOfParticlesInElemsAux(ielem)); ii++)
+                for (int ii = 0; ii < mNumOfParticlesInElemsAux[ielem]; ii++)
                 {
                     ShallowParticle& pparticle = old_element_particle_pointers[offset+ii];
 
@@ -595,11 +591,11 @@ public:
 
                         const int current_element_id = pcurrent_element->Id();
 
-                        int & number_of_particles_in_current_elem = mNumOfParticlesInElems(current_element_id-1);
+                        int & number_of_particles_in_current_elem = mNumOfParticlesInElems[current_element_id-1];
 
-                        if (number_of_particles_in_current_elem < mMaxNumberOfParticles && erase_flag == false) 
+                        if (number_of_particles_in_current_elem < mMaxNumberOfParticles && erase_flag == false)
                         {
-                            ParticlePointerVector& current_element_particle_pointers = mVectorOfParticlePointersVectors(current_element_id-1);
+                            ParticlePointerVector& current_element_particle_pointers = mVectorOfParticlePointersVectors[current_element_id-1];
 
                             #pragma omp critical
                             {
@@ -635,17 +631,15 @@ public:
 
 
     /// Transfer particles information to the mesh nodes
-    /** This function explicitly projects data from particles (lagrangian) 
-     * onto the eulerian mesh. Shape functions of the elements determine  
-     * the particle location within the element and its contribution to 
+    /** This function explicitly projects data from particles (lagrangian)
+     * onto the eulerian mesh. Shape functions of the elements determine
+     * the particle location within the element and its contribution to
      * each node as a weighting function.
      */
     void TransferLagrangianToEulerian() //explicit
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
-        //const double delta_t =CurrentProcessInfo[DELTA_TIME];
         const double threshold = 1e-10 / (static_cast<double>(TDim)+1.0);
 
         std::cout << "projecting info to mesh" << std::endl;
@@ -659,12 +653,12 @@ public:
         //int nnodes = mrModelPart.Nodes().size();
         //array_1d<double,(n_nodes)> eulerian_nodes_sumweights;
 
-        // We save data from previous time step of the eulerian mesh in case we must reuse it later 
+        // We save data from previous time step of the eulerian mesh in case we must reuse it later
         // cos no particle was found around the nodes though we could've use a bigger buffer, to be changed later!
-        // after having saved data, we reset them to zero, this way it's easier to add the contribution 
+        // after having saved data, we reset them to zero, this way it's easier to add the contribution
         // of the surrounding particles.
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -678,14 +672,14 @@ public:
             for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0; 
-                inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=ZeroVector(3); 
+                inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0;
+                inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=ZeroVector(3);
                 inode->FastGetSolutionStepValue(YP)=0.0;
             }
         }
 
         // Adding contribution, loop on elements, since each element has stored the particles found inside of it
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
 
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
@@ -695,7 +689,7 @@ public:
             for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
             {
                 ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-    
+
                 array_1d<double,3*(TDim+1)> nodes_positions;
                 array_1d<double,3*(TDim+1)> nodes_added_vector1 = ZeroVector(3*(TDim+1));
                 array_1d<double,(TDim+1)> nodes_added_scalar1 = ZeroVector((TDim+1));
@@ -704,12 +698,12 @@ public:
 
                 Geometry<Node<3> >& geom = ielem->GetGeometry();
 
-                for (int i=0 ; i!=(TDim+1) ; ++i) 
+                for (int i=0 ; i!=(TDim+1) ; ++i)
                 {
                     nodes_positions[i*3+0]=geom[i].X();
                     nodes_positions[i*3+1]=geom[i].Y();
                     nodes_positions[i*3+2]=geom[i].Z();
-                    //weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01); 
+                    //weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01);
                 }
 
                 int & number_of_particles_in_elem= mNumOfParticlesInElems[ii];
@@ -718,11 +712,11 @@ public:
                 for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
                 {
                     if (iii==mMaxNumberOfParticles) // It means we are out of our portion of the array, abort loop!
-                        break; 
+                        break;
 
                     ShallowParticle& pparticle = element_particle_pointers[offset+iii];
 
-                    if (pparticle.GetEraseFlag()==false) 
+                    if (pparticle.GetEraseFlag()==false)
                     {
                         array_1d<double,3> & position = pparticle.Coordinates();
                         const float& particle_scalar1 = pparticle.GetScalar1();
@@ -732,7 +726,7 @@ public:
                         bool is_found = CalculatePosition(nodes_positions,position[0],position[1],position[2],N);
                         if (is_found==false) // Something went wrong. if it was close enough to the edge we simply send it inside the element.
                         {
-                            KRATOS_WATCH(N);
+                            KRATOS_INFO("MoveShallowWaterParticleUtility") << N << std::endl;
                             for (int j=0 ; j!=(TDim+1); j++)
                                 if (N[j]<0.0 && N[j]> -1e-5)
                                     N[j]=1e-10;
@@ -744,7 +738,7 @@ public:
                             //double sq_dist = 0;
                             //for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
                             //double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
-                            
+
                             double weight=N(j)*N(j);
                             //weight=N(j)*N(j)*N(j);
                             if (weight<threshold) weight=1e-10;
@@ -780,7 +774,7 @@ public:
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
                 double sum_weights = inode->FastGetSolutionStepValue(YP);
-                if (sum_weights>0.00001) 
+                if (sum_weights>0.00001)
                 {
                     double & scalar = inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
                     array_1d<double,3> & vector = inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);
@@ -789,8 +783,8 @@ public:
                 }
                 else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
                 {
-                    inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=inode->FastGetSolutionStepValue(mScalarVar1,1); // Resetting the convected scalar
-                    inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=inode->FastGetSolutionStepValue(mVectorVar1,1); // Resetting the convected vector
+                    inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=inode->FastGetSolutionStepValue(*mScalarVar1,1); // Resetting the convected scalar
+                    inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=inode->FastGetSolutionStepValue(*mVectorVar1,1); // Resetting the convected vector
                 }
             }
         }
@@ -802,20 +796,18 @@ public:
     /// Update all the particles without moving them
     /** This function updates all the particles variables using the
      * "delta variables" from the nodal database.
-     * 
+     *
      * @see CorrectParticleUsingDeltaVariables
      */
-    void CorrectParticlesWithoutMovingUsingDeltaVariables() 
+    void CorrectParticlesWithoutMovingUsingDeltaVariables()
     {
         KRATOS_TRY
-        //std::cout << "updating particles" << std::endl;
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
                                     //(flag managed only by MoveParticles)
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
 
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -831,7 +823,7 @@ public:
                 //const int & elem_id = ielem->Id();
                 ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
                 Element::Pointer pelement(*ielem.base());
-                Geometry<Node<3> >& geom = ielem->GetGeometry(); 
+                Geometry<Node<3> >& geom = ielem->GetGeometry();
 
                 //ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(BED_PARTICLE_POINTERS));
                 //int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_BED_PARTICLES);
@@ -841,7 +833,7 @@ public:
                 for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
                 {
                     if (iii>mMaxNumberOfParticles) //it means we are out of our portion of the array, abort loop!
-                        break; 
+                        break;
 
                     ShallowParticle & pparticle = element_particle_pointers[offset+iii];
 
@@ -857,25 +849,6 @@ public:
     }
 
 
-    /// AddUniqueWeakPointer
-    template< class TDataType >
-    void AddUniqueWeakPointer
-        (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
-    {
-        typename WeakPointerVector< TDataType >::iterator i = v.begin();
-        typename WeakPointerVector< TDataType >::iterator endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate.lock())->Id())
-        {
-            i++;
-        }
-        if( i == endit )
-        {
-            v.push_back(candidate);
-        }
-
-    }
-
-
     /// Fill an element with particles
     /** This function is to be executed after moving particles and
      * before tranferring data from lagrangian particles to eulerian mesh
@@ -883,23 +856,22 @@ public:
      * of particles", then PreReseed adds particles inside it.
      * A minimal reseed is performed in order to not disturb the projection
      * from lagrangian to euelrian.
-     * 
+     *
      * @see MinimumNumberOfParticles
-     * 
+     *
      * @see MoveParticles
      * @see MoveParticleInverseWay: is called to get the particle values
      */
-    void PreReseed(int MinimumNumberOfParticles) 
+    void PreReseed(int MinimumNumberOfParticles)
     {
         KRATOS_TRY
 
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         const int offset =mOffset;
         const int max_results = 1000;
 
         //tools for the paralelization
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-        vector<unsigned int> elem_partition;
+        std::vector<unsigned int> elem_partition;
         int number_of_rows = mrModelPart.Elements().size();
         elem_partition.resize(number_of_threads + 1);
         int elem_partition_size = number_of_rows / number_of_threads;
@@ -914,8 +886,8 @@ public:
         {
             ResultContainerType results(max_results);
             int k = OpenMPUtils::ThisThread();
-            //ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.ElementsBegin() +  elem_partition[k]; 
-            //ModelPart::ElementsContainerType::iterator it_end = mrModelPart.ElementsBegin() + elem_partition[k+1] ; 
+            //ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.ElementsBegin() +  elem_partition[k];
+            //ModelPart::ElementsContainerType::iterator it_end = mrModelPart.ElementsBegin() + elem_partition[k+1] ;
             //ModelPart::NodesContainerType local_list=aux[k];
             //PointerVectorSet<ShallowParticle, IndexedObject> & list=aux[k];
             BoundedMatrix<double, (TDim+1), 3 > pos;
@@ -998,22 +970,20 @@ public:
      * particles", then PostReseed adds particles inside it.
      * A full reseed is performed and the particle gets it's convected
      * variables directly from the eulerian mesh
-     * 
+     *
      * @param MinimumNumberOfParticles
-     * 
+     *
      * @see PreReseed
      */
     void PostReseed(int MinimumNumberOfParticles) //pooyan's way
     {
         KRATOS_TRY
-        
-        //ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+
         const int offset = mOffset;
-        
+
         //TOOLS FOR THE PARALELIZATION
-        //int last_id= (mr_linea_model_part.NodesEnd()-1)->Id();
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-        vector<unsigned int> elem_partition;
+        std::vector<unsigned int> elem_partition;
         int number_of_rows=mrModelPart.Elements().size();
         //KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
         elem_partition.resize(number_of_threads + 1);
@@ -1023,18 +993,13 @@ public:
 
         for (unsigned int i = 1; i < number_of_threads; i++)
         elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
-        //typedef Node < 3 > PointType;
-        //std::vector<ModelPart::NodesContainerType> aux;// aux;
-        //aux.resize(number_of_threads);
 
-        //ModelPart::NodesContainerType::iterator it_begin_particle_model_part = mr_linea_model_part.NodesBegin();
-        //ModelPart::NodesContainerType::iterator it_end_particle_model_part = mr_linea_model_part.NodesEnd();
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
 
         #pragma omp parallel firstprivate(elem_partition) // firstprivate(results)//we will add the nodes in different parts of aux and later assemple everything toghether, remaming particles ids to get consecutive ids
         {
             unsigned int reused_particles=0;
-            
+
             unsigned int freeparticle = 0; //we start by the first position;
 
             int k = OpenMPUtils::ThisThread();
@@ -1046,7 +1011,7 @@ public:
             array_1d<double,3> mesh_vector1;
 
             array_1d<int, (3+2*TDim) > positions;
-            
+
             unsigned int number_of_reseeded_particles;
 
             for(unsigned int ii=elem_partition[k]; ii<elem_partition[k+1]; ii++)
@@ -1067,9 +1032,9 @@ public:
                     number_of_reseeded_particles = 3 + 2*TDim;
                     ComputeGaussPointPositionsForPostReseed(geom, pos, N);
 
-                    for (unsigned int j = 0; j < number_of_reseeded_particles; j++) 
+                    for (unsigned int j = 0; j < number_of_reseeded_particles; j++)
                     {
-                        // Now we have to find an empty space (a particle that was about to be deleted) in the 
+                        // Now we have to find an empty space (a particle that was about to be deleted) in the
                         // particles model part. once found. there will be our renewed particle:
                         bool keep_looking = true;
                         while(keep_looking)
@@ -1106,8 +1071,8 @@ public:
 
                         for (unsigned int l = 0; l < (TDim+1); l++)
                         {
-                            mesh_scalar1 +=  N(j,l) * geom[l].FastGetSolutionStepValue(mScalarVar1);
-                            noalias(mesh_vector1) += N(j, l) * geom[l].FastGetSolutionStepValue(mVectorVar1);
+                            mesh_scalar1 +=  N(j,l) * geom[l].FastGetSolutionStepValue(*mScalarVar1);
+                            noalias(mesh_vector1) += N(j, l) * geom[l].FastGetSolutionStepValue(*mVectorVar1);
                         }
                         pparticle.GetScalar1()=mesh_scalar1;
                         pparticle.GetVector1()=mesh_vector1;
@@ -1131,11 +1096,11 @@ public:
 
     /// Fill a model part with particles
     /** This function prints the particles to a model part
-     * 
+     *
      * @param rLagrangianModelPart: empty model part to print particles
      * @param FilterFactor: the function will print one particle of every "filter factor"
      */
-    void ExecuteParticlesPrintingTool( ModelPart& rLagrangianModelPart, unsigned int FilterFactor ) 
+    void ExecuteParticlesPrintingTool( ModelPart& rLagrangianModelPart, unsigned int FilterFactor )
     {
         KRATOS_TRY
         // We will only print one out of every "filter factor" particles of the total particle list
@@ -1145,7 +1110,7 @@ public:
             KRATOS_ERROR_IF( rLagrangianModelPart.NodesBegin() - rLagrangianModelPart.NodesEnd() > 0 ) <<
                 "In move shallow water particle utility: an empty model part is required for the particles printing tool" << std::endl;
 
-            rLagrangianModelPart.AddNodalSolutionStepVariable(mScalarVar1);
+            rLagrangianModelPart.AddNodalSolutionStepVariable(*mScalarVar1);
             rLagrangianModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
             for (unsigned int i = 0; i != ((mMaxNumberOfParticles*mNElems)/FilterFactor) + FilterFactor; i++)
@@ -1167,7 +1132,7 @@ public:
         for(unsigned int ii = 0; ii < rLagrangianModelPart.Nodes().size(); ii++)
         {
             ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-            inode->FastGetSolutionStepValue(mScalarVar1)  = 0.0;
+            inode->FastGetSolutionStepValue(*mScalarVar1)  = 0.0;
             inode->FastGetSolutionStepValue(DISPLACEMENT) = inactive_particle_position_vector;
         }
 
@@ -1179,7 +1144,7 @@ public:
             if(pparticle.GetEraseFlag() == false && i%FilterFactor == 0)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin + counter; //copying info from the particle to the (printing) node.
-                inode->FastGetSolutionStepValue(mScalarVar1)  = pparticle.GetScalar1();
+                inode->FastGetSolutionStepValue(*mScalarVar1)  = pparticle.GetScalar1();
                 inode->FastGetSolutionStepValue(DISPLACEMENT) = pparticle.Coordinates();
                 counter++;
             }
@@ -1197,26 +1162,26 @@ private:
 
     /// Move a particle
     /** this function moves a particle according to the velocity given
-     * by VELOCITY variable. The movement is performed in nsubsteps, 
+     * by VELOCITY variable. The movement is performed in nsubsteps,
      * during a total time of DELTA_TIME
-     * 
+     *
      * @param pParticle
      * @param pElement
      * @param rElementsInTrajectory
      * @param rNumberOfElementsInTrajectory
      * @param ResultBegin
      * @param MaxNumberOfResults
-     * 
+     *
      * @see MoveParticles
      */
     void MoveParticle(ShallowParticle & pParticle,
                       Element::Pointer & pElement,
-                      WeakPointerVector< Element >& rElementsInTrajectory,
+                      GlobalPointersVector< Element >& rElementsInTrajectory,
                       unsigned int & rNumberOfElementsInTrajectory,
                       ResultIteratorType ResultBegin,
                       const unsigned int MaxNumberOfResults)
     {
-        ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         double delta_t = CurrentProcessInfo[DELTA_TIME];
         unsigned int nsubsteps;
         double substep_dt;
@@ -1244,7 +1209,7 @@ private:
 
             for(unsigned int j=0; j<(TDim+1); j++)
             {
-                noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+                noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
             }
 
             //calculating substep to get +- courant(substep) = 0.1
@@ -1260,8 +1225,8 @@ private:
             unsigned int check_from_element_number = 0;
 
             for(unsigned int i=0; i<(nsubsteps-1); i++)// this is for the substeps n+1. in the first one we already knew the position of the particle.
-            { 
-                if (keep_integrating == true) 
+            {
+                if (keep_integrating == true)
                 {
                     is_found = FindNodeOnMesh(position, N, pElement, rElementsInTrajectory, rNumberOfElementsInTrajectory, check_from_element_number, ResultBegin, MaxNumberOfResults); //good, now we know where this point is:
                     if(is_found == true)
@@ -1271,7 +1236,7 @@ private:
                         vel = ZeroVector(3);
                         for(unsigned int j=0; j<(TDim+1); j++)
                         {
-                            noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+                            noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
                         }
 
                         only_integral += 1.0; //values saved for the current time step
@@ -1279,7 +1244,7 @@ private:
                         position+=vel*substep_dt;//weight;
 
                     }
-                    else 
+                    else
                     {
                         keep_integrating=false;
                         break;
@@ -1292,7 +1257,7 @@ private:
 
         if (keep_integrating == false) (pParticle.GetEraseFlag()=true);
         else is_found = FindNodeOnMesh(position, N ,pElement,ResultBegin,MaxNumberOfResults); //we must save the pointer of the last element that we're in (inside the pointervector pElement)
-        
+
         if (is_found == false) ( pParticle.GetEraseFlag()=true);
 
          pParticle.Coordinates() = position;
@@ -1302,11 +1267,11 @@ private:
     /// This function updates a particle
     /** This function updates a particle variables using the "delta
      * variables" from the nodal database.
-     * 
+     *
      * @param pParticle
      * @param pElement
      * @param rGeom
-     * 
+     *
      * @see CorrectParticlesWithoutMovingUsingDeltaVariables
      */
     void CorrectParticleUsingDeltaVariables(ShallowParticle & pParticle,
@@ -1323,11 +1288,11 @@ private:
         //double distance=0.0;
         double delta_scalar1 = 0.0;
         array_1d<double,3> delta_vector1 = ZeroVector(3);
-        
+
         bool is_found = CalculatePosition(rGeom,coords[0],coords[1],coords[2],N);
         if(is_found == false)
         {
-            KRATOS_WATCH(N)
+            KRATOS_INFO("MoveShallowWaterParticleUtility") << N << std::endl;
             for (int j=0 ; j!=(TDim+1); j++)
                                 if (N[j]<0.0 )
                                     N[j]=1e-10;
@@ -1349,12 +1314,12 @@ private:
      * integration in nsubsteps, during a total time of DELTA_TIME
      * Before the particle goes out of the element, gets the value
      * of the eulerian mesh and stores it
-     * 
+     *
      * @param pParticle
      * @param pElement
      * @param ResultBegin
      * @param MaxNumberOfResults
-     * 
+     *
      * @see PreReseed
      */
     void MoveParticleInverseWay(ShallowParticle & pParticle,
@@ -1362,7 +1327,7 @@ private:
                                   ResultIteratorType ResultBegin,
                                   const unsigned int MaxNumberOfResults)
     {
-        ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
         double delta_t = CurrentProcessInfo[DELTA_TIME];
         unsigned int nsubsteps;
         double substep_dt;
@@ -1379,9 +1344,9 @@ private:
 
         //we start with the first position, then it will enter the loop.
         position = pParticle.Coordinates(); // + (pParticle)->FastGetSolutionStepValue(DISPLACEMENT); //initial coordinates
-        
+
         double only_integral  = 0.0 ;
-        
+
         is_found = FindNodeOnMesh(position, N, pElement, ResultBegin, MaxNumberOfResults); //good, now we know where this point is:
         if(is_found == true)
         {
@@ -1394,9 +1359,9 @@ private:
 
             for(unsigned int j=0; j<(TDim+1); j++)
             {
-                scalar1          += geom[j].FastGetSolutionStepValue(mScalarVar1)*N[j];
-                noalias(vector1) += geom[j].FastGetSolutionStepValue(mVectorVar1)*N[j];
-                noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+                scalar1          += geom[j].FastGetSolutionStepValue(*mScalarVar1)*N[j];
+                noalias(vector1) += geom[j].FastGetSolutionStepValue(*mVectorVar1)*N[j];
+                noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
             }
             //calculating substep to get +- courant(substep) = 1/4
             nsubsteps = 10.0 * (delta_t * pElement->GetValue(MEAN_VEL_OVER_ELEM_SIZE));
@@ -1422,8 +1387,8 @@ private:
 
                         for(unsigned int j=0; j<(TDim+1); j++)
                         {
-                            scalar1          += geom[j].FastGetSolutionStepValue(mScalarVar1)*N(j);
-                            noalias(vector1) += geom[j].FastGetSolutionStepValue(mVectorVar1)*N[j];
+                            scalar1          += geom[j].FastGetSolutionStepValue(*mScalarVar1)*N(j);
+                            noalias(vector1) += geom[j].FastGetSolutionStepValue(*mVectorVar1)*N[j];
                             noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
                         }
 
@@ -1446,14 +1411,14 @@ private:
      * containing the shape functions that define the positions within
      * the element.
      * If false is returned the element is not found
-     * 
+     *
      * @param position of the node
      * @param N: return shape functions that define the positions within the elem
      * @param pElement: return a pointer to the element
      * @param ResultBegin
      * @param MaxNumberOfResults
      * @return FindNodeOnMesh if the element is found of not
-     * 
+     *
      * @see CalculatePosition
      */
     bool FindNodeOnMesh( const array_1d<double,3>& rPosition,
@@ -1462,7 +1427,7 @@ private:
                          ResultIteratorType ResultBegin,
                          const unsigned int MaxNumberOfResults)
     {
-        typedef std::size_t SizeType; 
+        typedef std::size_t SizeType;
 
         array_1d<double,TDim+1> aux_N;
         //before using the bin to search for possible elements we check first the last element in which the particle was.
@@ -1474,35 +1439,35 @@ private:
         }
 
         // To begin with we check the neighbour elements; it is a bit more expensive
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 return true;
             }
         }
 
         // If checking all the neighbour elements did not work, we have to use the bins
         // ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rPosition, ResultBegin, MaxNumberOfResults );
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(Point{rPosition}, ResultBegin, MaxNumberOfResults );
 
         if (results_found>0)
         {
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();	
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found_3 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found_3)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     return true;
                 }
             }
@@ -1521,7 +1486,7 @@ private:
      * the element.
      * If false is returned the element is not found
      * This version includes predefined elements following a trajectory
-     * 
+     *
      * @param rPosition of the node
      * @param N Output shape functions that define the positions within the elem
      * @param pElement Output a pointer to the element
@@ -1531,19 +1496,19 @@ private:
      * @param ResultBegin
      * @param MaxNumberOfResults
      * @return FindNodeOnMesh if the element is found of not
-     * 
+     *
      * @see CalculatePosition
      */
     bool FindNodeOnMesh( const array_1d<double,3>& rPosition,
                          array_1d<double,TDim+1>& N,
                          Element::Pointer & pElement,
-                         WeakPointerVector< Element >& rElementsInTrajectory,
+                         GlobalPointersVector< Element >& rElementsInTrajectory,
                          unsigned int & rNumberOfElementsInTrajectory,
                          unsigned int & rCheckFromElementNumber,
                          ResultIteratorType ResultBegin,
                          const unsigned int MaxNumberOfResults)
     {
-        typedef std::size_t SizeType; 
+        typedef std::size_t SizeType;
 
         //~ const array_1d<double,3>& coords = rPosition;
          array_1d<double,TDim+1> aux_N;
@@ -1562,7 +1527,7 @@ private:
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],aux_N);
             if (is_found_2)
             {
-                pElement = Element::Pointer(((rElementsInTrajectory(i))));
+                pElement = rElementsInTrajectory[i].shared_from_this();
                 N = aux_N;
                 rCheckFromElementNumber = i+1 ; //now i element matches pElement, so to avoid cheching twice the same element we send the counter to the following element.
                 return true;
@@ -1570,14 +1535,14 @@ private:
         }
 
         // Now we check the neighbour elements:
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 if (rNumberOfElementsInTrajectory<20)
                 {
                     rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
@@ -1590,21 +1555,21 @@ private:
 
         // If checking all the neighbour elements did not work, we have to use the bins
         // ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rPosition, ResultBegin, MaxNumberOfResults );
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(Point{rPosition}, ResultBegin, MaxNumberOfResults );
 
         if(results_found>0)
         {
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     if (rNumberOfElementsInTrajectory<20)
                     {
                         rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
@@ -1626,13 +1591,13 @@ private:
      * an element and returns the shape functions that define it position
      * within the element and returns false if the particle is otuside
      * the element
-     * 
+     *
      * @param rGeom: the element (a triangle)
      * @param xc: the postition of the particle
      * @param yc: the postition of the particle
      * @param zc: the postition of the particle
      * @param N: the shape functions to define the particle position
-     * 
+     *
      * @return CalculatePosition
      */
     inline bool CalculatePosition( const Geometry<Node < 3 > >&rGeom,
@@ -1669,13 +1634,13 @@ private:
      * an element and returns the shape functions that define it position
      * within the element and returns false if the particle is otuside
      * the element
-     * 
+     *
      * @param rNodesPositions of the element (a triangle)
      * @param xc: the postition of the particle
      * @param yc: the postition of the particle
      * @param zc: the postition of the particle
      * @param N: the shape functions to define the particle position
-     * 
+     *
      * @return CalculatePosition
      */
     inline bool CalculatePosition( const array_1d<double,3*(TDim+1)>& rNodesPositions,
@@ -1699,7 +1664,7 @@ private:
         N[1] = CalculateVol(x2, y2, x0, y0, xc, yc) * inv_area;
         N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
 
-        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) 
+        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0)
             //if the xc yc is inside the triangle return true
             return true;
 
@@ -1712,13 +1677,13 @@ private:
      * an element and returns the shape functions that define it position
      * within the element and returns false if the particle is otuside
      * the element
-     * 
+     *
      * @param rGeom: the element (a tetrahedron)
      * @param xc: the postition of the particle
      * @param yc: the postition of the particle
      * @param zc: the postition of the particle
      * @param N: the shape functions to define the particle position
-     * 
+     *
      * @return CalculatePosition
      */
     inline bool CalculatePosition( const Geometry<Node < 3 > >&rGeom,
@@ -1763,13 +1728,13 @@ private:
      * an element and returns the shape functions that define it position
      * within the element and returns false if the particle is otuside
      * the element
-     * 
+     *
      * @param rNodesPositions of the element (a tetrahedron)
      * @param xc: the postition of the particle
      * @param yc: the postition of the particle
      * @param zc: the postition of the particle
      * @param N: the shape functions to define the particle position
-     * 
+     *
      * @return CalculatePosition
      */
     inline bool CalculatePosition( const array_1d<double,3*(TDim+1)>& rNodesPositions,
@@ -1893,7 +1858,7 @@ private:
 
     /// Compute the Gauss points
     /** For a triangle
-     * 
+     *
      * @see PostReseed
      */
     void ComputeGaussPointPositionsForPostReseed( Geometry< Node < 3 > >& geom,
@@ -1951,7 +1916,7 @@ private:
         pos(3, 0) = one_third * geom[0].X() + one_third * geom[1].X() + one_third * geom[2].X();
         pos(3, 1) = one_third * geom[0].Y() + one_third * geom[1].Y() + one_third * geom[2].Y();
         pos(3, 2) = one_third * geom[0].Z() + one_third * geom[1].Z() + one_third * geom[2].Z();
-        
+
         //fifth
         pos(4, 0) = one_eight * geom[0].X() + 0.44 * geom[1].X() + 0.44 * geom[2].X();
         pos(4, 1) = one_eight * geom[0].Y() + 0.44 * geom[1].Y() + 0.44 * geom[2].Y();
@@ -1971,7 +1936,7 @@ private:
 
     /// Compute the Gauss points
     /** For a tetrahedron
-     * 
+     *
      * @see PostReseed
      */
     void ComputeGaussPointPositionsForPostReseed( Geometry< Node < 3 > >& geom,
@@ -1997,7 +1962,7 @@ private:
         N(2, 1) = small_fraction;
         N(2, 2) = big_fraction;
         N(2, 3) = small_fraction;
-        
+
         N(3, 0) = small_fraction;
         N(3, 1) = small_fraction;
         N(3, 2) = small_fraction;
@@ -2036,14 +2001,14 @@ private:
             {
                 for (unsigned int k=0; k!=3; k++) //x,y,z
                     pos(j,k) += N(j,i) * coordinates[k];
-            } 
+            }
         }
     }
 
 
     /// Compute the Gauss points
     /** For a triangle
-     * 
+     *
      * @see PreReseed
      */
     void ComputeGaussPointPositionsForPreReseed( Geometry< Node < 3 > >& geom,
@@ -2081,7 +2046,7 @@ private:
 
     /// Compute the Gauss points
     /** For a tetrahedron
-     * 
+     *
      * @see PreReseed
      */
     void ComputeGaussPointPositionsForPreReseed( Geometry< Node < 3 > >& geom,
@@ -2118,14 +2083,14 @@ private:
             {
                 for (unsigned int k=0; k!=3; k++) //x,y,z
                     pos(j,k) += N(j,i) * coordinates[k];
-            } 
+            }
         }
 
     }
 
 
     /// Compute the Gauss points
-    /** 
+    /**
      */
     void ComputeGaussPointPositions_45( Geometry< Node < 3 > >& geom,
                                         BoundedMatrix<double, 45, 3 > & pos,
@@ -2150,7 +2115,7 @@ private:
 
 
     /// Compute the Gauss points
-    /** 
+    /**
      */
     void ComputeGaussPointPositions_initial( Geometry< Node < 3 > >& geom,
                                              BoundedMatrix<double, 15, 3 > & pos,
@@ -2175,7 +2140,7 @@ private:
 
 
     /// Compute the Gauss points
-    /** 
+    /**
      */
     void ComputeGaussPointPositions_initial( Geometry< Node < 3 > >& geom,
                                              BoundedMatrix<double, 20, 3 > & pos,
@@ -2191,8 +2156,8 @@ private:
                 {
                     N(counter,0)= 0.27 * ( 0.175 + double(i) ) ; //this is our "surface" in which we will build each layer, so we must construct a triangle using what's left of the shape functions total (a total of 1)
 
-                    //total = 1.0 - N(counter,0); 
-                    fraction_increment = 0.27; // 
+                    //total = 1.0 - N(counter,0);
+                    fraction_increment = 0.27; //
 
                     N(counter,1)=fraction_increment * (0.175 + double(j));
                     N(counter,2)=fraction_increment * (0.175 + double(k));
@@ -2203,7 +2168,7 @@ private:
 
                     counter++;
                 }
-                
+
             }
         }
     }
@@ -2216,8 +2181,8 @@ private:
 
         Node<3>& rnode = *mrModelPart.NodesBegin();
 
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVectorVar1, rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mScalarVar1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mVectorVar1), rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mScalarVar1), rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_VECTOR1, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_SCALAR1, rnode)
@@ -2246,14 +2211,14 @@ private:
     bool mParticlePrintingToolInitialized;
     unsigned int mLastNodeId;
 
-    vector<int> mNumOfParticlesInElems; 
-    vector<int> mNumOfParticlesInElemsAux; 
-    vector<ParticlePointerVector> mVectorOfParticlePointersVectors;
+    DenseVector<int> mNumOfParticlesInElems;
+    DenseVector<int> mNumOfParticlesInElemsAux;
+    DenseVector<ParticlePointerVector> mVectorOfParticlePointersVectors;
 
     typename BinsObjectDynamic<Configure>::Pointer mpBinsObjectDynamic;
 
-    Variable<double> mScalarVar1;
-    Variable<array_1d<double,3>> mVectorVar1;
+    const Variable<double>* mScalarVar1;
+    const Variable<array_1d<double,3>>* mVectorVar1;
     std::string m_scalar_var1_name;
     std::string m_vector_var1_name;
 
@@ -2261,4 +2226,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED  defined 
+#endif // KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED  defined

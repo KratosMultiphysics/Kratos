@@ -26,14 +26,22 @@
 namespace Kratos
 {
 
-template <typename scalar_t, typename TEigenSparseMatrix = Eigen::SparseMatrix<scalar_t, Eigen::RowMajor, int>>
+template <
+    typename TScalar = double,
+    typename TEigenSparseMatrix = Eigen::SparseMatrix<TScalar, Eigen::RowMajor, int>>
 class UblasWrapper
 {
-    const std::vector<int> m_index1;
-    const std::vector<int> m_index2;
-    const Eigen::Map<const TEigenSparseMatrix> m_map;
+    std::vector<int> m_index1;
+    std::vector<int> m_index2;
+    Eigen::Map<const TEigenSparseMatrix> m_map;
 
 public:
+    UblasWrapper()
+    : m_index1(),
+      m_index2(),
+      m_map(0, 0, 0, nullptr, nullptr, nullptr)
+    {
+    }
 
     template <typename TUblasSparseMatrix>
     UblasWrapper(const TUblasSparseMatrix& matrix)
@@ -45,7 +53,7 @@ public:
 
     const Eigen::Map<const TEigenSparseMatrix>& matrix() const
     {
-        return m_map;
+      return m_map;
     }
 };
 

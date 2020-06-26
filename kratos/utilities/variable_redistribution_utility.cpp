@@ -60,9 +60,8 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
     const Variable<TValueType>& rPointVariable)
 {
     // Check if there is any condition in the current partition
-    const unsigned int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    int n_tot_conds = n_loc_conds;
-    rModelPart.GetCommunicator().SumAll(n_tot_conds);
+    const int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
+    int n_tot_conds = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_conds);
 
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_conds != 0){
@@ -102,9 +101,8 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
     unsigned int MaximumIterations)
 {
     // Check if there is any condition in the current partition
-    const unsigned int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    int n_tot_conds = n_loc_conds;
-    rModelPart.GetCommunicator().SumAll(n_tot_conds);
+    const int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
+    int n_tot_conds = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_conds);
 
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_conds != 0){
@@ -225,8 +223,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
 
     // Initial guess (NodalValue / NodalSize)
     #pragma omp parallel for
-    for (int i = 0; i < number_of_nodes_in_model_part; i++)
-    {
+    for (int i = 0; i < number_of_nodes_in_model_part; i++) {
         ModelPart::NodeIterator node_iter = rModelPart.NodesBegin() + i;
         node_iter->FastGetSolutionStepValue(rDistributedVariable) = node_iter->FastGetSolutionStepValue(rPointVariable) / node_iter->GetValue(NODAL_MAUX);
     }
@@ -237,17 +234,15 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
     // Iteration: LumpedMass * delta_distributed = point_value - ConsistentMass * distributed_old
     double error_l2_norm = 0.0;
     unsigned int iteration = 0;
-    while ( iteration < MaximumIterations )
-    {
+    while (iteration < MaximumIterations) {
         UpdateDistributionRHS<TPointNumber,TValueType>(rModelPart,rPointVariable, rDistributedVariable, mass_matrix);
 
         error_l2_norm = SolveDistributionIteration(rModelPart,rDistributedVariable);
-        rModelPart.GetCommunicator().SumAll(error_l2_norm);
+        error_l2_norm = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(error_l2_norm);
 
         // Check convergence
         iteration++;
-        if (error_l2_norm <= Tolerance*Tolerance)
-        {
+        if (error_l2_norm <= Tolerance*Tolerance) {
             break;
         }
     }
@@ -269,15 +264,15 @@ void VariableRedistributionUtility::DummySpecializedDistributePointValues(
     // Iteration: LumpedMass * delta_distributed = point_value - ConsistentMass * distributed_old
     double error_l2_norm = 0.0;
     unsigned int iteration = 0;
-    while ( iteration < MaximumIterations )
-    {
+    while (iteration < MaximumIterations) {
         DummyUpdateDistributionRHS<TValueType>(rModelPart, rDistributedVariable);
 
-        rModelPart.GetCommunicator().SumAll(error_l2_norm);
+        error_l2_norm = DummySolveDistributionIteration(rModelPart,rDistributedVariable);;
+        error_l2_norm = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(error_l2_norm);
 
         // Check convergence
         iteration++;
-        if (error_l2_norm <= Tolerance*Tolerance){
+        if (error_l2_norm <= Tolerance*Tolerance) {
             break;
         }
     }
@@ -443,6 +438,14 @@ double VariableRedistributionUtility::SolveDistributionIteration(
     }
 
     return error_l2_norm /= domain_size;
+}
+
+template< class TValueType >
+double VariableRedistributionUtility::DummySolveDistributionIteration(
+    ModelPart& rModelPart,
+    const Variable< TValueType >& rDistributedVariable)
+{
+    return 0.0;
 }
 
 template<>

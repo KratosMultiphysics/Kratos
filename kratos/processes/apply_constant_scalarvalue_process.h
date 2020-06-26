@@ -58,16 +58,9 @@ public:
                                    ) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
-			 
+
 //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
-            {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
-                "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed": false,
-                "value" : 1.0
-            }  )" );
+
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
@@ -77,7 +70,7 @@ public:
 
         // Now validate agains defaults -- this also ensures no type mismatch
 
-        rParameters.ValidateAndAssignDefaults(default_parameters);
+        rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
         mmesh_id = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
@@ -255,6 +248,18 @@ public:
         Execute();
     }
 
+    const Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters( R"(
+        {
+            "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+            "mesh_id": 0,
+            "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
+            "is_fixed": false,
+            "value" : 1.0
+        }  )" );
+        return default_parameters;
+    }
 
     ///@}
     ///@name Operations

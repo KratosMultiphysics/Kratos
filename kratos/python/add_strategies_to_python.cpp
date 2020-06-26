@@ -24,6 +24,7 @@
 #include "python/add_strategies_to_python.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "includes/ublas_complex_interface.h"
 
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -43,6 +44,9 @@
 #include "solving_strategies/schemes/residual_based_pseudo_static_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -53,8 +57,9 @@
 
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -71,6 +76,9 @@ namespace Kratos
         typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
+        typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>> ComplexSparseSpaceType;
+        typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector> ComplexLocalSpaceType;
+
         //ADDED BY PAOLO (next two)
 
         double Dot(SparseSpaceType& dummy, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
@@ -78,13 +86,15 @@ namespace Kratos
             return dummy.Dot(rX, rY);
         }
 
-        void ScaleAndAdd(SparseSpaceType& dummy, const double A, const SparseSpaceType::VectorType& rX, const double B, SparseSpaceType::VectorType& rY)
+        template< typename TSpaceType >
+        void ScaleAndAdd(TSpaceType& dummy, const double A, const typename TSpaceType::VectorType& rX, const double B, typename TSpaceType::VectorType& rY)
         //(const double A,const  VectorType& rX, const double B, VectorType& rY) // rY = (A * rX) + (B * rY)
         {
             dummy.ScaleAndAdd(A, rX, B, rY);
         }
 
-        void Mult(SparseSpaceType& dummy, SparseSpaceType::MatrixType& rA, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
+        template< typename TSpaceType >
+        void Mult(TSpaceType& dummy, typename TSpaceType::MatrixType& rA, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
         //rY=A*rX (the product is stored inside the rY)
         {
             dummy.Mult(rA, rX, rY);
@@ -96,47 +106,56 @@ namespace Kratos
             dummy.TransposeMult(rA, rX, rY);
         }
 
-        SparseSpaceType::IndexType Size(SparseSpaceType& dummy, SparseSpaceType::VectorType const& rV)
+        template< typename TSpaceType >
+        typename TSpaceType::IndexType Size(TSpaceType& dummy, typename TSpaceType::VectorType const& rV)
         {
             return rV.size();
         }
 
-        SparseSpaceType::IndexType Size1(SparseSpaceType& dummy, SparseSpaceType::MatrixType const& rM)
+        template< typename TSpaceType >
+        typename TSpaceType::IndexType Size1(TSpaceType& dummy, typename TSpaceType::MatrixType const& rM)
         {
             return rM.size1();
         }
 
-        SparseSpaceType::IndexType Size2(SparseSpaceType& dummy, SparseSpaceType::MatrixType const& rM)
+        template< typename TSpaceType >
+        typename TSpaceType::IndexType Size2(TSpaceType& dummy, typename TSpaceType::MatrixType const& rM)
         {
             return rM.size2();
         }
 
-        void ResizeMatrix(SparseSpaceType& dummy, SparseSpaceType::MatrixType& A, unsigned int i1, unsigned int i2)
+        template< typename TSpaceType >
+        void ResizeMatrix(TSpaceType& dummy, typename TSpaceType::MatrixType& A, unsigned int i1, unsigned int i2)
         {
             dummy.Resize(A, i1, i2);
         }
 
-        void ResizeVector(SparseSpaceType& dummy, SparseSpaceType::VectorType& x, unsigned int i1)
+        template< typename TSpaceType >
+        void ResizeVector(TSpaceType& dummy, typename TSpaceType::VectorType& x, unsigned int i1)
         {
             dummy.Resize(x, i1);
         }
 
-        void SetToZeroMatrix(SparseSpaceType& dummy, SparseSpaceType::MatrixType& A)
+        template< typename TSpaceType >
+        void SetToZeroMatrix(TSpaceType& dummy, typename TSpaceType::MatrixType& A)
         {
             dummy.SetToZero(A);
         }
 
-        void SetToZeroVector(SparseSpaceType& dummy, SparseSpaceType::VectorType& x)
+        template< typename TSpaceType >
+        void SetToZeroVector(TSpaceType& dummy, typename TSpaceType::VectorType& x)
         {
             dummy.SetToZero(x);
         }
 
-        void ClearMatrix(SparseSpaceType& dummy, SparseSpaceType::MatrixPointerType& A)
+        template< typename TSpaceType >
+        void ClearMatrix(TSpaceType& dummy, typename TSpaceType::MatrixPointerType& A)
         {
             dummy.Clear(A);
         }
 
-        void ClearVector(SparseSpaceType& dummy, SparseSpaceType::VectorPointerType& x)
+        template< typename TSpaceType >
+        void ClearVector(TSpaceType& dummy, typename TSpaceType::VectorPointerType& x)
         {
             dummy.Clear(x);
         }
@@ -146,7 +165,8 @@ namespace Kratos
             return dummy.TwoNorm(x);
         }
 
-        void UnaliasedAdd(SparseSpaceType& dummy, SparseSpaceType::VectorType& x, const double A, const SparseSpaceType::VectorType& rY) // x+= a*Y
+        template< typename TSpaceType >
+        void UnaliasedAdd(TSpaceType& dummy, typename TSpaceType::VectorType& x, const double A, const typename TSpaceType::VectorType& rY) // x+= a*Y
         {
             dummy.UnaliasedAdd(x, A, rY);
         }
@@ -165,12 +185,14 @@ namespace Kratos
             }
         }
 
-        SparseSpaceType::MatrixPointerType CreateEmptyMatrixPointer(SparseSpaceType& dummy)
+        template< typename TSpaceType >
+        typename TSpaceType::MatrixPointerType CreateEmptyMatrixPointer(TSpaceType& dummy)
         {
             return dummy.CreateEmptyMatrixPointer();
         }
 
-        SparseSpaceType::VectorPointerType CreateEmptyVectorPointer(SparseSpaceType& dummy)
+        template< typename TSpaceType >
+        typename TSpaceType::VectorPointerType CreateEmptyVectorPointer(TSpaceType& dummy)
         {
             return dummy.CreateEmptyVectorPointer();
         }
@@ -183,6 +205,31 @@ namespace Kratos
         Vector& GetVecRef(Kratos::shared_ptr<Vector>& dummy)
         {
             return *dummy;
+        }
+
+        template< typename TSpaceType >
+        py::class_< TSpaceType > CreateSpaceInterface(pybind11::module& m, std::string Name)
+        {
+            py::class_< TSpaceType > binder(m,Name.c_str());
+            binder.def(py::init<>());
+
+            binder.def("ClearMatrix", ClearMatrix<TSpaceType>);
+            binder.def("ClearVector", ClearVector<TSpaceType>);
+            binder.def("ResizeMatrix", ResizeMatrix<TSpaceType>);
+            binder.def("ResizeVector", ResizeVector<TSpaceType>);
+            binder.def("SetToZeroMatrix", SetToZeroMatrix<TSpaceType>);
+            binder.def("SetToZeroVector", SetToZeroVector<TSpaceType>);
+            binder.def("ScaleAndAdd", ScaleAndAdd<TSpaceType>);
+            //the matrix-vector multiplication
+            binder.def("Mult", Mult<TSpaceType>);
+            binder.def("Size", Size<TSpaceType>);
+            binder.def("Size1", Size1<TSpaceType>);
+            binder.def("Size2", Size2<TSpaceType>);
+            binder.def("UnaliasedAdd", UnaliasedAdd<TSpaceType>);
+            binder.def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer<TSpaceType>);
+            binder.def("CreateEmptyVectorPointer", CreateEmptyVectorPointer<TSpaceType>);
+
+            return binder;
         }
 
         void AddStrategiesToPython(pybind11::module& m)
@@ -227,7 +274,7 @@ namespace Kratos
                 .def("Clean", &BaseSchemeType::Clean)
                 .def("Clear",&BaseSchemeType::Clear)
                 .def("MoveMesh", MoveMesh)
-                .def("Check", &BaseSchemeType::Check)
+                .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
                 ;
 
             py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
@@ -251,7 +298,8 @@ namespace Kratos
                 typename ResidualBasedBossakDisplacementSchemeType::Pointer,
                 BaseSchemeType  >
                 (m,"ResidualBasedBossakDisplacementScheme")
-                .def(py::init< double >() )
+                .def(py::init< double >())
+                .def(py::init< double, double >())
                 ;
 
 	         // Residual Based Newmark Scheme Type
@@ -265,7 +313,7 @@ namespace Kratos
 	         py::class_< ResidualBasedPseudoStaticDisplacementSchemeType,
                 typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
                 BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
-                .def(py::init< const Variable<double> >() )
+                .def(py::init< const Variable<double>& >() )
                 ;
 
             // Residual Based BDF displacement Scheme Type
@@ -280,6 +328,27 @@ namespace Kratos
                 .def(py::init <const std::size_t>())
                 .def(py::init <const std::size_t, Parameters>())
                 ;
+
+            // Residual Based Adjoint Static Scheme Type
+            typedef ResidualBasedAdjointStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointStaticSchemeType;
+            py::class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, BaseSchemeType>
+            (m, "ResidualBasedAdjointStaticScheme")
+            .def(py::init<AdjointResponseFunction::Pointer>())
+            ;
+
+            // Residual Based Adjoint Steady Scheme Type
+            typedef ResidualBasedAdjointSteadyScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointSteadySchemeType;
+            py::class_<ResidualBasedAdjointSteadySchemeType, typename ResidualBasedAdjointSteadySchemeType::Pointer, ResidualBasedAdjointStaticSchemeType>
+            (m, "ResidualBasedAdjointSteadyScheme")
+            .def(py::init<AdjointResponseFunction::Pointer>())
+            ;
+
+            // Residual Based Adjoint Bossak Scheme Type
+            typedef ResidualBasedAdjointBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointBossakSchemeType;
+            py::class_<ResidualBasedAdjointBossakSchemeType, typename ResidualBasedAdjointBossakSchemeType::Pointer, BaseSchemeType>
+            (m, "ResidualBasedAdjointBossakScheme")
+            .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
+            ;
 
             //********************************************************************
             //********************************************************************
@@ -345,9 +414,6 @@ namespace Kratos
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
 
-            py::class_< BuilderAndSolverType::DofsArrayType, BuilderAndSolverType::DofsArrayType::Pointer>(m,"DofsArrayType")
-                .def(py::init<>());
-
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer > ())
                 .def("SetCalculateReactionsFlag", &BuilderAndSolverType::SetCalculateReactionsFlag)
@@ -362,8 +428,10 @@ namespace Kratos
                 .def("Build", &BuilderAndSolverType::Build)
                 .def("SystemSolve", &BuilderAndSolverType::SystemSolve)
                 .def("BuildAndSolve", &BuilderAndSolverType::BuildAndSolve)
+                .def("BuildAndSolveLinearizedOnPreviousIteration", &BuilderAndSolverType::BuildAndSolveLinearizedOnPreviousIteration)
                 .def("BuildRHSAndSolve", &BuilderAndSolverType::BuildRHSAndSolve)
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
+                .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
                 .def("SetUpDofSet", &BuilderAndSolverType::SetUpDofSet)
                 .def("GetDofSet", &BuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
                 .def("SetUpSystem", &BuilderAndSolverType::SetUpSystem)
@@ -379,15 +447,22 @@ namespace Kratos
 
             typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
             py::class_< ResidualBasedEliminationBuilderAndSolverType, ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
-                .def(py::init< LinearSolverType::Pointer > ());
+            .def(py::init< LinearSolverType::Pointer > ())
+            ;
+
+            typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
+            py::class_< ResidualBasedEliminationBuilderAndSolverWithConstraintsType, ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolverWithConstraints")
+            .def(py::init< LinearSolverType::Pointer > ())
+            .def(py::init< LinearSolverType::Pointer, bool > ())
+            .def(py::init< LinearSolverType::Pointer, bool, bool > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
+            ;
 
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
-                .def(py::init< LinearSolverType::Pointer > ());
-
-            typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
-            py::class_< ResidualBasedBlockBuilderAndSolverWithConstraintsType, ResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer,ResidualBasedBlockBuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraints")
-                .def(py::init< LinearSolverType::Pointer > ());
+            .def(py::init< LinearSolverType::Pointer > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
+            ;
 
             //********************************************************************
             //********************************************************************
@@ -396,28 +471,13 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
 
-            py::class_< SparseSpaceType>(m,"UblasSparseSpace")
-                .def(py::init<>())
-                .def("ClearMatrix", ClearMatrix)
-                .def("ClearVector", ClearVector)
-                .def("ResizeMatrix", ResizeMatrix)
-                .def("ResizeVector", ResizeVector)
-                .def("SetToZeroMatrix", SetToZeroMatrix)
-                .def("SetToZeroVector", SetToZeroVector)
-                .def("TwoNorm", TwoNorm)
-                //the dot product of two vectors
-                .def("Dot", Dot)
-                //the matrix-vector multiplication
-                .def("Mult", Mult)
-                .def("TransposeMult", TransposeMult)
-                .def("Size", Size)
-                .def("Size1", Size1)
-                .def("Size2", Size2)
-                .def("UnaliasedAdd", UnaliasedAdd)
-                .def("ScaleAndAdd", ScaleAndAdd)
-                .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
-                .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
-                ;
+            auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m,"UblasSparseSpace");
+            sparse_space_binder.def("TwoNorm", TwoNorm);
+            //the dot product of two vectors
+            sparse_space_binder.def("Dot", Dot);
+            sparse_space_binder.def("TransposeMult", TransposeMult);
+
+            auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
 
             //********************************************************************
             //********************************************************************
@@ -457,6 +517,7 @@ namespace Kratos
                 (m,"ResidualBasedLinearStrategy")
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
                 .def(py::init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
+                .def("GetScheme", &ResidualBasedLinearStrategyType::GetScheme)
                 .def("GetResidualNorm", &ResidualBasedLinearStrategyType::GetResidualNorm)
                 .def("SetBuilderAndSolver", &ResidualBasedLinearStrategyType::SetBuilderAndSolver)
                 .def("GetSystemMatrix", &ResidualBasedLinearStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
@@ -470,6 +531,8 @@ namespace Kratos
                 (m,"ResidualBasedNewtonRaphsonStrategy")
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters>())
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters>())
                 .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
                 .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
                 .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
@@ -479,6 +542,10 @@ namespace Kratos
                 .def("GetSystemMatrix", &ResidualBasedNewtonRaphsonStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
                 .def("GetSystemVector", &ResidualBasedNewtonRaphsonStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
                 .def("GetSolutionVector", &ResidualBasedNewtonRaphsonStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
+                .def("SetUseOldStiffnessInFirstIterationFlag",
+                     &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
+                .def("GetUseOldStiffnessInFirstIterationFlag",
+                     &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
@@ -495,6 +562,8 @@ namespace Kratos
                 (m,"LineSearchStrategy")
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters >())
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
                 ;
 
             py::class_< ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,

@@ -129,7 +129,7 @@ namespace Kratos
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
 	      {
-		WeakPointerVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		double x0 = im->X();
 		double y0 = im->Y();
 		double x1 = 0.0;
@@ -276,7 +276,7 @@ namespace Kratos
 		int neighnum_caf = 0; //caf == contact angle face
 		int visited = 0;
 		double num_faces = 0.0;
-		WeakPointerVector< Condition >& neighb_faces = im->GetValue(NEIGHBOUR_CONDITIONS);
+		GlobalPointersVector< Condition >& neighb_faces = im->GetValue(NEIGHBOUR_CONDITIONS);
 		//Loop over faces -> find faces that two IS_FREE_SURFACE nodes
 		for (unsigned int i = 0; i < neighb_faces.size(); i++)
 		{

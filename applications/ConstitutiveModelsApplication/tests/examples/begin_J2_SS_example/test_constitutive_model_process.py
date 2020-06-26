@@ -191,7 +191,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
             print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
         #self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
-        #self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
         if ( True):
             import numpy as np
@@ -218,7 +217,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
                     print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
                 #self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-                #self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
                 stress = self.parameters.GetStressVector();
 
 
@@ -252,5 +250,3 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
 
             module = importlib.import_module(module_name)
             return getattr(module,splitted[-1])
-
-

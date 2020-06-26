@@ -78,7 +78,7 @@ AxisymmetricUpdatedLagrangianUPElement&  AxisymmetricUpdatedLagrangianUPElement:
 
 Element::Pointer AxisymmetricUpdatedLagrangianUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< AxisymmetricUpdatedLagrangianUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< AxisymmetricUpdatedLagrangianUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -124,7 +124,7 @@ Element::Pointer AxisymmetricUpdatedLagrangianUPElement::Clone( IndexType NewId,
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< AxisymmetricUpdatedLagrangianUPElement >(NewElement);
+    return Kratos::make_intrusive< AxisymmetricUpdatedLagrangianUPElement >(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -141,7 +141,7 @@ AxisymmetricUpdatedLagrangianUPElement::~AxisymmetricUpdatedLagrangianUPElement(
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void AxisymmetricUpdatedLagrangianUPElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -160,7 +160,7 @@ void AxisymmetricUpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const 
   }
   else{
 
-    LargeDisplacementElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -264,7 +264,7 @@ void AxisymmetricUpdatedLagrangianUPElement::InitializeElementData (ElementDataT
 
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -669,7 +669,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddPressureForces(Vecto
             // if(i==j)
             //     consistent=2;
 
-            double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
             rRightHandSideVector[indexp] += (1.0/BulkModulus) * rVariables.N[i] * rVariables.N[j] * Pressure * rIntegrationWeight/ (rVariables.detF0/rVariables.detF);
 
             //rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/12.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
@@ -750,7 +750,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(V
         for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 
-            double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
             //2D
             if(integration_points == 1)
             {

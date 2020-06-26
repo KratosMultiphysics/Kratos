@@ -28,7 +28,7 @@ MeshElement::MeshElement(IndexType NewId)
 /***********************************************************************************/
 
 MeshElement::MeshElement(
-    IndexType NewId, 
+    IndexType NewId,
     const NodesArrayType& rThisNodes
     ) : BaseType(NewId, rThisNodes)
 {
@@ -38,7 +38,7 @@ MeshElement::MeshElement(
 /***********************************************************************************/
 
 MeshElement::MeshElement(
-    IndexType NewId, 
+    IndexType NewId,
     GeometryType::Pointer pGeometry
     ) : BaseType(NewId, pGeometry)
 {
@@ -48,8 +48,8 @@ MeshElement::MeshElement(
 /***********************************************************************************/
 
 MeshElement::MeshElement(
-    IndexType NewId, 
-    GeometryType::Pointer pGeometry, 
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) : BaseType(NewId,pGeometry, pProperties)
 {
@@ -86,13 +86,13 @@ MeshElement& MeshElement::operator=(MeshElement const& rOther)
 /***********************************************************************************/
 
 Element::Pointer MeshElement::Create(
-    IndexType NewId, 
+    IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
@@ -106,7 +106,7 @@ Element::Pointer MeshElement::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<MeshElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MeshElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -114,18 +114,54 @@ Element::Pointer MeshElement::Create(
 /***********************************************************************************/
 
 Element::Pointer MeshElement::Clone (
-    IndexType NewId, 
+    IndexType NewId,
     NodesArrayType const& ThisNodes
     ) const
 {
     KRATOS_TRY
 
-    Element::Pointer p_new_elem = Kratos::make_shared<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Element::Pointer p_new_elem = Kratos::make_intrusive<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
-    p_new_elem->Set(Flags(*this)); 
-    return p_new_elem; 
+    p_new_elem->Set(Flags(*this));
+    return p_new_elem;
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    const Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::AddExplicitContribution(
+    const VectorType& rRHS,
+    const Variable<VectorType>& rRHSVariable,
+    const Variable<array_1d<double,3> >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshElement::AddExplicitContribution(
+    const MatrixType& rLHSMatrix,
+    const Variable<MatrixType>& rLHSVariable,
+    const Variable<Matrix>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
 }
 
 /***********************************************************************************/

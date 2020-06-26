@@ -73,7 +73,7 @@ public:
     ///@{
 
     /// Default constructor.
-    IndexedObject(IndexType NewId = 0) : mId(NewId) {}
+    explicit IndexedObject(IndexType NewId = 0) : mId(NewId) {}
 
     /// Destructor.
     virtual ~IndexedObject() {}

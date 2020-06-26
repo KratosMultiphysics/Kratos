@@ -66,7 +66,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of AxisymTotalLagrangian
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymTotalLagrangian);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymTotalLagrangian);
 
     ///@}
     ///@name Life Cycle
@@ -192,7 +192,7 @@ private:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber,
         const double detJ
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Private  Access

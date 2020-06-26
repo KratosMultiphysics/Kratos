@@ -91,10 +91,25 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Constructor. The pseudo static scheme (parameters)
+     * @param ThisParameters Dummy parameters
+     */
+    explicit ResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /** Default onstructor.
     */
     explicit ResidualBasedIncrementalUpdateStaticScheme()
-        : Scheme<TSparseSpace,TDenseSpace>()
+        : BaseType()
     {}
 
     /** Copy Constructor.
@@ -175,20 +190,33 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Initialize solution step for all of the elements
+        // Definition of the first element iterator
+        const auto it_elem_begin = rModelPart.ElementsBegin();
+
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
+        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
+            auto it_elem = it_elem_begin + i;
             it_elem->InitializeNonLinearIteration(r_current_process_info);
         }
 
-        // Initialize solution step for all of the conditions
+        // Definition of the first condition iterator
+        const auto it_cond_begin = rModelPart.ConditionsBegin();
+
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
+        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
+            auto it_cond = it_cond_begin + i;
             it_cond->InitializeNonLinearIteration(r_current_process_info);
+        }
+
+        // Definition of the first constraint iterator
+        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
+
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
+            auto it_const = it_const_begin + i;
+            it_const->InitializeNonLinearIteration(r_current_process_info);
         }
 
         KRATOS_CATCH( "" );
@@ -223,25 +251,25 @@ public:
     /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
      * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
-     * @param pCurrentElement The element to compute
+     * @param rCurrentElement The element to compute
      * @param rLHSContribution The LHS matrix contribution
      * @param rRHSContribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& rLHSContribution,
         LocalSystemVectorType& rRHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (pCurrentElement)->CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -254,42 +282,42 @@ public:
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& rLHSContribution,
         LocalSystemVectorType& rRHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition)->CalculateLocalSystem(rLHSContribution, rRHSContribution, rCurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(rLHSContribution, rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
     /**
      * @brief This function is designed to calculate just the RHS contribution
-     * @param pCurrentElement The element to compute
+     * @param rCurrentElement The element to compute
      * @param rRHSContribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& rRHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (pCurrentElement)->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -301,41 +329,41 @@ public:
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& rRHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition)->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
     /**
      * @brief This function is designed to calculate just the LHS contribution
-     * @param pCurrentElement The element to compute
+     * @param rCurrentElement The element to compute
      * @param rLHSContribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Calculate_LHS_Contribution(
-        Element::Pointer pCurrentElement,
+    void CalculateLHSContribution(
+        Element& rCurrentElement,
         LocalSystemMatrixType& rLHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (pCurrentElement)->CalculateLeftHandSide(rLHSContribution, rCurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(rLHSContribution, rCurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }

@@ -28,7 +28,7 @@ MeshCondition::MeshCondition(IndexType NewId)
 /***********************************************************************************/
 
 MeshCondition::MeshCondition(
-    IndexType NewId, 
+    IndexType NewId,
     const NodesArrayType& rThisNodes
     ) : BaseType(NewId, rThisNodes)
 {
@@ -38,7 +38,7 @@ MeshCondition::MeshCondition(
 /***********************************************************************************/
 
 MeshCondition::MeshCondition(
-    IndexType NewId, 
+    IndexType NewId,
     GeometryType::Pointer pGeometry
     ) : BaseType(NewId, pGeometry)
 {
@@ -48,8 +48,8 @@ MeshCondition::MeshCondition(
 /***********************************************************************************/
 
 MeshCondition::MeshCondition(
-    IndexType NewId, 
-    GeometryType::Pointer pGeometry, 
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) : BaseType(NewId,pGeometry, pProperties)
 {
@@ -86,13 +86,13 @@ MeshCondition& MeshCondition::operator=(MeshCondition const& rOther)
 /***********************************************************************************/
 
 Condition::Pointer MeshCondition::Create(
-    IndexType NewId, 
+    IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
@@ -106,7 +106,7 @@ Condition::Pointer MeshCondition::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<MeshCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MeshCondition>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -114,18 +114,54 @@ Condition::Pointer MeshCondition::Create(
 /***********************************************************************************/
 
 Condition::Pointer MeshCondition::Clone (
-    IndexType NewId, 
+    IndexType NewId,
     NodesArrayType const& ThisNodes
     ) const
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_shared<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshCondition::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    const Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshCondition::AddExplicitContribution(
+    const VectorType& rRHS,
+    const Variable<VectorType>& rRHSVariable,
+    const Variable<array_1d<double,3> >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshCondition::AddExplicitContribution(
+    const MatrixType& rLHSMatrix,
+    const Variable<MatrixType>& rLHSVariable,
+    const Variable<Matrix>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
 }
 
 /***********************************************************************************/

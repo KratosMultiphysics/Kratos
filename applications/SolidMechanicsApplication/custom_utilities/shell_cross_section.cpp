@@ -285,16 +285,16 @@ void ShellCrossSection::InitializeSolutionStep(const Properties& rMaterialProper
                                                const Vector& rShapeFunctionsValues,
                                                const ProcessInfo& rCurrentProcessInfo)
 {
-  for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
-  {
-    Ply& iPly = *ply_it;
-    const Properties& iPlyProps = iPly.GetProperties();
-    for(Ply::IntegrationPointCollection::iterator intp_it = iPly.GetIntegrationPoints().begin(); intp_it != iPly.GetIntegrationPoints().end(); ++intp_it)
-    {
-      IntegrationPoint& iPoint = *intp_it;
-      iPoint.GetConstitutiveLaw()->InitializeSolutionStep(iPlyProps, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-    }
-  }
+  // for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
+  // {
+  //   Ply& iPly = *ply_it;
+  //   const Properties& iPlyProps = iPly.GetProperties();
+  //   for(Ply::IntegrationPointCollection::iterator intp_it = iPly.GetIntegrationPoints().begin(); intp_it != iPly.GetIntegrationPoints().end(); ++intp_it)
+  //   {
+  //     IntegrationPoint& iPoint = *intp_it;
+  //     iPoint.GetConstitutiveLaw()->InitializeSolutionStep(iPlyProps, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+  //   }
+  // }
 
   if(mNeedsOOPCondensation)
     mOOP_CondensedStrains = mOOP_CondensedStrains_converged;
@@ -305,16 +305,17 @@ void ShellCrossSection::FinalizeSolutionStep(const Properties& rMaterialProperti
                                              const Vector& rShapeFunctionsValues,
                                              const ProcessInfo& rCurrentProcessInfo)
 {
-  for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
-  {
-    Ply& iPly = *ply_it;
-    const Properties& iPlyProps = iPly.GetProperties();
-    for(Ply::IntegrationPointCollection::iterator intp_it = iPly.GetIntegrationPoints().begin(); intp_it != iPly.GetIntegrationPoints().end(); ++intp_it)
-    {
-      IntegrationPoint& iPoint = *intp_it;
-      iPoint.GetConstitutiveLaw()->FinalizeSolutionStep(iPlyProps, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-    }
-  }
+  // deprecated 2018
+  // for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
+  // {
+  //   Ply& iPly = *ply_it;
+  //   const Properties& iPlyProps = iPly.GetProperties();
+  //   for(Ply::IntegrationPointCollection::iterator intp_it = iPly.GetIntegrationPoints().begin(); intp_it != iPly.GetIntegrationPoints().end(); ++intp_it)
+  //   {
+  //     IntegrationPoint& iPoint = *intp_it;
+  //     iPoint.GetConstitutiveLaw()->FinalizeSolutionStep(iPlyProps, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+  //   }
+  // }
 
   if(mNeedsOOPCondensation)
     mOOP_CondensedStrains_converged = mOOP_CondensedStrains;

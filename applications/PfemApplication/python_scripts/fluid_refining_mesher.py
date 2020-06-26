@@ -4,9 +4,6 @@ import KratosMultiphysics
 import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the mesh mesher (the base class for the mesher derivation)
 import mesher
 
@@ -82,8 +79,8 @@ class FluidRefiningMesher(mesher.Mesher):
         refining_options = refining_parameters.GetRefiningOptions()
 
         #insert inlet layer (to be tested)
-        #insert_inlet = KratosPfem.InsertInlet(self.model_part, self.MeshingParameters, self.echo_level)
-        #self.mesher.SetPreMeshingProcess(insert_inlet)
+        insert_inlet = KratosPfem.InsertInlet(self.model_part, self.MeshingParameters, self.echo_level)
+        self.mesher.SetPreMeshingProcess(insert_inlet)
 
         #move and remove
         remove_mesh_nodes = KratosPfem.RemoveFluidNodes(self.model_part, self.MeshingParameters, self.echo_level)

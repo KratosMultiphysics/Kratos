@@ -52,31 +52,18 @@ public:
 
     ///@name Type Definitions
     ///@{
-    typedef Condition ConditionType;
-
-    /// Conditions container. A vector set of Conditions with their Id's as key.
+    typedef Condition                                                ConditionType;
     typedef PointerVectorSet<ConditionType, IndexedObject> ConditionsContainerType;
-
-    /** Iterator over the Conditions. This iterator is an indirect
-    iterator over Conditions::Pointer which turn back a reference to
-    Condition by * operator and not a pointer for more convenient
-    usage. */
-    typedef ConditionsContainerType::iterator ConditionIterator;
-
-    /** Const iterator over the Conditions. This iterator is an indirect
-    iterator over Conditions::Pointer which turn back a reference to
-    Condition by * operator and not a pointer for more convenient
-    usage. */
-    typedef ConditionsContainerType::const_iterator ConditionConstantIterator;
-
+    typedef ConditionsContainerType::iterator                    ConditionIterator;
+    typedef ConditionsContainerType::const_iterator      ConditionConstantIterator;
+    typedef GeometryData::SizeType                                        SizeType;
 
     /// Counted pointer of CompositeCondition
-    KRATOS_CLASS_POINTER_DEFINITION( CompositeCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( CompositeCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
-
 
     /// Default constructors.
     CompositeCondition(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -85,7 +72,6 @@ public:
 
     ///Copy constructor
     CompositeCondition(CompositeCondition const& rOther);
-
 
     /// Destructor.
     virtual ~CompositeCondition();
@@ -96,7 +82,6 @@ public:
 
     /// Assignment operator.
     CompositeCondition& operator=(CompositeCondition const& rOther);
-
 
     ///@}
     ///@name Operations
@@ -172,12 +157,12 @@ public:
 
     ConditionsContainerType::Pointer pChildConditions()
     {
-      return ConditionsContainerType::Pointer(&mChildConditions);
+        return ConditionsContainerType::Pointer(&mChildConditions);
     }
 
     void SetChildConditions(ConditionsContainerType::Pointer pOtherChildConditions)
     {
-      mChildConditions = (*pOtherChildConditions);
+        mChildConditions = (*pOtherChildConditions);
     }
 
     ConditionsContainerType::ContainerType& ChildConditionsArray()
@@ -260,7 +245,7 @@ public:
      * interface to the constitutive law!
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
+     * SetValuesOnIntegrationPoints: set the values for given Variable.
      * GetValueOnIntegrationPoints: get the values for given Variable.
      */
 
@@ -268,12 +253,12 @@ public:
     /**
      * Set a Vector Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set a Matrix Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     //GET:
     /**
@@ -499,6 +484,12 @@ private:
 	}
 
     }
+
+    /**
+     * Get element size from the dofs
+     */
+    virtual SizeType GetDofsSize(ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Private  Access
     ///@{

@@ -53,17 +53,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A three node 2D triangle geometry with linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
- *      v                                                              
- *      ^                                                               
- *      |                                                              
- *      2                                   
- *      |`\                   
- *      |  `\                   
- *      |    `\                 
- *      |      `\                
- *      |        `\                 
- *      0----------1 --> u  
+ * The node ordering corresponds with:
+ *      v
+ *      ^
+ *      |
+ *      2
+ *      |`\
+ *      |  `\
+ *      |    `\
+ *      |      `\
+ *      |        `\
+ *      0----------1 --> u
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -226,7 +226,7 @@ public:
         this->Points().push_back( pThirdPoint );
     }
 
-    Triangle2D3( const PointsArrayType& ThisPoints )
+    explicit Triangle2D3( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
@@ -259,7 +259,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Triangle2D3( Triangle2D3<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Triangle2D3( Triangle2D3<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -360,8 +360,18 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         if(rResult.size() != 3)
             rResult.resize( 3, false );
@@ -435,8 +445,7 @@ public:
     bool HasIntersection( const BaseType& rThisGeometry ) override {
         const BaseType& geom_1 = *this;
         const BaseType& geom_2 = rThisGeometry;
-        return  NoDivTriTriIsect(geom_1[0].Coordinates(), geom_1[1].Coordinates() , geom_1[2].Coordinates(),
-                                 geom_2[0].Coordinates(), geom_2[1].Coordinates(),  geom_2[2].Coordinates());
+        return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
     }
 
     /**
@@ -682,6 +691,22 @@ public:
     }
 
     /**
+     * @brief It returns a vector that is normal to its corresponding geometry in the given local point
+     * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
+     * @return The normal in the given point
+     */
+    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const override
+    {
+        const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
+        const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
+
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+
+        return 0.5 * normal;
+    }
+
+    /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
@@ -693,7 +718,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -751,41 +776,35 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Edge
+    ///@{
 
-    /** This method gives you number of all edges of this
-    geometry. This method will gives you number of all the edges
-    with one dimension less than this geometry. for example a
-    triangle would return three or a tetrahedral would return
-    four but won't return nine related to its six edge lines.
-
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
     SizeType EdgesNumber() const override
     {
         return 3;
     }
 
-
-    SizeType FacesNumber() const override
-    {
-        return 3;
-    }
-
-
-    /** This method gives you all edges of this geometry. This
-    method will gives you all the edges with one dimension less
-    than this geometry. for example a triangle would return
-    three lines as its edges or a tetrahedral would return four
-    triangle as its edges but won't return its six edge
-    lines by this method.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
@@ -795,7 +814,10 @@ public:
         return edges;
     }
 
-
+    SizeType FacesNumber() const override
+    {
+        return 3;
+    }
 
     //Connectivities of faces required
     void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
@@ -1305,7 +1327,10 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
     static const GeometryData msGeometryData;
+
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -2136,12 +2161,17 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Triangle2D3<TPointType>::msGeometryData(
-    2, 2, 2,
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     Triangle2D3<TPointType>::AllIntegrationPoints(),
     Triangle2D3<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType> const
+GeometryDimension Triangle2D3<TPointType>::msGeometryDimension(
+    2, 2, 2);
+
 }// namespace Kratos.
 
 #endif // KRATOS_TRIANGLE_2D_3_H_INCLUDED  defined

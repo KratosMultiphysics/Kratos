@@ -1,0 +1,104 @@
+{
+	"problem_data"             : {
+		"problem_name"    : "innerTruss",
+		"parallel_type"   : "OpenMP",
+		"start_time"      : 0.0,
+		"end_time"        : 1.0,
+		"echo_level"      : 1
+	},
+	"solver_settings"             : {
+		"solver_type"                     : "Dynamic",
+		"echo_level"                      : 1,
+		"analysis_type"                   : "non_linear",
+		"time_integration_method"         : "explicit",
+		"scheme_type"                     : "central_differences",
+		"time_step_prediction_level" 	  : 0,
+		"model_import_settings"   : {
+			"input_type"                  : "mdpa",
+			"input_filename"              : "sliding_edges_with_friction_dem_fem/FEM"
+		},
+		"material_import_settings"    : {
+			"materials_filename"      : "sliding_edges_with_friction_dem_fem/FEMStructuralMaterials.json"
+		},
+		"rotation_dofs"                       : false,
+		"domain_size"     					  : 3,
+		"time_stepping":{
+			"time_step"			: 4e-4
+		},
+		"model_part_name" 					  : "Structure"
+	},
+	"processes"  : {
+		"my_processes" : [{
+		"kratos_module" : "KratosMultiphysics.CableNetApplication",
+		"python_module" : "edge_cable_element_process",
+		"process_name"  : "EdgeCableElementProcess",
+		"Parameters"    : {
+			"edge_sub_model_part_name"  : "Structure.EdgeCablePart1",
+			"element_type"				: "cable",
+			"node_id_order"             : [444,334,302,271,241,217,192,168,146,123,106,90,73,58,45,35,26,17,10,5,2,1,446],
+			"element_id"                : 846,
+			"property_id"               : 2
+		}
+	},{
+		"kratos_module" : "KratosMultiphysics.CableNetApplication",
+		"python_module" : "edge_cable_element_process",
+		"process_name"  : "EdgeCableElementProcess",
+		"Parameters"    : {
+			"edge_sub_model_part_name"  : "Structure.EdgeCablePart2",
+			"element_type"				: "cable",
+			"node_id_order"             : [443,442,440,438,435,431,426,420,413,405,401,392,382,378,369,363,355,349,343,339,337,333,445],
+			"element_id"                : 847,
+			"property_id"               : 2
+		}
+	},{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignDirectionVectorProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.SelfWeight3D_truss",
+            "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
+            "modulus"         : 9.81,
+            "direction"       : [0.0,1.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+	},{
+		"python_module" : "fix_vector_variable_process",
+		"kratos_module" : "KratosMultiphysics",
+		"help" : "This process fixes the selected components of a given vector variable",
+		"Parameters" : {
+			"model_part_name" : "Structure.DISPLACEMENT_dirichXYZ",
+			"variable_name" : "DISPLACEMENT",
+			"constrained" : [true, true, true]
+			}
+	},{
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["DISPLACEMENT_Y"],
+            "input_file_name"  : "sliding_edges_with_friction_dem_fem/sliding_edges_with_friction_dem_fem_test_results.json",
+            "model_part_name"  : "Structure.checkMP",
+            "time_frequency"   : 8e-3,
+            "tolerance"        : 1e-2
+        }
+    },{
+		"python_module"   : "create_point_based_entites_process",
+		"kratos_module" : "KratosMultiphysics.CoSimulationApplication.processes",
+		"Parameters"            : {
+			"model_part_name"       : "Structure",
+			"new_sub_model_part_name"    : "struct_sub",
+			"sub_model_part_names"       : [],
+			"entity_name"                : "PointLoadCondition3D1N",
+			"entity_type"                : "condition",
+			"properties_id"              : 0,
+			"kratos_application"         : ""
+		}
+	}]
+	},
+	"output_processes" : {
+        "gid_output" : []
+    }
+}

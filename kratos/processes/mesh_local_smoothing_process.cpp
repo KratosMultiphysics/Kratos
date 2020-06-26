@@ -100,7 +100,7 @@ namespace Kratos
 		mMeshQualityNorm = 0.00;
 
 		for (auto i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
-			i_node->Set(NOT_SELECTED);
+			i_node->Set(SELECTED, false);
 
 		for (auto i_element = mrModelPart.ElementsBegin(); i_element != mrModelPart.ElementsEnd(); i_element++) {
 			double quality = i_element->GetGeometry().Quality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH);
@@ -137,10 +137,10 @@ namespace Kratos
 
 	void MeshLocalSmoothingProcess::FindOptimumPositionsAndWeights(NodeType& rNode, PointsVectorType& rOptimumPoints, Vector& rWeights)
 	{
-		NeighboursVectorType const& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
+		const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
 		// A laplacian smoothing is provided by this base class
 		const std::size_t size = r_neighbours.size();
-		rOptimumPoints.resize(size, ZeroVector(3));
+		rOptimumPoints.resize(size, Point{ZeroVector(3)});
 		rWeights.resize(size);
 		for (std::size_t i = 0; i < size; i++)
 		{
@@ -205,7 +205,7 @@ namespace Kratos
 	{
 		std::size_t size = rOptimumPoints.size();
 
-		OptimumPosition = ZeroVector(3);
+		OptimumPosition = Point{ZeroVector(3)};
 		double weight_sum = 0.00;
 
 		for (std::size_t i = 0; i < size; i++)

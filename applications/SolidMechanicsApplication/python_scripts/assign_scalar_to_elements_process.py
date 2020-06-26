@@ -5,7 +5,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 ## This proces sets the value of a scalar variable to conditions
 
-import assign_scalar_to_nodes_process as BaseProcess
+from KratosMultiphysics.SolidMechanicsApplication.assign_scalar_to_nodes_process import AssignScalarToNodesProcess
 
 def Factory(custom_settings, Model):
     if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
@@ -13,9 +13,9 @@ def Factory(custom_settings, Model):
     return AssignScalarToElementsProcess(Model, custom_settings["Parameters"])
 
 
-class AssignScalarToElementsProcess(BaseProcess.AssignScalarToNodesProcess):
+class AssignScalarToElementsProcess(AssignScalarToNodesProcess):
     def __init__(self, Model, custom_settings ):
-        BaseProcess.AssignScalarToNodesProcess.__init__(self, Model, custom_settings)
+        AssignScalarToNodesProcess.__init__(self, Model, custom_settings)
 
     def ExecuteInitialize(self):
 
@@ -34,7 +34,7 @@ class AssignScalarToElementsProcess(BaseProcess.AssignScalarToNodesProcess):
         self.CreateAssignmentProcess(params)
 
         self.SetCurrentTime()
-        if( self.IsInsideInterval() and self.interval_string == "initial" ):
+        if( self.IsInsideInterval() and (self.interval_string == "initial" or self.interval_string == "start")  ):
             self.AssignValueProcess.Execute()
 
 

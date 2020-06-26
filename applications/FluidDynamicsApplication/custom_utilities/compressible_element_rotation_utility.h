@@ -70,13 +70,13 @@ public:
 	/// Constructor.
 	/** @param DomainSize Number of space dimensions (2 or 3)
 	 * @param NumRowsPerNode Number of matrix or vector rows associated to each node. Velocity DOFs are assumed to be the first mDomainSize rows in each block of rows.
-	 * @param rVariable Kratos variable used to flag nodes where local system contributions will be rotated. All nodes with rVariable != Zero will be rotated.
+	 * @param rFlag Flag used to mark nodes nodes where local system contributions will be rotated. All nodes with rFlag == true will be rotated.
 	 * @param Zero The zero value for the variable.
 	 */
 	CompressibleElementRotationUtility(
         const unsigned int DomainSize,
-		const Variable<double>& rVariable):
-    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,DomainSize+2,rVariable,0.0)
+		const Kratos::Flags& rFlag = SLIP):
+    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,DomainSize+2,rFlag)
 	{}
 
 	/// Destructor.

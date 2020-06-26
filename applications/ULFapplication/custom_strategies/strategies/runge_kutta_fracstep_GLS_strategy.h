@@ -1090,7 +1090,7 @@ namespace Kratos
 		    double p=0.0; 
 		    unsigned int counter=0;
 		
-		    for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+		    for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
 			 i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
 		      {
 			//If the a node is a node of a "good neighbor"

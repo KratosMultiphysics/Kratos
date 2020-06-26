@@ -12,11 +12,14 @@
 //
 
 // System includes
+
 // External includes
+
 // Project includes
-//#include "includes/define.h"
+#include "includes/checks.h"
+#include "includes/mesh_moving_variables.h"
+#include "includes/mesh_moving_variables.h"
 #include "custom_elements/structural_meshmoving_element.h"
-#include "mesh_moving_application.h"
 #include "custom_utilities/move_mesh_utilities.h"
 
 namespace Kratos {
@@ -37,7 +40,7 @@ StructuralMeshMovingElement::Create(IndexType NewId,
                                     PropertiesType::Pointer pProperties) const {
   const GeometryType &rgeom = this->GetGeometry();
 
-  return Kratos::make_shared<StructuralMeshMovingElement>(
+  return Kratos::make_intrusive<StructuralMeshMovingElement>(
       NewId, rgeom.Create(rThisNodes), pProperties);
 }
 
@@ -47,7 +50,7 @@ Element::Pointer
 StructuralMeshMovingElement::Create(IndexType NewId,
                                     GeometryType::Pointer pGeom,
                                     PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<StructuralMeshMovingElement>(NewId, pGeom,
+  return Kratos::make_intrusive<StructuralMeshMovingElement>(NewId, pGeom,
                                                           pProperties);
 }
 
@@ -55,8 +58,8 @@ StructuralMeshMovingElement::Create(IndexType NewId,
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
-                                                  int Step) {
-  GeometryType &rgeom = this->GetGeometry();
+                                                  int Step) const {
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   const unsigned int local_size = num_nodes * dimension;
@@ -89,13 +92,13 @@ void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
 //******************************************************************************
 StructuralMeshMovingElement::MatrixType
 StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
-    const int &Dimension, const double &rPointNumber) {
+    const int Dimension, const double PointNumber) const {
   KRATOS_TRY;
 
   GeometryType::JacobiansType J0;
   GeometryType::JacobiansType invJ0;
   VectorType detJ0;
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const IntegrationMethod this_integration_method =
       rgeom.GetDefaultIntegrationMethod();
 
@@ -103,8 +106,8 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
 
   J0 = GetGeometry().Jacobian(J0, this_integration_method);
 
-  MathUtils<double>::InvertMatrix(J0[rPointNumber], invJ0[rPointNumber],
-                                  detJ0[rPointNumber]);
+  MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
+                                  detJ0[PointNumber]);
 
   // Stiffening of elements using Jacobian determinants and exponent between
   // 0.0 and 2.0
@@ -113,9 +116,10 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
                          // into the fluid mesh
   const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
                          // elements; 0 = no stiffening
-  const double quotient = factor / detJ0[rPointNumber];
-  const double weighting_factor = detJ0[rPointNumber] * std::pow(quotient, xi);
-  const double poisson_coefficient = 0.3;
+  const double quotient = factor / detJ0[PointNumber];
+  const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi);
+  const double poisson_coefficient = this->pGetProperties()->Has(MESH_POISSON_RATIO)
+    ? this->pGetProperties()->GetValue(MESH_POISSON_RATIO) : 0.3;
 
   // The ratio between lambda and mu affects relative stiffening against
   // volume or shape change.
@@ -160,11 +164,11 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
 //******************************************************************************
 //******************************************************************************
 StructuralMeshMovingElement::MatrixType
-StructuralMeshMovingElement::CalculateBMatrix(const int &Dimension,
-                                              const double &rPointNumber) {
+StructuralMeshMovingElement::CalculateBMatrix(const int Dimension,
+                                              const double PointNumber) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const IntegrationMethod this_integration_method =
       rgeom.GetDefaultIntegrationMethod();
   GeometryType::ShapeFunctionsGradientsType DN_De =
@@ -176,10 +180,10 @@ StructuralMeshMovingElement::CalculateBMatrix(const int &Dimension,
   MoveMeshUtilities::CheckJacobianDimension(invJ0, detJ0, rgeom);
 
   J0 = GetGeometry().Jacobian(J0, this_integration_method);
-  MathUtils<double>::InvertMatrix(J0[rPointNumber], invJ0[rPointNumber],
-                                  detJ0[rPointNumber]);
+  MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
+                                  detJ0[PointNumber]);
 
-  Matrix DN_DX = prod(DN_De[rPointNumber], invJ0[rPointNumber]);
+  Matrix DN_DX = prod(DN_De[PointNumber], invJ0[PointNumber]);
 
   const SizeType num_nodes = rgeom.PointsNumber();
 
@@ -226,8 +230,8 @@ StructuralMeshMovingElement::CalculateBMatrix(const int &Dimension,
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::CheckElementMatrixDimension(
-    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) {
-  GeometryType &rgeom = this->GetGeometry();
+    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) const {
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
   const unsigned int dimension = rgeom.WorkingSpaceDimension();
   const unsigned int local_size = num_nodes * dimension;
@@ -245,7 +249,7 @@ void StructuralMeshMovingElement::CheckElementMatrixDimension(
 //******************************************************************************
 void StructuralMeshMovingElement::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   GeometryType &rgeom = this->GetGeometry();
@@ -280,10 +284,11 @@ void StructuralMeshMovingElement::CalculateLocalSystem(
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::EquationIdVector(
-    EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo) {
+    EquationIdVectorType &rResult,
+    const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   const unsigned int local_size = num_nodes * dimension;
@@ -317,10 +322,10 @@ void StructuralMeshMovingElement::EquationIdVector(
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
-                                             ProcessInfo &rCurrentProcessInfo) {
+                                             const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   const unsigned int local_size = num_nodes * dimension;
@@ -349,13 +354,36 @@ void StructuralMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
 //******************************************************************************
 // Called in function "CalculateReactions" within the block builder and solver
 void StructuralMeshMovingElement::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   MatrixType LHS;
   CalculateLocalSystem(LHS, rRightHandSideVector, rCurrentProcessInfo);
 
   KRATOS_CATCH("");
+}
+
+int StructuralMeshMovingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+
+    Element::Check(rCurrentProcessInfo);
+
+    // Verify that the variables are correctly initialized
+    KRATOS_CHECK_VARIABLE_KEY(MESH_DISPLACEMENT)
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( const auto& r_node : GetGeometry() ) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_DISPLACEMENT,r_node)
+
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_X, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_Y, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_Z, r_node)
+    }
+
+    return 0;
+
+    KRATOS_CATCH( "" );
 }
 
 } // Namespace Kratos

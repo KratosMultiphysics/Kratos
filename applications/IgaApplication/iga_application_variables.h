@@ -18,7 +18,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "includes/kratos_application.h"
 
 namespace Kratos
 {
@@ -37,6 +36,14 @@ KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES)
 
 KRATOS_DEFINE_VARIABLE(double, RAYLEIGH_ALPHA)
 KRATOS_DEFINE_VARIABLE(double, RAYLEIGH_BETA)
+
+//Load Condition Variables
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LINE_LOAD)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
+
+//Penalty Variables
+KRATOS_DEFINE_VARIABLE(double, PENALTY_FACTOR)
 
 } // namespace Kratos
 

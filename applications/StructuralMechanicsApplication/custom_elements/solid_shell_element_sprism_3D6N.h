@@ -72,6 +72,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( EAS_IMPLICIT_EXPLICIT );    // True means implicit
     KRATOS_DEFINE_LOCAL_FLAG( TOTAL_UPDATED_LAGRANGIAN ); // True means total lagrangian
     KRATOS_DEFINE_LOCAL_FLAG( QUADRATIC_ELEMENT );        // True means quadratic in-plane behaviour
+    KRATOS_DEFINE_LOCAL_FLAG( EXPLICIT_RHS_COMPUTATION ); // True means elastic behaviour for stabilization
 
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
@@ -98,10 +99,10 @@ public:
     typedef std::size_t SizeType;
 
     // The vector containing the weak pointers to the nodes
-    typedef WeakPointerVector<NodeType> WeakPointerVectorNodesType;
+    typedef GlobalPointersVector<NodeType> WeakPointerVectorNodesType;
 
     /// Counted pointer of SolidShellElementSprism3D6N
-    KRATOS_CLASS_POINTER_DEFINITION(SolidShellElementSprism3D6N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidShellElementSprism3D6N);
 
     ///@}
     ///@name Enums
@@ -200,8 +201,8 @@ public:
      */
      void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -210,8 +211,8 @@ public:
      */
      void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal displacements
@@ -221,7 +222,7 @@ public:
      void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal velocities
@@ -231,7 +232,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal accelerations
@@ -241,7 +242,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
      /**
        * @brief This is called during the assembling process in order
@@ -292,23 +293,6 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
-     /**
-      * @brief This function provides a more general interface to the element.
-      * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
-      * thus telling what is the desired output
-      * @param rLHSVariables paramter describing the expected LHSs
-      * @param rRightHandSideVectors container for the desired RHS output
-      * @param rRHSVariables parameter describing the expected RHSs
-      */
-
-     void CalculateLocalSystem(
-        std::vector< MatrixType >& rLeftHandSideMatrices,
-        const std::vector< Variable< MatrixType > >& rLHSVariables,
-        std::vector< VectorType >& rRightHandSideVectors,
-        const std::vector< Variable< VectorType > >& rRHSVariables,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     /**
       * @brief This is called during the assembling process in order
       * to calculate the elemental mass matrix
@@ -348,6 +332,30 @@ public:
         );
 
     /**
+     * @brief Calculate a boolean Variable on the Element Constitutive Law
+     * @param rVariable The internal variables in the element
+     * @param rOutput The solution (boolean)
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a integer Variable on the Element Constitutive Law
+     * @param rVariable The internal variables in the element
+     * @param rOutput The solution (integer)
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The internal variables in the element
      * @param rOutput The solution (double)
@@ -356,6 +364,30 @@ public:
     void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a 3 components array_1d on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a 6 components array_1d on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        std::vector<array_1d<double, 6>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -392,8 +424,7 @@ public:
      * interface to the constitutive law!
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: Set the values for given Variable.
-     * GetValueOnIntegrationPoints: Get the values for given Variable.
+     * SetValuesOnIntegrationPoints: Set the values for given Variable.
      */
 
     /**
@@ -402,7 +433,7 @@ public:
      * @param rValues Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo The current process info instance
      */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -414,7 +445,7 @@ public:
      * @param rValues Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo The current process info instance
      */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -426,7 +457,7 @@ public:
      * @param rValues Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo The current process info instance
      */
-    void SetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -438,61 +469,7 @@ public:
     * @param rValues Values of the ContstitutiveLaw
     * @param rCurrentProcessInfo The current process info instance
     */
-    void SetValueOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
-    // They will be removed from the derived elements; i.e. the implementation
-    // should be in CalculateOnIntegrationPoints!
-    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
-
-    /**
-     * @brief Get on rVariable a double Value from the Element Constitutive Law
-     * @param rVariable The internal variables in the element
-     * @param rValues Values of the ContstitutiveLaw
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Get on rVariable a Vector Value from the Element Constitutive Law
-     * @param rVariable The internal variables in the element
-     * @param rValues Values of the ContstitutiveLaw
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Get on rVariable a Matrix Value from the Element Constitutive Law
-     * @param rVariable The internal variables in the element
-     * @param rValues Values of the ContstitutiveLaw
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @todo To be renamed to CalculateOnIntegrationPoints!!!
-     * @brief Get a Constitutive Law Value
-     * @param rVariable The internal variables in the element
-     * @param rValues Values of the ContstitutiveLaw
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void GetValueOnIntegrationPoints(
+    void SetValuesOnIntegrationPoints(
         const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -506,7 +483,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -562,7 +539,7 @@ public:
       * @brief Called to initialize the element.
       * @details Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 
@@ -861,7 +838,7 @@ protected:
      */
     void CalculateElementalSystem(
         LocalSystemComponents& rLocalSystem,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     /**
@@ -887,23 +864,23 @@ protected:
     bool HasNeighbour(
         const IndexType Index,
         const NodeType& NeighbourNode
-        );
+        ) const ;
 
     /**
      * @brief Calculates the number of active neighbours:
      * @param pNeighbourNodes The neighbours nodes
      * @return An integer with the number of neighbours of the node
      */
-    std::size_t NumberOfActiveNeighbours(WeakPointerVector< NodeType >& pNeighbourNodes);
+    std::size_t NumberOfActiveNeighbours(const GlobalPointersVector< NodeType >& pNeighbourNodes) const;
 
     /**
      * @brief  It gets the nodal coordinates, according to the configutaion
      */
     void GetNodalCoordinates(
         BoundedMatrix<double, 12, 3 >& NodesCoord,
-        WeakPointerVector< NodeType >& pNeighbourNodes,
+        const GlobalPointersVector< NodeType >& pNeighbourNodes,
         const Configuration ThisConfiguration
-        );
+        ) const;
 
     /**
      * @brief Calculate the cartesian derivatives
@@ -1484,6 +1461,87 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method gets a value directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @tparam TType The type considered
+     */
+    template<class TType>
+    void GetValueOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput
+        )
+    {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+
+        for ( IndexType point_number = 0; point_number <integration_points.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
+        }
+    }
+
+    /**
+     * @brief This method compues directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     * @tparam TType The type considered
+     */
+    template<class TType>
+    void CalculateOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        /* Create and initialize element variables: */
+        GeneralVariables general_variables;
+        this->InitializeGeneralVariables(general_variables);
+
+        /* Create constitutive law parameters: */
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        /* Set constitutive law flags: */
+        Flags &ConstitutiveLawOptions = Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+        /* Reading integration points */
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+
+        double& alpha_eas = this->GetValue(ALPHA_EAS);
+
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives this_cartesian_derivatives;
+        this->CalculateCartesianDerivatives(this_cartesian_derivatives);
+
+        /* Calculate common components (B, C) */
+        CommonComponents common_components;
+        common_components.clear();
+        this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
+
+        // Reading integration points
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+            const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
+
+            // Compute element kinematics C, F ...
+            this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
+
+            // To take in account previous step writing
+            if( mFinalizedStep )
+                this->GetHistoricalVariables(general_variables,point_number);
+
+            // Set general variables to constitutivelaw parameters
+            this->SetGeneralVariables(general_variables,Values,point_number);
+
+            rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
+        }
+    }
+
     ///@}
     ///@name Private  Access
     ///@{

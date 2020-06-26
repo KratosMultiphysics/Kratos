@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,7 @@ namespace backend {
  */
 template < typename V, typename C, typename P >
 struct bcrs {
+    typedef V value_type;
     typedef V val_type;
     typedef C col_type;
     typedef P ptr_type;
@@ -220,11 +221,6 @@ struct block_crs {
 //---------------------------------------------------------------------------
 // Specialization of backend interface
 //---------------------------------------------------------------------------
-template < typename V, typename C, typename P >
-struct value_type< bcrs<V, C, P> > {
-    typedef V type;
-};
-
 template < typename V, typename C, typename P >
 struct rows_impl< bcrs<V, C, P> > {
     static size_t get(const bcrs<V, C, P> &A) {

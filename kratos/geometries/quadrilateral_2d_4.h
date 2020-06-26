@@ -54,17 +54,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A four node 2D quadrilateral geometry with bi-linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
+ * The node ordering corresponds with:
  *            v
  *            ^
  *            |
- *      3-----------2 
- *      |     |     |         
- *      |     |     |          
- *      |     +---- | --> u    
- *      |           |          
- *      |           |          
- *      0-----------1      
+ *      3-----------2
+ *      |     |     |
+ *      |     |     |
+ *      |     +---- | --> u
+ *      |           |
+ *      |           |
+ *      0-----------1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -231,7 +231,7 @@ public:
         this->Points().push_back( pFourthPoint );
     }
 
-    Quadrilateral2D4( const PointsArrayType& ThisPoints )
+    explicit Quadrilateral2D4( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 4 )
@@ -264,7 +264,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Quadrilateral2D4( Quadrilateral2D4<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Quadrilateral2D4( Quadrilateral2D4<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -332,7 +332,7 @@ public:
         return typename BaseType::Pointer( new Quadrilateral2D4( ThisPoints ) );
     }
 
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -341,8 +341,8 @@ public:
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
     //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }   
-        
+    //     }
+
     //     //creating a geometry with the new points
     //     Geometry< Point<3> >::Pointer p_clone( new Quadrilateral2D4< Point<3> >( NewPoints ) );
 
@@ -367,15 +367,6 @@ public:
 		rResult(3, 1) = 1.0;
 		return rResult;
 	}
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 4)
-            rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
-        return rResult;
-    }
 
     ///@}
     ///@name Information
@@ -419,30 +410,40 @@ public:
      * @see Length()
      * @see Volume()
      * @see DomainSize()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double Area() const override
     {
-
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Area = 0.00;
+        double Area = 0.0;
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
             Area += temp[i] * integration_points[i].Weight();
         }
 
-        //KRATOS_WATCH(temp)
         return Area;
-
-        //return fabs(DeterminantOfJacobian(PointType())) * 0.5;
     }
 
+    /**
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     * @todo might be necessary to reimplement
+     */
+    double Volume() const override
+    {
+        return Area();
+    }
 
     /** This method calculates and returns length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
@@ -453,14 +454,11 @@ public:
      * @see Length()
      * @see Area()
      * @see Volume()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double DomainSize() const override
     {
-        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Area();
     }
 
     /**
@@ -472,10 +470,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -486,37 +484,39 @@ public:
                 return true;
             }
         }
-        
+
         return false;
     }
 
-    /** This method gives you number of all edges of this
-    geometry. This method will gives you number of all the edges
-    with one dimension less than this geometry. for example a
-    triangle would return three or a tetrahedral would return
-    four but won't return nine related to its six edge lines.
+    ///@}
+    ///@name Edge
+    ///@{
 
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
-    */
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
+     */
     SizeType EdgesNumber() const override
     {
         return 4;
     }
 
-    /** This method gives you all edges of this geometry. This
-    method will gives you all the edges with one dimension less
-    than this geometry. for example a triangle would return
-    three lines as its edges or a tetrahedral would return four
-    triangle as its edges but won't return its six edge
-    lines by this method.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
-    */
-    GeometriesArrayType Edges( void ) override
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
@@ -582,7 +582,7 @@ public:
 
         return 0;
     }
-    
+
     /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -601,7 +601,7 @@ public:
       rResult[1] =  0.25*( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] );
       rResult[2] =  0.25*( 1.0 + rCoordinates[0] )*( 1.0 + rCoordinates[1] );
       rResult[3] =  0.25*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] );
-        
+
         return rResult;
     }
 
@@ -863,7 +863,10 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
     static const GeometryData msGeometryData;
+
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Member Variables
@@ -1125,13 +1128,18 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Quadrilateral2D4<TPointType>::msGeometryData(
-    2, 2, 2,
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_2,
     Quadrilateral2D4<TPointType>::AllIntegrationPoints(),
     Quadrilateral2D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType> const
+GeometryDimension Quadrilateral2D4<TPointType>::msGeometryDimension(
+    2, 2, 2);
+
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined 
+#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined
 

@@ -52,6 +52,8 @@ import KratosMultiphysics.DelaunayMeshingApplication    as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
+import KratosMultiphysics.ConstitutiveModelsApplication as KratosConstitutive
+import KratosMultiphysics.UmatApplication               as KratosUmat
 
 ######################################################################################
 ######################################################################################

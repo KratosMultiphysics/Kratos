@@ -77,7 +77,7 @@ namespace Kratos
 
   Condition::Pointer ContactDomainCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Kratos::make_shared<ContactDomainCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+    return Kratos::make_intrusive<ContactDomainCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
   }
 
 
@@ -297,7 +297,7 @@ namespace Kratos
   //*********************************SET DOUBLE VALUE***********************************
   //************************************************************************************
 
-  void ContactDomainCondition::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+  void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
                                                             std::vector<double>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
@@ -307,7 +307,7 @@ namespace Kratos
   //*********************************SET VECTOR VALUE***********************************
   //************************************************************************************
 
-  void ContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+  void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
                                                             std::vector<Vector>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
@@ -318,7 +318,7 @@ namespace Kratos
   //*********************************SET MATRIX VALUE***********************************
   //************************************************************************************
 
-  void ContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+  void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                                             std::vector<Matrix>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
@@ -433,8 +433,8 @@ namespace Kratos
     TransferVariables.SetVariable(DEFORMATION_GRADIENT);
 
     MeshDataTransferUtilities DataTransfer;
-    Element::Pointer   MasterElement   = GetValue(MASTER_ELEMENTS)(0).lock();
-    Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
+    Element*   MasterElement   = &GetValue(MASTER_ELEMENTS).front();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).get();
     DataTransfer.TransferBoundaryData(MasterElement,MasterCondition,TransferVariables,CurrentProcessInfo);
 
     KRATOS_CATCH( "" )
@@ -1113,16 +1113,35 @@ namespace Kratos
 
     rDeltaPosition = ZeroMatrix(number_of_nodes, dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-        for ( unsigned int j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-	  }
+    if( MasterGeometry[0].SolutionStepsDataHas(STEP_DISPLACEMENT) )
+    {
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        const array_1d<double, 3 > & CurrentStepDisplacement = MasterGeometry[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
+
+        for ( SizeType j = 0; j < dimension; j++ )
+        {
+          rDeltaPosition(i,j) = CurrentStepDisplacement[j];
+        }
+
       }
+    }
+    else{
+
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        const array_1d<double, 3 > & CurrentDisplacement  = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & PreviousDisplacement = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( SizeType j = 0; j < dimension; j++ )
+        {
+          rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+      }
+
+    }
+
 
     return rDeltaPosition;
 
@@ -1484,7 +1503,7 @@ namespace Kratos
         noalias(Tforce) = ZeroVector(dimension);
 
 	//TANGENT FORCE STICK
-	if(rVariables.Contact.Options.Is(NOT_SLIP))
+	if(rVariables.Contact.Options.IsNot(SLIP))
 	  {
 	    for (unsigned int i=0; i<dimension; i++)
 	      {

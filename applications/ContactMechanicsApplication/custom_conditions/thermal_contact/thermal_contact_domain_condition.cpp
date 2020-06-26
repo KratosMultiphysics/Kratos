@@ -72,7 +72,7 @@ ThermalContactDomainCondition&  ThermalContactDomainCondition::operator=(Thermal
 
 Condition::Pointer ThermalContactDomainCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<ThermalContactDomainCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+  return Kratos::make_intrusive<ThermalContactDomainCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -189,7 +189,7 @@ void ThermalContactDomainCondition::GetSecondDerivativesVector( Vector& rValues,
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
                                                                  std::vector<double>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
@@ -199,7 +199,7 @@ void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
                                                                  std::vector<Vector>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
@@ -210,7 +210,7 @@ void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<
 //*********************************SET MATRIX VALUE***********************************
 //************************************************************************************
 
-void ThermalContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void ThermalContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                                                  std::vector<Matrix>& rValues,
                                                                  const ProcessInfo& rCurrentProcessInfo )
 {
@@ -258,7 +258,7 @@ void ThermalContactDomainCondition::Initialize()
 {
   KRATOS_TRY
 
-      std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
+  //std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
 
   KRATOS_CATCH("")
       }
@@ -313,7 +313,7 @@ void ThermalContactDomainCondition::CalculateHeatConductivity()
   double penalty_parameter = GetProperties()[PENALTY_PARAMETER];
 
   // unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
-  // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS)[vsize-1];
+  // Element::ElementType& MasterElement = *GetValue(MASTER_ELEMENTS)[vsize-1];
   Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
 
   //Look at the nodes, get the slave and get the Emin

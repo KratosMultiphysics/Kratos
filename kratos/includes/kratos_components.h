@@ -4,13 +4,12 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_KRATOS_COMPONENTS_H_INCLUDED )
 #define  KRATOS_KRATOS_COMPONENTS_H_INCLUDED
@@ -19,9 +18,9 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <typeinfo>
 
 // External includes
-#include <boost/ref.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -29,13 +28,18 @@
 #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 #include "utilities/quaternion.h"
+#include "includes/data_communicator.h"
 
 namespace Kratos
 {
 
 /// KratosComponents class encapsulates a lookup table for a family of classes in a generic way.
-/** KratosComponents class encapsulates a lookup table for a family of classes in a generic way. Prototypes must be added to this table by unique names to be accessible by IO. These names can be created automatically using C++ RTTI or given manually for each component.
- * In this design the manual approach is chosen, so shorter and more clear names can be given to each component and also there is a flexibility to give different names to different states of an object and create them via different prototypes.
+/** KratosComponents class encapsulates a lookup table for a family of classes in a generic way.
+ * Prototypes must be added to this table by unique names to be accessible by IO.
+ * These names can be created automatically using C++ RTTI or given manually for each component.
+ * In this design the manual approach is chosen, so shorter and more clear names can be given
+ * to each component and also there is a flexibility to give different names to different
+ * states of an object and create them via different prototypes.
  * For example having TriangularThermal and  both
 */
 
@@ -62,11 +66,6 @@ public:
 
     KratosComponents() {}
 
-//       KratosComponents(std::string const& Name, TComponentType const& ThisComponent)
-//       {
-//  	msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-//       }
-
     /// Destructor.
 
     virtual ~KratosComponents() {}
@@ -76,31 +75,31 @@ public:
     ///@{
 
 
-
     ///@}
     ///@name Operations
     ///@{
 
-
     static void Add(std::string const& Name, TComponentType const& ThisComponent)
     {
-        msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
+        // check if a different object was already registered with this name, since this is undefined behavior
+        auto it_comp =  msComponents.find(Name);
+        KRATOS_ERROR_IF(it_comp != msComponents.end() && typeid(*(it_comp->second)) != typeid(ThisComponent)) << "An object of different type was already registered with name \"" << Name << "\"!" << std::endl;
+        msComponents.insert(ValueType(Name , &ThisComponent));
     }
 
-
-//     static void Add(std::string const& Name, TComponentType const& ThisComponent, ComponentsContainerType& ThisComponents)
-//     {
-    ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-//     }
-
+    static void Remove(std::string const& Name)
+    {
+        std::size_t num_erased = msComponents.erase(Name);
+        KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << Name << "\"." << std::endl;
+    }
 
     static TComponentType const& Get(std::string const& Name)
     {
-        typename ComponentsContainerType::iterator i =  msComponents.find(Name);
-        if(i == msComponents.end())
-          KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name);
-        return *(i->second);
+        auto it_comp =  msComponents.find(Name);
+
+        KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredComponent(Name) << std::endl;
+
+        return *(it_comp->second);
     }
 
     static ComponentsContainerType & GetComponents()
@@ -151,8 +150,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for(typename ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
-            rOStream << "    " << i->first << std::endl;
+        for (const auto& r_comp : msComponents) {
+            rOStream << "    " << r_comp.first << std::endl;
+        }
     }
 
     ///@}
@@ -220,6 +220,14 @@ private:
     ///@name Private Operations
     ///@{
 
+    static std::string GetMessageUnregisteredComponent(const std::string& rName)
+    {
+        std::stringstream msg;
+        msg << "The component \"" << rName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:" << std::endl;
+        KratosComponents instance; // creating an instance for using "PrintData"
+        instance.PrintData(msg);
+        return msg.str();
+    }
 
     ///@}
     ///@name Private  Access
@@ -268,11 +276,6 @@ public:
     /// Default constructor.
     KratosComponents() {}
 
-//       KratosComponents(std::string const& Name, TComponentType const& ThisComponent)
-//       {
-//  	msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-//       }
-
     /// Destructor.
     virtual ~KratosComponents() {}
 
@@ -287,7 +290,13 @@ public:
 
     static void Add(std::string const& Name, VariableData& ThisComponent)
     {
-        msComponents.insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
+        msComponents.insert(ValueType(Name, &ThisComponent));
+    }
+
+    static void Remove(std::string const& Name)
+    {
+        std::size_t num_erased = msComponents.erase(Name);
+        KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << Name << "\"." << std::endl;
     }
 
     static std::size_t Size()
@@ -295,20 +304,22 @@ public:
         return msComponents.size();
     }
 
-//     static void Add(std::string const& Name, VariableData& ThisComponent, ComponentsContainerType& ThisComponents)
-//     {
-    ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::ref(ThisComponent)));
-//     }
-
     static VariableData & Get(std::string const& Name)
     {
-        return *(msComponents.find(Name)->second);
+        auto it_comp =  msComponents.find(Name);
+
+        KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredVariable(Name) << std::endl;
+
+        return *(it_comp->second);
     }
 
     static VariableData* pGet(std::string const& Name)
     {
-        return (msComponents.find(Name)->second);
+        auto it_comp =  msComponents.find(Name);
+
+        KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredVariable(Name) << std::endl;
+
+        return it_comp->second;
     }
 
     static ComponentsContainerType & GetComponents()
@@ -347,20 +358,21 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "Kratos components";
+        return "Kratos components <VariableData>";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "Kratos components";
+        rOStream << "Kratos components <VariableData>";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for(ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
-            rOStream << "    " << *(i->second) << std::endl;
+        for (const auto& r_comp : msComponents) {
+            rOStream << "    " << r_comp.first << std::endl;
+        }
     }
 
     ///@}
@@ -429,6 +441,14 @@ private:
     ///@name Private Operations
     ///@{
 
+    static std::string GetMessageUnregisteredVariable(const std::string& rName)
+    {
+        std::stringstream msg;
+        msg << "The variable \"" << rName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following variables are registered:" << std::endl;
+        KratosComponents instance; // creating an instance for using "PrintData"
+        instance.PrintData(msg);
+        return msg.str();
+    }
 
     ///@}
     ///@name Private  Access
@@ -454,40 +474,31 @@ private:
 
 }; // Class KratosComponents
 
-
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 4> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 6> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 9> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
-
-#ifdef KratosCore_EXPORTS
 template<class TComponentType>
 typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
-#endif
+
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 4> > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 6> > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 9> > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<DataCommunicator>;
 
 ///@name Input and output
 ///@{
-
-/// input stream function
-//   template<class TComponentType>
-//   inline std::istream& operator >> (std::istream& rIStream,
-// 				    KratosComponents<TComponentType>& rThis);
-
-
 
 /// output stream function
 template<class TComponentType>

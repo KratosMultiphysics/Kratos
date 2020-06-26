@@ -11,8 +11,19 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     def __init__(self, main_model_part, Parameters ):
         self.main_model_part = main_model_part
 
+        default_parameters = KratosMultiphysics.Parameters(r'''{
+            "volume_model_part_name" : "",
+            "skin_parts" : [],
+            "assign_neighbour_elements_to_conditions" : false
+        }''')
+        Parameters.ValidateAndAssignDefaults(default_parameters)
+        if Parameters["volume_model_part_name"].GetString() == "":
+            raise Exception("Please define the \"volume_model_part_name\" (string) argument.")
+
         self.volume_model_part_name = Parameters["volume_model_part_name"].GetString()
         self.skin_name_list = Parameters["skin_parts"]
+
+        self.assign_neighbour_elements = Parameters["assign_neighbour_elements_to_conditions"].GetBool()
 
 
         #self.volume_model_part_name = Parameters["volume_model_part_name"].GetString()
@@ -23,7 +34,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
 
     def Execute(self):
-        self.volume_model_part = self.main_model_part.GetSubModelPart(self.volume_model_part_name)
+        if self.main_model_part.Name == self.volume_model_part_name:
+            self.volume_model_part = self.main_model_part
+        else:
+            self.volume_model_part = self.main_model_part.GetSubModelPart(self.volume_model_part_name)
 
         skin_parts = []
         for i in range(self.skin_name_list.size()):
@@ -49,6 +63,11 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         fluid_computational_model_part.AddConditions(list(list_of_ids))
 
         #verify the orientation of the skin
+        tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
         throw_errors = False
-        KratosMultiphysics.TetrahedralMeshOrientationCheck(fluid_computational_model_part,throw_errors).Execute()
-
+        flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
+        if self.assign_neighbour_elements:
+            flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+        else:
+            flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
+        KratosMultiphysics.TetrahedralMeshOrientationCheck(fluid_computational_model_part,throw_errors, flags).Execute()

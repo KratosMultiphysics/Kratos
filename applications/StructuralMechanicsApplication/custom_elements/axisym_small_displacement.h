@@ -66,7 +66,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of AxisymSmallDisplacement
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymSmallDisplacement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymSmallDisplacement);
 
     ///@}
     ///@name Life Cycle
@@ -192,14 +192,17 @@ private:
         const Matrix& DN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
-        ) override;
+        ) const override;
 
     /**
-     * Calculation of the equivalent deformation gradient
-     * @param StrainVector: The strain tensor (Voigt notation)
-     * @return The deformation gradient F
+     * @brief Calculation of the equivalent deformation gradient
+     * @param rF The deformation gradient F
+     * @param StrainVector The strain tensor (Voigt notation)
      */
-    Matrix ComputeEquivalentF(const Vector& rStrainVector) override;
+    void ComputeEquivalentF(
+        Matrix& rF,
+        const Vector& StrainVector
+        ) const override;
 
     /**
      * This functions computes the integration weight to consider
@@ -211,7 +214,7 @@ private:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber,
         const double detJ
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Private  Access

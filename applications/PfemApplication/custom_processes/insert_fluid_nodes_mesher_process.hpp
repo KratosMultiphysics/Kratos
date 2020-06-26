@@ -112,13 +112,15 @@ class InsertFluidNodesMesherProcess
       for(ModelPart::ElementsContainerType::const_iterator i_elem = mrModelPart.ElementsBegin(); i_elem != mrModelPart.ElementsEnd(); ++i_elem)
       {
 
-        const unsigned int dimension = i_elem->GetGeometry().WorkingSpaceDimension();
+          const unsigned int dimension = i_elem->GetGeometry().WorkingSpaceDimension();
 
-        if(dimension==2){
-          SelectEdgeToRefine2D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
-        } else if(dimension==3){
-          SelectEdgeToRefine3D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
-        }
+          if(dimension==2){
+            if( i_elem->GetGeometry().size() > 2 ) //not boundary elements
+              SelectEdgeToRefine2D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
+          } else if(dimension==3){
+            if( i_elem->GetGeometry().size() > 3 ) //not boundary elements
+              SelectEdgeToRefine3D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
+          }
 
       }
 
@@ -229,6 +231,12 @@ class InsertFluidNodesMesherProcess
 
   }
 
+		void CopyDofs(Node<3>::DofsContainerType const& From, Node<3>::DofsContainerType& To){
+			for(auto& p_dof : From){
+				To.push_back(Kratos::unique_ptr<Dof<double>>(new Dof<double>(*p_dof)));
+			}
+		}
+
   //**************************************************************************
   //**************************************************************************
 
@@ -329,7 +337,7 @@ class InsertFluidNodesMesherProcess
 
     if(dangerousElement==false && any_node_to_erase==false && nodes_to_split<2){
 
-      unsigned int maxCount=3;
+      unsigned int maxCount=2;
       double LargestEdge=0;
 
       for(unsigned int i=0; i<3; ++i)
@@ -352,12 +360,14 @@ class InsertFluidNodesMesherProcess
         rGeometry[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
 
 	if(rGeometry[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-	  rNewDofs[rNodesToRefine]=rGeometry[SecondEdgeNode[maxCount]].GetDofs();
+    	CopyDofs(rGeometry[SecondEdgeNode[maxCount]].GetDofs(), rNewDofs[rNodesToRefine]);
 	}else if(rGeometry[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-	  rNewDofs[rNodesToRefine]=rGeometry[FirstEdgeNode[maxCount]].GetDofs();
+    	CopyDofs(rGeometry[FirstEdgeNode[maxCount]].GetDofs(), rNewDofs[rNodesToRefine]);
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
+
+        std::cout<<" NewPosition" <<NewPosition<<" maxCount "<<maxCount<<" LargestEdge "<<LargestEdge<<std::endl;
 
 	rLargestVolumes[rNodesToRefine]=ElementalVolume;
 	rNewPositions[rNodesToRefine]=NewPosition;
@@ -391,9 +401,9 @@ class InsertFluidNodesMesherProcess
                 rGeometry[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
 
                 if(rGeometry[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-                  rNewDofs[nn]=rGeometry[SecondEdgeNode[maxCount]].GetDofs();
+                  CopyDofs(rGeometry[SecondEdgeNode[maxCount]].GetDofs(), rNewDofs[nn]);
                 }else if(rGeometry[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-                  rNewDofs[nn]=rGeometry[FirstEdgeNode[maxCount]].GetDofs();
+                  CopyDofs(rGeometry[FirstEdgeNode[maxCount]].GetDofs(), rNewDofs[nn]);
                 }else{
                   std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
                 }
@@ -567,9 +577,9 @@ class InsertFluidNodesMesherProcess
         rGeometry[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
 
 	if(rGeometry[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-	  rNewDofs[rNodesToRefine]=rGeometry[SecondEdgeNode[maxCount]].GetDofs();
+    CopyDofs(rGeometry[SecondEdgeNode[maxCount]].GetDofs(), rNewDofs[rNodesToRefine]);
 	}else if(rGeometry[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-	  rNewDofs[rNodesToRefine]=rGeometry[FirstEdgeNode[maxCount]].GetDofs();
+    CopyDofs(rGeometry[FirstEdgeNode[maxCount]].GetDofs(), rNewDofs[rNodesToRefine]);
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
@@ -608,9 +618,9 @@ class InsertFluidNodesMesherProcess
                 rGeometry[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
 
                 if(rGeometry[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-                  rNewDofs[nn]=rGeometry[SecondEdgeNode[maxCount]].GetDofs();
+                  CopyDofs(rGeometry[SecondEdgeNode[maxCount]].GetDofs(), rNewDofs[nn]);
                 }else if(rGeometry[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-                  rNewDofs[nn]=rGeometry[FirstEdgeNode[maxCount]].GetDofs();
+                  CopyDofs(rGeometry[FirstEdgeNode[maxCount]].GetDofs(), rNewDofs[nn]);
                 }else{
                   std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
                 }
@@ -675,7 +685,8 @@ class InsertFluidNodesMesherProcess
 
       //to control the inserted nodes
       // pnode->Set(MODIFIED);
-      //std::cout<<" Insert new node "<<pnode->Id()<<std::endl;
+      std::cout<<" Insert new node "<<pnode->Id()<<"["<<x<<","<<y<<","<<z<<"]"<<std::endl;
+
 
       pnode->Set(NEW_ENTITY,true); //not boundary
       list_of_new_nodes.push_back( pnode );
@@ -697,7 +708,7 @@ class InsertFluidNodesMesherProcess
       //generating the dofs
       for(Node<3>::DofsContainerType::iterator iii = Reference_dofs.begin(); iii != Reference_dofs.end(); ++iii)
       {
-        Node<3>::DofType& rDof = *iii;
+        Node<3>::DofType& rDof = **iii;
         Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
         //(p_new_dof)->FreeDof();
@@ -715,7 +726,7 @@ class InsertFluidNodesMesherProcess
       ShapeFunctionsN[1] = 0.5;
 
       MeshDataTransferUtilities DataTransferUtilities;
-      DataTransferUtilities.Interpolate2Nodes( LineGeometry, ShapeFunctionsN, rVariablesList, *pnode);
+      DataTransferUtilities.Interpolate(LineGeometry, ShapeFunctionsN, rVariablesList, pnode);
 
       if( PointsArray[0].Is(FREE_SURFACE) && PointsArray[1].Is(FREE_SURFACE) )
         pnode->Set(FREE_SURFACE);

@@ -126,7 +126,7 @@ public:
 void FluidElementDataTestEmptyModelPart(
     ModelPart& rModelPart, double DeltaTime, unsigned int BufferSize) {
     rModelPart.SetBufferSize(BufferSize);
-    Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+    Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -143,11 +143,11 @@ void FluidElementDataTestEmptyModelPart(
 
 void FluidElementDataTestCompleteModelPart(
     ModelPart& rModelPart, double DeltaTime, unsigned int BufferSize) {
-    
+
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     rModelPart.AddNodalSolutionStepVariable(PRESSURE);
     rModelPart.SetBufferSize(BufferSize);
-    Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+    Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -168,7 +168,7 @@ void FluidElementDataTestCompleteModelPart(
 
     // Element data
     r_element.SetValue(C_SMAGORINSKY,0.16);
-    
+
     // ProcessInfo
     rModelPart.GetProcessInfo().SetValue(OSS_SWITCH,1);
 
@@ -183,7 +183,7 @@ void FluidElementDataTestCompleteModelPart(
         }
     }
 }
-    
+
 KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuite) {
 
     TestNodalScalarData nodal_scalar_data;
@@ -246,7 +246,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
     out = TestNodalVectorData::Check(r_element, r_process_info),
         "Missing VELOCITY variable in solution step data for node 1.");
 
-    // Other containers can work with non-initialized variables, but should return 0 
+    // Other containers can work with non-initialized variables, but should return 0
     out = TestElementData::Check(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(out,0);
     out = TestPropertiesData::Check(r_element,r_process_info);
@@ -257,7 +257,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
     TestElementData element_data;
     TestPropertiesData properties_data;
     TestProcessInfoData process_info_data;
-    
+
     element_data.Initialize(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(element_data.CSmagorinsky, 0.0);
 

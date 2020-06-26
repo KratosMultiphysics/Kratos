@@ -30,7 +30,7 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
-    :MPMYieldCriterion()
+    :ParticleYieldCriterion()
 {
 
 }
@@ -39,7 +39,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :MPMYieldCriterion(pHardeningLaw)
+    :ParticleYieldCriterion(pHardeningLaw)
 {
 
 }
@@ -50,7 +50,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer
 
 ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(ModifiedCamClayYieldCriterion const& rOther)
 {
-    MPMYieldCriterion::operator=(rOther);
+    ParticleYieldCriterion::operator=(rOther);
     return *this;
 }
 
@@ -58,7 +58,7 @@ ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(Modified
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(ModifiedCamClayYieldCriterion const& rOther)
-    :MPMYieldCriterion(rOther)
+    :ParticleYieldCriterion(rOther)
 {
 
 }
@@ -130,19 +130,14 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const
 
 }
 
-double ModifiedCamClayYieldCriterion::GetPI()
-{
-    return std::atan(1.0)*4.0;
-}
-
 void ModifiedCamClayYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMYieldCriterion )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleYieldCriterion )
 }
 
 void ModifiedCamClayYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMYieldCriterion )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleYieldCriterion )
 }
 
 

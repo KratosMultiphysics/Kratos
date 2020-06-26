@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_DISTANCE_CALCULATION_ELEMENT_H_INCLUDED )
@@ -33,6 +33,7 @@
 
 // Application includes
 #include "includes/variables.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -70,7 +71,7 @@ public:
     ///@{
 
     /// Pointer definition of DistanceCalculationElementSimplex
-    KRATOS_CLASS_POINTER_DEFINITION(DistanceCalculationElementSimplex);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DistanceCalculationElementSimplex);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
@@ -96,8 +97,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
@@ -178,10 +177,25 @@ public:
         return Element::Pointer(new DistanceCalculationElementSimplex(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
+    /// Create a new element of this type
+    /**
+     * Returns a pointer to a new DistanceCalculationElementSimplex element, created using given input
+     * @param NewId the ID of the new element
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
+                            PropertiesType::Pointer pProperties) const override
+    {
+        return Element::Pointer(new DistanceCalculationElementSimplex(NewId, pGeom, pProperties));
+    }
+
     /// Calculate the element's local contribution to the system for the current step.
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int number_of_points = TDim+1;
 
@@ -197,7 +211,7 @@ public:
         //getting data for the given geometry
         double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-        
+
         //get distances at the nodes
         array_1d<double, TDim+1 > distances;
         for(unsigned int i=0; i<number_of_points; i++)
@@ -209,7 +223,7 @@ public:
        const double dgauss = inner_prod(N,distances);
 
         const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
-    
+
         if(step == 1) //solve a poisson problem with a positive/negative heat source depending on the sign of the existing distance function
         {
             //compute distance on gauss point
@@ -217,20 +231,20 @@ public:
             this->SetValue(DISTANCE,dgauss); //saving the distance, to see if it changed sign between iterations
             //compute LHS
             noalias(rLeftHandSideMatrix) = Area*prod(DN_DX,trans(DN_DX));
-            
+
             //compute RHS
             double source = 1.0;
             if(dgauss < 0.0) source=-1.0;
-            noalias(rRightHandSideVector) = source*Area*N;            
-            
-            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,distances); 
-            
-            
+            noalias(rRightHandSideVector) = source*Area*N;
+
+            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,distances);
+
+
             //impose that the normal gradient is 1 on outer faces
             unsigned int nboundary = 0;
             for(unsigned int i=0; i<TDim+1; i++)
                 if(GetGeometry()[i].Is(BOUNDARY)) nboundary +=1;
-            
+
             if(nboundary == TDim)
             {
 	      array_1d<double,TDim> DN_out(TDim, 0.0);
@@ -240,7 +254,7 @@ public:
                         noalias(DN_out) = row(DN_DX,i);
                         break;
                     }
-                
+
                 double normDn = norm_2(DN_out);
                 for(unsigned int i=0; i<TDim+1; i++)
                     if(GetGeometry()[i].Is(BOUNDARY))
@@ -248,10 +262,10 @@ public:
                         rRightHandSideVector[i] += 0.01*source*normDn*Area*(TDim-1); //TODO: check this! it should be TDim*(TDim-1)*N[i] with N[i] on the face and then equal to 1/TDim
                         // using the area as weighting factor is excessive. Reduced it to get a closer to constant gradient between the regions close and far away from the interface
                     }
-                
-            }   
-            
-                        
+
+            }
+
+
         }
         else //solve an optimization problem with the goal of achievieng a gradient of one for the distance function
         {
@@ -263,13 +277,13 @@ public:
             const array_1d<double,TDim> grad = prod(trans(DN_DX),distances);
             double grad_norm = norm_2(grad);
 
-            //compute RHS ad grad N_i \cdot ( 1/norm_grad * grad - grad) 
+            //compute RHS ad grad N_i \cdot ( 1/norm_grad * grad - grad)
             //and multiply everything by grad_norm
             noalias(rRightHandSideVector) = Area*(1.0 - grad_norm)* prod(DN_DX,grad);
-            
-                        
-            //compute the LHS as an approximation of the tangent. 
-            //such approximation is taken as a laplacian, which comes from the assumption that the 
+
+
+            //compute the LHS as an approximation of the tangent.
+            //such approximation is taken as a laplacian, which comes from the assumption that the
             //direction of n does not change when d changes
             //
             //
@@ -277,7 +291,7 @@ public:
             //n = grad/grad_norm
             //P1 = (1.0 - 1.0 / (grad_norm + eps) )    * DN_DX * DN_DX.transpose()
             //P2 = 1.0/(grad_norm + eps) * dot(DN_DX * outer(n,n) * DN_DX.transpose() )
-            //unfortunately the numerical experiments tell that this in too unstable to be used unless a very 
+            //unfortunately the numerical experiments tell that this in too unstable to be used unless a very
             //good initial approximation is used
 //            noalias(rLeftHandSideMatrix) = (Area*(grad_norm - 1.0))*rod(DN_DX,trans(DN_DX) ); //RISKY!!
             noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,0.1)*prod( DN_DX,trans(DN_DX) );
@@ -293,7 +307,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override
+                          const ProcessInfo& rCurrentProcessInfo) const override
     {
 
         unsigned int number_of_nodes = TDim+1;
@@ -310,7 +324,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo) override
+                    const ProcessInfo& rCurrentProcessInfo) const override
     {
         unsigned int number_of_nodes = TDim+1;
 
@@ -340,14 +354,14 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
 {
         KRATOS_TRY
 
         // Perform basic element checks
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if(ErrorCode != 0) return ErrorCode;
-        
+
         if(this->GetGeometry().size() != TDim+1)
             KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
 
@@ -363,7 +377,7 @@ public:
             if(this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data for node ",this->GetGeometry()[i].Id());
         }
- 
+
 
 
         return 0;
@@ -371,12 +385,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Initialize() override
-    {
-    }
-    
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "should not enter here" << std::endl;
         if (rRightHandSideVector.size() != 0)

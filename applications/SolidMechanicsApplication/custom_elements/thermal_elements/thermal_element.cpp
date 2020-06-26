@@ -70,7 +70,7 @@ ThermalElement&  ThermalElement::operator=(ThermalElement const& rOther)
 
 Element::Pointer ThermalElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<ThermalElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+  return Kratos::make_intrusive<ThermalElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -172,7 +172,7 @@ void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void ThermalElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void ThermalElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
                                                   std::vector<double>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
@@ -184,7 +184,7 @@ void ThermalElement::SetValueOnIntegrationPoints( const Variable<double>& rVaria
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void ThermalElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
                                                   std::vector<Vector>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
@@ -196,7 +196,7 @@ void ThermalElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVaria
 //*********************************SET MATRIX VALUE***********************************
 //************************************************************************************
 
-void ThermalElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                                   std::vector<Matrix>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
@@ -302,7 +302,7 @@ void ThermalElement::InitializeGeneralVariables (GeneralVariables & rVariables, 
   rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
   //Calculate Delta Position
-  rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+  ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
   //set variables including all integration points values
 
@@ -358,22 +358,6 @@ void ThermalElement::CalculateKinematics(GeneralVariables& rVariables,
     KRATOS_CATCH( "" )
 }
 
-
-//*************************COMPUTE DELTA POSITION*************************************
-//************************************************************************************
-
-Matrix& ThermalElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
-{
-    KRATOS_TRY
-
-    const GeometryType& rGeometry = GetGeometry();
-
-    ElementUtilities::CalculateDeltaPosition(rDeltaPosition,rGeometry);
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -476,14 +460,11 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
     std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector;
 
-    if( this->Has(MASTER_ELEMENTS) ){
+    if( this->Has(MASTER_ELEMENT) ){
 
       thermo_mechanical = true;
 
-      if( GetValue(MASTER_ELEMENTS).size() != 1 )
-        KRATOS_ERROR<< " Multiple Thermal Element MASTER ELEMENTS "<<GetValue(MASTER_ELEMENTS).size()<<std::endl;
-
-      Element::ElementType& MechanicalElement = GetValue(MASTER_ELEMENTS).back();
+      Element& MechanicalElement = *this->GetValue(MASTER_ELEMENT).get();
 
       MechanicalElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
@@ -545,7 +526,7 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
             HeatSource = GetProperties()[HEAT_SOURCE];
             // std::cout<<" HeatSource "<<HeatSource<<std::endl;
           }
-          
+
           Variables.PlasticDissipation=0;
           if( thermo_mechanical ){
             //std::cout<<" thermo_mechanical element RHS ["<<this->Id()<<"]"<<std::endl;
@@ -776,7 +757,7 @@ inline void ThermalElement::CalculateAndAddThermalForces(GeneralVariables & rVar
     }
 
     // std::cout<<std::endl;
-    // std::cout<<" Fint ["<<GetValue(MASTER_ELEMENTS).back().Id()<<"] "<<rRightHandSideVector-Fh<<" [ Dissipation: "<<rVariables.PlasticDissipation<<" , HeatConductivity: "<<rVariables.HeatConductivity<<" , HeatCapacity: "<<rVariables.HeatCapacity<<" ]"<<std::endl;
+    // std::cout<<" Fint ["<<GetValue(MASTER_ELEMENTS).back()->Id()<<"] "<<rRightHandSideVector-Fh<<" [ Dissipation: "<<rVariables.PlasticDissipation<<" , HeatConductivity: "<<rVariables.HeatConductivity<<" , HeatCapacity: "<<rVariables.HeatCapacity<<" ]"<<std::endl;
 
     // if( rVariables.PlasticDissipation > 0 ){
     //   std::cout<<" ThermalElement Id["<<this->Id()<<"] Dissipation "<<rVariables.PlasticDissipation<<" Fint "<<rRightHandSideVector-Fh<<std::endl;
@@ -942,14 +923,14 @@ int  ThermalElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
      // Check that all required variables have been registered
      KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
-     
+
      KRATOS_CHECK_VARIABLE_KEY(HEAT_CAPACITY);
      KRATOS_CHECK_VARIABLE_KEY(HEAT_CONDUCTIVITY);
-     
+
      KRATOS_CHECK_VARIABLE_KEY(HEAT_SOURCE);
      KRATOS_CHECK_VARIABLE_KEY(PLASTIC_DISSIPATION);
      KRATOS_CHECK_VARIABLE_KEY(DELTA_PLASTIC_DISSIPATION);
-     
+
      return 0;
 
      KRATOS_CATCH( "" );

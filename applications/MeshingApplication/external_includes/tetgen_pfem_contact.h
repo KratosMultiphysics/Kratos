@@ -29,7 +29,7 @@
 #include "includes/model_part.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
 
 #include "spatial_containers/spatial_containers.h"
@@ -252,7 +252,7 @@ public:
             int base = ( iii->Id() - 1 )*4;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
-            WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+            GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
 
             for(int i = 0; i<4; i++)
             {
@@ -520,6 +520,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TETGEN_PFEM_CONTACT_H_INCLUDED 
+#endif // KRATOS_TETGEN_PFEM_CONTACT_H_INCLUDED
 
 

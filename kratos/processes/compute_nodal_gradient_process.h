@@ -20,9 +20,9 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/enums.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -34,12 +34,10 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -48,11 +46,79 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Compute Nodal Gradient process
-/** This process computes the gradient of a certain variable stored in the nodes
-*/
+/**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct ComputeNodalGradientProcessSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+    constexpr static bool GetAsHistoricalVariable = true;
+    constexpr static bool GetAsNonHistoricalVariable = false;
+};
 
-template< int TDim, class TVarType, HistoricalValues THist> 
+/**
+ * @brief This struct is an auxiliar base class of the VariableVectorRetriever
+ */
+struct AuxiliarVariableVectorRetriever
+{
+    /// Destructor.
+    virtual ~AuxiliarVariableVectorRetriever()
+    {
+    }
+
+    /**
+     * @brief This method fills the vector of values
+     * @param rGeometry The geometry where values are stored
+     * @param rVariable The variable to retrieve
+     * @param rVector The vector to fill
+     */
+    virtual void GetVariableVector(
+        const Geometry<Node<3>>& rGeometry,
+        const Variable<double>& rVariable,
+        Vector& rVector
+        )
+    {
+        KRATOS_ERROR << "Calling base class implementation" << std::endl;
+    }
+};
+
+/**
+ * @brief This struct is used in order to retrieve values without loosing performance
+ */
+template<bool THistorical>
+struct VariableVectorRetriever
+    : public AuxiliarVariableVectorRetriever
+{
+    /// Destructor.
+    ~VariableVectorRetriever() override
+    {
+    }
+
+    /**
+     * @brief This method fills the vector of values
+     * @param rGeometry The geometry where values are stored
+     * @param rVariable The variable to retrieve
+     * @param rVector The vector to fill
+     */
+    void GetVariableVector(
+        const Geometry<Node<3>>& rGeometry,
+        const Variable<double>& rVariable,
+        Vector& rVector
+        ) override;
+};
+
+/**
+ * @class ComputeNodalGradientProcess
+ * @ingroup KratosCore
+ * @brief Compute Nodal Gradient process
+ * @details This process computes the gradient of a certain variable stored in the nodes
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ * @tparam THistorical If the variable is historical or not
+*/
+template<bool THistorical>
 class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process
 {
@@ -67,18 +133,20 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Default constructor. (Parameters)
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
-        TVarType& rOriginVariable,
-        Variable<array_1d<double,3> >& rGradientVariable,
-        Variable<double>& rAreaVariable = NODAL_AREA
-        ) :mrModelPart(rModelPart),
-           mrOriginVariable(rOriginVariable),
-           mrGradientVariable(rGradientVariable),
-           mrAreaVariable(rAreaVariable)
-    {
-    }
+        Parameters ThisParameters = Parameters(R"({})")
+        );
+
+    /// Default constructor. (double)
+    ComputeNodalGradientProcess(
+        ModelPart& rModelPart,
+        const Variable<double>& rOriginVariable,
+        const Variable<array_1d<double,3> >& rGradientVariable,
+        const Variable<double>& rAreaVariable = NODAL_AREA,
+        const bool NonHistoricalVariable = false
+        );
 
     /// Destructor.
     ~ComputeNodalGradientProcess() override
@@ -106,6 +174,11 @@ public:
      * In this process the gradient of a scalar variable will be computed
      */
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -191,11 +264,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
-    ModelPart& mrModelPart;                            // The main model part
-    TVarType& mrOriginVariable;                        // The scalar variable to compute
-    Variable<array_1d<double,3> >& mrGradientVariable; // The resultant gradient variable
-    Variable<double>& mrAreaVariable;                  // The auxiliar area variable
+
+    ModelPart& mrModelPart;                                           /// The main model part
+    const Variable<double>* mpOriginVariable = nullptr;               /// The scalar variable list to compute
+    const Variable<array_1d<double,3>>* mpGradientVariable;           /// The resultant gradient variable
+    const Variable<double>* mpAreaVariable = nullptr;                 /// The auxiliar area variable
+    bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
 
     ///@}
     ///@name Private Operators
@@ -206,7 +280,7 @@ private:
     ///@{
 
     // TODO: Try to use enable_if!!!
-    
+
     /**
      * This clears the gradient
      */
@@ -216,16 +290,14 @@ private:
      * This gets the gradient value
      * @param rThisGeometry The geometry of the element
      * @param i The node index
-     * @param k The component index
      */
-    double& GetGradient(
+    array_1d<double, 3>& GetGradient(
         Element::GeometryType& rThisGeometry,
-        unsigned int i, 
-        unsigned int k
+        unsigned int i
         );
-    
+
     /**
-     * This divides the gradient value by the nodal area
+     * @brief This divides the gradient value by the nodal area
      */
     void PonderateGradient();
 
@@ -267,7 +339,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   ComputeNodalGradientProcess& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const ComputeNodalGradientProcess& rThis)
@@ -275,13 +347,13 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 ///@}
-    
+
 }  // namespace Kratos.
 
-#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined 
+#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined
 
 

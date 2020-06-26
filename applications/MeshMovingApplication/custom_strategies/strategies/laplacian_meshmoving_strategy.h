@@ -19,14 +19,15 @@
 /* External includes */
 
 /* Project includes */
-#include "mesh_moving_application.h"
+#include "includes/mesh_moving_variables.h"
 #include "custom_elements/laplacian_meshmoving_element.h"
 #include "custom_utilities/move_mesh_utilities.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "utilities/variable_utils.h"
+
 
 namespace Kratos {
 
@@ -99,9 +100,7 @@ public:
     mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(
         BaseType::GetModelPart(), element_type);
 
-    typedef typename Kratos::VariableComponent<
-        Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>
-        VarComponent;
+    typedef Variable<double> VarComponent;
 
     mpbuilder_and_solver_x = typename TBuilderAndSolverType::Pointer(
         new ResidualBasedEliminationBuilderAndSolverComponentwise<
@@ -153,11 +152,7 @@ public:
   };
 
   void Initialize() override {
-    unsigned int n_average_elements = 10;
-    unsigned int n_average_nodes = 10;
-    FindNodalNeighboursProcess find_nodal_neighbours_process =
-        FindNodalNeighboursProcess(*mpmesh_model_part, n_average_elements,
-                                   n_average_nodes);
+    FindNodalNeighboursProcess find_nodal_neighbours_process(*mpmesh_model_part);
     find_nodal_neighbours_process.Execute();
   }
 
@@ -166,7 +161,7 @@ public:
 
     ProcessInfo &rCurrentProcessInfo = (mpmesh_model_part)->GetProcessInfo();
 
-    MoveMeshUtilities::SetMeshToInitialConfiguration(
+    VariableUtils().UpdateCurrentToInitialConfiguration(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     unsigned int dimension =
@@ -190,15 +185,6 @@ public:
       rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 3;
       mstrategy_z->Solve();
     }
-    // Update FEM-base
-    const double delta_time =
-        BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-
-    if (mcalculate_mesh_velocities == true)
-        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
-                                                   delta_time);
-    MoveMeshUtilities::MoveMesh(
-        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     if (mreform_dof_set_at_each_step == true)
     {
@@ -210,11 +196,6 @@ public:
     return 0.0;
 
     KRATOS_CATCH("");
-  }
-
-  void UpdateReferenceMesh()
-  {
-  MoveMeshUtilities::UpdateReferenceMesh(BaseType::GetModelPart());
   }
 
   /*@} */

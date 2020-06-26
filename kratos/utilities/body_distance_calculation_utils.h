@@ -28,6 +28,7 @@
 //#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/deprecated_variables.h"
+#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -280,7 +281,7 @@ public:
 //                 {
 //                     if (it->GetValue(IS_VISITED) != 1) //it was not possible to calculate the distance
 //                     {
-//                         for (WeakPointerVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
+//                         for (GlobalPointersVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
 //                                 ie != it->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
 //                             ie->GetValue(IS_VISITED)=1;
 //                     }
@@ -310,8 +311,9 @@ public:
                 if(it->FastGetSolutionStepValue(rDistanceVar) < max_distance)
                 {
                     //loop over neighbour elements and add them to the todo list
-                    for (WeakPointerVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
-                            ie != it->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
+                    // for (GlobalPointersVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).ptr_begin();
+                    //         ie != it->GetValue(NEIGHBOUR_ELEMENTS).ptr_end(); ie++)
+                    for(auto ie : it->GetValue(NEIGHBOUR_ELEMENTS).GetContainer())
                     {
                         unsigned int visited_nodes = 0;
                         Element::GeometryType& geom = ie->GetGeometry();
@@ -326,7 +328,7 @@ public:
                             if( ie->GetValue(IS_VISITED) != 1 ) //it is to be used for the next step (an was not added before by another element)
                             {
                                 ie->GetValue(IS_VISITED) = 1;
-                                elements_to_solve.push_back( (*(ie.base())).lock());
+                                elements_to_solve.push_back( Element::Pointer(ie->shared_from_this()) );
                             }
 
                         //                        if(visited_nodes == TDim+1)
@@ -356,7 +358,7 @@ public:
                 confirmed_failures++;
                 double davg = 0.0;
                 double counter = 0.0;
-                for (WeakPointerVector< Node < 3 > >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin(); in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
+                for (GlobalPointersVector< Node < 3 > >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin(); in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
                 {
                     if (in->GetValue(IS_VISITED) == 1)
                     {

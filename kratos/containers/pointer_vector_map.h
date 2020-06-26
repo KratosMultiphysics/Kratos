@@ -106,9 +106,9 @@ public:
     /// Default constructor.
     PointerVectorMap() : mData(), mSortedPartSize(size_type()), mMaxBufferSize(100) {}
 
- PointerVectorMap(const PointerVectorMap& rOther) :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
+    PointerVectorMap(const PointerVectorMap& rOther) :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
 
-    PointerVectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
+    explicit PointerVectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
     {
         Sort();
         std::unique(mData.begin(), mData.end(), EqualKeyTo());
@@ -608,7 +608,7 @@ private:
     {
         key_type mKey;
     public:
-        EqualKeyTo(key_type k) : mKey(k) {}
+        explicit EqualKeyTo(key_type k) : mKey(k) {}
         bool operator()(value_type const& a, value_type const& b) const
         {
             return a.first == b.first;

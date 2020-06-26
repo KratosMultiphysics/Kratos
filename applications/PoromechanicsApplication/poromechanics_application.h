@@ -17,7 +17,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // Project includes
 #include "includes/define.h"
@@ -48,6 +48,10 @@
 
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/exponential_cohesive_3D_law.hpp"
+#include "custom_constitutive/exponential_cohesive_2D_law.hpp"
+#include "custom_constitutive/simplified_bilinear_3D_law.hpp"
+#include "custom_constitutive/simplified_bilinear_2D_law.hpp"
 
 #include "custom_constitutive/custom_flow_rules/local_damage_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.hpp"
@@ -64,12 +68,26 @@
 #include "custom_constitutive/modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
 
+#include "custom_constitutive/history_linear_elastic_3D_law.hpp"
+#include "custom_constitutive/history_linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/history_linear_elastic_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp"
+#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/modified_mises_yield_criterion.hpp"
+#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+
 namespace Kratos
 {
 
 class KRATOS_API(POROMECHANICS_APPLICATION) KratosPoromechanicsApplication : public KratosApplication
 {
-    
+
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(KratosPoromechanicsApplication);
@@ -79,7 +97,7 @@ public:
 
     // Destructor
     ~KratosPoromechanicsApplication() override {}
-    
+
 
     void Register() override;
 
@@ -177,6 +195,10 @@ const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrde
 
 const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
 const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
+const ExponentialCohesive3DLaw mExponentialCohesive3DLaw;
+const ExponentialCohesive2DLaw mExponentialCohesive2DLaw;
+const SimplifiedBilinear3DLaw mSimplifiedBilinear3DLaw;
+const SimplifiedBilinear2DLaw mSimplifiedBilinear2DLaw;
 
 const LocalDamageFlowRule mLocalDamageFlowRule;
 const NonlocalDamageFlowRule mNonlocalDamageFlowRule;
@@ -193,15 +215,29 @@ const ModifiedMisesNonlocalDamage3DLaw mModifiedMisesNonlocalDamage3DLaw;
 const ModifiedMisesNonlocalDamagePlaneStrain2DLaw mModifiedMisesNonlocalDamagePlaneStrain2DLaw;
 const ModifiedMisesNonlocalDamagePlaneStress2DLaw mModifiedMisesNonlocalDamagePlaneStress2DLaw;
 
+const HistoryLinearElastic3DLaw mHistoryLinearElastic3DLaw;
+const HistoryLinearElasticPlaneStrain2DLaw mHistoryLinearElasticPlaneStrain2DLaw;
+const HistoryLinearElasticPlaneStress2DLaw mHistoryLinearElasticPlaneStress2DLaw;
+
+const HyperElastic3DLaw                       mHyperElastic3DLaw;
+const LinearElastic3DLaw                      mLinearElastic3DLaw;
+const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
+const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
+const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
+const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
+const ModifiedMisesYieldCriterion             mModifiedMisesYieldCriterion;
+const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
+const ModifiedExponentialDamageHardeningLaw   mModifiedExponentialDamageHardeningLaw;
+
 // Assignment operator.
 KratosPoromechanicsApplication& operator=(KratosPoromechanicsApplication const& rOther);
 
 // Copy constructor.
 KratosPoromechanicsApplication(KratosPoromechanicsApplication const& rOther);
 
-}; // Class KratosPoromechanicsApplication 
+}; // Class KratosPoromechanicsApplication
 }  // namespace Kratos.
 
-#endif // KRATOS_POROMECHANICS_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_POROMECHANICS_APPLICATION_H_INCLUDED  defined
 
 

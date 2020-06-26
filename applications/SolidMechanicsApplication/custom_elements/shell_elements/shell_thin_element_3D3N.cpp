@@ -180,7 +180,7 @@ ShellThinElement3D3N::~ShellThinElement3D3N()
 Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
   GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
-  return Kratos::make_shared< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom));
+  return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom));
 }
 
 ShellThinElement3D3N::IntegrationMethod ShellThinElement3D3N::GetIntegrationMethod() const

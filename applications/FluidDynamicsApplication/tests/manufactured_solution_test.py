@@ -1,31 +1,16 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Import kratos core and applications
-import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    have_external_solvers = True
-except ImportError as e:
-    have_external_solvers = False
-
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-
 # Import Python modules
 import math
-import os
 
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
+# Import kratos core and applications
+import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 @KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(KratosUnittest.TestCase):
@@ -48,15 +33,12 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                             #"manufactured_solution_ref4"]
 
     def tearDown(self):
-        with WorkFolderScope(self.work_folder):
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             for filename in self.meshes_list:
-                try:
-                    os.remove(filename + '.time')
-                except FileNotFoundError as e:
-                    pass
+                KratosUtilities.DeleteFileIfExisting(filename + '.time')
 
     def runTest(self):
-        with WorkFolderScope(self.work_folder):
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             with open(self.settings, 'r') as parameter_file:
                 self.OriginalProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
@@ -157,7 +139,6 @@ class ManufacturedSolutionProblem:
         self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file_name)
 
         ## Solver construction
-        import python_solvers_wrapper_fluid
         self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
         self.solver.AddVariables()

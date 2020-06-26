@@ -221,6 +221,23 @@ public:
      */
     ~ResidualBasedLinearStrategy() override
     {
+        // If the linear solver has not been deallocated, clean it before
+        // deallocating mpA. This prevents a memory error with the the ML
+        // solver (which holds a reference to it).
+        auto p_linear_solver = GetBuilderAndSolver()->GetLinearSystemSolver();
+        if (p_linear_solver != nullptr) p_linear_solver->Clear();
+
+        // Deallocating system vectors to avoid errors in MPI. Clear calls
+        // TrilinosSpace::Clear for the vectors, which preserves the Map of
+        // current vectors, performing MPI calls in the process. Due to the
+        // way Python garbage collection works, this may happen after
+        // MPI_Finalize has already been called and is an error. Resetting
+        // the pointers here prevents Clear from operating with the
+        // (now deallocated) vectors.
+        mpA.reset();
+        mpDx.reset();
+        mpb.reset();
+
       this->Clear();
     }
 
@@ -324,6 +341,7 @@ public:
     void Predict() override
     {
         KRATOS_TRY
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if(mInitializeWasPerformed == false)
@@ -340,6 +358,29 @@ public:
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
         this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
+        const int local_number_of_constraints = r_constraints_array.size();
+        const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
+        if(global_number_of_constraints != 0) {
+            const auto& rProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+
+            auto it_begin = BaseType::GetModelPart().MasterSlaveConstraints().begin();
+
+            #pragma omp parallel for firstprivate(it_begin)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
+                (it_begin+i)->ResetSlaveDofs(rProcessInfo);
+
+            #pragma omp parallel for firstprivate(it_begin)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
+                 (it_begin+i)->Apply(rProcessInfo);
+
+            //the following is needed since we need to eventually compute time derivatives after applying 
+            //Master slave relations
+            TSparseSpace::SetToZero(rDx);
+            this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        }
+
+        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
         KRATOS_CATCH("")
     }
@@ -417,6 +458,7 @@ public:
         GetScheme()->Clear();
 
         mInitializeWasPerformed = false;
+	mSolutionStepIsInitialized = false;
 
         KRATOS_CATCH("");
     }

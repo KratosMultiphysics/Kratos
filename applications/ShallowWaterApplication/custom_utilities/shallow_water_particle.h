@@ -11,17 +11,11 @@
 //                   Pablo Becker
 //
 
-#if !defined(KRATOS_SHALLOW_WATER_PARTICLE_H_INCLUDED )
-#define  KRATOS_SHALLOW_WATER_PARTICLE_H_INCLUDED
-
+#ifndef KRATOS_SHALLOW_WATER_PARTICLE_H_INCLUDED
+#define KRATOS_SHALLOW_WATER_PARTICLE_H_INCLUDED
 
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
-
 
 
 // External includes
@@ -29,8 +23,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/array_1d.h"
-#include "includes/serializer.h"
 #include "geometries/point.h"
 #include "includes/model_part.h"
 

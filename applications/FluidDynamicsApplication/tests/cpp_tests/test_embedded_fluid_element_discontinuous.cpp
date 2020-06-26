@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
     // Set the element properties
-    Properties::Pointer p_properties = model_part.pGetProperties(0);
+    Properties::Pointer p_properties = model_part.CreateNewProperties(0);
     p_properties->SetValue(DENSITY, 1000.0);
     p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
     ConstitutiveLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -85,6 +85,12 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
     model_part.CreateNewElement("EmbeddedSymbolicNavierStokesDiscontinuous2D3N", 1, element_nodes, p_properties);
     model_part.CreateNewElement("EmbeddedQSVMSDiscontinuous2D3N", 2, element_nodes, p_properties);
+
+    // Call the elements Initialize()
+    for (auto &r_elem : model_part.Elements()) {
+        r_elem.Initialize(); // Initialize the element to initialize the constitutive law
+        r_elem.Check(model_part.GetProcessInfo()); // Otherwise the constitutive law is not seen here
+    }
 
     // Define the nodal values
     Matrix reference_velocity(3,2);
@@ -129,8 +135,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
-        i->Initialize(); // Initialize the element to initialize the constitutive law
-        i->Check(model_part.GetProcessInfo()); // Otherwise the constitutive law is not seen here
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
@@ -145,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
 
     std::vector< std::vector<double> > output_cut(6);
     output_cut[0] = {18.84223125,59.21540862,-0.4453265312,49.82664899,169.407093,0.3953265312,32.91666657,-23.57174638,-0.1}; // EmbeddedSymbolicNavierStokesDiscontinuous
-    output_cut[1] = {3.777844188,12.07497388,-0.4453264623,42.19438001,129.0905425,0.3953264623,32.91666657,-23.57174638,-0.1}; // EmbeddedQSVMSDiscontinuous
+    output_cut[1] = {3.777844188, 12.07497388, -0.4453264623, 42.19438001, 129.0905425, 0.3953264623, 32.91666657, -23.57174638, -0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
     // Test cut element
@@ -155,20 +159,16 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
         it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
     }
-    p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
-    p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
-    p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) =  0.5;
-    
+
     model_part.GetProcessInfo().SetValue(SLIP_LENGTH, 0.0);
     model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Set(SLIP, false);
-        i->Initialize(); // Initialize the element to initialize the constitutive law
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
-        
+
         for (unsigned int j = 0; j < RHS.size(); j++) {
             KRATOS_CHECK_NEAR(RHS[j], output_cut[counter][j], 1e-6);
         }
@@ -178,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
 
     std::vector< std::vector<double> > output_slip_cut(6);
     output_slip_cut[0] = {18.84227218,59.21545054,-0.4453265312,49.82660608,169.407051,0.3953265312,32.91666667,-23.57174638,-0.1}; // EmbeddedSymbolicNavierStokesDiscontinuous
-    output_slip_cut[1] = {3.777885122,12.07501581,-0.4453264623,42.1943371,129.0905006,0.3953264623,32.91666667,-23.57174638,-0.1}; // EmbeddedQSVMSDiscontinuous
+    output_slip_cut[1] = {3.777885122, 12.07501581, -0.4453264623, 42.1943371, 129.0905006, 0.3953264623, 32.91666667, -23.57174638, -0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
     // Test slip cut element
@@ -186,12 +186,11 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); ++i) {
         i->Set(SLIP, true);
-        i->Initialize(); // Initialize the element to initialize the constitutive law
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
-        
+
         for (unsigned int j = 0; j < RHS.size(); j++) {
             KRATOS_CHECK_NEAR(RHS[j], output_slip_cut[counter][j], 1e-6);
         }

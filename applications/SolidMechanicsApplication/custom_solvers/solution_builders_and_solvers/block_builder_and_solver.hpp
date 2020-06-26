@@ -595,7 +595,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     Doftemp.reserve(dofs_aux_list[0].size());
     for (auto it= dofs_aux_list[0].begin(); it!= dofs_aux_list[0].end(); it++)
     {
-      Doftemp.push_back( it->get() );
+      Doftemp.push_back( *it );
     }
     Doftemp.Sort();
 
@@ -796,7 +796,12 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
       typename DofsArrayType::iterator dof_iterator = this->mDofSet.begin() + k;
 
       const int i = (dof_iterator)->EquationId();
-      (dof_iterator)->GetSolutionStepReactionValue() = -rb[i];
+      if ( (dof_iterator)->IsFixed() ) {
+         (dof_iterator)->GetSolutionStepReactionValue() = -rb[i];
+      } else{
+         (dof_iterator)->GetSolutionStepReactionValue() = 0.0;
+      }
+
 
     }
 

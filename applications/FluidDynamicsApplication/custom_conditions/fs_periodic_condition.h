@@ -107,7 +107,7 @@ public:
     ///@{
 
     /// Pointer definition of FSPeriodicCondition
-    KRATOS_CLASS_POINTER_DEFINITION(FSPeriodicCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FSPeriodicCondition);
 
     typedef IndexedObject IndexedObjectType;
 
@@ -134,9 +134,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
-
 
     ///@}
     ///@name Life Cycle

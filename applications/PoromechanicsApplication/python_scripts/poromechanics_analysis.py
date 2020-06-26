@@ -6,10 +6,12 @@ import os
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
+
+from importlib import import_module
 
 class PoromechanicsAnalysis(AnalysisStage):
     '''Main script for poromechanics simulations.'''
@@ -29,70 +31,49 @@ class PoromechanicsAnalysis(AnalysisStage):
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
         else:
+            from KratosMultiphysics.PoromechanicsApplication import poromechanics_cleaning_utility
+            poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+
+        # Initialize Fracture Propagation Utility if necessary
+        if parameters["problem_data"]["fracture_utility"].GetBool():
+            from KratosMultiphysics.PoromechanicsApplication.poromechanics_fracture_propagation_utility import FracturePropagationUtility
+            self.fracture_utility = FracturePropagationUtility(model,
+                                                                self._GetOrderOfProcessesInitialization())
+            parameters = self.fracture_utility.Initialize(parameters)
 
         # Creating solver and model part and adding variables
         super(PoromechanicsAnalysis,self).__init__(model,parameters)
 
-    def _CreateSolver(self):
-        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
-        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
-        return solver
+        if parameters["problem_data"].Has("initial_stress_utility_settings"):
+            from KratosMultiphysics.PoromechanicsApplication.poromechanics_initial_stress_utility import InitialStressUtility
+            self.initial_stress_utility = InitialStressUtility(model,parameters)
 
-    def _GetOrderOfProcessesInitialization(self):
-        return ["constraints_process_list",
-                "loads_process_list",
-                "auxiliar_process_list"]
+    def Initialize(self):
+        super(PoromechanicsAnalysis,self).Initialize()
 
-    def _CreateProcesses(self, parameter_name, initialization_order):
-        """Create a list of Processes
-        This method is TEMPORARY to not break existing code
-        It will be removed in the future
-        """
-        list_of_processes = super(PoromechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        if self.project_parameters["problem_data"].Has("initial_stress_utility_settings"):
+            self.initial_stress_utility.Load()
 
-        if parameter_name == "processes":
-            processes_block_names = ["constraints_process_list", "loads_process_list","auxiliar_process_list"]
-            if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Using the old way to create the processes, this will be removed!")
-                from process_factory import KratosProcessFactory
-                factory = KratosProcessFactory(self.model)
-                for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
-                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
-            else: # Processes are given in the new format
-                for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
-                        raise Exception("Mixing of process initialization is not alowed!")
-        elif parameter_name == "output_processes":
-            if self.project_parameters.Has("output_configuration"):
-                gid_output= self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
-        else:
-            raise NameError("wrong parameter name")
+    def OutputSolutionStep(self):
+        super(PoromechanicsAnalysis,self).OutputSolutionStep()
 
-        return list_of_processes
-
-    def _SetUpGiDOutput(self):
-        '''Initialize a GiD output instance.'''
-        if self.parallel_type == "OpenMP":
-            import poromechanics_cleaning_utility
-            poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
-            from gid_output_process import GiDOutputProcess as OutputProcess
-        elif self.parallel_type == "MPI":
-            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
-
-        output = OutputProcess(self._GetSolver().GetComputingModelPart(),
-                                self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                self.project_parameters["output_configuration"])
-
-        return output
-
-    def _GetSimulationName(self):
-        return "Poromechanics Analysis"
+        # Check Fracture Propagation Utility
+        if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
+            if self.fracture_utility.IsPropagationStep():
+                self._solver,self._list_of_processes,self._list_of_output_processes = self.fracture_utility.CheckPropagation(self._solver,
+                                                                                                                            self._list_of_processes,
+                                                                                                                            self._list_of_output_processes)
 
     def Finalize(self):
         super(PoromechanicsAnalysis,self).Finalize()
+
+        # Finalize Fracture Propagation Utility
+        if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
+            self.fracture_utility.Finalize()
+
+        if self.project_parameters["problem_data"].Has("initial_stress_utility_settings"):
+            self.initial_stress_utility.Save()
 
         # Finalizing strategy
         if self.parallel_type == "OpenMP":
@@ -101,6 +82,21 @@ class PoromechanicsAnalysis(AnalysisStage):
         # Time control
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
+
+    def _CreateSolver(self):
+        python_module_name = "KratosMultiphysics.PoromechanicsApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
+        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return solver
+
+    def _GetOrderOfProcessesInitialization(self):
+        return ["constraints_process_list",
+                "loads_process_list",
+                "auxiliar_process_list"]
+
+    def _GetSimulationName(self):
+        return "Poromechanics Analysis"
 
 
 if __name__ == '__main__':

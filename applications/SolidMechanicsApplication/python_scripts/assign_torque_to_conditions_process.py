@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 ## This proces sets the value of a scalar variable to conditions
-import assign_modulus_and_direction_to_conditions_process as BaseProcess
+from KratosMultiphysics.SolidMechanicsApplication.assign_modulus_and_direction_to_conditions_process import AssignModulusAndDirectionToConditionsProcess
 
 def Factory(custom_settings, Model):
     if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
@@ -12,7 +12,7 @@ def Factory(custom_settings, Model):
     return AssignModulusAndDirectionToConditionsProcess(Model, custom_settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class AssignModulusAndDirectionToConditionsProcess(BaseProcess.AssignModulusAndDirectionToConditionsProcess):
+class AssignTorqueToConditionsProcess(AssignModulusAndDirectionToConditionsProcess):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -51,7 +51,7 @@ class AssignModulusAndDirectionToConditionsProcess(BaseProcess.AssignModulusAndD
         params.AddValue("constrained", self.settings["constrained"])
         params.AddValue("interval",self.settings["interval"])
 
-        BaseProcess.AssignModulusAndDirectionToConditionsProcess.__init__(self, Model, params)
+        AssignModulusAndDirectionToConditionsProcess.__init__(self, Model, params)
 
 
     def ExecuteInitialize(self):
@@ -71,9 +71,8 @@ class AssignModulusAndDirectionToConditionsProcess(BaseProcess.AssignModulusAndD
 
         self.CreateAssignmentProcess(params)
 
-        if( self.IsInsideInterval() and self.interval_string == "initial" ):
+        if( self.IsInsideInterval() and (self.interval_string == "initial" or self.interval_string == "start") ):
             self.AssignValueProcess.Execute()
-
 
     #
     def CreateAssignmentProcess(self, params):

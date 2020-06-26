@@ -93,7 +93,7 @@ SolidElement&  SolidElement::operator=(SolidElement const& rOther)
 Element::Pointer SolidElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_ERROR << " calling the default method Create for a solid element " << std::endl;
-    return Kratos::make_shared< SolidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< SolidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -127,7 +127,7 @@ Element::Pointer SolidElement::Clone( IndexType NewId, NodesArrayType const& rTh
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< SolidElement >(NewElement);
+    return Kratos::make_intrusive< SolidElement >(NewElement);
 }
 
 
@@ -278,7 +278,7 @@ void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -291,7 +291,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<double>& rVariabl
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -307,7 +307,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariabl
 //************************************************************************************
 
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -323,7 +323,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariabl
 //********************************SET CONSTITUTIVE VALUE******************************
 //************************************************************************************
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -1211,12 +1211,6 @@ void SolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
     InitializeExplicitContributions();
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-        mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                GetGeometry(),
-                row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                rCurrentProcessInfo );
-
     this->Set(SolidElement::FINALIZED_STEP,false);
 
     KRATOS_CATCH("")
@@ -1270,12 +1264,6 @@ void SolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
         //call the constitutive law to update material variables
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values, Variables.StressMeasure);
-
-        //call the constitutive law to finalize the solution step
-        mConstitutiveLawVector[PointNumber]->FinalizeSolutionStep( GetProperties(),
-								   GetGeometry(),
-								   Variables.N,
-								   rCurrentProcessInfo );
 
 	//call the element internal variables update
 	this->FinalizeStepVariables(Variables,PointNumber);
@@ -1681,6 +1669,15 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
+
+      if(rCurrentProcessInfo.Has(COMPONENT_TIME_INTEGRATION_METHODS)){
+        std::string integration = "DISPLACEMENT_X";
+        integration = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->GetMethodVariableName(integration);
+        double parameter = 1.0;
+        parameter = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->Get(integration)->GetSecondDerivativeInertialFactor(parameter);
+        rLeftHandSideMatrix *= parameter;
+      }
+
     }
     else{
 
@@ -1751,6 +1748,13 @@ void SolidElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
+      if(rCurrentProcessInfo.Has(COMPONENT_TIME_INTEGRATION_METHODS)){
+        std::string integration = "DISPLACEMENT_X";
+        integration = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->GetMethodVariableName(integration);
+        double parameter = 1.0;
+        parameter = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->Get(integration)->GetSecondDerivativeInertialFactor(parameter);
+        rLeftHandSideMatrix *= parameter;
+      }
     }
     else{
 

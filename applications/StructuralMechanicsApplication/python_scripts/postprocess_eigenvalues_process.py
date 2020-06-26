@@ -2,62 +2,38 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as KSM
 
+# Other imports
+import os
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return PostProcessEigenvaluesProcess(Model, settings["Parameters"])
 
-class PostProcessEigenvaluesProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings):
+    process_settings = settings["Parameters"]
 
-        default_settings = KratosMultiphysics.Parameters(
-            """
-            {
-                "help"                         :"This process can be used in order to generate a postprocess files for eigenvalues problems. It uses the C++ class PostprocessEigenvaluesProcess",
-                "result_file_name"             : "Structure",
-                "result_file_format_use_ascii" : false,
-                "computing_model_part_name"    : "Structure.computing_domain",
-                "animation_steps"              :  20,
-                "list_of_result_variables"     : ["DISPLACEMENT"],
-                "label_type"                   : "frequency"
-            }
-            """
-        )
+    folder_settings = KratosMultiphysics.Parameters("""{
+        "folder_name"                 : "EigenResults",
+        "save_output_files_in_folder" : true
+    }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        settings.RemoveValue("help")
+    process_settings.AddMissingParameters(folder_settings)
 
-        KratosMultiphysics.Process.__init__(self)
-        self.model_part = Model[settings["computing_model_part_name"].GetString()]
-        settings.RemoveValue("computing_model_part_name")
-        self.settings = settings
+    if process_settings["save_output_files_in_folder"].GetBool():
+        folder_name = process_settings["folder_name"].GetString()
+        kratos_utils.DeleteDirectoryIfExisting(folder_name) # make sure to remove old results
+        os.mkdir(folder_name)
 
-    def ExecuteInitialize(self):
-        pass
+    if process_settings.Has("computing_model_part_name"):
+        computing_model_part = Model[process_settings["computing_model_part_name"].GetString()]
+    else: # using default name
+        computing_model_part = Model["Structure"]
 
-    def ExecuteBeforeSolutionLoop(self):
-        pass
+    process_settings.RemoveValue("computing_model_part_name")
+    process_settings.RemoveValue("help")
 
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
-    def ExecuteFinalize(self):
-        StructuralMechanicsApplication.PostprocessEigenvaluesProcess(
-            self.model_part, self.settings).Execute()
+    return KSM.PostprocessEigenvaluesProcess(computing_model_part, process_settings)

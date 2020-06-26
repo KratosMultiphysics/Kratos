@@ -5,9 +5,6 @@ import KratosMultiphysics
 import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 import meshing_strategy
 
 def CreateMeshingStrategy(main_model_part, custom_settings):

@@ -342,9 +342,8 @@ namespace Kratos
               {
                   index = i*dimension;
 
-                  double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
-
                   geometry(i)->SetLock();
+                  double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
                   mass += MassMatrix(index,index);
                   geometry(i)->UnSetLock();
               }

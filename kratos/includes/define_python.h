@@ -14,7 +14,12 @@
 #define  KRATOS_DEFINE_PYTHON_H_INCLUDED
 
 /* System includes */
+#include "intrusive_ptr/intrusive_ptr.hpp"
 #include <pybind11/pybind11.h>
+
+// Always needed for custom holder types
+PYBIND11_DECLARE_HOLDER_TYPE(T, Kratos::intrusive_ptr<T>);
+
 #include <pybind11/stl.h>
 
 #include "includes/define.h"
@@ -92,8 +97,7 @@
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_FLAG(module,flag) \
-    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,flag);   \
-    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,NOT_##flag)
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,flag);
 
 // This function is used to print the ofstream-operator
 // i.e. printing an object will give the same result in Python as in C++

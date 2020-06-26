@@ -205,7 +205,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
                     print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
                 self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-                self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
                 stress = self.parameters.GetStressVector();
 
                 Pressure[t] = -(stress[0] + stress[1] + stress[2])/3.0 #Geotech sign convention

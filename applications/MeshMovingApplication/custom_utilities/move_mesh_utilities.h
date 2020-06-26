@@ -19,35 +19,29 @@
 // External includes
 
 // Project includes
-#include "mesh_moving_application.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
 
-typedef Element BaseType;
 typedef Element::GeometryType GeometryType;
-typedef GeometryData::IntegrationMethod IntegrationMethod;
-typedef BaseType::VectorType VectorType;
+typedef Element::VectorType VectorType;
 
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
-                            VectorType &rDetJ0, GeometryType &rGeometry);
-
-void CalculateMeshVelocities(ModelPart &rMeshModelPart,
-                             const int TimeOrder, const double DeltaTime);
-
-void CalculateMeshVelocities(ModelPart* pMeshModelPart,
-                             const int TimeOrder, const double DeltaTime);
+                            VectorType &rDetJ0, const GeometryType &rGeometry);
 
 void MoveMesh(const ModelPart::NodesContainerType &rNodes);
-
-void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType &rNodes);
 
 ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
-void UpdateReferenceMesh(ModelPart &rModelPart);
+void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
+                                                 const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
+
+void SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
+
+void SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
 
 } // namespace Move Mesh Utilities.
 

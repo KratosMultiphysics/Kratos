@@ -1,0 +1,36 @@
+{
+    "properties": [
+    {
+            "model_part_name": "Structure.Parts_Part_foundation",
+            "properties_id": 1,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "LinearElastic3DLaw"
+                    },
+                    "Variables": {
+                            "DENSITY": 1.00000E+03,
+                            "YOUNG_MODULUS": 1.00000E+03,
+                            "POISSON_RATIO": 4.00000E-01
+                    },
+                    "Tables": {}
+            }
+    },
+    {
+            "model_part_name": "Structure.Parts_Part_punch",
+            "properties_id": 2,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "LinearElastic3DLaw"
+                    },
+                    "Variables": {
+                            "DENSITY": 1.00000E+03,
+                            "YOUNG_MODULUS": 1.00000E+03,
+                            "POISSON_RATIO": 4.00000E-01
+                    },
+                    "Tables": {}
+            }
+    }
+    ]
+}

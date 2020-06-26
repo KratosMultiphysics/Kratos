@@ -54,7 +54,7 @@ public:
     typedef GeometryData::SizeType SizeType;
 
     /// Counted pointer of SmallDisplacementBeamElement3D2N
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementBeamElement3D2N );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementBeamElement3D2N );
 
     ///@}
 
@@ -191,7 +191,7 @@ public:
      * interface to the constitutive law!
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
+     * SetValuesOnIntegrationPoints: set the values for given Variable.
      * GetValueOnIntegrationPoints: get the values for given Variable.
      */
 

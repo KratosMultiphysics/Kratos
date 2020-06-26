@@ -21,7 +21,7 @@
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_UP_3D_law.hpp"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -80,7 +80,7 @@ HenckyElasticPlasticUP3DLaw::~HenckyElasticPlasticUP3DLaw()
 
 //*****************************MATERIAL RESPONSES*************************************
 //************************************************************************************
-void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues, const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues, const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
 
     const Properties& material_properties  = rValues.GetMaterialProperties();
@@ -178,7 +178,7 @@ void HenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const Ma
 
 }
 
-void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
+void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const ParticleFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
 {
     mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
 
@@ -250,7 +250,7 @@ void HenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCa
     // E = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
 
     // Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( 3, 3 );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( 3, 3 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 

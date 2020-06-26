@@ -27,28 +27,11 @@
 
 #include "custom_mappers/mapper.h"
 
-
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup MappingApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -58,7 +41,7 @@ namespace Kratos
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-class MapperFactory
+class KRATOS_API(MAPPING_APPLICATION) MapperFactory
 {
 public:
     ///@name Type Definitions
@@ -72,36 +55,80 @@ public:
     ///@{
 
     /// Destructor.
-    virtual ~MapperFactory() { }
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
+    virtual ~MapperFactory() = default;
 
     ///@}
     ///@name Operations
     ///@{
-    
 
-    static Mapper::Pointer CreateMapper(ModelPart& rModelPartOrigin,
-                                        ModelPart& rModelPartDestination,
-                                        Parameters JsonParameters);
+    template<class TSparseSpace, class TDenseSpace>
+    static typename Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        Parameters MapperSettings)
+    {
+        ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
+        ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
 
-    static void Register(const std::string& MapperName,
-                         Mapper::Pointer pMapperPrototype);
+        KRATOS_ERROR_IF(!TSparseSpace::IsDistributed() && (r_interface_model_part_origin.IsDistributed() || r_interface_model_part_destination.IsDistributed())) << "Trying to construct a non-MPI Mapper with a distributed ModelPart. Please use \"CreateMPIMapper\" instead!" << std::endl;
 
+        KRATOS_ERROR_IF(TSparseSpace::IsDistributed() && !r_interface_model_part_origin.IsDistributed() && !r_interface_model_part_destination.IsDistributed()) << "Trying to construct a MPI Mapper without a distributed ModelPart. Please use \"CreateMapper\" instead!" << std::endl;
 
-    ///@}
-    ///@name Access
-    ///@{
+        const std::string mapper_name = MapperSettings["mapper_type"].GetString();
 
+        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+        if (mapper_list.find(mapper_name) != mapper_list.end()) {
+            // Removing Parameters that are not needed by the Mapper
+            MapperSettings.RemoveValue("mapper_type");
+            MapperSettings.RemoveValue("interface_submodel_part_origin");
+            MapperSettings.RemoveValue("interface_submodel_part_destination");
 
+            // TODO check why this works, Clone currently returns a unique ptr!!!
+            return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
+                                                      r_interface_model_part_destination,
+                                                      MapperSettings);
+        }
+        else {
+            std::stringstream err_msg;
+            err_msg << "The requested Mapper \"" << mapper_name <<"\" is not not available!\n"
+                    << "The following Mappers are available:" << std::endl;
+
+            for (auto const& registered_mapper : mapper_list)
+                err_msg << "\t" << registered_mapper.first << "\n";
+
+            KRATOS_ERROR << err_msg.str() << std::endl;
+        }
+    }
+
+    template<class TSparseSpace, class TDenseSpace>
+    static void Register(const std::string& rMapperName,
+                  typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
+    {
+        GetRegisteredMappersList<TSparseSpace, TDenseSpace>().insert(
+            std::make_pair(rMapperName, pMapperPrototype));
+    }
+
+    template<class TSparseSpace, class TDenseSpace>
+    static bool HasMapper(const std::string& rMapperName)
+    {
+        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+        return mapper_list.find(rMapperName) != mapper_list.end();
+    }
+
+    template<class TSparseSpace, class TDenseSpace>
+    static std::vector<std::string> GetRegisteredMapperNames()
+    {
+        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+
+        std::vector<std::string> mapper_names;
+
+        for (auto const& r_registered_mapper : mapper_list) {
+            mapper_names.push_back(r_registered_mapper.first);
+        }
+
+        return mapper_names;
+    }
 
     ///@}
     ///@name Input and output
@@ -124,67 +151,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
     ///@name Private Operations
     ///@{
 
@@ -195,28 +164,9 @@ private:
                                              Parameters InterfaceParameters,
                                              const std::string& InterfaceSide);
 
-    static std::unordered_map<std::string, Mapper::Pointer>& GetRegisteredMappersList();
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{s
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    MapperFactory& operator=(MapperFactory const& rOther);
-
-    //   /// Copy constructor.
-    //   MapperFactory(MapperFactory const& rOther){}
-
+    template<class TSparseSpace, class TDenseSpace>
+    static std::unordered_map<std::string, typename Mapper<TSparseSpace,
+        TDenseSpace>::Pointer>& GetRegisteredMappersList();
 
     ///@}
 
@@ -231,14 +181,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  MapperFactory& rThis)
-{
-    return rIStream;
-}
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,

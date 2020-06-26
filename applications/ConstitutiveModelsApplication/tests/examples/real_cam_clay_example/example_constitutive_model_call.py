@@ -106,8 +106,6 @@ print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 #cl.FinalizeMaterialResponsePK2( cl_params )
-cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
-
 
 print("\n The Material Response Kirchhoff")
 cl.CalculateMaterialResponseKirchhoff( cl_params )
@@ -116,7 +114,6 @@ print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 cl.FinalizeMaterialResponseKirchhoff( cl_params )
-cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
 
 print("\n The Material Response Cauchy")
 cl.CalculateMaterialResponseCauchy( cl_params )
@@ -125,4 +122,3 @@ print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 cl.FinalizeMaterialResponseCauchy( cl_params )
-cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )

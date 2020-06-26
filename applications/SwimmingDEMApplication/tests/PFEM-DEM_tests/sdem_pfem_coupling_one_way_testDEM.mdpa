@@ -1,0 +1,69 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+    PARTICLE_DENSITY 2500.0
+    YOUNG_MODULUS 100000.0
+    POISSON_RATIO 0.20
+    FRICTION 1.0
+    PARTICLE_COHESION 0.0
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 1
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Properties 2
+    PARTICLE_DENSITY 2500.0
+    YOUNG_MODULUS 100000.0
+    POISSON_RATIO 0.20
+    FRICTION 1.0
+    PARTICLE_COHESION 0.0
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 1
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Properties 3
+    PARTICLE_DENSITY 2500.0
+    YOUNG_MODULUS 100000.0
+    POISSON_RATIO 0.20
+    FRICTION 1.0
+    PARTICLE_COHESION 0.0
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 1
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes
+  378       0.00000        0.00000        0.2501
+End Nodes
+
+
+Begin Elements SphericSwimmingParticle3D// GUI group identifier: Parts Auto3
+    10719          3        378
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: Parts Auto3
+        378 0   0.003
+End NodalData
+
+Begin SubModelPart Parts_Parts_Auto3 // Group Parts Auto3 // Subtree Parts
+    Begin SubModelPartNodes
+          378
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        10719
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

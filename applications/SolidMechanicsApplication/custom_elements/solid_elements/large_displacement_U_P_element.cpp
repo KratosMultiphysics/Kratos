@@ -74,7 +74,7 @@ LargeDisplacementUPElement&  LargeDisplacementUPElement::operator=(LargeDisplace
 
 Element::Pointer LargeDisplacementUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared< LargeDisplacementUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< LargeDisplacementUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -104,7 +104,7 @@ Element::Pointer LargeDisplacementUPElement::Clone( IndexType NewId, NodesArrayT
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< LargeDisplacementUPElement >(NewElement);
+    return Kratos::make_intrusive< LargeDisplacementUPElement >(NewElement);
 }
 
 
@@ -560,7 +560,7 @@ void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRigh
         for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 
-            double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 
 	    // consistent=1;
 	    // if(i==j)
@@ -645,7 +645,7 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
         for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 
-            double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 
 	    if( dimension == 2 ){ //consistent 2D
 

@@ -109,16 +109,27 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : mrModelPart(rModelPart)
+    {
+        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
+        SetMoveMeshFlag(move_mesh_flag);
+    }
+
+    /**
+     * @brief Default constructor.
      * @param rModelPart The model part to be computed
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-
-    SolvingStrategy(
+    explicit SolvingStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
-    )
-        : mrModelPart(rModelPart)
+        ) : mrModelPart(rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
@@ -126,7 +137,7 @@ public:
     /** Destructor.
      */
     virtual ~SolvingStrategy(){}
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -152,7 +163,7 @@ public:
 
     /**
      * @brief The problem of interest is solved.
-     * @details 
+     * @details
      * {
      * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
      * All those functions can otherwise be called separately.
@@ -222,7 +233,7 @@ public:
     /**
      * @brief This sets the level of echo for the solving strategy
      * @param Level of echo for the solving strategy
-     * @details 
+     * @details
      * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
@@ -308,27 +319,20 @@ public:
     {
         KRATOS_TRY
 
-        if (GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
-        {
-            KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-        }
+        KRATOS_ERROR_IF(GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
         NodesArrayType& NodesArray = GetModelPart().Nodes();
         const int numNodes = static_cast<int>(NodesArray.size());
 
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++)
-        {
+        for(int i = 0; i < numNodes; ++i) {
             auto it_node = NodesArray.begin() + i;
 
             noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
             noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
         }
 
-        if (this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0 )
-        {
-            std::cout<<" MESH MOVED "<<std::endl;
-        }
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
 
         KRATOS_CATCH("")
     }
@@ -370,18 +374,6 @@ public:
                     KRATOS_ERROR << "ERROR:: Problem on node with Id " << itNode->Id() << "\nIt is impossible to move the mesh since the DISPLACEMENT var is not in the rModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
                 }
             }
-        }
-
-        for (ModelPart::ElementsContainerType::iterator it_elem = GetModelPart().ElementsBegin();
-             it_elem != GetModelPart().ElementsEnd(); it_elem++)
-        {
-            it_elem->Check(GetModelPart().GetProcessInfo());
-        }
-
-        for (ModelPart::ConditionsContainerType::iterator it_cond = GetModelPart().ConditionsBegin();
-             it_cond != GetModelPart().ConditionsEnd(); it_cond++)
-        {
-            it_cond->Check(GetModelPart().GetProcessInfo());
         }
 
         return 0;

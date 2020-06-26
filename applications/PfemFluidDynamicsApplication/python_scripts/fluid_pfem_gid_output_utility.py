@@ -1,11 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PfemFluidDynamicsApplication import *
-CheckForPreviousImport()
-
-## This is the same than the SolidMechanics/gid_output..; however it differs the import of Pfem, in order to write variables that are only defined in Pfem.
 
 class GidOutputUtility(object):
     _post_mode = {"Binary": GiDPostMode.GiD_PostBinary,

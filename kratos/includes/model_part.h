@@ -11,12 +11,8 @@
 //
 //
 
-
-
 #if !defined(KRATOS_MODEL_PART_H_INCLUDED )
 #define  KRATOS_MODEL_PART_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -24,9 +20,7 @@
 #include <sstream>
 #include <cstddef>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -34,6 +28,7 @@
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
+#include "containers/geometry_container.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
@@ -112,8 +107,7 @@ public:
 
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofsVectorType;
-    typedef Kratos::Variable<double> DoubleVariableType;
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+    typedef Variable<double> DoubleVariableType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
@@ -126,6 +120,7 @@ public:
 
 
     typedef Node < 3 > NodeType;
+    typedef Geometry<NodeType> GeometryType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;
@@ -240,6 +235,21 @@ public:
     usage. */
     typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
 
+    /// The Geometry Container.
+    /**
+    * Contains all geometries, which can be adressed by specific identifiers.
+    */
+    typedef GeometryContainer<GeometryType> GeometryContainerType;
+
+    /// Geometry Iterator
+    typedef typename GeometryContainerType::GeometryIterator GeometryIterator;
+
+    /// Const Geometry Iterator
+    typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
+
+    /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
+    typedef typename GeometryContainerType::GeometriesMapType GeometriesMapType;
+
     /// The container of the sub model parts. A hash table is used.
     /**
     */
@@ -259,8 +269,6 @@ public:
     */
     typedef SubModelPartsContainerType::const_iterator SubModelPartConstantIterator;
 
-
-
     ///@}
     ///@name Flags
     ///@{
@@ -272,13 +280,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    KRATOS_DEPRECATED_MESSAGE("Old style Modelpart constructor will be removed on nov 1 2018") 
-        ModelPart(std::string const& NewName, Model& rOwnerModel);
-
 
     /// Destructor.
     ~ModelPart() override;
-
 
     ///@}
     ///@name Operators
@@ -290,7 +294,6 @@ public:
     ///@}
     ///@name Solution Steps
     ///@{
-
 
     IndexType CreateSolutionStep();
 
@@ -364,7 +367,6 @@ public:
                     KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
-
             }
         }
 
@@ -391,7 +393,7 @@ public:
 
     /** Inserts a node in the current mesh.
      */
-    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, IndexType ThisIndex = 0);
+    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList::Pointer pNewVariablesList, IndexType ThisIndex = 0);
 
     NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, IndexType ThisIndex = 0);
 
@@ -456,8 +458,11 @@ public:
      */
     void RemoveNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
-    /** this function gives back the "root" model part, that is the model_part that has no father */
+    /** this function gives back the "root" model part, that is the model_part that has no father (non-const version)*/
     ModelPart& GetRootModelPart();
+
+    /** this function gives back the "root" model part, that is the model_part that has no father (const version)*/
+    const ModelPart& GetRootModelPart() const;
 
     NodeIterator NodesBegin(IndexType ThisIndex = 0)
     {
@@ -534,7 +539,17 @@ public:
         return *mpVariablesList;
     }
 
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    {
+        return mpVariablesList;
+    }
+
     void SetNodalSolutionStepVariablesList();
+
+    void SetNodalSolutionStepVariablesList(VariablesList::Pointer pNewVariablesList)
+    {
+        mpVariablesList = pNewVariablesList;
+    }
 
     SizeType GetNodalSolutionStepDataSize()
     {
@@ -545,7 +560,6 @@ public:
     {
         return mpVariablesList->DataSize() * mBufferSize;
     }
-
 
     ///@}
     ///@name Tables
@@ -611,7 +625,6 @@ public:
         return mTables.GetContainer();
     }
 
-
     ///@}
     ///@name MasterSlaveConstraints
     ///@{
@@ -650,8 +663,6 @@ public:
     {
         return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
     }
-
-
 
     /** Inserts a master-slave constraint in the current modelpart.
      */
@@ -730,16 +741,6 @@ public:
                                                                                     const double Constant,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id,
-                                                                                    NodeType& rMasterNode,
-                                                                                    const VariableComponentType& rMasterVariable,
-                                                                                    NodeType& rSlaveNode,
-                                                                                    const VariableComponentType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant,
-                                                                                    IndexType ThisIndex = 0);
-
     /**
      * @brief Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
      */
@@ -782,69 +783,143 @@ public:
     /** Returns a const reference MasterSlaveConstraint corresponding to it's identifier */
     const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0) const ;
 
-
     ///@}
     ///@name Properties
     ///@{
 
-    SizeType NumberOfProperties(IndexType ThisIndex = 0) const
-    {
-        return GetMesh(ThisIndex).NumberOfProperties();
-    }
+    /**
+     * @brief Returns the number of properties of the mesh
+     * @param ThisIndex The index identifying the mesh
+     * @return The number of properties of the mesh
+     */
+    SizeType NumberOfProperties(IndexType ThisIndex = 0) const;
 
-    /** Inserts a properties in the current mesh.
+    /**
+     * @brief Inserts a properties in the current mesh.
+     * @param pNewProperties The new property pointer to be added
+     * @param ThisIndex The index identifying the mesh
      */
     void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0);
 
-    /** Returns the Properties::Pointer  corresponding to it's identifier */
-    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
-    {
-        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(ThisIndex).Properties().end()) //property does exist
-        {
-            return *(pprop_it.base());
-        }
-        else
-        {
-            if(IsSubModelPart())
-            {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
-                GetMesh(ThisIndex).AddProperties(pprop);
-                return pprop;
-            }
-            else
-            {
-                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
-                GetMesh(ThisIndex).AddProperties(pnew_property);
-                return pnew_property;
-            }
-        }
-    }
+    /**
+     * @brief Returns if the Properties corresponding to it's identifier exists
+     * @param PropertiesId The id identifying the property
+     * @param ThisIndex The index identifying the mesh
+     * @return True if the properties exist, false otherwise
+     */
+    bool HasProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
-    /** Returns a reference Properties corresponding to it's identifier */
-    PropertiesType& GetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
-    {
-        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(ThisIndex).Properties().end()) //property does exist
-        {
-            return *pprop_it;
-        }
-        else
-        {
-            if(IsSubModelPart())
-            {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
-                GetMesh(ThisIndex).AddProperties(pprop);
-                return *pprop;
-            }
-            else
-            {
-                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
-                GetMesh(ThisIndex).AddProperties(pnew_property);
-                return *pnew_property;
-            }
-        }
-    }
+    /**
+     * @brief Returns if the Properties corresponding to it's identifier exists in any of the model parts
+     * @param PropertiesId The id identifying the property
+     * @param ThisIndex The index identifying the mesh
+     * @return True if the properties exist, false otherwise
+     */
+    bool RecursivelyHasProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+
+    /**
+     * @brief Creates a new property in the current mesh
+     * @details If the property is already existing it will crash
+     * @param PropertiesId The Id of the new property
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The new created properties
+     */
+    PropertiesType::Pointer CreateNewProperties(IndexType PropertiesId, IndexType MeshIndex = 0);
+
+    /**
+     * @brief Returns the Properties::Pointer  corresponding to it's identifier
+     * @details If the property is not existing it will return a warning
+     * @param PropertiesId The Id of the new property
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0);
+
+    /**
+     * @brief Returns the Properties::Pointer  corresponding to it's identifier (const version)
+     * @details If the property is not existing it will return a warning
+     * @param PropertiesId The Id of the new property
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+
+    /**
+     * @brief Returns the Properties::Pointer  corresponding to it's identifier
+     * @details If the property is not existing it will return a warning
+     * @param PropertiesId The Id of the new property
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0);
+
+    /**
+     * @brief Returns the Properties::Pointer  corresponding to it's identifier (const version)
+     * @details If the property is not existing it will return a warning
+     * @param PropertiesId The Id of the new property
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+
+    /**
+     * @brief Returns if the sub Properties corresponding to it's address exists
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param ThisIndex The index identifying the mesh
+     * @return True if the properties exist, false otherwise
+     */
+    bool HasProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    PropertiesType::Pointer pGetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        );
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address (const version)
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    const PropertiesType::Pointer pGetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    PropertiesType& GetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        );
+
+    /**
+     * @brief Returns the sub Properties::Pointer corresponding to it's address (const version)
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    const PropertiesType& GetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
 
     /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
@@ -1087,7 +1162,6 @@ public:
         return GetMesh(ThisIndex).ElementsArray();
     }
 
-
     ///@}
     ///@name Conditions
     ///@{
@@ -1265,6 +1339,117 @@ public:
         return GetMesh(ThisIndex).ConditionsArray();
     }
 
+    ///@}
+    ///@name Geometry Container
+    ///@{
+
+    SizeType NumberOfGeometries() const
+    {
+        return mGeometries.NumberOfGeometries();
+    }
+
+
+    /// Adds a geometry to the geometry container.
+    void AddGeometry(typename GeometryType::Pointer pNewGeometry);
+
+
+    /// Returns the Geometry::Pointer corresponding to the Id
+    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
+    /// Returns the const Geometry::Pointer corresponding to the Id
+    const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName) {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns a reference geometry corresponding to the id
+    GeometryType& GetGeometry(IndexType GeometryId) {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a const reference geometry corresponding to the id
+    const GeometryType& GetGeometry(IndexType GeometryId) const {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a reference geometry corresponding to the name
+    GeometryType& GetGeometry(std::string GeometryName) {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
+    /// Returns a const reference geometry corresponding to the name
+    const GeometryType& GetGeometry(std::string GeometryName) const {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
+
+    /// Checks if has geometry by id.
+    bool HasGeometry(IndexType GeometryId) const {
+        return mGeometries.HasGeometry(GeometryId);
+    }
+
+    /// Checks if has geometry by name.
+    bool HasGeometry(std::string GeometryName) const {
+        return mGeometries.HasGeometry(GeometryName);
+    }
+
+
+    /// Removes a geometry by id.
+    void RemoveGeometry(IndexType GeometryId);
+
+    /// Removes a geometry by name.
+    void RemoveGeometry(std::string GeometryName);
+
+    /// Removes a geometry by id from all root and sub model parts.
+    void RemoveGeometryFromAllLevels(IndexType GeometryId);
+
+    /// Removes a geometry by name from all root and sub model parts.
+    void RemoveGeometryFromAllLevels(std::string GeometryName);
+
+
+    /// Begin geometry iterator
+    GeometryIterator GeometriesBegin() {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// Begin geometry const iterator
+    GeometryConstantIterator GeometriesBegin() const {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// End geometry iterator
+    GeometryIterator GeometriesEnd() {
+        return mGeometries.GeometriesEnd();
+    }
+
+    /// End geometry const iterator
+    GeometryConstantIterator GeometriesEnd() const {
+        return mGeometries.GeometriesEnd();
+    }
+
+
+    /// Get geometry map containe
+    GeometriesMapType& Geometries()
+    {
+        return mGeometries.Geometries();
+    }
+
+    /// Get geometry map containe
+    const GeometriesMapType& Geometries() const
+    {
+        return mGeometries.Geometries();
+    }
 
     ///@}
     ///@name Sub model parts
@@ -1280,40 +1465,15 @@ public:
     */
     ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
-    /** Add an existing model part as a sub model part.
-    	All the meshes will be added to the parents.
-    	NOTE: The added sub model part should not have
-    	mesh entities with id in conflict with other ones in the parent
-    	In the case of conflict the new one would replace the old one
-    	resulting inconsitency in parent.
-    */
-    void AddSubModelPart(ModelPart& rThisSubModelPart);
-
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart& GetSubModelPart(std::string const& SubModelPartName)
-    {
-        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        if(i == mSubModelParts.end())
-            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
-            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
-
-            return *i;
-    }
+    ModelPart& GetSubModelPart(std::string const& SubModelPartName);
 
     /** Returns a shared pointer to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
-    {
-        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        if(i == mSubModelParts.end())
-            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
-            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
-
-        return (i.base()->second).get();
-    }
+    ModelPart* pGetSubModelPart(std::string const& SubModelPartName);
 
     /** Remove a sub modelpart with given name.
     */
@@ -1348,16 +1508,19 @@ public:
         return mSubModelParts;
     }
 
-
-    ModelPart* GetParentModelPart() const
+    const SubModelPartsContainerType& SubModelParts() const
     {
-        return mpParentModelPart;
+        return mSubModelParts;
     }
 
-    bool HasSubModelPart(std::string const& ThisSubModelPartName)
-    {
-        return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
-    }
+    /** Returns a pointer to the Parent ModelPart
+     * Returns a pointer to itself if it is not a SubModelPart
+    */
+    ModelPart* GetParentModelPart() const;
+
+    /** Returns whether this ModelPart has a SubModelPart with a given name
+    */
+    bool HasSubModelPart(std::string const& ThisSubModelPartName) const;
 
     ///@}
     ///@name Access
@@ -1462,10 +1625,37 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method returns the full name of the model part (including the parents model parts)
+     * @details This is evaluated in a recursive way
+     * @return The full name of the model part
+     */
+    std::string FullName() const
+    {
+        std::string full_name = this->Name();
+        if (this->IsSubModelPart()) {
+            full_name = this->GetParentModelPart()->FullName() + "." + full_name;
+        }
+        return full_name;
+    }
+
+    /**
+     * @brief This method returns the name list of submodelparts
+     * @return A vector conrtaining the list of submodelparts contained
+     */
     std::vector<std::string> GetSubModelPartNames();
 
+    /**
+     * @brief This method sets the suffer size of the model part database
+     * @details Must be called on root model part, otherwise error is thrown
+     * @param NewBufferSize The new buffer size to be set
+     */
     void SetBufferSize(IndexType NewBufferSize);
 
+    /**
+     * @brief This method gets the suffer size of the model part database
+     * @return mBufferSize The buffer size
+     */
     IndexType GetBufferSize() const
     {
         return mBufferSize;
@@ -1486,6 +1676,11 @@ public:
     bool IsSubModelPart() const
     {
         return (mpParentModelPart != NULL);
+    }
+
+    bool IsDistributed() const
+    {
+        return mpCommunicator->IsDistributed();
     }
 
     ///@}
@@ -1520,13 +1715,13 @@ private:
     friend class Model;
 
     /// Default constructor.
-    ModelPart(VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Constructor with name
-    ModelPart(std::string const& NewName,VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(std::string const& NewName,VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Constructor with name and bufferSize
-    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Copy constructor.
     ModelPart(ModelPart const& rOther) = delete;
@@ -1540,27 +1735,27 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mName;
+    std::string mName; /// The name of the model part
 
-    IndexType mBufferSize;
+    IndexType mBufferSize; /// The buffers size of the database
 
-    ProcessInfo::Pointer mpProcessInfo;
+    ProcessInfo::Pointer mpProcessInfo; /// The process info instance
 
-    TablesContainerType mTables;
+    TablesContainerType mTables; /// The tables contained on the model part
 
-    std::vector<IndexType> mIndices;
+    MeshesContainerType mMeshes; /// The container of all meshes
 
-    MeshesContainerType mMeshes;
+    GeometryContainerType mGeometries; /// The container of geometries
 
-    VariablesList* mpVariablesList;
+    VariablesList::Pointer mpVariablesList; /// The variable list
 
-    Communicator::Pointer mpCommunicator;
+    Communicator::Pointer mpCommunicator; /// The communicator
 
-    ModelPart* mpParentModelPart;
+    ModelPart* mpParentModelPart = NULL; /// The parent model part of the current model part
 
-    SubModelPartsContainerType mSubModelParts;
+    SubModelPartsContainerType mSubModelParts; /// The container of the submodelparts
 
-    Model& mrModel;
+    Model& mrModel; /// The model which contains this model part
 
     ///@}
     ///@name Private Operators
@@ -1570,6 +1765,32 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method trims a string in the different components to access recursively to any subproperty
+     * @param rStringName The given name to be trimmed
+     * @return The list of indexes
+     */
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName) const
+    {
+        std::vector<IndexType> list_indexes;
+
+        std::stringstream ss(rStringName);
+        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
+            list_indexes.push_back(std::stoi(index_string));
+        }
+
+        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
+
+        return list_indexes;
+    }
+
+    /**
+     * @brief This method sets the suffer size of the submodelparts belonging to the current model part (recursively)
+     * @param NewBufferSize The new buffer size to be set
+     */
+    void SetBufferSizeSubModelParts(IndexType NewBufferSize);
+
 
     void SetParentModelPart(ModelPart* pParentModelPart)
     {
@@ -1649,5 +1870,3 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
 } // namespace Kratos.
 
 #endif // KRATOS_MODEL_PART_H_INCLUDED  defined
-
-

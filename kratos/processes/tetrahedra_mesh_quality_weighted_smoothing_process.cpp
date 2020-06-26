@@ -47,7 +47,7 @@ namespace Kratos
 	{
 		auto const& r_neighbours = rNode.GetValue(NEIGHBOUR_ELEMENTS);
 		const std::size_t size = r_neighbours.size();
-		rOptimumPoints.resize(size, ZeroVector(3));
+		rOptimumPoints.resize(size, Point{ZeroVector(3)});
 		rWeights.resize(size);
 		for (std::size_t i = 0; i < size; i++)
 		{

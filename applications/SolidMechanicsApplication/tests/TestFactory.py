@@ -24,9 +24,10 @@ class TestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            self.model = KratosMultiphysics.Model()
             if( self.file_parameters == None ):
                 self.file_parameters = self.file_name + "_parameters.json"
-            self.test = MainSolid.Solution(self.file_parameters,self.file_name)
+            self.test = MainSolid.Solution(self.model, self.file_parameters, self.file_name)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):

@@ -3,9 +3,6 @@
 
 
 // System includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/variables.h"
 
 // External includes
 
@@ -26,7 +23,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Counted pointer of ShellKLDiscreteElement
-    KRATOS_CLASS_POINTER_DEFINITION(ShellKLDiscreteElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellKLDiscreteElement);
     ///@}
     ///@name Life Cycle
     ///@{
@@ -49,7 +46,7 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< ShellKLDiscreteElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< ShellKLDiscreteElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
     ///@}

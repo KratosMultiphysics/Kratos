@@ -1,14 +1,11 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-from compute_drag_process import ComputeDragProcess
+from KratosMultiphysics.FluidDynamicsApplication.compute_drag_process import ComputeDragProcess
 
 def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):

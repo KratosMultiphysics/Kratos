@@ -24,13 +24,17 @@ def ConstructPreconditioner(configuration):
 #
 def ConstructSolver(configuration):
 
+    depr_msg  = '"kratos/python_scripts/linear_solver_factory.py" is deprecated and will be removed\n'
+    depr_msg += 'Please use "kratos/python_scripts/python_linear_solver_factory.py" instead!'
+    Logger.PrintWarning('DEPRECATION-WARNING', depr_msg)
+
     params = 0
     ##############################################################
     ###THIS IS A VERY DIRTY HACK TO ALLOW PARAMETERS TO BE PASSED TO THE LINEAR SOLVER FACTORY
     ###TODO: clean this up!!
     if(type(configuration) == Parameters):
-        import new_linear_solver_factory
-        return new_linear_solver_factory.ConstructSolver(configuration)
+        from KratosMultiphysics import python_linear_solver_factory
+        return python_linear_solver_factory.ConstructSolver(configuration)
         #solver_type = configuration["solver_type"].GetString()
 
         #import json
@@ -78,7 +82,6 @@ def ConstructSolver(configuration):
             linear_solver = BICGSTABSolver(tol, max_it, precond)
     #
     elif(solver_type == "GMRES" or solver_type == "GMRESSolver"):
-        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         precond = ConstructPreconditioner(configuration)
         max_it = configuration.max_iteration
@@ -108,31 +111,14 @@ def ConstructSolver(configuration):
             assume_constant_structure,
             max_reduced_size)
     #
-    elif(solver_type == "GMRES-UP Block" or solver_type == "GMRES-UP_Block" ):
-        velocity_linear_solver = ConstructSolver(
-            configuration.velocity_block_configuration)
-        pressure_linear_solver = ConstructSolver(
-            configuration.pressure_block_configuration)
-        m = configuration.gmres_krylov_space_dimension
-        max_it = configuration.max_iteration
-        tol = configuration.tolerance
-        linear_solver = MixedUPLinearSolver(
-            velocity_linear_solver,
-            pressure_linear_solver,
-            tol,
-            max_it,
-            m)
-    #
     elif(solver_type == "Skyline LU factorization" or solver_type == "Skyline_LU_factorization" or solver_type == "SkylineLUFactorizationSolver"):
         linear_solver = SkylineLUFactorizationSolver()
     #
     elif(solver_type == "Super LU" or solver_type == "Super_LU" or solver_type == "SuperLUSolver"):
-        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver()
     #
     elif(solver_type == "SuperLUIterativeSolver"):
-        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         tol = configuration.tolerance
         max_it = configuration.max_iteration
@@ -165,7 +151,6 @@ def ConstructSolver(configuration):
 
     #
     elif(solver_type == "PastixDirect" or solver_type == "PastixSolver"):
-        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         is_symmetric = False
         if hasattr(configuration, 'is_symmetric'):
@@ -177,7 +162,6 @@ def ConstructSolver(configuration):
             verbosity, is_symmetric)
     #
     elif(solver_type == "PastixIterative"):
-        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         tol = configuration.tolerance
         max_it = configuration.max_iteration

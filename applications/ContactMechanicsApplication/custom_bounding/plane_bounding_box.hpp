@@ -415,7 +415,7 @@ public:
       double alpha = 0;
       QuaternionType Quaternion;
 
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 )
+      if( rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 )
 	angular_partitions = 2;
       else
 	angular_partitions = 4;
@@ -597,7 +597,7 @@ protected:
 	  FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
 
 	pFace    = Kratos::make_shared<Line2D2<NodeType> >(FaceNodes);
-        pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+        pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	rModelPart.AddElement(pElement);
 	pElement->Set(ACTIVE,false);
@@ -687,7 +687,7 @@ protected:
 	  FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
 
 	pFace    = Kratos::make_shared<Quadrilateral3D4<NodeType> >(FaceNodes);
-	pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+	pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	rModelPart.AddElement(pElement);
 	pElement->Set(ACTIVE,false);

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Jordi Cotela
 //                  Ruben Zorrilla
@@ -31,7 +31,7 @@
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "containers/periodic_variables_container.h"
 
 #undef  KRATOS_EXPORT_MACRO
@@ -45,13 +45,15 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, MAPPER_SCALAR_PROJECTION_RHS)
   KRATOS_DEFINE_VARIABLE(double, SCALAR_PROJECTED)
   KRATOS_DEFINE_VARIABLE(double, FICTITIOUS_FLUID_DENSITY)
+  KRATOS_DEFINE_VARIABLE(double, SCALAR_INTERFACE_RESIDUAL)
   KRATOS_DEFINE_VARIABLE(double, FSI_INTERFACE_RESIDUAL_NORM)
   KRATOS_DEFINE_VARIABLE(double, FSI_INTERFACE_MESH_RESIDUAL_NORM)
 
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MAPPER_VECTOR_PROJECTION_RHS)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VAUX_EQ_TRACTION)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_PROJECTED)
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RELAXED_DISP)
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RELAXED_DISPLACEMENT)
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(OLD_RELAXED_DISPLACEMENT)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(FSI_INTERFACE_RESIDUAL)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(FSI_INTERFACE_MESH_RESIDUAL)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(POSITIVE_MAPPED_VECTOR_VARIABLE)

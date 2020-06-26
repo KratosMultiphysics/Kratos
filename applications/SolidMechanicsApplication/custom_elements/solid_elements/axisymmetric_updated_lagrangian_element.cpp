@@ -71,7 +71,7 @@ AxisymmetricUpdatedLagrangianElement&  AxisymmetricUpdatedLagrangianElement::ope
 
 Element::Pointer AxisymmetricUpdatedLagrangianElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared< AxisymmetricUpdatedLagrangianElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< AxisymmetricUpdatedLagrangianElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -116,7 +116,7 @@ Element::Pointer AxisymmetricUpdatedLagrangianElement::Clone( IndexType NewId, N
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< AxisymmetricUpdatedLagrangianElement >(NewElement);
+    return Kratos::make_intrusive< AxisymmetricUpdatedLagrangianElement >(NewElement);
 }
 
 
@@ -134,7 +134,7 @@ AxisymmetricUpdatedLagrangianElement::~AxisymmetricUpdatedLagrangianElement()
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void AxisymmetricUpdatedLagrangianElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -153,7 +153,7 @@ void AxisymmetricUpdatedLagrangianElement::SetValueOnIntegrationPoints( const Va
   }
   else{
 
-    LargeDisplacementElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -258,9 +258,8 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementData (ElementDataTyp
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
-
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );

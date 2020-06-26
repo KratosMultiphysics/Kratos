@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosIncompressibleFluidApplication 
+KratosIncompressibleFluidApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: pbecker $
 //   Date:                $Date: 2011-09-21 12:30:32 $
 //   Revision:            $Revision: 1.0 $
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -72,7 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
-#include "processes/node_erase_process.h" 
+#include "processes/node_erase_process.h"
 ///
 
 #include "utilities/geometry_utilities.h"
@@ -81,7 +81,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 
@@ -92,7 +91,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "utilities/openmp_utils.h"
 
 #include "time.h"
@@ -103,23 +102,23 @@ namespace Kratos
 {
 	//this class is to be modified by the user to customize the interpolation process
 	template< unsigned int TDim>
-	class MoveParticleUtilityDiffFluidOnly 
+	class MoveParticleUtilityDiffFluidOnly
 	{
 	public:
-	
-	    typedef SpatialContainersConfigure<TDim>     Configure;   
-	    typedef typename Configure::PointType                      PointType; 
+
+	    typedef SpatialContainersConfigure<TDim>     Configure;
+	    typedef typename Configure::PointType                      PointType;
 	    //typedef PointType::CoordinatesArrayType           CoordinatesArrayType;
-        typedef typename Configure::ContainerType                  ContainerType;   
+        typedef typename Configure::ContainerType                  ContainerType;
         //typedef Configure::PointerType                    PointerType;
-        typedef typename Configure::IteratorType                   IteratorType; 
+        typedef typename Configure::IteratorType                   IteratorType;
         typedef typename Configure::ResultContainerType            ResultContainerType;
 	    //typedef Configure::ResultPointerType              ResultPointerType;
-        typedef typename Configure::ResultIteratorType             ResultIteratorType; 
+        typedef typename Configure::ResultIteratorType             ResultIteratorType;
         //typedef Configure::ContactPairType                ContactPairType;
-        //typedef Configure::ContainerContactType           ContainerContactType; 
-        //typedef Configure::IteratorContactType            IteratorContactType; 
-        //typedef Configure::PointerContactType             PointerContactType; 
+        //typedef Configure::ContainerContactType           ContainerContactType;
+        //typedef Configure::IteratorContactType            IteratorContactType;
+        //typedef Configure::PointerContactType             PointerContactType;
         //typedef Configure::PointerTypeIterator            PointerTypeIterator;
 
 		KRATOS_CLASS_POINTER_DEFINITION(TransferUtility);
@@ -132,8 +131,8 @@ namespace Kratos
 
             ProcessInfo& CurrentProcessInfo = mcalculation_model_part.GetProcessInfo();
 
-			
-			
+
+
 			//loop in elements to change their ID to their position in the array. Easier to get information later.
 			//DO NOT PARALELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
 			/*
@@ -145,8 +144,8 @@ namespace Kratos
 			}
 			mlast_elem_id= (mr_model_part.ElementsEnd()-1)->Id();
             */
-            
-            
+
+
             //CONSTRUCTING BIN STRUCTURE
             ContainerType& rElements           =  mtopographic_model_part.ElementsArray();
 	        IteratorType it_begin              =  rElements.begin();
@@ -157,28 +156,28 @@ namespace Kratos
 			paux.swap(mpBinsObjectDynamic);
 
 		}
-		
+
 
 		~TransferUtility()
 		{}
 
 
-		void GatherInformationFromTopographicDomain() 
+		void GatherInformationFromTopographicDomain()
 		{
 			KRATOS_TRY
 			KRATOS_WATCH("Gathering Information From Topographic Domain ")
 			ProcessInfo& CurrentProcessInfo = mcalculation_model_part.GetProcessInfo();
-			double delta_t = CurrentProcessInfo[DELTA_TIME];	
+			double delta_t = CurrentProcessInfo[DELTA_TIME];
 			array_1d<double,3> & gravity= CurrentProcessInfo[GRAVITY];
-			
+
 			const unsigned int max_results = 1000;
-			
+
 			//array_1d<double,TDim+1> N;
 			//const int max_results = 1000;
-	
+
 			ModelPart::NodesContainerType::iterator inodebegin = mcalculation_model_part.NodesBegin();
-			
-			
+
+
 			vector<unsigned int> node_partition;
 			#ifdef _OPENMP
 				int number_of_threads = omp_get_max_threads();
@@ -186,7 +185,7 @@ namespace Kratos
 				int number_of_threads = 1;
 			#endif
 			OpenMPUtils::CreatePartition(number_of_threads, mcalculation_model_part.Nodes().size(), node_partition);
-			
+
 			//before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
 			#pragma omp parallel for
 			for(int kkk=0; kkk<number_of_threads; kkk++)
@@ -194,28 +193,28 @@ namespace Kratos
 				array_1d<double,TDim+1> N;
 				ResultContainerType results(max_results);
 				ResultIteratorType result_begin = results.begin();
-				
+
 				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
 				{
 					if ( (results.size()) !=max_results)
 						results.resize(max_results);
-					
+
 					//const int & elem_id = ielem->Id();
 					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 					Element::Pointer pelement(*ielem.base());
-					Geometry<Node<3> >& geom = ielem->GetGeometry(); 
-					
+					Geometry<Node<3> >& geom = ielem->GetGeometry();
+
 					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_PARTICLES);
 					//std::cout << "elem " << ii << " with " << (unsigned int)number_of_particles_in_elem << " particles" << std::endl;
-					
+
 
 					is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
 
-						
+
 					}
-					
-					
+
+
 
 
 				}
@@ -224,20 +223,20 @@ namespace Kratos
 		}
 
 
-		
+
 
 	protected:
 
 
 	private:
 
-	
 
 
-	
-	
+
+
+
 	///this function should find the element into which a given node is located
-	///and return a pointer to the element and the vector containing the 
+	///and return a pointer to the element and the vector containing the
 	///shape functions that define the postion within the element
 	///if "false" is devolved the element is not found
 	bool FindNodeOnMesh( //int last_element,
@@ -248,13 +247,13 @@ namespace Kratos
 						 ResultIteratorType result_begin,
 						 const unsigned int MaxNumberOfResults)
 	{
-		typedef std::size_t SizeType; 
-		
+		typedef std::size_t SizeType;
+
 		const array_1d<double,3>& coords = position;
 		 array_1d<double,TDim+1> aux_N;
 	    //before using the bin to search for possible elements we check first the last element in which the particle was.
-	    
-		//ModelPart::ElementsContainerType::iterator i = mr_model_part.ElementsBegin()+last_element; 
+
+		//ModelPart::ElementsContainerType::iterator i = mr_model_part.ElementsBegin()+last_element;
 		Geometry<Node<3> >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
 		bool is_found_1 = CalculatePosition(geom_default,coords[0],coords[1],coords[2],N);
 		if(is_found_1 == true)
@@ -262,12 +261,12 @@ namespace Kratos
 			//pelement = (*(i));
 			return true;
 		}
-		
+
 		//KRATOS_WATCH("will look in another element")
 		//KRATOS_WATCH(TDim)
-		
+
 		//to begin with we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		/*
 		unsigned int checked_element=0;
@@ -288,7 +287,7 @@ namespace Kratos
 			}
 		}
 		*/
-		
+
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
 
@@ -300,12 +299,12 @@ namespace Kratos
 					return true;
 				}
 		}
-			
-	    
+
+
 		//ask to the container for the list of candidate elements
 		SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(coords, result_begin, MaxNumberOfResults );
 		//KRATOS_WATCH(results_found)
-				
+
 		if(results_found>0){
 		//loop over the candidate elements and check if the particle falls within
 		for(SizeType i = 0; i< results_found; i++)
@@ -313,14 +312,14 @@ namespace Kratos
 			//std::cout<< "KIIIIIIIIIIIIII" << std::endl;
 			//KRATOS_WATCH((*(result_begin+i))->Id());
 			Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
-			
-			
+
+
 			//find local position
 			bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
-			
+
 			//KRATOS_WATCH("ln243");
 			//KRATOS_WATCH(N);
-			
+
 			if(is_found == true)
 			{
 				//pelement.clear();
@@ -330,13 +329,13 @@ namespace Kratos
 			}
 		}
 	}
-		
+
 		//not found case
 		return false;
 	}
-	
-	
-	
+
+
+
 	//***************************************
         //***************************************
 
@@ -452,16 +451,16 @@ namespace Kratos
             double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
             return detJ * 0.1666666666666666666667;
         }
-        
-        
-        
+
+
+
 	ModelPart& mcalculation_model_part;
 	ModelPart& mtopographic_model_part;
-	
+
 	typename BinsObjectDynamic<Configure>::Pointer  mpBinsObjectDynamic;
 
 	};
-	
+
 }  // namespace Kratos.
 
-#endif // KRATOS_MOVE_PART_UTILITY_DIFF2_INCLUDED  defined 
+#endif // KRATOS_MOVE_PART_UTILITY_DIFF2_INCLUDED  defined

@@ -68,7 +68,7 @@ namespace Kratos
         ///@{
 
         /// Pointer definition of FractionalStep
-        KRATOS_CLASS_POINTER_DEFINITION(FractionalStep);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FractionalStep);
 
         /// Node type (default is: Node<3>)
         typedef Node <3> NodeType;
@@ -94,8 +94,6 @@ namespace Kratos
         typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
         typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-        typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
         /// Type for shape function values container
         typedef Kratos::Vector ShapeFunctionsType;
@@ -173,7 +171,7 @@ namespace Kratos
 	    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                                 Element::PropertiesType::Pointer pProperties) const override
 	    {
-            return Kratos::make_shared< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+            return Kratos::make_intrusive< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 	    }
 	
         /**
@@ -186,7 +184,7 @@ namespace Kratos
 		
         Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
         {
-            return Kratos::make_shared< FractionalStep<TDim> >(NewId, pGeom, pProperties);
+            return Kratos::make_intrusive< FractionalStep<TDim> >(NewId, pGeom, pProperties);
         }
         
         /**

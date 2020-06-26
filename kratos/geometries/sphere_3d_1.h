@@ -260,7 +260,7 @@ public:
     {
         return typename BaseType::Pointer( new Sphere3D1( ThisPoints ) );
     }
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -277,12 +277,22 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
 	if(rResult.size() != 1)
            rResult.resize( 1, false );
-        rResult[0] = 1.0;        
+        rResult[0] = 1.0;
         return rResult;
     }
 
@@ -305,7 +315,7 @@ public:
     double Length() const override
     {
         std::cout<<"This method (Length) has no meaning for this type of geometry (Sphere)."<<std::endl;
-                
+
         return 0.0;
     }
 
@@ -343,16 +353,9 @@ public:
         return 0.0;
     }
 
-//      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
-//              {
-//                 //rResult.Geometry() = *(this);
-//                 BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-//              }
-
     ///@}
     ///@name Jacobian
     ///@{
-
 
     /** Jacobians for given  method. This method
     calculate jacobians matrices in all integrations points of
@@ -369,7 +372,7 @@ public:
     @see InverseOfJacobian
     */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
-    {        
+    {
         std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
@@ -384,9 +387,9 @@ public:
     @return JacobiansType a Vector of jacobian
     matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
     point index of given integration method.
-    
+
     @param DeltaPosition Matrix with the nodes position increment which describes
-    the configuration where the jacobian has to be calculated.     
+    the configuration where the jacobian has to be calculated.
 
     @see DeterminantOfJacobian
     @see InverseOfJacobian
@@ -625,7 +628,7 @@ public:
     */
     void PrintData( std::ostream& rOStream ) const override
     {
-        
+
     }
 
     ///@}
@@ -678,6 +681,8 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -717,7 +722,7 @@ private:
         const int integration_points_number = IntegrationPoints.size();
         Matrix N( integration_points_number, 1 );
 
-        //std::cout<<"This method (CalculateShapeFunctionsIntegrationPointsValues) has no meaning for this type of geometry (Sphere)."<<std::endl;        
+        //std::cout<<"This method (CalculateShapeFunctionsIntegrationPointsValues) has no meaning for this type of geometry (Sphere)."<<std::endl;
 
         return N;
     }
@@ -830,15 +835,18 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 
 template<class TPointType>
-const GeometryData Sphere3D1<TPointType>::msGeometryData( 3,
-        3,
-        1,
+const GeometryData Sphere3D1<TPointType>::msGeometryData(
+        &msGeometryDimension,
         GeometryData::GI_GAUSS_1,
         Sphere3D1<TPointType>::AllIntegrationPoints(),
         Sphere3D1<TPointType>::AllShapeFunctionsValues(),
-        AllShapeFunctionsLocalGradients() );
+        AllShapeFunctionsLocalGradients()
+);
+
+template<class TPointType>
+const GeometryDimension Sphere3D1<TPointType>::msGeometryDimension(
+    3, 3, 1);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SPHERE_3D_1_H_INCLUDED  defined 
-
+#endif // KRATOS_SPHERE_3D_1_H_INCLUDED  defined

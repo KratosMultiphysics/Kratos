@@ -8,20 +8,19 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 //
-
 
 // System includes
 
 // External includes
 
-
 // Project includes
 #include "includes/define_python.h"
 #include "python/add_factories_to_python.h"
-#include "includes/linear_solver_factory.h"
-#include "includes/preconditioner_factory.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -60,6 +59,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     py::class_<PreconditionerFactoryType, PreconditionerFactoryType::Pointer >(m, "PreconditionerFactory")
      .def( py::init< >() )
      .def("Create",&PreconditionerFactoryType::Create)
+     .def("Has",&PreconditionerFactoryType::Has)
     ;
 
 }
@@ -67,4 +67,3 @@ void  AddFactoriesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

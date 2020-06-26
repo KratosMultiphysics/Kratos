@@ -6,15 +6,7 @@ import TestFactory as TF
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-class Dam_Break_2D_Newtonian_Test(TF.TestFactory):
-     file_name = "fluid_element_tests/Dam_Break_2D/Newtonian_fluid/Dam_break_2D"
-     file_parameters = "fluid_element_tests/Dam_Break_2D/Newtonian_fluid/ProjectParameters.json"
-class Water_sloshing_Box_3D_Newtonian_Test(TF.TestFactory):
-     file_name = "fluid_element_tests/Water_sloshing_Box/Newtonian_fluid/Water_sloshing_Box"
-     file_parameters = "fluid_element_tests/Water_sloshing_Box/Newtonian_fluid/ProjectParameters.json"
-class Water_sloshing_Box_3D_Non_Newtonian_Test(TF.TestFactory):
-      file_name = "fluid_element_tests/Water_sloshing_Box/Non_Newtonian_fluid/Water_sloshing_Box"
-      file_parameters = "fluid_element_tests/Water_sloshing_Box/Non_Newtonian_fluid/ProjectParameters.json"
+
 class Bingham_Dam_Break_2D_Test(TF.TestFactory):
     file_name = "fluid_element_tests/Test_2D_Bingham/Test_2D_Bingham"
     file_parameters = "fluid_element_tests/Test_2D_Bingham/ProjectParameters.json"
@@ -22,23 +14,25 @@ class Bingham_Dam_Break_2D_Test(TF.TestFactory):
 class Water_Sloshing_3D_Test(TF.TestFactory):
     file_name = "fluid_element_tests/Test_3D_Newtonian_Sloshing/Test_3D_Newtonian_Sloshing"
     file_parameters = "fluid_element_tests/Test_3D_Newtonian_Sloshing/ProjectParameters.json"
-    
+
 class FSI_2D_Test(TF.TestFactory):
     file_name = "fluid_element_tests/Test_2D_FSI/Test_2D_FSI"
     file_parameters = "fluid_element_tests/Test_2D_FSI/ProjectParameters.json"
 
+class Inlet_3D_Test(TF.TestFactory):
+    file_name = "pfem_utilities_tests/Test_3D_Inlet/Test_3D_Inlet"
+    file_parameters = "pfem_utilities_tests/Test_3D_Inlet/ProjectParameters.json"
+
+class Thermal_Coupling_2D_Test(TF.TestFactory):
+    file_name = "pfem_utilities_tests/2D_thermal_coupling/Test_2D_Thermal_Coupling_Refining"
+    file_parameters = "pfem_utilities_tests/2D_thermal_coupling/ProjectParameters.json"
 
 def SetTestSuite(suites):
     night_suite = suites['nightly']
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            # Dam_Break_2D_Newtonian_Test,
-            # Water_sloshing_Box_3D_Non_Newtonian_Test,
-            # Water_sloshing_Box_3D_Newtonian_Test
-            Bingham_Dam_Break_2D_Test,
-            Water_Sloshing_3D_Test,
-            FSI_2D_Test
+            Water_Sloshing_3D_Test, Inlet_3D_Test#, Thermal_Coupling_2D_Test
         ])
     )
 

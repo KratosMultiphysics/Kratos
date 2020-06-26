@@ -58,14 +58,14 @@ QSVMS<TElementData>::~QSVMS()
 template< class TElementData >
 Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<QSVMS>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<QSVMS>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TElementData >
 Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<QSVMS>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<QSVMS>(NewId, pGeom, pProperties);
 }
 
 template <class TElementData>
@@ -142,8 +142,7 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
-            data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
-            this->CalculateMaterialResponse(data);
+            this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
             this->SubscaleVelocity(data, rValues[g]);
         }
@@ -175,8 +174,7 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
-            data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
-            this->CalculateMaterialResponse(data);
+            this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
             this->SubscalePressure(data,rValues[g]);
         }
@@ -566,9 +564,9 @@ void QSVMS<TElementData>::AddBoundaryTraction(TElementData& rData,
         for (unsigned int d = 0; d < Dim; d++) {
             const unsigned int row = i*BlockSize + d;
             for (unsigned int col = 0; col < LocalSize; col++) {
-                rLHS(row,col) += wni*normal_stress_operator(d,col);
+                rLHS(row,col) -= wni*normal_stress_operator(d,col);
             }
-            rRHS[row] -= wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
+            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
         }
     }
 }
@@ -680,8 +678,7 @@ void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProces
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
-        this->CalculateMaterialResponse(data);
+        this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
         array_1d<double, 3> MomentumRes = ZeroVector(3);
         double MassRes = 0.0;

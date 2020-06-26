@@ -79,7 +79,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of TotalLagrangian
-    KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangian);
 
     ///@}
     ///@name Life Cycle
@@ -131,13 +131,16 @@ public:
         ) const override;
 
     /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The current process info instance
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
 
     //std::string Info() const;
 
@@ -157,13 +160,25 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -195,7 +210,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
