@@ -107,6 +107,7 @@ class CoupledRANSSolver(PythonSolver):
         self.is_converged = False
         self.min_buffer_size = self.formulation.GetMinimumBufferSize()
         self.move_mesh = self.settings["move_mesh"].GetBool()
+        self.echo_level = self.settings["echo_level"].GetInt()
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver construction finished.")
@@ -215,7 +216,7 @@ class CoupledRANSSolver(PythonSolver):
         self.formulation.SolveCouplingStep()
         self.is_converged = self.formulation.IsConverged()
 
-        if not self.is_converged and not self.IsSteadySimulation():
+        if not self.is_converged and not self.IsSteadySimulation() and self.echo_level > -1:
             msg = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[Kratos.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[Kratos.TIME]) + "\n"
             Kratos.Logger.PrintWarning(self.__class__.__name__, msg)

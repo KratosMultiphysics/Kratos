@@ -15,10 +15,16 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
 
 # Import the tests or test_classes to create the suits
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
+
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
 from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
 from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
+
+from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
+from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKEpsilonHighReTest
+from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
+from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSSTTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -39,33 +45,33 @@ def AssembleTestSuites():
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
-    nightlyMPISuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlowMPI')))
-    nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureSteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureTransientMPI')))
+
+        # addign incompressible potential flow solver tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IncompressiblePotentialFlowSolverFormulationTest]))
+
+    # adding monolithic flow solver tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicVelocityPressureFormulationTest]))
 
     # adding monolithic k-epsilon high re tests
-    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeSteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocitySteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeSteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocitySteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeTransientMPI')))
-    nightlyMPISuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocityTransientMPI')))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonHighReTest]))
 
     # adding monolithic k-omega tests
-    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcTkeSteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcVelocitySteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeSteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocitySteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeTransientMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocityTransientMPI')))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaTest]))
 
     # adding monolithic k-omega-sst tests
-    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcTkeSteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcVelocitySteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcTkeSteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcVelocitySteadyMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcTkeTransientMPI')))
-    nightlyMPISuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcVelocityTransientMPI')))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTTest]))
+
+    # adding fractional step flow solver tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepVelocityPressureFormulationTest]))
+
+    # adding fractional step k-epsilon high re tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKEpsilonHighReTest]))
+
+    # adding fractional step k-omega tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
+
+    # adding fractional step k-omega-sst tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaSSTTest]))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']

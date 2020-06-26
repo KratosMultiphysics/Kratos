@@ -3,13 +3,13 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 import evm_turbulence_modelling_test_case
 
 
-class MonolithicKOmegaTest(
+class FractionalStepKOmegaSSTTest(
         evm_turbulence_modelling_test_case.EvmTurbulenceModellingTestCase):
     @classmethod
     def setUpClass(cls):
-        super(MonolithicKOmegaTest, cls).setUpCase(
+        super(FractionalStepKOmegaSSTTest, cls).setUpCase(
             "BackwardFacingStepTest",
-            "backward_facing_step_monolithic_k_omega_parameters.json",
+            "backward_facing_step_fractional_step_k_omega_sst_parameters.json",
             False)
 
 

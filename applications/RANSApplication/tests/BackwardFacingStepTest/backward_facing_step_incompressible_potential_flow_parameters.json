@@ -16,7 +16,7 @@
             "input_filename": "backward_facing_step",
             "partition_in_memory": true
         },
-        "echo_level": 0,
+        "echo_level": -1,
         "volume_model_part_name": "Parts_fluid",
         "skin_parts": [
             "AutomaticInlet2D_inlet",

@@ -14,10 +14,16 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 # Import the tests o test_classes to create the suites
 import run_cpp_unit_tests
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
+
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
 from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
 from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
+
+from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
+from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKEpsilonHighReTest
+from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
+from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSSTTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -40,33 +46,32 @@ def AssembleTestSuites():
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
-    nightSuite.addTest((IncompressiblePotentialFlowSolverFormulationTest('testIncompressiblePotentialFlow')))
-    nightSuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureSteady')))
-    nightSuite.addTest((MonolithicVelocityPressureFormulationTest('testMonolithicVelocityPressureTransient')))
+    # addign incompressible potential flow solver tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IncompressiblePotentialFlowSolverFormulationTest]))
+
+    # adding monolithic flow solver tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicVelocityPressureFormulationTest]))
 
     # adding monolithic k-epsilon high re tests
-    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcTkeSteady')))
-    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReAfcVelocitySteady')))
-    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeSteady')))
-    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocitySteady')))
-    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcTkeTransient')))
-    nightSuite.addTest((MonolithicKEpsilonHighReTest('testMonolithicKEpsilonHighReRfcVelocityTransient')))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonHighReTest]))
 
     # adding monolithic k-omega tests
-    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcTkeSteady')))
-    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaAfcVelocitySteady')))
-    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeSteady')))
-    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocitySteady')))
-    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcTkeTransient')))
-    nightSuite.addTest((MonolithicKOmegaTest('testMonolithicKOmegaRfcVelocityTransient')))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaTest]))
 
     # adding monolithic k-omega-sst tests
-    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcTkeSteady')))
-    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTAfcVelocitySteady')))
-    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcTkeSteady')))
-    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcVelocitySteady')))
-    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcTkeTransient')))
-    nightSuite.addTest((MonolithicKOmegaSSTTest('testMonolithicKOmegaSSTRfcVelocityTransient')))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTTest]))
+
+    # adding fractional step flow solver tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepVelocityPressureFormulationTest]))
+
+    # adding fractional step k-epsilon high re tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKEpsilonHighReTest]))
+
+    # adding fractional step k-omega tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
+
+    # adding fractional step k-omega-sst tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaSSTTest]))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
