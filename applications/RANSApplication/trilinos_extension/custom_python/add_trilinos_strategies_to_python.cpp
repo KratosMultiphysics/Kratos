@@ -49,7 +49,6 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
     using MPILinearSolverType = LinearSolver<MPISparseSpaceType, LocalSpaceType>;
     using MPIBaseSchemeType = Scheme<MPISparseSpaceType, LocalSpaceType>;
-    using MPIConvergenceCriteria = ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
     using MPIBaseConvergenceCriteriaType = ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
     using MPIBaseSolvingStrategyType = SolvingStrategy<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
 
