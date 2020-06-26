@@ -180,10 +180,11 @@ namespace Kratos
                     unsigned int previouslyIsolatedNodes = 0;
                     unsigned int sumPreviouslyIsolatedFreeSurf = 0;
                     unsigned int sumIsolatedFreeSurf = 0;
-                    array_1d<double, 3> nodeA(3, 0.0);
-                    array_1d<double, 3> nodeB(3, 0.0);
-                    array_1d<double, 3> nodeC(3, 0.0);
-                    array_1d<double, 3> nodeD(3, 0.0);
+                    std::vector<array_1d<double, 3>> nodesCoordinates;
+                    nodesCoordinates.resize(nds);
+                    std::vector<array_1d<double, 3>> nodesVelocities;
+                    nodesVelocities.resize(nds);
+                    unsigned int isolatedNodesInTheElement = 0;
                     for (unsigned int pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
@@ -196,6 +197,13 @@ namespace Kratos
                             break;
                         }
                         vertices.push_back(rNodes(OutElementList[el * nds + pn]));
+
+                        if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID))
+                        {
+                            isolatedNodesInTheElement += vertices.back().FastGetSolutionStepValue(ISOLATED_NODE);
+                            // if (isolatedNode==true)
+                                // std::cout << el << "node " << vertices.back().Id() << " " << vertices.back().X() << " " << vertices.back().Y() << std::endl;
+                        }
                         // check flags on nodes
                         if (vertices.back().Is(ISOLATED))
                         {
@@ -237,13 +245,15 @@ namespace Kratos
                             numfreesurf++;
                             const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);
                             normVelocityP[pn] = norm_2(velocityP0);
+                            nodesVelocities[pn] = velocityP0;
                             checkedNodes++;
                         }
                         else if (vertices.back().Is(ISOLATED))
                         {
-                            checkedNodes++;
                             const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);
                             normVelocityP[pn] = norm_2(velocityP0);
+                            nodesVelocities[pn] = velocityP0;
+                            checkedNodes++;
                         }
                         if (vertices.back().Is(INLET))
                         {
@@ -263,22 +273,7 @@ namespace Kratos
                         }
                         if (dimension == 3)
                         {
-                            if (pn == 0)
-                            {
-                                nodeA = vertices.back().Coordinates();
-                            }
-                            else if (pn == 1)
-                            {
-                                nodeB = vertices.back().Coordinates();
-                            }
-                            else if (pn == 2)
-                            {
-                                nodeC = vertices.back().Coordinates();
-                            }
-                            else if (pn == 3)
-                            {
-                                nodeD = vertices.back().Coordinates();
-                            }
+                            nodesCoordinates[pn] = vertices.back().Coordinates();
                         }
                     }
 
@@ -314,10 +309,10 @@ namespace Kratos
                         {
                             Alpha *= 1.1;
                         }
-                        else
-                        {
-                            Alpha *= 1.04;
-                        }
+                        // else
+                        // {
+                        //     Alpha *= 1.04;
+                        // }
                     }
                     else if (dimension == 3)
                     {
@@ -328,8 +323,7 @@ namespace Kratos
                         else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
                             Alpha *= 1.125;
-                        }
-                        else if (numfreesurf < 4 && numisolated < 4 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes < 4 && sumPreviouslyIsolatedFreeSurf < 4 && sumIsolatedFreeSurf < 4)
+                        }else // else if (numfreesurf < 4 && numisolated < 4 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes < 4 && sumPreviouslyIsolatedFreeSurf < 4 && sumIsolatedFreeSurf < 4)
                         {
                             Alpha *= 1.05;
                         }
@@ -373,17 +367,35 @@ namespace Kratos
                     {
                         if (dimension == 2)
                         {
-                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid == 0)
+                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid == 0 && isolatedNodesInTheElement > 0)
                             {
                                 if (checkedNodes == nds)
                                 {
-                                    const double maxValue = 1.5;
+                                    const double maxValue = 1.1;
                                     const double minValue = 1.0 / maxValue;
                                     if (normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[1] < minValue ||
                                         normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[2] < minValue ||
                                         normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[2] < minValue)
                                     {
                                         accepted = false;
+                                    }
+                                    else
+                                    {
+                                        double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
+                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
+                                                             sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)));
+                                        double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
+                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
+                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
+                                        double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
+                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)) *
+                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
+
+                                        if (fabs(cosAngle01) < 0.99 || fabs(cosAngle02) < 0.99 || fabs(cosAngle12) < 0.99)
+                                        {
+                                            accepted = false;
+                                            // std::cout << isolatedNodesInTheElement << " isolatedNodesInTheElement The angle between the velocity vectors is too big" << std::endl;
+                                        }
                                     }
                                 }
                             }
@@ -398,11 +410,11 @@ namespace Kratos
                         }
                         else if (dimension == 3)
                         {
-                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid == 0)
+                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds || previouslyIsolatedNodes == nds || previouslyFreeSurfaceNodes == nds) && numrigid == 0  && isolatedNodesInTheElement > 0)
                             {
                                 if (checkedNodes == nds)
                                 {
-                                    const double maxValue = 1.5;
+                                    const double maxValue = 1.1;
                                     const double minValue = 1.0 / maxValue;
                                     if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
                                         normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
@@ -413,13 +425,40 @@ namespace Kratos
                                     {
                                         accepted = false;
                                     }
+                                    else
+                                    {
+                                        double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1] + nodesVelocities[0][1] * nodesVelocities[1][2]) /
+                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
+                                                             sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)));
+                                        double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1] + nodesVelocities[0][1] * nodesVelocities[2][2]) /
+                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
+                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
+                                        double cosAngle03 = (nodesVelocities[0][0] * nodesVelocities[3][0] + nodesVelocities[0][1] * nodesVelocities[3][1] + nodesVelocities[0][1] * nodesVelocities[3][2]) /
+                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
+                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
+                                        double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1] + nodesVelocities[1][1] * nodesVelocities[2][2]) /
+                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
+                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
+                                        double cosAngle13 = (nodesVelocities[1][0] * nodesVelocities[3][0] + nodesVelocities[1][1] * nodesVelocities[3][1] + nodesVelocities[1][1] * nodesVelocities[3][2]) /
+                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
+                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
+                                        double cosAngle23 = (nodesVelocities[2][0] * nodesVelocities[3][0] + nodesVelocities[2][1] * nodesVelocities[3][1] + nodesVelocities[2][1] * nodesVelocities[3][2]) /
+                                                            (sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)) *
+                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
+
+                                        if (fabs(cosAngle01) < 0.99 || fabs(cosAngle02) < 0.99 || fabs(cosAngle03) < 0.99 || fabs(cosAngle12) < 0.99 || fabs(cosAngle13) < 0.99 || fabs(cosAngle23) < 0.99)
+                                        {
+                                            accepted = false;
+                                            // std::cout << "The angle between the velocity vectors is too big" << std::endl;
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
 
                     // // to control that the element has a good shape
-                    if (dimension == 3 && accepted && numrigid == 0 &&
+                    if (dimension == 3 && accepted && numrigid <3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4))
                     {
                         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
@@ -428,27 +467,27 @@ namespace Kratos
                         double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
                         double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
                         double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        a1 = (nodeB[1] - nodeA[1]) * (nodeC[2] - nodeA[2]) - (nodeC[1] - nodeA[1]) * (nodeB[2] - nodeA[2]);
-                        b1 = (nodeB[2] - nodeA[2]) * (nodeC[0] - nodeA[0]) - (nodeC[2] - nodeA[2]) * (nodeB[0] - nodeA[0]);
-                        c1 = (nodeB[0] - nodeA[0]) * (nodeC[1] - nodeA[1]) - (nodeC[0] - nodeA[0]) * (nodeB[1] - nodeA[1]);
+                        a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+                        b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+                        c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
                         double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
                         double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
                         double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        a2 = (nodeB[1] - nodeA[1]) * (nodeD[2] - nodeA[2]) - (nodeD[1] - nodeA[1]) * (nodeB[2] - nodeA[2]);
-                        b2 = (nodeB[2] - nodeA[2]) * (nodeD[0] - nodeA[0]) - (nodeD[2] - nodeA[2]) * (nodeB[0] - nodeA[0]);
-                        c2 = (nodeB[0] - nodeA[0]) * (nodeD[1] - nodeA[1]) - (nodeD[0] - nodeA[0]) * (nodeB[1] - nodeA[1]);
+                        a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+                        b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+                        c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
                         double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
                         double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
                         double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        a3 = (nodeB[1] - nodeC[1]) * (nodeD[2] - nodeC[2]) - (nodeD[1] - nodeC[1]) * (nodeB[2] - nodeC[2]);
-                        b3 = (nodeB[2] - nodeC[2]) * (nodeD[0] - nodeC[0]) - (nodeD[2] - nodeC[2]) * (nodeB[0] - nodeC[0]);
-                        c3 = (nodeB[0] - nodeC[0]) * (nodeD[1] - nodeC[1]) - (nodeD[0] - nodeC[0]) * (nodeB[1] - nodeC[1]);
+                        a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
+                        b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
+                        c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
                         double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
                         double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
                         double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        a4 = (nodeA[1] - nodeC[1]) * (nodeD[2] - nodeC[2]) - (nodeD[1] - nodeC[1]) * (nodeA[2] - nodeC[2]);
-                        b4 = (nodeA[2] - nodeC[2]) * (nodeD[0] - nodeC[0]) - (nodeD[2] - nodeC[2]) * (nodeA[0] - nodeC[0]);
-                        c4 = (nodeA[0] - nodeC[0]) * (nodeD[1] - nodeC[1]) - (nodeD[0] - nodeC[0]) * (nodeA[1] - nodeC[1]);
+                        a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
+                        b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
+                        c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
 
                         double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
                         double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));

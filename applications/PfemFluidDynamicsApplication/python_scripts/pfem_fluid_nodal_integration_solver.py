@@ -124,6 +124,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
 
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_ERROR_XX)
