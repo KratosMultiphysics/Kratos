@@ -25,6 +25,8 @@ from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKE
 from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
 from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSSTTest
 
+from custom_process_tests import CustomProcessTest
+
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
@@ -41,6 +43,9 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
+    smallSuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocityTransient"))
+    smallSuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocityTransient"))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

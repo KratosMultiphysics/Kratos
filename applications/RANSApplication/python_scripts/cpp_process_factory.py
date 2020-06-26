@@ -3,6 +3,7 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 
 from KratosMultiphysics import IsDistributedRun
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateWallDistanceCalculationProcess
 
 def Factory(settings, Model):
     if (not isinstance(settings, Kratos.Parameters)):
@@ -24,6 +25,34 @@ def Factory(settings, Model):
         [
             "OmegaTurbulentMixingLengthInletProcess",
             KratosRANS.RansOmegaTurbulentMixingLengthInletProcess
+        ],
+        [
+            "ApplyExactNodalPeriodicConditionProcess",
+            KratosRANS.RansApplyExactNodalPeriodicConditionProcess
+        ],
+        [
+            "ApplyFlagProcess",
+            KratosRANS.RansApplyFlagProcess
+        ],
+        [
+            "CheckScalarBoundsProcess",
+            KratosRANS.RansCheckScalarBoundsProcess
+        ],
+        [
+            "CheckVectorBoundsProcess",
+            KratosRANS.RansCheckVectorBoundsProcess
+        ],
+        [
+            "ClipScalarVariableProcess",
+            KratosRANS.RansClipScalarVariableProcess
+        ],
+        [
+            "LineOutputProcess",
+            KratosRANS.RansLineOutputProcess
+        ],
+        [
+            "WallDistanceCalculationProcess",
+            CreateWallDistanceCalculationProcess
         ]
     ]
 
