@@ -540,6 +540,10 @@ private:
 
 }; // Class GenericTotalLagrangianFemDemElement
 
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::VoigtSize;
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::NumberOfEdges;
+
+
 ///@}
 ///@name Type Definitions
 ///@{

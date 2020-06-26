@@ -290,6 +290,9 @@ protected:
     ///@{
 }; // Class GenericSmallStrainFemDemElement
 
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericSmallStrainFemDemElement<TDim, TyieldSurf>::VoigtSize;
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericSmallStrainFemDemElement<TDim, TyieldSurf>::NumberOfEdges;
+
 ///@}
 ///@name Type Definitions
 ///@{
