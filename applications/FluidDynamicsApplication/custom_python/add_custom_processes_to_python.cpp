@@ -38,6 +38,7 @@
 #include "custom_processes/mass_conservation_check_process.h"
 #include "custom_processes/shock_detection_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
+#include "custom_processes/surface_smoothing_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -146,6 +147,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     (m,"TwoFluidsInletProcess")
     .def(py::init< ModelPart&, Parameters&, Process::Pointer >())
     .def("SmoothDistanceField", &TwoFluidsInletProcess::SmoothDistanceField)
+    ;
+
+    py::class_<SurfaceSmoothingProcess, SurfaceSmoothingProcess::Pointer, Process> (m, "SurfaceSmoothingProcess")
+    .def(py::init<ModelPart&, LinearSolverType::Pointer>())
+    .def("Clear", &SurfaceSmoothingProcess::Clear)
     ;
 }
 
