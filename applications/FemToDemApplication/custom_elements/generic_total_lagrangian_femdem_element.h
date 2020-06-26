@@ -394,6 +394,10 @@ protected:
         std::vector<double> &rValues,
         const ProcessInfo &rCurrentProcessInfo) override;
 
+    void SetValuesOnIntegrationPoints(const Variable<double> &rVariable,
+                                      std::vector<double> &rValues,
+                                      const ProcessInfo &rCurrentProcessInfo);
+
     void CalculateOnIntegrationPoints(
         const Variable<double> &rVariable,
         std::vector<double> &rOutput,

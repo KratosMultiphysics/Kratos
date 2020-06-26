@@ -7,7 +7,7 @@
   * [Specific Application Dependencies](#specific-application-dependencies)
 * [Basic Configuration](#basic-configuration)
 * [Adding Applications](#adding-applications)
-* [Adding Kratos to Path](#adding-kratos-to-path)
+* [Post Compilation](#post-compilation)
 * [Examples](#examples)
   * [Linux](#linux)
   * [Windows](#windows)
@@ -150,7 +150,7 @@ CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
 CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
 ```
 
-## Adding Kratos to Path
+## Post Compilation
 
 As Kratos is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the Kratos install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
 
@@ -164,6 +164,22 @@ If you are in windows instead do:
 ```cmd
 set PYTHONPATH=%PYTHONPATH%;C:/Kratos/bin/Release
 set PATH=%PATH%;C:/Kratos/bin/Release/libs
+```
+
+You can then test your compilation by executing an example script or trying to import the python module
+
+```python
+from KratosMultiphysics import *
+```
+
+The result should be:
+
+```
+   |  /           |             
+   ' /   __| _` | __|  _ \   __|
+   . \  |   (   | |   (   |\__ \ 
+  _|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 8.0
 ```
 
 ## Examples

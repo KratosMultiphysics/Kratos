@@ -198,6 +198,24 @@ protected:
     bool any_node_to_erase = false;
     for (ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
     {
+        if (in->Is(ISOLATED)) //to record the information of the previous step
+        {
+          in->FastGetSolutionStepValue(PREVIOUS_FREESURFACE) = 1;
+        }
+        else
+        {
+          in->FastGetSolutionStepValue(PREVIOUS_FREESURFACE) = 0;
+        }
+
+        if (in->Is(FREE_SURFACE)) //to record the information of the previous step
+        {
+          in->FastGetSolutionStepValue(FREESURFACE) = 1;
+        }
+        else
+        {
+          in->FastGetSolutionStepValue(FREESURFACE) = 0;
+        }
+        
       in->Reset(BOUNDARY);
       in->Reset(FREE_SURFACE);
 
