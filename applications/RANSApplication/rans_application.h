@@ -26,6 +26,9 @@
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
 
+// fractional step extended element
+#include "custom_elements/rans_fractional_step_element.h"
+
 // stabilized generic convection diffusion reaction elements
 #include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
 #include "custom_elements/convection_diffusion_reaction_element.h"
@@ -60,6 +63,9 @@
 // incompressible potential flow conditions
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_inlet_condition.h"
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_body_force_condition.h"
+
+// fractional step wall conditions
+#include "custom_conditions/fractional_step_k_based_wall_condition.h"
 
 namespace Kratos
 {
@@ -207,6 +213,10 @@ private:
     const IncompressiblePotentialFlowPressureElement<2, 3> mIncompressiblePotentialFlowPressure2D;
     const IncompressiblePotentialFlowPressureElement<3, 4> mIncompressiblePotentialFlowPressure3D;
 
+    // Fractionalstep elements
+    const RansFractionalStepElement<2> mRansFractionalStep2D;
+    const RansFractionalStepElement<3> mRansFractionalStep3D;
+
     /// k-epsilon turbulence model elements
     /// Algebraic flux correction based elements
     const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonHighReElementData::KElementData<2>> mRansEvmKEpsilonHighReKAFC2D;
@@ -296,6 +306,10 @@ private:
     const IncompressiblePotentialFlowVelocityInletCondition<3, 3> mIncompressiblePotentialFlowVelocityInlet3D3N;
     const IncompressiblePotentialFlowPressureBodyForceCondition<2, 2> mIncompressiblePotentialFlowPressureBodyForce2D2N;
     const IncompressiblePotentialFlowPressureBodyForceCondition<3, 3> mIncompressiblePotentialFlowPressureBodyForce3D3N;
+
+    // fractional step wall conditions
+    const FractionalStepKBasedWallCondition<2, 2> mFractionalStepKBasedWall2D2N;
+    const FractionalStepKBasedWallCondition<3, 3> mFractionalStepKBasedWall3D3N;
 
     ///@}
     ///@name Private Operators

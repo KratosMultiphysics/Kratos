@@ -379,6 +379,66 @@ void CalculateMagnitudeSquareForNodal3DVariable(ModelPart& rModelPart,
     }
 }
 
+template <>
+KRATOS_API(RANS_APPLICATION)
+double GetVariableValueNorm(const double& rValue)
+{
+    return rValue;
+}
+
+template <>
+KRATOS_API(RANS_APPLICATION)
+double GetVariableValueNorm(const array_1d<double, 3>& rValue)
+{
+    return norm_2(rValue);
+}
+
+template <typename TDataType>
+std::tuple<double, double> CalculateTransientVariableConvergence(const ModelPart& rModelPart,
+                                                                 const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY
+
+    const Communicator& r_communicator = rModelPart.GetCommunicator();
+    const ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+    const int number_of_nodes = r_nodes.size();
+
+    KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
+        << rModelPart.Name() << " buffer size is "
+        << rModelPart.GetBufferSize() << ". Buffer size of 2 or greater is required to calculate transient variable convergence for "
+        << rVariable.Name() << ".\n";
+
+    double dx = 0.0;
+    double number_of_dofs = 0.0;
+    double solution = 0.0;
+#pragma omp parallel for reduction(+ : dx, number_of_dofs, solution)
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        const ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
+        const TDataType& r_old_value = r_node.FastGetSolutionStepValue(rVariable, 1);
+        const TDataType& r_new_value = r_node.FastGetSolutionStepValue(rVariable);
+        dx += std::pow(GetVariableValueNorm<TDataType>(r_new_value - r_old_value), 2);
+        solution += std::pow(GetVariableValueNorm<TDataType>(r_new_value), 2);
+        number_of_dofs += ((r_node.HasDofFor(rVariable) && !r_node.IsFixed(rVariable)) ||
+                           !r_node.HasDofFor(rVariable));
+    }
+
+    // to improve mpi communication performance
+    const std::vector<double> process_values = {dx, solution, number_of_dofs};
+    const std::vector<double>& global_values =
+        r_communicator.GetDataCommunicator().SumAll(process_values);
+
+    dx = std::sqrt(global_values[0]);
+    solution = std::sqrt(global_values[1]);
+    number_of_dofs = std::max(1.0, global_values[2]);
+    solution = (solution > 0.0 ? solution : 1.0);
+
+    return std::make_tuple<double, double>(std::forward<double>(dx / solution),
+                                           std::forward<double>(dx / number_of_dofs));
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 template KRATOS_API(RANS_APPLICATION) void AssignConditionVariableValuesToNodes<double>(
     ModelPart&, const Variable<double>&, const Flags&, const bool);
@@ -395,6 +455,13 @@ template KRATOS_API(RANS_APPLICATION) void CopyNodalFlaggedVariableFromHistorica
     ModelPart&, const Variable<double>&, const Flags&, const bool);
 template KRATOS_API(RANS_APPLICATION) void CopyNodalFlaggedVariableFromHistoricalToNonHistorical<array_1d<double, 3>>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Flags&, const bool);
+
+template KRATOS_API(RANS_APPLICATION) std::tuple<double, double> CalculateTransientVariableConvergence<double>(
+    const ModelPart&, const Variable<double>&);
+
+template KRATOS_API(RANS_APPLICATION)
+    std::tuple<double, double> CalculateTransientVariableConvergence<array_1d<double, 3>>(
+        const ModelPart&, const Variable<array_1d<double, 3>>&);
 
 } // namespace RansVariableUtilities
 

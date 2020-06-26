@@ -6,6 +6,10 @@ from .monolithic_vms.monolithic_velocity_pressure_formulation import MonolithicV
 from .monolithic_vms.monolithic_k_epsilon_high_re_formulation import MonolithicKEpsilonHighReFormulation
 from .monolithic_vms.monolithic_k_omega_formulation import MonolithicKOmegaFormulation
 from .monolithic_vms.monolithic_k_omega_sst_formulation import MonolithicKOmegaSSTFormulation
+from .fractional_step.fractional_step_velocity_pressure_formulation import FractionalStepVelocityPressureFormulation
+from .fractional_step.fractional_step_k_epsilon_high_re_formulation import FractionalStepKEpsilonHighReFormulation
+from .fractional_step.fractional_step_k_omega_formulation import FractionalStepKOmegaFormulation
+from .fractional_step.fractional_step_k_omega_sst_formulation import FractionalStepKOmegaSSTFormulation
 
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
@@ -14,7 +18,11 @@ def Factory(model_part, settings):
         ["monolithic", MonolithicVelocityPressureFormulation],
         ["monolithic_k_epsilon_high_re", MonolithicKEpsilonHighReFormulation],
         ["monolithic_k_omega", MonolithicKOmegaFormulation],
-        ["monolithic_k_omega_sst", MonolithicKOmegaSSTFormulation]
+        ["monolithic_k_omega_sst", MonolithicKOmegaSSTFormulation],
+        ["fractional_step", FractionalStepVelocityPressureFormulation],
+        ["fractional_step_k_epsilon_high_re", FractionalStepKEpsilonHighReFormulation],
+        ["fractional_step_k_omega", FractionalStepKOmegaFormulation],
+        ["fractional_step_k_omega_sst", FractionalStepKOmegaSSTFormulation]
     ]
 
     formulation_names_list = [

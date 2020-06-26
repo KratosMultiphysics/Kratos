@@ -32,6 +32,9 @@ KratosRANSApplication::KratosRANSApplication()
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mIncompressiblePotentialFlowPressure2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowPressure3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      // Fractionalstep elements
+      mRansFractionalStep2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansFractionalStep3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       // k-epsilon turbulence model elements
       mRansEvmKEpsilonHighReKAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKEpsilonHighReKAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -88,7 +91,10 @@ KratosRANSApplication::KratosRANSApplication()
       mIncompressiblePotentialFlowVelocityInlet2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mIncompressiblePotentialFlowVelocityInlet3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowPressureBodyForce2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mIncompressiblePotentialFlowPressureBodyForce3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
+      mIncompressiblePotentialFlowPressureBodyForce3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // fractional step wall conditions
+      mFractionalStepKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mFractionalStepKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -161,6 +167,10 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure2D3N", mIncompressiblePotentialFlowPressure2D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure3D4N", mIncompressiblePotentialFlowPressure3D);
+
+    // registering fractional step elements
+    KRATOS_REGISTER_ELEMENT("RansFractionalStep2D3N", mRansFractionalStep2D);
+    KRATOS_REGISTER_ELEMENT("RansFractionalStep3D4N", mRansFractionalStep3D);
 
     // registering k-epsilon algebraic flux correction based elements
     KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonHighReKAFC2D3N", mRansEvmKEpsilonHighReKAFC2D);
@@ -240,5 +250,9 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet3D3N", mIncompressiblePotentialFlowVelocityInlet3D3N);
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressureBodyForce2D2N", mIncompressiblePotentialFlowPressureBodyForce2D2N);
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressureBodyForce3D3N", mIncompressiblePotentialFlowPressureBodyForce3D3N);
+
+    // registering fractional step wall conditions
+    KRATOS_REGISTER_CONDITION("RansFractionalStepKBasedWall2D2N", mFractionalStepKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansFractionalStepKBasedWall3D3N", mFractionalStepKBasedWall3D3N);
 }
 } // namespace Kratos.

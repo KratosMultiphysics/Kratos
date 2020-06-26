@@ -15,6 +15,7 @@
 #include "spaces/ublas_space.h"
 
 // Application includes
+#include "custom_processes/rans_wall_function_update_process.h"
 #include "custom_processes/rans_k_turbulent_intensity_inlet_process.h"
 #include "custom_processes/rans_nut_y_plus_wall_function_update_process.h"
 #include "custom_processes/rans_epsilon_turbulent_mixing_inlet_process.h"
@@ -38,6 +39,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
     using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
     using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+
+    using RansWallFunctionUpdateProcessType = RansWallFunctionUpdateProcess;
+    py::class_<RansWallFunctionUpdateProcessType, RansWallFunctionUpdateProcessType::Pointer, Process>(
+        m, "RansWallFunctionUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
     using RansKTurbulentIntensityInletProcessType = RansKTurbulentIntensityInletProcess;
     py::class_<RansKTurbulentIntensityInletProcessType, RansKTurbulentIntensityInletProcessType::Pointer, Process>(m, "RansKTurbulentIntensityInletProcess")
