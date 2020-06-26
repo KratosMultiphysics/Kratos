@@ -61,6 +61,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_normal_divergence_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
@@ -108,6 +109,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/string_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/result_dabatase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometry_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/normal_calculation_utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_io_modeler.cpp;

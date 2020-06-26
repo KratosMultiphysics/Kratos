@@ -55,6 +55,13 @@ public:
         return true;
     }
 
+    bool SolveMultiple(Eigen::Ref<const Matrix> b, Eigen::Ref<Matrix> x) const
+    {
+        x = m_solver.solve(b);
+
+        return true;
+    }
+
     void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << "EigenDirectSolver <" << Name() << "> finished.";

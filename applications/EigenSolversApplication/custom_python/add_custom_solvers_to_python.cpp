@@ -126,12 +126,14 @@ void register_base_dense_solver(pybind11::module& m)
     typedef LinearSolver<ComplexLocalSpaceType, ComplexLocalSpaceType> ComplexDenseLinearSolverType;
 
     bool (DenseLinearSolverType::*pointer_to_solve_dense)(DenseLinearSolverType::SparseMatrixType& rA, DenseLinearSolverType::VectorType& rX, DenseLinearSolverType::VectorType& rB) = &DenseLinearSolverType::Solve;
+    bool (DenseLinearSolverType::*pointer_to_multi_solve_dense)(DenseLinearSolverType::SparseMatrixType& rA, DenseLinearSolverType::DenseMatrixType& rX, DenseLinearSolverType::DenseMatrixType& rB) = &DenseLinearSolverType::Solve;
     bool (ComplexDenseLinearSolverType::*pointer_to_complex_solve_dense)(ComplexDenseLinearSolverType::SparseMatrixType& rA, ComplexDenseLinearSolverType::VectorType& rX, ComplexDenseLinearSolverType::VectorType& rB) = &ComplexDenseLinearSolverType::Solve;
 
     py::class_<DenseLinearSolverType, DenseLinearSolverType::Pointer>(m,"DenseLinearSolver")
         .def(py::init< >())
         .def("Initialize",&DenseLinearSolverType::Initialize)
         .def("Solve",pointer_to_solve_dense)
+        .def("Solve",pointer_to_multi_solve_dense)
         .def("Clear",&DenseLinearSolverType::Clear)
         .def("__str__",PrintObject<DenseLinearSolverType>)
         ;

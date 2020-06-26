@@ -19,6 +19,7 @@ namespace Kratos
 {
     KRATOS_CREATE_VARIABLE( int, AUX_ID )
     KRATOS_CREATE_VARIABLE( Matrix, ROM_BASIS )
+    KRATOS_CREATE_VARIABLE( double, HROM_WEIGHT )
 
     // Modal derivative variables
     KRATOS_CREATE_VARIABLE(unsigned int, BUILD_LEVEL)
@@ -26,4 +27,5 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(std::size_t, EIGENVALUE_I)
     KRATOS_CREATE_VARIABLE(std::size_t, EIGENVALUE_J)
     KRATOS_CREATE_VARIABLE(std::size_t, DERIVATIVE_INDEX )
+
 }

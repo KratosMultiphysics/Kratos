@@ -92,11 +92,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             if( self.function_expression == "current" ):
                 self.value_is_current_value = True
             else:
-                if (sys.version_info > (3, 0)):
-                    self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
-                else:
-                    self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval'))
-
+                self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
                 self.value_is_spatial_function = True
 
                 if(self.function_expression.find("x") == -1 and

@@ -110,6 +110,27 @@ public:
         return true;
     }
 
+    /** Multi solve method for solving a set of linear systems with same coefficient matrix.
+    Solves the linear system AX=B and puts the result on SystemMatrix& rX.
+    @param rA. System matrix
+    @param rX. Solution matrix.
+     @param rB. Right hand side matrix.
+    */
+    bool Solve(MatrixType& rA, MatrixType& rX, MatrixType& rB) override
+    {
+        VectorType dummy;
+        InitializeSolutionStep(rA, dummy, dummy);
+
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> X(rX.data().begin(), rX.size1(), rX.size2());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> B(rB.data().begin(), rB.size1(), rB.size2());
+
+        const bool success = m_solver.SolveMultiple(B, X);
+
+        KRATOS_ERROR_IF(!success) << "Solving failed!\n" << m_solver.GetSolverErrorMessages() << std::endl;
+
+        return true;
+    }
+
     /**
      * Print information about this object.
      */
