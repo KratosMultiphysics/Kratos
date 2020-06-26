@@ -23,7 +23,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -598,8 +598,7 @@ protected:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Number of threads" << OpenMPUtils::GetNumThreads() << "\n" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", this->GetEchoLevel() > 1) << "Setting up the dofs" << std::endl;
 
         // Gets the array of elements, conditions and constraints from the modeler
         const auto &r_elements_array = rModelPart.Elements();
@@ -697,19 +696,19 @@ protected:
         KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Trying to set the equation ids. in an empty DOF set (equation system size is 0)." << std::endl;
 
         // Loop the DOF set to assign the equation ids
-#pragma omp parallel for
-        for (int i_dof = 0; i_dof < static_cast<int>(mEquationSystemSize); ++i_dof) {
-            auto it_dof = mDofSet.begin() + i_dof;
-            it_dof->SetEquationId(i_dof);
-        }
+        IndexPartition<int>(mEquationSystemSize).for_each(
+            [&](int i_dof){
+                auto it_dof = mDofSet.begin() + i_dof;
+                it_dof->SetEquationId(i_dof);
+            }
+        );
     }
 
     virtual void SetUpLumpedMassVector(const ModelPart &rModelPart)
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the lumped mass matrix vector" << std::endl;
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Number of threads" << OpenMPUtils::GetNumThreads() << "\n" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilderAndSolver", this->GetEchoLevel() > 1) << "Setting up the lumped mass matrix vector" << std::endl;
 
         // Initialize the lumped mass matrix vector
         // Note that the lumped mass matrix vector size matches the dof set one
@@ -780,12 +779,13 @@ protected:
         KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Trying to set the equation ids. in an empty DOF set (equation system size is 0)." << std::endl;
 
         // Loop the reactions to initialize them to zero
-#pragma parallel for
-        for (int i_dof = 0; i_dof < static_cast<int>(mEquationSystemSize); ++i_dof) {
-            auto it_dof = mDofSet.begin() + i_dof;
-            auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
-            r_reaction_value = 0.0;
-        }
+        IndexPartition<int>(mEquationSystemSize).for_each(
+            [&](int i_dof){
+                auto it_dof = mDofSet.begin() + i_dof;
+                auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
+                r_reaction_value = 0.0;
+            }
+        );
     }
 
     /**
@@ -803,12 +803,13 @@ protected:
             // Note that we take advantage of the fact that Kratos always works with a residual based formulation
             // This means that the reactions are minus the residual. As we use the reaction as residual container
             // during the explicit resolution of the problem, the calculate reactions is as easy as switching the sign
-#pragma parallel for
-            for (int i_dof = 0; i_dof < static_cast<int>(mEquationSystemSize); ++i_dof) {
-                auto it_dof = mDofSet.begin() + i_dof;
-                auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
-                r_reaction_value *= -1.0;
-            }
+            IndexPartition<int>(mEquationSystemSize).for_each(
+                [&](int i_dof){
+                    auto it_dof = mDofSet.begin() + i_dof;
+                    auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
+                    r_reaction_value *= -1.0;
+                }
+            );
         }
     }
 
