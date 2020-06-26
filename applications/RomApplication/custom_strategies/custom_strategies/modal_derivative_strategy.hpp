@@ -227,6 +227,18 @@ public:
             TSparseSpace::Clear(mpA);
             mpA = nullptr;
         }
+        if (mpStiffnessMatrix != nullptr){
+            TSparseSpace::Clear(mpStiffnessMatrix);
+            mpStiffnessMatrix = nullptr;
+        }
+        if (mpMassMatrix != nullptr){
+            TSparseSpace::Clear(mpMassMatrix);
+            mpMassMatrix = nullptr;
+        }
+        if (mpA != nullptr){
+            TSparseSpace::Clear(mpA);
+            mpA = nullptr;
+        }
         if (mpDx != nullptr)
         {
             TSparseSpace::Clear(mpDx);
@@ -236,6 +248,11 @@ public:
         {
             TSparseSpace::Clear(mpb);
             mpb = nullptr;
+        }
+        if (mpInitialVariables != nullptr)
+        {
+            TSparseSpace::Clear(mpInitialVariables);
+            mpInitialVariables = nullptr;
         }
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
