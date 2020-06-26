@@ -241,7 +241,6 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     BoundedMatrix<double,num_nodes,num_nodes> tempA;
     tempA = ZeroMatrix(num_nodes,num_nodes);
 
-    array_1d<double,num_nodes> tempLaplacianRHS = ZeroVector(num_nodes);
     array_1d<double,num_nodes> tempBCRHS = ZeroVector(num_nodes);
 
     if(rLeftHandSideMatrix.size1() != num_nodes) // be carefull that num_dof = num_nodes
@@ -251,8 +250,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         rRightHandSideVector.resize(num_nodes,false);
 
     // Getting data for the given geometry
-    double area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
+    double volume;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume); //asking for gradients and other info
 
     for(unsigned int i = 0; i<num_nodes; i++){
         PHIold[i] = GetGeometry()[i].GetValue(DISTANCE);
@@ -262,27 +261,22 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     for(unsigned int i = 0; i<num_nodes; i++){
         for(unsigned int j = 0; j<num_nodes; j++){
-            tempM(i,j) = area*N[i]*N[j];
+            tempM(i,j) = volume*N[i]*N[j];
 
             for (unsigned int k = 0; k<num_dim; k++){
-                tempA(i,j) += area*epsilon*DN_DX(i,k)*DN_DX(j,k);
-
-                tempLaplacianRHS[i] += area*epsilon*DN_DX(i,k)*N[j]*(GradPHIold[j])[k];
+                tempA(i,j) += volume*epsilon*DN_DX(i,k)*DN_DX(j,k);
             }
         }
     }
 
     // Implementing the boundary condition on distance gradient: can be implemented
     // by a custom condition for a more general case
-    GeometryType::GeometriesArrayType faces = GetGeometry().GenerateFaces();
-    auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+    const auto& faces = GetGeometry().Faces();
+    const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
-    bool not_found_surface = true;
-    unsigned int i_face = 0;
-
-    while (i_face < num_faces && not_found_surface) {
-        if (neighbour_elems[ i_face ].Id() == this->Id() ){
-            GeometryType& r_face = faces[i_face];
+    for (unsigned int i_face = 0; i_face < num_faces; i_face++) {
+        //if (neighbour_elems[ i_face ].Id() == this->Id() ){
+            const auto& r_face = faces[i_face];
             unsigned int contact_node = 0;
 
             const unsigned int num_face_nodes = num_nodes - 1;
@@ -292,8 +286,13 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                 }
             }
 
+            KRATOS_INFO("Smoothing Element") << "i_face " << i_face << std::endl;
+
             if (contact_node == num_face_nodes){
-                not_found_surface = false;
+                for (unsigned int ii = 0; ii < num_faces; ii++){
+                    KRATOS_INFO("Smoothing Element") << this->Id() << " " <<
+                        neighbour_elems[ ii ].Id() << std::endl;
+                }
 
                 auto IntegrationMethod = GeometryData::GI_GAUSS_1;
                 const unsigned int num_int_pts = (faces[i_face]).IntegrationPointsNumber(IntegrationMethod);
@@ -347,9 +346,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                     }
                 }
             }
-        }
-
-        i_face++;
+        //}
     }
 
     noalias(rLeftHandSideMatrix) = tempM + tempA;

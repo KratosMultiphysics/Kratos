@@ -22,7 +22,6 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
         KratosMultiphysics.ModelPartIO(GetFilePath("SurfaceSmoothingTest/three_dim_symmetrical_cube")).ReadModelPart(model_part)
 
@@ -51,6 +50,12 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         avg_num_elements = 10
         find_neighbouring_elements_process = KratosMultiphysics.FindElementalNeighboursProcess(
             model_part, dimensions, avg_num_elements).Execute()
+
+        # Set IS_STRUCTURE to define slip wall
+        for node in model_part.Nodes:
+            node.SetValue(KratosMultiphysics.IS_STRUCTURE, 0.0)
+        for node in (model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
+            node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
 
         KratosMultiphysics.ComputeNodalGradientProcess(
             model_part,
