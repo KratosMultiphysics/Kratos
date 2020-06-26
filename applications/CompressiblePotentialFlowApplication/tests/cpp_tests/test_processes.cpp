@@ -49,14 +49,12 @@ namespace Kratos {
       MoveModelPartProcess MoveModelPartProcess(model_part, moving_parameters);
       MoveModelPartProcess.Execute();
 
-      Matrix reference = ZeroMatrix(3,3);
-      reference(0,0) = 5.0; reference(0,1) = 5.0;
-      reference(1,0) = 5.0; reference(1,1) = 7.0;
-      reference(2,0) = 5.0; reference(2,1) = 3.0;
+      // Matrix reference = ZeroMatrix(3,3);
+      std::array<double, 6> reference{5.0, 5.0, 5.0, 7.0, 5.0, 3.0};
 
-      for (std::size_t i_node = 0; i_node<reference.size1(); i_node++){
-        for (std::size_t i_dim = 0; i_dim<reference.size2(); i_dim++){
-          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference(i_node,i_dim), 1e-6);
+      for (std::size_t i_node = 0; i_node<3; i_node++){
+        for (std::size_t i_dim = 0; i_dim<2; i_dim++){
+          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*2+i_dim], 1e-6);
         }
       }
     }
