@@ -324,7 +324,6 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
                     // Compute shape function values
                     // Obtain the parent subgeometry shape function values
-                    double det_jac;
                     Kratos::Vector face_shape_func;
                     face_shape_func = GetGeometry().ShapeFunctionsValues(face_shape_func, loc_coords);
 
