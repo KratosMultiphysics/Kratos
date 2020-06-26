@@ -83,7 +83,7 @@ namespace Testing
     };
 
 
-    void GenerateTestModelPart(ModelPart& rModelPart)
+    void GenerateTestExplicitStrategiesModelPart(ModelPart& rModelPart)
     {
         // Model part settings
         rModelPart.SetBufferSize(2);
@@ -115,7 +115,7 @@ namespace Testing
 
         // Set the test model part
         const double delta_time = 1.5; // Set time step
-        GenerateTestModelPart(r_model_part); // Create the geometry
+        GenerateTestExplicitStrategiesModelPart(r_model_part); // Create the geometry
 
         // Create the RK4 explicit strategy
         const bool move_mesh_flag = false;
