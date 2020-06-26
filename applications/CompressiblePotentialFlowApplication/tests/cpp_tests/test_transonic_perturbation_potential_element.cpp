@@ -78,6 +78,14 @@ void AssignPotentialsToSupersonicTransonicPerturbationElement(Element::Pointer p
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
 }
 
+void AssignPotentialsToHighSupersonicTransonicPerturbationElement(Element::Pointer pElement)
+{
+    std::array<double, 3> potential{10.0, 350.0, 150.0};
+
+    for (unsigned int i = 0; i < 3; i++)
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+}
+
 /** Checks the TransonicPerturbationPotentialFlowElement.
  * Checks the RHS computation.
  */
@@ -210,6 +218,68 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
                                      -0.35664864389216139,1.0308840557120569,-0.68092794767744869,0.0066925358575532206,
                                      -0.020437867320243799,-0.48172810626479345,0.50349602165084928,-0.0013300480658120792,
                                       0.0,0.0,0.0,0.0};
+
+    for (unsigned int i = 0; i < LHS.size1(); i++) {
+        for (unsigned int j = 0; j < LHS.size2(); j++) {
+            KRATOS_CHECK_RELATIVE_NEAR(LHS(i, j), reference[i * 4 + j], 1e-15);
+        }
+    }
+}
+
+/** Checks the TransonicPerturbationPotentialFlowElement.
+ * Checks the Supersonic LHS computation.
+ */
+KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDeceleratingElementLHS, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    GenerateTransonicPerturbationUpwindElement(model_part);
+
+    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer pUpwindElement = model_part.pGetElement(2);
+
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
+
+    pElement->Initialize(model_part.GetProcessInfo());
+    pUpwindElement->SetFlags(INLET);
+
+    // velocity[0] : 394.18
+    // velocity[1] : -50
+    // local_mach_number_squared : 1.705
+    AssignPotentialsToSupersonicTransonicPerturbationElement(pElement);
+
+    // velocity : (404.18,140)
+    // upwind_mach_number_squared : 2.0898
+    AssignPotentialsToHighSupersonicTransonicPerturbationElement(pUpwindElement);
+
+    for (auto& r_node : model_part.Nodes()){
+        r_node.AddDof(VELOCITY_POTENTIAL);
+    }
+
+    Element::DofsVectorType CurrentElementalDofList;
+    pElement->GetDofList(CurrentElementalDofList, model_part.GetProcessInfo());
+
+    Element::DofsVectorType UpwindElementalDofList;
+    pUpwindElement->GetDofList(UpwindElementalDofList, model_part.GetProcessInfo());
+
+    std::vector<int> current_ids{23, 74, 55};
+    std::vector<int> upwind_ids{23, 74, 67};
+    for (int i = 0; i < 3; i++) {
+        CurrentElementalDofList[i]->SetEquationId(current_ids[i]);
+        UpwindElementalDofList[2]->SetEquationId(upwind_ids[i]);
+    }
+    
+    // // Compute LHS
+    Matrix LHS = ZeroMatrix(4, 4);
+
+    pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
+
+    std::array<double, 16> reference{ -0.054669771246690091,-0.14888540383260493,0.40255671949894734,-0.19900154441965234,
+                                      -0.083557300280464597,0.51822478070562072,-0.55794161182804491,0.12327413140288881,
+                                       0.13822707152715466,-0.36933937687301577,0.15538489232909758,0.075727413016763542,
+                                       0.0,0.0,0.0,0.0};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
