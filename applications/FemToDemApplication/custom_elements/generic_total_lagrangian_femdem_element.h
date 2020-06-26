@@ -245,8 +245,7 @@ protected:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        ) override;
+        const bool CalculateResidualVectorFlag) override;
 
     /**
      * @brief This functions updates the kinematics variables
@@ -257,8 +256,7 @@ protected:
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        ) override;
+        const GeometryType::IntegrationMethod& rIntegrationMethod) override;
 
     // ************** Methods to compute the tangent constitutive tensor via numerical derivation ************** 
     /**
@@ -402,9 +400,10 @@ protected:
         std::vector<double> &rValues,
         const ProcessInfo &rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<double> &rVariable,
-                                      std::vector<double> &rValues,
-                                      const ProcessInfo &rCurrentProcessInfo);
+    void SetValuesOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rValues,
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<double> &rVariable,
@@ -424,8 +423,7 @@ protected:
 
     virtual void CheckIfEraseElement(
         ProcessInfo &rCurrentProcessInfo, 
-        const Properties& rProperties
-        )
+        const Properties& rProperties)
     {
         if (mDamage >= 0.98) {
             this->Set(ACTIVE, false);
