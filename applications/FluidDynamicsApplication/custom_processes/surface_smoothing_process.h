@@ -23,11 +23,11 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/kratos_parameters.h"
+//#include "includes/kratos_parameters.h"
 #include "containers/model.h"
 #include "includes/checks.h"
-#include "utilities/openmp_utils.h"
-#include "processes/find_nodal_h_process.h"
+//#include "utilities/openmp_utils.h"
+//#include "processes/find_nodal_h_process.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "modeler/connectivity_preserve_modeler.h"
@@ -35,9 +35,10 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/variable_utils.h" //Now necessary!
-#include "processes/compute_nodal_gradient_process.h"
-#include "custom_utilities/element_size_calculator.h"
+//#include "processes/compute_nodal_gradient_process.h"
+//#include "custom_utilities/element_size_calculator.h"
 #include "includes/deprecated_variables.h" //For IS_STRUCTURED
+#include "includes/global_pointer_variables.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -68,7 +69,7 @@ namespace Kratos
 ///@{
 
 /// Utility for surface smoothing
-/// Based on Tornberg, Anna-Karin, and Björn Engquist. "A finite element based level-set method 
+/// Based on Tornberg, Anna-Karin, and Björn Engquist. "A finite element based level-set method
 /// for multiphase flow applications." Computing and Visualization in Science 3, no. 1-2 (2000): 93-101.
 class SurfaceSmoothingProcess : public Process
 {

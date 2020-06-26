@@ -17,7 +17,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <algorithm>
+//#include <algorithm>
 
 // External includes
 
@@ -28,7 +28,7 @@
 
 // Include Base headers
 #include "includes/checks.h"
-#include "utilities/geometry_utilities.h"
+//#include "utilities/geometry_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"

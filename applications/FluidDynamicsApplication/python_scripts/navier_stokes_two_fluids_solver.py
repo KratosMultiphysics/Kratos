@@ -4,6 +4,9 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import numpy as np
 import math
 
+# Timer
+import time
+
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
@@ -182,6 +185,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.find_neighbouring_elements_process = self._set_find_neighbouring_elements_process()
         (self.find_neighbouring_elements_process).Execute()
 
+        self.find_neighbouring_nodes_process = self._set_find_neighbouring_nodes_process()
+        (self.find_neighbouring_nodes_process).Execute()
+
         self.level_set_convection_process = self._set_level_set_convection_process()
 
         #Set IS_STRUCTURE to define contact line: 0.0: not needed, and 1.0: moved to apply_slip_condition
@@ -248,7 +254,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         
         self.surface_smoothing_process = self._set_surface_smoothing_process()
         #(self.distance_gradient_process).Execute()
+
+        print("Smoothing")
+        print(time.time())
         (self.surface_smoothing_process).Execute()
+        print(time.time())
         for node in self.main_model_part.Nodes:
             smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
@@ -335,6 +345,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "About to impose mass conservation!")
             #    (self.mass_conservation_correction).ExecuteInTimeStep();
 
+            print("Level-set")
+            print(time.time())
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
                 KratosMultiphysics.Logger.PrintInfo("LevelSetSolver", "BFECCconvect will be called")
@@ -355,6 +367,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                         #0.5 * (velocity + velocityOld) )
 
                 (self.level_set_convection_process).Execute()
+
+            print(time.time())
 
             #for elem in self.main_model_part.Elements:
             #    npos = 0
@@ -390,6 +404,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Recompute the distance field according to the new level-set position
             if (TimeStep % 50 == 0):
+                print("Redistancing")
+                print(time.time())
                 layers = int(1000/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part, 
@@ -398,6 +414,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     layers, 
                     0.01)#,
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                print(time.time())
 
             # Reinitialize distance according to time dependent Eikonal equation
             #if (TimeStep % 1 == 0):
@@ -417,7 +434,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Smoothing the surface to filter oscillatory surface
             (self.distance_gradient_process).Execute()
+            print("Smoothing")
+            print(time.time())
             (self.surface_smoothing_process).Execute()
+            print(time.time())
             for node in self.main_model_part.Nodes:
                 smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
@@ -547,7 +567,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "to begin SolutionStep")
 
         # Call the base solver SolveSolutionStep()
+        print("Navier-Stokes")
+        print(time.time())
         super(NavierStokesTwoFluidsSolver, self).SolveSolutionStep()
+        print(time.time())
 
         KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "solved SolutionStep")
 
@@ -869,4 +892,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self.main_model_part, dimensions, avg_num_elements)
         
         return find_neighbouring_elements_process
+
+    def _set_find_neighbouring_nodes_process(self):
+        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
+        find_neighbouring_nodes_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(
+                kratos_comm, self.main_model_part)
+        
+        return find_neighbouring_nodes_process
 
