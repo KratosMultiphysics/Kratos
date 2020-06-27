@@ -500,7 +500,7 @@ ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::Condi
 }
 
 template <class TDataType, class TContainerType, class TWeightDataType>
-void VariableUtils::DistributeVariable(
+void VariableUtils::WeightedAccumulateVariableOnNodes(
     ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const Variable<TWeightDataType>& rWeightVariable,
@@ -549,24 +549,24 @@ void VariableUtils::DistributeVariable(
 }
 
 // template instantiations
-template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<double, ModelPart::ConditionsContainerType, int>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, int>(
     ModelPart&, const Variable<double>&, const Variable<int>&, const bool);
-template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ConditionsContainerType, int>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, int>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<int>&, const bool);
 
-template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<double, ModelPart::ElementsContainerType, int>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, int>(
     ModelPart&, const Variable<double>&, const Variable<int>&, const bool);
-template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ElementsContainerType, int>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, int>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<int>&, const bool);
 
-template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<double, ModelPart::ConditionsContainerType, double>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, double>(
     ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
-template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ConditionsContainerType, double>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, double>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
 
-template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<double, ModelPart::ElementsContainerType, double>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, double>(
     ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
-template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
 
 } /* namespace Kratos.*/

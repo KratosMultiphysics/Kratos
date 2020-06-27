@@ -523,7 +523,7 @@ public:
      * @param IsInverseWeightProvided  Whether the weight is provided as inverse or not.
      */
     template <class TDataType, class TContainerType, class TWeightDataType>
-    void DistributeVariable(
+    void WeightedAccumulateVariableOnNodes(
         ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const Variable<TWeightDataType>& rWeightVariable,
