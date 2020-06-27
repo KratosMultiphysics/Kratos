@@ -24,7 +24,7 @@ class CFDUtilitiesTest(UnitTest.TestCase):
         kappa = 0.5
         beta = 6.0
 
-        unit_normal = normal * (1.0 / self.__CalculateArray3DNorm(normal))
+        unit_normal = normal * (1.0 / CFDUtilitiesTest.__CalculateArray3DNorm(normal))
 
         # checking for linear region
         velocity[0] = 0.1
@@ -36,10 +36,10 @@ class CFDUtilitiesTest(UnitTest.TestCase):
             velocity[0] * unit_normal[0] + velocity[1] * unit_normal[1] +
             velocity[2] * unit_normal[2])
         u_tau_magnitude = math.sqrt(
-            self.__CalculateArray3DNorm(tangential_velocity) * nu / y)
+            CFDUtilitiesTest.__CalculateArray3DNorm(tangential_velocity) * nu / y)
         u_tau_check = tangential_velocity * (
             u_tau_magnitude * -1.0 /
-            self.__CalculateArray3DNorm(tangential_velocity))
+            CFDUtilitiesTest.__CalculateArray3DNorm(tangential_velocity))
         y_plus_check = u_tau_magnitude * y / nu
 
         self.assertVectorAlmostEqual(u_tau, u_tau_check, 7)
@@ -57,10 +57,10 @@ class CFDUtilitiesTest(UnitTest.TestCase):
         u_tau_magnitude = y_plus * nu / y
         u_tau_check = tangential_velocity * (
             u_tau_magnitude * -1.0 /
-            self.__CalculateArray3DNorm(tangential_velocity))
+            CFDUtilitiesTest.__CalculateArray3DNorm(tangential_velocity))
         y_plus_check = math.exp(
-            (self.__CalculateArray3DNorm(tangential_velocity) /
-             self.__CalculateArray3DNorm(u_tau) - beta) * kappa)
+            (CFDUtilitiesTest.__CalculateArray3DNorm(tangential_velocity) /
+             CFDUtilitiesTest.__CalculateArray3DNorm(u_tau) - beta) * kappa)
 
         self.assertVectorAlmostEqual(u_tau, u_tau_check, 7)
         self.assertAlmostEqual(y_plus, y_plus_check, 7)
@@ -75,13 +75,13 @@ class CFDUtilitiesTest(UnitTest.TestCase):
 
         y_plus = KratosCFD.CFDUtilities.CalculateReactionBasedYPlusUTau(
             u_tau, reaction, normal, rho, nu, y)
-        surface_area = self.__CalculateArray3DNorm(normal)
+        surface_area = CFDUtilitiesTest.__CalculateArray3DNorm(normal)
         unit_normal = normal * (1.0 / surface_area)
 
         tangential_reaction_check = reaction - unit_normal * (
             reaction[0] * unit_normal[0] + reaction[1] * unit_normal[1] +
             reaction[2] * unit_normal[2])
-        u_tau_magnitude = self.__CalculateArray3DNorm(u_tau)
+        u_tau_magnitude = CFDUtilitiesTest.__CalculateArray3DNorm(u_tau)
         tangential_reaction = u_tau * (u_tau_magnitude**2 * rho *
                                        surface_area / u_tau_magnitude)
         y_plus_check = u_tau_magnitude * y / nu
@@ -144,7 +144,8 @@ class CFDUtilitiesTest(UnitTest.TestCase):
                 condition.GetValue(KratosCFD.FRICTION_VELOCITY), u_tau_check,
                 7)
 
-    def __CalculateArray3DNorm(self, value):
+    @staticmethod
+    def __CalculateArray3DNorm(value):
         return math.sqrt(value[0]**2 + value[1]**2 + value[2]**2)
 
 
@@ -157,11 +158,10 @@ class CFDUtilitiesTest(UnitTest.TestCase):
 #   .----.------.
 #   1    2      3
 
-    def __CreateModel(self,
-                      variable_list=[
-                          Kratos.VELOCITY, Kratos.REACTION, Kratos.DENSITY,
-                          Kratos.VISCOSITY, Kratos.MESH_VELOCITY
-                      ]):
+    def __CreateModel(self):
+        variable_list = [
+            Kratos.VELOCITY, Kratos.REACTION, Kratos.DENSITY, Kratos.VISCOSITY, Kratos.MESH_VELOCITY
+        ]
         self.model = Kratos.Model()
         self.model_part = self.model.CreateModelPart("test")
         for variable in variable_list:

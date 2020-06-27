@@ -74,7 +74,7 @@ class CFDUtilityFunctions:
             def func_method(model_part):
                 KratosCFD.CFDUtilities.CalculateNumberOfNeighbourConditions(model_part)
                 Kratos.VariableUtils().DistributeConditionVariable(model_part, variable, KratosCFD.NUMBER_OF_NEIGHBOUR_CONDITIONS, True)
-            return lambda model_part: func_method(model_part)
+            return func_method
         else:
             raise Exception("Unsupported variable type " + variable_type +
                             " in " + variable_name + " variable.")
