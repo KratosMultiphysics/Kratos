@@ -521,11 +521,11 @@ public:
      * @param rWeightVariable          Variable which holds weight to distribute entity values to nodes
      * @param IsInverseWeightProvided  Whether the weight is provided as inverse or not.
      */
-    template <class TDataType, class TContainerType>
+    template <class TDataType, class TContainerType, class TWeightDataType>
     void DistributeVariable(
         ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
-        const Variable<double>& rWeightVariable,
+        const Variable<TWeightDataType>& rWeightVariable,
         const bool IsInverseWeightProvided = false);
 
     /**
