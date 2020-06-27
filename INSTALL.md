@@ -130,64 +130,25 @@ Ubuntu users need to be extra careful with this as default versions tends to be 
 
 Path to boost root directory.
 
-## Adding Applications
-
-In order to add an application you can use the provided macro (`add_app [PATH]` for Linux, `CALL :add_app [PATH]` for Win) along with the route folder of the application that you want to compile. Several examples are provided in the configuration files.
-
-Its now also possible to compile applications outside kratos source dir:
-
-Linux:
-```shell
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
-add_app ${KRATOS_APP_DIR}/FluidDynamicApplication
-add_app /home/username/development/ExternalApplication  # Example of external Application
-```
-
-Windows:
-```shell
-CALL :add_app %KRATOS_APP_DIR%/EigenSolversApplication
-CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
-CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
-```
-
-## Post Compilation
-
-As Kratos is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the Kratos install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
-
-```bash
-export PYTHONPATH=$PYTHONPATH:$HOME/Kratos/bin/Release
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Kratos/bin/Release/libs
-```
-
-If you are in windows instead do:
-
-```cmd
-set PYTHONPATH=%PYTHONPATH%;C:/Kratos/bin/Release
-set PATH=%PATH%;C:/Kratos/bin/Release/libs
-```
-
-You can then test your compilation by executing an example script or trying to import the python module
-
-```python
-from KratosMultiphysics import *
-```
-
-The result should be:
-
-```
-   |  /           |             
-   ' /   __| _` | __|  _ \   __|
-   . \  |   (   | |   (   |\__ \ 
-  _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 8.0
-```
-
-## Examples
+## Configuration scripts examples
 
 These examples are also located [in the /scripts folder](https://github.com/KratosMultiphysics/Kratos/tree/master/scripts). You can simply create your own copy:
 
 ```Shell
 cp /path_to_kratos/scripts/standard_configure.sh /path_to_kratos/scripts/configure.sh
+```
+Then these scripts can be launched through the system terminal.
+
+Linux
+
+```Shell
+sh /path_to_kratos/scripts/configure.sh
+```
+
+Windows
+
+```Shell
+./path_to_kratos/scripts/configure.bat
 ```
 
 
@@ -322,6 +283,59 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 /Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j3
 
 ```
+
+## Adding Applications
+
+In order to add an application you can use the provided macro (`add_app [PATH]` for Linux, `CALL :add_app [PATH]` for Win) along with the route folder of the application that you want to compile. Several examples are provided in the configuration files.
+
+Its now also possible to compile applications outside kratos source dir:
+
+Linux:
+```shell
+add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicApplication
+add_app /home/username/development/ExternalApplication  # Example of external Application
+```
+
+Windows:
+```shell
+CALL :add_app %KRATOS_APP_DIR%/EigenSolversApplication
+CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
+CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
+```
+
+## Post Compilation
+
+As Kratos is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the Kratos install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
+
+```bash
+export PYTHONPATH=$PYTHONPATH:$HOME/Kratos/bin/Release
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Kratos/bin/Release/libs
+```
+
+If you are in windows instead do:
+
+```cmd
+set PYTHONPATH=%PYTHONPATH%;C:/Kratos/bin/Release
+set PATH=%PATH%;C:/Kratos/bin/Release/libs
+```
+
+You can then test your compilation by executing an example script or trying to import the python module
+
+```python
+from KratosMultiphysics import *
+```
+
+The result should be:
+
+```
+   |  /           |             
+   ' /   __| _` | __|  _ \   __|
+   . \  |   (   | |   (   |\__ \ 
+  _|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 8.0
+```
+
 
 ## Advanced Configuration
 
