@@ -783,8 +783,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
             condition.SetValue(KratosMultiphysics.VELOCITY, vector)
 
         variable_utils = KratosMultiphysics.VariableUtils()
-        variable_utils.DistributeConditionVariable(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, False)
-        variable_utils.DistributeConditionVariable(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, False)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, False)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, False)
 
         distance_vector = [
             1.0, 3602.0, 10803.0, 3643056.0, 3789835.0, 1897352.0
@@ -824,8 +824,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
             condition.SetValue(KratosMultiphysics.VELOCITY, vector)
 
         variable_utils = KratosMultiphysics.VariableUtils()
-        variable_utils.DistributeConditionVariable(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, True)
-        variable_utils.DistributeConditionVariable(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, True)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, True)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, True)
 
         distance_vector = [
             1.0, 3602.0, 10803.0, 3643056.0, 3789835.0, 1897352.0
