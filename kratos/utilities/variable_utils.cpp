@@ -14,6 +14,7 @@
 //
 
 /* System includes */
+#include <functional>
 
 /* External includes */
 
@@ -485,5 +486,85 @@ void VariableUtils::AuxiliaryAtomicAdd(
 #pragma omp atomic
         rSumValue[2] += rPrivateValue[2];
 }
+
+template <>
+ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::ElementsContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+template <>
+ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::ConditionsContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
+template <class TDataType, class TContainerType>
+void VariableUtils::DistributeVariable(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const Variable<double>& rWeightVariable,
+    const bool IsInverseWeightProvided)
+{
+    KRATOS_TRY
+
+    SetNonHistoricalVariableToZero(rVariable, rModelPart.Nodes());
+
+    auto& r_entities = GetContainer<TContainerType>(rModelPart);
+    const int number_of_conditions = r_entities.size();
+
+    const std::function<double(const Node<3>&)>& r_direct_method =
+        [rWeightVariable](const Node<3>& rNode) {
+            return rNode.GetValue(rWeightVariable);
+        };
+
+    const std::function<double(const Node<3>&)>& r_inverse_method =
+        [rWeightVariable](const Node<3>& rNode) {
+            return 1.0 / rNode.GetValue(rWeightVariable);
+        };
+
+    const std::function<double(const Node<3>&)>& r_weight_method =
+        (IsInverseWeightProvided) ? r_inverse_method : r_direct_method;
+
+#pragma omp parallel for
+    for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
+    {
+        auto& r_entity = *(r_entities.begin() + i_condition);
+        auto& r_geometry = r_entity.GetGeometry();
+
+        const auto& r_value = r_entity.GetValue(rVariable);
+        for (int i_node = 0; i_node < static_cast<int>(r_geometry.PointsNumber()); ++i_node)
+        {
+            auto& r_node = r_geometry[i_node];
+
+            KRATOS_DEBUG_ERROR_IF(!r_node.Has(rWeightVariable))
+                << "Non-historical nodal " << rWeightVariable.Name() << " at "
+                << r_node << " is not initialized in " << rModelPart.Name()
+                << ". Please initialize it first.";
+
+            const auto& r_current_value = r_node.GetValue(rVariable);
+            const double weight = r_weight_method(r_node);
+
+            r_node.SetLock();
+            r_node.SetValue(rVariable, r_current_value + r_value * weight);
+            r_node.UnSetLock();
+        }
+    }
+
+    rModelPart.GetCommunicator().AssembleNonHistoricalData(rVariable);
+
+    KRATOS_CATCH("");
+}
+
+// template instantiations
+template void VariableUtils::DistributeVariable<double, ModelPart::ConditionsContainerType>(
+    ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
+template void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
+
+template void VariableUtils::DistributeVariable<double, ModelPart::ElementsContainerType>(
+    ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
+template void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ElementsContainerType>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
 
 } /* namespace Kratos.*/
