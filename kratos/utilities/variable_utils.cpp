@@ -529,10 +529,10 @@ void VariableUtils::DistributeVariable(
 #pragma omp parallel for
     for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
     {
-        auto& r_entity = *(r_entities.begin() + i_condition);
-        auto& r_geometry = r_entity.GetGeometry();
+        auto it_entity = r_entities.begin() + i_condition;
+        auto& r_geometry = it_entity->GetGeometry();
 
-        const auto& r_value = r_entity.GetValue(rVariable);
+        const auto& r_value = it_entity->GetValue(rVariable);
         for (int i_node = 0; i_node < static_cast<int>(r_geometry.PointsNumber()); ++i_node)
         {
             auto& r_node = r_geometry[i_node];
