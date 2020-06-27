@@ -276,21 +276,6 @@ void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
         const int MaxIterations = 20,
         const double Tolerance = 1e-6);
 
-/**
- * @brief Distributes variable values in conditions to nodes
- *
- * This method distributes variables values stored in condition data value container to nodes.
- * Constant weighting is used. The distributed variable value is stored in nodal non-historical
- * data value container under the same variable.
- *
- * @tparam TDataType    Data type
- * @param rModelPart    Model part
- * @param rVariable     Variable to be distributed
- */
-template <typename TDataType>
-void KRATOS_API(FLUID_DYNAMICS_APPLICATION)
-    DistributeConditionVariableToNodes(ModelPart& rModelPart, const Variable<TDataType>& rVariable);
-
 } // namespace CFDUtilities
 
 } // namespace Kratos.

@@ -189,8 +189,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateReactionBasedYPlusUTau", &CFDUtilities::CalculateReactionBasedYPlusUTau)
         .def("CalculateYPlusAndUTauForConditionsBasedOnReaction", &CFDUtilities::CalculateYPlusAndUTauForConditionsBasedOnReaction)
         .def("CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction", &CFDUtilities::CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction)
-        .def("DistributeConditionVariableToNodes", &CFDUtilities::DistributeConditionVariableToNodes<double>)
-        .def("DistributeConditionVariableToNodes", &CFDUtilities::DistributeConditionVariableToNodes<array_1d<double,3>>)
         ;
 }
 
