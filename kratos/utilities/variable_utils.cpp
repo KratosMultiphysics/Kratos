@@ -511,7 +511,7 @@ void VariableUtils::DistributeVariable(
     SetNonHistoricalVariableToZero(rVariable, rModelPart.Nodes());
 
     auto& r_entities = GetContainer<TContainerType>(rModelPart);
-    const int number_of_conditions = r_entities.size();
+    const int n_entities = r_entities.size();
 
     const std::function<double(const Node<3>&)>& r_weight_method =
         (IsInverseWeightProvided) ?
