@@ -557,14 +557,14 @@ void VariableUtils::DistributeVariable(
 }
 
 // template instantiations
-template void VariableUtils::DistributeVariable<double, ModelPart::ConditionsContainerType>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<double, ModelPart::ConditionsContainerType>(
     ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
-template void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
 
-template void VariableUtils::DistributeVariable<double, ModelPart::ElementsContainerType>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<double, ModelPart::ElementsContainerType>(
     ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
-template void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ElementsContainerType>(
+template KRATOS_API(KRATOS_CORE) void VariableUtils::DistributeVariable<array_1d<double, 3>, ModelPart::ElementsContainerType>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
 
 } /* namespace Kratos.*/
