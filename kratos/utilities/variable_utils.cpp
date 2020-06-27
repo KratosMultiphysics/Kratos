@@ -513,18 +513,10 @@ void VariableUtils::DistributeVariable(
     auto& r_entities = GetContainer<TContainerType>(rModelPart);
     const int number_of_conditions = r_entities.size();
 
-    const std::function<double(const Node<3>&)>& r_direct_method =
-        [rWeightVariable](const Node<3>& rNode) -> double {
-            return rNode.GetValue(rWeightVariable);
-        };
-
-    const std::function<double(const Node<3>&)>& r_inverse_method =
-        [rWeightVariable](const Node<3>& rNode) -> double {
-            return 1.0 / rNode.GetValue(rWeightVariable);
-        };
-
     const std::function<double(const Node<3>&)>& r_weight_method =
-        (IsInverseWeightProvided) ? r_inverse_method : r_direct_method;
+        (IsInverseWeightProvided) ?
+        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return 1.0 / rNode.GetValue(rWeightVariable);}) :
+        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
 
 #pragma omp parallel for
     for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
