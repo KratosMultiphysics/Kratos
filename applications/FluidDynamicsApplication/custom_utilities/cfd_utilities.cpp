@@ -96,7 +96,7 @@ void CalculateNumberOfNeighbourConditions(ModelPart& rModelPart)
         {
             NodeType& r_node = r_geometry[i_node];
             r_node.SetLock();
-            r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1.0;
+            r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1;
             r_node.UnSetLock();
         }
     });
