@@ -521,7 +521,7 @@ void VariableUtils::DistributeVariable(
 #pragma omp parallel for
     for (int i_entity = 0; i_entity < n_entities; ++i_entity)
     {
-        auto it_entity = r_entities.begin() + i_condition;
+        auto it_entity = r_entities.begin() + i_entity;
         auto& r_geometry = it_entity->GetGeometry();
 
         const auto& r_value = it_entity->GetValue(rVariable);
