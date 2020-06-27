@@ -4,10 +4,7 @@ import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 import KratosMultiphysics.IgaApplication
-"""
-For user-scripting it is intended that a new class is derived
-from IgaAnalysis to do modifications
-"""
+
 class ModifiedStructuralMechanicsAnalysis(StructuralMechanicsAnalysis):
     def Initialize(self):
         super(ModifiedStructuralMechanicsAnalysis, self).Initialize()
