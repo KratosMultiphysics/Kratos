@@ -519,7 +519,7 @@ void VariableUtils::DistributeVariable(
         static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
 
 #pragma omp parallel for
-    for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
+    for (int i_entity = 0; i_entity < n_entities; ++i_entity)
     {
         auto it_entity = r_entities.begin() + i_condition;
         auto& r_geometry = it_entity->GetGeometry();
