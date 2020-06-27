@@ -534,11 +534,10 @@ void VariableUtils::DistributeVariable(
                 << r_node << " is not initialized in " << rModelPart.Name()
                 << ". Please initialize it first.";
 
-            const auto& r_current_value = r_node.GetValue(rVariable);
             const double weight = r_weight_method(r_node);
 
             r_node.SetLock();
-            r_node.SetValue(rVariable, r_current_value + r_value * weight);
+            r_node.GetValue(rVariable) += r_value * weight;
             r_node.UnSetLock();
         }
     }
