@@ -511,7 +511,7 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
     SetNonHistoricalVariableToZero(rVariable, rModelPart.Nodes());
 
     auto& r_entities = GetContainer<TContainerType>(rModelPart);
-    const int number_of_conditions = r_entities.size();
+    const int n_entities = r_entities.size();
 
     const std::function<double(const Node<3>&)>& r_weight_method =
         (IsInverseWeightProvided) ?
@@ -519,9 +519,9 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
         static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
 
 #pragma omp parallel for
-    for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
+    for (int i_entity = 0; i_entity < n_entities; ++i_entity)
     {
-        auto it_entity = r_entities.begin() + i_condition;
+        auto it_entity = r_entities.begin() + i_entity;
         auto& r_geometry = it_entity->GetGeometry();
 
         const auto& r_value = it_entity->GetValue(rVariable);
@@ -534,11 +534,10 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
                 << r_node << " is not initialized in " << rModelPart.Name()
                 << ". Please initialize it first.";
 
-            const auto& r_current_value = r_node.GetValue(rVariable);
             const double weight = r_weight_method(r_node);
 
             r_node.SetLock();
-            r_node.SetValue(rVariable, r_current_value + r_value * weight);
+            r_node.GetValue(rVariable) += r_value * weight;
             r_node.UnSetLock();
         }
     }
