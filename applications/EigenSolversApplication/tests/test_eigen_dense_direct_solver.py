@@ -47,7 +47,7 @@ class TestEigenDenseDirectSolver(KratosUnittest.TestCase):
 
         b = KratosMultiphysics.ComplexVector([3., 3., 4.-2.j])
         x = KratosMultiphysics.ComplexVector(3)
-        
+
         return A, b, x
 
     def _execute_eigen_dense_direct_solver_test(self, class_name, solver_type, eq_system_type):
@@ -58,7 +58,7 @@ class TestEigenDenseDirectSolver(KratosUnittest.TestCase):
         settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
 
         solver = dense_linear_solver_factory.ConstructSolver(settings)
-        
+
         A, b_act, x = eq_system_type()
 
         solver.Solve(A, x, b_act)
@@ -68,17 +68,55 @@ class TestEigenDenseDirectSolver(KratosUnittest.TestCase):
         for i in range(3):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
+    def _execute_eigen_dense_direct_solver_multi_rhs_test(self, class_name, solver_type, eq_system_type):
+        # check if solver is available
+        if (not hasattr(EigenSolversApplication, class_name)):
+            self.skipTest(class_name + " is not included in the compilation of the EigenSolversApplication")
+
+        settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
+
+        solver = dense_linear_solver_factory.ConstructSolver(settings)
+
+        A, _, _ = eq_system_type()
+
+        B_act = KratosMultiphysics.Matrix(3,3,0.)
+        B_act[0,0] = 1
+        B_act[1,1] = 1
+        B_act[2,2] = 1
+
+        X = KratosMultiphysics.Matrix(3,3,0.)
+
+        solver.Solve(A, X, B_act)
+
+        B_exp = A * X
+
+        for i in range(3):
+            for j in range(3):
+                self.assertAlmostEqual(B_act[i, j], B_exp[i, j], 7)
+
     def test_eigen_dense_colpivhouseholderqr(self):
-        self._execute_eigen_dense_direct_solver_test('DenseColPivHouseholderQRSolver', 'dense_col_piv_householder_qr',self._real_eq_system)
+        self._execute_eigen_dense_direct_solver_test('DenseColPivHouseholderQRSolver', 'dense_col_piv_householder_qr', self._real_eq_system)
+
+    def test_eigen_dense_colpivhouseholderqr_multi_rhs(self):
+        self._execute_eigen_dense_direct_solver_multi_rhs_test('DenseColPivHouseholderQRSolver', 'dense_col_piv_householder_qr', self._real_eq_system)
 
     def test_eigen_dense_householderqr(self):
-        self._execute_eigen_dense_direct_solver_test('DenseHouseholderQRSolver', 'dense_householder_qr',self._real_eq_system)
+        self._execute_eigen_dense_direct_solver_test('DenseHouseholderQRSolver', 'dense_householder_qr', self._real_eq_system)
+
+    def test_eigen_dense_householderqr_multi_rhs(self):
+        self._execute_eigen_dense_direct_solver_multi_rhs_test('DenseHouseholderQRSolver', 'dense_householder_qr', self._real_eq_system)
 
     def test_eigen_dense_llt(self):
         self._execute_eigen_dense_direct_solver_test('DenseLLTSolver', 'dense_llt', self._real_posdef_eq_system)
 
+    def test_eigen_dense_llt_multi_rhs(self):
+        self._execute_eigen_dense_direct_solver_multi_rhs_test('DenseLLTSolver', 'dense_llt', self._real_posdef_eq_system)
+
     def test_eigen_dense_partialpivlu(self):
         self._execute_eigen_dense_direct_solver_test('DensePartialPivLUSolver', 'dense_partial_piv_lu', self._real_eq_system)
+
+    def test_eigen_dense_partialpivlu_multi_rhs(self):
+        self._execute_eigen_dense_direct_solver_multi_rhs_test('DensePartialPivLUSolver', 'dense_partial_piv_lu', self._real_eq_system)
 
     def test_eigen_dense_colpivhouseholderqr_complex(self):
         self._execute_eigen_dense_direct_solver_test('ComplexDenseColPivHouseholderQRSolver', 'complex_dense_col_piv_householder_qr', self._cplx_eq_system)

@@ -238,7 +238,7 @@ public:
 
 		/* boost::timer solve_step_time; */
 		// std::cout<<" InitializeSolutionStep().... "<<std::endl;
-		this->UnactiveSliverElements();
+			// this->UnactiveSliverElements(); //this is done in set_active_flag_mesher_process which is activated from fluid_pre_refining_mesher.py
 
 		InitializeSolutionStep(); // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
 		for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
