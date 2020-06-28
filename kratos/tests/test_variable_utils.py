@@ -783,8 +783,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
             condition.SetValue(KratosMultiphysics.VELOCITY, vector)
 
         variable_utils = KratosMultiphysics.VariableUtils()
-        variable_utils.DistributeConditionVariable(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, False)
-        variable_utils.DistributeConditionVariable(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, False)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, False)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, False)
 
         distance_vector = [
             1.0, 3602.0, 10803.0, 3643056.0, 3789835.0, 1897352.0
@@ -816,7 +816,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             node.SetValue(KratosMultiphysics.AUX_MESH_VAR, 1.0 / node.Id)
 
         for condition in model_part.Conditions:
-            condition.SetValue(KratosMultiphysics.DISTANCE, node.Id)
+            condition.SetValue(KratosMultiphysics.DISTANCE, condition.Id)
             vector = KratosMultiphysics.Vector(3)
             vector[0] = condition.Id * 3
             vector[1] = condition.Id * 3 + 1
@@ -824,10 +824,12 @@ class TestVariableUtils(KratosUnittest.TestCase):
             condition.SetValue(KratosMultiphysics.VELOCITY, vector)
 
         variable_utils = KratosMultiphysics.VariableUtils()
-        variable_utils.DistributeConditionVariable(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, True)
-        variable_utils.DistributeConditionVariable(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, True)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, True)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, True)
 
-        distance_vector = [974.0, 3896.0, 5844.0, 1893456.0, 1895404.0, 948676.0]
+        distance_vector = [
+            1.0, 3602.0, 10803.0, 3643056.0, 3789835.0, 1897352.0
+        ]
         velocity_vector = [
             3.0, 4.0, 5.0, 10806.0, 10810.0, 10814.0, 32409.0, 32415.0, 32421.0, 10929168.0, 10931112.0, 10933056.0, 11369505.0, 11371451.0, 11373397.0, 5692056.0, 5693030.0, 5694004.0
         ]

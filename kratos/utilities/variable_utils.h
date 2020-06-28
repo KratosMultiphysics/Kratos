@@ -516,13 +516,14 @@ public:
      *
      * @tparam TDataType               Data type
      * @tparam TContainerType          ContainerType of model part
+     * @tparam TWeightDataType         Data type of weight variable (this should be either int or double)
      * @param rModelPart               Model part
      * @param rVariable                Variable to be distributed
      * @param rWeightVariable          Variable which holds weight to distribute entity values to nodes
      * @param IsInverseWeightProvided  Whether the weight is provided as inverse or not.
      */
     template <class TDataType, class TContainerType, class TWeightDataType>
-    void DistributeVariable(
+    void WeightedAccumulateVariableOnNodes(
         ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const Variable<TWeightDataType>& rWeightVariable,
