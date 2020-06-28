@@ -1349,104 +1349,104 @@ public:
     }
 
     /**
-     * @◙brief Inserts a geometry in the current model part.
-     * @param GeometryTypeName The type of the geometry to be added, must be registered.
-     * @param GeometryNodeIds The node ids to create the geometry.
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
+     * @param rGeometryNodeIds The node ids to create the geometry.
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryTypeName,
-        std::vector<IndexType> GeometryNodeIds
+        const std::string& rGeometryTypeName,
+        const std::vector<IndexType>& rGeometryNodeIds
         );
 
     /**
-     * @◙brief Inserts a geometry in the current model part.
-     * @param GeometryTypeName The type of the geometry to be added, must be registered.
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param pGeometryNodes The nodes array to create the geometry.
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryTypeName,
+        const std::string& rGeometryTypeName,
         GeometryType::PointsArrayType pGeometryNodes
         );
     
     /**
-     * @◙brief Inserts a geometry in the current model part.
-     * @param GeometryTypeName The type of the geometry to be added, must be registered.
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param pGeometry The pointer to an existing geometry.
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryTypeName,
+        const std::string& rGeometryTypeName,
         GeometryType::Pointer pGeometry
         );
 
     /**
-     * @◙brief Inserts a geometry in the current model part.
-     * @param GeometryTypeName The type of the geometry to be added, must be registered.
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
-     * @param GeometryNodeIds The node ids to create the geometry.
+     * @param rGeometryNodeIds The node ids to create the geometry.
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryTypeName,
-        IndexType GeometryId,
-        std::vector<IndexType> GeometryNodeIds
+        const std::string& rGeometryTypeName,
+        const IndexType GeometryId,
+        const std::vector<IndexType>& rGeometryNodeIds
         );
 
     /** 
-     * @◙brief Inserts a geometry in the current model part.
-     * @param GeometryTypeName The type of the geometry to be added, must be registered.
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
      * @param pGeometryNodes The nodes array to create the geometry.
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryTypeName,
-        IndexType GeometryId,
+        const std::string& rGeometryTypeName,
+        const IndexType GeometryId,
         GeometryType::PointsArrayType pGeometryNodes
         );
 
     /** 
-     * @◙brief Inserts a geometry in the current model part.
-     * @param GeometryTypeName The type of the geometry to be added, must be registered.
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
      * @param pGeometry The pointer to an existing geometry.
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryTypeName,
-        IndexType GeometryId,
+        const std::string& rGeometryTypeName,
+        const IndexType GeometryId,
         GeometryType::Pointer pGeometry
         );
 
     /**
-     * @◙brief Inserts a geometry in the current model part.
-     * @param GeometryTypeName The type of the geometry to be added, must be registered.
-     * @param GeometryIdentifierName the identifier id of this geometry. Must be identical.
-     * @param GeometryNodeIds The node ids to create the geometry.
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
+     * @param rGeometryIdentifierName the identifier id of this geometry. Must be identical.
+     * @param rGeometryNodeIds The node ids to create the geometry.
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryTypeName,
-        const std::string& GeometryIdentifierName,
-        std::vector<IndexType> GeometryNodeIds
+        const std::string& rGeometryTypeName,
+        const std::string& rGeometryIdentifierName,
+        const std::vector<IndexType>& rGeometryNodeIds
         );
 
     /**
-     * @◙brief Inserts a geometry in the current model part.
-     * @param GeometryTypeName The type of the geometry to be added. Must be registered.
-     * @param GeometryIdentifierName the identifier id of this geometry. Must be identical.
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added. Must be registered.
+     * @param rGeometryIdentifierName the identifier id of this geometry. Must be identical.
      * @param pGeometryNodes The nodes array to create the geometry.
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryTypeName,
-        const std::string& GeometryIdentifierName,
+        const std::string& rGeometryTypeName,
+        const std::string& rGeometryIdentifierName,
         GeometryType::PointsArrayType pGeometryNodes
         );
     
         /**
-     * @◙brief Inserts a geometry in the current model part.
-     * @param GeometryTypeName The type of the geometry to be added. Must be registered.
-     * @param GeometryIdentifierName the identifier id of this geometry. Must be identical.
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added. Must be registered.
+     * @param rGeometryIdentifierName the identifier id of this geometry. Must be identical.
      * @param pGeometry The pointer to an existing geometry.
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryTypeName,
-        const std::string& GeometryIdentifierName,
+        const std::string& rGeometryTypeName,
+        const std::string& rGeometryIdentifierName,
         GeometryType::Pointer pGeometry
         );
 
