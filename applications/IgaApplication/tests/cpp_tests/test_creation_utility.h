@@ -73,7 +73,7 @@ namespace TestCreationUtility
         typename GeometryType::IntegrationPointsArrayType integration_points(1);
         integration_points[0] = IntegrationPoint;
         typename GeometryType::GeometriesArrayType result_geometries;
-        if (PolynomialDegree == 2) {
+        if (PolynomialDegree == SizeType(2)) {
             GenerateNurbsSurface(rModelPart).CreateQuadraturePointGeometries(
                 result_geometries, 3, integration_points);
         }
