@@ -71,7 +71,9 @@ Additionaly, Visual Studio is required to compile in Windows.
 
         * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
 
-        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them.
+        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the <span style="color:red">Desktop development with C++</span> workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects. 
+
+        When compiling Kratos in Windows, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
 
     - CMake
         * [Download CMake](http://cmake.org/download/)
