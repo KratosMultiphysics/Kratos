@@ -1734,8 +1734,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 
     // Create the new geometry
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(rGeometryTypeName);
-    const IndexType id = GeometryType::GenerateId(rGeometryIdentifierName);
-    GeometryType::Pointer p_geometry = r_clone_geometry.Create(id, pGeometryNodes);
+    GeometryType::Pointer p_geometry = r_clone_geometry.Create(rGeometryIdentifierName, pGeometryNodes);
 
     //add the new geometry
     this->AddGeometry(p_geometry);
@@ -1763,8 +1762,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 
     // Create the new geometry
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(rGeometryTypeName);
-    const IndexType id = GeometryType::GenerateId(rGeometryIdentifierName);
-    GeometryType::Pointer p_geometry = r_clone_geometry.Create(id, pGeometry);
+    GeometryType::Pointer p_geometry = r_clone_geometry.Create(rGeometryIdentifierName, pGeometry);
 
     //add the new geometry
     this->AddGeometry(p_geometry);
