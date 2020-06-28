@@ -271,16 +271,6 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param ThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(PointsArrayType const& rThisPoints) const override
-    {
-        return typename BaseType::Pointer(new Point3D(rThisPoints));
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
      * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
@@ -295,34 +285,6 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param rNewGeometryName the name of the new geometry
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        const std::string& rNewGeometryName,
-        PointsArrayType const& rThisPoints
-        ) const override
-    {
-        return typename BaseType::Pointer( new Point3D( rNewGeometryName, rThisPoints ) );
-    }
-    
-    /**
-     * @brief Creates a new geometry pointer
-     * @param pGeometry Pointer to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        typename BaseType::Pointer pGeometry
-    ) const override
-    {
-        auto p_geometry = typename BaseType::Pointer( new Point3D( pGeometry->Points() ) );
-        p_geometry->SetData(pGeometry->GetData());
-        return p_geometry;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
      * @param pGeometry Pointer to an existing geometry
      * @return Pointer to the new geometry
@@ -333,22 +295,6 @@ public:
     ) const override
     {
         auto p_geometry = typename BaseType::Pointer( new Point3D( NewGeometryId, pGeometry->Points() ) );
-        p_geometry->SetData(pGeometry->GetData());
-        return p_geometry;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rNewGeometryName the name of the new geometry
-     * @param pGeometry Pointer to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        const std::string& rNewGeometryName,
-        typename BaseType::Pointer pGeometry
-        ) const override
-    {
-        auto p_geometry = typename BaseType::Pointer( new Point3D( rNewGeometryName, pGeometry->Points() ) );
         p_geometry->SetData(pGeometry->GetData());
         return p_geometry;
     }
