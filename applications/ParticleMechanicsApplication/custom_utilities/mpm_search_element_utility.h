@@ -187,7 +187,7 @@ namespace MPMSearchElementUtility
                     element_itr->pGetGeometry(), local_coordinates,
                     element_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
 
-                if (IsExplicitAndNeedsCorrection(p_new_geometry, rBackgroundGridModelPart.GetProcessInfo()))
+                if (IsExplicitAndNeedsCorrection(element_itr->pGetGeometry(), rBackgroundGridModelPart.GetProcessInfo()))
                     is_found = false;
                 else {
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
@@ -310,8 +310,9 @@ namespace MPMSearchElementUtility
                         element_itr->pGetGeometry(), local_coordinates,
                         element_itr->GetGeometry().IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 
-                    for (IndexType j = 0; j < p_new_geometry->PointsNumber(); ++j)
-                        (*p_new_geometry)[j].Set(ACTIVE);
+                    auto& r_geometry = element_itr->GetGeometry();
+                    for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
+                        r_geometry[j].Set(ACTIVE);
                 }
                 else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
