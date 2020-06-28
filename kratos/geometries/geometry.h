@@ -3721,7 +3721,7 @@ private:
     ///@{
 
     /// Gets the corresponding self assigned id from pointer
-    IndexType GenerateSelfAssignedId()
+    IndexType GenerateSelfAssignedId() const
     {
         // Create id hash from provided name.
         IndexType id = reinterpret_cast<IndexType>(this);
