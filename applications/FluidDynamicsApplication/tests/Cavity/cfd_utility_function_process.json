@@ -173,7 +173,7 @@
                 "Parameters": {
                     "model_part_name": "MainModelPart",
                     "function_settings": {
-                        "function_name": "DistributeConditionVariableToNodes",
+                        "function_name": "NeighbourWeightedAccumulateConditionVariableOnNodes",
                         "variable_name": "FRICTION_VELOCITY"
                     }
                 }
@@ -185,7 +185,7 @@
                 "Parameters": {
                     "model_part_name": "MainModelPart",
                     "function_settings": {
-                        "function_name": "DistributeConditionVariableToNodes",
+                        "function_name": "NeighbourWeightedAccumulateConditionVariableOnNodes",
                         "variable_name": "Y_PLUS"
                     }
                 }

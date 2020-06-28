@@ -57,10 +57,10 @@ class CFDUtilityFunctions:
 
     """
     @staticmethod
-    def DistributeConditionVariableToNodes(params):
+    def NeighbourWeightedAccumulateConditionVariableOnNodes(params):
         default_settings = Kratos.Parameters("""
         {
-            "function_name": "DistributeConditionVariableToNodes",
+            "function_name": "NeighbourWeightedAccumulateConditionVariableOnNodes",
             "variable_name": "PLEASE_PROVIDE_A_VARIABLE_NAME"
         }""")
 
@@ -73,7 +73,7 @@ class CFDUtilityFunctions:
         if (variable_type in ["Double", "Array"]):
             def func_method(model_part):
                 KratosCFD.CFDUtilities.CalculateNumberOfNeighbourConditions(model_part)
-                Kratos.VariableUtils().DistributeConditionVariable(model_part, variable, KratosCFD.NUMBER_OF_NEIGHBOUR_CONDITIONS, True)
+                Kratos.VariableUtils().WeightedAccumulateConditionVariableOnNodes(model_part, variable, KratosCFD.NUMBER_OF_NEIGHBOUR_CONDITIONS, True)
             return func_method
         else:
             raise Exception("Unsupported variable type " + variable_type +
