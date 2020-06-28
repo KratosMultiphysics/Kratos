@@ -331,17 +331,27 @@ CALL :add_app C:/users/username/development/ExternalApplication  # Example of ex
 
 As Kratos is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the Kratos install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
 
+### Linux
 ```bash
 export PYTHONPATH=$PYTHONPATH:$HOME/Kratos/bin/Release
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Kratos/bin/Release/libs
 ```
+Or set them permanently by adding these lines in your *~/.bashrc*.
 
-If you are in windows instead do:
+### Windows
+In a *Command Prompt:*
 
 ```cmd
 set PYTHONPATH=%PYTHONPATH%;C:/Kratos/bin/Release
 set PATH=%PATH%;C:/Kratos/bin/Release/libs
 ```
+In *Windows Powershell*:
+```cmd
+$Env:PYTHONPATH+=";C:/Kratos/bin/Release"
+$Env:PATH+=";C:/Kratos/bin/Release/libs"
+```
+
+Or set them permanently using the  <span style="color:red">Edit the system environtment variables </span> option in the Control panel.
 
 You can then test your compilation by executing an example script or trying to import the python module
 
