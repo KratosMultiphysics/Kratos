@@ -649,28 +649,29 @@ public:
 
     /**
      * @brief Creates a new geometry pointer
-     * @param ThisPoints the nodes of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
-        PointsArrayType const& ThisPoints
+        PointsArrayType const& rThisPoints
     ) const
     {
-        return Pointer( new Geometry( ThisPoints, mpGeometryData ) );
+        const IndexType id = GenerateSelfAssignedId();
+        return this->Create(id, rThisPoints);
     }
 
     /**
      * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
-     * @param ThisPoints the nodes of the new geometry
+     * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
         const IndexType NewGeometryId,
-        PointsArrayType const& ThisPoints
+        PointsArrayType const& rThisPoints
     ) const
     {
-        return Pointer( new Geometry( NewGeometryId, ThisPoints, mpGeometryData));
+        return Pointer( new Geometry( NewGeometryId, rThisPoints, mpGeometryData));
     }
 
     /**
@@ -684,7 +685,8 @@ public:
         PointsArrayType const& rThisPoints
         ) const
     {
-        return Pointer(new Geometry( rNewGeometryName, rThisPoints, mpGeometryData));
+        const IndexType id = GenerateId(rNewGeometryName);
+        return this->Create(id, rThisPoints);
     }
     
     /**
@@ -696,9 +698,8 @@ public:
         Pointer pGeometry
     ) const
     {
-        auto p_geometry = Pointer( new Geometry( pGeometry->Points(), mpGeometryData ) );
-        p_geometry->SetData(pGeometry->GetData());
-        return p_geometry;
+        const IndexType id = GenerateSelfAssignedId();
+        return this->Create(id, pGeometry);
     }
 
     /**
@@ -728,9 +729,8 @@ public:
         Pointer pGeometry
         ) const
     {
-        auto p_geometry = Pointer(new Geometry( rNewGeometryName, pGeometry->Points(), mpGeometryData));
-        p_geometry->SetData(pGeometry->GetData());
-        return p_geometry;
+        const IndexType id = GenerateId(rNewGeometryName);
+        return this->Create(id, pGeometry);
     }
 
     /** This methods will create a duplicate of all its points and
