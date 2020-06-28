@@ -61,6 +61,10 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 
+// Modelers
+#include "modeler/modeler.h"
+#include "modeler/cad_io_modeler.h"
+
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
@@ -112,7 +116,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpGeometries(rOther.mpGeometries),
           mpElements(rOther.mpElements),
           mpConditions(rOther.mpConditions),
-          mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
+          mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints),
+          mpModelers(rOther.mpModelers) {}
 
     /// Destructor.
     virtual ~KratosApplication() {}
@@ -238,6 +243,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpMasterSlaveConstraints;
     }
 
+    KratosComponents<Modeler>::ComponentsContainerType& GetModelers() {
+        return *mpModelers;
+    }
+
     void SetComponents(
         KratosComponents<VariableData>::ComponentsContainerType const&
             VariableDataComponents)
@@ -268,6 +277,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     {
         mpMasterSlaveConstraints->insert(MasterSlaveConstraintComponents.begin(), MasterSlaveConstraintComponents.end());
+    }
+
+    void SetComponents(KratosComponents<Modeler>::ComponentsContainerType const& ModelerComponents)
+    {
+        mpModelers->insert(ModelerComponents.begin(), ModelerComponents.end());
     }
 
     void SetComponents(
@@ -345,6 +359,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         rOStream << "MasterSlaveConstraints:" << std::endl;
 
         KratosComponents<MasterSlaveConstraint>().PrintData(rOStream);
+
+        rOStream << std::endl;
+
+        rOStream << "Modelers:" << std::endl;
+
+        KratosComponents<Modeler>().PrintData(rOStream);
     }
 
     ///@}
@@ -448,6 +468,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
     const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
 
+    // Modeler
+    const Modeler mModeler;
+    const CadIoModeler mCadIoModeler;
+
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
 
@@ -489,6 +513,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;
 
     KratosComponents<MasterSlaveConstraint>::ComponentsContainerType* mpMasterSlaveConstraints;
+
+    KratosComponents<Modeler>::ComponentsContainerType* mpModelers;
 
     // Serialization
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;

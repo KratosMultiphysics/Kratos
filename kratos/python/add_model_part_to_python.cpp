@@ -22,9 +22,10 @@
 #include "includes/define_python.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "python/add_model_part_to_python.h"
+#include "includes/kratos_components.h"
 #include "includes/process_info.h"
 #include "utilities/quaternion.h"
+#include "python/add_model_part_to_python.h"
 #include "python/containers_interface.h"
 
 namespace Kratos
@@ -155,6 +156,14 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry6(
 
 Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
+    if (!KratosComponents<Element>::Has(ElementName)) {
+        std::stringstream msg;
+        KratosComponents<Element> instance; // creating an instance for using "PrintData"
+        instance.PrintData(msg);
+
+        KRATOS_ERROR << "The Element \"" << ElementName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Elements are registered:\n" << msg.str() << std::endl;
+    }
+
     Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
 
     for(unsigned int i = 0; i < NodeIdList.size(); i++) {
@@ -166,6 +175,14 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::str
 
 Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
+    if (!KratosComponents<Condition>::Has(ConditionName)) {
+        std::stringstream msg;
+        KratosComponents<Condition> instance; // creating an instance for using "PrintData"
+        instance.PrintData(msg);
+
+        KRATOS_ERROR << "The Condition \"" << ConditionName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Conditions are registered:\n" << msg.str() << std::endl;
+    }
+
     Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
 
     for(unsigned int i = 0; i <NodeIdList.size(); i++) {
@@ -634,6 +651,14 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint1(Mo
                                                                               ModelPart::MatrixType RelationMatrix,
                                                                               ModelPart::VectorType ConstantVector)
 {
+    if (!KratosComponents<MasterSlaveConstraint>::Has(ConstraintName)) {
+        std::stringstream msg;
+        KratosComponents<MasterSlaveConstraint> instance; // creating an instance for using "PrintData"
+        instance.PrintData(msg);
+
+        KRATOS_ERROR << "The Constraint \"" << ConstraintName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Constraints are registered:\n" << msg.str() << std::endl;
+    }
+
     return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterDofsVector, rSlaveDofsVector, RelationMatrix, ConstantVector);
 }
 
@@ -649,20 +674,14 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint2(Mo
                                                                               double Weight,
                                                                               double Constant)
 {
-    return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
-}
+    if (!KratosComponents<MasterSlaveConstraint>::Has(ConstraintName)) {
+        std::stringstream msg;
+        KratosComponents<MasterSlaveConstraint> instance; // creating an instance for using "PrintData"
+        instance.PrintData(msg);
 
-// Master slave constraints
-ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint3(ModelPart& rModelPart,
-                                                                              std::string ConstraintName,
-                                                                              ModelPart::IndexType Id,
-                                                                              ModelPart::NodeType& rMasterNode,
-                                                                              ModelPart::VariableComponentType& rMasterVariable,
-                                                                              ModelPart::NodeType& rSlaveNode,
-                                                                              ModelPart::VariableComponentType& rSlaveVariable,
-                                                                              double Weight,
-                                                                              double Constant)
-{
+        KRATOS_ERROR << "The Constraint \"" << ConstraintName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Constraints are registered:\n" << msg.str() << std::endl;
+    }
+
     return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
 }
 
@@ -941,7 +960,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddElement", &ModelPart::AddElement)
         .def("AddElements",AddElementsByIds)
         .def("GetParentModelPart", &ModelPart::GetParentModelPart, py::return_value_policy::reference_internal)
-        .def("GetRootModelPart", &ModelPart::GetRootModelPart, py::return_value_policy::reference_internal)
+        .def("GetRootModelPart", [](ModelPart& self) -> ModelPart& {return self.GetRootModelPart();}, py::return_value_policy::reference_internal)
         .def("GetModel", &ModelPart::GetModel, py::return_value_policy::reference_internal)
         .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })
@@ -959,7 +978,6 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintsByIds)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, py::return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, py::return_value_policy::reference_internal)
-        .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, py::return_value_policy::reference_internal)
         .def("__str__", PrintObject<ModelPart>)
         ;
 }

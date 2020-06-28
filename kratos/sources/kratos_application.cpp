@@ -99,6 +99,7 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mpGeometries(KratosComponents<GeometryType>::pGetComponents()),
       mpElements(KratosComponents<Element>::pGetComponents()),
       mpConditions(KratosComponents<Condition>::pGetComponents()),
+      mpModelers(KratosComponents<Modeler>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
       mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName())) {}
 
@@ -117,6 +118,7 @@ void KratosApplication::RegisterKratosCore() {
     Serializer::Register("Geometry", GeometryType());
     Serializer::Register("Element", Element());
     Serializer::Register("Condition", Condition());
+    Serializer::Register("Modeler", Modeler());
     Serializer::Register("Properties", Properties());
     Serializer::Register("GeometricalObject", GeometricalObject());
 
@@ -172,6 +174,9 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D4N", mDistanceCalculationElementSimplex3D4N)
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex2D3N", mLevelSetConvectionElementSimplex2D3N)
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex3D4N", mLevelSetConvectionElementSimplex3D4N)
+
+    KRATOS_REGISTER_MODELER("Modeler", mModeler);
+    KRATOS_REGISTER_MODELER("CadIoModeler", mCadIoModeler);
 
     //Register general geometries:
     // Point register:

@@ -137,7 +137,7 @@ public:
     /** Destructor.
      */
     virtual ~SolvingStrategy(){}
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -163,7 +163,7 @@ public:
 
     /**
      * @brief The problem of interest is solved.
-     * @details 
+     * @details
      * {
      * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
      * All those functions can otherwise be called separately.
@@ -233,7 +233,7 @@ public:
     /**
      * @brief This sets the level of echo for the solving strategy
      * @param Level of echo for the solving strategy
-     * @details 
+     * @details
      * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
@@ -331,7 +331,7 @@ public:
             noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
             noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
         }
-             
+
         KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
 
         KRATOS_CATCH("")
@@ -374,18 +374,6 @@ public:
                     KRATOS_ERROR << "ERROR:: Problem on node with Id " << itNode->Id() << "\nIt is impossible to move the mesh since the DISPLACEMENT var is not in the rModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
                 }
             }
-        }
-
-        for (ModelPart::ElementsContainerType::iterator it_elem = GetModelPart().ElementsBegin();
-             it_elem != GetModelPart().ElementsEnd(); it_elem++)
-        {
-            it_elem->Check(GetModelPart().GetProcessInfo());
-        }
-
-        for (ModelPart::ConditionsContainerType::iterator it_cond = GetModelPart().ConditionsBegin();
-             it_cond != GetModelPart().ConditionsEnd(); it_cond++)
-        {
-            it_cond->Check(GetModelPart().GetProcessInfo());
         }
 
         return 0;

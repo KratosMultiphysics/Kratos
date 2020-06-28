@@ -238,7 +238,7 @@ public:
 
 		/* boost::timer solve_step_time; */
 		// std::cout<<" InitializeSolutionStep().... "<<std::endl;
-		this->UnactiveSliverElements();
+			// this->UnactiveSliverElements(); //this is done in set_active_flag_mesher_process which is activated from fluid_pre_refining_mesher.py
 
 		InitializeSolutionStep(); // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
 		for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
@@ -298,6 +298,14 @@ public:
 				// myfile << currentTime << "\t" << it << "\n";
 				// myfile.close();
 			}
+			bool hybridMethod=false;
+			if(hybridMethod==true){
+				if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 0))
+				{
+					this->UpdateElementalStressStrain();
+				}
+			}
+
 			if ((continuityConverged && momentumConverged) && it > 1)
 			{
 				rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
@@ -321,6 +329,26 @@ public:
 
 		return NormDp;
 	}
+
+	  void UpdateElementalStressStrain()
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+#pragma omp parallel
+     {
+      ModelPart::ElementIterator ElemBegin;
+      ModelPart::ElementIterator ElemEnd;
+      OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
+       for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+       {
+        /* itElem-> InitializeElementStrainStressState(); */
+        itElem->InitializeSolutionStep(rCurrentProcessInfo);
+       }
+     }
+    }
+
+
 
 	void Initialize() override
 	{

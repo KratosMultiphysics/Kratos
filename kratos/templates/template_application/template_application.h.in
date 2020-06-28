@@ -49,7 +49,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class Kratos@{APP_NAME_CAMEL}Application : public KratosApplication {
+class KRATOS_API(@{APP_NAME_CAPS}_APPLICATION) Kratos@{APP_NAME_CAMEL}Application : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{
