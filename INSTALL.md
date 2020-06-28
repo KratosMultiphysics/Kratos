@@ -139,7 +139,7 @@ These examples are also located [in the /scripts folder](https://github.com/Krat
 ```Shell
 cp /path_to_kratos/scripts/standard_configure.sh /path_to_kratos/scripts/configure.sh
 ```
-Then these scripts can be launched through the system terminal.
+Then, these scripts can be launched through the system terminal.
 
 Linux
 
@@ -153,6 +153,7 @@ Windows
 ./path_to_kratos/scripts/configure.bat
 ```
 
+The example scripts for every system are shown next. 
 
 ### Linux
 
@@ -239,6 +240,26 @@ set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
 goto:eof
 
 ```
+#### Windows Visual Studio compilation configuration
+
+Some of the parameters detailed in the example script above may vary from system to system, or the Visual Studio version.
+
+If you are using Visual Studio 2017, the configure command should be:
+```
+cmake -G"Visual Studio 15 2017" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+-DUSE_EIGEN_MKL=OFF
+```
+You can check the specific Visual Studio version that you have installed in your system, by checking the Visual Studio Tab 'Help' > 'About Microsoft Visual Studio'.
+
+If you have a 64-bit system, you might need to also specify it in the configure command for some Visual Studio versions with the flag ```-A x64```.
+
+```
+cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+-DUSE_EIGEN_MKL=OFF
+```
+
+
+
 
 ### MacOS
 
