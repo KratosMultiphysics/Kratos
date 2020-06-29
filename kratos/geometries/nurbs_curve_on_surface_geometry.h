@@ -142,12 +142,10 @@ public:
     ///@name Curve Properties
     ///@{
 
-    /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
-     * @return domain interval.
-     */
-    NurbsInterval DomainInterval() const
+    /// Returns number of points of NurbsCurve.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
     {
-        return mpNurbsCurve->DomainInterval();
+        return mpNurbsCurve->PointsNumberInDirection(DirectionIndex);
     }
 
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,
