@@ -66,6 +66,7 @@
 #include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_axisym_2D_law.hpp"
+#include "custom_constitutive/rht_concrete_3D_law.hpp"
 
 namespace Kratos{
 namespace Python{
@@ -214,6 +215,12 @@ namespace Python{
         (m, "JohnsonCookThermalPlastic2DAxisymLaw")
         .def(py::init<>())
         ;
+
+        // RHT concrete
+        py::class_< RHTConcrete3DLaw, typename RHTConcrete3DLaw::Pointer, ConstitutiveLaw >
+            (m, "RHTConcrete3DLaw")
+            .def(py::init<>())
+            ;
     }
 }  // namespace Python.
 }  // namespace Kratos.

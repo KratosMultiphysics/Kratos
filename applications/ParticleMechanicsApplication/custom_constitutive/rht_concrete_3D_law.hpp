@@ -1,0 +1,178 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
+//
+//  Main authors:    Peter Wilson
+//
+
+#if !defined (KRATOS_RHT_CONCRETE_3D_LAW_H_INCLUDED)
+#define  KRATOS_RHT_CONCRETE_3D_LAW_H_INCLUDED
+
+// System includes
+
+// External includes
+
+// Project includes
+
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "includes/checks.h"
+
+
+namespace Kratos
+{
+/**
+ * The Riedel-Hiermaier-Thoma (RHT) strain-rate senstive plastic 3D material law.
+ * Requires a strain vector to be provided by the element, which
+ * should ideally be objective to enable large displacements.
+ * Only suitable for explicit time integration because calculate
+ * constitutive tensor is not implemented.
+ * References:  [1] A general concrete model in hydrocodes: Verification and validation of the
+ *                  Riedel-Hiermaier-Thoma model in LS-DYNA
+ *                  https://doi.org/10.1177%2F2041419617695977
+ *              [2] Livermore Software Technology Corporation (2015) LS-DYNA Keyword User's Manual, vol. II (r. 6307).
+ *                  http://ftp.lstc.com/anonymous/outgoing/jday/manuals/LS-DYNA_Manual_Volume_II_R8.0.pdf
+ */
+class RHTConcrete3DLaw : public HyperElastic3DLaw
+{
+public:
+
+    /// Type Definitions
+    typedef ProcessInfo              ProcessInfoType;
+    typedef HyperElastic3DLaw        BaseType;
+    typedef std::size_t              SizeType;
+    typedef Properties::Pointer      PropertiesPointer;
+
+    /// Counted pointer of RHT3DLaw
+    KRATOS_CLASS_POINTER_DEFINITION(RHTConcrete3DLaw);
+
+    /**
+     * Default constructor.
+     */
+    RHTConcrete3DLaw();
+
+    /**
+     * Copy constructor.
+     */
+    RHTConcrete3DLaw(const RHTConcrete3DLaw& rOther);
+
+    /**
+     * Assignment operator.
+     */
+    RHTConcrete3DLaw& operator=(const RHTConcrete3DLaw& rOther);
+
+    /**
+     * Clone function (has to be implemented by any derived class)
+     * @return a pointer to a new instance of this constitutive law
+     */
+    ConstitutiveLaw::Pointer Clone() const override;
+
+    /**
+     * Destructor.
+     */
+    ~RHTConcrete3DLaw() override;
+
+    /**
+     * Operators
+     */
+
+    /**
+     * Operations needed by the base class:
+     */
+    void GetLawFeatures(Features& rFeatures) override;
+
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+
+    void SetValue(const Variable<double>& rVariable,
+        const double& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    bool Has(const Variable<double>& rThisVariable) override;
+
+    /**
+     * Material parameters are inizialized
+     */
+    void InitializeMaterial(const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues) override;
+
+    /**
+     * Computes the material response:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
+
+    /**
+     * This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
+     * @return
+     */
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+
+protected:
+
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    double mEquivalentStress = 0.0;
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    /**
+     * This function is designed to be called when before the material response
+     * to check if all needed parameters for the constitutive are initialized
+     * @param Parameters
+     * @return
+     */
+    bool CheckParameters(Parameters& rValues) override;
+
+    virtual void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput);
+
+    virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput);
+
+    void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo);
+
+private:
+
+    double CalculateHardenedYieldStress(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
+        const double PlasticStrainRate, const double Temperature);
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+
+        rSerializer.save("mEquivalentStress", mEquivalentStress);
+
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+
+        rSerializer.load("mEquivalentStress", mEquivalentStress);
+
+    }
+
+
+
+}; // Class RHTConcrete3DLaw
+}  // namespace Kratos.
+#endif // KRATOS_RHT_CONCRETE_3D_LAW_H_INCLUDED defined
