@@ -41,10 +41,11 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate SPH file" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate CLU file" ] 2 PRE [list GenerateClusterFile] "" ""
-        #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in mesh" ] 4 PRE [list ReadClusterFileintoMesh] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 3 PRE [list ReadClusterFileintoGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate all and visualize" ] 4 PRE [list OneClickGo] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 5 PRE [list DeleteSpheresGeometry] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate cluster and visualize" ] 3 PRE [list OneClickGo] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 4 PRE [list ReadClusterFileintoGeometry] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over mesh" ] 5 PRE [list ReadClusterFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 6 PRE [list DeleteSpheresGeometry] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over mesh" ] 7 PRE [list DeleteSpheresMesh] "" ""
 
         GiDMenu::UpdateMenus
     }
@@ -71,6 +72,12 @@ proc DeleteSpheresGeometry { } {
     GiD_Layers delete spheres_to_delete
     GiD_Process 'Render Normal
 
+}
+
+proc DeleteSpheresMesh { } {
+
+    set spheres [GiD_Mesh list -element_type {sphere} element]
+    GiD_Mesh delete element $spheres
 }
 
 proc AfterReadGIDProject { filename } {
@@ -115,7 +122,7 @@ proc OneClickGo {} {
     GenerateClusterFile
 
     # Visualize cluster
-    ReadClusterFileintoGeometry
+    ReadClusterFileintoMesh
 }
 
 
@@ -536,18 +543,6 @@ proc ReadClusterFileintoMesh { } {
     lreplace $file_data end end
     close $FileVar
 
-    # GiD_Process Mescape Meshing EditMesh CreateElement Sphere 10 1 1 1 escape escape
-    # GiD_Mesh create node append <x y z>
-    # GiD_Mesh create element append Sphere 1 1 <radius>
-
-    # <num>|append : <num> is the identifier (integer > 0) for the node. You can use the word 'append' to set a new number automatically. The number of the created entity is returned as the result.
-    # <elemtype> : must be one of "Point | Line | Triangle | Quadrilateral | Tetrahedra | Hexahedra | Prism | Pyramid | Sphere | Circle"
-    # <nnode> is the number of nodes an element has
-    # <N1 ... Nnnode> is a Tcl list with the element connectivities
-    # <radius> is the element radius, only for sphere and circle elements
-    # <nx> <ny> <nz> is the normal of the plane that contain the circle, must be specified for circle elements only
-    # <matname> is the optional element material name
-
     #  Process data file
     set data [split $file_data "\n"]
     set data [lreplace $data end-14 end]
@@ -563,33 +558,11 @@ proc ReadClusterFileintoMesh { } {
             incr i 1
         }
     }
-    W $sphere_nodes
     set count 0
     foreach line $data {
         if {[llength $line] >3} {
-            GiD_Mesh create element [lindex $sphere_nodes $count] append Sphere 1 1 [lindex $line 3]
+            GiD_Process Mescape Meshing EditMesh CreateElement Sphere [lindex $line 3] [lindex $sphere_nodes $count] escape escape
             incr count 1
         }
     }
 }
-
-
-# GiD_Mesh get element <num|from_face|from_edge> ?face|face_linear|num_faces|edge_linear|num_edges|normal|tangent|center|connectivities ?<face_id>|<edge_id>??
-
-# If from_face is specified then the command has this syntax
-
-# GiD_Mesh get element from_face <face_nodes> ?-ordered?
-
-# it find and return the list of element ids that have a face with these nodes
-
-# <face_nodes> is the list of integer ids of the face nodes {<face_node_1> ... <face_node_n>} (only corner lineal nodes must be specified in the list)
-
-# if -ordered is specified then only faces with the same orientation of the nodes will be taken into account (else the ordenation of the face nodes doesn't matter)
-
-# If from_edge is specified then the command has this syntax
-
-# GiD_Mesh get element from_edge <edge_nodes>
-
-# it find and return the list of element ids that have an edge with these nodes
-
-# <edge_nodes> is the list of integer ids of the edge nodes {<edge_node_1> <edge_node_2>} (only corner lineal nodes must be specified in the list)
