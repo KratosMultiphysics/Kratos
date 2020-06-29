@@ -368,7 +368,7 @@ public:
      */
     inline ModelPart& GetModelPart()
     {
-        KRATOS_ERROR_IF(mpModelPart == nullptr) << "ModelPart in the SolvingStrategy is not initialized" << std::endl;
+        KRATOS_ERROR_IF_NOT(mpModelPart) << "ModelPart in the SolvingStrategy is not initialized" << std::endl;
         return *mpModelPart;
     };
 
