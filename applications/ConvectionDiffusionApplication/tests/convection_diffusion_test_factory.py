@@ -8,6 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 have_eigen_solvers_dependencies = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
+have_structural_mechanics_dependencies = kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 
 # Other imports
 import os
@@ -76,5 +77,6 @@ class BasicConvectionDiffusionTransientTest(ConvectionDiffusionTestFactory):
 class BasicDiffusionStationaryTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_diffusion_test_stationary"
 
+@KratosUnittest.skipUnless(have_structural_mechanics_dependencies,"Missing required application: StructuralMechanicsApplication")
 class SimpleThermoMechanicalTest(ConvectionDiffusionTestFactory):
     file_name = "thermo_mechanical_tests/coupled_problem_test"
