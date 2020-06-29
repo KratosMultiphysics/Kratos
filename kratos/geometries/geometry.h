@@ -699,8 +699,8 @@ public:
         PointsArrayType const& rThisPoints
         ) const
     {
-        const IndexType id = GenerateId(rNewGeometryName);
-        auto p_geom = this->Create(id, rThisPoints);
+        auto p_geom = this->Create(0, rThisPoints);
+        p_geom->SetId(rNewGeometryName);
         return p_geom;
     }
     
@@ -758,8 +758,8 @@ public:
         Pointer pGeometry
         ) const
     {
-        const IndexType id = GenerateId(rNewGeometryName);
-        auto p_geom = this->Create(id, pGeometry);
+        auto p_geom = this->Create(0, pGeometry);
+        p_geom->SetId(rNewGeometryName);
         return p_geom;
     }
 
