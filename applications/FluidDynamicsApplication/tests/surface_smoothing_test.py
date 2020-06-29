@@ -40,9 +40,6 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
                 (noise+math.sqrt((node.X-0.005)**2+(node.Y-0.005)**2+(node.Z-0.0)**2) - 0.003) )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
 
-        #KratosMultiphysics.FindNodalNeighboursProcess(
-        #    model_part, 10, 10).Execute()
-
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(
                 kratos_comm, model_part).Execute()
@@ -96,37 +93,39 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             model_part,
            linear_solver)
 
-        for _ in range(10):
+        for _ in range(1): # surface smoothing can be called multiple times
             smoothing_process.Execute()
 
-        #for node in model_part.Nodes:
-            #if ( ((node.X-0.005)**2+(node.Y-0.005)**2+(node.Z-0.005)**2 - 0.003**2) > -0.00001 and ((node.X-0.005)**2+(node.Y-0.005)**2+(node.Z-0.005)**2 - 0.003**2) < 0.00001 ):
-                #print( node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT) )
-                #print( node.Id )
+        node = (model_part.Nodes)[492]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.000209343292979375)
+        node = (model_part.Nodes)[653]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00014971039286367817)
+        node = (model_part.Nodes)[810]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00015720195179497664)
 
-        gid_output = GiDOutputProcess(model_part,
-                                   "smoothing_test_3D",
-                                   KratosMultiphysics.Parameters("""
-                                       {
-                                           "result_file_configuration" : {
-                                               "gidpost_flags": {
-                                                   "GiDPostMode": "GiD_PostBinary",
-                                                   "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                   "WriteConditionsFlag": "WriteConditions",
-                                                   "MultiFileFlag": "SingleFile"
-                                               },
-                                               "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT","NORMAL"]
-                                           }
-                                       }
-                                       """)
-                                   )
+        # gid_output = GiDOutputProcess(model_part,
+        #                            "smoothing_test_3D",
+        #                            KratosMultiphysics.Parameters("""
+        #                                {
+        #                                    "result_file_configuration" : {
+        #                                        "gidpost_flags": {
+        #                                            "GiDPostMode": "GiD_PostBinary",
+        #                                            "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                                            "WriteConditionsFlag": "WriteConditions",
+        #                                            "MultiFileFlag": "SingleFile"
+        #                                        },
+        #                                        "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT","NORMAL"]
+        #                                    }
+        #                                }
+        #                                """)
+        #                            )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()

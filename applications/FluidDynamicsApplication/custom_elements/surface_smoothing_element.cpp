@@ -41,6 +41,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+    constexpr static std::array<unsigned int, 4> mNode0ID = {2, 0, 0, 0};
+    constexpr static std::array<unsigned int, 4> mNode1ID = {3, 3, 1, 2};
+    constexpr static std::array<unsigned int, 4> mNode2ID = {1, 2, 3, 1};
+
+    constexpr static unsigned int num_dim  = 3;
+    constexpr static unsigned int num_nodes  = num_dim + 1;
+    constexpr static unsigned int num_faces = num_nodes;
+    constexpr static unsigned int num_face_nodes = num_nodes - 1;
+
 /**
  * Constructor.
  */
@@ -166,9 +175,6 @@ Element::Pointer SurfaceSmoothingElement::Clone(IndexType NewId, NodesArrayType 
  */
 void SurfaceSmoothingElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
-    const int num_dim  = 3;
-    const int num_nodes  = num_dim + 1;
-
     // num_dof = num_nodes
     if (rResult.size() != num_nodes){
         rResult.resize(num_nodes, false);
@@ -186,9 +192,6 @@ void SurfaceSmoothingElement::EquationIdVector(EquationIdVectorType& rResult, Pr
  */
 void SurfaceSmoothingElement::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo)
 {
-    const int num_dim  = 3;
-    const int num_nodes  = num_dim + 1;
-
     // Here, num_dof = num_nodes
     if (rElementalDofList.size() != num_nodes){
         rElementalDofList.resize(num_nodes);
@@ -220,11 +223,6 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    const int num_dim  = 3;
-    const int num_nodes  = num_dim + 1;
-    const unsigned int num_faces = num_nodes;
-    const unsigned int num_face_nodes = num_nodes - 1;
 
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry());
@@ -299,7 +297,6 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                 face_gauss_pts_loc_coords.clear();
                 face_gauss_pts_gl_coords.reserve(num_int_pts);
                 face_gauss_pts_loc_coords.reserve(num_int_pts);
-
 
                 VectorType face_jacobians;
                 outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);
