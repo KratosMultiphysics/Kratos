@@ -70,6 +70,10 @@ public:
     ///@name Life Cycle
     ///@{
 
+    const std::vector<int> mNode0ID = {2, 0, 0, 0};
+    const std::vector<int> mNode1ID = {3, 3, 1, 2};
+    const std::vector<int> mNode2ID = {1, 2, 3, 1};
+
     /**
      * Constructor.
      */

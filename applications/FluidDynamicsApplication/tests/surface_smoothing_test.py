@@ -54,8 +54,9 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         # Set IS_STRUCTURE to define slip wall
         for node in model_part.Nodes:
             node.SetValue(KratosMultiphysics.IS_STRUCTURE, 0.0)
-        for node in (model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
-            node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
+        for node in model_part.Nodes:#(model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
+            if node.Z == 0.0:
+                node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
 
         KratosMultiphysics.ComputeNodalGradientProcess(
             model_part,
@@ -83,7 +84,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             model_part,
            linear_solver)
 
-        for _ in range(1):
+        for _ in range(0):
             smoothing_process.Execute()
 
         #for node in model_part.Nodes:

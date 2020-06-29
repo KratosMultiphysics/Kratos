@@ -271,22 +271,23 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     // Implementing the boundary condition on distance gradient: can be implemented
     // by a custom condition for a more general case
-    const auto& faces = GetGeometry().Faces();
+
     const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
-    for (unsigned int i_face = 0; i_face < num_faces; i_face++) {
-        //if (neighbour_elems[ i_face ].Id() == this->Id() ){
-            const auto& r_face = faces[i_face];
-            unsigned int contact_node = 0;
+    for (unsigned int i_ne = 0; i_ne < neighbour_elems.size(); i_ne++){
+        if (neighbour_elems[ i_ne ].Id() == this->Id() ){
+            auto outer_face = Triangle3D3< GeometryType::PointType >(
+                                    this->pGetGeometry()->pGetPoint(mNode0ID[i_ne]),
+                                    this->pGetGeometry()->pGetPoint(mNode1ID[i_ne]),
+                                    this->pGetGeometry()->pGetPoint(mNode2ID[i_ne]));
 
+            unsigned int contact_node = 0;
             const unsigned int num_face_nodes = num_nodes - 1;
             for (unsigned int i=0; i < num_face_nodes; ++i){
-                if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
+                if ( outer_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
                     contact_node++;
                 }
             }
-
-            KRATOS_INFO("Smoothing Element") << "i_face " << i_face << std::endl;
 
             if (contact_node == num_face_nodes){
                 for (unsigned int ii = 0; ii < num_faces; ii++){
@@ -295,7 +296,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                 }
 
                 auto IntegrationMethod = GeometryData::GI_GAUSS_1;
-                const unsigned int num_int_pts = (faces[i_face]).IntegrationPointsNumber(IntegrationMethod);
+                auto face_gauss_pts = outer_face.IntegrationPoints(IntegrationMethod);
+                const unsigned int num_int_pts = face_gauss_pts.size();
 
                 std::vector < GeometryType::CoordinatesArrayType > face_gauss_pts_gl_coords, face_gauss_pts_loc_coords;
                 face_gauss_pts_gl_coords.clear();
@@ -303,10 +305,9 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                 face_gauss_pts_gl_coords.reserve(num_int_pts);
                 face_gauss_pts_loc_coords.reserve(num_int_pts);
 
-                auto face_gauss_pts = (faces[i_face]).IntegrationPoints(IntegrationMethod);
 
                 VectorType face_jacobians;
-                (faces[i_face]).DeterminantOfJacobian(face_jacobians, IntegrationMethod);
+                outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);
 
                 // Get the original geometry shape function and gradients values over the intersection
                 for (unsigned int i_gauss = 0; i_gauss < num_int_pts; ++i_gauss) {
@@ -315,7 +316,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
                     // Compute the global coordinates of the face Gauss pt.
                     GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
-                    global_coords = (faces[i_face]).GlobalCoordinates(global_coords, face_gauss_pts[i_gauss].Coordinates());
+                    global_coords = outer_face.GlobalCoordinates(global_coords, face_gauss_pts[i_gauss].Coordinates());
 
                     // Compute the parent geometry local coordinates of the Gauss pt.
                     GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
@@ -346,7 +347,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                     }
                 }
             }
-        //}
+
+        }
     }
 
     noalias(rLeftHandSideMatrix) = tempM + tempA;
