@@ -81,8 +81,8 @@
                 "gauss_points_check_variables"  : ["VECTOR_TO_UPWIND_ELEMENT"],
                 "input_file_name"  : "transonic_upwind_vector_potential_flow_field_test_results.json",
                 "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
-                "tolerance"            : 1e-9,
-                "relative_tolerance"   : 1e-12,
+                "tolerance"            : 1e-8,
+                "relative_tolerance"   : 1e-10,
                 "time_frequency"   : -2
             }
         }]
