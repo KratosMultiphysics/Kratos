@@ -324,10 +324,10 @@ namespace Kratos
                         {
                             Alpha *= 1.125;
                         }
-                        else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
-                        {
-                            Alpha *= 1.05;
-                        }
+                        // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
+                        // {
+                        //     Alpha *= 1.05;
+                        // }
 
                         if (numrigid == nds)
                         {
