@@ -1,66 +1,143 @@
 from KratosMultiphysics import *
 import KratosMultiphysics.ConvectionDiffusionApplication
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import *
 
-class TestSymbolicEulerianConvectionDiffusionElement(ConvectionDiffusionAnalysis):
-    def __init__(self,model,parameters):
-        super(TestSymbolicEulerianConvectionDiffusionElement,self).__init__(model,parameters)
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
 
-    def _CreateSolver(self):
-        from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_stationary_solver
-        return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
-
-    """
-    function introducing the stochasticity in the right hand side
-    input:  self: an instance of the class
-    """
-    def ModifyInitialProperties(self):
-        model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        for node in self.model.GetModelPart(model_part_name).Nodes:
+    def testSymbolicEulerianConvectionDiffusionElementUnsteadyDOSS(self):
+        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_DOSS.json"
+        with open(project_parameters_file_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model = KratosMultiphysics.Model()
+        bar_simulation = ConvectionDiffusionAnalysis(model, parameters)
+        bar_simulation._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        bar_simulation.Run()
+        # check L2 error via midpoint rule
+        KratosMultiphysics.CalculateNodalAreaProcess(bar_simulation._GetSolver().main_model_part,2).Execute()
+        error = 0
+        model_part_name = bar_simulation.project_parameters["problem_data"]["model_part_name"].GetString()
+        for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
+            # L2 norm
             x = node.X
             y = node.Y
-            diffusivity = 2.0 # check in materials.json
-            convective_velocity = [2.0,3.0,0.0]
+            u_analytical = x - sin(bar_simulation.time)
+            u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            error = error + (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+        error = sqrt(error)
+        self.assertEqual(error,0.0017678016487481932)
 
-            forcing = -diffusivity*(-4*pi*pi*cos(2*pi*x)*sin(2*pi*y)-4*pi*pi*cos(2*pi*x)*sin(2*pi*y)) + \
-                convective_velocity[0]*(-2*pi*sin(2*pi*x)*sin(2*pi*y)) + convective_velocity[1]*(2*pi*cos(2*pi*x)*cos(2*pi*y))
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,convective_velocity)
-            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing)
+    def testSymbolicEulerianConvectionDiffusionElementUnsteadyQOSS(self):
+        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_QOSS.json"
+        with open(project_parameters_file_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model = KratosMultiphysics.Model()
+        bar_simulation = ConvectionDiffusionAnalysis(model, parameters)
+        bar_simulation._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        bar_simulation.Run()
+        # check L2 error via midpoint rule
+        KratosMultiphysics.CalculateNodalAreaProcess(bar_simulation._GetSolver().main_model_part,2).Execute()
+        error = 0
+        model_part_name = bar_simulation.project_parameters["problem_data"]["model_part_name"].GetString()
+        for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
+            # L2 norm
+            x = node.X
+            y = node.Y
+            u_analytical = x - sin(bar_simulation.time)
+            u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            error = error + (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+        error = sqrt(error)
+        self.assertEqual(error,0.0017678016487366309)
 
-if __name__ == "__main__":
-    from sys import argv
+    def testSymbolicEulerianConvectionDiffusionElementUnsteadyDASGS(self):
+        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_DASGS.json"
+        with open(project_parameters_file_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model = KratosMultiphysics.Model()
+        bar_simulation = ConvectionDiffusionAnalysis(model, parameters)
+        bar_simulation._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        bar_simulation.Run()
+        # check L2 error via midpoint rule
+        KratosMultiphysics.CalculateNodalAreaProcess(bar_simulation._GetSolver().main_model_part,2).Execute()
+        error = 0
+        model_part_name = bar_simulation.project_parameters["problem_data"]["model_part_name"].GetString()
+        for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
+            # L2 norm
+            x = node.X
+            y = node.Y
+            u_analytical = x - sin(bar_simulation.time)
+            u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            error = error + (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+        error = sqrt(error)
+        self.assertEqual(error,0.03879717794512903)
 
-    project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters.json"
+    def testSymbolicEulerianConvectionDiffusionElementUnsteadyQASGS(self):
+        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_QASGS.json"
+        with open(project_parameters_file_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model = KratosMultiphysics.Model()
+        bar_simulation = ConvectionDiffusionAnalysis(model, parameters)
+        bar_simulation._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        bar_simulation.Run()
+        # check L2 error via midpoint rule
+        KratosMultiphysics.CalculateNodalAreaProcess(bar_simulation._GetSolver().main_model_part,2).Execute()
+        error = 0
+        model_part_name = bar_simulation.project_parameters["problem_data"]["model_part_name"].GetString()
+        for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
+            # L2 norm
+            x = node.X
+            y = node.Y
+            u_analytical = x - sin(bar_simulation.time)
+            u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            error = error + (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+        error = sqrt(error)
+        self.assertEqual(error,0.17200571595025152)
 
-    with open(project_parameters_file_name,'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    def testSymbolicEulerianConvectionDiffusionElementSteadyQASGS(self):
+        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_steady_state_explicit_solution_QASGS.json"
+        with open(project_parameters_file_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model = KratosMultiphysics.Model()
+        bar_simulation = ConvectionDiffusionAnalysis(model, parameters)
+        bar_simulation._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        bar_simulation.Run()
+        # check L2 error via midpoint rule
+        KratosMultiphysics.CalculateNodalAreaProcess(bar_simulation._GetSolver().main_model_part,2).Execute()
+        error = 0
+        model_part_name = bar_simulation.project_parameters["problem_data"]["model_part_name"].GetString()
+        for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
+            # L2 norm
+            x = node.X
+            y = node.Y
+            u_analytical = x - sin(bar_simulation.time)
+            u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            error = error + (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+        error = sqrt(error)
+        self.assertAlmostEqual(error,0.5056562564233146,delta=1e-12)
 
-    model = KratosMultiphysics.Model()
-    simulation = TestSymbolicEulerianConvectionDiffusionElement(model, parameters)
-    simulation.Run()
+    def testSymbolicEulerianConvectionDiffusionElementSteadyQOSS(self):
+        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_steady_state_explicit_solution_QOSS.json"
+        with open(project_parameters_file_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model = KratosMultiphysics.Model()
+        bar_simulation = ConvectionDiffusionAnalysis(model, parameters)
+        bar_simulation._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        bar_simulation.Run()
+        # check L2 error via midpoint rule
+        KratosMultiphysics.CalculateNodalAreaProcess(bar_simulation._GetSolver().main_model_part,2).Execute()
+        error = 0
+        model_part_name = bar_simulation.project_parameters["problem_data"]["model_part_name"].GetString()
+        for node in bar_simulation.model.GetModelPart(model_part_name).Nodes:
+            # L2 norm
+            x = node.X
+            y = node.Y
+            u_analytical = x - sin(bar_simulation.time)
+            u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            error = error + (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
+        error = sqrt(error)
+        self.assertAlmostEqual(error,0.5056562564233146,delta=1e-12)
 
-    # check L2 error via midpoint rule and estimate minimal nodal h
-    KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
-    find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(simulation._GetSolver().main_model_part)
-    find_nodal_h.Execute()
-    error = 0
-    nodal_h = 1e9
-    model_part_name = simulation.project_parameters["problem_data"]["model_part_name"].GetString()
-    for node in simulation.model.GetModelPart(model_part_name).Nodes:
-        # L2 norm
-        x = node.X
-        y = node.Y
-        u_analytical = cos(2*pi*x)*sin(2*pi*y)
-        u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-        error = error + ((u_analytical - u_numerical)**2*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
-        # nodal h
-        if (node.GetValue(KratosMultiphysics.NODAL_H) < nodal_h):
-            nodal_h = node.GetValue(KratosMultiphysics.NODAL_H)
-
-    error = sqrt(error)
-    print("minimal nodal h:",nodal_h)
-    print("error:",error)
+if __name__ == '__main__':
+    KratosUnittest.main()

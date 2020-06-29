@@ -19,6 +19,7 @@ from convection_diffusion_test_factory import BasicConvectionDiffusionStationary
 from convection_diffusion_test_factory import BasicConvectionDiffusionTransientTest as TBasicConvectionDiffusionTransientTest
 from convection_diffusion_test_factory import BasicDiffusionStationaryTest as TBasicDiffusionStationaryTest
 from convection_diffusion_test_factory import SimpleThermoMechanicalTest as TSimpleThermoMechanicalTest
+from test_symbolic_eulerian_convection_diffusion_explicit_element import TestSymbolicEulerianConvectionDiffusionElement
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -57,6 +58,12 @@ def AssembleTestSuites():
     smallSuite.addTest(TBasicConvectionDiffusionTransientTest('test_execution'))
     smallSuite.addTest(TBasicDiffusionStationaryTest('test_execution'))
     smallSuite.addTest(TSimpleThermoMechanicalTest('test_execution'))
+    smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementUnsteadyDOSS'))
+    smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementUnsteadyQOSS'))
+    smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementUnsteadyDASGS'))
+    smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementUnsteadyQASGS'))
+    smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementSteadyQASGS'))
+    smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementSteadyQOSS'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)

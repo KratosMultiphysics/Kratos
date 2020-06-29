@@ -1,0 +1,14 @@
+{
+    "properties" : [{
+        "model_part_name" : "MainModelPart",
+        "properties_id"   : 0,
+        "Material"        : {
+            "Variables"        : {
+                "CONDUCTIVITY"  : 0.0,
+                "DENSITY"       : 1.0,
+                "SPECIFIC_HEAT" : 1.0
+            },
+            "Tables"           : {}
+        }
+    }]
+}
