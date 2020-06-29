@@ -669,7 +669,7 @@ public:
         p_geom->SetIdNotGeneratedFromString(id);
 
         // Sets Id
-        p_geom->SetId(id);
+        p_geom->SetIdWithoutCheck(id);
 
         return p_geom;
     }
@@ -726,7 +726,7 @@ public:
         p_geom->SetIdNotGeneratedFromString(id);
 
         // Sets Id
-        p_geom->SetId(id);
+        p_geom->SetIdWithoutCheck(id);
 
         return p_geom;
     }
@@ -3824,6 +3824,12 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// Sets Id of this Geometry (avoids checks, can be used only as private)
+    void SetIdWithoutCheck(const IndexType Id)
+    {
+        mId = Id;
+    }
 
     static const GeometryData& GeometryDataInstance()
     {
