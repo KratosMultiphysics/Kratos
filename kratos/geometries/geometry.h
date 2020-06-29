@@ -809,7 +809,7 @@ public:
     }
 
     /// Sets Id of this Geometry
-    void SetId(IndexType Id)
+    void SetId(const IndexType Id)
     {
         // The first bit of the Id is used to detect if Id
         // is int or hash of name. Second bit defines if Id
@@ -825,17 +825,17 @@ public:
     }
 
     /// Sets Id with the use of the name of this geometry
-    void SetId(std::string Name)
+    void SetId(const std::string& rName)
     {
-        mId = GenerateId(Name);
+        mId = GenerateId(rName);
     }
 
     /// Gets the corresponding hash-Id to a string name
-    static inline IndexType GenerateId(std::string Name)
+    static inline IndexType GenerateId(const std::string& rName)
     {
         // Create id hash from provided name.
         std::hash<std::string> string_hash_generator;
-        auto id = string_hash_generator(Name);
+        auto id = string_hash_generator(rName);
 
         // Sets first bit to one.
         SetIdGeneratedFromString(id);
