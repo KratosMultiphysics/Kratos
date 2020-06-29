@@ -656,8 +656,21 @@ public:
         PointsArrayType const& rThisPoints
     ) const
     {
-        const IndexType id = GenerateSelfAssignedId();
-        auto p_geom = this->Create(id, rThisPoints);
+        // Create geometry
+        auto p_geom = this->Create(0, rThisPoints);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetId(id);
+
         return p_geom;
     }
 
@@ -700,8 +713,21 @@ public:
         Pointer pGeometry
     ) const
     {
-        const IndexType id = GenerateSelfAssignedId();
-        auto p_geom = this->Create(id, pGeometry);
+        // Create geometry
+        auto p_geom = this->Create(0, pGeometry);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetId(id);
+
         return p_geom;
     }
 
