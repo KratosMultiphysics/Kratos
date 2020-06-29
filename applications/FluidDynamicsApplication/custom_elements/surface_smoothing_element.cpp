@@ -224,6 +224,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     const int num_dim  = 3;
     const int num_nodes  = num_dim + 1;
     const unsigned int num_faces = num_nodes;
+    const unsigned int num_face_nodes = num_nodes - 1;
 
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry());
@@ -274,7 +275,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
-    for (unsigned int i_ne = 0; i_ne < neighbour_elems.size(); i_ne++){
+    for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
         if (neighbour_elems[ i_ne ].Id() == this->Id() ){
             auto outer_face = Triangle3D3< GeometryType::PointType >(
                                     this->pGetGeometry()->pGetPoint(mNode0ID[i_ne]),
@@ -282,7 +283,6 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                                     this->pGetGeometry()->pGetPoint(mNode2ID[i_ne]));
 
             unsigned int contact_node = 0;
-            const unsigned int num_face_nodes = num_nodes - 1;
             for (unsigned int i=0; i < num_face_nodes; ++i){
                 if ( outer_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
                     contact_node++;
@@ -290,11 +290,6 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
             }
 
             if (contact_node == num_face_nodes){
-                for (unsigned int ii = 0; ii < num_faces; ii++){
-                    KRATOS_INFO("Smoothing Element") << this->Id() << " " <<
-                        neighbour_elems[ ii ].Id() << std::endl;
-                }
-
                 auto IntegrationMethod = GeometryData::GI_GAUSS_1;
                 auto face_gauss_pts = outer_face.IntegrationPoints(IntegrationMethod);
                 const unsigned int num_int_pts = face_gauss_pts.size();

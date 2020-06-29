@@ -39,24 +39,24 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
                 (noise+math.sqrt((node.X-0.005)**2+(node.Y-0.005)**2+(node.Z-0.0)**2) - 0.003) )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
 
-        KratosMultiphysics.FindNodalNeighboursProcess(
-            model_part, 10, 10).Execute()
+        #KratosMultiphysics.FindNodalNeighboursProcess(
+        #    model_part, 10, 10).Execute()
 
-        #kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-        #KratosMultiphysics.FindGlobalNodalNeighboursProcess(
-        #        kratos_comm, model_part).Execute()
+        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
+        KratosMultiphysics.FindGlobalNodalNeighboursProcess(
+                kratos_comm, model_part).Execute()
 
         dimensions = 3
-        avg_num_elements = 10
+        avg_num_elements = 4
         find_neighbouring_elements_process = KratosMultiphysics.FindElementalNeighboursProcess(
             model_part, dimensions, avg_num_elements).Execute()
 
-        # Set IS_STRUCTURE to define slip wall
+        # Set IS_STRUCTURE to define contact with solid
         for node in model_part.Nodes:
-            node.SetValue(KratosMultiphysics.IS_STRUCTURE, 0.0)
-        for node in model_part.Nodes:#(model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
             if node.Z == 0.0:
                 node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
+            else:
+                node.SetValue(KratosMultiphysics.IS_STRUCTURE, 0.0)
 
         KratosMultiphysics.ComputeNodalGradientProcess(
             model_part,
@@ -84,7 +84,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             model_part,
            linear_solver)
 
-        for _ in range(0):
+        for _ in range(1):
             smoothing_process.Execute()
 
         #for node in model_part.Nodes:
