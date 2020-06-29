@@ -292,6 +292,9 @@ namespace Kratos
             const double rIntegrationWeight,
             GeometryType& rParentGeometry)
         {
+            pGeometry->SetGeometryParent(&rParentGeometry);
+            pGeometry->Points() = rParentGeometry.Points();
+
             IntegrationPoint<3> int_p(rLocalCoordinates, rIntegrationWeight);
 
             Vector N;
@@ -307,9 +310,7 @@ namespace Kratos
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 pGeometry->GetDefaultIntegrationMethod(), int_p, N_matrix, DN_De);
 
-            pGeometry->Points() = rParentGeometry.Points();
             pGeometry->SetGeometryShapeFunctionContainer(data_container);
-            pGeometry->SetGeometryParent(&rParentGeometry);
         }
 
     };
