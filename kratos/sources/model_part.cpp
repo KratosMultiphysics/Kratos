@@ -400,38 +400,59 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType::Pointer pThisNode, 
 
 void ModelPart::RemoveNodes(Flags IdentifierFlag)
 {
-    // This method is optimized to free the memory
-    //loop over all the meshes
-    ModelPart::MeshesContainerType& meshes = this->GetMeshes();
-    for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
-    {
+    // Lambda to remove nodes from a mesh
+    auto remove_from_mesh = [&](ModelPart::MeshType & mesh) {
         //count the nodes to be erase
-        const unsigned int nnodes = i_mesh->Nodes().size();
+        const unsigned int nnodes = mesh.Nodes().size();
         unsigned int erase_count = 0;
         #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nnodes); ++i)
-        {
-            ModelPart::NodesContainerType::iterator i_node = i_mesh->NodesBegin() + i;
+        for(int i=0; i<static_cast<int>(nnodes); ++i) {
+            ModelPart::NodesContainerType::iterator i_node = mesh.NodesBegin() + i;
 
             if( i_node->IsNot(IdentifierFlag) )
                 erase_count++;
         }
 
         ModelPart::NodesContainerType temp_nodes_container;
-        temp_nodes_container.reserve(i_mesh->Nodes().size() - erase_count);
+        temp_nodes_container.reserve(mesh.Nodes().size() - erase_count);
 
-        temp_nodes_container.swap(i_mesh->Nodes());
+        temp_nodes_container.swap(mesh.Nodes());
 
-        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
-        {
+        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++) {
             if( i_node->IsNot(IdentifierFlag) )
-                (i_mesh->Nodes()).push_back(std::move(*(i_node.base())));
+                (mesh.Nodes()).push_back(std::move(*(i_node.base())));
         }
+    };
+
+    // This method is optimized to free the memory
+    // Loop over all the local meshes (Is this still necessary with Submodelparts?)
+    for(auto & mesh: this->GetMeshes()) {
+        remove_from_mesh(mesh);
     }
 
-    //now recursively remove the nodes in the submodelparts
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+    // Mark the IdentifierFlag across partitions coherently
+    this->GetCommunicator().SynchronizeOrNodalFlags(IdentifierFlag);
+
+    // Remove the nodes from the mpi-interfaces in case there is any
+    remove_from_mesh(this->GetCommunicator().LocalMesh());
+    for(auto & mesh: this->GetCommunicator().LocalMeshes()) {
+        remove_from_mesh(mesh);
+    }
+
+    remove_from_mesh(this->GetCommunicator().GhostMesh());
+    for(auto & mesh: this->GetCommunicator().GhostMeshes()) {
+        remove_from_mesh(mesh);
+    }
+
+    remove_from_mesh(this->GetCommunicator().InterfaceMesh());
+    for(auto & mesh: this->GetCommunicator().InterfaceMeshes()) {
+        remove_from_mesh(mesh);
+    }
+
+    // Now recursively remove the nodes in the submodelparts
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++) {
         i_sub_model_part->RemoveNodes(IdentifierFlag);
+    }
 }
 
 void ModelPart::RemoveNodesFromAllLevels(Flags IdentifierFlag)
