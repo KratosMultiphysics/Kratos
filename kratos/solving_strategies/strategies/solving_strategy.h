@@ -143,10 +143,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~SolvingStrategy()
-    {
-        mpModelPart =  nullptr;
-    }
+    virtual ~SolvingStrategy(){}
 
     ///@}
     ///@name Operators
