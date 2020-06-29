@@ -657,7 +657,8 @@ public:
     ) const
     {
         const IndexType id = GenerateSelfAssignedId();
-        return this->Create(id, rThisPoints);
+        auto p_geom = this->Create(id, rThisPoints);
+        return p_geom;
     }
 
     /**
@@ -686,7 +687,8 @@ public:
         ) const
     {
         const IndexType id = GenerateId(rNewGeometryName);
-        return this->Create(id, rThisPoints);
+        auto p_geom = this->Create(id, rThisPoints);
+        return p_geom;
     }
     
     /**
@@ -699,7 +701,8 @@ public:
     ) const
     {
         const IndexType id = GenerateSelfAssignedId();
-        return this->Create(id, pGeometry);
+        auto p_geom = this->Create(id, pGeometry);
+        return p_geom;
     }
 
     /**
@@ -730,7 +733,8 @@ public:
         ) const
     {
         const IndexType id = GenerateId(rNewGeometryName);
-        return this->Create(id, pGeometry);
+        auto p_geom = this->Create(id, pGeometry);
+        return p_geom;
     }
 
     /** This methods will create a duplicate of all its points and
