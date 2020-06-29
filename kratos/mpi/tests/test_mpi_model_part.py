@@ -1,7 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.MetisApplication as KratosMetis # TODO refactor this by using the "distributed_import_model_part_utility"
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
@@ -9,6 +7,26 @@ import os
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
+def ReadDistributedModelPart(model_part, mdpa_file_name):
+    from KratosMultiphysics.mpi import distributed_import_model_part_utility
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+
+    importer_settings = KratosMultiphysics.Parameters("""{
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": \"""" + mdpa_file_name + """\",
+            "partition_in_memory" : true
+        },
+        "echo_level" : 0
+    }""")
+
+    model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, importer_settings)
+    model_part_import_util.ImportModelPart()
+    model_part_import_util.CreateCommunicators()
 
 class TestMPICommunicator(KratosUnittest.TestCase):
 
@@ -23,56 +41,12 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
         self.communicator.Barrier()
 
-    def _read_model_part_mpi(self,main_model_part):
-
-        if self.communicator.Size() == 1:
-            self.skipTest("Test can be run only using more than one mpi process")
-
-        ## Add variables to the model part
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-
-        ## Serial partition of the original .mdpa file
-        input_filename = GetFilePath("test_mpi_communicator")
-        if self.communicator.Rank() == 0 :
-
-            # Original .mdpa file reading
-            model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
-
-            # Partition of the original .mdpa file
-            number_of_partitions = self.communicator.Size() # Number of partitions equals the number of processors
-            domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-            verbosity = 0
-            sync_conditions = True # Make sure that the condition goes to the same partition as the element is a face of
-
-            partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
-            partitioner.Execute()
-
-            KratosMultiphysics.Logger.PrintInfo("TestMPICommunicator","Metis divide finished.")
-
-        self.communicator.Barrier()
-
-        ## Read the partitioned .mdpa files
-        mpi_input_filename = input_filename + "_" + str(self.communicator.Rank())
-        model_part_io = KratosMultiphysics.ModelPartIO(mpi_input_filename)
-        model_part_io.ReadModelPart(main_model_part)
-
-        ## Construct and execute the Parallel fill communicator
-        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(main_model_part.GetRootModelPart())
-        ParallelFillCommunicator.Execute()
-
-        ## Check submodelpart of each main_model_part of each processor
-        self.assertTrue(main_model_part.HasSubModelPart("Skin"))
-        skin_sub_model_part = main_model_part.GetSubModelPart("Skin")
-
     def test_remove_nodes_parallel_interfaces(self):
         current_model = KratosMultiphysics.Model()
         main_model_part = current_model.CreateModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
-        self._read_model_part_mpi(main_model_part)
+        ReadDistributedModelPart(main_model_part, GetFilePath("test_mpi_communicator"))
 
         for node in main_model_part.Nodes:
             if node.Id % 2:
