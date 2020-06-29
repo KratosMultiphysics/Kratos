@@ -38,7 +38,7 @@
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "free_stream_density"  : 1.225,
-                "mach_infinity": 0.6,
+                "mach_infinity": 0.75,
                 "heat_capacity_ratio": 1.4,
                 "perturbation_field": true
             }
@@ -65,7 +65,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["VELOCITY_POTENTIAL"],
-                "input_file_name"  : "transonic_velocity_potential_flow_field_test_results.json",
+                "input_file_name"  : "transonic_velocity_potential_flow_field_high_mach_test_results.json",
                 "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
                 "tolerance"            : 1e-9,
                 "relative_tolerance"   : 1e-12,
