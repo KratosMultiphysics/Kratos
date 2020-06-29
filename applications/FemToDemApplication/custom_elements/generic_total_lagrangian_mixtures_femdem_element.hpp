@@ -304,6 +304,9 @@ protected:
     ///@{
 }; // Class GenericTotalLagrangianMixturesFemDemElement
 
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::VoigtSize;
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::NumberOfEdges;
+
 ///@}
 ///@name Type Definitions
 ///@{
