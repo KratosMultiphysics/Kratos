@@ -239,11 +239,17 @@ private:
 
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
 
-    void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
+    void CalculateLeftHandSideSubsonicElement(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
+    // void CalculateRightHandSideSupersonicElement(VectorType& rRightHandSideVector,
+    //                                         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                           const ProcessInfo& rCurrentProcessInfo);
@@ -283,7 +289,14 @@ private:
                                     const BoundedVector<double, TNumNodes>& rWake_rhs,
                                     const ElementalData<TNumNodes, TDim>& rData,
                                     unsigned int& rRow) const;
-    
+
+    void AssembleSupersonicLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                        const double densityDerivativeWRTVelocity,
+                                        const double densityDerivativeWRTUpwindVelocity,
+                                        const array_1d<double, TDim> velocity,
+                                        const array_1d<double, TDim> upwindVelocity,
+                                        const ProcessInfo& rCurrentProcessInfo);
+
     BoundedVector<double, TNumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
 
     array_1d<size_t, TNumNodes> GetAssemblyKey(const GeometryType& rGeom, const GeometryType& rUpwindGeom, const ProcessInfo& rCurrentProcessInfo);
