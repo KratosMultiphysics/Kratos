@@ -21,6 +21,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
 
         KratosMultiphysics.ModelPartIO(GetFilePath("SurfaceSmoothingTest/three_dim_symmetrical_cube")).ReadModelPart(model_part)
@@ -35,7 +36,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             # generate random numbers between 0-1
             noise = (random()-0.5)*0.0003
-            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,
                 (noise+math.sqrt((node.X-0.005)**2+(node.Y-0.005)**2+(node.Z-0.0)**2) - 0.003) )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
 
@@ -57,6 +58,17 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
                 node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
             else:
                 node.SetValue(KratosMultiphysics.IS_STRUCTURE, 0.0)
+
+        #verify the orientation of the skin
+        tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
+        throw_errors = False
+        flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
+        flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+        KratosMultiphysics.TetrahedralMeshOrientationCheck(model_part, throw_errors, flags).Execute()
+
+        # Calculate boundary normals
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
+            model_part, 3)
 
         KratosMultiphysics.ComputeNodalGradientProcess(
             model_part,
@@ -84,7 +96,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             model_part,
            linear_solver)
 
-        for _ in range(1):
+        for _ in range(10):
             smoothing_process.Execute()
 
         #for node in model_part.Nodes:
@@ -93,7 +105,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
                 #print( node.Id )
 
         gid_output = GiDOutputProcess(model_part,
-                                   "curvature_post_3D",
+                                   "smoothing_test_3D",
                                    KratosMultiphysics.Parameters("""
                                        {
                                            "result_file_configuration" : {
@@ -103,7 +115,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
                                                    "WriteConditionsFlag": "WriteConditions",
                                                    "MultiFileFlag": "SingleFile"
                                                },
-                                               "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT"]
+                                               "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT","NORMAL"]
                                            }
                                        }
                                        """)
