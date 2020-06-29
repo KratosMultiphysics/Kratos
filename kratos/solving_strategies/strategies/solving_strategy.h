@@ -114,9 +114,7 @@ public:
     /**
      * @brief Default constructor
      */
-    explicit SolvingStrategy() : mpModelPart(nullptr)
-    {
-    }
+    explicit SolvingStrategy() { }
 
     /**
      * @brief Default constructor. (with parameters)
