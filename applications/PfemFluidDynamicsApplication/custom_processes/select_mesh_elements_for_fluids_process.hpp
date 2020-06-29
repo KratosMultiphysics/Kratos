@@ -202,7 +202,7 @@ namespace Kratos
                         {
                             isolatedNodesInTheElement += vertices.back().FastGetSolutionStepValue(ISOLATED_NODE);
                             // if (isolatedNode==true)
-                                // std::cout << el << "node " << vertices.back().Id() << " " << vertices.back().X() << " " << vertices.back().Y() << std::endl;
+                            // std::cout << el << "node " << vertices.back().Id() << " " << vertices.back().X() << " " << vertices.back().Y() << std::endl;
                         }
                         // check flags on nodes
                         if (vertices.back().Is(ISOLATED))
@@ -323,7 +323,8 @@ namespace Kratos
                         else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
                             Alpha *= 1.125;
-                        }else // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
+                        }
+                        else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
                         {
                             Alpha *= 1.05;
                         }
@@ -410,7 +411,7 @@ namespace Kratos
                         }
                         else if (dimension == 3)
                         {
-                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds || previouslyIsolatedNodes == nds || previouslyFreeSurfaceNodes == nds) && numrigid == 0  && isolatedNodesInTheElement > 0)
+                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds || previouslyIsolatedNodes == nds || previouslyFreeSurfaceNodes == nds) && numrigid == 0 && isolatedNodesInTheElement > 0)
                             {
                                 if (checkedNodes == nds)
                                 {
@@ -458,8 +459,8 @@ namespace Kratos
                     }
 
                     // // to control that the element has a good shape
-                    if (dimension == 3 && accepted && numrigid <3 &&
-                        (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4))
+                    if (dimension == 3 && accepted && numrigid < 3 &&
+                        (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement==2)))
                     {
                         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
                         double Volume = tetrahedron->Volume();
