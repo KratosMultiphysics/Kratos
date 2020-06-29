@@ -1134,8 +1134,8 @@ public:
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
         faces.push_back( FacePointerType(new FaceType(
-                                             this->pGetPoint(0),
                                              this->pGetPoint(2),
+                                             this->pGetPoint(3),
                                              this->pGetPoint(1))) );
         faces.push_back( FacePointerType(new FaceType(
                                              this->pGetPoint(0),
@@ -1146,8 +1146,8 @@ public:
                                              this->pGetPoint(1),
                                              this->pGetPoint(3))) );
         faces.push_back( FacePointerType(new FaceType(
+                                             this->pGetPoint(0),
                                              this->pGetPoint(2),
-                                             this->pGetPoint(3),
                                              this->pGetPoint(1))) );
         return faces;
     }
