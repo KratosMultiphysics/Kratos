@@ -175,6 +175,7 @@ protected:
      */
     virtual void InitializeRungeKuttaIntermediateSubStep() override
     {
+        BaseType::InitializeRungeKuttaIntermediateSubStep();
         ExecuteOSSStep();
     };
 
@@ -183,6 +184,7 @@ protected:
      */
     virtual void InitializeRungeKuttaLastSubStep() override
     {
+        BaseType::InitializeRungeKuttaLastSubStep();
         ExecuteOSSStep();
     };
 
