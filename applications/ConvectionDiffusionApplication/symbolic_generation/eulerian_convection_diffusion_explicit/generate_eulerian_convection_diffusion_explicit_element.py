@@ -127,7 +127,7 @@ for dim in dim_vector:
     # Compute the ASGS stabilization terms using the momentum and mass conservation residuals above
     rhs_stabilization = rhs_stab_1
     if dynamic_subscales:
-        rhs_stabilization = rhs_stabilization - rhs_stab_2 # <------ MINUS ------
+        rhs_stabilization = rhs_stabilization + rhs_stab_2
 
     ## Stabilization OSS funtional terms
     # with lhs we refer to the fact we take the strong equation on the left side
