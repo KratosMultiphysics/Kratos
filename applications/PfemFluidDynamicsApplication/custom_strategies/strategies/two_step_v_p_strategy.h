@@ -223,7 +223,7 @@ namespace Kratos
 
       unsigned int maxNonLinearIterations = mMaxPressureIter;
 
-      KRATOS_INFO("TwoStepVPStrategy") << "\n                   Solve with two_step_vp strategy at t=" << currentTime << "s" << std::endl;
+      KRATOS_INFO("Solution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
 
       if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
       {
