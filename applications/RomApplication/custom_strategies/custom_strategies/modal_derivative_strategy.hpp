@@ -304,15 +304,17 @@ public:
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  BaseType::GetModelPart());
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpInitialVariables, mpb,
+                if (mDerivativeTypeFlag || mMassOrthonormalizeFlag)
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
                                                                  BaseType::GetModelPart());
                 if (mDerivativeTypeFlag)
-                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpInitialVariables, mpb,
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpDx, mpb,
                                                                  BaseType::GetModelPart());
 
                 //setting up initial SolutionStepValue
-                // TSparseSpace::Resize(*mpInitialVariables, mpA->size1());
-                // TSparseSpace::SetToZero(*mpInitialVariables);
+                DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
+                TSparseSpace::Resize(*mpInitialVariables, r_dof_set.size());
+                TSparseSpace::SetToZero(*mpInitialVariables);
                 this->StoreVariables();
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
