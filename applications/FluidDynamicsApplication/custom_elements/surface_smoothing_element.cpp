@@ -223,7 +223,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     KRATOS_TRY
 
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
-    const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry());
+    const auto& geometry = this->GetGeometry();
+    const double he = ElementSizeCalculator<3,4>::AverageElementSize(geometry);
     const double epsilon = 1.0e2*dt*he*he;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix
@@ -246,12 +247,12 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     // Getting data for the given geometry
     double volume;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume); //asking for gradients and other info
+    GeometryUtils::CalculateGeometryData(geometry, DN_DX, N, volume); //asking for gradients and other info
 
     for(unsigned int i = 0; i<num_nodes; i++){
-        phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE, 1);
-        phi_dof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-        grad_phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
+        phi_old[i] = geometry[i].FastGetSolutionStepValue(DISTANCE, 1);
+        phi_dof[i] = geometry[i].FastGetSolutionStepValue(DISTANCE);
+        grad_phi_old[i] = geometry[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
     }
 
     for(unsigned int i = 0; i<num_nodes; i++){
@@ -266,15 +267,14 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     // Implementing the boundary condition on distance gradient: can be implemented
     // by a custom condition for a more general case
-
     const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
     for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
         if (neighbour_elems[ i_ne ].Id() == this->Id() ){
             auto outer_face = Triangle3D3< GeometryType::PointType >(
-                                    this->pGetGeometry()->pGetPoint(mNode0ID[i_ne]),
-                                    this->pGetGeometry()->pGetPoint(mNode1ID[i_ne]),
-                                    this->pGetGeometry()->pGetPoint(mNode2ID[i_ne]));
+                                    geometry.pGetPoint(mNode0ID[i_ne]),
+                                    geometry.pGetPoint(mNode1ID[i_ne]),
+                                    geometry.pGetPoint(mNode2ID[i_ne]));
 
             unsigned int contact_node = 0;
             for (unsigned int i=0; i < num_face_nodes; ++i){
@@ -297,32 +297,32 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                 VectorType face_jacobians;
                 outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);
 
+                Kratos::Vector face_shape_func;
+                GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
+                GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
+                VectorType solid_normal = ZeroVector(num_dim);
+
                 // Get the original geometry shape function and gradients values over the intersection
                 for (unsigned int i_gauss = 0; i_gauss < num_int_pts; ++i_gauss) {
                     // Store the Gauss points weights
                     const double face_weight = face_jacobians(i_gauss) * face_gauss_pts[i_gauss].Weight();
 
                     // Compute the global coordinates of the face Gauss pt.
-                    GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
                     global_coords = outer_face.GlobalCoordinates(global_coords, face_gauss_pts[i_gauss].Coordinates());
 
                     // Compute the parent geometry local coordinates of the Gauss pt.
-                    GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
-                    loc_coords = GetGeometry().PointLocalCoordinates(loc_coords, global_coords);
+                    loc_coords = geometry.PointLocalCoordinates(loc_coords, global_coords);
 
                     // Compute shape function values
                     // Obtain the parent subgeometry shape function values
-                    Kratos::Vector face_shape_func;
-                    face_shape_func = GetGeometry().ShapeFunctionsValues(face_shape_func, loc_coords);
+                    face_shape_func = geometry.ShapeFunctionsValues(face_shape_func, loc_coords);
 
                     double temp_value = 0.0;
 
                     for (unsigned int i = 0; i < num_nodes; i++){
-
-                        VectorType solid_normal = ZeroVector(num_dim);
-                        if (GetGeometry()[i].Is(CONTACT) )
+                        if (geometry[i].Is(CONTACT) )
                         {
-                            solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
+                            solid_normal = geometry[i].FastGetSolutionStepValue(NORMAL);
                             const double norm = Kratos::norm_2(solid_normal);
 #ifdef KRATOS_DEBUG
                             KRATOS_WARNING_IF("DistanceSmoothingElement", norm < 1.0e-12) << "WARNING: Normal close to zero" <<std::endl;
