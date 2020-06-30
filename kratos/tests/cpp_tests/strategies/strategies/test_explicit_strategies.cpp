@@ -44,7 +44,7 @@ namespace Testing
 
         AuxiliaryExplicitStrategiesTestElement() = default;
 
-        AuxiliaryExplicitStrateguesTestElement(
+        AuxiliaryExplicitStrategiesTestElement(
             IndexType NewId,
             GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {};
 
