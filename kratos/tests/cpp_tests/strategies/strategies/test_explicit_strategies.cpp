@@ -48,7 +48,7 @@ namespace Testing
             IndexType NewId,
             GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {};
 
-        AuxiliaryExplicitStrateguesTestElement(AuxiliaryExplicitStrateguesTestElement const& rOther) = delete;
+        AuxiliaryExplicitStrategiesTestElement(AuxiliaryExplicitStrateguesTestElement const& rOther) = delete;
 
         ~AuxiliaryExplicitStrateguesTestElement() = default;
 
