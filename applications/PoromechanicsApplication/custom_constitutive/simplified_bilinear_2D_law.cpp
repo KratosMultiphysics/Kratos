@@ -44,6 +44,7 @@ void SimplifiedBilinear2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
         rVariables.EquivalentStrain = 1.0;
         if (mStateVariable == 1.0)
         {
+		    double Rigid_YoungModulus = 1.0e20;
 		    if(fabs(Rigid_YoungModulus * StrainVector[0]) > rVariables.MaxTensileStress)
             {
 			    rVariables.EquivalentStrain = 0.0;
