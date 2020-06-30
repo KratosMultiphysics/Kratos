@@ -235,10 +235,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     array_1d<double,num_nodes> PHIold; //dimension = number of DOFs
     array_1d<VectorType,num_nodes> GradPHIold;
 
-    BoundedMatrix<double,num_nodes,num_nodes> tempM;
-    tempM = ZeroMatrix(num_nodes,num_nodes);
-    BoundedMatrix<double,num_nodes,num_nodes> tempA;
-    tempA = ZeroMatrix(num_nodes,num_nodes);
+    BoundedMatrix<double,num_nodes,num_nodes> tempM = ZeroMatrix(num_nodes,num_nodes);
+    BoundedMatrix<double,num_nodes,num_nodes> tempA = ZeroMatrix(num_nodes,num_nodes);
 
     array_1d<double,num_nodes> tempBCRHS = ZeroVector(num_nodes);
 
