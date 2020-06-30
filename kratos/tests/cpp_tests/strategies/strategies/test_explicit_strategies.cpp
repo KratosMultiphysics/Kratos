@@ -111,7 +111,7 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4, KratosCoreFastSuite)
     {
         Model current_model;
-        ModelPart& r_model_part = current_model.CreateModelPart("TestModelPArt");
+        ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
 
         // Set the test model part
         const double delta_time = 1.5; // Set time step
