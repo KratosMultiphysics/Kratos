@@ -17,7 +17,7 @@
         },
         "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
-            "materials_filename": "single_patch_four_point_sail_linear_static_materials.json"
+            "materials_filename": "single_patch_four_point_sail_linear_static_test/single_patch_four_point_sail_linear_static_materials.json"
         },
         "time_stepping": {
             "time_step": 0.1
@@ -48,7 +48,7 @@
             "modeler_name": "CadIoModeler",
             "Parameters": {
                 "cad_model_part_name": "IgaModelPart",
-                "geometry_file_name": "single_patch_four_point_sail_linear_static_geometry.cad.json"
+                "geometry_file_name": "single_patch_four_point_sail_linear_static_test/single_patch_four_point_sail_linear_static_geometry.cad.json"
             }
         },
         {
@@ -56,7 +56,7 @@
             "Parameters": {
                 "cad_model_part_name": "IgaModelPart",
                 "analysis_model_part_name": "IgaModelPart",
-                "physics_file_name": "single_patch_four_point_sail_linear_static_physics.iga.json"
+                "physics_file_name": "single_patch_four_point_sail_linear_static_test/single_patch_four_point_sail_linear_static_physics.iga.json"
             }
         }
     ],
@@ -71,13 +71,58 @@
                 "value": [0, 0, -5],
                 "interval": [0, "End"]
             }
+        }],        
+	"dirichlet_process_list": [{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_1",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_2",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_3",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_4",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
         }],
         "json_check_process": [{
             "python_module": "from_json_check_result_process",
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
                 "check_variables": ["DISPLACEMENT"],
-                "input_file_name": "single_patch_four_point_sail_linear_static_result.json",
+                "input_file_name": "single_patch_four_point_sail_linear_static_test/single_patch_four_point_sail_linear_static_result.json",
                 "model_part_name": "IgaModelPart.StructuralAnalysis",
                 "time_frequency": 0.0
             }
