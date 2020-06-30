@@ -37,7 +37,7 @@ namespace Testing
     typedef ExplicitBuilderAndSolver< SparseSpaceType, LocalSpaceType > ExplicitBuilderAndSolverType;
     typedef ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType> ExplicitSolvingStrategyRK4Type;
 
-    class AuxiliaryExplicitStrateguesTestElement : public Element
+    class AuxiliaryExplicitStrategiesTestElement : public Element
     {
     public:
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AuxiliaryExplicitStrateguesTestElement);
