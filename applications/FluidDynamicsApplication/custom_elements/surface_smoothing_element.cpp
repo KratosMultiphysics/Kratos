@@ -17,6 +17,10 @@
 // Include Base headers
 
 // Project includes
+#include "utilities/element_size_calculator.h"
+
+// Application includes
+#include "fluid_dynamics_application_variables.h"
 #include "custom_elements/surface_smoothing_element.h"
 
 namespace Kratos
@@ -231,14 +235,12 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix
     array_1d<double,num_nodes> N; // dimension = number of nodes . Position of the gauss point
 
-    array_1d<double,num_nodes> PHIdof; //dimension = number of DOFs, needed since we are using a residualbased approach
-    array_1d<double,num_nodes> PHIold; //dimension = number of DOFs
-    array_1d<VectorType,num_nodes> GradPHIold;
+    array_1d<double,num_nodes> phi_dof; //dimension = number of DOFs, needed since we are using a residualbased approach
+    array_1d<double,num_nodes> phi_old; //dimension = number of DOFs
+    array_1d<VectorType,num_nodes> grad_phi_old;
 
-    BoundedMatrix<double,num_nodes,num_nodes> tempM;
-    tempM = ZeroMatrix(num_nodes,num_nodes);
-    BoundedMatrix<double,num_nodes,num_nodes> tempA;
-    tempA = ZeroMatrix(num_nodes,num_nodes);
+    BoundedMatrix<double,num_nodes,num_nodes> tempM = ZeroMatrix(num_nodes,num_nodes);
+    BoundedMatrix<double,num_nodes,num_nodes> tempA = ZeroMatrix(num_nodes,num_nodes);
 
     array_1d<double,num_nodes> tempBCRHS = ZeroVector(num_nodes);
 
@@ -253,9 +255,9 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume); //asking for gradients and other info
 
     for(unsigned int i = 0; i<num_nodes; i++){
-        PHIold[i] = GetGeometry()[i].GetValue(DISTANCE);
-        PHIdof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-        GradPHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
+        phi_old[i] = GetGeometry()[i].GetValue(DISTANCE);
+        phi_dof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+        grad_phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
     }
 
     for(unsigned int i = 0; i<num_nodes; i++){
@@ -282,7 +284,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
             unsigned int contact_node = 0;
             for (unsigned int i=0; i < num_face_nodes; ++i){
-                if ( outer_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
+                if ( outer_face[i].Is(CONTACT) ){
                     contact_node++;
                 }
             }
@@ -324,14 +326,17 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                     for (unsigned int i = 0; i < num_nodes; i++){
 
                         VectorType solid_normal = ZeroVector(num_dim);
-                        if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0)
+                        if (GetGeometry()[i].Is(CONTACT) )
                         {
                             solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
                             const double norm = Kratos::norm_2(solid_normal);
+#ifdef KRATOS_DEBUG
+                            KRATOS_WARNING_IF("DistanceSmoothingElement", norm < 1.0e-12) << "WARNING: Normal close to zero" <<std::endl;
+#endif
                             solid_normal = (1.0/norm)*solid_normal;
                         }
 
-                        temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, GradPHIold[i]);
+                        temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, grad_phi_old[i]);
                     }
 
                     for (unsigned int i = 0; i < num_nodes; i++){
@@ -344,7 +349,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     }
 
     noalias(rLeftHandSideMatrix) = tempM + tempA;
-    noalias(rRightHandSideVector) = tempBCRHS + prod(tempM,PHIold) - prod(rLeftHandSideMatrix,PHIdof);
+    noalias(rRightHandSideVector) = tempBCRHS + prod(tempM,phi_old) - prod(rLeftHandSideMatrix,phi_dof);
 
     KRATOS_CATCH("");
 }

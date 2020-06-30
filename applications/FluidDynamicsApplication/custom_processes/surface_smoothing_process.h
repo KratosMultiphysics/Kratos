@@ -24,19 +24,14 @@
 #include "processes/process.h"
 #include "containers/model.h"
 #include "includes/checks.h"
-#include "utilities/parallel_utilities.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "modeler/connectivity_preserve_modeler.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "utilities/variable_utils.h"
-#include "utilities/element_size_calculator.h"
-#include "includes/global_pointer_variables.h"
 
 // Application includes
-#include "fluid_dynamics_application_variables.h"
 #include "custom_elements/surface_smoothing_element.h"
 
 namespace Kratos
@@ -67,7 +62,7 @@ namespace Kratos
 /// Based on Tornberg, Anna-Karin, and Björn Engquist. "A finite element based level-set method
 /// for multiphase flow applications." Computing and Visualization in Science 3, no. 1-2 (2000): 93-101.
 /// The algorithm is improved by imposing a boundary condition and a correction step.
-class SurfaceSmoothingProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) SurfaceSmoothingProcess : public Process
 {
 public:
     ///@name Type Definitions

@@ -52,9 +52,9 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         # Set IS_STRUCTURE to define contact with solid
         for node in model_part.Nodes:
             if node.Z == 0.0:
-                node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
+                node.Set(KratosMultiphysics.CONTACT, True)
             else:
-                node.SetValue(KratosMultiphysics.IS_STRUCTURE, 0.0)
+                node.Set(KratosMultiphysics.CONTACT, False)
 
         #verify the orientation of the skin
         tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck

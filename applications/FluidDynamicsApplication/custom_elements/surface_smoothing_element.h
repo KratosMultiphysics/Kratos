@@ -21,14 +21,11 @@
 
 // Project includes
 #include "includes/element.h"
-#include "utilities/element_size_calculator.h"
-#include "includes/deprecated_variables.h" //For IS_STRUCTURED
 
 // Include Base headers
 #include "includes/checks.h"
 
 // Application includes
-#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {

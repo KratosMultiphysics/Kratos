@@ -15,9 +15,14 @@
 // External includes
 
 // Project includes
+#include "utilities/variable_utils.h"
+#include "includes/global_pointer_variables.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "fluid_dynamics_application_variables.h"
 #include "surface_smoothing_process.h"
+
 
 namespace Kratos
 {
@@ -93,11 +98,21 @@ void SurfaceSmoothingProcess::Execute()
                 const double dz = z_i - n_nodes[j].Z();
                 const double distance_ij = sqrt( dx*dx + dy*dy + dz*dz );
 
+#ifdef KRATOS_DEBUG
+                KRATOS_WARNING_IF("DistanceSmoothingProcess", distance_ij < 1.0e-12)
+                    << "WARNING: Neighbouring nodes are almost coinciding" <<std::endl;
+#endif
+
                 if (distance_ij > 1.0e-12){
                     weight += 1.0/distance_ij;
                     dist_diff_avg += n_nodes[j].GetValue(DISTANCE)/distance_ij;
                 }
             }
+
+#ifdef KRATOS_DEBUG
+            KRATOS_WARNING_IF("DistanceSmoothingProcess", weight < 1.0e-12)
+                << "WARNING: Correction is not done due to a zero weight" <<std::endl;
+#endif
 
             if (weight > 1.0e-12)
                 rNode.FastGetSolutionStepValue(DISTANCE) -= dist_diff_avg/weight;
