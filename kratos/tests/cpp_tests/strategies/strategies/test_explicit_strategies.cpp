@@ -42,7 +42,7 @@ namespace Testing
     public:
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AuxiliaryExplicitStrateguesTestElement);
 
-        AuxiliaryExplicitStrateguesTestElement() = default;
+        AuxiliaryExplicitStrategiesTestElement() = default;
 
         AuxiliaryExplicitStrateguesTestElement(
             IndexType NewId,
