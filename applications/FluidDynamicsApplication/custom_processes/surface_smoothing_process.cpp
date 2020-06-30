@@ -137,4 +137,40 @@ void SurfaceSmoothingProcess::ExecuteInitializeSolutionStep() {
 void SurfaceSmoothingProcess::ExecuteFinalizeSolutionStep() {
 }
 
+void SurfaceSmoothingProcess::Clear()
+{
+    Model& r_model = mrModelPart.GetModel();
+    ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
+    r_smoothing_model_part.Nodes().clear();
+    r_smoothing_model_part.Conditions().clear();
+    r_smoothing_model_part.Elements().clear();
+    mp_solving_strategy->Clear();
+}
+
+void SurfaceSmoothingProcess::InitializeSolutionStrategy(
+        TLinearSolver::Pointer pLinearSolver,
+        BuilderSolverPointerType pBuilderAndSolver)
+    {
+        // Generate a linear solver strategy
+        auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
+
+        Model& r_model = mrModelPart.GetModel();
+        ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
+
+        bool CalculateReactions = false;
+        bool ReformDofAtEachIteration = false;
+        bool CalculateNormDxFlag = false;
+
+        mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+            r_smoothing_model_part,
+            p_scheme,
+            pLinearSolver,
+            pBuilderAndSolver,
+            CalculateReactions,
+            ReformDofAtEachIteration,
+            CalculateNormDxFlag);
+
+        mp_solving_strategy->Check();
+    }
+
 }; // namespace Kratos
