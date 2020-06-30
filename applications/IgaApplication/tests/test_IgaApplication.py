@@ -7,7 +7,11 @@ import run_cpp_unit_tests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
-from iga_test_factory import SinglePatchTest as SinglePatchTest
+from iga_test_factory import SinglePatchTest as TSinglePatchTest
+# Import Single patch tests
+from iga_test_factory import SinglePatchFourPointSailLinearStatic as TSinglePatchFourPointSailLinearStatic
+from iga_test_factory import SinglePatchFourPointSailNonLinearStatic as TSinglePatchFourPointSailNonLinearStatic
+from iga_test_factory import SinglePatchFourPointSailFormFinding as TSinglePatchFourPointSailFormFinding
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 
@@ -26,9 +30,11 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        SinglePatchTest
-        ]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSinglePatchTest]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSinglePatchFourPointSailLinearStatic]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSinglePatchFourPointSailNonLinearStatic]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSinglePatchFourPointSailFormFinding]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestModelers]))
 
