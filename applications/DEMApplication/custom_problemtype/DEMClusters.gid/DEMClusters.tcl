@@ -6,9 +6,16 @@
 # 4. Generate Cluster.clu via mesh_to_cluster_converter.cpp passing SPH + MSH as arguments
 #    modified and precompiled executable will be required to do this
 
+
+## Extra features:
+## - Lateral icons
+## - Show progress onscreen while generating SPH via spheretree
+## - Cancel button to stop external execs
+## - Remove finished calculate splash.( or modify with OBJ created succesfully)
+
+
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ##
-# - issue with cluster visualization over mesh
 
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -26,6 +33,7 @@
 ##- cluster visualizaton in GID pre
 ##- add export gidmesh as generic.msh on calculate
 ##- RECOMMENEDED MEDIAL - spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples
+## - Cluster visualization
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -386,40 +394,19 @@ proc DEMClusters::call_makeTreeOctree { } {
 proc GenerateClusterFile { } {
 
     # set all [GiD_Tools geometry mass_properties 1]
+    # Only GID 14.9d+
 
     # set mass [lrange $all 0 0]
-    # W $mass
 
     # set a [join [lrange $all 1 1]]
     # set centerX [lindex $a 0]
     # set centerY [lindex $a 1]
     # set centerZ [lindex $a 2]
-    # W $centerX
-    # W $centerY
-    # W $centerZ
 
     # set a [join [lrange $all 2 2]]
     # set Ixx [expr {[lindex $a 0]/$mass}]
     # set Iyy [expr {[lindex $a 1]/$mass}]
     # set Izz [expr {[lindex $a 2]/$mass}]
-    # W $Ixx
-    # W $Iyy
-    # W $Izz
-    # W "xxx"
-
-
-    # It returns a list with 3 items: mass {center_x center_y center_z} {Ixx Iyy Izz Ixy Iyz Ixz}
-
-    # GiD_Tools mesh mass_properties <tetrahedra_ids> | -boundary_elements <triangle_ids>
-
-    # To calculate the mass properties of volume, gravity center and inertia tensor of a volume, defined by a selection of tetrahedra or the selection of the triangles bounding the volume.
-
-    # <tetrahedra_ids> A list of integer ids of the tetrahedra of the volume to be computed
-
-    # <triangle_ids> A list of integer ids of the triangles that enclose a volume, with normals pointing inside.
-
-    # It returns a list with 3 items: mass {center_x center_y center_z} {Ixx Iyy Izz Ixy Iyz Ixz}
-
 
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
@@ -457,13 +444,9 @@ proc GenerateClusterFile { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $cluster_exec]
     }
 
-    #TODO: REQUIRES RECOMPILE IN WINDOWS
-
     exec $program 3 $genericMSHFilename $genericSPHFilename $ouputpath
-    # FOR DEBUG -
-    # exec $program $argv_number $genericMSHFilename $genericSPHFilename > [file join $::DEMClusters::ProblemPath output.txt]
-    # REGENERATE EXEC FOR WINDOWS : exec> g++ -static-libgcc -static-libstdc++ -o create_cluster.exe mesh_to_clu_converter.cpp
-    # g++ -o create_cluster.exe mesh_to_clu_converter.cpp
+    # DEBUG : exec $program $argv_number $genericMSHFilename $genericSPHFilename > [file join $::DEMClusters::ProblemPath output.txt]
+    # REGENERATE EXEC FOR WINDOWS including required libraries: exec> g++ -static-libgcc -static-libstdc++ -o create_cluster.exe mesh_to_clu_converter.cpp
 }
 
 
