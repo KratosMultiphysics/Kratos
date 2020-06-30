@@ -249,7 +249,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume); //asking for gradients and other info
 
     for(unsigned int i = 0; i<num_nodes; i++){
-        phi_old[i] = GetGeometry()[i].GetValue(DISTANCE);
+        phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE, 1);
         phi_dof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         grad_phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
     }

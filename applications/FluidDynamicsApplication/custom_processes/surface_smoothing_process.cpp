@@ -44,12 +44,6 @@ void SurfaceSmoothingProcess::CreateAuxModelPart()
     if(current_model.HasModelPart( mAuxModelPartName ))
         current_model.DeleteModelPart( mAuxModelPartName );
 
-    // Adding DISTANCE to the solution variables is not needed if it is already a solution variable of the problem
-    mrModelPart.AddNodalSolutionStepVariable(DISTANCE);
-
-    // Ensure that the nodes have distance as a DOF
-    VariableUtils().AddDof<Variable<double> >(DISTANCE, mrModelPart);
-
     // Generate AuxModelPart
     ModelPart& r_smoothing_model_part = current_model.CreateModelPart( mAuxModelPartName );
 
@@ -60,6 +54,15 @@ void SurfaceSmoothingProcess::CreateAuxModelPart()
 
     const double delta_time = mrModelPart.pGetProcessInfo()->GetValue(DELTA_TIME);
     r_smoothing_model_part.pGetProcessInfo()->SetValue(DELTA_TIME, delta_time);
+
+    const unsigned int buffer_size = mrModelPart.GetBufferSize();
+    KRATOS_ERROR_IF(buffer_size < 2) << "Buffer size should be at least 2" << std::endl;
+
+    // Adding DISTANCE to the solution variables is not needed if it is already a solution variable of the problem
+    r_smoothing_model_part.AddNodalSolutionStepVariable(DISTANCE);
+
+    // Ensure that the nodes have distance as a DOF
+    VariableUtils().AddDof<Variable<double> >(DISTANCE, r_smoothing_model_part);
 }
 
 void SurfaceSmoothingProcess::Execute()
@@ -69,14 +72,14 @@ void SurfaceSmoothingProcess::Execute()
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
             rNode.Free(DISTANCE);
             const double distance = rNode.FastGetSolutionStepValue(DISTANCE);
-            rNode.SetValue(DISTANCE, distance);
+            rNode.FastGetSolutionStepValue(DISTANCE, 1) = distance;
         });
 
     mp_solving_strategy->Solve();
 
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
             rNode.SetValue( DISTANCE, rNode.FastGetSolutionStepValue(DISTANCE)
-                - rNode.GetValue(DISTANCE) ); // Corrected distance difference
+                - rNode.FastGetSolutionStepValue(DISTANCE, 1) ); // Corrected distance difference
         });
 
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
@@ -96,7 +99,7 @@ void SurfaceSmoothingProcess::Execute()
 
 #ifdef KRATOS_DEBUG
                 KRATOS_WARNING_IF("DistanceSmoothingProcess", distance_ij < 1.0e-12)
-                    << "WARNING: Neighbouring nodes are almost coinciding" <<std::endl;
+                    << "WARNING: Neighbouring nodes are almost coinciding" << std::endl;
 #endif
 
                 if (distance_ij > 1.0e-12){

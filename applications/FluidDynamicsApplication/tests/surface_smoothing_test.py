@@ -30,6 +30,8 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 1.0)
 
+        model_part.SetBufferSize(2)
+
         # seed random number generator
         seed(1)
 
