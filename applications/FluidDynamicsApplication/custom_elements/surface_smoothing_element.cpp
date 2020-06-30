@@ -171,7 +171,7 @@ Element::Pointer SurfaceSmoothingElement::Clone(IndexType NewId, NodesArrayType 
  * @param rResult: the elemental equation ID vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void SurfaceSmoothingElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void SurfaceSmoothingElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     // num_dof = num_nodes
     if (rResult.size() != num_nodes){
@@ -188,7 +188,7 @@ void SurfaceSmoothingElement::EquationIdVector(EquationIdVectorType& rResult, Pr
  * @param ElementalDofList: the list of DOFs
  * @param rCurrentProcessInfo: the current process info instance
  */
-void SurfaceSmoothingElement::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo)
+void SurfaceSmoothingElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     // Here, num_dof = num_nodes
     if (rElementalDofList.size() != num_nodes){
@@ -218,7 +218,7 @@ void SurfaceSmoothingElement::GetDofList(DofsVectorType& rElementalDofList, Proc
 void SurfaceSmoothingElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -354,7 +354,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
  * @param rLeftHandSideMatrix: the elemental left hand side matrix
  * @param rCurrentProcessInfo: the current process info instance
  */
-void SurfaceSmoothingElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void SurfaceSmoothingElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
@@ -364,7 +364,7 @@ void SurfaceSmoothingElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMat
  * @param rRightHandSideVector: the elemental right hand side vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void SurfaceSmoothingElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void SurfaceSmoothingElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
@@ -377,7 +377,7 @@ void SurfaceSmoothingElement::CalculateRightHandSide(VectorType& rRightHandSideV
  * @param rCurrentProcessInfo
  * this method is: MANDATORY
  */
-int SurfaceSmoothingElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int SurfaceSmoothingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -396,7 +396,7 @@ int SurfaceSmoothingElement::Check(const ProcessInfo& rCurrentProcessInfo)
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( unsigned int i = 0; i < number_of_points; i++ )
     {
-        Node<3> &rnode = this->GetGeometry()[i];
+        auto& rnode = pGetGeometry()->GetPoint(i);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rnode)
         KRATOS_CHECK_DOF_IN_NODE(DISTANCE,rnode)
     }
