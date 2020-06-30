@@ -50,7 +50,7 @@ namespace Testing
 
         AuxiliaryExplicitStrategiesTestElement(AuxiliaryExplicitStrateguesTestElement const& rOther) = delete;
 
-        ~AuxiliaryExplicitStrateguesTestElement() = default;
+        ~AuxiliaryExplicitStrategiesTestElement() = default;
 
         void GetDofList(
             DofsVectorType& rElementalDofList,
