@@ -4,17 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Mohammad R. Hashemi
 //
-
-// System includes
-
-// External includes
-
-// Include Base headers
 
 // Project includes
 #include "utilities/element_size_calculator.h"
@@ -375,128 +369,6 @@ void SurfaceSmoothingElement::CalculateRightHandSide(VectorType& rRightHandSideV
 }
 
 /**
- * this is called during the assembling process in order
- * to calculate the first derivatives contributions for the LHS and RHS
- * @param rLeftHandSideMatrix: the elemental left hand side matrix
- * @param rRightHandSideVector: the elemental right hand side
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateFirstDerivativesContributions(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
-{
-    if (rLeftHandSideMatrix.size1() != 0)
-        rLeftHandSideMatrix.resize(0, 0, false);
-    if (rRightHandSideVector.size() != 0)
-        rRightHandSideVector.resize(0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the elemental left hand side matrix for the first derivatives constributions
- * @param rLeftHandSideMatrix: the elemental left hand side matrix
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
-{
-    if (rLeftHandSideMatrix.size1() != 0)
-        rLeftHandSideMatrix.resize(0, 0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the elemental right hand side vector for the first derivatives constributions
- * @param rRightHandSideVector: the elemental right hand side vector
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-{
-    if (rRightHandSideVector.size() != 0)
-        rRightHandSideVector.resize(0, false);
-}
-
-/**
- * ELEMENTS inherited from this class must implement this methods
- * if they need to add dynamic element contributions
- * note: second derivatives means the accelerations if the displacements are the dof of the analysis
- * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
- * CalculateSecondDerivativesContributions,
- * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
- */
-
-
-/**
- * this is called during the assembling process in order
- * to calculate the second derivative contributions for the LHS and RHS
- * @param rLeftHandSideMatrix: the elemental left hand side matrix
- * @param rRightHandSideVector: the elemental right hand side
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateSecondDerivativesContributions(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
-{
-    if (rLeftHandSideMatrix.size1() != 0)
-        rLeftHandSideMatrix.resize(0, 0, false);
-    if (rRightHandSideVector.size() != 0)
-        rRightHandSideVector.resize(0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the elemental left hand side matrix for the second derivatives constributions
- * @param rLeftHandSideMatrix: the elemental left hand side matrix
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateSecondDerivativesLHS(
-    MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
-{
-    if (rLeftHandSideMatrix.size1() != 0)
-        rLeftHandSideMatrix.resize(0, 0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the elemental right hand side vector for the second derivatives constributions
- * @param rRightHandSideVector: the elemental right hand side vector
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateSecondDerivativesRHS(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
-{
-    if (rRightHandSideVector.size() != 0)
-        rRightHandSideVector.resize(0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the elemental mass matrix
- * @param rMassMatrix: the elemental mass matrix
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-{
-    if (rMassMatrix.size1() != 0)
-        rMassMatrix.resize(0, 0, false);
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the elemental damping matrix
- * @param rDampingMatrix: the elemental damping matrix
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-{
-    if (rDampingMatrix.size1() != 0)
-        rDampingMatrix.resize(0, 0, false);
-}
-
-/**
  * This method provides the place to perform checks on the completeness of the input
  * and the compatibility with the problem options as well as the contitutive laws selected
  * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -509,29 +381,27 @@ int SurfaceSmoothingElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(this->Id() < 1) <<"SurfaceSmoothingElement found with Id 0 or negative" << std::endl;
-
     KRATOS_ERROR_IF(this->GetGeometry().Area() <= 0) << "On SurfaceSmoothingElement -> "
         << this->Id() <<  "; Area cannot be less than or equal to 0" << std::endl;
 
-      // Base class checks for positive Jacobian and Id > 0
-      int ierr = Element::Check(rCurrentProcessInfo);
-      if(ierr != 0) return ierr;
+    // Base class checks for domain size and Id > 0
+    int ierr = Element::Check(rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
 
-      // Check that all required variables have been registered
-      KRATOS_CHECK_VARIABLE_KEY(DISTANCE)
-      KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT)
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(DISTANCE)
+    KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT)
 
-      unsigned const int number_of_points = GetGeometry().size();
-      // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-      for ( unsigned int i = 0; i < number_of_points; i++ )
-      {
-          Node<3> &rnode = this->GetGeometry()[i];
-          KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rnode)
-          KRATOS_CHECK_DOF_IN_NODE(DISTANCE,rnode)
-      }
+    unsigned const int number_of_points = GetGeometry().size();
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( unsigned int i = 0; i < number_of_points; i++ )
+    {
+        Node<3> &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISTANCE,rnode)
+    }
 
-      return ierr;
+    return ierr;
 
     KRATOS_CATCH("");
 }

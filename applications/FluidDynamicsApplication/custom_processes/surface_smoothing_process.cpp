@@ -10,10 +10,6 @@
 //  Main authors:    Mohammad R. Hashemi
 //
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "utilities/variable_utils.h"
 #include "includes/global_pointer_variables.h"

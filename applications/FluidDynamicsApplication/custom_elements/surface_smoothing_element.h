@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Mohammad R. Hashemi
 //
@@ -17,15 +17,11 @@
 #include <string>
 #include <iostream>
 
-// External includes
-
 // Project includes
 #include "includes/element.h"
 
 // Include Base headers
 #include "includes/checks.h"
-
-// Application includes
 
 namespace Kratos
 {
@@ -190,91 +186,6 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the first derivatives contributions for the LHS and RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateFirstDerivativesContributions(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the first derivatives constributions
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the first derivatives constributions
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * ELEMENTS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions
-     * note: second derivatives means the accelerations if the displacements are the dof of the analysis
-     * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
-     * CalculateSecondDerivativesContributions,
-     * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
-     */
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the second derivative contributions for the LHS and RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesContributions(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the second derivatives constributions
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesLHS(
-        MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the second derivatives constributions
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesRHS(
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental mass matrix
-     * @param rMassMatrix: the elemental mass matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental damping matrix
-     * @param rDampingMatrix: the elemental damping matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input
