@@ -222,9 +222,9 @@ protected:
 #pragma omp parallel for firstprivate(number_of_nodes)
             for (unsigned int i_node = 0; i_node < number_of_nodes; i_node++)
             {
-                auto& current_node = r_model_part.GetNode(i_node+1);
+                auto it_node = r_model_part.NodesBegin() + i_node;
                 const double mass = r_lumped_mass_vector(i_node);
-                current_node.FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = current_node.FastGetSolutionStepValue(r_settings.GetReactionVariable()) / mass;
+                it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->FastGetSolutionStepValue(r_settings.GetReactionVariable()) / mass;
             }
         }
         // Deactivate OSS flag used inside the element at the end of OSS step
