@@ -368,6 +368,7 @@ namespace Kratos
                     {
                         if (dimension == 2)
                         {
+                            // this is to avoid the formation of isolated elements with different velocity fields. They can give convergence problems
                             if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid == 0 && isolatedNodesInTheElement > 0)
                             {
                                 if (checkedNodes == nds)
@@ -460,7 +461,7 @@ namespace Kratos
 
                     // // to control that the element has a good shape
                     if (dimension == 3 && accepted && numrigid < 3 &&
-                        (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement==2)))
+                        (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
                         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
                         double Volume = tetrahedron->Volume();
@@ -501,6 +502,12 @@ namespace Kratos
                         {
                             accepted = false;
                             number_of_slivers++;
+                        }
+                        else if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995 || fabs(cosAngle23) > 0.995 || fabs(cosAngle24) > 0.995 || fabs(cosAngle34) > 0.995) && (numrigid == 2 && isolatedNodesInTheElement > 1))
+                        {
+                            accepted = false;
+                            number_of_slivers++;
+                            // std::cout << "Sliver element with two rigid nodes and 2 free nodes: dangerous" << std::endl;
                         }
                         else if (Volume <= CriticalVolume)
                         {

@@ -223,7 +223,7 @@ namespace Kratos
 
       unsigned int maxNonLinearIterations = mMaxPressureIter;
 
-      KRATOS_INFO("Solution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
+      KRATOS_INFO("\n Solution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
 
       if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
       {
@@ -856,12 +856,12 @@ namespace Kratos
       // Check convergence
       if (it == (maxIt - 1))
       {
-        KRATOS_INFO("       Final Pressure error") << DpErrorNorm << std::endl;
+        KRATOS_INFO("Iteration") << it << "  Final Pressure error" << DpErrorNorm << std::endl;  
         ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm);
       }
       else
       {
-        KRATOS_INFO("       Pressure error") << DpErrorNorm << std::endl;
+        KRATOS_INFO("Iteration") << it << "  Pressure error" << DpErrorNorm << std::endl;
       }
 
       // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -1459,7 +1459,7 @@ namespace Kratos
         if (DvErrorNorm > 10 * minTolerance)
         {
           rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
-          std::cout << "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.9999" << std::endl;
+          std::cout << "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.1" << std::endl;
           std::cout << "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << std::endl;
           fixedTimeStep = true;
 #pragma omp parallel
