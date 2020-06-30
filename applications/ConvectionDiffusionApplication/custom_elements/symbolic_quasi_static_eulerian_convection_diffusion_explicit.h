@@ -26,6 +26,7 @@
 #include "includes/variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "geometries/geometry.h"
+#include "utilities/geometry_utilities.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos
@@ -159,14 +160,15 @@ protected:
         double density;
         double specific_heat;
         double lumping_factor;
-        double tau;
-        double qstau;
         double weight;
         double delta_time;
         double RK_time_coefficient;
         double dynamic_tau;
         double unknown_subscale;
+	double volume;
         // arrays
+	array_1d<double,TNumNodes> tau;
+	array_1d<double,TNumNodes> qstau;
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
         array_1d<double,TNumNodes> unknown_old;
@@ -178,7 +180,7 @@ protected:
         array_1d<double,TNumNodes*(TDim+1)> rhs;
         // auxiliary containers for the symbolically-generated variables for Gauss integration
         array_1d<double,TNumNodes> N;
-        BoundedMatrix<double,TNumNodes,TDim> DN;
+	BoundedMatrix<double,TNumNodes,TDim> DN_DX;
     };
 
     ///@}

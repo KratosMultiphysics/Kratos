@@ -86,45 +86,19 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     ElementVariables rVariables;
     this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
 
-    // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    // Compute tau
+    this->CalculateTau(rVariables);
 
-    // Define local variables
-    Element::GeometryType::JacobiansType J0;
-    Matrix InvJ0(dimension,dimension);
-    double DetJ0;
-
-    // Compute Jacobian
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-
-    // Iterate over integration points to evaluate local contribution
-    for (unsigned int g = 0; g < integration_points.size(); g++) {
-
-        // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J0[g],InvJ0,DetJ0);
-
-        // Calculate the cartesian derivatives on integration point "g"
-        rVariables.DN = prod(DN_De[g],InvJ0);
-        // Caluclate N on the gauss point "g"
-        rVariables.N = row(N_gausspoint,g);
-        // Compute weight
-        rVariables.weight = integration_points[g].Weight() * DetJ0;
-        // Compute tau
-        this->CalculateTau(rVariables);
-
-        // Execute standard RHS-LHS build or OSS step
-        if (rCurrentProcessInfo.GetValue(OSS_SWITCH) == 1)
-        {
-            // Update OSS additional term
-            this->ComputeOSSGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
-        }
-        else
-        {
-            // Update rhs and lhs
-            this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
-        }
+    // Execute standard RHS-LHS build or OSS step
+    if (rCurrentProcessInfo.GetValue(OSS_SWITCH) == 1)
+    {
+        // Update OSS additional term
+        this->ComputeOSSGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+    }
+    else
+    {
+        // Update rhs and lhs
+        this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
     }
 }
 
@@ -294,7 +268,10 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Ini
     const auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
 
-    // initialize some scalar variables
+    // Getting data for the given geometry
+    GeometryUtils::CalculateGeometryData(r_geometry,rVariables.DN_DX,rVariables.N,rVariables.volume);
+
+    // Initialize some scalar variables
     rVariables.lumping_factor = 1.00 / double(TNumNodes);
     rVariables.diffusivity = 0.0;
     rVariables.specific_heat = 0.0;
@@ -303,7 +280,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Ini
 
     for(unsigned int node_element = 0; node_element<local_size; node_element++)
 {
-    // observations
+    // Observations
     // * SGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient*delta_time)
     //   observe that for RK step = 1 ASGS time derivative term = 0 because phi = phi_old
     // * convective velocity and forcing term:
@@ -362,8 +339,6 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::ComputeGaussPoin
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
-    const auto N = rVariables.N;
-    const auto DN = rVariables.DN;
     const auto k = rVariables.diffusivity;
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
@@ -373,6 +348,16 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::ComputeGaussPoin
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
     const auto prj = rVariables.oss_projection;
+    // Hardcoded shape functions gradients for linear triangular element
+    // This is explicitly done to minimize the matrix acceses
+    // The notation DN_i_j means shape function for node i in dimension j
+    const double DN_DX_0_0 = rVariables.DN_DX(0, 0);
+    const double DN_DX_0_1 = rVariables.DN_DX(0, 1);
+    const double DN_DX_1_0 = rVariables.DN_DX(1, 0);
+    const double DN_DX_1_1 = rVariables.DN_DX(1, 1);
+    const double DN_DX_2_0 = rVariables.DN_DX(2, 0);
+    const double DN_DX_2_1 = rVariables.DN_DX(2, 1);
+    // LHS and RHS
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
@@ -380,8 +365,9 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::ComputeGaussPoin
 
     //substitute_rhs_2D
 
-    noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
-    noalias(rRightHandSideVector) += rhs * rVariables.weight;
+    const double local_size = 3;
+    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
 }
 
 /***********************************************************************************/
@@ -393,8 +379,6 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::ComputeGaussPoin
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
-    const auto N = rVariables.N;
-    const auto DN = rVariables.DN;
     const auto k = rVariables.diffusivity;
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
@@ -404,6 +388,22 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::ComputeGaussPoin
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
     const auto prj = rVariables.oss_projection;
+    // Hardcoded shape functions gradients for linear triangular element
+    // This is explicitly done to minimize the matrix acceses
+    // The notation DN_i_j means shape function for node i in dimension j
+    const double DN_DX_0_0 = rVariables.DN_DX(0,0);
+    const double DN_DX_0_1 = rVariables.DN_DX(0,1);
+    const double DN_DX_0_2 = rVariables.DN_DX(0,2);
+    const double DN_DX_1_0 = rVariables.DN_DX(1,0);
+    const double DN_DX_1_1 = rVariables.DN_DX(1,1);
+    const double DN_DX_1_2 = rVariables.DN_DX(1,2);
+    const double DN_DX_2_0 = rVariables.DN_DX(2,0);
+    const double DN_DX_2_1 = rVariables.DN_DX(2,1);
+    const double DN_DX_2_2 = rVariables.DN_DX(2,2);
+    const double DN_DX_3_0 = rVariables.DN_DX(3,0);
+    const double DN_DX_3_1 = rVariables.DN_DX(3,1);
+    const double DN_DX_3_2 = rVariables.DN_DX(3,2);
+    // LHS and RHS
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
@@ -411,8 +411,9 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::ComputeGaussPoin
 
     //substitute_rhs_3D
 
-    noalias(rLeftHandSideMatrix) += lhs * rVariables.weight;
-    noalias(rRightHandSideVector) += rhs * rVariables.weight;
+    const double local_size = 4;
+    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
 }
 
 /***********************************************************************************/
@@ -425,8 +426,6 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussP
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
-    const auto N = rVariables.N;
-    const auto DN = rVariables.DN;
     const auto k = rVariables.diffusivity;
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
@@ -435,12 +434,23 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussP
     const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
+    // Hardcoded shape functions gradients for linear triangular element
+    // This is explicitly done to minimize the matrix acceses
+    // The notation DN_i_j means shape function for node i in dimension j
+    const double DN_DX_0_0 = rVariables.DN_DX(0, 0);
+    const double DN_DX_0_1 = rVariables.DN_DX(0, 1);
+    const double DN_DX_1_0 = rVariables.DN_DX(1, 0);
+    const double DN_DX_1_1 = rVariables.DN_DX(1, 1);
+    const double DN_DX_2_0 = rVariables.DN_DX(2, 0);
+    const double DN_DX_2_1 = rVariables.DN_DX(2, 1);
+    // LHS and RHS
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
     //substitute_oss_2D
 
-    noalias(rRightHandSideVector) += rhs * rVariables.weight;
+    const double local_size = 3;
+    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
 }
 
 /***********************************************************************************/
@@ -452,8 +462,6 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussP
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
-    const auto N = rVariables.N;
-    const auto DN = rVariables.DN;
     const auto k = rVariables.diffusivity;
     const auto f = rVariables.forcing;
     const auto phi = rVariables.unknown;
@@ -462,12 +470,29 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussP
     const auto RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto v = rVariables.convective_velocity;
     const auto tau = rVariables.tau;
+    // Hardcoded shape functions gradients for linear triangular element
+    // This is explicitly done to minimize the matrix acceses
+    // The notation DN_i_j means shape function for node i in dimension j
+    const double DN_DX_0_0 = rVariables.DN_DX(0,0);
+    const double DN_DX_0_1 = rVariables.DN_DX(0,1);
+    const double DN_DX_0_2 = rVariables.DN_DX(0,2);
+    const double DN_DX_1_0 = rVariables.DN_DX(1,0);
+    const double DN_DX_1_1 = rVariables.DN_DX(1,1);
+    const double DN_DX_1_2 = rVariables.DN_DX(1,2);
+    const double DN_DX_2_0 = rVariables.DN_DX(2,0);
+    const double DN_DX_2_1 = rVariables.DN_DX(2,1);
+    const double DN_DX_2_2 = rVariables.DN_DX(2,2);
+    const double DN_DX_3_0 = rVariables.DN_DX(3,0);
+    const double DN_DX_3_1 = rVariables.DN_DX(3,1);
+    const double DN_DX_3_2 = rVariables.DN_DX(3,2);
+    // LHS and RHS
     auto lhs = rVariables.lhs;
     auto rhs = rVariables.rhs;
 
     //substitute_oss_3D
-
-    noalias(rRightHandSideVector) += rhs * rVariables.weight;
+    
+    const double local_size = 4;
+    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
 }
 
 /***********************************************************************************/
@@ -499,33 +524,40 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     ElementVariables& rVariables)
 {
     // Calculate h
-    double h = this->ComputeH(rVariables.DN);
-    // Calculate velocity and velocity divergence in the gauss point
-    array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
-    double div_vel = 0;
-    for(unsigned int node_element = 0; node_element<TNumNodes; node_element++)
+    double h = this->ComputeH(rVariables.DN_DX);
+    // Calculate tau for each gauss point
+    const auto& r_geometry = this->GetGeometry();
+    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    for(unsigned int g = 0; g<TNumNodes; g++)
     {
-        for(unsigned int dim = 0; dim < TDim; dim++)
+	const auto& N = row(N_gausspoint,g);
+        // Calculate velocity and velocity divergence in the gauss point
+        array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
+        noalias(vel_gauss) = prod(N,rVariables.convective_velocity);
+        double div_vel = 0;
+        for(unsigned int node_element = 0; node_element<TNumNodes; node_element++)
         {
-            noalias(vel_gauss) = prod(rVariables.N,rVariables.convective_velocity);
-            div_vel += rVariables.DN(node_element,dim)*rVariables.convective_velocity(node_element,dim);
+            for(unsigned int dim = 0; dim < TDim; dim++)
+            {
+                div_vel += rVariables.DN_DX(node_element,dim)*rVariables.convective_velocity(node_element,dim);
+            }
         }
+        const double norm_velocity = norm_2(vel_gauss);
+        // Estimate tau
+        double inv_tau = 0;
+        // Dynamic part
+        inv_tau += rVariables.dynamic_tau/rVariables.delta_time;
+        // Convection
+        inv_tau += 2.0 * norm_velocity / h;
+        inv_tau += 1.0*div_vel; // unitary coefficient in front of \nabla \cdot convective_velocity term in the strong equation
+        // Dynamic and convection terms are multiplyied by density*specific_heat to have consistent dimensions
+        inv_tau *= rVariables.density * rVariables.specific_heat;
+        // Diffusion
+        inv_tau += 4.0 * rVariables.diffusivity / (h*h);
+        // Limiting
+        inv_tau = std::max(inv_tau, 1e-2);
+        rVariables.tau[g] = (rVariables.density*rVariables.specific_heat) / inv_tau;
     }
-    const double norm_velocity = norm_2(vel_gauss);
-    // Estimate tau
-    double inv_tau = 0;
-    // Dynamic part
-    inv_tau += rVariables.dynamic_tau/rVariables.delta_time;
-    // Convection
-    inv_tau += 2.0 * norm_velocity / h;
-    inv_tau += 1.0*div_vel; // unitary coefficient in front of \nabla \cdot convective_velocity term in the strong equation
-    // Dynamic and convection terms are multiplyied by density*specific_heat to have consistent dimensions
-    inv_tau *= rVariables.density * rVariables.specific_heat;
-    // Diffusion
-    inv_tau += 4.0 * rVariables.diffusivity / (h*h);
-    // Limiting
-    inv_tau = std::max(inv_tau, 1e-2);
-    rVariables.tau = (rVariables.density*rVariables.specific_heat) / inv_tau;
 }
 
 /***********************************************************************************/
