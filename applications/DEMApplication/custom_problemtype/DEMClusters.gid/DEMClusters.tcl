@@ -68,7 +68,34 @@ proc InitGIDProject { dir } {
 
     # Save ProblemTypePath
     set ::DEMClusters::ProblemTypePath $dir
+
+    Splash
 }
+
+
+proc Splash {} {
+    set prev_splash_state [GiD_Set SplashWindow]
+    GiD_Set SplashWindow 1 ;#set temporary to 1 to force show splash without take care of the GiD splash preference
+    set off_x 150
+    set fnt "Sans 10"
+    if { $::tcl_platform(platform) == "windows" } {
+	set fnt "verdana 10"
+	set off_x 130
+    }
+
+    ::GidUtils::Splash [file join $::DEMClusters::ProblemTypePath splash.png] .splash 1
+
+    set new_splash [ ::GidUtils::VersionCmp 11.1.6d]
+    if {[ winfo exists .splash.lv] && ( $new_splash < 0)} {
+	.splash.lv configure -font $fnt -background white -foreground black \
+	    -relief solid -borderwidth 1 -padx 12 -pady 3
+	update
+    }
+    GiD_Set SplashWindow $prev_splash_state
+}
+
+
+
 
 
 proc DeleteSpheresGeometry { } {
