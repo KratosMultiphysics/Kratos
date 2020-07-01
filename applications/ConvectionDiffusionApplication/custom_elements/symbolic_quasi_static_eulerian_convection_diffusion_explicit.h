@@ -58,6 +58,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+        typedef Element BaseType;
         typedef Node < 3 > NodeType;
         typedef Geometry<NodeType> GeometryType;
 
@@ -165,10 +166,10 @@ protected:
         double RK_time_coefficient;
         double dynamic_tau;
         double unknown_subscale;
-	double volume;
+	    double volume;
         // arrays
-	array_1d<double,TNumNodes> tau;
-	array_1d<double,TNumNodes> qstau;
+	    array_1d<double,TNumNodes> tau;
+	    array_1d<double,TNumNodes> qstau;
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
         array_1d<double,TNumNodes> unknown_old;
@@ -180,7 +181,8 @@ protected:
         array_1d<double,TNumNodes*(TDim+1)> rhs;
         // auxiliary containers for the symbolically-generated variables for Gauss integration
         array_1d<double,TNumNodes> N;
-	BoundedMatrix<double,TNumNodes,TDim> DN_DX;
+        BoundedMatrix<double,TNumNodes,TNumNodes> N_gausspoint;
+	    BoundedMatrix<double,TNumNodes,TDim> DN_DX;
     };
 
     ///@}

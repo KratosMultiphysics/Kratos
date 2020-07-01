@@ -72,7 +72,6 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
 {
     const auto& r_geometry = this->GetGeometry();
     const unsigned int local_size = r_geometry.size();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != local_size)
@@ -109,6 +108,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
     const ProcessInfo &rCurrentProcessInfo)
 {
+    BaseType::Initialize(rCurrentProcessInfo);
     // Resize and intialize output
     if (mUnknownSubScale.size() != 3) // three integration points
         mUnknownSubScale.resize(3, false);
@@ -122,20 +122,18 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::FinalizeSolutionStep(
     const ProcessInfo &rCurrentProcessInfo)
 {
-    const auto& r_geometry = this->GetGeometry();
-    const unsigned int local_size = r_geometry.size();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
     // Element variables
     ElementVariables rVariables;
     this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
     // Reading integration points and local gradients
+    const auto& r_geometry = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-    // Iterate over integration points to evaluate local contribution
+    // Iterate over integration points to update subscales on the gauss point
     for (unsigned int g = 0; g < integration_points.size(); g++) {
         // Caluclate N on the gauss point "g"
-        rVariables.N = row(N_gausspoint,g);
+        rVariables.N = row(rVariables.N_gausspoint,g);
         // Compute tau
         this->CalculateTau(rVariables);
         // Retrieve unknown belonging to subgrid scale space on gauss integration point g
@@ -172,29 +170,29 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointCon
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
-    const auto k = rVariables.diffusivity;
-    const auto f = rVariables.forcing;
-    const auto phi = rVariables.unknown;
-    const auto phi_old = rVariables.unknown_old;
-    const auto delta_time = rVariables.delta_time;
-    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto v = rVariables.convective_velocity;
-    const auto tau = rVariables.tau;
-    const auto qstau = rVariables.qstau;
-    const auto prj = rVariables.oss_projection;
-    const auto phi_subscale_gauss = mUnknownSubScale;
+    const auto& k = rVariables.diffusivity;
+    const auto& f = rVariables.forcing;
+    const auto& phi = rVariables.unknown;
+    const auto& phi_old = rVariables.unknown_old;
+    const auto& delta_time = rVariables.delta_time;
+    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto& v = rVariables.convective_velocity;
+    const auto& tau = rVariables.tau;
+    const auto& qstau = rVariables.qstau;
+    const auto& prj = rVariables.oss_projection;
+    const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double DN_DX_0_0 = rVariables.DN_DX(0, 0);
-    const double DN_DX_0_1 = rVariables.DN_DX(0, 1);
-    const double DN_DX_1_0 = rVariables.DN_DX(1, 0);
-    const double DN_DX_1_1 = rVariables.DN_DX(1, 1);
-    const double DN_DX_2_0 = rVariables.DN_DX(2, 0);
-    const double DN_DX_2_1 = rVariables.DN_DX(2, 1);
+    const double& DN_DX_0_0 = rVariables.DN_DX(0, 0);
+    const double& DN_DX_0_1 = rVariables.DN_DX(0, 1);
+    const double& DN_DX_1_0 = rVariables.DN_DX(1, 0);
+    const double& DN_DX_1_1 = rVariables.DN_DX(1, 1);
+    const double& DN_DX_2_0 = rVariables.DN_DX(2, 0);
+    const double& DN_DX_2_1 = rVariables.DN_DX(2, 1);
     // LHS and RHS
-    auto lhs = rVariables.lhs;
-    auto rhs = rVariables.rhs;
+    auto& lhs = rVariables.lhs;
+    auto& rhs = rVariables.rhs;
 
     const double clhs0 =             1.0/RK_time_coefficient;
 const double clhs1 =             1.0/delta_time;
@@ -375,10 +373,11 @@ const double crhs90 =             crhs87*tau[2];
             rhs[1]=crhs10 + 0.666666666666667*crhs13 + crhs21*crhs79 + crhs29*crhs80 + crhs3*(crhs4 + crhs5 + crhs77 + 0.444444444444444*phi[1] - 0.444444444444444*phi_old[1]) + crhs35*crhs81 + crhs41*crhs82 + crhs45*crhs82 + crhs47*crhs83 + crhs50*crhs83 + crhs51*crhs84 + crhs53*crhs84 - crhs59*crhs82 - crhs63*crhs83 - crhs65*crhs84 - crhs67*crhs82 - crhs68*crhs83 - crhs69*crhs84 - crhs72*crhs82 - crhs73*crhs83 - crhs74*crhs84 + crhs75 + crhs76 + crhs78 - 0.5*prj[1];
             rhs[2]=0.666666666666667*crhs0 + crhs11 + crhs14 + crhs20 + crhs21*crhs85 + crhs29*crhs86 + crhs3*(crhs15 + crhs16 + crhs77 + 0.444444444444444*phi[2] - 0.444444444444444*phi_old[2]) + crhs35*crhs87 + crhs41*crhs88 + crhs45*crhs88 + crhs47*crhs89 + crhs50*crhs89 + crhs51*crhs90 + crhs53*crhs90 - crhs59*crhs88 - crhs63*crhs89 - crhs65*crhs90 - crhs67*crhs88 - crhs68*crhs89 - crhs69*crhs90 - crhs72*crhs88 - crhs73*crhs89 - crhs74*crhs90 + crhs75 + crhs76 + crhs78 - 0.5*prj[2];
 
-    
+
     // All the weights of the gauss points are the same so we multiply by volume/n_nodes
-    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/3;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/3;
+    const double local_size = 3;
+    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
 }
 
 /***********************************************************************************/
@@ -390,35 +389,35 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointCon
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
-    const auto k = rVariables.diffusivity;
-    const auto f = rVariables.forcing;
-    const auto phi = rVariables.unknown;
-    const auto phi_old = rVariables.unknown_old;
-    const auto delta_time = rVariables.delta_time;
-    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto v = rVariables.convective_velocity;
-    const auto tau = rVariables.tau;
-    const auto qstau = rVariables.qstau;
-    const auto prj = rVariables.oss_projection;
-    const auto phi_subscale_gauss = mUnknownSubScale;
+    const auto& k = rVariables.diffusivity;
+    const auto& f = rVariables.forcing;
+    const auto& phi = rVariables.unknown;
+    const auto& phi_old = rVariables.unknown_old;
+    const auto& delta_time = rVariables.delta_time;
+    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto& v = rVariables.convective_velocity;
+    const auto& tau = rVariables.tau;
+    const auto& qstau = rVariables.qstau;
+    const auto& prj = rVariables.oss_projection;
+    const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double DN_DX_0_0 = rVariables.DN_DX(0,0);
-    const double DN_DX_0_1 = rVariables.DN_DX(0,1);
-    const double DN_DX_0_2 = rVariables.DN_DX(0,2);
-    const double DN_DX_1_0 = rVariables.DN_DX(1,0);
-    const double DN_DX_1_1 = rVariables.DN_DX(1,1);
-    const double DN_DX_1_2 = rVariables.DN_DX(1,2);
-    const double DN_DX_2_0 = rVariables.DN_DX(2,0);
-    const double DN_DX_2_1 = rVariables.DN_DX(2,1);
-    const double DN_DX_2_2 = rVariables.DN_DX(2,2);
-    const double DN_DX_3_0 = rVariables.DN_DX(3,0);
-    const double DN_DX_3_1 = rVariables.DN_DX(3,1);
-    const double DN_DX_3_2 = rVariables.DN_DX(3,2);
+    const double& DN_DX_0_0 = rVariables.DN_DX(0,0);
+    const double& DN_DX_0_1 = rVariables.DN_DX(0,1);
+    const double& DN_DX_0_2 = rVariables.DN_DX(0,2);
+    const double& DN_DX_1_0 = rVariables.DN_DX(1,0);
+    const double& DN_DX_1_1 = rVariables.DN_DX(1,1);
+    const double& DN_DX_1_2 = rVariables.DN_DX(1,2);
+    const double& DN_DX_2_0 = rVariables.DN_DX(2,0);
+    const double& DN_DX_2_1 = rVariables.DN_DX(2,1);
+    const double& DN_DX_2_2 = rVariables.DN_DX(2,2);
+    const double& DN_DX_3_0 = rVariables.DN_DX(3,0);
+    const double& DN_DX_3_1 = rVariables.DN_DX(3,1);
+    const double& DN_DX_3_2 = rVariables.DN_DX(3,2);
     // LHS and RHS
-    auto lhs = rVariables.lhs;
-    auto rhs = rVariables.rhs;
+    auto& lhs = rVariables.lhs;
+    auto& rhs = rVariables.rhs;
 
     const double clhs0 =             1.0/RK_time_coefficient;
 const double clhs1 =             1.0/delta_time;
@@ -744,8 +743,9 @@ const double crhs153 =             crhs149*tau[3];
 
 
     // All the weights of the gauss points are the same so we multiply by volume/n_nodes
-    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/4;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/4;
+    const double local_size = 4;
+    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
 }
 
 /***********************************************************************************/
@@ -758,27 +758,25 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussPoint
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
-    const auto k = rVariables.diffusivity;
-    const auto f = rVariables.forcing;
-    const auto phi = rVariables.unknown;
-    const auto phi_old = rVariables.unknown_old;
-    const auto delta_time = rVariables.delta_time;
-    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto v = rVariables.convective_velocity;
-    const auto tau = rVariables.tau;
-    const auto phi_subscale_gauss = mUnknownSubScale;
+    const auto& k = rVariables.diffusivity;
+    const auto& f = rVariables.forcing;
+    const auto& phi = rVariables.unknown;
+    const auto& phi_old = rVariables.unknown_old;
+    const auto& delta_time = rVariables.delta_time;
+    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto& v = rVariables.convective_velocity;
+    const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double DN_DX_0_0 = rVariables.DN_DX(0, 0);
-    const double DN_DX_0_1 = rVariables.DN_DX(0, 1);
-    const double DN_DX_1_0 = rVariables.DN_DX(1, 0);
-    const double DN_DX_1_1 = rVariables.DN_DX(1, 1);
-    const double DN_DX_2_0 = rVariables.DN_DX(2, 0);
-    const double DN_DX_2_1 = rVariables.DN_DX(2, 1);
-    // LHS and RHS
-    auto lhs = rVariables.lhs;
-    auto rhs = rVariables.rhs;
+    const double& DN_DX_0_0 = rVariables.DN_DX(0, 0);
+    const double& DN_DX_0_1 = rVariables.DN_DX(0, 1);
+    const double& DN_DX_1_0 = rVariables.DN_DX(1, 0);
+    const double& DN_DX_1_1 = rVariables.DN_DX(1, 1);
+    const double& DN_DX_2_0 = rVariables.DN_DX(2, 0);
+    const double& DN_DX_2_1 = rVariables.DN_DX(2, 1);
+    // RHS
+    auto& rhs = rVariables.rhs;
 
     const double crhs0 =             -0.25*f[1];
 const double crhs1 =             1.0/delta_time;
@@ -839,7 +837,8 @@ const double crhs52 =             crhs14*(crhs19 + crhs21 + crhs44 + crhs45 + cr
 
 
     // All the weights of the gauss points are the same so we multiply by volume/n_nodes
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/3;
+    const double local_size = 3;
+    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
 }
 
 /***********************************************************************************/
@@ -851,33 +850,31 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussPoint
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
-    const auto k = rVariables.diffusivity;
-    const auto f = rVariables.forcing;
-    const auto phi = rVariables.unknown;
-    const auto phi_old = rVariables.unknown_old;
-    const auto delta_time = rVariables.delta_time;
-    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto v = rVariables.convective_velocity;
-    const auto tau = rVariables.tau;
-    const auto phi_subscale_gauss = mUnknownSubScale;
+    const auto& k = rVariables.diffusivity;
+    const auto& f = rVariables.forcing;
+    const auto& phi = rVariables.unknown;
+    const auto& phi_old = rVariables.unknown_old;
+    const auto& delta_time = rVariables.delta_time;
+    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto& v = rVariables.convective_velocity;
+    const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double DN_DX_0_0 = rVariables.DN_DX(0,0);
-    const double DN_DX_0_1 = rVariables.DN_DX(0,1);
-    const double DN_DX_0_2 = rVariables.DN_DX(0,2);
-    const double DN_DX_1_0 = rVariables.DN_DX(1,0);
-    const double DN_DX_1_1 = rVariables.DN_DX(1,1);
-    const double DN_DX_1_2 = rVariables.DN_DX(1,2);
-    const double DN_DX_2_0 = rVariables.DN_DX(2,0);
-    const double DN_DX_2_1 = rVariables.DN_DX(2,1);
-    const double DN_DX_2_2 = rVariables.DN_DX(2,2);
-    const double DN_DX_3_0 = rVariables.DN_DX(3,0);
-    const double DN_DX_3_1 = rVariables.DN_DX(3,1);
-    const double DN_DX_3_2 = rVariables.DN_DX(3,2);
-    // LHS and RHS
-    auto lhs = rVariables.lhs;
-    auto rhs = rVariables.rhs;
+    const double& DN_DX_0_0 = rVariables.DN_DX(0,0);
+    const double& DN_DX_0_1 = rVariables.DN_DX(0,1);
+    const double& DN_DX_0_2 = rVariables.DN_DX(0,2);
+    const double& DN_DX_1_0 = rVariables.DN_DX(1,0);
+    const double& DN_DX_1_1 = rVariables.DN_DX(1,1);
+    const double& DN_DX_1_2 = rVariables.DN_DX(1,2);
+    const double& DN_DX_2_0 = rVariables.DN_DX(2,0);
+    const double& DN_DX_2_1 = rVariables.DN_DX(2,1);
+    const double& DN_DX_2_2 = rVariables.DN_DX(2,2);
+    const double& DN_DX_3_0 = rVariables.DN_DX(3,0);
+    const double& DN_DX_3_1 = rVariables.DN_DX(3,1);
+    const double& DN_DX_3_2 = rVariables.DN_DX(3,2);
+    // RHS
+    auto& rhs = rVariables.rhs;
 
     const double crhs0 =             -0.19999999899376*f[1];
 const double crhs1 =             1.0/delta_time;
@@ -986,7 +983,8 @@ const double crhs99 =             crhs26 + crhs27 + crhs94 + crhs95;
 
 
     // All the weights of the gauss points are the same so we multiply by volume/n_nodes
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/4;
+    const double local_size = 4;
+    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
 }
 
 /***********************************************************************************/
@@ -998,25 +996,24 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::UpdateUnknownSubgrid
     unsigned int g)
 {
     // Retrieve element variables
-    const auto N = rVariables.N;
-    const auto DN = rVariables.DN_DX;
-    const auto k = rVariables.diffusivity;
-    const auto f = rVariables.forcing;
-    const auto phi = rVariables.unknown;
-    const auto phi_old = rVariables.unknown_old;
-    const auto delta_time = rVariables.delta_time;
-    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto v = rVariables.convective_velocity;
-    const auto tau = rVariables.tau[g];
-    const auto phi_subscale_gauss = rVariables.unknown_subscale;
-    const auto prj = rVariables.oss_projection;
+    const auto& N = rVariables.N;
+    const auto& k = rVariables.diffusivity;
+    const auto& f = rVariables.forcing;
+    const auto& phi = rVariables.unknown;
+    const auto& phi_old = rVariables.unknown_old;
+    const auto& delta_time = rVariables.delta_time;
+    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto& v = rVariables.convective_velocity;
+    const auto& tau = rVariables.tau[g];
+    const auto& phi_subscale_gauss = rVariables.unknown_subscale;
+    const auto& prj = rVariables.oss_projection;
     double phi_subscale_gauss_new = 0;
-    const double DN_DX_0_0 = rVariables.DN_DX(0, 0);
-    const double DN_DX_0_1 = rVariables.DN_DX(0, 1);
-    const double DN_DX_1_0 = rVariables.DN_DX(1, 0);
-    const double DN_DX_1_1 = rVariables.DN_DX(1, 1);
-    const double DN_DX_2_0 = rVariables.DN_DX(2, 0);
-    const double DN_DX_2_1 = rVariables.DN_DX(2, 1);
+    const double& DN_DX_0_0 = rVariables.DN_DX(0, 0);
+    const double& DN_DX_0_1 = rVariables.DN_DX(0, 1);
+    const double& DN_DX_1_0 = rVariables.DN_DX(1, 0);
+    const double& DN_DX_1_1 = rVariables.DN_DX(1, 1);
+    const double& DN_DX_2_0 = rVariables.DN_DX(2, 0);
+    const double& DN_DX_2_1 = rVariables.DN_DX(2, 1);
 
     phi_subscale_gauss_new += N[0]*f[0] + N[1]*f[1] + N[2]*f[2]; // forcing term
     phi_subscale_gauss_new += - (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]))/(delta_time); // mass term
@@ -1036,31 +1033,31 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::UpdateUnknownSubgrid
     unsigned int g)
 {
     // Retrieve element variables
-    const auto N = rVariables.N;
-    const auto k = rVariables.diffusivity;
-    const auto f = rVariables.forcing;
-    const auto phi = rVariables.unknown;
-    const auto phi_old = rVariables.unknown_old;
-    const auto delta_time = rVariables.delta_time;
-    const auto RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto v = rVariables.convective_velocity;
-    const auto tau = rVariables.tau[g];
-    const auto phi_subscale_gauss = rVariables.unknown_subscale;
-    const auto prj = rVariables.oss_projection;
+    const auto& N = rVariables.N;
+    const auto& k = rVariables.diffusivity;
+    const auto& f = rVariables.forcing;
+    const auto& phi = rVariables.unknown;
+    const auto& phi_old = rVariables.unknown_old;
+    const auto& delta_time = rVariables.delta_time;
+    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
+    const auto& v = rVariables.convective_velocity;
+    const auto& tau = rVariables.tau[g];
+    const auto& phi_subscale_gauss = rVariables.unknown_subscale;
+    const auto& prj = rVariables.oss_projection;
     double phi_subscale_gauss_new = 0;
-    const double DN_DX_0_0 = rVariables.DN_DX(0,0);
-    const double DN_DX_0_1 = rVariables.DN_DX(0,1);
-    const double DN_DX_0_2 = rVariables.DN_DX(0,2);
-    const double DN_DX_1_0 = rVariables.DN_DX(1,0);
-    const double DN_DX_1_1 = rVariables.DN_DX(1,1);
-    const double DN_DX_1_2 = rVariables.DN_DX(1,2);
-    const double DN_DX_2_0 = rVariables.DN_DX(2,0);
-    const double DN_DX_2_1 = rVariables.DN_DX(2,1);
-    const double DN_DX_2_2 = rVariables.DN_DX(2,2);
-    const double DN_DX_3_0 = rVariables.DN_DX(3,0);
-    const double DN_DX_3_1 = rVariables.DN_DX(3,1);
-    const double DN_DX_3_2 = rVariables.DN_DX(3,2);
-    
+    const double& DN_DX_0_0 = rVariables.DN_DX(0,0);
+    const double& DN_DX_0_1 = rVariables.DN_DX(0,1);
+    const double& DN_DX_0_2 = rVariables.DN_DX(0,2);
+    const double& DN_DX_1_0 = rVariables.DN_DX(1,0);
+    const double& DN_DX_1_1 = rVariables.DN_DX(1,1);
+    const double& DN_DX_1_2 = rVariables.DN_DX(1,2);
+    const double& DN_DX_2_0 = rVariables.DN_DX(2,0);
+    const double& DN_DX_2_1 = rVariables.DN_DX(2,1);
+    const double& DN_DX_2_2 = rVariables.DN_DX(2,2);
+    const double& DN_DX_3_0 = rVariables.DN_DX(3,0);
+    const double& DN_DX_3_1 = rVariables.DN_DX(3,1);
+    const double& DN_DX_3_2 = rVariables.DN_DX(3,2);
+
     phi_subscale_gauss_new += N[0]*f[0] + N[1]*f[1] + N[2]*f[2] + N[3]*f[3]; // forcing term
     phi_subscale_gauss_new += - (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]))/(RK_time_coefficient*delta_time); // mass term
     phi_subscale_gauss_new += - (DN_DX_0_0*phi[0] + DN_DX_1_0*phi[1] + DN_DX_2_0*phi[2] + DN_DX_3_0*phi[3])*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) - (DN_DX_0_1*phi[0] + DN_DX_1_1*phi[1] + DN_DX_2_1*phi[2] + DN_DX_3_1*phi[3])*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) - (DN_DX_0_2*phi[0] + DN_DX_1_2*phi[1] + DN_DX_2_2*phi[2] + DN_DX_3_2*phi[3])*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2)); // convective term 1
@@ -1068,7 +1065,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::UpdateUnknownSubgrid
     phi_subscale_gauss_new += N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2] + N[3]*prj[3]; // OSS term
     phi_subscale_gauss_new *= tau;
 
-    mUnknownSubScale(g) = (tau*phi_subscale_gauss/delta_time) + phi_subscale_gauss_new;    
+    mUnknownSubScale(g) = (tau*phi_subscale_gauss/delta_time) + phi_subscale_gauss_new;
 }
 
 /***********************************************************************************/
@@ -1081,11 +1078,9 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     // Calculate h
     double h = this->ComputeH(rVariables.DN_DX);
     // Calculate tau and qstau for each gauss point
-    const auto& r_geometry = this->GetGeometry();
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     for(unsigned int g = 0; g<TNumNodes; g++)
     {
-	const auto& N = row(N_gausspoint,g);
+	const auto& N = row(rVariables.N_gausspoint,g);
         // Calculate velocity and velocity divergence in the gauss point
         array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
         noalias(vel_gauss) = prod(N,rVariables.convective_velocity);
