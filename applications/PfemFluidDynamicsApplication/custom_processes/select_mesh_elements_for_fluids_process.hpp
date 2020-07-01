@@ -373,7 +373,7 @@ namespace Kratos
                             {
                                 if (checkedNodes == nds)
                                 {
-                                    const double maxValue = 1.1;
+                                    const double maxValue = 1.5;
                                     const double minValue = 1.0 / maxValue;
                                     if (normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[1] < minValue ||
                                         normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[2] < minValue ||
@@ -393,7 +393,7 @@ namespace Kratos
                                                             (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)) *
                                                              sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
 
-                                        if (fabs(cosAngle01) < 0.99 || fabs(cosAngle02) < 0.99 || fabs(cosAngle12) < 0.99)
+                                        if (fabs(cosAngle01) < 0.85 || fabs(cosAngle02) < 0.85 || fabs(cosAngle12) < 0.85)
                                         {
                                             accepted = false;
                                             // std::cout << isolatedNodesInTheElement << " isolatedNodesInTheElement The angle between the velocity vectors is too big" << std::endl;
@@ -416,7 +416,7 @@ namespace Kratos
                             {
                                 if (checkedNodes == nds)
                                 {
-                                    const double maxValue = 1.1;
+                                    const double maxValue = 2.5;
                                     const double minValue = 1.0 / maxValue;
                                     if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
                                         normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
@@ -448,7 +448,7 @@ namespace Kratos
                                                             (sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)) *
                                                              sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
 
-                                        if (fabs(cosAngle01) < 0.99 || fabs(cosAngle02) < 0.99 || fabs(cosAngle03) < 0.99 || fabs(cosAngle12) < 0.99 || fabs(cosAngle13) < 0.99 || fabs(cosAngle23) < 0.99)
+                                        if (fabs(cosAngle01) < 0.85 || fabs(cosAngle02) < 0.85 || fabs(cosAngle03) < 0.85 || fabs(cosAngle12) < 0.85 || fabs(cosAngle13) < 0.85 || fabs(cosAngle23) < 0.85)
                                         {
                                             accepted = false;
                                             // std::cout << "The angle between the velocity vectors is too big" << std::endl;
@@ -502,12 +502,6 @@ namespace Kratos
                         {
                             accepted = false;
                             number_of_slivers++;
-                        }
-                        else if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995 || fabs(cosAngle23) > 0.995 || fabs(cosAngle24) > 0.995 || fabs(cosAngle34) > 0.995) && (numrigid == 2 && isolatedNodesInTheElement > 1))
-                        {
-                            accepted = false;
-                            number_of_slivers++;
-                            // std::cout << "Sliver element with two rigid nodes and 2 free nodes: dangerous" << std::endl;
                         }
                         else if (Volume <= CriticalVolume)
                         {

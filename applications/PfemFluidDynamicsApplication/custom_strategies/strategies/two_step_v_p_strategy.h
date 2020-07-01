@@ -263,6 +263,8 @@ namespace Kratos
 
       // this->UnactiveSliverElements(); //this is done in set_active_flag_mesher_process which is activated from fluid_pre_refining_mesher.py
 
+      this->SetBlockedFlag();
+
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
       {
         momentumConverged = this->SolveMomentumIteration(it, maxNonLinearIterations, fixedTimeStep, velocityNorm);
@@ -316,6 +318,7 @@ namespace Kratos
         }
       }
 
+      // this->UnsetBlockedFlag();
       /* } */
 
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -347,6 +350,137 @@ namespace Kratos
       /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
       /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
 
+      KRATOS_CATCH("");
+    }
+
+    void SetBlockedFlag()
+    {
+      KRATOS_TRY;
+
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+#pragma omp parallel
+      {
+        ModelPart::ElementIterator ElemBegin;
+        ModelPart::ElementIterator ElemEnd;
+        OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
+        for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+        {
+          unsigned int numNodes = itElem->GetGeometry().size();
+          std::vector<array_1d<double, 3>> nodesCoordinates;
+          nodesCoordinates.resize(numNodes);
+
+          (itElem)->Set(BLOCKED, false);
+          (itElem)->Set(ISOLATED, false);
+
+          unsigned int freeSurfaceNodes = 0;
+          unsigned int freeSurfaceRigidNodes = 0;
+          unsigned int rigidNodes = 0;
+          unsigned int isolatedNodes = 0;
+          for (unsigned int i = 0; i < numNodes; i++)
+          {
+            if (itElem->GetGeometry()[i].Is(FREE_SURFACE))
+            {
+              freeSurfaceNodes++;
+              if (itElem->GetGeometry()[i].Is(RIGID))
+              {
+                freeSurfaceRigidNodes++;
+              }
+            }
+            else if (itElem->GetGeometry()[i].Is(RIGID))
+            {
+              rigidNodes++;
+            }
+            nodesCoordinates[i] = itElem->GetGeometry()[i].Coordinates();
+            ElementWeakPtrVectorType &neighb_elems = itElem->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+            if (neighb_elems.size() == 1)
+            {
+              isolatedNodes++;
+            }
+          }
+
+          // if (dimension == 3 && (freeSurfaceNodes == numNodes || (freeSurfaceNodes + rigidNodes) == numNodes))
+          if (dimension == 3)
+          {
+            double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+            double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+            double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+            a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+            b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+            c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
+            double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+            double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+            double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+            a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+            b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+            c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
+            double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+            double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+            double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+            a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
+            b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
+            c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
+            double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+            double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+            double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+            a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
+            b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
+            c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
+
+            double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+            double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+            double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
+            double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+            double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+            double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+
+            if ((fabs(cosAngle12) > 0.99 || fabs(cosAngle13) > 0.99 || fabs(cosAngle14) > 0.99 || fabs(cosAngle23) > 0.99 || fabs(cosAngle24) > 0.99 || fabs(cosAngle34) > 0.99) && (freeSurfaceNodes == numNodes) && isolatedNodes > 1)
+            {
+              (itElem)->Set(BLOCKED, true);
+              // std::cout << "in the strategy BLOCKED ELEMENT: " << (itElem)->Id() << std::endl;
+            }
+            else if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995 || fabs(cosAngle23) > 0.995 || fabs(cosAngle24) > 0.995 || fabs(cosAngle34) > 0.995) && (freeSurfaceNodes == numNodes) && isolatedNodes == 1)
+            {
+              (itElem)->Set(BLOCKED, true);
+              // std::cout << "in the strategy BLOCKED ELEMENT: " << (itElem)->Id() << std::endl;
+            }
+            else if ((fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) && (freeSurfaceNodes == numNodes))
+            {
+              (itElem)->Set(BLOCKED, true);
+              // std::cout << "in the strategy BLOCKED ELEMENT: " << (itElem)->Id() << std::endl;
+            }
+            // else if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999)
+            // {
+            //   (itElem)->Set(BLOCKED, true);
+            //   // std::cout << "in the strategy BLOCKED ELEMENT: " << (itElem)->Id() << std::endl;
+            // }
+          }
+
+          if (freeSurfaceNodes == numNodes && rigidNodes == 0 && isolatedNodes >= (numNodes-1))
+          {
+            (itElem)->Set(ISOLATED, true);
+            (itElem)->Set(BLOCKED, false);
+          }
+        }
+      }
+      KRATOS_CATCH("");
+    }
+
+    void UnsetBlockedFlag()
+    {
+      KRATOS_TRY;
+      ModelPart &rModelPart = BaseType::GetModelPart();
+#pragma omp parallel
+      {
+        ModelPart::ElementIterator ElemBegin;
+        ModelPart::ElementIterator ElemEnd;
+        OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
+        for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+        {
+          (itElem)->Set(BLOCKED, false);
+        }
+      }
       KRATOS_CATCH("");
     }
 
@@ -856,7 +990,7 @@ namespace Kratos
       // Check convergence
       if (it == (maxIt - 1))
       {
-        KRATOS_INFO("Iteration") << it << "  Final Pressure error" << DpErrorNorm << std::endl;  
+        KRATOS_INFO("Iteration") << it << "  Final Pressure error" << DpErrorNorm << std::endl;
         ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm);
       }
       else
