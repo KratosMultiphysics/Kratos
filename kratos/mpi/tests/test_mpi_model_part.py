@@ -28,7 +28,7 @@ def ReadDistributedModelPart(model_part, mdpa_file_name):
     model_part_import_util.ImportModelPart()
     model_part_import_util.CreateCommunicators()
 
-class TestMPICommunicator(KratosUnittest.TestCase):
+class TestMPIModelPart(KratosUnittest.TestCase):
 
     def setUp(self):
         self.communicator = KratosMultiphysics.DataCommunicator.GetDefault()
