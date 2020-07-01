@@ -50,10 +50,9 @@ namespace Kratos
         double calculation_area = 0.0;
         double kn_el = 0.0;
         double kt_el = 0.0;
-        for (unsigned int i = 0; i < pSmallestDemElem->mContinuumInitialNeighborsSize; i++) {
-            pSmallestDemElem->mContinuumConstitutiveLawArray[i]->GetContactArea(min_radius, min_radius, cont_ini_neigh_area, i, calculation_area);
-            pSmallestDemElem->mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, myYoung, myPoisson, calculation_area, pSmallestDemElem, pSmallestDemElem);
-        }
+        DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = pSmallestDemElem->GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
+        NewContinuumConstitutiveLaw->CalculateContactArea(min_radius, min_radius, calculation_area);
+        NewContinuumConstitutiveLaw->CalculateElasticConstants(kn_el, kt_el, initial_dist, myYoung, myPoisson, calculation_area, pSmallestDemElem, pSmallestDemElem);
 
         // Calculate mass of the smallest particle
         const double particle_density = pSmallestDemElem->GetDensity();
