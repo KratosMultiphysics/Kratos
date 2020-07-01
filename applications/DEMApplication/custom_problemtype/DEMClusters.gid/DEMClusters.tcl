@@ -50,10 +50,10 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate SPH file" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate CLU file" ] 2 PRE [list GenerateClusterFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate cluster and visualize" ] 3 PRE [list OneClickGo] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 4 PRE [list ReadClusterFileintoGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over mesh" ] 5 PRE [list ReadClusterFileintoMesh] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 6 PRE [list DeleteSpheresGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over mesh" ] 7 PRE [list DeleteSpheresMesh] "" ""
+        #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 4 PRE [list ReadClusterFileintoGeometry] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over mesh" ] 4 PRE [list ReadClusterFileintoMesh] "" ""
+        #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 6 PRE [list DeleteSpheresGeometry] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over mesh" ] 5 PRE [list DeleteSpheresMesh] "" ""
 
         GiDMenu::UpdateMenus
     }
@@ -447,6 +447,7 @@ proc GenerateClusterFile { } {
     exec $program 3 $genericMSHFilename $genericSPHFilename $ouputpath
     # DEBUG : exec $program $argv_number $genericMSHFilename $genericSPHFilename > [file join $::DEMClusters::ProblemPath output.txt]
     # REGENERATE EXEC FOR WINDOWS including required libraries: exec> g++ -static-libgcc -static-libstdc++ -o create_cluster.exe mesh_to_clu_converter.cpp
+    # REGENERATE EXEC FOR unix including required libraries: exec> g++ -static-libgcc -static-libstdc++ -o create_cluster_unix mesh_to_clu_converter.cpp
 }
 
 

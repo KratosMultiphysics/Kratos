@@ -188,10 +188,33 @@ int main(int argc, char * argv[]){
     }
 
     // Movemos las esferas y las dejamos colocadas tal que su centroide coincida con el origen:
+    // double XSphere=0.0;
+    // double YSphere=0.0;
+    // double ZSphere=0.0;
+
+    // solo las coordenadas que el SPH ha calculado como centro del cluster
+    // infilesph.ignore(80,'\n');
+    // while (std::getline(infilesph, linesph)) {
+    //     std::istringstream iss(linesph);
+    //     double Xcoord, Ycoord, Zcoord, Rad, one;
+    //     if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad >> one) {
+    //         if (Rad>=0) {
+    //             XSphere = Xcoord;
+    //             YSphere = Ycoord;
+    //             ZSphere = Zcoord;
+    //             break;
+    //         }
+    //     } else break;
+    // }
+
     for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
-        xcoords[spheres_counter] += Xcdgrav;
-        ycoords[spheres_counter] += Ycdgrav;
-        zcoords[spheres_counter] += Zcdgrav;
+        // xcoords[spheres_counter] += Xcdgrav;
+        // ycoords[spheres_counter] += Ycdgrav;
+        // zcoords[spheres_counter] += Zcdgrav;
+
+        xcoords[spheres_counter] += 0.0;
+        ycoords[spheres_counter] += 0.0;
+        zcoords[spheres_counter] += 0.0;
     }
 
     // Calculo del tensor de inercias de cada elemento con respecto al CDG de cada piedra o cluster
@@ -313,6 +336,14 @@ int main(int argc, char * argv[]){
     CenterX = 0.5 * (xcoords[extreme_sphere[0]] - radii[extreme_sphere[0]] * SphDistanceUnitVect[0] + xcoords[extreme_sphere[1]] + radii[extreme_sphere[1]] * SphDistanceUnitVect[0]);
     CenterY = 0.5 * (ycoords[extreme_sphere[0]] - radii[extreme_sphere[0]] * SphDistanceUnitVect[1] + ycoords[extreme_sphere[1]] + radii[extreme_sphere[1]] * SphDistanceUnitVect[1]);
     CenterZ = 0.5 * (zcoords[extreme_sphere[0]] - radii[extreme_sphere[0]] * SphDistanceUnitVect[2] + zcoords[extreme_sphere[1]] + radii[extreme_sphere[1]] * SphDistanceUnitVect[2]);
+
+
+    // for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
+    //     xcoords[spheres_counter] += Xcdgrav-CenterX;
+    //     ycoords[spheres_counter] += Ycdgrav-CenterY;
+    //     zcoords[spheres_counter] += Zcdgrav-CenterZ;
+    // }
+
 
     double CheckX, CheckY, CheckZ, TempRad;
     std::vector<double> extreme_radius;
