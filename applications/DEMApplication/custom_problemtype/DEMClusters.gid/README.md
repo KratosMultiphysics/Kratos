@@ -38,7 +38,9 @@ branch: 20, time: 2 min
 branch: 200, time: 14 min
 
 <span>
-<img align="center" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/splash.png" width="288">
+<img align="left" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/jar1.bmp" width="288">
+
+<img align="right" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/jar1-1.bmp" width="288">
   Jar
 </span>
 <br>
@@ -48,7 +50,9 @@ branch: 20, time:1 min
 branch: 200, time: 7 min
 
 <span>
-<img align="center" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/splash.png" width="288">
+<img align="left" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/candy1.bmp" width="288">
+
+<img align="right" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/candy1-1.bmp" width="288">
   Candy
 </span>
 <br>
