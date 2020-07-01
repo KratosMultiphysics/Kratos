@@ -24,8 +24,8 @@ namespace Kratos
     // Modal derivative variables
     KRATOS_CREATE_VARIABLE(unsigned int, BUILD_LEVEL)
     KRATOS_CREATE_VARIABLE(Vector, EIGENVALUE_VECTOR)
-    KRATOS_CREATE_VARIABLE(std::size_t, EIGENVALUE_I)
-    KRATOS_CREATE_VARIABLE(std::size_t, EIGENVALUE_J)
+    KRATOS_CREATE_VARIABLE(std::size_t, BASIS_I)
+    KRATOS_CREATE_VARIABLE(std::size_t, BASIS_J)
     KRATOS_CREATE_VARIABLE(std::size_t, DERIVATIVE_INDEX )
 
 }

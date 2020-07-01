@@ -401,39 +401,42 @@ public:
         const std::size_t num_eigenvalues = r_eigenvalues.size();
 
         // Build system matrices
-        //// Build mass matrix
+        // Build mass matrix
         if (mMassOrthonormalizeFlag || mDerivativeTypeFlag)
         {
             r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
             this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rMassMatrix);
         }
 
-        if (!mDerivativeTypeFlag)
-        {
-            // If static derivatives then build the stiffness matrix into system matrix directly
-            // Build stiffness matrix contribution
+        if (mDerivativeTypeFlag)
+        {   // Dynamic derivatives
+            
+            // Build stiffness matrix separately
             r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
-            this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rA);
+            this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);            
         } 
         else
-        {
-            // If dynamic derivatives then build stiffness matrix separately
+        {   // Static derivatives
+            
+            // Build the stiffness matrix into system matrix directly
             r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
-            this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);
+            this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rA);
         }
         
         // Derivative of basis_i
         std::size_t basis_j_start_index;
         for (std::size_t basis_i = 0; basis_i < num_eigenvalues; basis_i++)
         {
-            // Set the EIGENVALUE_I counter for use in the scheme
-            r_model_part.GetProcessInfo()[EIGENVALUE_I] = basis_i;
+            // Set the BASIS_I counter for use in the scheme
+            r_model_part.GetProcessInfo()[BASIS_I] = basis_i;
 
-            if (mDerivativeTypeFlag){ // If dynamic derivatives
-                const double eigenvalue = r_eigenvalues[basis_i];
+            if (mDerivativeTypeFlag)
+            {   // Dynamic derivatives
+
+                const double eigenvalue_i = r_eigenvalues[basis_i];
 
                 // If dynamic derivatives then build system matrix for each eigenvalue
-                rA = rStiffnessMatrix - (eigenvalue * rMassMatrix);
+                rA = rStiffnessMatrix - (eigenvalue_i * rMassMatrix);
                 
                 // Dynamic derivatives are unsymmetric
                 basis_j_start_index = 0;
@@ -441,8 +444,9 @@ public:
                 // Get basis_i
                 this->GetBasis(basis_i, basis);
             } 
-            else // If static derivatives
-            {
+            else 
+            {   // Static derivatives
+
                 // Shift the derivative start index due to symmetry of static derivatives
                 basis_j_start_index = basis_i;
             }                
@@ -450,18 +454,17 @@ public:
             // Derivative wrt basis_j
             for (std::size_t basis_j = basis_j_start_index; basis_j < num_eigenvalues; basis_j++)
             {
-                // Set the EIGENVALUE_J counter for using in the scheme
-                r_model_part.GetProcessInfo()[EIGENVALUE_J] = basis_j;
+                // Set the BASIS_J counter for using in the scheme
+                r_model_part.GetProcessInfo()[BASIS_J] = basis_j;
 
                 // Reset RHS and solution vector at each step
                 TSparseSpace::SetToZero(rb);
                 TSparseSpace::SetToZero(rDx);
 
                 // Compute RHS and solve
-                if (!mDerivativeTypeFlag){
-                    // Build only stiffness contribution
-                    this->pGetBuilderAndSolver()->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-                } else {
+                if (mDerivativeTypeFlag)
+                {   // Dynamic derivatives
+                    
                     // Build first stiffness contribution
                     this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
 
@@ -480,12 +483,17 @@ public:
                     // Apply Dirichlet conditions
                     this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
 
-                    // Solve for the modal derivative
+                    // Compute null space solution
                     this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
                     // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
 
-                    // Reconstruct solution
-                    this->ReconstructSolution(rDx, basis, fixed_dof_index);
+                    // Compute particular solution
+                    this->ComputeParticularSolution(rDx, basis, fixed_dof_index);
+                } else 
+                {   // Static derivatives
+
+                    // Build only stiffness contribution
+                    this->pGetBuilderAndSolver()->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                 }
                 
                 // Mass orthonormalization
@@ -670,12 +678,12 @@ public:
     }
 
     /**
-     * @brief This function reconstructs the full solution from the constrained solution
+     * @brief This function comnputes the particular solution from the null space solution
      * @details
      * { 
      * } 
      */ 
-    void ReconstructSolution(TSystemVectorType& rDx, TSystemVectorType& rBasis, std::size_t& fixed_dof_index)
+    void ComputeParticularSolution(TSystemVectorType& rDx, TSystemVectorType& rBasis, std::size_t& rFixedDofIndex)
     {
         KRATOS_TRY
 
@@ -683,7 +691,7 @@ public:
         DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
 
         // Free the DOF that is previously fixed
-        auto p_dof = r_dof_set.begin()+fixed_dof_index;
+        auto p_dof = r_dof_set.begin()+rFixedDofIndex;
         p_dof->FreeDof();
 
         // Component c for the null space solution

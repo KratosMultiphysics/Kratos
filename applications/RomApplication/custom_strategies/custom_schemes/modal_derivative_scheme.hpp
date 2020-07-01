@@ -261,9 +261,9 @@ public:
     {
         KRATOS_TRY
         
-        // Derivative of eigenvalue_i wrt eigenvalue_j
-        std::size_t eigenvalue_i = rCurrentProcessInfo[EIGENVALUE_I];
-        std::size_t eigenvalue_j = rCurrentProcessInfo[EIGENVALUE_J];
+        // Derivative of basis_i wrt basis_j
+        std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
+        std::size_t basis_j = rCurrentProcessInfo[BASIS_J];
         
         // Create PhiElemental
         Vector PhiElemental;
@@ -279,7 +279,7 @@ public:
             
             const Matrix *pPhiNodal = &(node_i.GetValue(ROM_BASIS));
             for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
-                PhiElemental[dof_ctr + dof_idx] = (*pPhiNodal)(dof_idx, eigenvalue_i);
+                PhiElemental[dof_ctr + dof_idx] = (*pPhiNodal)(dof_idx, basis_i);
             }
             dof_ctr += node_i_dofs.size();
         }
@@ -299,7 +299,7 @@ public:
         // Positive perturbation
         Matrix LHS_p_perturbed;
         LHS_p_perturbed.resize(rElementalDofList.size(),rElementalDofList.size(),false);
-        this->PerturbElement(rElement, 1.0, eigenvalue_j, rCurrentProcessInfo);
+        this->PerturbElement(rElement, 1.0, basis_j, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(LHS_p_perturbed, rCurrentProcessInfo);
 
         if (mFiniteDifferenceTypeFlag)
@@ -308,11 +308,11 @@ public:
             // Negative perturbation
             Matrix LHS_n_perturbed;
             LHS_n_perturbed.resize(rElementalDofList.size(),rElementalDofList.size(),false);
-            this->PerturbElement(rElement, -2.0, eigenvalue_j, rCurrentProcessInfo);
+            this->PerturbElement(rElement, -2.0, basis_j, rCurrentProcessInfo);
             rElement.CalculateLeftHandSide(LHS_n_perturbed, rCurrentProcessInfo);
 
             // Reset perturbation
-            this->PerturbElement(rElement, 1.0, eigenvalue_j, rCurrentProcessInfo);
+            this->PerturbElement(rElement, 1.0, basis_j, rCurrentProcessInfo);
 
             // Compute LHS derivative
             element_LHS_derivative = (LHS_p_perturbed - LHS_n_perturbed) / (2.0*mFiniteDifferenceStepSize);
@@ -321,7 +321,7 @@ public:
         {   // Forward difference
 
             // Reset perturbation
-            this->PerturbElement(rElement, -1.0, eigenvalue_j, rCurrentProcessInfo);
+            this->PerturbElement(rElement, -1.0, basis_j, rCurrentProcessInfo);
 
             // Neutral state
             Matrix LHS;
@@ -362,11 +362,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    // This function perturbs the element with the vector with given eigenvector index eigenvalue_j
+    // This function perturbs the element with the vector with given eigenvector index basis_j
     void PerturbElement(
         Element& rElement,
         const double step,
-        const std::size_t eigenvalue_j,
+        const std::size_t basis_j,
         const ProcessInfo& rCurrentProcessInfo
     )
     {
@@ -381,7 +381,7 @@ public:
             for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
 
                 // Compute and assign the perturbation
-                const double dof_perturbation = step*mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, eigenvalue_j);
+                const double dof_perturbation = step*mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, basis_j);
                 (*it_dof_i)->GetSolutionStepValue() += dof_perturbation;
                 
                 // Increment the dof iterator

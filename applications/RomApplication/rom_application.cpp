@@ -39,8 +39,8 @@ void KratosRomApplication::Register()
 
     // Modal derivative variables
     KRATOS_REGISTER_VARIABLE( EIGENVALUE_VECTOR )
-    KRATOS_REGISTER_VARIABLE( EIGENVALUE_I)
-    KRATOS_REGISTER_VARIABLE( EIGENVALUE_J)
+    KRATOS_REGISTER_VARIABLE( BASIS_I)
+    KRATOS_REGISTER_VARIABLE( BASIS_J)
 
 }
 }  // namespace Kratos.
