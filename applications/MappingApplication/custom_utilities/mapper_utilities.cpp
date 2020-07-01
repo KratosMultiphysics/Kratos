@@ -39,7 +39,7 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     const auto nodes_begin = rModelPartCommunicator.LocalMesh().NodesBegin();
 
     IndexPartition<unsigned int>(num_nodes_local).for_each(
-        [&](unsigned int i){
+        [nodes_begin, start_equation_id](unsigned int i){
             (nodes_begin + i)->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
         }
     );
