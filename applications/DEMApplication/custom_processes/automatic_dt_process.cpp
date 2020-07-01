@@ -62,8 +62,8 @@ namespace Kratos
         const double critical_delta_time = std::sqrt(min_mass/kn_el);
         mrModelPart.GetProcessInfo().SetValue(DELTA_TIME,mCorrectionFactor*critical_delta_time);
 
-        // TODO: check this
-        KRATOS_WATCH(critical_delta_time)
+        // TODO: check this number
+        // KRATOS_WATCH(critical_delta_time)
 
         KRATOS_CATCH("");
     }
