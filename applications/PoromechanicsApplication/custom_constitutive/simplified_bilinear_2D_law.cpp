@@ -130,7 +130,7 @@ void SimplifiedBilinear2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
 			if (shear_modulus_stress <= friction_stress) 
 			{
 				double Rigid_YoungModulus = 1.0e20;
-				double shear_modulus = rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));
+				double shear_modulus = rVariables.YoungModulus / (2.0 * (1.0 + rVariables.PoissonCoefficient));
 				rConstitutiveMatrix(0,0) = broken_YieldStress + shear_modulus;
 				rConstitutiveMatrix(1,1) = Rigid_YoungModulus;
 				rConstitutiveMatrix(0,1) = 0.0;
@@ -182,7 +182,7 @@ void SimplifiedBilinear2DLaw::ComputeStressVector(Vector& rStressVector,
 			double Rigid_YoungModulus = 1.0e20;
 			rStressVector[1] = Rigid_YoungModulus * StrainVector[1];
 
-			const double shear_modulus = rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));
+			const double shear_modulus = rVariables.YoungModulus / (2.0 * (1.0 + rVariables.PoissonCoefficient));
 			double friction_stress = fabs(shear_modulus * StrainVector[0]);
 			double max_friction_stress = fabs(rVariables.FrictionCoefficient * rVariables.YoungModulus * StrainVector[1]);
 			if (friction_stress > max_friction_stress) friction_stress = max_friction_stress;
