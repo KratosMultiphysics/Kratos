@@ -53,7 +53,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
 
         # Set IS_STRUCTURE to define contact with solid
         for node in model_part.Nodes:
-            if node.Z == 0.0:
+            if node.X == 0.0 or node.Y == 0.0 or node.Z == 0.0:
                 node.Set(KratosMultiphysics.CONTACT, True)
             else:
                 node.Set(KratosMultiphysics.CONTACT, False)
@@ -98,12 +98,12 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         for _ in range(1): # surface smoothing can be called multiple times
             smoothing_process.Execute()
 
-        node = (model_part.Nodes)[484]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00014550582971834284)
-        node = (model_part.Nodes)[587]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.0004487444188725109)
-        node = (model_part.Nodes)[636]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -4.037676078175265e-05)
+        node = (model_part.Nodes)[428]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00022061696483317178)
+        node = (model_part.Nodes)[582]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.0004197732005270892)
+        node = (model_part.Nodes)[634]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.00034132053885862427)
 
         # gid_output = GiDOutputProcess(model_part,
         #                            "smoothing_test_3D",
@@ -166,7 +166,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
 
         # Set IS_STRUCTURE to define contact with solid
         for node in model_part.Nodes:
-            if node.Z == 0.0:
+            if node.X == 0.0 or node.Y == 0.0 or node.Z == 0.0:
                 node.Set(KratosMultiphysics.CONTACT, True)
             else:
                 node.Set(KratosMultiphysics.CONTACT, False)
@@ -213,12 +213,12 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         for _ in range(1): # surface smoothing can be called multiple times
             smoothing_process_with_parameters.Execute()
 
-        node = (model_part.Nodes)[484]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00014550582971834284)
-        node = (model_part.Nodes)[587]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.0004487444188725109)
-        node = (model_part.Nodes)[636]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -4.037676078175265e-05)
+        node = (model_part.Nodes)[428]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00022061696483317178)
+        node = (model_part.Nodes)[582]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.0004197732005270892)
+        node = (model_part.Nodes)[634]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.00034132053885862427)
 
         # gid_output = GiDOutputProcess(model_part,
         #                            "smoothing_test_3D",
