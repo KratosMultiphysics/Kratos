@@ -22,6 +22,11 @@ jobs:
         mkdir wheels
         sudo docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/workspace/out hubertus248/kratoswheelbuilder-linux --branch "wheels/add-action" --cpus 2 --pythons ${{ matrix.python-version }} --cotire ON
 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Upload artifacts
+        path:  ${GITHUB_WORKSPACE}/wheels/*
+
   windows:
     runs-on: windows-latest
     strategy:
@@ -36,4 +41,9 @@ jobs:
       shell: pwsh
       run: |
         mkdir wheels
-        docker run --rm --isolation=process -v wheels:c:\out hubertus248/kratoswheelbuilder-win -branch wheels/add-action -pythons "${{ matrix.python-version }}" -cotire ON -cpus 1
+        docker run --rm --isolation=process -v wheels:c:\out kratosmultiphysics/kratos-wheelbuilder-windows -branch wheels/add-action -pythons "${{ matrix.python-version }}" -cotire ON -cpus 1
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Upload artifacts
+        path: wheels/*
