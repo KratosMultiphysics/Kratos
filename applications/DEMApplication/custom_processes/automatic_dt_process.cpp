@@ -18,25 +18,18 @@ namespace Kratos
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void AutomaticDTProcess::ExecuteInitialize() override
+    void AutomaticDTProcess::ExecuteInitialize()
     {
         KRATOS_TRY;
 
-        // const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
-        // ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-        // #pragma omp parallel for
-        // for(int i = 0; i<NNodes; i++) {
-        //     ModelPart::NodesContainerType::iterator it = it_begin + i;
-        //     it->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
-        // }
-        // ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
-
-        const int NElems = static_cast<int>(mrModelPart.GetCommunicator().LocalMesh().Elements().size());
+        ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
+        const int NElems = static_cast<int>(rElements.size());
         ModelPart::ElementsContainerType::ptr_iterator ptr_itElem_begin = rElements.ptr_begin();
 
         // Find smallest particle
         double min_radius = std::numeric_limits<double>::infinity();
-        SphericContinuumParticle* pSmallestDemElem;
+        SphericContinuumParticle* pSmallestDemElem = dynamic_cast<SphericContinuumParticle*>(ptr_itElem_begin->get());
+
         #pragma omp parallel for private(min_radius,pSmallestDemElem)
         for (int i = 0; i < NElems; i++) {
             ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = ptr_itElem_begin + i;
@@ -57,7 +50,7 @@ namespace Kratos
         double calculation_area = 0.0;
         double kn_el = 0.0;
         double kt_el = 0.0;
-        for (int i = 0; i < pSmallestDemElem->mContinuumInitialNeighborsSize; i++) {
+        for (unsigned int i = 0; i < pSmallestDemElem->mContinuumInitialNeighborsSize; i++) {
             pSmallestDemElem->mContinuumConstitutiveLawArray[i]->GetContactArea(min_radius, min_radius, cont_ini_neigh_area, i, calculation_area);
             pSmallestDemElem->mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, myYoung, myPoisson, calculation_area, pSmallestDemElem, pSmallestDemElem);
         }
@@ -71,6 +64,7 @@ namespace Kratos
         const double critical_delta_time = std::sqrt(min_mass/kn_el);
         mrModelPart.GetProcessInfo().SetValue(DELTA_TIME,mCorrectionFactor*critical_delta_time);
 
+        // TODO: check this
         KRATOS_WATCH(critical_delta_time)
 
         KRATOS_CATCH("");
