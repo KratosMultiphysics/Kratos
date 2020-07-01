@@ -100,6 +100,8 @@ class FEMDEMCouplingUtilities
     void IdentifyFreeParticles(
         ModelPart& rFEMModelPart,
         ModelPart& rDEMModelPart);
+
+    int GetNumberOfNodes(ModelPart &rModelPart);
     
 
 
