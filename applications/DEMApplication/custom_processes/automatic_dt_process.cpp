@@ -30,7 +30,6 @@ namespace Kratos
         double min_radius = std::numeric_limits<double>::infinity();
         SphericContinuumParticle* pSmallestDemElem = dynamic_cast<SphericContinuumParticle*>(ptr_itElem_begin->get());
 
-        #pragma omp parallel for private(min_radius,pSmallestDemElem)
         for (int i = 0; i < NElems; i++) {
             ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = ptr_itElem_begin + i;
             Element* p_element = ptr_itElem->get();
