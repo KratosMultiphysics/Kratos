@@ -12,17 +12,17 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         sp_project_parameters_file_name = "sp_2d_rigid_fem_parameters.json"
 
         with open(sp_project_parameters_file_name,'r') as parameters_file:
-            self.sp_project_parameters = KratosMultiphysics.Parameters(parameters_file.read())
+            sp_project_parameters = KratosMultiphysics.Parameters(parameters_file.read())
 
         # TEST NUMBER:
         # 1. CTW16, 2. CTW10, 3. CTW13, 4. CTW12, 5.Blind
-        self.test_number = self.sp_project_parameters["test_number"].GetInt()
-        self.inner_mesh_diameter = self.sp_project_parameters["inner_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the finer mesh)
-        self.outer_mesh_diameter = self.sp_project_parameters["outer_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the coarser mesh)
+        self.test_number = sp_project_parameters["test_number"].GetInt()
+        self.inner_mesh_diameter = sp_project_parameters["inner_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the finer mesh)
+        self.outer_mesh_diameter = sp_project_parameters["outer_mesh_diameter"].GetDouble() # This depends on the particular GiD mesh (diameter of the coarser mesh)
         # The two values that follow may depend on the GiD mesh used. The higher the value, the more skin particles
-        self.inner_skin_factor = self.sp_project_parameters["inner_skin_factor"].GetDouble() # 2.4
-        self.outer_skin_factor = self.sp_project_parameters["outer_skin_factor"].GetDouble() # 0.8
-        self.respect_preprocessor_marked_skin = self.sp_project_parameters["respect_preprocessor_marked_skin"].GetBool()
+        self.inner_skin_factor = sp_project_parameters["inner_skin_factor"].GetDouble() # 2.4
+        self.outer_skin_factor = sp_project_parameters["outer_skin_factor"].GetDouble() # 0.8
+        self.respect_preprocessor_marked_skin = sp_project_parameters["respect_preprocessor_marked_skin"].GetBool()
 
         self.automatic_skin_computation = project_parameters["AutomaticSkinComputation"].GetBool()
 
@@ -39,15 +39,6 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         print(porosity_message)
         with open('sp_porosity.txt', 'w') as poro_file:
             poro_file.write(porosity_message)
-
-        from KratosMultiphysics.DEMApplication.multiaxial_control_module_generalized_2d_utility import MultiaxialControlModuleGeneralized2DUtility
-        self.multiaxial_control_module = MultiaxialControlModuleGeneralized2DUtility(self.model, self.sp_project_parameters)
-        self.multiaxial_control_module.ExecuteInitialize()
-
-    def InitializeSolutionStep(self):
-        super(DEMAnalysisStage2DSpRigidFem, self).InitializeSolutionStep()
-
-        self.multiaxial_control_module.ExecuteInitializeSolutionStep()
 
     def ComputePorosityParameters(self, spheres_model_part):
 
@@ -140,15 +131,8 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         self.ring_submodelpart.AddNodes(nodes_in_zone_radius_list)
         self.ring_submodelpart.AddElements(elements_in_zone_radius_list)
 
-    def FinalizeSolutionStep(self):
-        super(DEMAnalysisStage2DSpRigidFem, self).FinalizeSolutionStep()
-
-        self.multiaxial_control_module.ExecuteFinalizeSolutionStep()
-
     def PrintResultsForGid(self, time):
         super(DEMAnalysisStage2DSpRigidFem, self).PrintResultsForGid(time)
-
-        self.multiaxial_control_module.PrintResults()
 
         DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.ring_submodelpart)
         self.creator_destructor.MarkParticlesForErasingGivenCylinder(self.ring_submodelpart, self.center, self.axis, self.radius_to_delete_sp)
