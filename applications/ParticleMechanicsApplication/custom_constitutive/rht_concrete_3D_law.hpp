@@ -127,7 +127,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    double mEquivalentStress = 0.0;
+    Vector mStrainOld;
+    double mEquivalentStress;
+    double mEquivalentPlasticStrain;
+    double mDamage;
+    double mAlpha;
+    double mPoreCrushPressure;
+
+    double mRateFactorTension;
+    double mRateFactorCompression;
 
 
     ///@}
@@ -149,6 +157,43 @@ protected:
     void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo);
 
 private:
+
+    double CalculatePressureFromEOS(const Properties & rMaterialProperties,
+        const Matrix & rStrainNew, const Matrix & rStressOld);
+
+    double CalculateDeviatoricSpecificEnergy(const Properties& rMaterialProperties,
+        const Matrix& rStrain, const Matrix& rStress);
+
+    double CalculateElasticLimit(const double Pressure, const double LodeAngle,
+        const double EPSrate, const double EPS, const Properties& rMaterialProperties);
+
+    const double CalculateFeElasticFactor(const double PressureStar, const double EPSrate,
+        const Properties & rMaterialProperties);
+
+    const double CalculateFcCapFactor(const double PressureStar, const double PoreCrushStar,
+        const double EPSrate, const double EPS, const Properties& rMaterialProperties);
+
+    const double CalculateFrRateFactor(const double PressureStarForRate, const double EPSRate,
+        const Properties& rMaterialProperties);
+
+    const double CalculateNormalizedYield(const double PressureStar,const double RateFactor,
+        const double EPSrate, const Properties& rMaterialProperties);
+
+    void CalculateRateFactors(const double EPSrate, const Properties& rMaterialProperties);
+
+    const array_1d<double, 2> CalculateTriaxialityQs(const double PressureStar,
+        const Properties& rMaterialProperties);
+
+    const double CalculateDeviatoricShapeFactorQ(const double PressureStar,
+        const Properties& rMaterialProperties);
+
+    const double CalculateTriaxialityR(const double LodeAngle, const double TriaxialityQ);
+
+    const double GetHugoniotTensileLimit(const double RateFactor,
+        const array_1d<double, 2> TriaxialityQs, const Properties& rMaterialProperties);
+
+
+
 
     double CalculateHardenedYieldStress(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
         const double PlasticStrainRate, const double Temperature);

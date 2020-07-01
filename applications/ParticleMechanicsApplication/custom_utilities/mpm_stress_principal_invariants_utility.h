@@ -512,7 +512,7 @@ namespace Kratos
             static double CalculateMatrixDoubleContraction(const Matrix& rInput)
             {
                 double result = 0.0;
-                KRATOS_ERROR_IF(rInput.size1() != rInput.size2()) 
+                KRATOS_ERROR_IF(rInput.size1() != rInput.size2())
                     << "CalculateMatrixDoubleContraction only takes square matrices\n";
                 for (size_t i = 0; i < rInput.size1(); ++i)
                 {
@@ -531,6 +531,16 @@ namespace Kratos
                 double trace = 0.0;
                 for (size_t i = 0; i < rInput.size1(); ++i) trace += rInput(i, i);
                 return trace;
+            }
+
+            static double CalculateLodeAngleFromDeviatoricStressTensor(const Matrix& rDeviatoricStress)
+            {
+                double effective_stress = std::sqrt(3.0 / 2.0 *
+                    CalculateMatrixDoubleContraction(rDeviatoricStress));
+                if (std::abs(effective_stress) < tolerance)  effective_stress = tolerance;
+                const double temp = 27.0 * MathUtils<double>::Det(rDeviatoricStress)
+                    / 2.0 / effective_stress / effective_stress / effective_stress;
+                const double lode_angle = std::acos(temp) / 3.0;
             }
    }; // end Class MPMStressPrincipalInvariantsUtility
 
