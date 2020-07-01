@@ -378,11 +378,18 @@ public:
             auto& node_i_dofs = node_i.GetDofs();
             // Loop over nodal DOFs
             auto it_dof_i = node_i_dofs.begin();
+            const int node_i_num_dofs = node_i_dofs.size();
             for (std::size_t dof_idx = 0; dof_idx < node_i_dofs.size(); dof_idx++){
 
                 // Compute and assign the perturbation
                 const double dof_perturbation = step*mFiniteDifferenceStepSize*node_i.GetValue(ROM_BASIS)(dof_idx, basis_j);
-                (*it_dof_i)->GetSolutionStepValue() += dof_perturbation;
+
+                if (node_i_num_dofs > 3 && dof_idx > 2) // disp dofs when rots included
+                    node_i.Coordinates()[dof_idx-3] += dof_perturbation;
+                else if (node_i_num_dofs > 3 && dof_idx < 3) // rot dofs when rots included
+                    (*it_dof_i)->GetSolutionStepValue() += dof_perturbation;
+                else if (node_i_num_dofs < 4 ) // disp dofs when rots excluded
+                    node_i.Coordinates()[dof_idx] += dof_perturbation;                
                 
                 // Increment the dof iterator
                 ++it_dof_i;

@@ -21,6 +21,8 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/timer.h"
+#include "utilities/openmp_utils.h"
 #include "utilities/builtin_timer.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -408,18 +410,18 @@ public:
             this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rMassMatrix);
         }
 
+        // Build stiffness matrix
+        r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
         if (mDerivativeTypeFlag)
         {   // Dynamic derivatives
             
-            // Build stiffness matrix separately
-            r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
+            // Build stiffness matrix separately            
             this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);            
         } 
         else
         {   // Static derivatives
             
             // Build the stiffness matrix into system matrix directly
-            r_model_part.GetProcessInfo()[BUILD_LEVEL] = 2;
             this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rA);
         }
         
@@ -464,6 +466,8 @@ public:
                 // Compute RHS and solve
                 if (mDerivativeTypeFlag)
                 {   // Dynamic derivatives
+
+                    Timer::Start("BuildRHS");
                     
                     // Build first stiffness contribution
                     this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
@@ -471,17 +475,26 @@ public:
                     // Compute RHS for dynamic derivative
                     rb -= prec_inner_prod(basis, rb)* prec_prod(rMassMatrix, basis);
 
+                    Timer::Stop("BuildRHS");
+
                     // Builder and Solver routines
                     if(r_model_part.MasterSlaveConstraints().size() != 0) {
                         this->pGetBuilderAndSolver()->ApplyRHSConstraints(p_scheme, r_model_part, rb);
                     }
 
+                    Timer::Start("ApplyRHSConstraints");
+
                     // Apply dynamic derivative constraint
                     std::size_t fixed_dof_index;
                     this->ApplyDynamicDerivativeConstraint(basis, fixed_dof_index);
 
+                    Timer::Stop("ApplyRHSConstraints");
+
                     // Apply Dirichlet conditions
                     this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
+
+                    const double start_solve = OpenMPUtils::GetCurrentTime();
+                    Timer::Start("Solve");
 
                     // Compute null space solution
                     this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
@@ -489,7 +502,13 @@ public:
 
                     // Compute particular solution
                     this->ComputeParticularSolution(rDx, basis, fixed_dof_index);
-                } else 
+
+                    Timer::Stop("Solve");
+                    const double stop_solve = OpenMPUtils::GetCurrentTime();
+
+                    KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+                } 
+                else 
                 {   // Static derivatives
 
                     // Build only stiffness contribution
