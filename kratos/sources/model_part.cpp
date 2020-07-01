@@ -430,23 +430,25 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
         remove_from_mesh(mesh);
     }
 
-    // Mark the IdentifierFlag across partitions coherently
-    this->GetCommunicator().SynchronizeOrNodalFlags(IdentifierFlag);
+    if (this->GetCommunicator().GetDataCommunicator().IsDistributed()) {
+        // Mark the IdentifierFlag across partitions coherently
+        this->GetCommunicator().SynchronizeOrNodalFlags(IdentifierFlag);
 
-    // Remove the nodes from the mpi-interfaces in case there is any
-    remove_from_mesh(this->GetCommunicator().LocalMesh());
-    for(auto & mesh: this->GetCommunicator().LocalMeshes()) {
-        remove_from_mesh(mesh);
-    }
+        // Remove the nodes from the mpi-interfaces in case there is any
+        remove_from_mesh(this->GetCommunicator().LocalMesh());
+        for(auto & mesh: this->GetCommunicator().LocalMeshes()) {
+            remove_from_mesh(mesh);
+        }
 
-    remove_from_mesh(this->GetCommunicator().GhostMesh());
-    for(auto & mesh: this->GetCommunicator().GhostMeshes()) {
-        remove_from_mesh(mesh);
-    }
+        remove_from_mesh(this->GetCommunicator().GhostMesh());
+        for(auto & mesh: this->GetCommunicator().GhostMeshes()) {
+            remove_from_mesh(mesh);
+        }
 
-    remove_from_mesh(this->GetCommunicator().InterfaceMesh());
-    for(auto & mesh: this->GetCommunicator().InterfaceMeshes()) {
-        remove_from_mesh(mesh);
+        remove_from_mesh(this->GetCommunicator().InterfaceMesh());
+        for(auto & mesh: this->GetCommunicator().InterfaceMeshes()) {
+            remove_from_mesh(mesh);
+        }
     }
 
     // Now recursively remove the nodes in the submodelparts
