@@ -430,7 +430,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
         remove_from_mesh(mesh);
     }
 
-    if (this->GetCommunicator().GetDataCommunicator().IsDistributed()) {
+    if (IsDistributed()) {
         // Mark the IdentifierFlag across partitions coherently
         this->GetCommunicator().SynchronizeOrNodalFlags(IdentifierFlag);
 
