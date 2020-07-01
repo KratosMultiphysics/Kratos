@@ -150,7 +150,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<SurfaceSmoothingProcess, SurfaceSmoothingProcess::Pointer, Process> (m, "SurfaceSmoothingProcess")
-    .def(py::init<ModelPart&, LinearSolverType::Pointer>())
+    .def(py::init< ModelPart&, LinearSolverType::Pointer >())
+    .def(py::init< ModelPart&, Parameters& >())
+    .def(py::init< Model&, Parameters& >())
     .def("Clear", &SurfaceSmoothingProcess::Clear)
     ;
 }

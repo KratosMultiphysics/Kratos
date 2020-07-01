@@ -86,6 +86,16 @@ public:
         ModelPart& rModelPart,
         TLinearSolver::Pointer);
 
+    /// Constructor with Kratos parameters.
+    SurfaceSmoothingProcess(
+        ModelPart& rModelPart,
+        Parameters& rParameters);
+
+    /// Constructor with Kratos model
+    SurfaceSmoothingProcess(
+        Model& rModel,
+        Parameters& rParameters);
+
     /// Destructor.
     ~SurfaceSmoothingProcess() override
     {

@@ -14,6 +14,7 @@
 #include "utilities/variable_utils.h"
 #include "includes/global_pointer_variables.h"
 #include "utilities/parallel_utilities.h"
+#include "factories/linear_solver_factory.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -32,6 +33,40 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
 {
     // Generate an auxilary model part and populate it by elements of type SurfaceSmoothingElement
     CreateAuxModelPart();
+
+    auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
+
+    InitializeSolutionStrategy(plinear_solver, p_builder_solver);
+}
+
+SurfaceSmoothingProcess::SurfaceSmoothingProcess(
+    ModelPart& rModelPart,
+    Parameters& rParameters)
+    : Process(),
+      mrModelPart(rModelPart)
+{
+    // Generate an auxilary model part and populate it by elements of type SurfaceSmoothingElement
+    CreateAuxModelPart();
+
+    TLinearSolver::Pointer plinear_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
+        rParameters["linear_solver_settings"]);
+
+    auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
+
+    InitializeSolutionStrategy(plinear_solver, p_builder_solver);
+}
+
+SurfaceSmoothingProcess::SurfaceSmoothingProcess(
+    Model &rModel,
+    Parameters &rParameters)
+    : Process(),
+      mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString()))
+{
+    // Generate an auxilary model part and populate it by elements of type SurfaceSmoothingElement
+    CreateAuxModelPart();
+
+    TLinearSolver::Pointer plinear_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
+        rParameters["linear_solver_settings"]);
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
