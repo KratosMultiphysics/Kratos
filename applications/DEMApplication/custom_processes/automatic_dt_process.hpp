@@ -30,7 +30,7 @@
 namespace Kratos
 {
 
-class AutomaticDTProcess : public Process
+class KRATOS_API(DEM_APPLICATION) AutomaticDTProcess : public Process
 {
 
 public:
