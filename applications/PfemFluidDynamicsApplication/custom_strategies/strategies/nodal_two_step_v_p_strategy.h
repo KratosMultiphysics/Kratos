@@ -268,7 +268,7 @@ public:
 		bool fixedTimeStep = false;
 		/* boost::timer solve_step_time; */
 
-		this->UnactiveSliverElements();
+		// this->UnactiveSliverElements(); //this is done in set_active_flag_mesher_process which is activated from fluid_pre_refining_mesher.py
 
 		this->InitializeSolutionStep();
 		for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
