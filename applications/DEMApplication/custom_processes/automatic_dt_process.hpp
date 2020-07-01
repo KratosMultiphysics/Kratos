@@ -22,6 +22,7 @@
 #include "processes/process.h"
 
 // Application includes
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
 #include "custom_elements/spheric_continuum_particle.h"
 
 #include "DEM_application_variables.h"

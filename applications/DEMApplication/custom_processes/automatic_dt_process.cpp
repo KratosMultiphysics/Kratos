@@ -46,7 +46,6 @@ namespace Kratos
         double initial_dist = 2.0*min_radius;
         double myYoung = pSmallestDemElem->GetYoung();
         double myPoisson = pSmallestDemElem->GetPoisson();
-        Vector& cont_ini_neigh_area = pSmallestDemElem->GetValue(NEIGHBOURS_CONTACT_AREAS);
         double calculation_area = 0.0;
         double kn_el = 0.0;
         double kt_el = 0.0;
