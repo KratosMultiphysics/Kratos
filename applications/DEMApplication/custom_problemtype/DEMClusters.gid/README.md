@@ -38,18 +38,17 @@ branch: 20, time: 2 min
 branch: 200, time: 14 min
 
 <span>
-<img align="center" src="https://github.com/KratosMultiphysics/Examples/raw/master/fluid_dynamics/use_cases/barcelona_wind/resources/BarcelonaVelocityVector.png" width="288">
+<img align="center" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/splash.png" width="288">
   Jar
 </span>
 <br>
-
 
 - Candy, 268 tetrahedra
 branch: 20, time:1 min
 branch: 200, time: 7 min
 
 <span>
-<img align="center" src="https://github.com/KratosMultiphysics/Examples/raw/master/fluid_dynamics/use_cases/barcelona_wind/resources/BarcelonaVelocityVector.png" width="288">
+<img align="center" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/splash.png" width="288">
   Candy
 </span>
 <br>
