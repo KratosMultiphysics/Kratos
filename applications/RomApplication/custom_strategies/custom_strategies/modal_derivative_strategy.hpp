@@ -467,6 +467,7 @@ public:
                 if (mDerivativeTypeFlag)
                 {   // Dynamic derivatives
 
+                    const double start_build_rhs = OpenMPUtils::GetCurrentTime();
                     Timer::Start("BuildRHS");
                     
                     // Build first stiffness contribution
@@ -476,6 +477,8 @@ public:
                     rb -= prec_inner_prod(basis, rb)* prec_prod(rMassMatrix, basis);
 
                     Timer::Stop("BuildRHS");
+                    const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
+                    KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)) << "Build time RHS: " << stop_build_rhs - start_build_rhs << std::endl;
 
                     // Builder and Solver routines
                     if(r_model_part.MasterSlaveConstraints().size() != 0) {

@@ -264,6 +264,8 @@ public:
         // Derivative of basis_i wrt basis_j
         std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
         std::size_t basis_j = rCurrentProcessInfo[BASIS_J];
+
+        this->LockElementNodes(rElement);
         
         // Create PhiElemental
         Vector PhiElemental;
@@ -333,6 +335,8 @@ public:
 
         }
 
+        this->UnlockElementNodes(rElement);
+
         // Compute RHS contribution
         if (element_LHS_derivative.size1() != PhiElemental.size()){
             // TODO: this is a workaround. use a map as in ROM analysis
@@ -360,6 +364,22 @@ public:
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
+    }
+
+    // This function locks element nodes for finite differencing
+    void LockElementNodes(Element& rElement)
+    {
+        // Loop over element nodes
+        for (auto& node_i : rElement.GetGeometry()) 
+            node_i.SetLock();
+    }
+
+    // This function locks element nodes for finite differencing
+    void UnlockElementNodes(Element& rElement)
+    {
+        // Loop over element nodes
+        for (auto& node_i : rElement.GetGeometry()) 
+            node_i.UnSetLock();
     }
 
     // This function perturbs the element with the vector with given eigenvector index basis_j
