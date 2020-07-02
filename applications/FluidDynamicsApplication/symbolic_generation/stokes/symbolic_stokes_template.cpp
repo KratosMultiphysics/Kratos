@@ -63,43 +63,6 @@ Element::Pointer SymbolicStokes<TElementData>::Create(
 }
 
 template <class TElementData>
-void SymbolicStokes<TElementData>::CalculateLocalSystem(
-    MatrixType &rLeftHandSideMatrix,
-    VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo)
-{
-    // Resize and intialize output
-    if (rLeftHandSideMatrix.size1() != LocalSize)
-        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
-
-    if (rRightHandSideVector.size() != LocalSize)
-        rRightHandSideVector.resize(LocalSize, false);
-
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
-    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-
-    if (TElementData::ElementManagesTimeIntegration){
-        TElementData data;
-        data.Initialize(*this, rCurrentProcessInfo);
-
-        //Get Shape function data
-        Vector gauss_weights;
-        Matrix shape_functions;
-        ShapeFunctionDerivativesArrayType shape_derivatives;
-        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
-        const unsigned int number_of_gauss_points = gauss_weights.size();
-        // Iterate over integration points to evaluate local contribution
-        for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-            this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-        }
-
-    } else{
-        KRATOS_ERROR << "SymbolicStokes is supposed to manage time integration." << std::endl;
-    }
-}
-
-template <class TElementData>
 void SymbolicStokes<TElementData>::CalculateRightHandSide(
     VectorType &rRightHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
@@ -223,18 +186,6 @@ void SymbolicStokes<TElementData>::AddTimeIntegratedRHS(
     VectorType &rRHS)
 {
     this->ComputeGaussPointRHSContribution(rData, rRHS);
-}
-
-template <class TElementData>
-void SymbolicStokes<TElementData>::UpdateIntegrationPointData(
-    TElementData& rData,
-    unsigned int IntegrationPointIndex,
-    double Weight,
-    const typename TElementData::MatrixRowType& rN,
-    const typename TElementData::ShapeDerivativesType& rDN_DX) const
-{
-    rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
-    this->CalculateMaterialResponse(rData);
 }
 
 template <>

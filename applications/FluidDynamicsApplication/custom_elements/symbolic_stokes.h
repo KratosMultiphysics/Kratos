@@ -148,19 +148,6 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
-    /// Computes the elemental LHS and RHS elemental contributions
-    /**
-     * Given a distance function, computes the time integrated Left Hand Side (LHS)
-     * and Right Hand Side elemental contributions for the two-fluid element.
-     * @param rLeftHandSideMatrix elemental stiffness matrix
-     * @param rRightHandSideVector elemental residual vector
-     * @param rCurrentProcessInfo reference to the current process info
-     */
-    void CalculateLocalSystem(
-        MatrixType &rLeftHandSideMatrix,
-        VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
-
     /// Computes the elemental RHS elemental contribution
     /**
      * Given a distance function, computes the time integrated Right Hand Side (RHS)
@@ -304,18 +291,6 @@ protected:
         TElementData& rData,
         VectorType& rRHS);
 
-    /// Set up the element's data and constitutive law for the current integration point.
-    /** @param[in/out] rData Container for the current element's data.
-     *  @param[in] Weight Integration point weight.
-     *  @param[in] rN Values of nodal shape functions at the integration point.
-     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
-     */
-    void UpdateIntegrationPointData(
-        TElementData& rData,
-        unsigned int IntegrationPointIndex,
-        double Weight,
-        const typename TElementData::MatrixRowType& rN,
-        const typename TElementData::ShapeDerivativesType& rDN_DX) const override;
     ///@}
     ///@name Protected  Access
     ///@{
