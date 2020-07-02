@@ -100,7 +100,7 @@ namespace Testing
 
         std::vector<double> expected_RHS = {0.166667, 0.166667, 0.166667};
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-6)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicit2D3N, KratosConvectionDiffusionFastSuite)
@@ -149,8 +149,8 @@ namespace Testing
         expected_LHS(2, 1) = -0.416667;
         expected_LHS(2, 2) = -0.833333;
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
-        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-6)
+        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-6)
     }
 
     // KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicitOssStep2D3N, KratosConvectionDiffusionFastSuite)
@@ -201,8 +201,8 @@ namespace Testing
     //     expected_LHS(2, 1) = 0.0;
     //     expected_LHS(2, 2) = 0.0;
 
-    //     KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
-    //     KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+    //     KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-6)
+    //     KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-6)
     // }
 
     KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicitNullConvection3D4N, KratosConvectionDiffusionFastSuite)
@@ -236,7 +236,7 @@ namespace Testing
 
         std::vector<double> expected_RHS = {0.0416667, 0.0416667, 0.0416667, 0.0416667};
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-6)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicit3D4N, KratosConvectionDiffusionFastSuite)
@@ -293,8 +293,8 @@ namespace Testing
         expected_LHS(3, 2) = -0.0833333;
         expected_LHS(3, 3) = -0.166667;
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
-        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-6)
+        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-6)
     }
 
     // KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicitOssStep3D4N, KratosConvectionDiffusionFastSuite)
@@ -337,8 +337,8 @@ namespace Testing
     //     std::vector<double> expected_RHS = {-0.1,0.341667,0.0666667,0.0666667};
     //     Matrix expected_LHS = ZeroMatrix(4,4);
 
-    //     KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
-    //     KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+    //     KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-6)
+    //     KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-6)
     // }
 
 } // namespace Testing
