@@ -270,7 +270,7 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointLHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
@@ -313,7 +313,7 @@ void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointLHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
@@ -357,7 +357,7 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
@@ -401,7 +401,7 @@ void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointLHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
@@ -445,7 +445,7 @@ void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointLHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
@@ -495,7 +495,7 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointRHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
@@ -544,7 +544,7 @@ void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointRHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
@@ -592,7 +592,7 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
@@ -641,7 +641,7 @@ void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointRHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
@@ -690,7 +690,7 @@ void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointRHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (fabs(bdf0) < 1e-9)
+    if (std::abs(bdf0) < 1e-9)
     {
         dt_inv = 0.0;
     }
