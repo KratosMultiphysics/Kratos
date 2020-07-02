@@ -153,6 +153,15 @@ public:
         return this->Is(CORRECT_RESULT);
     }
 
+    /**
+     * @brief This function returns the error message
+     * @return The error message
+     */
+    std::string GetErrorMessage()
+    {
+        return mErrorMessage;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -444,6 +453,9 @@ private:
     /* The databases which store the values */
     ResultDatabase mDatabaseNodes;  /// The database containing the information to compare the results for the nodes
     ResultDatabase mDatabaseGP;     /// The database containing the information to compare the results for the Gauss Points
+
+    /* Error message */
+    std::string mErrorMessage = "";
 
     ///@name Private Operations
     ///@{
