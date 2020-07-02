@@ -368,10 +368,6 @@ int SurfaceSmoothingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     int ierr = Element::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    // Check that all required variables have been registered
-    //KRATOS_CHECK_VARIABLE_KEY(DISTANCE)
-    //KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT)
-
     unsigned const int number_of_points = GetGeometry().size();
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( unsigned int i = 0; i < number_of_points; i++ )
