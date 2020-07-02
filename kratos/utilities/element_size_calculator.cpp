@@ -272,7 +272,7 @@ double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& 
 
     double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
-    return pow(detJ/6.0,1./3.);
+    return std::pow(detJ/6.0,1./3.);
 }
 
 // Prism3D6 version
@@ -292,7 +292,7 @@ double ElementSizeCalculator<3, 6>::AverageElementSize(const Geometry<Node<3>> &
     double z30 = rGeometry[3].Z() - rGeometry[0].Z();
 
     double detJ = 0.5 * (x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30);
-    return pow(detJ, 1. / 3.);
+    return std::pow(detJ, 1. / 3.);
 }
 
 // Hexahedra3D8 version.
@@ -312,7 +312,7 @@ double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& 
     double z40 = rGeometry[4].Z() - rGeometry[0].Z();
 
     double detJ = x10 * y30 * z40 - x10 * y40 * z30 + y10 * z30 * x40 - y10 * x30 * z40 + z10 * x30 * y40 - z10 * y30 * x40;
-    return pow(detJ,1./3.);
+    return std::pow(detJ,1./3.);
 }
 
 // Triangle2D3 version.
