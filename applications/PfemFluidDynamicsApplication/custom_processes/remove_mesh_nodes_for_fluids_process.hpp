@@ -408,6 +408,32 @@ namespace Kratos
 				refiningBox = false;
 			}
 
+			unsigned int erased_nodes = 0;
+			for (ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
+				 ie != mrModelPart.ElementsEnd(); ie++)
+			{
+				unsigned int rigidNodes = 0;
+				//coordinates
+				for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
+				{
+					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
+					{
+						rigidNodes++;
+					}
+				}
+
+				if (dimension == 2)
+				{
+					if (rigidNodes > 0)
+						EraseCriticalNodes2D(ie->GetGeometry(), erased_nodes, inside_nodes_removed);
+				}
+				else if (dimension == 3)
+				{
+					if (rigidNodes > 1)
+						EraseCriticalNodes3D(ie->GetGeometry(), erased_nodes, inside_nodes_removed, rigidNodes);
+				}
+			}
+
 			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
 			{
 
@@ -424,9 +450,7 @@ namespace Kratos
 					}
 				}
 
-				double size_for_distance_inside = 0.6 * initialMeanRadius; //compared to element radius
-				// std::cout<<"                              size_for_distance_inside   "<<size_for_distance_inside<<std::endl;
-				double size_for_distance_boundary = size_for_distance_inside;
+				double size_for_distance_boundary = 0.6 * initialMeanRadius;
 				double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
 
 				if (in->Is(TO_ERASE))
@@ -446,10 +470,12 @@ namespace Kratos
 				if (contact_active || in->Is(TO_SPLIT) || in->Is(CONTACT))
 					on_contact_tip = true;
 
-				if (in->IsNot(NEW_ENTITY) && in->IsNot(INLET))
+				unsigned int neighErasedNodes = 0;
+
+				if (in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(ISOLATED))
 				// if( in->IsNot(NEW_ENTITY) )
 				{
-					radius = size_for_distance_inside;
+					radius = 0.6 * initialMeanRadius;
 
 					work_point[0] = in->X();
 					work_point[1] = in->Y();
@@ -458,8 +484,10 @@ namespace Kratos
 					// unsigned int rigidNeighNodes=0;
 
 					if (in->Is(FREE_SURFACE))
-					{									  // it must be more difficult to erase a free_surface node, otherwise, lot of volume is lost
-						radius = 0.5 * initialMeanRadius; //compared with element radius
+					{
+						// it must be more difficult to erase a free_surface node, otherwise, lot of volume is lost
+						// this value has a strong effect on volume variation due to remeshing
+						radius = 0.475 * initialMeanRadius; //compared with element radius
 						// radius = 0.4  * initialMeanRadius;//compared with element radius
 						NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 						unsigned int countRigid = 0;
@@ -468,6 +496,10 @@ namespace Kratos
 							if ((nn)->Is(RIGID) || (nn)->Is(SOLID))
 							{
 								countRigid++;
+							}
+							if ((nn)->Is(TO_ERASE))
+							{
+								neighErasedNodes++;
 							}
 						}
 						if (countRigid == neighb_nodes.size())
@@ -484,10 +516,19 @@ namespace Kratos
 							{
 								freeSurfaceNeighNodes++;
 							}
+							if ((nn)->Is(TO_ERASE))
+							{
+								neighErasedNodes++;
+							}
 							// if((nn)->Is(RIGID)){
 							//   rigidNeighNodes++;
 							// }
 						}
+					}
+
+					if (freeSurfaceNeighNodes > 1)
+					{
+						radius = 0.5 * initialMeanRadius;
 					}
 
 					if (in->Is(INLET))
@@ -496,7 +537,7 @@ namespace Kratos
 					}
 					n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(), neighbour_distances.begin(), num_neighbours);
 
-					if (n_points_in_radius > 1)
+					if (n_points_in_radius > 1 && neighErasedNodes == 0)
 					{
 
 						if (in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED))
@@ -557,17 +598,13 @@ namespace Kratos
 								{
 									//look if we are already erasing any of the other nodes
 									unsigned int contact_nodes = 0;
-									unsigned int erased_nodes = 0;
 									for (std::vector<Node<3>::Pointer>::iterator nn = neighbours.begin(); nn != neighbours.begin() + n_points_in_radius; nn++)
 									{
 										if ((*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT))
 											contact_nodes += 1;
-
-										if ((*nn)->Is(TO_ERASE))
-											erased_nodes += 1;
 									}
 
-									if (erased_nodes < 1 && contact_nodes < 1)
+									if (contact_nodes < 1)
 									{ //we release the node if no other nodes neighbours are being erased
 										in->Set(TO_ERASE);
 										any_node_removed = true;
@@ -577,7 +614,6 @@ namespace Kratos
 								}
 							}
 						}
-
 						else if (in->IsNot(INLET))
 						{
 							// else 	 {
@@ -692,31 +728,31 @@ namespace Kratos
 				}
 			}
 
-			unsigned int erased_nodes = 0;
-			for (ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
-				 ie != mrModelPart.ElementsEnd(); ie++)
-			{
-				unsigned int rigidNodes = 0;
-				//coordinates
-				for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
-				{
-					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
-					{
-						rigidNodes++;
-					}
-				}
+			// unsigned int erased_nodes = 0;
+			// for (ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
+			// 	 ie != mrModelPart.ElementsEnd(); ie++)
+			// {
+			// 	unsigned int rigidNodes = 0;
+			// 	//coordinates
+			// 	for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
+			// 	{
+			// 		if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
+			// 		{
+			// 			rigidNodes++;
+			// 		}
+			// 	}
 
-				if (dimension == 2)
-				{
-					if (rigidNodes > 0)
-						EraseCriticalNodes2D(ie->GetGeometry(), erased_nodes, inside_nodes_removed);
-				}
-				else if (dimension == 3)
-				{
-					if (rigidNodes > 1)
-						EraseCriticalNodes3D(ie->GetGeometry(), erased_nodes, inside_nodes_removed, rigidNodes);
-				}
-			}
+			// 	if (dimension == 2)
+			// 	{
+			// 		if (rigidNodes > 0)
+			// 			EraseCriticalNodes2D(ie->GetGeometry(), erased_nodes, inside_nodes_removed);
+			// 	}
+			// 	else if (dimension == 3)
+			// 	{
+			// 		if (rigidNodes > 1)
+			// 			EraseCriticalNodes3D(ie->GetGeometry(), erased_nodes, inside_nodes_removed, rigidNodes);
+			// 	}
+			// }
 
 			if (erased_nodes > 0)
 			{
@@ -1230,7 +1266,7 @@ namespace Kratos
 												  (sqrt(pow(rigidNodesNormals[1][0], 2) + pow(rigidNodesNormals[1][1], 2)) *
 												   sqrt(pow(rigidNodesNormals[2][0], 2) + pow(rigidNodesNormals[2][1], 2)));
 
-				if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995) && (cosAngleBetweenNormals01>0.99 && cosAngleBetweenNormals02>0.99 && cosAngleBetweenNormals12>0.99))
+				if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995) && (cosAngleBetweenNormals01 > 0.99 && cosAngleBetweenNormals02 > 0.99 && cosAngleBetweenNormals12 > 0.99))
 				{
 					eElement[notRigidNodeId].Set(TO_ERASE);
 					std::cout << eElement[notRigidNodeId].Id() << " nodeId is erased because it may pass through the solid contour. Coordinates are: " << notRigidNodeCoordinates << std::endl;
@@ -1239,7 +1275,7 @@ namespace Kratos
 				}
 			}
 
-			bool longDamBreak = false; //to attivate in case of long dam breaks to avoid separeted elelements in the water front
+			bool longDamBreak = false; //to attivate in case of long dam breaks to avoid separeted elements in the water front
 			if (longDamBreak == true && freeSurfaceNodes > 2 && rigidNodes > 1)
 			{
 				for (unsigned int i = 0; i < numNodes; i++)

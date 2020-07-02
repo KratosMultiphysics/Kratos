@@ -303,15 +303,19 @@ namespace Kratos
                     {
                         if (numrigid == 0 && numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
-                            Alpha *= 1.75;
+                            Alpha *= 1.5;
                         }
                         else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
-                            Alpha *= 1.1;
+                            Alpha *= 1.25;
                         }
-                        else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
+                        else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
                         {
-                            Alpha *= 1.05;
+                            Alpha *= 1.125;
+                        }
+                        else
+                        {
+                            Alpha *= 0.975;
                         }
                     }
                     else if (dimension == 3)
@@ -322,7 +326,15 @@ namespace Kratos
                         }
                         else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
+                            Alpha *= 1.25;
+                        }
+                        else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
+                        {
                             Alpha *= 1.125;
+                        }
+                        else
+                        {
+                            Alpha *= 0.975;
                         }
                         // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
                         // {
@@ -369,7 +381,7 @@ namespace Kratos
                         if (dimension == 2)
                         {
                             // this is to avoid the formation of isolated elements with different velocity fields. They can give convergence problems
-                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid == 0 && isolatedNodesInTheElement > 0)
+                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid == 0)
                             {
                                 if (checkedNodes == nds)
                                 {
@@ -393,7 +405,7 @@ namespace Kratos
                                                             (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)) *
                                                              sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
 
-                                        if (fabs(cosAngle01) < 0.85 || fabs(cosAngle02) < 0.85 || fabs(cosAngle12) < 0.85)
+                                        if (fabs(cosAngle01) < 0.95 || fabs(cosAngle02) < 0.95 || fabs(cosAngle12) < 0.95)
                                         {
                                             accepted = false;
                                             // std::cout << isolatedNodesInTheElement << " isolatedNodesInTheElement The angle between the velocity vectors is too big" << std::endl;
