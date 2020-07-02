@@ -304,8 +304,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesEmbeddedMonolithicSolver finished.")
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY) # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
@@ -460,20 +458,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         return materials_imported
 
     def _SetNodalProperties(self):
-        # Get density and dynamic viscostity from the properties of the first element
-        for el in self.main_model_part.Elements:
-            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            if rho <= 0.0:
-                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
-            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            if dyn_viscosity <= 0.0:
-                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
-            break
-        else:
-            raise Exception("No fluid elements found in the main model part.")
-        # Transfer the obtained properties to the nodes
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
+        # This is required to avoid the base solver to set the DENSITY and DYNAMIC_VISCOSITY in the nodes
+        pass
 
     def __SetEmbeddedFormulation(self):
         # Set the SLIP elemental flag

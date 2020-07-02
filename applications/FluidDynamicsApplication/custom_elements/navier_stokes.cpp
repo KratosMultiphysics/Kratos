@@ -124,8 +124,8 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(
     constexpr int dim = 3;
     constexpr int nnodes = 4;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
+    const double rho = data.rho;                            // Density
+    const double mu = data.mu;                              // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
@@ -755,8 +755,8 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(
     constexpr int dim = 2;
     constexpr int nnodes = 3;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
+    const double rho = data.rho;        // Density
+    const double mu = data.mu;          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
@@ -1006,8 +1006,8 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(
     constexpr int nnodes = 4;
     constexpr int strain_size = 6;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
+    const double rho = data.rho;        // Density
+    const double mu = data.mu;          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
@@ -1109,8 +1109,8 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(
     constexpr int nnodes = 3;
     constexpr int strain_size = 3;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
+    const double rho = data.rho;        // Density
+    const double mu = data.mu;          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
@@ -1188,8 +1188,8 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
     constexpr int dim = 3;
     constexpr int nnodes = 4;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
+    const double rho = data.rho;        // Density
+    const double mu = data.mu;          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
     // const double c = data.c;                                // Wave velocity
 
@@ -1244,8 +1244,8 @@ double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
     constexpr int dim = 2;
     constexpr int nnodes = 3;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
+    const double rho = data.rho;        // Density
+    const double mu = data.mu;          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
 
     const double& dt = data.dt;
