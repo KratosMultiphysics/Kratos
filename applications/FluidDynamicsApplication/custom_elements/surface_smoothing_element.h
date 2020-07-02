@@ -172,22 +172,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix only
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector only
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected
      * It is designed to be called only once (or anyway, not often) typically at the beginning

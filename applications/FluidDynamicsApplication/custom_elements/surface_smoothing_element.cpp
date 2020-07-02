@@ -349,26 +349,6 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 }
 
 /**
- * this is called during the assembling process in order
- * to calculate the elemental left hand side matrix only
- * @param rLeftHandSideMatrix: the elemental left hand side matrix
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
-/**
- * this is called during the assembling process in order
- * to calculate the elemental right hand side vector only
- * @param rRightHandSideVector: the elemental right hand side vector
- * @param rCurrentProcessInfo: the current process info instance
- */
-void SurfaceSmoothingElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
-/**
  * This method provides the place to perform checks on the completeness of the input
  * and the compatibility with the problem options as well as the contitutive laws selected
  * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -389,8 +369,8 @@ int SurfaceSmoothingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     if(ierr != 0) return ierr;
 
     // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISTANCE)
-    KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT)
+    //KRATOS_CHECK_VARIABLE_KEY(DISTANCE)
+    //KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT)
 
     unsigned const int number_of_points = GetGeometry().size();
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom

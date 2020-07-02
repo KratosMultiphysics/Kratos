@@ -87,9 +87,6 @@ void SurfaceSmoothingProcess::CreateAuxModelPart()
     ConnectivityPreserveModeler modeler;
     modeler.GenerateModelPart(mrModelPart, r_smoothing_model_part, *p_smoothing_element);
 
-    const double delta_time = mrModelPart.pGetProcessInfo()->GetValue(DELTA_TIME);
-    r_smoothing_model_part.pGetProcessInfo()->SetValue(DELTA_TIME, delta_time);
-
     const unsigned int buffer_size = mrModelPart.GetBufferSize();
     KRATOS_ERROR_IF(buffer_size < 2) << "Buffer size should be at least 2" << std::endl;
 
