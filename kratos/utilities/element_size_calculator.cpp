@@ -154,24 +154,6 @@ double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &r
     array_1d<double,3> low_dseta = one_third * (r_node_0.Coordinates() + r_node_1.Coordinates() + r_node_2.Coordinates() );
     array_1d<double,3> high_dseta = one_third * (r_node_3.Coordinates() + r_node_4.Coordinates() + r_node_5.Coordinates() );
 
-    //    0
-    //   /  \
-    //  /    \
-    // 1----- 2
-
-    // v10 = x10 i + y10 j
-    // v20 = x20 i + y20 j
-
-    // v21 = v20 - v10
-    // v21 = (x20 - x10) i + (y20 - y10)j
-
-    // n_v21 = -(y20 - y10) i + (x20 - x10)j
-    // unit vector
-    // n_v21 /= || n_v21||
-
-    // Projection from Node 0 on edge 12:
-    // Hsq = v10 dot n_v21
-
     // Calculate node-edge distances (top face)
     double x10 = r_node_1.X() - r_node_0.X();
     double y10 = r_node_1.Y() - r_node_0.Y();
