@@ -15,5 +15,5 @@ class AutomaticDTProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.automatic_dt_process = Dem.AutomaticDTProcess(self.model_part, settings)
 
-    def ExecuteInitialize(self):
-        self.automatic_dt_process.ExecuteInitialize()
+    def ExecuteBeforeSolutionLoop(self):
+        self.automatic_dt_process.ExecuteBeforeSolutionLoop()

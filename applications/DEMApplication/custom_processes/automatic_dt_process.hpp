@@ -51,7 +51,7 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
-                "correction_factor" : 1.0
+                "correction_factor" : 5.0e-4
             }  )" );
 
         // Now validate agains defaults -- this also ensures no type mismatch
@@ -76,7 +76,7 @@ public:
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void ExecuteInitialize() override;
+    void ExecuteBeforeSolutionLoop() override;
 
     /// Turn back information as a string.
     std::string Info() const override

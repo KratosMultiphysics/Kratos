@@ -18,7 +18,7 @@ namespace Kratos
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void AutomaticDTProcess::ExecuteInitialize()
+    void AutomaticDTProcess::ExecuteBeforeSolutionLoop()
     {
         KRATOS_TRY;
 
@@ -61,8 +61,8 @@ namespace Kratos
         const double critical_delta_time = std::sqrt(min_mass/kn_el);
         mrModelPart.GetProcessInfo().SetValue(DELTA_TIME,mCorrectionFactor*critical_delta_time);
 
-        // TODO: check this number
-        // KRATOS_WATCH(critical_delta_time)
+        KRATOS_INFO("Automatic DT process") << "Calculated critical time step: " << critical_delta_time << " seconds." << std::endl;
+        KRATOS_INFO("Automatic DT process") << "Using a correction factor of: " << mCorrectionFactor << ", the resulting time step is: " << mCorrectionFactor*critical_delta_time << " seconds." << std::endl;
 
         KRATOS_CATCH("");
     }
