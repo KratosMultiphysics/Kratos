@@ -605,7 +605,7 @@ public:
         }
 
         // Mass-Normalization
-        rDx /= sqrt(prec_inner_prod(prec_prod(rMassMatrix, rDx), rDx));
+        rDx /= std::sqrt(prec_inner_prod(prec_prod(rMassMatrix, rDx), rDx));
         
     }
 
@@ -654,7 +654,7 @@ public:
         double temp_abs_value = 0.0;
         for (auto dof_i : r_dof_set)
         {
-            temp_abs_value = abs(rBasis[dof_i.EquationId()]);
+            temp_abs_value = std::abs(rBasis[dof_i.EquationId()]);
             if (temp_abs_value > max_abs_value)
             {
                 max_abs_value = temp_abs_value;
