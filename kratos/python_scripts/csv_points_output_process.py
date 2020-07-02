@@ -45,20 +45,11 @@ class CSVPointsOutputProcess(KratosMultiphysics.Process):
         points = []
         p_count = 0
 
-        # check and read file
-        if os.path.exists(csv_file_path) and os.access(csv_file_path, os.R_OK):
-
-            # open file and get points
-            try:
-                with open(csv_file_path, newline=None) as file:
-                    reader = csv.DictReader(file, delimiter=',')
-                    for p_count, row in enumerate(reader):
-                        points.append([float(row['x']), float(row['y']), float(row['z'])])
-            except:
-                raise Exception('The .csv-file can not be read (correctly)!')
-        else:
-            raise Exception('The file does not exist or can not be accessed!')
-
+        # open file and get points
+        with open(csv_file_path, newline=None) as file:
+            reader = csv.DictReader(file, delimiter=',')
+            for p_count, row in enumerate(reader):
+                points.append([float(row['x']), float(row['y']), float(row['z'])])
         
         # initialize position matrix for sampling points
         p_count += 1
