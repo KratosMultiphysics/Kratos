@@ -89,7 +89,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     this->CalculateTau(rVariables);
 
     // Execute RHS-LHS build
-    this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+    this->CalculateLocalSystemInternal(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
 }
 
 /***********************************************************************************/
@@ -155,7 +155,7 @@ int SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Check(co
 /***********************************************************************************/
 
 template <>
-void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContribution(
+void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
@@ -374,7 +374,7 @@ const double crhs90 =             crhs87*tau[2];
 /***********************************************************************************/
 
 template <>
-void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContribution(
+void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
@@ -743,7 +743,7 @@ const double crhs153 =             crhs149*tau[3];
 /***********************************************************************************/
 
 template <>
-void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussPointContribution(
+void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSystemInternal(
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {
@@ -834,7 +834,7 @@ const double crhs52 =             crhs14*(crhs19 + crhs21 + crhs44 + crhs45 + cr
 /***********************************************************************************/
 
 template <>
-void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussPointContribution(
+void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSystemInternal(
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {

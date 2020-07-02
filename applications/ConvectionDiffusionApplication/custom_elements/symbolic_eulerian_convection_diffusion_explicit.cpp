@@ -127,12 +127,12 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocal
         if (rCurrentProcessInfo.GetValue(OSS_SWITCH) == 1)
         {
             // Update OSS additional term
-            this->ComputeOSSGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+            this->CalculateOrthogonalSubgridScaleSystemInternal(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
         }
         else
         {
             // Update rhs and lhs
-            this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+            this->CalculateLocalSystemInternal(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
         }
     }
 }
@@ -422,7 +422,7 @@ void SymbolicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEule
 /***********************************************************************************/
 
 template <>
-void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContribution(
+void SymbolicEulerianConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
@@ -496,7 +496,7 @@ const double crhs10 =             tau*(DN(2,0)*crhs4 + DN(2,1)*crhs5);
 /***********************************************************************************/
 
 template <>
-void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContribution(
+void SymbolicEulerianConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
@@ -589,7 +589,7 @@ const double crhs12 =             tau*(DN(3,0)*crhs4 + DN(3,1)*crhs5 + DN(3,2)*c
 /***********************************************************************************/
 
 template <>
-void SymbolicEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussPointContribution(
+void SymbolicEulerianConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
@@ -632,7 +632,7 @@ const double crhs11 =             N[2]*crhs0;
 /***********************************************************************************/
 
 template <>
-void SymbolicEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussPointContribution(
+void SymbolicEulerianConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)

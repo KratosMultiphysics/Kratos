@@ -149,12 +149,12 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ComputeGaussPointContribution(
+    void CalculateLocalSystemInternal(
         ElementVariables& rVariables,
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector);
 
-    void ComputeOSSGaussPointContribution(
+    void CalculateOrthogonalSubgridScaleSystemInternal(
         ElementVariables& rVariables,
         VectorType& rRightHandSideVector);
 

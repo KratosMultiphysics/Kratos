@@ -89,7 +89,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     this->CalculateTau(rVariables);
 
     // Execute RHS-LHS build
-    this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+    this->CalculateLocalSystemInternal(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
 }
 
 /***********************************************************************************/
@@ -265,7 +265,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     this->CalculateTau(rVariables);
 
     // Execute OSS step
-    this->ComputeOSSGaussPointContribution(rVariables,rRightHandSideVector);
+    this->CalculateOrthogonalSubgridScaleSystemInternal(rVariables,rRightHandSideVector);
 }
 
 /***********************************************************************************/
@@ -368,7 +368,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Ini
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::ComputeGaussPointContribution(
+void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
@@ -624,7 +624,7 @@ const double crhs72 =             tau[2]*(DN_DX_2_0*crhs23 + DN_DX_2_1*crhs29);
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::ComputeGaussPointContribution(
+void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
@@ -1123,7 +1123,7 @@ const double crhs135 =             tau[3]*(DN_DX_3_0*crhs40 + DN_DX_3_1*crhs50 +
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussPointContribution(
+void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSystemInternal(
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {
@@ -1206,7 +1206,7 @@ const double crhs46 =             crhs11*(crhs16 + crhs18 + crhs38 + crhs39 + cr
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussPointContribution(
+void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSystemInternal(
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {

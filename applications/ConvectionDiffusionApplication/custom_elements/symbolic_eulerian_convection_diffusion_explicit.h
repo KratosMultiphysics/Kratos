@@ -197,12 +197,12 @@ protected:
         ElementVariables& rVariables,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void ComputeGaussPointContribution(
+    void CalculateLocalSystemInternal(
         ElementVariables& rVariables,
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector);
 
-    void ComputeOSSGaussPointContribution(
+    void CalculateOrthogonalSubgridScaleSystemInternal(
         ElementVariables& rVariables,
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector);
