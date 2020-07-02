@@ -156,7 +156,6 @@ protected:
 
     void ComputeOSSGaussPointContribution(
         ElementVariables& rVariables,
-        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector);
 
     void UpdateUnknownSubgridScaleGaussPoint(

@@ -88,17 +88,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     // Compute tau
     this->CalculateTau(rVariables);
 
-    // Execute standard RHS-LHS build or OSS step
-    if (rCurrentProcessInfo.GetValue(OSS_SWITCH) == 1)
-    {
-        // Update OSS additional term
-        this->ComputeOSSGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
-    }
-    else
-    {
-        // Update rhs and lhs
-        this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
-    }
+    // Execute RHS-LHS build
+    this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
 }
 
 /***********************************************************************************/
@@ -175,10 +166,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Add
     ProcessInfo &rCurrentProcessInfo)
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
-
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
-    // Execute RK4 or OSS step
     VectorType rhs;
     this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
     // Add the residual contribution
@@ -231,6 +220,52 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateMassMat
     rMassMatrix(3,0) = one_twenty; rMassMatrix(3,1) = one_twenty; rMassMatrix(3,2) = one_twenty; rMassMatrix(3,3) = one_ten;
     // Assumption all the Gauss points have the same weight, so we multiply by the volume
     rMassMatrix *= GetGeometry().Volume();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
+    const Variable<double>& rVariable,
+    double& Output,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    auto& r_geometry = GetGeometry();
+    const unsigned int local_size = r_geometry.size();
+    VectorType rhs_oss;
+    this->CalculateOrthogonalSubgridScaleSystem(rhs_oss,rCurrentProcessInfo);
+    for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+        #pragma omp atomic
+        r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateOrthogonalSubgridScaleSystem(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const unsigned int local_size = r_geometry.size();
+
+    // Resize and intialize output
+    if (rRightHandSideVector.size() != local_size)
+        rRightHandSideVector.resize(local_size, false);
+    noalias(rRightHandSideVector) = ZeroVector(local_size);
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
+
+    // Execute OSS step
+    this->ComputeOSSGaussPointContribution(rVariables,rRightHandSideVector);
 }
 
 /***********************************************************************************/
@@ -422,7 +457,6 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::ComputeGaussPoin
 template <>
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussPointContribution(
     ElementVariables& rVariables,
-    MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
@@ -456,7 +490,6 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussP
 template <>
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussPointContribution(
     ElementVariables& rVariables,
-    MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables

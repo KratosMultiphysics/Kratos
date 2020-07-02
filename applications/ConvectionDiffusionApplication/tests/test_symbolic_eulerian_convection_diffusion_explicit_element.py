@@ -27,7 +27,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
             u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             error = error + (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
         error = sqrt(error)
-        self.assertEqual(error,0.0017678016487473033)
+        self.assertEqual(error,0.0017678016487140077)
 
     def testSymbolicEulerianConvectionDiffusionElementUnsteadyQOSS(self):
         project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_QOSS.json"
@@ -49,7 +49,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
             u_numerical = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             error = error + (((u_analytical - u_numerical)**2)*node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
         error = sqrt(error)
-        self.assertEqual(error,0.0017678016487243965)
+        self.assertEqual(error,0.0017678016487242358)
 
     def testSymbolicEulerianConvectionDiffusionElementUnsteadyDASGS(self):
         project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_DASGS.json"

@@ -101,9 +101,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
         # TODO: improve robustness of the "if" adding element names which support OSS
         if (self.settings["use_orthogonal_subscales"].GetBool() is True):
-            self.main_model_part.ProcessInfo.SetValue(ConvectionDiffusionApplication.USE_OSS, 1)
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, 1)
         else:
-            self.main_model_part.ProcessInfo.SetValue(ConvectionDiffusionApplication.USE_OSS, 0)
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, 0)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
 

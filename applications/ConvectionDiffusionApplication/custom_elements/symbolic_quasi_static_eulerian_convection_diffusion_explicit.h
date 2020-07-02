@@ -125,6 +125,15 @@ public:
         MatrixType &rMassMatrix,
         const ProcessInfo &rCurrentProcessInfo) override;
 
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOrthogonalSubgridScaleSystem(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -205,7 +214,6 @@ protected:
 
     void ComputeOSSGaussPointContribution(
         ElementVariables& rVariables,
-        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector);
 
     double ComputeH(

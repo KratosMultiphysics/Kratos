@@ -127,6 +127,24 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Initialization of variables
+     * In this method we call the base strategy initialize and initialize the projection variable
+     * This is required to prevent OpenMP errors as the projection variable is stored in the non-historical database
+     */
+    void Initialize() override
+    {
+        auto& r_model_part = BaseType::GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        // Call the base method
+        BaseType::Initialize();
+        // If required, initialize the OSS projection variables
+        if (r_process_info[OSS_SWITCH]) {
+            for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
+                r_node.SetValue(UNKNOWN_PROJECTION, 0.0);
+            }
+        }
+    }
 
     ///@}
     ///@name Input and output
@@ -176,7 +194,12 @@ protected:
     virtual void InitializeRungeKuttaIntermediateSubStep() override
     {
         BaseType::InitializeRungeKuttaIntermediateSubStep();
-        ExecuteOSSStep();
+        // Calculate the Orthogonal SubsScales projections
+        auto& r_model_part = BaseType::GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        if (r_process_info[OSS_SWITCH] == 1) {
+            ExecuteOSSStep();
+        }
     };
 
     /**
@@ -185,7 +208,12 @@ protected:
     virtual void InitializeRungeKuttaLastSubStep() override
     {
         BaseType::InitializeRungeKuttaLastSubStep();
-        ExecuteOSSStep();
+        // Calculate the Orthogonal SubsScales projections
+        auto& r_model_part = BaseType::GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        if (r_process_info[OSS_SWITCH] == 1) {
+            ExecuteOSSStep();
+        }
     };
 
     /**
@@ -193,8 +221,13 @@ protected:
      */
     virtual void FinalizeSolutionStep() override
     {
-        ExecuteOSSStep();
         BaseType::FinalizeSolutionStep();
+        // Calculate the Orthogonal SubsScales projections
+        auto& r_model_part = BaseType::GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        if (r_process_info[OSS_SWITCH] == 1) {
+            ExecuteOSSStep();
+        }
     };
 
     /**
@@ -204,31 +237,37 @@ protected:
     {
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
-        // Perform Orthogonal Subgrid Scale step if USE_OSS is active
+        // Get model part data
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        if (r_process_info.GetValue(USE_OSS) == 1)
-        {
-            // Activate OSS flag used inside the element
-            r_process_info.GetValue(OSS_SWITCH) = 1;
-            p_explicit_bs->BuildRHS(r_model_part);
+        const auto n_nodes = r_model_part.NumberOfNodes();
+        const int n_elem = r_model_part.NumberOfElements();
 
-            ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
-            auto& r_settings = *p_settings;
-            const auto number_of_nodes = r_model_part.NumberOfNodes();
-#pragma omp parallel for firstprivate(number_of_nodes)
-            for (unsigned int i_node = 0; i_node < number_of_nodes; i_node++)
-            {
-                auto it_node = r_model_part.NodesBegin() + i_node;
-                const double mass = r_lumped_mass_vector(i_node);
-                it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->FastGetSolutionStepValue(r_settings.GetReactionVariable()) / mass;
-            }
+        ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+        auto& r_settings = *p_settings;
+
+        // Initialize the projection value
+#pragma omp parallel for
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = r_model_part.NodesBegin() + i_node;
+            it_node->GetValue(UNKNOWN_PROJECTION) = 0.0;
         }
-        // Deactivate OSS flag used inside the element at the end of OSS step
-        r_process_info.GetValue(OSS_SWITCH) = 0;
+
+        // Calculate the unknown projection
+        double unknown_proj;
+#pragma omp parallel for
+        for (int i_elem = 0; i_elem < n_elem; ++i_elem) {
+            auto it_elem = r_model_part.ElementsBegin() + i_elem;
+            it_elem->Calculate(UNKNOWN_PROJECTION, unknown_proj, r_process_info);
+        }
+#pragma omp parallel for
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = r_model_part.NodesBegin() + i_node;
+            const double mass = r_lumped_mass_vector(i_node);
+            it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->GetValue(UNKNOWN_PROJECTION) / mass;
+        }
     };
 
     ///@}

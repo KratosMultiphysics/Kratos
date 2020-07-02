@@ -88,17 +88,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     // Compute tau
     this->CalculateTau(rVariables);
 
-    // Execute standard RHS-LHS build or OSS step
-    if (rCurrentProcessInfo.GetValue(OSS_SWITCH) == 1)
-    {
-        // Update OSS additional term
-        this->ComputeOSSGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
-    }
-    else
-    {
-        // Update rhs and lhs
-        this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
-    }
+    // Execute RHS-LHS build
+    this->ComputeGaussPointContribution(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
 }
 
 /***********************************************************************************/
@@ -754,7 +745,6 @@ const double crhs153 =             crhs149*tau[3];
 template <>
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::ComputeOSSGaussPointContribution(
     ElementVariables& rVariables,
-    MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
@@ -846,7 +836,6 @@ const double crhs52 =             crhs14*(crhs19 + crhs21 + crhs44 + crhs45 + cr
 template <>
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::ComputeOSSGaussPointContribution(
     ElementVariables& rVariables,
-    MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
 {
     // Retrieve element variables
