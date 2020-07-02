@@ -51,7 +51,7 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
-                "correction_factor" : 5.0e-4
+                "correction_factor" : 5.0e-3
             }  )" );
 
         // Now validate agains defaults -- this also ensures no type mismatch
