@@ -59,7 +59,7 @@ public:
      * @brief Dense eigenvalue solver
      * @details Computes eigenvalues and eigenvectors of selfadjoint matrices.
      * @param rA System matrix
-     * @param rDummy Dummy vector
+     * @param rDummy Dummy matrix
      * @param rEigenvalues Eigenvalue vector
      * @param rEigenvectors Eigenvector matrix
      */
