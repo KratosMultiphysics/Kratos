@@ -178,7 +178,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void InitializeSolutionStrategy(
+    void CreateSolutionStrategy(
         TLinearSolver::Pointer pLinearSolver,
         BuilderSolverPointerType pBuilderAndSolver);
 

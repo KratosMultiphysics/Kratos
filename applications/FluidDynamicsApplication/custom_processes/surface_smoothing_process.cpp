@@ -36,7 +36,7 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
-    InitializeSolutionStrategy(plinear_solver, p_builder_solver);
+    CreateSolutionStrategy(plinear_solver, p_builder_solver);
 }
 
 SurfaceSmoothingProcess::SurfaceSmoothingProcess(
@@ -53,7 +53,7 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
-    InitializeSolutionStrategy(plinear_solver, p_builder_solver);
+    CreateSolutionStrategy(plinear_solver, p_builder_solver);
 }
 
 SurfaceSmoothingProcess::SurfaceSmoothingProcess(
@@ -70,7 +70,7 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
-    InitializeSolutionStrategy(plinear_solver, p_builder_solver);
+    CreateSolutionStrategy(plinear_solver, p_builder_solver);
 }
 
 void SurfaceSmoothingProcess::CreateAuxModelPart()
@@ -179,7 +179,7 @@ void SurfaceSmoothingProcess::Clear()
     mp_solving_strategy->Clear();
 }
 
-void SurfaceSmoothingProcess::InitializeSolutionStrategy(
+void SurfaceSmoothingProcess::CreateSolutionStrategy(
         TLinearSolver::Pointer pLinearSolver,
         BuilderSolverPointerType pBuilderAndSolver)
     {
