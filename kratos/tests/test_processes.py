@@ -1450,7 +1450,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
-    def test_file_points_output_process(self):
+    def test_csv_points_output_process(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -1459,22 +1459,21 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_input_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/file_points_input_ref.csv")
-        reference_file_name_1 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/file_points_output_1_ref.dat")
-        reference_file_name_2 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/file_points_output_2_ref.dat")
-        reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/file_points_output_3_ref.dat")
+        reference_input_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/csv_points_input_ref.csv")
+        reference_file_name_1 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/csv_points_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/csv_points_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/csv_points_output_3_ref.dat")
 
         settings = KratosMultiphysics.Parameters("""{
             "process_list" : [ {
-                    "python_module"  : "file_points_output_process",
+                    "python_module"  : "csv_points_output_process",
                     "kratos_module"  : "KratosMultiphysics",
-                    "process_name"   : "FilePointsOutputProcess",
+                    "process_name"   : "CSVPointsOutputProcess",
                     "Parameters"            : {
-                        "file_path"         : "path",
-                        "sampling_points"   : 3,
+                        "csv_file_path"         : "path",
                         "model_part_name"   : "Main",
                         "output_file_settings" : {
-                            "file_name" : "file_points_output"
+                            "file_name" : "csv_points_output"
                         },
                         "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
                     }
@@ -1484,7 +1483,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "file_points_output_1.dat",
+                        "output_file_name"      : "csv_points_output_1.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ,{
@@ -1493,7 +1492,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "file_points_output_2.dat",
+                        "output_file_name"      : "csv_points_output_2.dat",
                         "comparison_type"       : "dat_file"
                     }
                 }, {
@@ -1502,13 +1501,13 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "CompareTwoFilesCheckProcess",
                     "Parameters"            : {
                         "reference_file_name"   : "",
-                        "output_file_name"      : "file_points_output_3.dat",
+                        "output_file_name"      : "csv_points_output_3.dat",
                         "comparison_type"       : "dat_file"
                     }
                 }]
         }""")
 
-        settings["process_list"][0]["Parameters"]["file_path"].SetString(reference_input_file_name)
+        settings["process_list"][0]["Parameters"]["csv_file_path"].SetString(reference_input_file_name)
         settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
         settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
         settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)

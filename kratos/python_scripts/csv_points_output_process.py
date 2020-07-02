@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import csv, os
 
 # Importing the Kratos Library
@@ -10,26 +9,24 @@ from KratosMultiphysics.multiple_points_output_process import MultiplePointsOutp
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return FilePointsOutputProcess(Model, settings["Parameters"])
+    return CSVPointsOutputProcess(Model, settings["Parameters"])
 
-class FilePointsOutputProcess(KratosMultiphysics.Process):
-    """This process writes output for several points given in a file to an output file
+class CSVPointsOutputProcess(KratosMultiphysics.Process):
+    """This process writes output for several points given in a .csv-file to an output file
     Internally it holds an object of type "MultiplePointsOutputProcess"
     Usage:
-        - file path of an .csv-file (!) for the import of sampling points need to be specified
+        - file path of an .csv-file for the import of sampling points need to be specified
         - the first line of the .csv-file should state the column names: "x,y,z"
         - the following rows should each be one point with its x,y and z value in the respective column of the .csv-file, separated by a comma 
-        - the number of sampling points needs to be specified
     """
     def __init__(self, model, params):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters('''{
-            "help"              : "This process writes output for several points given in a file to a file. Internally it holds an object of type MultiplePointsOutputProcess",
+            "help"              : "This process writes output for several points given in a .csv-file to a file. Internally it holds an object of type MultiplePointsOutputProcess",
             "model_part_name"   : "",
             "entity_type"       : "element",
-            "file_path"         : "",
-            "sampling_points"   : 3,
+            "csv_file_path"         : "",
             "output_variables"  : [],
             "historical_value"  : true,
             "search_tolerance"  : 1e-6,
@@ -40,56 +37,41 @@ class FilePointsOutputProcess(KratosMultiphysics.Process):
         params.ValidateAndAssignDefaults(default_settings)
 
         # retrieving file path and name
-        file_path = params["file_path"].GetString()
-        if len(file_path) == 0:
+        csv_file_path = params["csv_file_path"].GetString()
+        if not csv_file_path:
             raise Exception('A file path has has to be provided!')
 
-        # get and check number of sampling points
-        number_of_sampling_points = params["sampling_points"].GetInt()
-        if number_of_sampling_points <= 0:
-            raise Exception('The number of sampling points has to be larger than 0!')
-
-        # check the entity type
-        entity_type = params["entity_type"].GetString()
-        if not entity_type == "element" or entity_type == "condition":
-            raise Exception('"entity_type" can be either "element" or "condition"!')
-
-        # initialize position matrix for sampling points
-        positions = KratosMultiphysics.Matrix(number_of_sampling_points, 3)
+        # initialize array for sampling points
+        points = []
+        p_count = 0
 
         # check and read file
-        if os.path.exists(file_path) and os.access(file_path, os.R_OK):
+        if os.path.exists(csv_file_path) and os.access(csv_file_path, os.R_OK):
 
-            # open file
+            # open file and get points
             try:
-                with open(file_path, newline=None) as file:
+                with open(csv_file_path, newline=None) as file:
                     reader = csv.DictReader(file, delimiter=',')
                     for p_count, row in enumerate(reader):
-
-                        # check if number of sampling points is already reached
-                        if p_count == number_of_sampling_points:
-                            KratosMultiphysics.Logger.PrintWarning("FilePointsOutputProcess: Number of points in file higher than number of samples!")
-                            break
-
-                        # add position of sampling point
-                        positions[p_count,0] = float(row['x'])
-                        positions[p_count,1] = float(row['y'])
-                        positions[p_count,2] = float(row['z'])
-
+                        points.append([float(row['x']), float(row['y']), float(row['z'])])
             except:
                 raise Exception('The .csv-file can not be read (correctly)!')
         else:
             raise Exception('The file does not exist or can not be accessed!')
 
-        # check if enough points were found
+        
+        # initialize position matrix for sampling points
         p_count += 1
-        if p_count < number_of_sampling_points:
-            KratosMultiphysics.Logger.PrintWarning("FilePointsOutputProcess: Found " + str(p_count) + " points in file. Number of samples given was " + str(number_of_sampling_points) + "!")
+        positions = KratosMultiphysics.Matrix(p_count, 3)
+        
+        # add position of sampling point
+        for c in range(0, p_count):
+            positions[c, 0] = points[c][0]
+            positions[c, 1] = points[c][1]
+            positions[c, 2] = points[c][2]
 
-        params.RemoveValue("file_path")
-        params.RemoveValue("file_name")
+        params.RemoveValue("csv_file_path")
         params.RemoveValue("file_type")
-        params.RemoveValue("sampling_points")
 
         params.AddEmptyValue("positions")
         params["positions"].SetMatrix(positions)
