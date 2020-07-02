@@ -34,9 +34,9 @@ class MainCoupledFemDem_Solution:
             self.mmg_parameter_file = open("MMGParameters.json",'r')
             self.mmg_parameters = KratosMultiphysics.Parameters(self.mmg_parameter_file.read())
             self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
+        self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.InitializePlotsFiles()
         self.echo_level = 0
-        self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.is_slave = False
 
 #============================================================================================================================
@@ -675,9 +675,9 @@ class MainCoupledFemDem_Solution:
             if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
                 NumNodes = self.FEM_Solution.ProjectParameters["watch_nodes_list"].size()
                 for inode in range(0, NumNodes):
-                    id_node = self.PlotFilesNodesIdList[inode]
+                    id_node = self.plot_files_nodes_id_list[inode]
                     node = self.FEM_Solution.main_model_part.GetNode(id_node)
-                    self.PlotFilesNodesList[inode] = open("PlotNode_" + str(id_node) + ".txt","a")
+                    self.plot_files_nodes_list[inode] = open("PlotNode_" + str(id_node) + ".txt","a")
 
                     displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
                     velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
@@ -698,19 +698,19 @@ class MainCoupledFemDem_Solution:
                     az = acceleration[2]
 
                     if self.domain_size == 2:
-                        self.PlotFilesNodesList[inode].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
+                        self.plot_files_nodes_list[inode].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
                             "{0:.4e}".format(dx).rjust(11) + "    " + "{0:.4e}".format(dy).rjust(11) + "    " +
                             "{0:.4e}".format(vx).rjust(11) + "    " + "{0:.4e}".format(vy).rjust(11) + "    " +
                             "{0:.4e}".format(ax).rjust(11) + "    " + "{0:.4e}".format(ay).rjust(11) + "    " +
                             "{0:.4e}".format(Rx).rjust(11) + "    " + "{0:.4e}".format(Ry).rjust(11) + "\n")
                     else:
-                        self.PlotFilesNodesList[inode].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
+                        self.plot_files_nodes_list[inode].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
                             "{0:.4e}".format(dx).rjust(11) + "    " + "{0:.4e}".format(dy).rjust(11) + "    " + "{0:.4e}".format(dz).rjust(11) + "    " +
                             "{0:.4e}".format(vx).rjust(11) + "    " + "{0:.4e}".format(vy).rjust(11) + "    " + "{0:.4e}".format(vz).rjust(11) + "    " +
                             "{0:.4e}".format(ax).rjust(11) + "    " + "{0:.4e}".format(ay).rjust(11) + "    " + "{0:.4e}".format(az).rjust(11) + "    " +
                             "{0:.4e}".format(Rx).rjust(11) + "    " + "{0:.4e}".format(Ry).rjust(11) + "    " + "{0:.4e}".format(Rz).rjust(11) + "\n")
 
-                    self.PlotFilesNodesList[inode].close()
+                    self.plot_files_nodes_list[inode].close()
 
             # print the selected element files
             if self.FEM_Solution.ProjectParameters["watch_elements_list"].size() != 0:
@@ -718,7 +718,7 @@ class MainCoupledFemDem_Solution:
                 for iElem in range(0, NumElem):
                     Idelem = self.PlotFilesElementsIdList[iElem]
                     Elem = self.FEM_Solution.main_model_part.GetElement(Idelem)
-                    self.PlotFilesElementsList[iElem] = open("PlotElement_" + str(Idelem) + ".txt","a")
+                    self.plot_files_elements_list[iElem] = open("PlotElement_" + str(Idelem) + ".txt","a")
 
                     stress_tensor = Elem.CalculateOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
                     strain_vector = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)
@@ -732,7 +732,7 @@ class MainCoupledFemDem_Solution:
                         Exx = strain_vector[0]
                         Eyy = strain_vector[1]
                         Exy = strain_vector[2]
-                        self.PlotFilesElementsList[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
+                        self.plot_files_elements_list[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
                             "{0:.4e}".format(Sxx).rjust(11) + "    " + "{0:.4e}".format(Syy).rjust(11) + "    " +
                             "{0:.4e}".format(Sxy).rjust(11) + "    " + "{0:.4e}".format(Exx).rjust(11) +
                             "    " + "{0:.4e}".format(Eyy).rjust(11) + "    " + "{0:.4e}".format(Exy).rjust(11) +
@@ -750,7 +750,7 @@ class MainCoupledFemDem_Solution:
                         Exy = strain_tensor[3]
                         Eyz = strain_tensor[4]
                         Exz = strain_tensor[5]
-                        self.PlotFilesElementsList[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
+                        self.plot_files_elements_list[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
                         "{0:.4e}".format(Sxx).rjust(11) + "    " + "{0:.4e}".format(Syy).rjust(11) + "    " +
                         "{0:.4e}".format(Szz).rjust(11) + "    " + "{0:.4e}".format(Sxy).rjust(11) + "    " +
                         "{0:.4e}".format(Syz).rjust(11) + "    " + "{0:.4e}".format(Sxz).rjust(11) + "    " +
@@ -760,7 +760,7 @@ class MainCoupledFemDem_Solution:
                         "    " + "{0:.4e}".format(Exz).rjust(11) +
                         "   "  + "{0:.4e}".format(damage).rjust(11) + "\n")
 
-                    self.PlotFilesElementsList[iElem].close()
+                    self.plot_files_elements_list[iElem].close()
             self.TimePreviousPlotting = time
 
 #CountErasedVolume===================================================================================================================================
