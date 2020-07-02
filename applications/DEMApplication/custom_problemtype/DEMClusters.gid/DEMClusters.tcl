@@ -83,7 +83,7 @@ proc Splash {} {
 	set off_x 130
     }
 
-    ::GidUtils::Splash [file join $::DEMClusters::ProblemTypePath splash.png] .splash 1
+    ::GidUtils::Splash [file join $::DEMClusters::ProblemTypePath images splash.png] .splash 1
 
     set new_splash [ ::GidUtils::VersionCmp 11.1.6d]
     if {[ winfo exists .splash.lv] && ( $new_splash < 0)} {
