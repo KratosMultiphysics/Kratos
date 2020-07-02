@@ -75,7 +75,7 @@ void SymbolicStokes<TElementData>::CalculateRightHandSide(
 // Public Inquiry
 
 template <class TElementData>
-int SymbolicStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int SymbolicStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);

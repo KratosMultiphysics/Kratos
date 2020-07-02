@@ -367,7 +367,7 @@ GeometryData::IntegrationMethod FluidElement<TElementData>::GetIntegrationMethod
 // Inquiry
 
 template< class TElementData >
-int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     // Generic geometry check
     int out = Element::Check(rCurrentProcessInfo);
