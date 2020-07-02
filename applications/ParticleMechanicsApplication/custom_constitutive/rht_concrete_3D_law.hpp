@@ -203,13 +203,25 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        rSerializer.save("mStrainOld", mStrainOld);
         rSerializer.save("mEquivalentStress", mEquivalentStress);
+        rSerializer.save("mEquivalentPlasticStrain", mEquivalentPlasticStrain);
+        rSerializer.save("mEquivalentPlasticStrainRate", mEquivalentPlasticStrainRate);
+        rSerializer.save("mDamage", mDamage);
+        rSerializer.save("mAlpha", mAlpha);
+        rSerializer.save("mPoreCrushPressure", mPoreCrushPressure);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        rSerializer.load("mStrainOld", mStrainOld);
         rSerializer.load("mEquivalentStress", mEquivalentStress);
+        rSerializer.load("mEquivalentPlasticStrain", mEquivalentPlasticStrain);
+        rSerializer.load("mEquivalentPlasticStrainRate", mEquivalentPlasticStrainRate);
+        rSerializer.load("mDamage", mDamage);
+        rSerializer.load("mAlpha", mAlpha);
+        rSerializer.load("mPoreCrushPressure", mPoreCrushPressure);
     }
 
 }; // Class RHTConcrete3DLaw
