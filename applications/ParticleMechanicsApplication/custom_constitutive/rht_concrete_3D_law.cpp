@@ -46,7 +46,9 @@ namespace Kratos
 	{
 		if (rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE
-			|| rThisVariable == MP_EQUIVALENT_STRESS)
+			|| rThisVariable == MP_EQUIVALENT_STRESS
+			|| rThisVariable == MP_DAMAGE
+			|| rThisVariable == MP_COMPACTION_RATIO)
 			return true;
 		else return false;
 	}
@@ -59,7 +61,9 @@ namespace Kratos
 		mStrainOld = ZeroVector(GetStrainSize());
 		mDamage = 0.0;
 		mAlpha = 1.1;
-
+		mEquivalentStress = 0.0;
+		mEquivalentPlasticStrain = 0.0;
+		mEquivalentPlasticStrainRate = 0.0;
 	}
 
 
@@ -73,9 +77,9 @@ namespace Kratos
 		KRATOS_ERROR_IF(Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
 			<< "The RHTConcrete3DLaw cannot accept the deformation gradient F as a strain input."
 			<< " Please set the strain vector and set USE_ELEMENT_PROVIDED_STRAIN = False in the element.";
-		const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
-		CheckIsExplicitTimeIntegration(CurrentProcessInfo);
-		const Properties& MaterialProperties = rValues.GetMaterialProperties();
+		const ProcessInfo& process_info = rValues.GetProcessInfo();
+		CheckIsExplicitTimeIntegration(process_info);
+		const Properties& mat_props = rValues.GetMaterialProperties();
 
 
 		// Get old stress vector and current strain vector
@@ -84,36 +88,136 @@ namespace Kratos
 		const Matrix identity = (GetStrainSize() == 3) ? IdentityMatrix(2) : IdentityMatrix(3);
 
 		// Convert vectors to matrices for easier manipulation
-		Matrix stress_old = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
+		Matrix stress = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
 		Matrix strain_increment = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
 		Matrix strain_new = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
 		MakeStrainStressMatrixFromVector((StrainVector - mStrainOld), strain_increment);
-		MakeStrainStressMatrixFromVector(StressVector, stress_old);
+		MakeStrainStressMatrixFromVector(StressVector, stress);
 		MakeStrainStressMatrixFromVector(StrainVector, strain_new);
 
 		// Calculate deviatoric quantities
 		const Matrix strain_increment_deviatoric = strain_increment -
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment) / 3.0 * identity;
-		const Matrix stress_deviatoric_old = stress_old -
-			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 * identity;
-		Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * MaterialProperties[SHEAR_MODULUS] * strain_increment_deviatoric;
+		const Matrix stress_deviatoric_old = stress -
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress) / 3.0 * identity;
+		Matrix stress_deviatoric = stress_deviatoric_old + 2.0 * mat_props[SHEAR_MODULUS] * strain_increment_deviatoric;
 
 		// Calculate pressure from Equation of State
-		const double pressure = CalculatePressureFromEOS(MaterialProperties, strain_new, stress_old);
+		const double pressure = CalculatePressureFromEOS(mat_props, strain_new, stress);
 
 		// Prepare elastic predictor
 		const double eff_stress_trial = std::sqrt(3.0 / 2.0 *
-			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_trial));
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric));
 		const double lode_angle =
-			MPMStressPrincipalInvariantsUtility::CalculateLodeAngleFromDeviatoricStressTensor(stress_deviatoric_trial);
+			MPMStressPrincipalInvariantsUtility::CalculateLodeAngleFromDeviatoricStressTensor(stress_deviatoric);
 
-		double limit_elastic = CalculateElasticLimit(const double lode_angle, const double eps_rate, const double eps, const Properties & MaterialProperties)
+		// Assume elastic, EPSrate = 0.0
+		double eps_rate = 0.0;
+		double limit_elastic = CalculateElasticLimit(pressure, lode_angle, eps_rate, mEquivalentPlasticStrain, mat_props);
 
+		if (eff_stress_trial > limit_elastic)
+		{
+			// Plastic deformation, need to correct
 
+			double delta_eps_min = 0.0;
+			double delta_eps_max = eff_stress_trial/3.0* mat_props[SHEAR_MODULUS];
+			double delta_eps = 0.5 * (delta_eps_min + delta_eps_max);
+			eps_rate = delta_eps / process_info[DELTA_TIME];
+			double eps_trial = mEquivalentPlasticStrain + delta_eps;
 
-		const double density_current = (MaterialProperties [DENSITY]) / rValues.GetDeterminantF();
+			const SizeType iteration_limit = 100;
+			IndexType iteration = 1;
+			bool is_converged = false;
 
+			const Matrix flow_direction = stress_deviatoric /
+				(eff_stress_trial / std::sqrt(3.0 / 2.0));
 
+			double limit_failure, shear_mod_plastic, eps_harden_limit, eps_hard_ratio,
+				limit_current_surface;
+			double delta_damage = 0.0;
+			double damage_trial = mDamage;
+
+			while (!is_converged)
+			{
+				limit_elastic = CalculateElasticLimit(pressure, lode_angle, eps_rate, eps_trial, mat_props);
+				limit_failure = CalculateFailureLimit(pressure, lode_angle, eps_rate, mat_props);
+
+				shear_mod_plastic = mat_props[SHEAR_MODULUS] * mat_props[RHT_SHEAR_MOD_REDUCTION_FACTOR];
+
+				// Equivalent plastic strain at fully hardened state ref[3] eqn5.32
+				eps_harden_limit = (limit_failure - limit_elastic) / 3.0 / shear_mod_plastic;
+				eps_hard_ratio = std::min(eps_trial / eps_harden_limit, 1.0);
+
+				// Check if we have reached the hardening limit, damage accumulates after this
+				if (eps_hard_ratio == 1.0)
+				{
+					const double eps_fail = CalculateFailureStrain(pressure,
+						damage_trial, eps_rate, mat_props);
+					// Calculate damage increment, ref[1]eqn21, ref[2]
+					delta_damage = (delta_eps - eps_harden_limit) / eps_fail;
+					if (delta_damage > 0.0) damage_trial = mDamage + delta_damage;
+					if (damage_trial > 1.0) damage_trial = 1.0;
+
+					const double limit_residual = CalculateResidualLimit(pressure, mat_props);
+					// Our current surface lies in between the failure and residual surface.
+					// Implemented as per ref[4] and ref[2]
+					limit_current_surface = damage_trial * limit_residual + (1.0 - damage_trial) * limit_failure;
+				}
+				else
+				{
+					// Our current surface lies in between the elastic and failure surface.
+					// Implemented as per ref[4] and ref[2]
+					limit_current_surface = eps_hard_ratio * limit_failure + (1.0 - eps_hard_ratio) * limit_elastic;
+				}
+
+				const double consistency_condition = eff_stress_trial -
+					limit_current_surface - 3.0 * mat_props[SHEAR_MODULUS] * delta_eps;
+				if (consistency_condition < 0.0) delta_eps_max = delta_eps;
+				else delta_eps_min = delta_eps;
+				const double delta_eps_increment = 0.5 * (delta_eps_max - delta_eps_min);
+
+				if (std::abs(delta_eps_increment) < 1e-12)
+				{
+					if (std::abs(consistency_condition)< mat_props[RHT_COMPRESSIVE_STRENGTH]/1e6)
+					{
+						is_converged = true;
+
+						break;
+					}
+				}
+
+				delta_eps = delta_eps_min + delta_eps_increment;
+				eps_trial = mEquivalentPlasticStrain + delta_eps;
+				eps_rate = delta_eps / process_info[DELTA_TIME];
+
+				iteration += 1;
+				if (iteration > iteration_limit)
+				{
+					KRATOS_INFO("RHTConcrete3DLaw::CalculateMaterialResponseKirchhoff")
+						<< "Iteration = " << iteration << "\n"
+						<< "delta_eps_increment = " << delta_eps_increment << "\n"
+						<< "damage_trial = " << damage_trial << "\n";
+					KRATOS_ERROR << "Iteration limit exceeded\n";
+				}
+			}
+
+			// Update strength quantities
+			mEquivalentPlasticStrain = eps_trial;
+			mDamage = damage_trial;
+			stress_deviatoric -= std::sqrt(6.0) * mat_props[SHEAR_MODULUS] * delta_eps * flow_direction;
+		}
+
+		// Store variables
+		mEquivalentStress = std::sqrt(3.0 / 2.0 *
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric));
+		mEquivalentPlasticStrainRate = eps_rate;
+
+		// Recombine stress matrix
+		stress = stress_deviatoric - pressure * identity;
+
+		// Store stresses and strains
+		MakeStrainStressVectorFromMatrix(stress, StressVector);
+		mStrainOld = StrainVector;
 	}
 
 
@@ -209,7 +313,7 @@ namespace Kratos
 		const SizeType iteration_limit = 100;
 		IndexType iteration = 1;
 		bool is_converged = false;
-		bool alpha_smoothing = false; // used to prevent stick-slipping in solving alpha
+		bool alpha_smoothing = true; // used to prevent stick-slipping in solving alpha
 		double pressure = -1.0 * MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(rStress) / 3.0;
 		double pressure_old = pressure;
 		double alpha_trial = 0.0;
@@ -248,27 +352,25 @@ namespace Kratos
 			}
 			pressure /= alpha_trial;
 
-			if (std::abs(pressure-pressure_old) < rMaterialProperties[RHT_COMPRESSIVE_STRENGTH]/1e6)
+			if (std::abs(pressure-pressure_old) < 1e-3)
 			{
 				is_converged = true;
 				break;
 			}
-			else
+
+			iteration += 1;
+			if (iteration > iteration_limit)
 			{
-				iteration += 1;
-				if (iteration > iteration_limit)
-				{
-					KRATOS_INFO("CalculatePressureFromEOS") << "Iteration = " << iteration << "\n"
-						<< "Pressure = " << pressure << "\n"
-						<< "Pressure_old = " << pressure_old << "\n"
-						<< "Alpha_trial = " << alpha_trial << "\n"
-						<< "Alpha_old = " << alpha_old << "\n";
-					KRATOS_ERROR << "CalculatePressureFromEOS iteration limit exceeded\n";
-				}
-				if (iteration > 5) alpha_smoothing = true;
-				pressure_old = pressure;
-				alpha_old = alpha_trial;
+				KRATOS_INFO("CalculatePressureFromEOS") << "Iteration = " << iteration << "\n"
+					<< "Pressure = " << pressure << "\n"
+					<< "Pressure_old = " << pressure_old << "\n"
+					<< "Alpha_trial = " << alpha_trial << "\n"
+					<< "Alpha_old = " << alpha_old << "\n"
+					<< "Error = " << (pressure - pressure_old) << "\n";
+				KRATOS_ERROR << "CalculatePressureFromEOS iteration limit exceeded\n";
 			}
+			pressure_old = pressure;
+			alpha_old = alpha_trial;
 		}
 
 		mAlpha = alpha_trial;
@@ -313,14 +415,17 @@ namespace Kratos
 	{
 		// ref[1] eqn 14
 		const double pressure_star = Pressure / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
-		const double pore_crush_star = mPoreCrushPressure / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
+
+		// Calculate factors
+		// TODO move calc rate factors out to here (CalculateRateFactors(EPSRate, rMaterialProperties);)
 
 		const double fe_elastic_factor = CalculateFeElasticFactor(pressure_star,
 			EPSrate, rMaterialProperties);
 
-		const double fc_cap_factor = CalculateFcCapFactor(pressure_star, pore_crush_star,
-			EPSrate, EPS, rMaterialProperties);
+		const double fc_cap_factor = CalculateFcCapFactor(pressure_star, EPSrate,
+			EPS, rMaterialProperties);
 
+		// Rate factor uses p*, not p*/Fe as per ref[1] eqn14
 		const double fr_rate_factor = CalculateFrRateFactor(pressure_star, EPSrate,
 			rMaterialProperties);
 
@@ -330,8 +435,38 @@ namespace Kratos
 		const double q_deviatoric_shape_factor = CalculateDeviatoricShapeFactorQ(pressure_star, rMaterialProperties);
 		const double r_triaxiality = CalculateTriaxialityR(LodeAngle, q_deviatoric_shape_factor);
 
-		return rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] * normalized_yield * r_triaxiality *
-			fe_elastic_factor * fc_cap_factor;
+		const double elastic_limit = rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] * normalized_yield *
+			r_triaxiality * fe_elastic_factor * fc_cap_factor;
+
+		return elastic_limit;
+	}
+
+	double RHTConcrete3DLaw::CalculateFailureLimit(const double Pressure, const double LodeAngle, const double EPSrate, const Properties& rMaterialProperties)
+	{
+		// ref[1] eqn5
+		const double pressure_star = Pressure / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
+
+		const double fr_rate_factor = CalculateFrRateFactor(pressure_star, EPSrate,
+			rMaterialProperties);
+
+		const double normalized_yield = CalculateNormalizedYield(pressure_star,
+			fr_rate_factor, EPSrate, rMaterialProperties);
+
+		const double q_deviatoric_shape_factor = CalculateDeviatoricShapeFactorQ(pressure_star, rMaterialProperties);
+		const double r_triaxiality = CalculateTriaxialityR(LodeAngle, q_deviatoric_shape_factor);
+
+		const double failure_limit = rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] * normalized_yield *
+			r_triaxiality;
+
+		return failure_limit;
+	}
+
+	double RHTConcrete3DLaw::CalculateResidualLimit(const double Pressure, const Properties& rMatProps)
+	{
+		//ref[1] eqn20
+		if (Pressure <= 0.0) return 0.0;
+		else return rMatProps[RHT_AF] *
+				std::pow(Pressure / rMatProps[RHT_COMPRESSIVE_STRENGTH], rMatProps[RHT_NF]);
 	}
 
 	const double RHTConcrete3DLaw::CalculateFeElasticFactor(const double PressureStar,
@@ -362,38 +497,36 @@ namespace Kratos
 		return fe_elastic_factor;
 	}
 
-
 	const double RHTConcrete3DLaw::CalculateFcCapFactor(const double PressureStar,
-		const double PoreCrushStar, const double EPSrate, const double EPS,
-		const Properties& rMaterialProperties)
+		const double EPSrate, const double EPS,const Properties& rMaterialProperties)
 	{
 		//ref [1] eqn16
-		double fc_cap_factor;
 		const double degraded_shear_mod = rMaterialProperties[SHEAR_MODULUS] *
 			rMaterialProperties[RHT_SHEAR_MOD_REDUCTION_FACTOR];
 		CalculateRateFactors(EPSrate, rMaterialProperties);
 		const double initial_pressure_star =
 			mRateFactorCompression * rMaterialProperties[RHT_GC_STAR] / 3.0 +
 			degraded_shear_mod * EPS / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
+		const double pore_crush_star = mPoreCrushPressure / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
 
-		if (PressureStar >= PoreCrushStar) fc_cap_factor = 0.0;
-		else if (std::abs(PressureStar - PoreCrushStar) < 1e-6) fc_cap_factor = 0.0;
-		else if (PressureStar >= initial_pressure_star)
-		{
+		double fc_cap_factor;
+		if (PressureStar >= pore_crush_star || std::abs(PressureStar - pore_crush_star) < 1e-6)
+			fc_cap_factor = 0.0;
+		else if (PressureStar >= initial_pressure_star) {
 			fc_cap_factor = std::sqrt(1.0 - std::pow((PressureStar - initial_pressure_star) /
-			(PoreCrushStar - initial_pressure_star), 2.0));
+			(pore_crush_star - initial_pressure_star), 2.0));
 		}
 		else fc_cap_factor = 1.0;
 
 		return fc_cap_factor;
 	}
 
-
 	const double RHTConcrete3DLaw::CalculateFrRateFactor(const double PressureStarForRate,
 		const double EPSRate, const Properties& rMaterialProperties)
 	{
 		// ref[1] eqn10
 		CalculateRateFactors(EPSRate, rMaterialProperties);
+
 		double fr_rate_factor;
 		if (3.0 * PressureStarForRate >= mRateFactorCompression) fr_rate_factor = mRateFactorCompression;
 		else if (3.0 * PressureStarForRate >= -1.0 * mRateFactorTension * rMaterialProperties[RHT_RELATIVE_TENSILE_STRENGTH])
@@ -406,7 +539,6 @@ namespace Kratos
 
 		return fr_rate_factor;
 	}
-
 
 	const double RHTConcrete3DLaw::CalculateNormalizedYield(const double PressureStar,
 		const double RateFactor, const double EPSrate, const Properties& rMaterialProperties)
@@ -444,7 +576,6 @@ namespace Kratos
 
 		return normalized_yield;
 	}
-
 
 	void RHTConcrete3DLaw::CalculateRateFactors(const double EPSrate,
 		const Properties& rMaterialProperties)
@@ -515,6 +646,24 @@ namespace Kratos
 		return HTL;
 	}
 
+	const double RHTConcrete3DLaw::CalculateFailureStrain(const double Pressure,
+		const double Damage, const double EPSrate, const Properties& rMatProps)
+	{
+		// ref [1] eqn22
+		const double pressure_star = Pressure / rMatProps[RHT_COMPRESSIVE_STRENGTH];
+		const double fr_rate_factor = CalculateFrRateFactor(pressure_star, EPSrate, rMatProps);
+		const array_1d<double, 2> q_triaxiality_factors =
+			CalculateTriaxialityQs(pressure_star, rMatProps);
+		const double HTL =
+			GetHugoniotTensileLimit(pressure_star, q_triaxiality_factors, rMatProps);
+
+		double eps_failure = rMatProps[RHT_D1] *
+			std::pow((pressure_star - (1.0 - Damage) * HTL), rMatProps[RHT_D2]);
+		eps_failure = std::max(eps_failure, rMatProps[RHT_MIN_DAMAGED_RESIDUAL_STRAIN]);
+
+		return eps_failure;
+	}
+
 	void RHTConcrete3DLaw::GetLawFeatures(Features& rFeatures)
 	{
 		//Set the type of law
@@ -532,21 +681,20 @@ namespace Kratos
 		rFeatures.mSpaceDimension = WorkingSpaceDimension();
 	}
 
-
 	double& RHTConcrete3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
 	{
-		if (rThisVariable == MP_EQUIVALENT_STRESS)
-		{
-			rValue = mEquivalentStress;
-		}
-		else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function GetValue double.";
+		if (rThisVariable == MP_EQUIVALENT_STRESS) rValue = mEquivalentStress;
+		else if (rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN) rValue = mEquivalentPlasticStrain;
+		else if (rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE) rValue = mEquivalentPlasticStrainRate;
+		else if (rThisVariable == MP_DAMAGE) rValue = mDamage;
+		else if (rThisVariable == MP_COMPACTION_RATIO) rValue = mAlpha;
+		else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in RHT concrete 3D material law function GetValue double.";
 
 		return(rValue);
 	}
 
-
 	void RHTConcrete3DLaw::SetValue(const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
 	{
-		KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in Johnson Cook 3D material law function SetValue double.";
+		KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in RHT concrete 3D material law function SetValue double.";
 	}
 } // Namespace Kratos

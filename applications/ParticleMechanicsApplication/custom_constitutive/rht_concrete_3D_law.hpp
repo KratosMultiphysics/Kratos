@@ -36,6 +36,10 @@ namespace Kratos
  *                  https://doi.org/10.1177%2F2041419617695977
  *              [2] Livermore Software Technology Corporation (2015) LS-DYNA Keyword User's Manual, vol. II (r. 6307).
  *                  http://ftp.lstc.com/anonymous/outgoing/jday/manuals/LS-DYNA_Manual_Volume_II_R8.0.pdf
+ *              [3] Nystrom, U. (2013). Modelling of concrete structures subjected to blast and fragment loading.
+ *                  Chalmers University of Technology.
+ *              [4] Pekmezi, G., Littlefield, D., and Martin, B. 'Implementation and Validation of the RHT Concrete Model',
+ *                  Proceedings of the 14th Annual Early Career Technical Conference, Birmingham, Alabama, November 2014.
  */
 class RHTConcrete3DLaw : public HyperElastic3DLaw
 {
@@ -130,6 +134,7 @@ protected:
     Vector mStrainOld;
     double mEquivalentStress;
     double mEquivalentPlasticStrain;
+    double mEquivalentPlasticStrainRate;
     double mDamage;
     double mAlpha;
     double mPoreCrushPressure;
@@ -167,11 +172,16 @@ private:
     double CalculateElasticLimit(const double Pressure, const double LodeAngle,
         const double EPSrate, const double EPS, const Properties& rMaterialProperties);
 
+    double CalculateFailureLimit(const double Pressure, const double LodeAngle,
+        const double EPSrate, const Properties& rMaterialProperties);
+
+    double CalculateResidualLimit(const double Pressure, const Properties& rMaterialProperties);
+
     const double CalculateFeElasticFactor(const double PressureStar, const double EPSrate,
         const Properties & rMaterialProperties);
 
-    const double CalculateFcCapFactor(const double PressureStar, const double PoreCrushStar,
-        const double EPSrate, const double EPS, const Properties& rMaterialProperties);
+    const double CalculateFcCapFactor(const double PressureStar, const double EPSrate,
+        const double EPS, const Properties& rMaterialProperties);
 
     const double CalculateFrRateFactor(const double PressureStarForRate, const double EPSRate,
         const Properties& rMaterialProperties);
@@ -192,7 +202,8 @@ private:
     const double GetHugoniotTensileLimit(const double RateFactor,
         const array_1d<double, 2> TriaxialityQs, const Properties& rMaterialProperties);
 
-
+    const double CalculateFailureStrain(const double Pressure, const double Damage,
+        const double EPSrate, const Properties& rMaterialProperties);
 
 
     double CalculateHardenedYieldStress(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
