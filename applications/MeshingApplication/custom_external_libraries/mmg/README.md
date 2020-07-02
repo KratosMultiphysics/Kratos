@@ -30,7 +30,7 @@ Double-check where and how the MMG libraries were compiled on your system. If MM
 	
 
 ## Error 2: Kratos cannot find the MMG libraries automatically even if I specify the correct prefix
-If any of the MMG libraries cannot be found, you can explicitily set them in the Kratos configure: 
+If any of the MMG libraries cannot be found, you can explicitly set them in the Kratos configure: 
 
 	-DMMG_INCLUDE_DIR="installation_directory/mmg/include/"\
 	-DMMG2D_INCLUDE_DIR="installation_directory/mmg/include/mmg/mmg2d/"\
