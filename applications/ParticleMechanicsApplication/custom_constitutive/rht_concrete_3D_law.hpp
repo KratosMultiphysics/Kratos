@@ -139,9 +139,6 @@ protected:
     double mAlpha;
     double mPoreCrushPressure;
 
-    double mRateFactorTension;
-    double mRateFactorCompression;
-
 
     ///@}
     ///@name Protected Operators
@@ -166,24 +163,24 @@ private:
         const Matrix& rStrain, const Matrix& rStress);
 
     double CalculateElasticLimit(const double Pressure, const double LodeAngle,
-        const double EPSrate, const double EPS, const Properties& rMaterialProperties);
+        const array_1d<double, 2>& RateFactors, const double EPS, const Properties& rMaterialProperties);
 
     double CalculateFailureLimit(const double Pressure, const double LodeAngle,
-        const double EPSrate, const Properties& rMaterialProperties);
+        const array_1d<double, 2>& RateFactors, const Properties& rMaterialProperties);
 
     double CalculateResidualLimit(const double Pressure, const Properties& rMaterialProperties);
 
-    const double CalculateFeElasticFactor(const double PressureStar, const double EPSrate,
-        const Properties & rMaterialProperties);
+    const double CalculateFeElasticFactor(const double PressureStar,
+        const array_1d<double, 2> RateFactors, const Properties & rMaterialProperties);
 
-    const double CalculateFcCapFactor(const double PressureStar, const double EPSrate,
-        const double EPS, const Properties& rMaterialProperties);
+    const double CalculateFcCapFactor(const double PressureStar,
+        const double EPS, const array_1d<double, 2> RateFactors, const Properties& rMaterialProperties);
 
-    const double CalculateFrRateFactor(const double PressureStarForRate, const double EPSRate,
-        const Properties& rMaterialProperties);
+    const double CalculateFrRateFactor(const double PressureStarForRate,
+        const array_1d<double, 2> RateFactors, const Properties& rMaterialProperties);
 
     const double CalculateNormalizedYield(const double PressureStar,const double RateFactor,
-        const double EPSrate, const Properties& rMaterialProperties);
+        const Properties& rMaterialProperties);
 
     const array_1d<double, 2> CalculateRateFactors(const double EPSrate, const Properties& rMaterialProperties);
 
@@ -199,7 +196,7 @@ private:
         const array_1d<double, 2> TriaxialityQs, const Properties& rMaterialProperties);
 
     const double CalculateFailureStrain(const double Pressure, const double Damage,
-        const double EPSrate, const Properties& rMaterialProperties);
+        const array_1d<double, 2>& RateFactors, const Properties& rMaterialProperties);
 
     friend class Serializer;
 

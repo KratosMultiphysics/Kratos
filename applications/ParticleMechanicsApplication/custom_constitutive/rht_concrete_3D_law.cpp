@@ -115,7 +115,8 @@ namespace Kratos
 
 		// Assume elastic, EPSrate = 0.0
 		double eps_rate = 0.0;
-		double limit_elastic = CalculateElasticLimit(pressure, lode_angle, eps_rate, mEquivalentPlasticStrain, mat_props);
+		double limit_elastic = CalculateElasticLimit(pressure, lode_angle,
+			CalculateRateFactors(eps_rate, mat_props), mEquivalentPlasticStrain, mat_props);
 
 		if (eff_stress_trial > limit_elastic)
 		{
@@ -141,8 +142,10 @@ namespace Kratos
 
 			while (!is_converged)
 			{
-				limit_elastic = CalculateElasticLimit(pressure, lode_angle, eps_rate, eps_trial, mat_props);
-				limit_failure = CalculateFailureLimit(pressure, lode_angle, eps_rate, mat_props);
+				const array_1d<double, 2> rate_factors = CalculateRateFactors(eps_rate, mat_props);
+
+				limit_elastic = CalculateElasticLimit(pressure, lode_angle, rate_factors, eps_trial, mat_props);
+				limit_failure = CalculateFailureLimit(pressure, lode_angle, rate_factors, mat_props);
 
 				shear_mod_plastic = mat_props[SHEAR_MODULUS] * mat_props[RHT_SHEAR_MOD_REDUCTION_FACTOR];
 
@@ -154,7 +157,7 @@ namespace Kratos
 				if (eps_hard_ratio == 1.0)
 				{
 					const double eps_fail = CalculateFailureStrain(pressure,
-						damage_trial, eps_rate, mat_props);
+						damage_trial, rate_factors, mat_props);
 					// Calculate damage increment, ref[1]eqn21, ref[2]
 					delta_damage = (delta_eps - eps_harden_limit) / eps_fail;
 					if (delta_damage > 0.0) damage_trial = mDamage + delta_damage;
@@ -375,47 +378,45 @@ namespace Kratos
 	}
 
 	double RHTConcrete3DLaw::CalculateElasticLimit(const double Pressure, const double LodeAngle,
-		const double EPSrate, const double EPS, const Properties& rMaterialProperties)
+		const array_1d<double, 2>& RateFactors, const double EPS, const Properties& rMatProps)
 	{
 		// ref[1] eqn 14
-		const double pressure_star = Pressure / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
+		const double pressure_star = Pressure / rMatProps[RHT_COMPRESSIVE_STRENGTH];
 
 		// Calculate factors
-		array_1d<double,2> rate_factors = CalculateRateFactors(EPSRate, rMaterialProperties);
-		// TODO move calc rate factors out to here (CalculateRateFactors(EPSRate, rMaterialProperties);)
-
 		const double fe_elastic_factor = CalculateFeElasticFactor(pressure_star,
-			EPSrate, rMaterialProperties);
+			RateFactors, rMatProps);
 
-		const double fc_cap_factor = CalculateFcCapFactor(pressure_star, EPSrate,
-			EPS, rMaterialProperties);
+		const double fc_cap_factor = CalculateFcCapFactor(pressure_star,
+			EPS, RateFactors, rMatProps);
 
 		// Rate factor uses p*, not p*/Fe as per ref[1] eqn14
-		const double fr_rate_factor = CalculateFrRateFactor(pressure_star, EPSrate,
-			rMaterialProperties);
+		const double fr_rate_factor = CalculateFrRateFactor(pressure_star,
+			RateFactors, rMatProps);
 
 		const double normalized_yield = CalculateNormalizedYield(pressure_star/ fe_elastic_factor,
-			fr_rate_factor, EPSrate, rMaterialProperties);
+			fr_rate_factor, rMatProps);
 
-		const double q_deviatoric_shape_factor = CalculateDeviatoricShapeFactorQ(pressure_star, rMaterialProperties);
+		const double q_deviatoric_shape_factor = CalculateDeviatoricShapeFactorQ(pressure_star, rMatProps);
 		const double r_triaxiality = CalculateTriaxialityR(LodeAngle, q_deviatoric_shape_factor);
 
-		const double elastic_limit = rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] * normalized_yield *
+		const double elastic_limit = rMatProps[RHT_COMPRESSIVE_STRENGTH] * normalized_yield *
 			r_triaxiality * fe_elastic_factor * fc_cap_factor;
 
 		return elastic_limit;
 	}
 
-	double RHTConcrete3DLaw::CalculateFailureLimit(const double Pressure, const double LodeAngle, const double EPSrate, const Properties& rMaterialProperties)
+	double RHTConcrete3DLaw::CalculateFailureLimit(const double Pressure, const double LodeAngle,
+		const array_1d<double, 2>& RateFactors, const Properties& rMaterialProperties)
 	{
 		// ref[1] eqn5
 		const double pressure_star = Pressure / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
 
-		const double fr_rate_factor = CalculateFrRateFactor(pressure_star, EPSrate,
+		const double fr_rate_factor = CalculateFrRateFactor(pressure_star, RateFactors,
 			rMaterialProperties);
 
 		const double normalized_yield = CalculateNormalizedYield(pressure_star,
-			fr_rate_factor, EPSrate, rMaterialProperties);
+			fr_rate_factor, rMaterialProperties);
 
 		const double q_deviatoric_shape_factor = CalculateDeviatoricShapeFactorQ(pressure_star, rMaterialProperties);
 		const double r_triaxiality = CalculateTriaxialityR(LodeAngle, q_deviatoric_shape_factor);
@@ -435,7 +436,7 @@ namespace Kratos
 	}
 
 	const double RHTConcrete3DLaw::CalculateFeElasticFactor(const double PressureStar,
-		const double EPSrate, const Properties& rMaterialProperties)
+		const array_1d<double, 2> RateFactors, const Properties& rMaterialProperties)
 	{
 		// ref[1] eqn15
 		const double gc_star = rMaterialProperties[RHT_GC_STAR];
@@ -443,16 +444,15 @@ namespace Kratos
 		const double ft_star = rMaterialProperties[RHT_RELATIVE_TENSILE_STRENGTH];
 
 		double fe_elastic_factor = 0.0;
-		CalculateRateFactors(EPSrate, rMaterialProperties);
 
-		if (3.0* PressureStar >= mRateFactorCompression* gc_star)
+		if (3.0* PressureStar >= RateFactors[1] * gc_star)
 		{
 			fe_elastic_factor = gc_star;
 		}
-		else if (3.0 * PressureStar >= -1.0* mRateFactorTension* gt_star * ft_star)
+		else if (3.0 * PressureStar >= -1.0* RateFactors[0] * gt_star * ft_star)
 		{
-			fe_elastic_factor = gc_star - (gt_star - gc_star) * (3.0 * PressureStar - mRateFactorCompression * gc_star)/
-				(mRateFactorCompression * gc_star + mRateFactorTension * gt_star * ft_star);
+			fe_elastic_factor = gc_star - (gt_star - gc_star) * (3.0 * PressureStar - RateFactors[1] * gc_star)/
+				(RateFactors[1] * gc_star + RateFactors[0]  * gt_star * ft_star);
 		}
 		else
 		{
@@ -463,14 +463,14 @@ namespace Kratos
 	}
 
 	const double RHTConcrete3DLaw::CalculateFcCapFactor(const double PressureStar,
-		const double EPSrate, const double EPS,const Properties& rMaterialProperties)
+		const double EPS, const array_1d<double, 2> RateFactors,
+		const Properties& rMaterialProperties)
 	{
 		//ref [1] eqn16
 		const double degraded_shear_mod = rMaterialProperties[SHEAR_MODULUS] *
 			rMaterialProperties[RHT_SHEAR_MOD_REDUCTION_FACTOR];
-		CalculateRateFactors(EPSrate, rMaterialProperties);
 		const double initial_pressure_star =
-			mRateFactorCompression * rMaterialProperties[RHT_GC_STAR] / 3.0 +
+			RateFactors[1] * rMaterialProperties[RHT_GC_STAR] / 3.0 +
 			degraded_shear_mod * EPS / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
 		const double pore_crush_star = mPoreCrushPressure / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
 
@@ -487,26 +487,25 @@ namespace Kratos
 	}
 
 	const double RHTConcrete3DLaw::CalculateFrRateFactor(const double PressureStarForRate,
-		const double EPSRate, const Properties& rMaterialProperties)
+		const array_1d<double, 2> RateFactors, const Properties& rMaterialProperties)
 	{
 		// ref[1] eqn10
-		CalculateRateFactors(EPSRate, rMaterialProperties);
 
 		double fr_rate_factor;
-		if (3.0 * PressureStarForRate >= mRateFactorCompression) fr_rate_factor = mRateFactorCompression;
-		else if (3.0 * PressureStarForRate >= -1.0 * mRateFactorTension * rMaterialProperties[RHT_RELATIVE_TENSILE_STRENGTH])
+		if (3.0 * PressureStarForRate >= RateFactors[1]) fr_rate_factor = RateFactors[1];
+		else if (3.0 * PressureStarForRate >= -1.0 * RateFactors[0] * rMaterialProperties[RHT_RELATIVE_TENSILE_STRENGTH])
 		{
-			fr_rate_factor = mRateFactorCompression - (mRateFactorTension - mRateFactorCompression) *
-				(3.0 * PressureStarForRate - mRateFactorCompression) /
-				(mRateFactorCompression + mRateFactorTension * rMaterialProperties[RHT_RELATIVE_TENSILE_STRENGTH]);
+			fr_rate_factor = RateFactors[1] - (RateFactors[0] - RateFactors[1]) *
+				(3.0 * PressureStarForRate - RateFactors[1]) /
+				(RateFactors[1] + RateFactors[0] * rMaterialProperties[RHT_RELATIVE_TENSILE_STRENGTH]);
 		}
-		else fr_rate_factor = mRateFactorTension;
+		else fr_rate_factor = RateFactors[0];
 
 		return fr_rate_factor;
 	}
 
 	const double RHTConcrete3DLaw::CalculateNormalizedYield(const double PressureStar,
-		const double RateFactor, const double EPSrate, const Properties& rMaterialProperties)
+		const double RateFactor, const Properties& rMaterialProperties)
 	{
 		const double A = rMaterialProperties[RHT_A];
 		const double n = rMaterialProperties[RHT_N];
@@ -611,11 +610,11 @@ namespace Kratos
 	}
 
 	const double RHTConcrete3DLaw::CalculateFailureStrain(const double Pressure,
-		const double Damage, const double EPSrate, const Properties& rMatProps)
+		const double Damage, const array_1d<double, 2>& RateFactors, const Properties& rMatProps)
 	{
 		// ref [1] eqn22
 		const double pressure_star = Pressure / rMatProps[RHT_COMPRESSIVE_STRENGTH];
-		const double fr_rate_factor = CalculateFrRateFactor(pressure_star, EPSrate, rMatProps);
+		const double fr_rate_factor = CalculateFrRateFactor(pressure_star, RateFactors, rMatProps);
 		const array_1d<double, 2> q_triaxiality_factors =
 			CalculateTriaxialityQs(pressure_star, rMatProps);
 		const double HTL =
