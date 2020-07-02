@@ -155,10 +155,6 @@ protected:
      */
     bool CheckParameters(Parameters& rValues) override;
 
-    virtual void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput);
-
-    virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput);
-
     void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo);
 
 private:
@@ -189,7 +185,7 @@ private:
     const double CalculateNormalizedYield(const double PressureStar,const double RateFactor,
         const double EPSrate, const Properties& rMaterialProperties);
 
-    void CalculateRateFactors(const double EPSrate, const Properties& rMaterialProperties);
+    const array_1d<double, 2> CalculateRateFactors(const double EPSrate, const Properties& rMaterialProperties);
 
     const array_1d<double, 2> CalculateTriaxialityQs(const double PressureStar,
         const Properties& rMaterialProperties);
@@ -205,29 +201,19 @@ private:
     const double CalculateFailureStrain(const double Pressure, const double Damage,
         const double EPSrate, const Properties& rMaterialProperties);
 
-
-    double CalculateHardenedYieldStress(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
-        const double PlasticStrainRate, const double Temperature);
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
-
         rSerializer.save("mEquivalentStress", mEquivalentStress);
-
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
-
         rSerializer.load("mEquivalentStress", mEquivalentStress);
-
     }
-
-
 
 }; // Class RHTConcrete3DLaw
 }  // namespace Kratos.

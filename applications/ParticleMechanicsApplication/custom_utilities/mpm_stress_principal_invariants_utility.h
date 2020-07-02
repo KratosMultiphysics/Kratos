@@ -540,7 +540,102 @@ namespace Kratos
                 if (std::abs(effective_stress) < tolerance)  effective_stress = tolerance;
                 const double temp = 27.0 * MathUtils<double>::Det(rDeviatoricStress)
                     / 2.0 / effective_stress / effective_stress / effective_stress;
-                const double lode_angle = std::acos(temp) / 3.0;
+                return std::acos(temp) / 3.0;
+            }
+
+            static void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput,
+                const SizeType StrainSize)
+            {
+                if (rOutput.size() != StrainSize) rOutput.resize(StrainSize, false);
+                else rOutput.clear();
+
+                if (StrainSize == 6)
+                {
+                    // 3D stress arrangement
+                    // Normal components
+                    rOutput[0] = rInput(0, 0);
+                    rOutput[1] = rInput(1, 1);
+                    rOutput[2] = rInput(2, 2);
+
+                    // Shear components
+                    rOutput[3] = 2.0 * rInput(0, 1); //xy
+                    rOutput[4] = 2.0 * rInput(1, 2); //yz
+                    rOutput[5] = 2.0 * rInput(0, 2); //xz
+                }
+                else if (StrainSize == 3)
+                {
+                    // 2D stress arrangement
+                    rOutput[0] = rInput(0, 0);
+                    rOutput[1] = rInput(1, 1);
+                    rOutput[2] = 2.0 * rInput(0, 1); //xy
+                }
+                else if (StrainSize == 4)
+                {
+                    // 2D axisym stress arrangement
+                    rOutput[0] = rInput(0, 0);
+                    rOutput[1] = rInput(1, 1);
+                    rOutput[2] = rInput(2, 2);
+                    rOutput[3] = 2.0 * rInput(0, 1); //xy
+                }
+                else KRATOS_ERROR << "Strain size and axisymmetric combination not valid.\n"
+                    << "\tStrain size = " << StrainSize << std::endl;
+            }
+
+            static void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput,
+                const SizeType StrainSize)
+            {
+                const SizeType mat_size = (StrainSize == 3) ? 2 : 3;
+                if (rOutput.size1() != mat_size || rOutput.size2() != mat_size)
+                    rOutput.resize(mat_size, mat_size, false);
+                else rOutput.clear();
+
+                if (StrainSize == 6)
+                {
+                    // 3D stress arrangement
+                    // Normal components
+                    rOutput(0, 0) = rInput[0];
+                    rOutput(1, 1) = rInput[1];
+                    rOutput(2, 2) = rInput[2];
+
+                    // Shear components
+                    rOutput(0, 1) = 0.5 * rInput[3]; //xy
+                    rOutput(1, 2) = 0.5 * rInput[4]; //yz
+                    rOutput(0, 2) = 0.5 * rInput[5]; //xz
+
+                    // Fill symmetry
+                    rOutput(1, 0) = rOutput(0, 1);
+                    rOutput(2, 1) = rOutput(1, 2);
+                    rOutput(2, 0) = rOutput(0, 2);
+                }
+                else if (StrainSize == 3)
+                {
+                    // 2D stress arrangement
+                    // Normal components
+                    rOutput(0, 0) = rInput[0];
+                    rOutput(1, 1) = rInput[1];
+
+                    // Shear components
+                    rOutput(0, 1) = 0.5 * rInput[2]; //xy
+
+                    // Fill symmetry
+                    rOutput(1, 0) = rOutput(0, 1);
+                }
+                else if (StrainSize == 4)
+                {
+                    // 2D axisym stress arrangement
+                    // Normal components
+                    rOutput(0, 0) = rInput[0];
+                    rOutput(1, 1) = rInput[1];
+                    rOutput(2, 2) = rInput[2];
+
+                    // Shear components
+                    rOutput(0, 1) = 0.5 * rInput[3]; //xy
+
+                    // Fill symmetry
+                    rOutput(1, 0) = rOutput(0, 1);
+                }
+                else KRATOS_ERROR << "Strain size and axisymmetric combination not valid.\n"
+                    << "\tStrain size = " << StrainSize << std::endl;
             }
    }; // end Class MPMStressPrincipalInvariantsUtility
 

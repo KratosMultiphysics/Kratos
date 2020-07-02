@@ -99,24 +99,26 @@ namespace Kratos
 		// Convert vectors to matrices for easier manipulation
 		Matrix stress_old = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
 		Matrix strain_increment = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
-		MakeStrainStressMatrixFromVector((StrainVector - mStrainOld), strain_increment);
-		MakeStrainStressMatrixFromVector(StressVector, stress_old);
+		MPMStressPrincipalInvariantsUtility::MakeStrainStressMatrixFromVector(
+			(StrainVector - mStrainOld), strain_increment,GetStrainSize());
+		MPMStressPrincipalInvariantsUtility::MakeStrainStressMatrixFromVector(
+			StressVector, stress_old, GetStrainSize());
 
 		// Material moduli
 		const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
 		const double bulk_modulus_K = MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
-		
+
 		// Calculate deviatoric quantities
-		const Matrix strain_increment_deviatoric = strain_increment - 
+		const Matrix strain_increment_deviatoric = strain_increment -
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment) / 3.0 * identity;
-		const Matrix stress_deviatoric_old = stress_old - 
+		const Matrix stress_deviatoric_old = stress_old -
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 * identity;
 
 		// Calculate trial (predicted) j2 stress
 		double stress_hydrostatic_new = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 +
 			bulk_modulus_K * MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment);
 		Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
-		const double j2_stress_trial = std::sqrt(3.0 / 2.0 * 
+		const double j2_stress_trial = std::sqrt(3.0 / 2.0 *
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
 		// Declare deviatoric stress matrix to be used later
@@ -222,11 +224,12 @@ namespace Kratos
 		}
 		// Update equivalent stress
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
-		mEquivalentStress = std::sqrt(3.0 / 2.0 * 
+		mEquivalentStress = std::sqrt(3.0 / 2.0 *
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_converged));
 
 		// Store stresses and strains
-		MakeStrainStressVectorFromMatrix(stress_converged, StressVector);
+		MPMStressPrincipalInvariantsUtility::MakeStrainStressVectorFromMatrix(
+			stress_converged, StressVector,GetStrainSize());
 		mStrainOld = StrainVector;
 
 		// Udpdate internal energy
@@ -267,45 +270,6 @@ namespace Kratos
 	bool JohnsonCookThermalPlastic3DLaw::CheckParameters(Parameters& rValues)
 	{
 		return rValues.CheckAllParameters();
-	}
-
-
-	void JohnsonCookThermalPlastic3DLaw::MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput)
-	{
-		if (rOutput.size() != GetStrainSize()) rOutput.resize(GetStrainSize(), false);
-
-		// 3D stress arrangement
-		// Normal components
-		rOutput[0] = rInput(0, 0);
-		rOutput[1] = rInput(1, 1);
-		rOutput[2] = rInput(2, 2);
-
-		// Shear components
-		rOutput[3] = 2.0 * rInput(0, 1); //xy
-		rOutput[4] = 2.0 * rInput(1, 2); //yz
-		rOutput[5] = 2.0 * rInput(0, 2); //xz
-	}
-
-
-	void JohnsonCookThermalPlastic3DLaw::MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput)
-	{
-		if (rOutput.size1() != 3 || rOutput.size2() != 3)rOutput.resize(3, 3, false);
-
-		// 3D stress arrangement
-		// Normal components
-		rOutput(0, 0) = rInput[0];
-		rOutput(1, 1) = rInput[1];
-		rOutput(2, 2) = rInput[2];
-
-		// Shear components
-		rOutput(0, 1) = 0.5 * rInput[3]; //xy
-		rOutput(1, 2) = 0.5 * rInput[4]; //yz
-		rOutput(0, 2) = 0.5 * rInput[5]; //xz
-
-		// Fill symmetry
-		rOutput(1, 0) = rOutput(0, 1);
-		rOutput(2, 1) = rOutput(1, 2);
-		rOutput(2, 0) = rOutput(0, 2);
 	}
 
 

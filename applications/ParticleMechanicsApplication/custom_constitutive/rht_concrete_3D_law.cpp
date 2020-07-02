@@ -81,7 +81,6 @@ namespace Kratos
 		CheckIsExplicitTimeIntegration(process_info);
 		const Properties& mat_props = rValues.GetMaterialProperties();
 
-
 		// Get old stress vector and current strain vector
 		const Vector StrainVector = rValues.GetStrainVector();
 		Vector& StressVector = rValues.GetStressVector();
@@ -91,9 +90,12 @@ namespace Kratos
 		Matrix stress = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
 		Matrix strain_increment = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
 		Matrix strain_new = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
-		MakeStrainStressMatrixFromVector((StrainVector - mStrainOld), strain_increment);
-		MakeStrainStressMatrixFromVector(StressVector, stress);
-		MakeStrainStressMatrixFromVector(StrainVector, strain_new);
+		MPMStressPrincipalInvariantsUtility::MakeStrainStressMatrixFromVector(
+			(StrainVector - mStrainOld), strain_increment,GetStrainSize());
+		MPMStressPrincipalInvariantsUtility::MakeStrainStressMatrixFromVector(
+			StressVector, stress, GetStrainSize());
+		MPMStressPrincipalInvariantsUtility::MakeStrainStressMatrixFromVector(
+			StrainVector, strain_new, GetStrainSize());
 
 		// Calculate deviatoric quantities
 		const Matrix strain_increment_deviatoric = strain_increment -
@@ -216,7 +218,8 @@ namespace Kratos
 		stress = stress_deviatoric - pressure * identity;
 
 		// Store stresses and strains
-		MakeStrainStressVectorFromMatrix(stress, StressVector);
+		MPMStressPrincipalInvariantsUtility::MakeStrainStressVectorFromMatrix(
+			stress, StressVector,GetStrainSize());
 		mStrainOld = StrainVector;
 	}
 
@@ -250,45 +253,6 @@ namespace Kratos
 	bool RHTConcrete3DLaw::CheckParameters(Parameters& rValues)
 	{
 		return rValues.CheckAllParameters();
-	}
-
-
-	void RHTConcrete3DLaw::MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput)
-	{
-		if (rOutput.size() != GetStrainSize()) rOutput.resize(GetStrainSize(), false);
-
-		// 3D stress arrangement
-		// Normal components
-		rOutput[0] = rInput(0, 0);
-		rOutput[1] = rInput(1, 1);
-		rOutput[2] = rInput(2, 2);
-
-		// Shear components
-		rOutput[3] = 2.0 * rInput(0, 1); //xy
-		rOutput[4] = 2.0 * rInput(1, 2); //yz
-		rOutput[5] = 2.0 * rInput(0, 2); //xz
-	}
-
-
-	void RHTConcrete3DLaw::MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput)
-	{
-		if (rOutput.size1() != 3 || rOutput.size2() != 3)rOutput.resize(3, 3, false);
-
-		// 3D stress arrangement
-		// Normal components
-		rOutput(0, 0) = rInput[0];
-		rOutput(1, 1) = rInput[1];
-		rOutput(2, 2) = rInput[2];
-
-		// Shear components
-		rOutput(0, 1) = 0.5 * rInput[3]; //xy
-		rOutput(1, 2) = 0.5 * rInput[4]; //yz
-		rOutput(0, 2) = 0.5 * rInput[5]; //xz
-
-		// Fill symmetry
-		rOutput(1, 0) = rOutput(0, 1);
-		rOutput(2, 1) = rOutput(1, 2);
-		rOutput(2, 0) = rOutput(0, 2);
 	}
 
 
@@ -417,6 +381,7 @@ namespace Kratos
 		const double pressure_star = Pressure / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
 
 		// Calculate factors
+		array_1d<double,2> rate_factors = CalculateRateFactors(EPSRate, rMaterialProperties);
 		// TODO move calc rate factors out to here (CalculateRateFactors(EPSRate, rMaterialProperties);)
 
 		const double fe_elastic_factor = CalculateFeElasticFactor(pressure_star,
@@ -577,22 +542,21 @@ namespace Kratos
 		return normalized_yield;
 	}
 
-	void RHTConcrete3DLaw::CalculateRateFactors(const double EPSrate,
+	const array_1d<double, 2> RHTConcrete3DLaw::CalculateRateFactors(const double EPSrate,
 		const Properties& rMaterialProperties)
 	{
 		// ref[1] eqn11
-		if (EPSrate == 0.0) {
-			mRateFactorTension = 1.0;
-			mRateFactorCompression = 1.0;
-		}
-		else
-		{
+		array_1d<double, 2> rate_factors;
+		rate_factors[0] = 1.0; // tension
+		rate_factors[1] = 1.0; // compression
+		if (EPSrate > 0.0) {
 			const double beta_t = 1.0 / (10.0 + 0.5 * rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] / 1e6);
 			const double beta_c = 1.0 / (5.0 + 0.75 * rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] / 1e6);
 
-			mRateFactorTension = std::pow(EPSrate/ rMaterialProperties[REFERENCE_TENSION_STRAIN_RATE], beta_t);
-			mRateFactorCompression = std::pow(EPSrate/ rMaterialProperties[REFERENCE_COMPRESSION_STRAIN_RATE], beta_c);
+			rate_factors[0] = std::pow(EPSrate/ rMaterialProperties[REFERENCE_TENSION_STRAIN_RATE], beta_t);
+			rate_factors[1] = std::pow(EPSrate/ rMaterialProperties[REFERENCE_COMPRESSION_STRAIN_RATE], beta_c);
 		}
+		return rate_factors;
 	}
 
 	const array_1d<double, 2> RHTConcrete3DLaw::CalculateTriaxialityQs(const double PressureStar,
