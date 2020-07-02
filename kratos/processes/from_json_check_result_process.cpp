@@ -291,7 +291,9 @@ void FromJSONCheckResultProcess::FailMessage(
         }
     }
     #pragma omp critical
-    mErrorMessage += ss.str();
+    {
+        mErrorMessage += ss.str();
+    }
 }
 
 /***********************************************************************************/
