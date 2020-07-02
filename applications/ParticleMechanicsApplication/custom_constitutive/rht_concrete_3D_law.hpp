@@ -138,6 +138,7 @@ protected:
     double mDamage;
     double mAlpha;
     double mPoreCrushPressure;
+    double mDensityInitial;
 
 
     ///@}

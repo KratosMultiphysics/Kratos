@@ -64,6 +64,7 @@ namespace Kratos
 		mEquivalentStress = 0.0;
 		mEquivalentPlasticStrain = 0.0;
 		mEquivalentPlasticStrainRate = 0.0;
+		mDensityInitial = rMaterialProperties[DENSITY];
 	}
 
 
@@ -231,22 +232,97 @@ namespace Kratos
 	{
 		const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-		KRATOS_ERROR_IF (JC_PARAMETER_A.Key()==0 || rMaterialProperties[JC_PARAMETER_A] < 0.0) << "JC_PARAMETER_A has key zero or invalid value (expected positive number ~500MPa)" << std::endl;
-		KRATOS_ERROR_IF (JC_PARAMETER_B.Key()==0 || rMaterialProperties[JC_PARAMETER_B] < 0.0) << "JC_PARAMETER_B has key zero or invalid value (expected positive number ~500MPa)" << std::endl;
-		KRATOS_ERROR_IF (JC_PARAMETER_C.Key()==0 || rMaterialProperties[JC_PARAMETER_C] < 0.0) << "JC_PARAMETER_C has key zero or invalid value (expected positive number ~0.01)" << std::endl;
-		KRATOS_ERROR_IF (JC_PARAMETER_n.Key()==0 || rMaterialProperties[JC_PARAMETER_n] < 0.0) << "JC_PARAMETER_n has key zero or invalid value (expected positive number ~0.25)" << std::endl;
-		KRATOS_ERROR_IF (REFERENCE_STRAIN_RATE.Key()==0 || rMaterialProperties[REFERENCE_STRAIN_RATE] <= 0.0) << "REFERENCE_STRAIN_RATE has key zero or invalid value (expected positive number ~1.0)" << std::endl;
-		KRATOS_ERROR_IF (TAYLOR_QUINNEY_COEFFICIENT.Key()==0 || rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] < 0.0) << "TAYLOR_QUINNEY_COEFFICIENT has key zero or invalid value (expected positive number ~0.9)" << std::endl;
+		// Note, expected values taken from ref[1] for standard (C30/37) concrete with compressive strength of 35MPa
 
-		if (rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] > 0.0)
-		{
-			// Check parameters that affect thermal softening
-			KRATOS_ERROR_IF(JC_PARAMETER_m.Key() == 0 || rMaterialProperties[JC_PARAMETER_m] < 0.0) << "JC_PARAMETER_m has key zero or invalid value (expected positive number ~1.0)" << std::endl;
-			KRATOS_ERROR_IF(MELD_TEMPERATURE.Key() == 0 || rMaterialProperties[MELD_TEMPERATURE] <= 0.0) << "MELD_TEMPERATURE has key zero or invalid value (expected positive number ~1700K)" << std::endl;
-			KRATOS_ERROR_IF(REFERENCE_TEMPERATURE.Key() == 0 || rMaterialProperties[REFERENCE_TEMPERATURE] <= 0.0) << "REFERENCE_TEMPERATURE has key zero or invalid value (expected positive number ~293K)" << std::endl;
-			KRATOS_ERROR_IF(TEMPERATURE.Key() == 0 || rMaterialProperties[TEMPERATURE] <= 0.0) << "TEMPERATURE has key zero or invalid value (expected positive number ~293K)" << std::endl;
-			KRATOS_ERROR_IF(SPECIFIC_HEAT.Key() == 0 || rMaterialProperties[SPECIFIC_HEAT] < 0.0) << "SPECIFIC_HEAT has key zero or invalid value (expected positive number ~450.0)" << std::endl;
-		}
+		KRATOS_ERROR_IF (SHEAR_MODULUS.Key()==0 || rMaterialProperties[SHEAR_MODULUS] < 0.0)
+			<< "SHEAR_MODULUS has key zero or invalid value (expected positive number ~16700MPa)" << std::endl;
+
+		KRATOS_ERROR_IF (DENSITY.Key()==0 || rMaterialProperties[DENSITY] < 0.0)
+			<< "DENSITY has key zero or invalid value (expected positive number ~2314kg/m3)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_A.Key()==0 || rMaterialProperties[RHT_A] < 0.0)
+			<< "RHT_A has key zero or invalid value (expected positive number ~1.6)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_N.Key()==0 || rMaterialProperties[RHT_N] < 0.0)
+			<< "RHT_N has key zero or invalid value (expected positive number ~0.61)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_COMPRESSIVE_STRENGTH.Key()==0 || rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] < 0.0)
+			<< "RHT_COMPRESSIVE_STRENGTH has key zero or invalid value (expected positive number ~35MPa)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_RELATIVE_SHEAR_STRENGTH.Key()==0 || rMaterialProperties[RHT_RELATIVE_SHEAR_STRENGTH] < 0.0)
+			<< "RHT_RELATIVE_SHEAR_STRENGTH has key zero or invalid value (expected positive number ~0.18)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_RELATIVE_TENSILE_STRENGTH.Key()==0 || rMaterialProperties[RHT_RELATIVE_TENSILE_STRENGTH] < 0.0)
+			<< "RHT_RELATIVE_TENSILE_STRENGTH has key zero or invalid value (expected positive number ~0.10)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_Q0.Key()==0 || rMaterialProperties[RHT_Q0] < 0.0)
+			<< "RHT_Q0 has key zero or invalid value (expected positive number ~0.6805)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_B.Key()==0 || rMaterialProperties[RHT_B] < 0.0)
+			<< "RHT_B has key zero or invalid value (expected positive number ~0.0105)" << std::endl;
+
+		KRATOS_ERROR_IF (REFERENCE_TENSION_STRAIN_RATE.Key()==0 || rMaterialProperties[REFERENCE_TENSION_STRAIN_RATE] < 0.0)
+			<< "REFERENCE_TENSION_STRAIN_RATE has key zero or invalid value (expected positive number ~3e-6)" << std::endl;
+
+		KRATOS_ERROR_IF (REFERENCE_COMPRESSION_STRAIN_RATE.Key()==0 || rMaterialProperties[REFERENCE_COMPRESSION_STRAIN_RATE] < 0.0)
+			<< "REFERENCE_COMPRESSION_STRAIN_RATE has key zero or invalid value (expected positive number ~3e-5)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_GC_STAR.Key()==0 || rMaterialProperties[RHT_GC_STAR] < 0.0)
+			<< "RHT_GC_STAR has key zero or invalid value (expected positive number ~0.53)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_GT_STAR.Key()==0 || rMaterialProperties[RHT_GT_STAR] < 0.0)
+			<< "RHT_GT_STAR has key zero or invalid value (expected positive number ~0.7)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_SHEAR_MOD_REDUCTION_FACTOR.Key()==0 || rMaterialProperties[RHT_SHEAR_MOD_REDUCTION_FACTOR] < 0.0)
+			<< "RHT_SHEAR_MOD_REDUCTION_FACTOR has key zero or invalid value (expected positive number ~0.5)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_D1.Key()==0 || rMaterialProperties[RHT_D1] < 0.0)
+			<< "RHT_D1 has key zero or invalid value (expected positive number ~0.04)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_D2.Key()==0 || rMaterialProperties[RHT_D2] < 0.0)
+			<< "RHT_D2 has key zero or invalid value (expected positive number ~1.0)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_MIN_DAMAGED_RESIDUAL_STRAIN.Key()==0 || rMaterialProperties[RHT_MIN_DAMAGED_RESIDUAL_STRAIN] < 0.0)
+			<< "RHT_MIN_DAMAGED_RESIDUAL_STRAIN has key zero or invalid value (expected positive number ~0.01)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_AF.Key()==0 || rMaterialProperties[RHT_AF] < 0.0)
+			<< "RHT_AF has key zero or invalid value (expected positive number ~1.6)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_NF.Key()==0 || rMaterialProperties[RHT_NF] < 0.0)
+			<< "RHT_NF has key zero or invalid value (expected positive number ~0.61)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_EOS_A1.Key()==0 || rMaterialProperties[RHT_EOS_A1] < 0.0)
+			<< "RHT_EOS_A1 has key zero or invalid value (expected positive number ~3.527e10)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_EOS_A2.Key()==0 || rMaterialProperties[RHT_EOS_A2] < 0.0)
+			<< "RHT_EOS_A2 has key zero or invalid value (expected positive number ~3.958e10)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_EOS_A3.Key()==0 || rMaterialProperties[RHT_EOS_A3] < 0.0)
+			<< "RHT_EOS_A3 has key zero or invalid value (expected positive number ~9.04e9)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_EOS_B0.Key()==0 || rMaterialProperties[RHT_EOS_B0] < 0.0)
+			<< "RHT_EOS_B0 has key zero or invalid value (expected positive number ~1.22)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_EOS_B1.Key()==0 || rMaterialProperties[RHT_EOS_B1] < 0.0)
+			<< "RHT_EOS_B1 has key zero or invalid value (expected positive number ~1.22)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_EOS_T1.Key()==0 || rMaterialProperties[RHT_EOS_T1] < 0.0)
+			<< "RHT_EOS_T1 has key zero or invalid value (expected positive number ~3.527e10)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_EOS_T2.Key()==0 || rMaterialProperties[RHT_EOS_T2] < 0.0)
+			<< "RHT_EOS_T2 has key zero or invalid value (expected positive or zero number ~0.0)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_EOS_ALPHA0.Key()==0 || rMaterialProperties[RHT_EOS_ALPHA0] < 1.0)
+			<< "RHT_EOS_ALPHA0 has key zero or invalid value (expected positive number > 1.0 ~1.1884)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_EOS_NP.Key()==0 || rMaterialProperties[RHT_EOS_NP] < 0.0)
+			<< "RHT_EOS_NP has key zero or invalid value (expected positive number ~3.0)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_CRUSH_PRESSURE.Key()==0 || rMaterialProperties[RHT_CRUSH_PRESSURE] < 0.0)
+			<< "RHT_CRUSH_PRESSURE has key zero or invalid value (expected positive number ~33MPa)" << std::endl;
+
+		KRATOS_ERROR_IF (RHT_COMPACTION_PRESSURE.Key()==0 || rMaterialProperties[RHT_COMPACTION_PRESSURE] < 0.0)
+			<< "RHT_COMPACTION_PRESSURE has key zero or invalid value (expected positive number ~6000MPa)" << std::endl;
 
 		if (check_base > 1) return 1;
 		return 0;
@@ -300,7 +376,7 @@ namespace Kratos
 			if (alpha_smoothing) alpha_trial = 0.5* (alpha_trial + alpha_old);
 
 			const double nu = alpha_trial * rMaterialProperties[DENSITY] /
-				rMaterialProperties[RHT_EOS_ALPHA0] / rMaterialProperties[REFERENCE_DENSITY] - 1.0;
+				rMaterialProperties[RHT_EOS_ALPHA0] / mDensityInitial - 1.0;
 
 			if (nu >= 0.0) {
 				// Compression
