@@ -84,10 +84,6 @@ namespace Kratos
 
 	protected:
 
-		void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput) override;
-
-		void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput) override;
-
 	private:
 
 		friend class Serializer;
