@@ -3,7 +3,7 @@ import KratosMultiphysics
 
 # other imports
 from KratosMultiphysics.multiple_points_output_process import MultiplePointsOutputProcess
-import csv, os
+import csv
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -37,7 +37,7 @@ def Factory(settings, Model):
     with open(csv_file_path, mode='r', newline=None) as csv_file:
         reader = csv.DictReader(csv_file, delimiter=',')
         points = [(float(row['x']), float(row['y']), float(row['z'])) for row in reader]
-    
+        
     # initialize position matrix for sampling points
     positions = KratosMultiphysics.Matrix(len(points), 3)
     
