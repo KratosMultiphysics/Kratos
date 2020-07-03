@@ -169,14 +169,6 @@ public:
                     Vector& rOutput,
                     const ProcessInfo& rCurrentProcessInfo) override;
 
-    /// Auxiliar element check function
-    /**
-     * This function calls the base element check method and adds the
-     * current element check implementations
-     * @param rCurrentProcessInfo reference to the current process info
-     */
-    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
-
     ///@}
     ///@name Inquiry
     ///@{

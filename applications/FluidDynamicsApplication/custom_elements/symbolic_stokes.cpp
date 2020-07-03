@@ -74,22 +74,6 @@ void SymbolicStokes<TElementData>::CalculateRightHandSide(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
-template <class TElementData>
-int SymbolicStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
-{
-    KRATOS_TRY;
-    int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
-    KRATOS_ERROR_IF_NOT(out == 0)
-        << "Error in base class Check for Element " << this->Info() << std::endl
-        << "Error code is " << out << std::endl;
-
-    KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
-
-    return 0;
-
-    KRATOS_CATCH("");
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public I/O
 
