@@ -168,4 +168,4 @@ template class FluidElementData<3,6,true>;
 template class FluidElementData<3,8,false>;
 template class FluidElementData<3,8,true>;
 
-}
+} // namespace Kratos

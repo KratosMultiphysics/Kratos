@@ -142,4 +142,4 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 
 }
 
-#endif
+#endif // KRATOS_SYMBOLIC_STOKES_DATA_H
