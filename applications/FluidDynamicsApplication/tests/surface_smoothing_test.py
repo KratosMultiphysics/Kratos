@@ -39,7 +39,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             # generate random numbers between 0-1
             noise = (random()-0.5)*0.001
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,
-                (noise+math.sqrt((node.X-0.0)**2+(node.Y-0.0)**2+(node.Z-0.0)**2) - 0.008) )
+                (noise+math.sqrt((node.X+0.001)**2+(node.Y-0.001)**2+(node.Z-0.001)**2) - 0.006) )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
 
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
@@ -98,12 +98,12 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         for _ in range(1): # surface smoothing can be called multiple times
             smoothing_process.Execute()
 
-        node = (model_part.Nodes)[428]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00022061696483317178)
-        node = (model_part.Nodes)[582]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.0004197732005270892)
-        node = (model_part.Nodes)[634]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.00034132053885862427)
+        node = (model_part.Nodes)[479]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -9.389407514939123e-05)
+        node = (model_part.Nodes)[527]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 8.75742241543344e-06)
+        node = (model_part.Nodes)[673]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -4.41856961654163e-05)
 
         # gid_output = GiDOutputProcess(model_part,
         #                            "smoothing_test_3D",
@@ -152,7 +152,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             # generate random numbers between 0-1
             noise = (random()-0.5)*0.001
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,
-                (noise+math.sqrt((node.X-0.0)**2+(node.Y-0.0)**2+(node.Z-0.0)**2) - 0.008) )
+                (noise+math.sqrt((node.X+0.001)**2+(node.Y-0.001)**2+(node.Z-0.001)**2) - 0.006) )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
 
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
@@ -213,12 +213,12 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         for _ in range(1): # surface smoothing can be called multiple times
             smoothing_process_with_parameters.Execute()
 
-        node = (model_part.Nodes)[428]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00022061696483317178)
-        node = (model_part.Nodes)[582]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.0004197732005270892)
-        node = (model_part.Nodes)[634]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.00034132053885862427)
+        node = (model_part.Nodes)[479]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -9.389407514939123e-05)
+        node = (model_part.Nodes)[527]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 8.75742241543344e-06)
+        node = (model_part.Nodes)[673]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -4.41856961654163e-05)
 
         # gid_output = GiDOutputProcess(model_part,
         #                            "smoothing_test_3D",

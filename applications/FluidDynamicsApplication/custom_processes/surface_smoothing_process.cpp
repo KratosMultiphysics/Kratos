@@ -124,19 +124,21 @@ void SurfaceSmoothingProcess::Execute()
 
             auto& n_nodes = rNode.GetValue(NEIGHBOUR_NODES);
             for (unsigned int j = 0; j < n_nodes.size(); ++j) {
-                const double dx = x_i - n_nodes[j].X();
-                const double dy = y_i - n_nodes[j].Y();
-                const double dz = z_i - n_nodes[j].Z();
-                const double distance_ij = sqrt( dx*dx + dy*dy + dz*dz );
+                if (!(n_nodes[j].Is(CONTACT)) || !(rNode.Is(CONTACT))){
+                    const double dx = x_i - n_nodes[j].X();
+                    const double dy = y_i - n_nodes[j].Y();
+                    const double dz = z_i - n_nodes[j].Z();
+                    const double distance_ij = sqrt( dx*dx + dy*dy + dz*dz );
 
 #ifdef KRATOS_DEBUG
-                KRATOS_WARNING_IF("DistanceSmoothingProcess", distance_ij < 1.0e-12)
-                    << "WARNING: Neighbouring nodes are almost coinciding" << std::endl;
+                    KRATOS_WARNING_IF("DistanceSmoothingProcess", distance_ij < 1.0e-12)
+                        << "WARNING: Neighbouring nodes are almost coinciding" << std::endl;
 #endif
 
-                if (distance_ij > 1.0e-12){
-                    weight += 1.0/distance_ij;
-                    dist_diff_avg += n_nodes[j].GetValue(DISTANCE)/distance_ij;
+                    if (distance_ij > 1.0e-12){
+                        weight += 1.0/distance_ij;
+                        dist_diff_avg += n_nodes[j].GetValue(DISTANCE)/distance_ij;
+                    }
                 }
             }
 
