@@ -47,7 +47,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 else:
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:" +
                                     params["interval"].PrettyPrintJsonString())
-        self.interval = params["interval"].GetVector()
 
         self.model = model
 
@@ -63,6 +62,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         self.area_coordinates = []
         self.output_variables = []
 
+        self.interval = params["interval"].GetVector()
         self.format = self.params["print_format"].GetString()
         self.historical_value = self.params["historical_value"].GetBool()
         self.search_tolerance = self.params["search_tolerance"].GetDouble()
