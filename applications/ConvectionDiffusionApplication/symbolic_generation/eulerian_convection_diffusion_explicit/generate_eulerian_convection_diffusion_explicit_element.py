@@ -102,6 +102,7 @@ for dim in dim_vector:
     phi = DefineVector('phi',nnodes)                  # scalar unknown
     phi_old = DefineVector('phi_old',nnodes)          # scalar unknown previous time step
     phi_subscale_gauss = DefineVector('phi_subscale_gauss',ngauss) # scalar unknown on subscale space, defined on gauss integration points
+    phi_acceleration_old = DefineVector('phi_acceleration_old',nnodes)          # acceleration scalar unknown previous time step
 
     # Test functions definition
     w = DefineMatrix('w',nnodes,dim)   # vector unknown field test function (not needed)
@@ -138,6 +139,7 @@ for dim in dim_vector:
         v_gauss = v.transpose()*N
         phi_gauss = phi.transpose()*N
         phi_old_gauss = phi_old.transpose()*N
+        phi_acceleration_old_gauss = phi_acceleration_old.transpose()*N
         prj_gauss = prj.transpose()*N
 
         # Gradients and divergences computation
@@ -160,6 +162,7 @@ for dim in dim_vector:
         #####  Stabilization ASGS/OSS functional terms #####
         # ASGS/OSS Convective term
         rhs_stab_1_forcing = tau[i_gauss] * (v_gauss.transpose() * grad_q) * f_gauss
+        # rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * N.transpose() * phi_acceleration_old_gauss
         rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time)
         rhs_stab_1_convection_1 = - tau[i_gauss] * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
         rhs_stab_1_convection_2 = - tau[i_gauss] * (v_gauss.transpose() * grad_q) * phi_gauss * div_v
@@ -175,6 +178,7 @@ for dim in dim_vector:
 
         # ASGS/OSS dynamic term
         rhs_stab_2_forcing = - q_gauss.transpose() * f_gauss
+        # rhs_stab_2_mass = q_gauss.transpose() * N.transpose() * phi_acceleration_old_gauss
         rhs_stab_2_mass = q_gauss.transpose() * N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time)
         rhs_stab_2_convection_1 = q_gauss * (v_gauss.transpose() * grad_phi)
         rhs_stab_2_convection_2 = q_gauss * phi_gauss * div_v
@@ -195,6 +199,7 @@ for dim in dim_vector:
         ##### OSS step #####
         # with lhs we refer to the fact we take the strong equation on the left side
         lhs_OSS_forcing = - q_gauss.transpose() * f_gauss
+        # lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * phi_acceleration_old_gauss
         lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time))
         lhs_OSS_mass_subscale = - q_gauss.transpose() * (phi_subscale_gauss[i_gauss]/delta_time)
         lhs_OSS_diffusion = k * grad_phi.transpose() * grad_q

@@ -103,11 +103,31 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) override;
+
+    void AddExplicitContribution(
+        ProcessInfo &rCurrentProcessInfo) override;
+
     void Initialize(
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(
         const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOrthogonalSubgridScaleSystem(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Inquiry

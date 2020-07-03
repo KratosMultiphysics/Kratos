@@ -96,6 +96,50 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo)
+{
+    Matrix LeftHandSide;
+    this->CalculateLocalSystem(LeftHandSide,rRightHandSideVector,rCurrentProcessInfo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    ProcessInfo& rCurrentProcessInfo)
+{
+    VectorType RightHandSide;
+    this->CalculateLocalSystem(rLeftHandSideMatrix,RightHandSide,rCurrentProcessInfo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
+    ProcessInfo &rCurrentProcessInfo)
+{
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    auto& r_geometry = this->GetGeometry();
+    const unsigned int local_size = r_geometry.size();
+    VectorType rhs;
+    this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
+    // Add the residual contribution
+    // Note that the reaction is indeed the formulation residual
+    for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+        #pragma omp atomic
+        r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -132,6 +176,52 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Finaliz
         // Update unknown belonging to subgrid scale space on gauss integration point g
         this->UpdateUnknownSubgridScaleGaussPoint(rVariables,g);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
+    const Variable<double>& rVariable,
+    double& Output,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    auto& r_geometry = this->GetGeometry();
+    const unsigned int local_size = r_geometry.size();
+    VectorType rhs_oss;
+    this->CalculateOrthogonalSubgridScaleSystem(rhs_oss,rCurrentProcessInfo);
+    for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+        #pragma omp atomic
+        r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateOrthogonalSubgridScaleSystem(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = this->GetGeometry();
+    const unsigned int local_size = r_geometry.size();
+
+    // Resize and intialize output
+    if (rRightHandSideVector.size() != local_size)
+        rRightHandSideVector.resize(local_size, false);
+    noalias(rRightHandSideVector) = ZeroVector(local_size);
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
+
+    // Execute OSS step
+    this->CalculateOrthogonalSubgridScaleSystemInternal(rVariables,rRightHandSideVector);
 }
 
 /***********************************************************************************/
