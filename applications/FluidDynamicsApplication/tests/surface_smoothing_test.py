@@ -16,7 +16,7 @@ def GetFilePath(fileName):
 
 class TestSurfaceSmoothing(KratosUnittest.TestCase):
 
-    def test_smoothing_3d_cube(self):
+    def test_smoothing_2d_square(self):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -24,9 +24,9 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
 
-        KratosMultiphysics.ModelPartIO(GetFilePath("SurfaceSmoothingTest/three_dim_symmetrical_cube")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("SurfaceSmoothingTest/two_dim_symmetrical_square")).ReadModelPart(model_part)
 
-        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.1)
 
@@ -39,21 +39,21 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             # generate random numbers between 0-1
             noise = (random()-0.5)*0.001
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,
-                (noise+math.sqrt((node.X+0.001)**2+(node.Y-0.001)**2+(node.Z-0.001)**2) - 0.006) )
+                (noise+math.sqrt((node.X+0.001)**2+(node.Y-0.001)**2) - 0.006) )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
 
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(
                 kratos_comm, model_part).Execute()
 
-        dimensions = 3
-        avg_num_elements = 4
+        dimensions = model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        avg_num_elements = 3
         find_neighbouring_elements_process = KratosMultiphysics.FindElementalNeighboursProcess(
             model_part, dimensions, avg_num_elements).Execute()
 
         # Set IS_STRUCTURE to define contact with solid
         for node in model_part.Nodes:
-            if node.X == 0.0 or node.Y == 0.0 or node.Z == 0.0:
+            if node.X == 0.0 or node.Y == 0.0:
                 node.Set(KratosMultiphysics.CONTACT, True)
             else:
                 node.Set(KratosMultiphysics.CONTACT, False)
@@ -67,7 +67,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
 
         # Calculate boundary normals
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
-            model_part, 3)
+            model_part, model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE))
 
         KratosMultiphysics.ComputeNodalGradientProcess(
             model_part,
@@ -91,43 +91,43 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             """)
         )
 
-        smoothing_process = KratosCFD.SurfaceSmoothingProcess3D(
+        smoothing_process = KratosCFD.SurfaceSmoothingProcess2D(
            model_part,
            linear_solver)
 
-        for _ in range(1): # surface smoothing can be called multiple times
+        for _ in range(5): # surface smoothing can be called multiple times
             smoothing_process.Execute()
 
-        node = (model_part.Nodes)[479]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -9.389407514939123e-05)
-        node = (model_part.Nodes)[527]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 8.75742241543344e-06)
-        node = (model_part.Nodes)[673]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -4.41856961654163e-05)
+        #node = (model_part.Nodes)[479]
+        #self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -9.389407514939123e-05)
+        #node = (model_part.Nodes)[527]
+        #self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 8.75742241543344e-06)
+        #node = (model_part.Nodes)[673]
+        #self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -4.41856961654163e-05)
 
-        # gid_output = GiDOutputProcess(model_part,
-        #                            "smoothing_test_3D",
-        #                            KratosMultiphysics.Parameters("""
-        #                                {
-        #                                    "result_file_configuration" : {
-        #                                        "gidpost_flags": {
-        #                                            "GiDPostMode": "GiD_PostBinary",
-        #                                            "WriteDeformedMeshFlag": "WriteUndeformed",
-        #                                            "WriteConditionsFlag": "WriteConditions",
-        #                                            "MultiFileFlag": "SingleFile"
-        #                                        },
-        #                                        "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT","NORMAL"]
-        #                                    }
-        #                                }
-        #                                """)
-        #                            )
+        gid_output = GiDOutputProcess(model_part,
+                                   "smoothing_test_2D",
+                                   KratosMultiphysics.Parameters("""
+                                       {
+                                           "result_file_configuration" : {
+                                               "gidpost_flags": {
+                                                   "GiDPostMode": "GiD_PostBinary",
+                                                   "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                   "WriteConditionsFlag": "WriteConditions",
+                                                   "MultiFileFlag": "SingleFile"
+                                               },
+                                               "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT","NORMAL"]
+                                           }
+                                       }
+                                       """)
+                                   )
 
-        # gid_output.ExecuteInitialize()
-        # gid_output.ExecuteBeforeSolutionLoop()
-        # gid_output.ExecuteInitializeSolutionStep()
-        # gid_output.PrintOutput()
-        # gid_output.ExecuteFinalizeSolutionStep()
-        # gid_output.ExecuteFinalize()
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
 
     def test_smoothing_3d_cube_with_parameters(self):
         current_model = KratosMultiphysics.Model()
@@ -159,7 +159,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(
                 kratos_comm, model_part).Execute()
 
-        dimensions = 3
+        dimensions = model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         avg_num_elements = 4
         find_neighbouring_elements_process = KratosMultiphysics.FindElementalNeighboursProcess(
             model_part, dimensions, avg_num_elements).Execute()
@@ -180,7 +180,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
 
         # Calculate boundary normals
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
-            model_part, 3)
+            model_part, model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE))
 
         KratosMultiphysics.ComputeNodalGradientProcess(
             model_part,

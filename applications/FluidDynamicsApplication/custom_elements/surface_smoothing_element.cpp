@@ -249,7 +249,7 @@ void SurfaceSmoothingElement<2>::CalculateLocalSystem(
 
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const auto& geometry = this->GetGeometry();
-    const double he = ElementSizeCalculator<3,4>::AverageElementSize(geometry);
+    const double he = ElementSizeCalculator<num_dim,num_nodes>::AverageElementSize(geometry);
     const double epsilon = 1.0e2*dt*he*he;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix
@@ -402,7 +402,7 @@ void SurfaceSmoothingElement<3>::CalculateLocalSystem(
 
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const auto& geometry = this->GetGeometry();
-    const double he = ElementSizeCalculator<3,4>::AverageElementSize(geometry);
+    const double he = ElementSizeCalculator<num_dim,num_nodes>::AverageElementSize(geometry);
     const double epsilon = 1.0e2*dt*he*he;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix
