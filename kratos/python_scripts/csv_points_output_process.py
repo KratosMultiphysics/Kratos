@@ -32,7 +32,6 @@ def Factory(settings, Model):
 
     # initialize array for sampling points
     points = []
-    p_count = 0
 
     # open file and get points
     with open(csv_file_path, mode='r', newline=None) as csv_file:
