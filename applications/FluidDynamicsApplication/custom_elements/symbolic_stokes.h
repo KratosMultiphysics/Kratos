@@ -148,16 +148,6 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
-    /// Computes the elemental RHS elemental contribution
-    /**
-     * Given a distance function, computes the time integrated Right Hand Side (RHS)
-     * elemental contribution for the two-fluid element.
-     * @param rRightHandSideVector elemental residual vector
-     * @param rCurrentProcessInfo reference to the current process info
-     */
-    void CalculateRightHandSide(
-        VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
 
 
     /**

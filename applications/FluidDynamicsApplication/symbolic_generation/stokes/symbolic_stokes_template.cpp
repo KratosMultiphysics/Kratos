@@ -62,14 +62,6 @@ Element::Pointer SymbolicStokes<TElementData>::Create(
     return Kratos::make_intrusive<SymbolicStokes>(NewId, pGeom, pProperties);
 }
 
-template <class TElementData>
-void SymbolicStokes<TElementData>::CalculateRightHandSide(
-    VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo)
-{
-    MatrixType tmp;
-    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
-}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
