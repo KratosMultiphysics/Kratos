@@ -19,6 +19,13 @@ def ConstructSolver(settings):
             return eigen_solver
         else:
             raise Exception("EigenSolversApplication not available")
+    elif solver_type == "dense_eigensolver":
+        if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
+            import KratosMultiphysics.EigenSolversApplication as EiSA
+            eigen_solver = EiSA.DenseEigenvalueSolver(settings)
+            return eigen_solver
+        else:
+            raise Exception("EigenSolversApplication not available")
     elif solver_type == "feast":
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             import KratosMultiphysics.EigenSolversApplication as EiSA
