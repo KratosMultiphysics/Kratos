@@ -149,7 +149,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         
         for mpc in self.model_part.Conditions:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            mpc_coord = mpc.GetValue(KratosParticle.MPC_COORD)
+            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
 
             if self.interval.IsInInterval(current_time):
 
@@ -163,6 +163,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                             self.value[i] = self.aux_function[i].CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
                         else: #most general case - space varying function (possibly also time varying)
                             self.value[i] = self.aux_function[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0)
+                            
                         
-
-                mpc.SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT,self.value)
+                mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)

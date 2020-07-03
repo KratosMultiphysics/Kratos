@@ -68,30 +68,33 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
 
         # Compute delta quaternion
         self._ComputeDeltaQuaternion(self.rotation_velocity)
-
+        
         # Compute quaternion multiplication
         self._quaternion = self._MultiplyQuaternion(self._delta_quaternion, self._quaternion)
-
+        
         # Normalize quaternion
         self._NormalizeQuaternion(self._quaternion)
-
+        
         # Compute rotation matrix
         new_rotation_matrix = self._ComputeRotationMatrixFromQuaternion(self._quaternion)
 
         for mpc in self.model_part.Conditions:
             # Compute current radius
-            xg_c = mpc.GetValue(KratosParticle.MPC_COORD)
-            radius = xg_c - self.rotation_center
+            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
+            radius = mpc_coord - self.rotation_center
 
             # Update impose_displacement
-            imposed_disp = mpc.GetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT)
+            imposed_disp = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,self.model_part.ProcessInfo)[0]
+            
+            
             imposed_disp += new_rotation_matrix * (self._TransposeMatrix(self._rotation_matrix) * radius) - radius
-            mpc.SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT, imposed_disp)
+            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[imposed_disp],self.model_part.ProcessInfo)
 
             # Update normal vector
-            normal = mpc.GetValue(KratosParticle.MPC_NORMAL)
+            normal = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_NORMAL,self.model_part.ProcessInfo)[0]
             modified_normal = new_rotation_matrix * (self._TransposeMatrix(self._rotation_matrix) * normal)
-            mpc.SetValue(KratosParticle.MPC_NORMAL, modified_normal)
+            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_NORMAL,[modified_normal],self.model_part.ProcessInfo)
+
 
         # Copy rotation matrix
         self._rotation_matrix = new_rotation_matrix
@@ -100,7 +103,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
     def _ComputeCenterRotation(self):
         auto_rc = KratosMultiphysics.Vector(3)
         for mpc in self.model_part.Conditions:
-            auto_rc += mpc.GetValue(KratosParticle.MPC_COORD)
+            auto_rc += mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
 
         auto_rc = auto_rc / self.model_part.NumberOfConditions()
         self.rotation_center = auto_rc
@@ -112,7 +115,11 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         self._quaternion[2] = 0.0
         self._quaternion[3] = 0.0
 
-        self._delta_quaternion = self._quaternion
+        self._delta_quaternion = KratosMultiphysics.Vector(4)
+        self._delta_quaternion[0] = 1.0
+        self._delta_quaternion[1] = 0.0
+        self._delta_quaternion[2] = 0.0
+        self._delta_quaternion[3] = 0.0
 
         self._rotation_matrix = KratosMultiphysics.Matrix(3,3)
         self._rotation_matrix.fill(0.0)
