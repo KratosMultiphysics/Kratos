@@ -27,6 +27,32 @@ namespace Kratos
 template <typename TPrimalElement>
 class AdjointFiniteDifferenceNodalConcentratedElement: public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
+    class ThisExtensions : public AdjointExtensions
+    {
+        Element* mpElement;
+
+    public:
+        explicit ThisExtensions(Element* pElement);
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override;
+
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override;
+
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override;
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
+    };
+    
 public:
 
     // redefine the typedefs because of templated base class
