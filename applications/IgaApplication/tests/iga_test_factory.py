@@ -49,8 +49,20 @@ class MembraneSinglePatchFourPointSailNonLinearStatic(IgaTestFactory):
 class MembraneSinglePatchFourPointSailImplicitDynamic(IgaTestFactory):
     file_name = "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic"
 
+class MembraneMultiPatchFourPointSailLinearStatic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_multi_patch_four_point_sail_linear_static"
+
+class MembraneMultiPatchFourPointSailNonLinearStatic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_multi_patch_four_point_sail_non_linear_static"
+
+class MembraneMultiPatchFourPointSailImplicitDynamic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_multi_patch_four_point_sail_implicit_dynamic"
+
 class FormfindingMembraneSinglePatchFourPointSail(IgaTestFactory):
     file_name = "formfinding_test/Formfinding_membrane_single_patch_four_point_sail"
+
+class FormfindingMembraneMultiPatchFourPointSail(IgaTestFactory):
+    file_name = "formfinding_test/Formfinding_membrane_multi_patch_four_point_sail"
 
 if __name__ == '__main__':
     KratosUnittest.main()

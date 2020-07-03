@@ -1,0 +1,166 @@
+{
+    "problem_data": {
+        "problem_name": "Formfinding_membrane_multi_patch_four_point_sail",
+        "echo_level": 0,
+        "parallel_type": "OpenMP",
+        "start_time": 0,
+        "end_time": 0.1
+    },
+    "solver_settings": {
+        "model_part_name": "IgaModelPart",
+        "domain_size": 1,
+        "echo_level": 0,
+        "buffer_size": 2,
+        "analysis_type": "non_linear",
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
+        },
+        "computing_model_part_name": "iga_computing_model_part",
+        "material_import_settings": {
+            "materials_filename": "formfinding_test/Formfinding_membrane_multi_patch_four_point_sail_materials.json"
+        },
+        "time_stepping": {
+            "time_step": 0.1
+        },
+        "rotation_dofs": false,
+        "line_search": false,
+        "move_mesh_flag": true,
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance" : 1e-4,
+        "displacement_absolute_tolerance" : 1e-4,
+        "residual_relative_tolerance"     : 1e-4,
+        "residual_absolute_tolerance"     : 1e-4,
+        "max_iteration": 20,
+        "solver_type": "formfinding",
+        "projection_settings": {
+            "model_part_name"  : "IgaModelPart",
+            "echo_level"       : 1,
+            "projection_type"  : "planar",
+            "global_direction" : [1.0,0,0],
+            "variable_name"    : "LOCAL_PRESTRESS_AXIS_1",
+            "method_specific_settings" : { },
+            "check_local_space_dimension" : false
+        },
+        "printing_format": "none",
+        "write_formfound_geometry_file"   : false
+    },
+    "modelers": [{
+            "modeler_name": "CadIoModeler",
+            "Parameters": {
+                "cad_model_part_name": "IgaModelPart",
+                "geometry_file_name": "formfinding_test/Formfinding_membrane_multi_patch_four_point_sail_geometry.cad.json"
+            }
+        },
+        {
+            "modeler_name": "IgaModeler",
+            "Parameters": {
+                "cad_model_part_name": "IgaModelPart",
+                "analysis_model_part_name": "IgaModelPart",
+                "physics_file_name": "formfinding_test/Formfinding_membrane_multi_patch_four_point_sail_physics.iga.json"
+            }
+        }
+    ],
+    "processes": {
+	"dirichlet_process_list": [{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_1",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_2",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_3",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_4",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_5",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_6",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_7",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_8",
+                "variable_name": "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }
+	],
+        "json_check_process": [{
+            "python_module": "from_json_check_result_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "check_variables": ["DISPLACEMENT"],
+		"historical_value" : false,
+                "input_file_name": "formfinding_test/Formfinding_membrane_multi_patch_four_point_sail_result.json",
+                "model_part_name": "IgaModelPart.StructuralAnalysis",
+                "time_frequency": 0.0
+            }
+        }]
+    }
+}
