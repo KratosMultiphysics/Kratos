@@ -39,19 +39,23 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-    constexpr static std::array<unsigned int, 4> mNode0ID = {2, 0, 0, 0};
-    constexpr static std::array<unsigned int, 4> mNode1ID = {3, 3, 1, 2};
-    constexpr static std::array<unsigned int, 4> mNode2ID = {1, 2, 3, 1};
+    constexpr static std::array<unsigned int, 4> mNode0ID3D = {2, 0, 0, 0};
+    constexpr static std::array<unsigned int, 4> mNode1ID3D = {3, 3, 1, 2};
+    constexpr static std::array<unsigned int, 4> mNode2ID3D = {1, 2, 3, 1};
 
-    constexpr static unsigned int num_dim  = 3;
-    constexpr static unsigned int num_nodes  = num_dim + 1;
-    constexpr static unsigned int num_faces = num_nodes;
-    constexpr static unsigned int num_face_nodes = num_nodes - 1;
+    constexpr static std::array<unsigned int, 3> mNode0ID2D = {1, 2, 0};
+    constexpr static std::array<unsigned int, 3> mNode1ID2D = {2, 0, 1};
+
+    //constexpr static unsigned int num_dim  = 3;
+    //constexpr static unsigned int num_nodes  = num_dim + 1;
+    //constexpr static unsigned int num_faces = num_nodes;
+    //constexpr static unsigned int num_face_nodes = num_nodes - 1;
 
 /**
  * Constructor.
  */
-SurfaceSmoothingElement::SurfaceSmoothingElement(IndexType NewId)
+template< unsigned int TDim >
+SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId)
     : Element(NewId)
 {
 }
@@ -59,7 +63,8 @@ SurfaceSmoothingElement::SurfaceSmoothingElement(IndexType NewId)
 /**
  * Constructor using an array of nodes
  */
-SurfaceSmoothingElement::SurfaceSmoothingElement(IndexType NewId, const NodesArrayType& ThisNodes)
+template< unsigned int TDim >
+SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId, const NodesArrayType& ThisNodes)
     : Element(NewId, ThisNodes)
 {
 }
@@ -67,7 +72,8 @@ SurfaceSmoothingElement::SurfaceSmoothingElement(IndexType NewId, const NodesArr
 /**
  * Constructor using Geometry
  */
-SurfaceSmoothingElement::SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry)
+template< unsigned int TDim >
+SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
 }
@@ -75,7 +81,8 @@ SurfaceSmoothingElement::SurfaceSmoothingElement(IndexType NewId, GeometryType::
 /**
  * Constructor using Properties
  */
-SurfaceSmoothingElement::SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+template< unsigned int TDim >
+SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
@@ -83,7 +90,8 @@ SurfaceSmoothingElement::SurfaceSmoothingElement(IndexType NewId, GeometryType::
 /**
  * Copy Constructor
  */
-SurfaceSmoothingElement::SurfaceSmoothingElement(SurfaceSmoothingElement const& rOther)
+template< unsigned int TDim >
+SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(SurfaceSmoothingElement const& rOther)
     : Element(rOther)
 {
 }
@@ -91,7 +99,8 @@ SurfaceSmoothingElement::SurfaceSmoothingElement(SurfaceSmoothingElement const& 
 /**
  * Destructor
  */
-SurfaceSmoothingElement::~SurfaceSmoothingElement()
+template< unsigned int TDim >
+SurfaceSmoothingElement<TDim>::~SurfaceSmoothingElement()
 {
 }
 
@@ -100,7 +109,8 @@ SurfaceSmoothingElement::~SurfaceSmoothingElement()
 ///@{
 
 /// Assignment operator.
-SurfaceSmoothingElement & SurfaceSmoothingElement::operator=(SurfaceSmoothingElement const& rOther)
+template< unsigned int TDim >
+SurfaceSmoothingElement<TDim> & SurfaceSmoothingElement<TDim>::operator=(SurfaceSmoothingElement const& rOther)
 {
     BaseType::operator=(rOther);
     Flags::operator =(rOther);
@@ -124,7 +134,8 @@ SurfaceSmoothingElement & SurfaceSmoothingElement::operator=(SurfaceSmoothingEle
  * @param pProperties: the properties assigned to the new element
  * @return a Pointer to the new element
  */
-Element::Pointer SurfaceSmoothingElement::Create(
+template< unsigned int TDim >
+Element::Pointer SurfaceSmoothingElement<TDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
@@ -141,7 +152,8 @@ Element::Pointer SurfaceSmoothingElement::Create(
  * @param pProperties: the properties assigned to the new element
  * @return a Pointer to the new element
  */
-Element::Pointer SurfaceSmoothingElement::Create(
+template< unsigned int TDim >
+Element::Pointer SurfaceSmoothingElement<TDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
@@ -158,7 +170,8 @@ Element::Pointer SurfaceSmoothingElement::Create(
  * @param pProperties: the properties assigned to the new element
  * @return a Pointer to the new element
  */
-Element::Pointer SurfaceSmoothingElement::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
+template< unsigned int TDim >
+Element::Pointer SurfaceSmoothingElement<TDim>::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<SurfaceSmoothingElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
@@ -171,8 +184,11 @@ Element::Pointer SurfaceSmoothingElement::Clone(IndexType NewId, NodesArrayType 
  * @param rResult: the elemental equation ID vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void SurfaceSmoothingElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
+template< unsigned int TDim >
+void SurfaceSmoothingElement<TDim>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
+    const unsigned int num_nodes = TDim + 1;
+
     // num_dof = num_nodes
     if (rResult.size() != num_nodes){
         rResult.resize(num_nodes, false);
@@ -188,8 +204,11 @@ void SurfaceSmoothingElement::EquationIdVector(EquationIdVectorType& rResult, co
  * @param ElementalDofList: the list of DOFs
  * @param rCurrentProcessInfo: the current process info instance
  */
-void SurfaceSmoothingElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const
+template< unsigned int TDim >
+void SurfaceSmoothingElement<TDim>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
+    const unsigned int num_nodes = TDim + 1;
+
     // Here, num_dof = num_nodes
     if (rElementalDofList.size() != num_nodes){
         rElementalDofList.resize(num_nodes);
@@ -215,12 +234,171 @@ void SurfaceSmoothingElement::GetDofList(DofsVectorType& rElementalDofList, cons
  * @param rRightHandSideVector: the elemental right hand side
  * @param rCurrentProcessInfo: the current process info instance
  */
-void SurfaceSmoothingElement::CalculateLocalSystem(
+template< >
+void SurfaceSmoothingElement<2>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    constexpr static unsigned int num_dim  = 2;
+    constexpr static unsigned int num_nodes  = num_dim + 1;
+    constexpr static unsigned int num_faces = num_nodes;
+    constexpr static unsigned int num_face_nodes = num_nodes - 1;
+
+    const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
+    const auto& geometry = this->GetGeometry();
+    const double he = ElementSizeCalculator<3,4>::AverageElementSize(geometry);
+    const double epsilon = 1.0e2*dt*he*he;
+
+    BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix
+    array_1d<double,num_nodes> N; // dimension = number of nodes . Position of the gauss point
+
+    array_1d<double,num_nodes> phi_dof; //dimension = number of DOFs, needed since we are using a residualbased approach
+    array_1d<double,num_nodes> phi_old; //dimension = number of DOFs
+    array_1d<VectorType,num_nodes> grad_phi_old;
+
+    BoundedMatrix<double,num_nodes,num_nodes> tempM = ZeroMatrix(num_nodes,num_nodes);
+    BoundedMatrix<double,num_nodes,num_nodes> tempA = ZeroMatrix(num_nodes,num_nodes);
+
+    array_1d<double,num_nodes> tempBCRHS = ZeroVector(num_nodes);
+
+    if(rLeftHandSideMatrix.size1() != num_nodes) // be carefull that num_dof = num_nodes
+        rLeftHandSideMatrix.resize(num_nodes,num_nodes,false); //resizing the system in case it does not have the right size
+
+    if(rRightHandSideVector.size() != num_nodes)
+        rRightHandSideVector.resize(num_nodes,false);
+
+    // Getting data for the given geometry
+    double volume;
+    GeometryUtils::CalculateGeometryData(geometry, DN_DX, N, volume); //asking for gradients and other info
+
+    for(unsigned int i = 0; i<num_nodes; i++){
+        phi_old[i] = geometry[i].FastGetSolutionStepValue(DISTANCE, 1);
+        phi_dof[i] = geometry[i].FastGetSolutionStepValue(DISTANCE);
+        grad_phi_old[i] = geometry[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
+    }
+
+    for(unsigned int i = 0; i<num_nodes; i++){
+        for(unsigned int j = 0; j<num_nodes; j++){
+            tempM(i,j) = volume*N[i]*N[j];
+
+            for (unsigned int k = 0; k<num_dim; k++){
+                tempA(i,j) += volume*epsilon*DN_DX(i,k)*DN_DX(j,k);
+            }
+        }
+    }
+
+    // Implementing the boundary condition on distance gradient: can be implemented
+    // by a custom condition for a more general case
+    const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+
+    for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
+        if (neighbour_elems[ i_ne ].Id() == this->Id() ){
+            auto outer_face = Line3D2< GeometryType::PointType >(
+                                    geometry.pGetPoint(mNode0ID2D[i_ne]),
+                                    geometry.pGetPoint(mNode1ID2D[i_ne]));
+
+            unsigned int contact_node = 0;
+            for (unsigned int i=0; i < num_face_nodes; ++i){
+                if ( outer_face[i].Is(CONTACT) ){
+                    contact_node++;
+                }
+            }
+
+            if (contact_node == num_face_nodes){
+                auto IntegrationMethod = GeometryData::GI_GAUSS_1;
+                auto face_gauss_pts = outer_face.IntegrationPoints(IntegrationMethod);
+                const unsigned int num_int_pts = face_gauss_pts.size();
+
+                std::vector < GeometryType::CoordinatesArrayType > face_gauss_pts_gl_coords, face_gauss_pts_loc_coords;
+                face_gauss_pts_gl_coords.clear();
+                face_gauss_pts_loc_coords.clear();
+                face_gauss_pts_gl_coords.reserve(num_int_pts);
+                face_gauss_pts_loc_coords.reserve(num_int_pts);
+
+                VectorType face_jacobians;
+                outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);
+
+                Kratos::Vector face_shape_func;
+                GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
+                GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
+                VectorType solid_normal = ZeroVector(num_dim);
+
+                // Get the original geometry shape function and gradients values over the intersection
+                for (unsigned int i_gauss = 0; i_gauss < num_int_pts; ++i_gauss) {
+                    // Store the Gauss points weights
+                    const double face_weight = face_jacobians(i_gauss) * face_gauss_pts[i_gauss].Weight();
+
+                    // Compute the global coordinates of the face Gauss pt.
+                    global_coords = outer_face.GlobalCoordinates(global_coords, face_gauss_pts[i_gauss].Coordinates());
+
+                    // Compute the parent geometry local coordinates of the Gauss pt.
+                    loc_coords = geometry.PointLocalCoordinates(loc_coords, global_coords);
+
+                    // Compute shape function values
+                    // Obtain the parent subgeometry shape function values
+                    face_shape_func = geometry.ShapeFunctionsValues(face_shape_func, loc_coords);
+
+                    double temp_value = 0.0;
+
+                    for (unsigned int i = 0; i < num_nodes; i++){
+                        if (geometry[i].Is(CONTACT) )
+                        {
+                            solid_normal = geometry[i].FastGetSolutionStepValue(NORMAL);
+                            const double norm = Kratos::norm_2(solid_normal);
+#ifdef KRATOS_DEBUG
+                            KRATOS_WARNING_IF("DistanceSmoothingElement", norm < 1.0e-12) << "WARNING: Normal close to zero" <<std::endl;
+#endif
+                            solid_normal = (1.0/norm)*solid_normal;
+                        }
+
+                        temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, grad_phi_old[i]);
+                    }
+
+                    for (unsigned int i = 0; i < num_nodes; i++){
+                        tempBCRHS[i] += epsilon * temp_value * face_weight * face_shape_func(i);
+                    }
+                }
+            }
+
+        }
+    }
+
+    noalias(rLeftHandSideMatrix) = tempM + tempA;
+    noalias(rRightHandSideVector) = tempBCRHS + prod(tempM,phi_old) - prod(rLeftHandSideMatrix,phi_dof);
+
+    KRATOS_CATCH("");
+}
+
+/**
+ * ELEMENTS inherited from this class have to implement next
+ * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
+ * they can be managed internally with a private method to do the same calculations
+ * only once: MANDATORY
+ */
+
+/**
+ * this is called during the assembling process in order
+ * to calculate all elemental contributions to the global system
+ * matrix and the right hand side
+ * @param rLeftHandSideMatrix: the elemental left hand side matrix
+ * @param rRightHandSideVector: the elemental right hand side
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+template< >
+void SurfaceSmoothingElement<3>::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    constexpr static unsigned int num_dim  = 3;
+    constexpr static unsigned int num_nodes  = num_dim + 1;
+    constexpr static unsigned int num_faces = num_nodes;
+    constexpr static unsigned int num_face_nodes = num_nodes - 1;
 
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const auto& geometry = this->GetGeometry();
@@ -272,9 +450,9 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
         if (neighbour_elems[ i_ne ].Id() == this->Id() ){
             auto outer_face = Triangle3D3< GeometryType::PointType >(
-                                    geometry.pGetPoint(mNode0ID[i_ne]),
-                                    geometry.pGetPoint(mNode1ID[i_ne]),
-                                    geometry.pGetPoint(mNode2ID[i_ne]));
+                                    geometry.pGetPoint(mNode0ID3D[i_ne]),
+                                    geometry.pGetPoint(mNode1ID3D[i_ne]),
+                                    geometry.pGetPoint(mNode2ID3D[i_ne]));
 
             unsigned int contact_node = 0;
             for (unsigned int i=0; i < num_face_nodes; ++i){
@@ -357,7 +535,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
  * @param rCurrentProcessInfo
  * this method is: MANDATORY
  */
-int SurfaceSmoothingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+template< unsigned int TDim >
+int SurfaceSmoothingElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -398,7 +577,8 @@ int SurfaceSmoothingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
 /// Turn back information as a string.
 
-std::string SurfaceSmoothingElement::Info() const {
+template< unsigned int TDim >
+std::string SurfaceSmoothingElement<TDim>::Info() const {
     std::stringstream buffer;
     buffer << "SurfaceSmoothingElement #" << Id();
     return buffer.str();
@@ -406,13 +586,15 @@ std::string SurfaceSmoothingElement::Info() const {
 
 /// Print information about this object.
 
-void SurfaceSmoothingElement::PrintInfo(std::ostream& rOStream) const {
+template< unsigned int TDim >
+void SurfaceSmoothingElement<TDim>::PrintInfo(std::ostream& rOStream) const {
     rOStream << "SurfaceSmoothingElement #" << Id();
 }
 
 /// Print object's data.
 
-void SurfaceSmoothingElement::PrintData(std::ostream& rOStream) const {
+template< unsigned int TDim >
+void SurfaceSmoothingElement<TDim>::PrintData(std::ostream& rOStream) const {
     pGetGeometry()->PrintData(rOStream);
 }
 
@@ -470,7 +652,8 @@ void SurfaceSmoothingElement::PrintData(std::ostream& rOStream) const {
 ///@name Serialization
 ///@{
 
-void SurfaceSmoothingElement::save(Serializer& rSerializer) const
+template< unsigned int TDim >
+void SurfaceSmoothingElement<TDim>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
 
@@ -478,7 +661,8 @@ void SurfaceSmoothingElement::save(Serializer& rSerializer) const
     // To be completed with the class member list
 }
 
-void SurfaceSmoothingElement::load(Serializer& rSerializer)
+template< unsigned int TDim >
+void SurfaceSmoothingElement<TDim>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
 
@@ -507,15 +691,20 @@ void SurfaceSmoothingElement::load(Serializer& rSerializer)
 ///@{
 
 /// input stream function
-inline std::istream & operator >> (std::istream& rIStream, SurfaceSmoothingElement& rThis);
+template< unsigned int TDim >
+inline std::istream & operator >> (std::istream& rIStream, SurfaceSmoothingElement<TDim>& rThis);
 
 /// output stream function
-inline std::ostream & operator << (std::ostream& rOStream, const SurfaceSmoothingElement& rThis)
+template< unsigned int TDim >
+inline std::ostream & operator << (std::ostream& rOStream, const SurfaceSmoothingElement<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
     rThis.PrintData(rOStream);
     return rOStream;
 }
+
+template class SurfaceSmoothingElement<2>;
+template class SurfaceSmoothingElement<3>;
 
 } // namespace Kratos.

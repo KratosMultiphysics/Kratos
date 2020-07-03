@@ -60,6 +60,7 @@ namespace Kratos
 /// Based on Tornberg, Anna-Karin, and Björn Engquist. "A finite element based level-set method
 /// for multiphase flow applications." Computing and Visualization in Science 3, no. 1-2 (2000): 93-101.
 /// The algorithm is improved by imposing a boundary condition and a correction step.
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) SurfaceSmoothingProcess : public Process
 {
 public:
@@ -69,9 +70,9 @@ public:
     /// Pointer definition of SurfaceSmoothingProcess
     KRATOS_CLASS_POINTER_DEFINITION(SurfaceSmoothingProcess);
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> TSparseSpace;
-    typedef UblasSpace<double, Matrix, Vector> TDenseSpace;
-    typedef LinearSolver<TSparseSpace, TDenseSpace > TLinearSolver;
+    //typedef UblasSpace<double, CompressedMatrix, Vector> TSparseSpace;
+    //typedef UblasSpace<double, Matrix, Vector> TDenseSpace;
+    //typedef LinearSolver<TSparseSpace, TDenseSpace > TLinearSolver;
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
     typedef typename SchemeType::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
@@ -84,7 +85,7 @@ public:
     /// Constructor.
     SurfaceSmoothingProcess(
         ModelPart& rModelPart,
-        TLinearSolver::Pointer);
+        typename TLinearSolver::Pointer);
 
     /// Constructor with Kratos parameters.
     SurfaceSmoothingProcess(
@@ -168,7 +169,7 @@ private:
 
     std::string mAuxModelPartName = "Aux_Smoothing_Model_Part";
 
-    SolvingStrategyType::UniquePointer mp_solving_strategy;
+    typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
     ///@}
     ///@name Protected Operators
@@ -179,7 +180,7 @@ private:
     ///@{
 
     void CreateSolutionStrategy(
-        TLinearSolver::Pointer pLinearSolver,
+        typename TLinearSolver::Pointer pLinearSolver,
         BuilderSolverPointerType pBuilderAndSolver);
 
     /**

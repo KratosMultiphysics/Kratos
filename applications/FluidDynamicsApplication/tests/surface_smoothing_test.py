@@ -91,7 +91,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             """)
         )
 
-        smoothing_process = KratosCFD.SurfaceSmoothingProcess(
+        smoothing_process = KratosCFD.SurfaceSmoothingProcess3D(
            model_part,
            linear_solver)
 
@@ -206,7 +206,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             }
             """)
 
-        smoothing_process_with_parameters = KratosCFD.SurfaceSmoothingProcess(
+        smoothing_process_with_parameters = KratosCFD.SurfaceSmoothingProcess3D(
            current_model,
            settings)
 

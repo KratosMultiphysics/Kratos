@@ -25,9 +25,10 @@ namespace Kratos
 {
 
 /* Public functions *******************************************************/
-SurfaceSmoothingProcess::SurfaceSmoothingProcess(
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::SurfaceSmoothingProcess(
     ModelPart& rModelPart,
-    TLinearSolver::Pointer plinear_solver)
+    typename TLinearSolver::Pointer plinear_solver)
     : Process(),
       mrModelPart(rModelPart)
 {
@@ -39,7 +40,8 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
     CreateSolutionStrategy(plinear_solver, p_builder_solver);
 }
 
-SurfaceSmoothingProcess::SurfaceSmoothingProcess(
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::SurfaceSmoothingProcess(
     ModelPart& rModelPart,
     Parameters& rParameters)
     : Process(),
@@ -48,7 +50,7 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
     // Generate an auxilary model part and populate it by elements of type SurfaceSmoothingElement
     CreateAuxModelPart();
 
-    TLinearSolver::Pointer plinear_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
+    typename TLinearSolver::Pointer plinear_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
         rParameters["linear_solver_settings"]);
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
@@ -56,7 +58,8 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
     CreateSolutionStrategy(plinear_solver, p_builder_solver);
 }
 
-SurfaceSmoothingProcess::SurfaceSmoothingProcess(
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::SurfaceSmoothingProcess(
     Model &rModel,
     Parameters &rParameters)
     : Process(),
@@ -65,7 +68,7 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
     // Generate an auxilary model part and populate it by elements of type SurfaceSmoothingElement
     CreateAuxModelPart();
 
-    TLinearSolver::Pointer plinear_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
+    typename TLinearSolver::Pointer plinear_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
         rParameters["linear_solver_settings"]);
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
@@ -73,7 +76,8 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
     CreateSolutionStrategy(plinear_solver, p_builder_solver);
 }
 
-void SurfaceSmoothingProcess::CreateAuxModelPart()
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+void SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::CreateAuxModelPart()
 {
     Model& current_model = mrModelPart.GetModel();
     if(current_model.HasModelPart( mAuxModelPartName ))
@@ -82,12 +86,12 @@ void SurfaceSmoothingProcess::CreateAuxModelPart()
     // Generate AuxModelPart
     ModelPart& r_smoothing_model_part = current_model.CreateModelPart( mAuxModelPartName );
 
-    Element::Pointer p_smoothing_element = Kratos::make_intrusive<SurfaceSmoothingElement>();
+    Element::Pointer p_smoothing_element = Kratos::make_intrusive<SurfaceSmoothingElement<TDim>>();
 
     ConnectivityPreserveModeler modeler;
     modeler.GenerateModelPart(mrModelPart, r_smoothing_model_part, *p_smoothing_element);
 
-    const unsigned int buffer_size = mrModelPart.GetBufferSize();
+    const unsigned int buffer_size = r_smoothing_model_part.GetBufferSize();
     KRATOS_ERROR_IF(buffer_size < 2) << "Buffer size should be at least 2" << std::endl;
 
     // Adding DISTANCE to the solution variables is not needed if it is already a solution variable of the problem
@@ -97,7 +101,8 @@ void SurfaceSmoothingProcess::CreateAuxModelPart()
     VariableUtils().AddDof<Variable<double> >(DISTANCE, r_smoothing_model_part);
 }
 
-void SurfaceSmoothingProcess::Execute()
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+void SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Execute()
 {
     KRATOS_TRY;
 
@@ -154,24 +159,29 @@ void SurfaceSmoothingProcess::Execute()
     KRATOS_CATCH("");
 }
 
-void SurfaceSmoothingProcess::ExecuteInitialize()
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+void SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::ExecuteInitialize()
 {
     KRATOS_TRY;
     KRATOS_CATCH("");
 }
 
-void SurfaceSmoothingProcess::ExecuteBeforeSolutionLoop() {
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+void SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::ExecuteBeforeSolutionLoop() {
     this->ExecuteInitializeSolutionStep();
     this->ExecuteFinalizeSolutionStep();
 }
 
-void SurfaceSmoothingProcess::ExecuteInitializeSolutionStep() {
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+void SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::ExecuteInitializeSolutionStep() {
 }
 
-void SurfaceSmoothingProcess::ExecuteFinalizeSolutionStep() {
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+void SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::ExecuteFinalizeSolutionStep() {
 }
 
-void SurfaceSmoothingProcess::Clear()
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+void SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Clear()
 {
     Model& r_model = mrModelPart.GetModel();
     ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
@@ -181,30 +191,38 @@ void SurfaceSmoothingProcess::Clear()
     mp_solving_strategy->Clear();
 }
 
-void SurfaceSmoothingProcess::CreateSolutionStrategy(
-        TLinearSolver::Pointer pLinearSolver,
-        BuilderSolverPointerType pBuilderAndSolver)
-    {
-        // Generate a linear solver strategy
-        auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+void SurfaceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::CreateSolutionStrategy(
+    typename TLinearSolver::Pointer pLinearSolver,
+    BuilderSolverPointerType pBuilderAndSolver)
+{
+    // Generate a linear solver strategy
+    auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
 
-        Model& r_model = mrModelPart.GetModel();
-        ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
+    Model& r_model = mrModelPart.GetModel();
+    ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
 
-        bool CalculateReactions = false;
-        bool ReformDofAtEachIteration = false;
-        bool CalculateNormDxFlag = false;
+    bool CalculateReactions = false;
+    bool ReformDofAtEachIteration = false;
+    bool CalculateNormDxFlag = false;
 
-        mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
-            r_smoothing_model_part,
-            p_scheme,
-            pLinearSolver,
-            pBuilderAndSolver,
-            CalculateReactions,
-            ReformDofAtEachIteration,
-            CalculateNormDxFlag);
+    mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+        r_smoothing_model_part,
+        p_scheme,
+        pLinearSolver,
+        pBuilderAndSolver,
+        CalculateReactions,
+        ReformDofAtEachIteration,
+        CalculateNormDxFlag);
 
-        mp_solving_strategy->Check();
-    }
+    mp_solving_strategy->Check();
+}
+
+typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
+typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
+template class SurfaceSmoothingProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>;
+template class SurfaceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>;
 
 }; // namespace Kratos

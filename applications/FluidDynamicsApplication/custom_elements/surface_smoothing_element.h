@@ -45,6 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template< unsigned int TDim >
 class SurfaceSmoothingElement : public Element
 {
 public:

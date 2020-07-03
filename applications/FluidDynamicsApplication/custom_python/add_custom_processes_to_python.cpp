@@ -58,7 +58,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     py::class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
@@ -149,11 +148,18 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("SmoothDistanceField", &TwoFluidsInletProcess::SmoothDistanceField)
     ;
 
-    py::class_<SurfaceSmoothingProcess, SurfaceSmoothingProcess::Pointer, Process> (m, "SurfaceSmoothingProcess")
+    py::class_<SurfaceSmoothingProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, SurfaceSmoothingProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"SurfaceSmoothingProcess2D")
     .def(py::init< ModelPart&, LinearSolverType::Pointer >())
     .def(py::init< ModelPart&, Parameters& >())
     .def(py::init< Model&, Parameters& >())
-    .def("Clear", &SurfaceSmoothingProcess::Clear)
+    .def("Clear", &SurfaceSmoothingProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear)
+    ;
+
+    py::class_<SurfaceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, SurfaceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"SurfaceSmoothingProcess3D")
+    .def(py::init< ModelPart&, LinearSolverType::Pointer >())
+    .def(py::init< ModelPart&, Parameters& >())
+    .def(py::init< Model&, Parameters& >())
+    .def("Clear", &SurfaceSmoothingProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear)
     ;
 }
 
