@@ -198,7 +198,8 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointLHSContribution(
     {
         dt_inv = 1.0/dt;
     }
-    if (std::abs(bdf0) < 1e-9)
+    // if bdf coefficient is not set, we solve the stationary problem
+    if (std::abs(bdf0) < 1e-09)
     {
         dt_inv = 0.0;
     }
