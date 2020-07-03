@@ -31,6 +31,7 @@
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_reaction_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_test_response_function.h"
 
 namespace Kratos {
 namespace Python {
@@ -77,6 +78,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<AdjointNodalDisplacementResponseFunction, AdjointNodalDisplacementResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointNodalDisplacementResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
+    
+    py::class_<AdjointTestResponseFunction, AdjointTestResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "AdjointTestResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
     py::class_<AdjointLinearStrainEnergyResponseFunction, AdjointLinearStrainEnergyResponseFunction::Pointer, AdjointResponseFunction>
