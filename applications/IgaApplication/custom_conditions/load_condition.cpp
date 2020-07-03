@@ -59,12 +59,41 @@ namespace Kratos
             // Shape function values for all integration points
             const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
+            const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
+            const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+
             for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
             {
                 // Differential area
                 const double integration_weight = integration_points[point_number].Weight();
 
-                const double d_weight = integration_weight * determinat_jacobian_vector[point_number];
+                //const double d_weight = integration_weight * determinat_jacobian_vector[point_number];
+
+                // calculate initial determinant jacobian 
+                Vector g1 = ZeroVector(GetGeometry().WorkingSpaceDimension());
+                Vector g2 = ZeroVector(GetGeometry().WorkingSpaceDimension());
+
+                const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+                for (SizeType i=0;i<number_of_nodes;++i){
+                    g1[0] += GetGeometry().GetPoint( i ).X0() * shape_functions_gradients_i(i, 0);
+                    g1[1] += GetGeometry().GetPoint( i ).Y0() * shape_functions_gradients_i(i, 0);
+                    g1[2] += GetGeometry().GetPoint( i ).Z0() * shape_functions_gradients_i(i, 0);
+
+                    g2[0] += GetGeometry().GetPoint( i ).X0() * shape_functions_gradients_i(i, 1);
+                    g2[1] += GetGeometry().GetPoint( i ).Y0() * shape_functions_gradients_i(i, 1);
+                    g2[2] += GetGeometry().GetPoint( i ).Z0() * shape_functions_gradients_i(i, 1);
+                }
+
+                Vector a3_tilde = ZeroVector(GetGeometry().WorkingSpaceDimension());
+
+                //not-normalized base vector 3
+                MathUtils<double>::CrossProduct(a3_tilde, g1, g2);
+
+                //differential area dA
+                double dA = norm_2(a3_tilde);
+
+                const double d_weight = integration_weight * dA;
 
                 // Split only due to different existing variable names
                 // No check included, which checks correctness of variable
