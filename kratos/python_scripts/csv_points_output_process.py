@@ -6,21 +6,21 @@ from KratosMultiphysics.multiple_points_output_process import MultiplePointsOutp
 import csv, os
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
     params = settings["Parameters"]
 
     default_settings = KratosMultiphysics.Parameters('''{
-        "help"              : "This process writes output for several points given in a .csv-file ('csv_file_path') to a file. Internally it holds an object of type MultiplePointsOutputProcess. Usage: The first line of the .csv-file should state the column names: 'x,y,z'. The following rows should each be one point with its x,y and z value in the respective column of the .csv-file, separated by a comma.",
-        "model_part_name"   : "",
-        "entity_type"       : "element",
-        "csv_file_path"         : "",
-        "output_variables"  : [],
-        "historical_value"  : true,
-        "search_tolerance"  : 1e-6,
-        "print_format"      : "",
-        "output_file_settings": {}
+        "help"                 : "This process writes output for several points given in a .csv-file ('csv_file_path') to a file. Internally it holds an object of type MultiplePointsOutputProcess. Usage: The first line of the .csv-file should state the column names: 'x,y,z'. The following rows should each be one point with its x,y and z value in the respective column of the .csv-file, separated by a comma.",
+        "model_part_name"      : "",
+        "entity_type"          : "element",
+        "csv_file_path"        : "",
+        "output_variables"     : [],
+        "historical_value"     : true,
+        "search_tolerance"     : 1e-6,
+        "print_format"         : "",
+        "output_file_settings" : {}
     }''')
 
     params.ValidateAndAssignDefaults(default_settings)
@@ -35,24 +35,21 @@ def Factory(settings, Model):
     p_count = 0
 
     # open file and get points
-    with open(csv_file_path, newline=None) as file:
-        reader = csv.DictReader(file, delimiter=',')
-        for p_count, row in enumerate(reader):
-            points.append([float(row['x']), float(row['y']), float(row['z'])])
+    with open(csv_file_path, mode='r', newline=None) as csv_file:
+        reader = csv.DictReader(csv_file, delimiter=',')
+        points = [(float(row['x']), float(row['y']), float(row['z'])) for row in reader]
     
     # initialize position matrix for sampling points
-    p_count += 1
-    positions = KratosMultiphysics.Matrix(p_count, 3)
+    positions = KratosMultiphysics.Matrix(len(points), 3)
     
     # add position of sampling point
-    for c in range(0, p_count):
-        positions[c, 0] = points[c][0]
-        positions[c, 1] = points[c][1]
-        positions[c, 2] = points[c][2]
+    for i, coords in enumerate(points):
+        positions[i, 0] = coords[0]
+        positions[i, 1] = coords[1]
+        positions[i, 2] = coords[2]
 
     # adapt process parameters to MultiplePointsOutputProcess
     params.RemoveValue("csv_file_path")
-    params.RemoveValue("file_type")
     params.AddEmptyValue("positions")
     params["positions"].SetMatrix(positions)
 
