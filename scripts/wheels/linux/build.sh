@@ -100,6 +100,7 @@ build() {
   if [[ $useCotire == "ON" ]];
   then
     cmake --build "${KRATOS_ROOT}/build/Release" --target all_unity -- -j1 && \
+    cmake --build "${KRATOS_ROOT}/build/Release" --target zlibstatic -- -j1 && \
     cmake --build "${KRATOS_ROOT}/build/Release" --target install/fast -- -j1
   else
     cmake --build "${KRATOS_ROOT}/build/Release" --target install -- -j"$cpus"
