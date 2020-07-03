@@ -351,15 +351,12 @@ public:
                     tmpPhiElemental[iNode * 3 + iXYZ] = PhiElemental[iNode * 6 + disp_shifter + iXYZ];
                 }
             }
-            rRHS_Contribution += prec_prod(element_LHS_derivative, tmpPhiElemental);
+            rRHS_Contribution -= prec_prod(element_LHS_derivative, tmpPhiElemental);
         }
         else
         {
-            rRHS_Contribution += prec_prod(element_LHS_derivative, PhiElemental);
+            rRHS_Contribution -= prec_prod(element_LHS_derivative, PhiElemental);
         }
-
-        // Negate the RHS
-        rRHS_Contribution *= -1.0;
 
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
