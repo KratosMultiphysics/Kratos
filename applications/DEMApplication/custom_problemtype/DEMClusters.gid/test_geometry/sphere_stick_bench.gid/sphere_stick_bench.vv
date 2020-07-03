@@ -1,12 +1,12 @@
-BeginZE /home/farrufat/Downloads/cluster_creation/homebrew/unix/jarrav9.gid/jarrav9.vv
-   x -218.163589477539062 154.655914306640625
-   y 244.62542724609375 -17.8148136138916016
-   z -272.962005615234375 248.889434814453125
-   e 124.902114868164062
-   v 0.273125708103179932 0.82602769136428833 0.0720282718539237976
-   r -0.48774227499961853
-   m -0.375019609928131104 0.52148127555847168 -0.766431689262390137 0 0.380956351757049561 0.840428531169891357 0.385424613952636719 0 0.845122754573822021 -0.147435218095779419 -0.513838768005371094 0 0 0 0 1
-   c 0.492867350578308105 135.489120483398438 12.036290168762207
+BeginZE /home/farrufat/Downloads/cluster_creation/homebrew/unix/sphere_stick_bench.gid/sphere_stick_bench.vv
+   x -39.724090576171875 26.5383777618408203
+   y 19.8874168395996094 -26.9663658142089844
+   z -89.8581695556640625 89.7981414794921875
+   e 22.6341304779052734
+   v -0 -0 -8.74227800037247454e-08
+   r -0.999999999999996225
+   m 1 -1.74845553146951715e-07 0 0 1.74845553146951715e-07 1 0 0 0 0 1 0 0 0 0 1
+   c -0.0128778405487537384 -7.30851554870605469 0.0300153978168964386
    pd 0
    pno 0
    pfo 0
@@ -29,7 +29,7 @@ BeginZE /home/farrufat/Downloads/cluster_creation/homebrew/unix/jarrav9.gid/jarr
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/farrufat/Downloads/cluster_creation/homebrew/unix/jarrav9.gid/jarrav9.vv
+EndZE /home/farrufat/Downloads/cluster_creation/homebrew/unix/sphere_stick_bench.gid/sphere_stick_bench.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
