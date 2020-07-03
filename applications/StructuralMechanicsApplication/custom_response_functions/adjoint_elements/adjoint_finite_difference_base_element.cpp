@@ -24,6 +24,7 @@
 #include "custom_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/small_displacement.h"
 #include "custom_elements/spring_damper_element_3D2N.hpp"
+#include "custom_elements/nodal_concentrated_element.hpp"
 
 
 namespace Kratos
@@ -679,6 +680,7 @@ template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
 template class AdjointFiniteDifferencingBaseElement<SpringDamperElement3D2N>;
+template class AdjointFiniteDifferencingBaseElement<NodalConcentratedElement>;
 
 } // namespace Kratos
 

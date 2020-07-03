@@ -44,6 +44,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_small_displacement_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_spring_damper_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_nodal_concentrated_element.h"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -455,6 +456,7 @@ private:
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
     const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement3D2N>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
+    const AdjointFiniteDifferenceNodalConcentratedElement<NodalConcentratedElement>  mAdjointFiniteDifferenceNodalConcentratedDampedElement3D1N;
 
     /* CONDITIONS*/
     // Point load
@@ -923,7 +925,7 @@ private:
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
     // Anisotropic law
-    
+
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
 #endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 
