@@ -212,7 +212,7 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointLHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
 
@@ -256,7 +256,7 @@ void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointLHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
     double dt_inv = 0.0;
@@ -300,7 +300,7 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
     double dt_inv = 0.0;
@@ -344,7 +344,7 @@ void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointLHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
     double dt_inv = 0.0;
@@ -388,7 +388,7 @@ void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointLHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
     double dt_inv = 0.0;
@@ -438,7 +438,7 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointRHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
     double dt_inv = 0.0;
@@ -487,7 +487,7 @@ void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointRHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
     double dt_inv = 0.0;
@@ -535,7 +535,7 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
     double dt_inv = 0.0;
@@ -584,7 +584,7 @@ void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointRHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
     double dt_inv = 0.0;
@@ -633,7 +633,7 @@ void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointRHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
+    //constexpr double stab_c2 = 2.0;
 
     auto &rhs = rData.rhs;
     double dt_inv = 0.0;

@@ -69,7 +69,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     h = sfu.Symbol('h', positive = True)
     dyn_tau = sfu.Symbol('dyn_tau', positive = True)
     stab_c1 = sfu.Symbol('stab_c1', positive = True)
-    stab_c2 = sfu.Symbol('stab_c2', positive = True)
+    ##stab_c2 = sfu.Symbol('stab_c2', positive = True)
 
     ## Backward differences coefficients
     bdf0 = sfu.Symbol('bdf0')
