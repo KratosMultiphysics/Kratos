@@ -191,7 +191,7 @@ proc call_SphereTree { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     if {$Algorithm == "MakeTreeMedial"} {
-        ::DEMClusters::call_TreeMedial
+        ::DEMClusters::call_makeTreeMedial
     } elseif {$Algorithm == "MakeTreeGrid"} {
         ::DEMClusters::call_makeTreeGrid
     } elseif {$Algorithm == "MakeTreeSpawn"} {
@@ -205,7 +205,7 @@ proc call_SphereTree { } {
     }
 }
 
-proc DEMClusters::call_TreeMedial { } {
+proc DEMClusters::call_makeTreeMedial { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set branch [GiD_AccessValue get gendata branch]
@@ -227,19 +227,20 @@ proc DEMClusters::call_TreeMedial { } {
     #append filename_obj .obj
     # set Young_Modulus [GiD_AccessValue get condition Body_Part Young_Modulus]
 
-    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
+    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
 
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
         # SphereTree should be installed the linux system (compiled and installed)
-        set program makeTreeMedial
+        # set program makeTreeMedial
+        set program [file join $::DEMClusters::ProblemTypePath exec makeTreeMedial]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
     exec $program {*}$argv
 
-    # makeTreeMedial -depth 1 -branch 100 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -verify -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
+    # makeTreeMedial -depth 1 -branch 100 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
     # set program [lindex $argv 0]
     # set program [file join $::DEMClusters::ProblemTypePath exec MakeTreeMedial.exe]
     # set arguments [lrange $argv 1 end]
@@ -290,12 +291,13 @@ proc DEMClusters::call_makeTreeGrid { } {
     set modelname [GiD_Info Project ModelName]
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
-    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
+    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -nopause -eval $genericOBJFilename"
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
         # SphereTree should be installed the linux system (compiled and installed)
-        set program makeTreeGrid
+        # set program makeTreeGrid
+        set program [file join $::DEMClusters::ProblemTypePath exec makeTreeGrid]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
@@ -328,12 +330,13 @@ proc DEMClusters::call_makeTreeSpawn { } {
     set modelname [GiD_Info Project ModelName]
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
-    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -verify -nopause -eval $genericOBJFilename"
+    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -nopause -eval $genericOBJFilename"
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
         # SphereTree should be installed the linux system (compiled and installed)
-        set program makeTreeSpawn
+        # set program makeTreeSpawn
+        set program [file join $::DEMClusters::ProblemTypePath exec makeTreeSpawn]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
@@ -376,7 +379,8 @@ proc DEMClusters::call_makeTreeHubbard { } {
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
         # SphereTree should be installed the linux system (compiled and installed)
-        set program makeTreeHubbard
+        # set program makeTreeHubbard
+        set program [file join $::DEMClusters::ProblemTypePath exec makeTreeHubbard]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
@@ -405,11 +409,11 @@ proc DEMClusters::call_makeTreeOctree { } {
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
         # SphereTree should be installed the linux system (compiled and installed)
-        set program makeTreeOctree
+        # set program makeTreeOctree
+        set program [file join $::DEMClusters::ProblemTypePath exec makeTreeOctree]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
-
 
     exec $program {*}$argv
 

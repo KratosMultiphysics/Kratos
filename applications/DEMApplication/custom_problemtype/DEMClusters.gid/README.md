@@ -18,7 +18,7 @@ The __SphereTree Toolkit__ authors may be contacted at the following e-mail addr
 # Set up
 Once downloaded and added as problemtype, it is required to put the required executables in the exec folder.
 - For Windows the precompiled executables can be found [here](http://isg.cs.tcd.ie/spheretree/downloads/spheretree-1.0-win32.zip)
-- For Linux, the spheretree source code must be compiled.
+- For Linux, the precompiled executables already located in the exec folder.
 
 # Use
 Once the geometry has been generated and meshed, the user can choose between step-by-step process or automatically generated the final cluster file.
@@ -69,7 +69,7 @@ branch: 200, time: 7 min
 
 # Recommendations and troubleshooting
 In order to avoid typical issues when generating the cluster.
-- Do not generate the geometry from an existing mesh
+- If possible, avoid generating the geometry from an existing mesh (May contain incorrectly defined faces)
 - If using a copy of an existing geometry via save as, save and reload the problem before continuing.
 - The mesh is not automatically generated. The user must specify the mesh size and generate the mesh prior to create the SPH file or the cluster.
 
