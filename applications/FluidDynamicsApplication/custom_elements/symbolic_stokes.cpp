@@ -69,7 +69,7 @@ void SymbolicStokes<TElementData>::CalculateRightHandSide(
     ProcessInfo &rCurrentProcessInfo)
 {
     MatrixType tmp;
-    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
+    this->CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
@@ -141,7 +141,7 @@ void SymbolicStokes<TElementData>::Calculate(
 
         for (unsigned int g = 0; g < number_of_gauss_points; g++){
 
-            UpdateIntegrationPointData(dataLocal, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            this->UpdateIntegrationPointData(dataLocal, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
 
             const Vector gauss_point_contribution = dataLocal.ShearStress;
 
