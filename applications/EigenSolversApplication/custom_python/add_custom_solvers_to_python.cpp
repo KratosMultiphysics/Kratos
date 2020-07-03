@@ -96,9 +96,12 @@ void register_dense_eigenvalue_solver(pybind11::module& m, const std::string& na
     using Holder = typename Type::Pointer;
     using Base = LinearSolver<LocalSpace, LocalSpace>;
 
+    void (Base::*pointer_to_solve_dense)(Base::SparseMatrixType& rA, Base::SparseMatrixType& rDummy, Base::DenseVectorType& rX, Base::DenseMatrixType& rB) = &Base::Solve;
+
     py::class_<Type, Holder, Base>
         (m, name.c_str())
         .def(py::init<Parameters>())
+        .def("Solve",pointer_to_solve_dense)
     ;
 }
 

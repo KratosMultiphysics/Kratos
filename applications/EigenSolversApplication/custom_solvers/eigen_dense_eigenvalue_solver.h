@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
 #include "utilities/builtin_timer.h"
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos {
 
