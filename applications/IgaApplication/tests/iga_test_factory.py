@@ -40,14 +40,17 @@ class IgaTestFactory(KratosUnittest.TestCase):
 class SinglePatchTest(IgaTestFactory):
     file_name = "single_patch_test/single_patch"
 
-class SinglePatchFourPointSailLinearStatic(IgaTestFactory):
-    file_name = "single_patch_four_point_sail_linear_static_test/single_patch_four_point_sail_linear_static"
+class MembraneSinglePatchFourPointSailLinearStatic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_single_patch_four_point_sail_linear_static"
 
-class SinglePatchFourPointSailNonLinearStatic(IgaTestFactory):
-    file_name = "single_patch_four_point_sail_non_linear_static_test/single_patch_four_point_sail_non_linear_static"
+class MembraneSinglePatchFourPointSailNonLinearStatic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_single_patch_four_point_sail_non_linear_static"
 
-class SinglePatchFourPointSailFormFinding(IgaTestFactory):
-    file_name = "single_patch_four_point_sail_form_finding_test/single_patch_four_point_sail_form_finding"
+class MembraneSinglePatchFourPointSailImplicitDynamic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic"
+
+class FormfindingMembraneSinglePatchFourPointSail(IgaTestFactory):
+    file_name = "formfinding_test/Formfinding_membrane_single_patch_four_point_sail"
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "single_patch_four_point_sail_non_linear_static",
+        "problem_name": "Formfinding_membrane_single_patch_four_point_sail",
         "echo_level": 0,
         "parallel_type": "OpenMP",
         "start_time": 0,
@@ -17,38 +17,38 @@
         },
         "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
-            "materials_filename": "single_patch_four_point_sail_non_linear_static_test/single_patch_four_point_sail_non_linear_static_materials.json"
+            "materials_filename": "formfinding_test/Formfinding_membrane_single_patch_four_point_sail_materials.json"
         },
         "time_stepping": {
             "time_step": 0.1
         },
         "rotation_dofs": false,
-        "reform_dofs_at_each_step": false,
         "line_search": false,
-        "compute_reactions": true,
-        "block_builder": true,
-        "clear_storage": false,
         "move_mesh_flag": true,
         "convergence_criterion": "residual_criterion",
-        "displacement_relative_tolerance": 1E-09,
-        "displacement_absolute_tolerance": 1E-09,
-        "residual_relative_tolerance": 1E-09,
-        "residual_absolute_tolerance": 1E-09,
-        "max_iteration": 50,
-        "solver_type": "static",
-        "linear_solver_settings": {
-            "solver_type": "amgcl",
-            "max_iteration": 500,
-            "tolerance": 1E-09,
-            "scaling": false,
-            "verbosity": 1
-        }
+        "displacement_relative_tolerance" : 1e-7,
+        "displacement_absolute_tolerance" : 1e-7,
+        "residual_relative_tolerance"     : 1e-7,
+        "residual_absolute_tolerance"     : 1e-7,
+        "max_iteration": 100,
+        "solver_type": "formfinding",
+        "projection_settings": {
+            "model_part_name"  : "IgaModelPart",
+            "echo_level"       : 1,
+            "projection_type"  : "planar",
+            "global_direction" : [1.0,0,0],
+            "variable_name"    : "LOCAL_PRESTRESS_AXIS_1",
+            "method_specific_settings" : { },
+            "check_local_space_dimension" : false
+        },
+        "printing_format": "none",
+        "write_formfound_geometry_file"   : false
     },
     "modelers": [{
             "modeler_name": "CadIoModeler",
             "Parameters": {
                 "cad_model_part_name": "IgaModelPart",
-                "geometry_file_name": "single_patch_four_point_sail_non_linear_static_test/single_patch_four_point_sail_non_linear_static_geometry.cad.json"
+                "geometry_file_name": "formfinding_test/Formfinding_membrane_single_patch_four_point_sail_geometry.cad.json"
             }
         },
         {
@@ -56,22 +56,11 @@
             "Parameters": {
                 "cad_model_part_name": "IgaModelPart",
                 "analysis_model_part_name": "IgaModelPart",
-                "physics_file_name": "single_patch_four_point_sail_non_linear_static_test/single_patch_four_point_sail_non_linear_static_physics.iga.json"
+                "physics_file_name": "formfinding_test/Formfinding_membrane_single_patch_four_point_sail_physics.iga.json"
             }
         }
     ],
     "processes": {
-        "neumann_process_list": [{
-            "python_module": "assign_vector_variable_to_conditions_process",
-            "kratos_module": "KratosMultiphysics",
-            "Parameters": {
-                "mesh_id": 0,
-                "model_part_name": "IgaModelPart.Load_5",
-                "variable_name": "SURFACE_LOAD",
-                "value": [0, 0, -5],
-                "interval": [0, "End"]
-            }
-        }],
 	"dirichlet_process_list": [{
             "python_module": "assign_vector_variable_process",
             "kratos_module": "KratosMultiphysics",
@@ -122,7 +111,8 @@
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
                 "check_variables": ["DISPLACEMENT"],
-                "input_file_name": "single_patch_four_point_sail_non_linear_static_test/single_patch_four_point_sail_non_linear_static_result.json",
+		"historical_value" : false,
+                "input_file_name": "formfinding_test/Formfinding_membrane_single_patch_four_point_sail_result.json",
                 "model_part_name": "IgaModelPart.StructuralAnalysis",
                 "time_frequency": 0.0
             }

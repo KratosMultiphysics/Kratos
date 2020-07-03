@@ -1,27 +1,31 @@
 {
     "problem_data": {
-        "problem_name": "single_patch_four_point_sail_linear_static",
+        "problem_name": "Membrane_single_patch_four_point_sail_implicit_dynamic",
         "echo_level": 0,
         "parallel_type": "OpenMP",
         "start_time": 0,
-        "end_time": 0.1
+        "end_time": 1.0
     },
     "solver_settings": {
         "model_part_name": "IgaModelPart",
         "domain_size": 1,
         "echo_level": 0,
         "buffer_size": 2,
-        "analysis_type": "linear",
+        "analysis_type": "non_linear",
+        "time_integration_method": "implicit",
+        "scheme_type": "newmark",
         "model_import_settings": {
             "input_type": "use_input_model_part"
         },
         "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
-            "materials_filename": "single_patch_four_point_sail_linear_static_test/single_patch_four_point_sail_linear_static_materials.json"
+            "materials_filename": "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic_materials.json"
         },
         "time_stepping": {
-            "time_step": 0.1
+            "time_step": 0.25
         },
+        "rayleigh_alpha": 3.84974688852210,
+        "rayleigh_beta": 0.002338686105445,
         "rotation_dofs": false,
         "reform_dofs_at_each_step": false,
         "line_search": false,
@@ -30,12 +34,12 @@
         "clear_storage": false,
         "move_mesh_flag": true,
         "convergence_criterion": "residual_criterion",
-        "displacement_relative_tolerance": 0.0001,
+        "displacement_relative_tolerance": 1E-09,
         "displacement_absolute_tolerance": 1E-09,
-        "residual_relative_tolerance": 0.0001,
+        "residual_relative_tolerance": 1E-09,
         "residual_absolute_tolerance": 1E-09,
         "max_iteration": 50,
-        "solver_type": "static",
+        "solver_type": "dynamic",
         "linear_solver_settings": {
             "solver_type": "amgcl",
             "max_iteration": 500,
@@ -48,7 +52,7 @@
             "modeler_name": "CadIoModeler",
             "Parameters": {
                 "cad_model_part_name": "IgaModelPart",
-                "geometry_file_name": "single_patch_four_point_sail_linear_static_test/single_patch_four_point_sail_linear_static_geometry.cad.json"
+                "geometry_file_name": "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic_geometry.cad.json"
             }
         },
         {
@@ -56,7 +60,7 @@
             "Parameters": {
                 "cad_model_part_name": "IgaModelPart",
                 "analysis_model_part_name": "IgaModelPart",
-                "physics_file_name": "single_patch_four_point_sail_linear_static_test/single_patch_four_point_sail_linear_static_physics.iga.json"
+                "physics_file_name": "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic_physics.iga.json"
             }
         }
     ],
@@ -68,10 +72,10 @@
                 "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Load_5",
                 "variable_name": "SURFACE_LOAD",
-                "value": [0, 0, -5],
+                "value": [0, 0, "-5*abs(sin(18.8495559215388*t))"],
                 "interval": [0, "End"]
             }
-        }],        
+        }],
 	"dirichlet_process_list": [{
             "python_module": "assign_vector_variable_process",
             "kratos_module": "KratosMultiphysics",
@@ -122,9 +126,9 @@
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
                 "check_variables": ["DISPLACEMENT"],
-                "input_file_name": "single_patch_four_point_sail_linear_static_test/single_patch_four_point_sail_linear_static_result.json",
+                "input_file_name": "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic_result.json",
                 "model_part_name": "IgaModelPart.StructuralAnalysis",
-                "time_frequency": 0.0
+                "time_frequency": 0.25
             }
         }]
     }

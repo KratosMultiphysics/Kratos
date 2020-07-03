@@ -8,10 +8,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as TSinglePatchTest
-# Import Single patch tests
-from iga_test_factory import SinglePatchFourPointSailLinearStatic as TSinglePatchFourPointSailLinearStatic
-from iga_test_factory import SinglePatchFourPointSailNonLinearStatic as TSinglePatchFourPointSailNonLinearStatic
-from iga_test_factory import SinglePatchFourPointSailFormFinding as TSinglePatchFourPointSailFormFinding
+# Import patch tests
+from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as TMembraneSinglePatchFourPointSailLinearStatic
+from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as TMembraneSinglePatchFourPointSailNonLinearStatic
+from iga_test_factory import MembraneSinglePatchFourPointSailImplicitDynamic as TMembraneSinglePatchFourPointSailImplicitDynamic
+from iga_test_factory import FormfindingMembraneSinglePatchFourPointSail as TFormfindingMembraneSinglePatchFourPointSail
+
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 
@@ -31,10 +33,12 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSinglePatchTest]))
-
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSinglePatchFourPointSailLinearStatic]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSinglePatchFourPointSailNonLinearStatic]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSinglePatchFourPointSailFormFinding]))
+    #Membrane
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TMembraneSinglePatchFourPointSailLinearStatic]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TMembraneSinglePatchFourPointSailNonLinearStatic]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TMembraneSinglePatchFourPointSailImplicitDynamic]))
+    #Formfinding
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TFormfindingMembraneSinglePatchFourPointSail]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestModelers]))
 
