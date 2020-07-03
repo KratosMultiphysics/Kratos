@@ -197,7 +197,7 @@ public:
     void GetValueOnIntegrationPoints(
         const Variable<double> &rVariable,
         std::vector<double> &rValues,
-        const ProcessInfo &rCurrentProcessInfo ) override;
+        const ProcessInfo &rCurrentProcessInfo) override;
 
 
     ///@}

@@ -4824,9 +4824,10 @@ void SymbolicStokes<TElementData>::load(Serializer &rSerializer)
 
 
 template <class TElementData>
-void SymbolicStokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
-                                                                        std::vector<double> &rValues,
-                                                                        const ProcessInfo &rCurrentProcessInfo )
+void SymbolicStokes<TElementData>::GetValueOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
 {
     if (rVariable == DIVERGENCE){
 
