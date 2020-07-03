@@ -112,7 +112,13 @@ proc DeleteSpheresGeometry { } {
 proc DeleteSpheresMesh { } {
 
     set spheres [GiD_Mesh list -element_type {sphere} element]
-    GiD_Mesh delete element $spheres
+    # GiD_Mesh delete element $spheres
+    foreach id $spheres { ;
+        GiD_Process Mescape Meshing EditMesh DeleteElems LowerEntities $id
+    }
+    GiD_Process Mescape
+    GiD_Process 'Render Normal
+
 }
 
 proc AfterReadGIDProject { filename } {
