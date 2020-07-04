@@ -111,7 +111,7 @@ mapper.Map(KM.REACTION, KM.FORCE, KratosMapping.Mapper.USE_TRANSPOSE)
 ~~~
 
 #### Updating the Interface
-In case of moving interfaces (e.g. in a problem involving Contact between bodies) it can become necessary to update the inteface to take the new geometrical positions into account.\
+In case of moving interfaces (e.g. in a problem involving Contact between bodies) it can become necessary to update the _Mapper_ to take the new geometrical positions of the interfaces into account.\
 One way of doing this would be to construct a new _Mapper_, but this is not efficient and sometimes not even possible.
 
 Hence the _Mapper_ provides the **UpdateInterface** function for updating itseld with respect to the new geometrical positions of the interfaces.\
@@ -121,10 +121,7 @@ Note that this is potentially an expensive operation due to searching the new ge
 mapper.UpdateInterface()
 ~~~
 
-
-### Available Mappers
-This section explains the theory behind the mappers.
-
+#### Checking which mappers are available
 The following can be used to see which _Mappers_ are available:
 ~~~py
 # available mappers for shared memory
@@ -140,12 +137,34 @@ KratosMapping.MapperFactory.HasMapper("mapper_name")
 KratosMapping.MapperFactory.HasMPIMapper("mapper_name")
 ~~~
 
+
+### Available Mappers
+This section explains the theory behind the mappers.
+
 #### Nearest Neighbor
+The _NearestNeighborMapper_ is a very simple/basic _Mapper_. Searches its closest neighbor (node) on the other interface. During mapping it gets/sets its value to the value of its closest neighbor.
+
+This mapper is best suited for problems where both interfaces have a similar discretization. Furthermore it is very robust and can be used for setting up problems when one does not (yet) want to deal with mapping.
+
+Internally it constructs the mapping matrix, hence it offers the usage of the transposed mapping matrix. When using this, for very inhomogenous interface discretizations it can come to oscillations in the mapped quantities.
 
 #### Nearest Element
+The _NearestElementMapper_ projects nodes to the elements( or conditions) on other side of the inteface. Mapping is then done by interpolating the values of the nodes of the elements by using the shape functions at the projected position.
+
+This mapper is best suited for problems where the _NearestNeighborMapper_ cannot be used, i.e. for cases where the discretization on the interfaces is different. Note that it is less robust than the _NearestNeighborMapper_ due to the projections it performs. In case a projection fails it uses an approximation that is similar to the approach of the _NearestNeighborMapper_.
+
+Internally it constructs the mapping matrix, hence it offers the usage of the transposed mapping matrix. When using this, for very inhomogenous interface discretizations it can come to oscillations in the mapped quantities.
 
 
 ### When to use which Mapper?
+- **Matching Interace**\
+  For a matching interface the _NearestNeighborMapper_ is the best / fastes choice. Note that the ordering / numbering of the nodes doesn't matter.
+
+- **Interfaces with almost matching discretizations**\
+  In this case both the _NearestNeighborMapper_ and the _NearestElementMapper_ can yield good results.
+
+- **Interfaces with non matching discretizations**\
+  The _NearestElementMapper_ is recommended because it results in smoother mapping results due to the interpolation using the shape functions.
 
 
 ### FAQ
@@ -156,8 +175,8 @@ KratosMapping.MapperFactory.HasMPIMapper("mapper_name")
 - **Something is not working with the mapping. What should I do?**\
   Problems with mapping can have many sources. The first thing in debugging what is happening is to increase the `echo_level` of the _Mapper_. Then in many times warnings are shown in case of some problems.
 
-- Overlapping Interfaces
+- **I get oscillatory solutions when mapping with `USE_TRANSPOSE`**\
+  Research has shown that "simple" mappers like _NearestNeighbor_ and _NearestElement_ can have problems with mapping with the transpose if the meshes are very different. Using the _MortarMapper_ technology can improve this situation. This _Mapper_ is currently under development.
 
-- Moving Interfaces
-
-- Close interfaces (e.g. wing) => projection issues
+- **Projections find the wrong result**\
+  For complex geometries the projections can fail to find the correct result if many lines or surfaces are close. In those situations it helps to partition the mapping interface and construct multiple mappers with the smaller interfaces.
