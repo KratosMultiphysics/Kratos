@@ -52,7 +52,7 @@ class AdjointFiniteDifferenceNodalConcentratedElement: public AdjointFiniteDiffe
 
         void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
     };
-    
+
 public:
 
     // redefine the typedefs because of templated base class
@@ -76,6 +76,7 @@ public:
     AdjointFiniteDifferenceNodalConcentratedElement(IndexType NewId = 0)
     : BaseType(NewId, false)
     {
+        // SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this)); ????
     }
 
     AdjointFiniteDifferenceNodalConcentratedElement(IndexType NewId, typename GeometryType::Pointer pGeometry)

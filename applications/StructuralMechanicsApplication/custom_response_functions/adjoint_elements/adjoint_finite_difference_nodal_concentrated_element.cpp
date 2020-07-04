@@ -97,11 +97,18 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::CalculateS
                                             const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    // insert your code here
-
-    KRATOS_CATCH("")
+    KRATOS_TRY;
+    if (rDesignVariable == SCALAR_SENSITIVITY)
+    {
+        rOutput.resize(1, 1, false);
+        const double& x = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        rOutput(0, 0) = -x;
+    }
+    else
+    {
+        KRATOS_ERROR << "Invalid variable: " << rDesignVariable << std::endl;
+    }
+    KRATOS_CATCH("");
 }
 
 template <class TPrimalElement>
