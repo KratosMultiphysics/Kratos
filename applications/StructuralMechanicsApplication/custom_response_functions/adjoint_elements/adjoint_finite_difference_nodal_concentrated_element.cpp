@@ -17,6 +17,80 @@
 
 namespace Kratos
 {
+template <class TPrimalElement>
+AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtensions::ThisExtensions(Element* pElement)
+    : mpElement{pElement}
+{
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtensions::GetFirstDerivativesVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    if (rVector.size() != 1)
+    {
+        rVector.resize(1);
+    }
+    rVector[0] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtensions::GetSecondDerivativesVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    if (rVector.size() != 1)
+    {
+        rVector.resize(1);
+    }
+    rVector[0] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtensions::GetAuxiliaryVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    if (rVector.size() != 1)
+    {
+        rVector.resize(1);
+    }
+    rVector[0] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtensions::GetFirstDerivativesVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    if (rVariables.size() != 1)
+    {
+        rVariables.resize(1);
+    }
+    rVariables[0] = &ADJOINT_VECTOR_2;
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtensions::GetSecondDerivativesVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    if (rVariables.size() != 1)
+    {
+        rVariables.resize(1);
+    }
+    rVariables[0] = &ADJOINT_VECTOR_3;
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtensions::GetAuxiliaryVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    if (rVariables.size() != 1)
+    {
+        rVariables.resize(1);
+    }
+    rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+}
 
 template <class TPrimalElement>
 void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::CalculateSensitivityMatrix(
