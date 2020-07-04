@@ -192,9 +192,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mTracedDofLabel;
-    PointTypePointer  mpTracedNode;
-    Element::Pointer mpNeighboringElement;
+    double mAlphaResponseWeight;
 
     ///@}
     ///@name Private Operators
@@ -203,8 +201,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void GetNeighboringElementPointer();
 
     ///@}
     ///@name Private  Access

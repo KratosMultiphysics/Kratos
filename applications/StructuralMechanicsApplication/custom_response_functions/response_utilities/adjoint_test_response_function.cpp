@@ -21,34 +21,6 @@ namespace Kratos
     AdjointTestResponseFunction::AdjointTestResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
-        // Get id of node where a displacement should be traced
-        const int id_traced_node = ResponseSettings["traced_node_id"].GetInt();
-
-        // Get the corresponding dof to the displacement which should be traced
-        // by this response function e.g. DISPLACEMENT_X, ROTATION_X,...
-        mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
-
-        // Get pointer to traced node
-        mpTracedNode = rModelPart.pGetNode(id_traced_node);
-
-        // Check if variable for traced dof is valid
-        if( !( KratosComponents<Variable<double>>::Has(mTracedDofLabel)) )
-            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedDofLabel << std::endl;
-        else
-        {
-            const DoubleVariableType& r_traced_dof =
-                KratosComponents<DoubleVariableType>::Get(mTracedDofLabel);
-            KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_dof) )
-                << "Specified DOF is not available at traced node." << std::endl;
-        }
-
-        // Check if variable for traced adjoint dof is valid
-        if( !(KratosComponents<Variable<double>>::Has(std::string("ADJOINT_") + mTracedDofLabel)) )
-        {
-            KRATOS_ERROR << "Specified traced adjoint DOF is not available." << std::endl;
-        }
-
-        this->GetNeighboringElementPointer();
     }
 
     AdjointTestResponseFunction::~AdjointTestResponseFunction(){}
@@ -65,23 +37,8 @@ namespace Kratos
 
         rResponseGradient.clear();
 
-        if( rAdjointElement.Id() == mpNeighboringElement->Id() )
-        {
-            DofsVectorType dofs_of_element;
-            mpNeighboringElement->GetDofList(dofs_of_element, rProcessInfo);
-
-            const DoubleVariableType& r_traced_adjoint_dof =
-                KratosComponents<DoubleVariableType>::Get(std::string("ADJOINT_") + mTracedDofLabel);
-
-            for(IndexType i = 0; i < dofs_of_element.size(); ++i)
-            {
-                if (dofs_of_element[i]->Id() == mpTracedNode->Id() &&
-                    dofs_of_element[i]->GetVariable() == r_traced_adjoint_dof)
-                {
-                    rResponseGradient[i] = -1;
-                }
-            }
-        }
+        mAlphaResponseWeight = 0.5;
+        rResponseGradient(0) = mAlphaResponseWeight * 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
 
         KRATOS_CATCH("");
     }
@@ -93,7 +50,15 @@ namespace Kratos
         const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-        rResponseGradient = ZeroVector(rResidualGradient.size1());
+
+        if (rResponseGradient.size() != rResidualGradient.size1())
+            rResponseGradient.resize(rResidualGradient.size1(), false);
+
+        rResponseGradient.clear();
+
+        mAlphaResponseWeight = 0.5;
+        rResponseGradient(0) = (1 - mAlphaResponseWeight) * 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
+
         KRATOS_CATCH("");
     }
 
@@ -178,36 +143,15 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const DoubleVariableType& r_traced_dof =
-            KratosComponents<DoubleVariableType>::Get(mTracedDofLabel);
-
-        return rModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(r_traced_dof, 0);
-
-        KRATOS_CATCH("");
-    }
-
-    /// Find one element which is bounded by the traced node. The element is needed for assembling the adjoint load.
-    void AdjointTestResponseFunction::GetNeighboringElementPointer()
-    {
-        KRATOS_TRY;
-
-        for (auto elem_it = mrModelPart.Elements().ptr_begin(); elem_it != mrModelPart.Elements().ptr_end(); ++elem_it)
-        {
-            const SizeType number_of_nodes = (*elem_it)->GetGeometry().PointsNumber();
-            for(IndexType i = 0; i < number_of_nodes; ++i)
-            {
-                if((*elem_it)->GetGeometry()[i].Id() == mpTracedNode->Id())
-                {
-                    mpNeighboringElement = (*elem_it);
-                    return;
-                }
-            }
-        }
-        KRATOS_ERROR << "No neighboring element is available for the traced node." << std::endl;
+        mAlphaResponseWeight = 0.5;
+        const double& x = mrModelPart.GetNode(1).FastGetSolutionStepValue(DISPLACEMENT_X);
+        const double& v = mrModelPart.GetNode(1).FastGetSolutionStepValue(VELOCITY_X);  
+        return mAlphaResponseWeight * x * x + (1 - mAlphaResponseWeight) * v * v;
 
         KRATOS_CATCH("");
     }
 
+    
 } // namespace Kratos.
 
 
