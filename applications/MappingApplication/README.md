@@ -1,6 +1,6 @@
 ## Mapping Application
-
 The Mapping Application contains the core developments in mapping data between non matching grids. It works both in shared and distributed (**MPI**) memory environments as well as in 1D, 2D and 3D domains.
+
 
 ### Basic Usage
 The _Mapper_ maps nodal data from one _ModelPart_ to another. This means that the input for the _Mapper_ is two _ModelParts_, the **Origin** and the **Destination**. Furthermore settings in the form of _Kratos::Parameters_ are passed.
@@ -11,8 +11,7 @@ The _Mapper_ is constructed using the _MapperFactory_. See the following basic e
 # import the Kratos Core
 import KratosMultiphysics as KM
 # import the MappingApplication
-import KratosMultiphysics.MappingApplication as
-KratosMapping
+import KratosMultiphysics.MappingApplication as KratosMapping
 
 # create ModelParts
 # ...
@@ -22,6 +21,7 @@ mapper_settings = KM.Parameters("""{
     "echo_level" : 0
 }""")
 
+# creating a mapper for shared memory
 mapper = KratosMapping.MapperFactory.CreateMapper(
     model_part_origin,
     model_part_destination,
@@ -29,7 +29,19 @@ mapper = KratosMapping.MapperFactory.CreateMapper(
 )
 ~~~
 
-After constructing the _Mapper_ it can be used to map any scalar and vector quantities. The **Map** function is used to map values from the **Origin** to the **Destination**. For this the _Variables_ have to be specified. See the following example for mapping scalar quantities.
+For constructing an _MPI-Mapper_ use `CreateMPIMapper` instead:
+
+~~~py
+# creating a mapper for distributed memory
+mpi_mapper = KratosMapping.MapperFactory.CreateMPIMapper(
+    model_part_origin,
+    model_part_destination,
+    mapper_settings
+)
+~~~
+
+After constructing the _Mapper_ / _MPI-Mapper_ it can be used immediately to map any scalar and vector quantities, no further initialization is necessary.\
+The **Map** function is used to map values from the **Origin** to the **Destination**. For this the _Variables_ have to be specified. See the following example for mapping scalar quantities.
 
 **Note**: In order to demonstrate that the _Mapper_ is not tied to any particular physics, arbitrary _Variables_ are chosen in the following examples.
 
@@ -51,10 +63,90 @@ The **Map** function is overloaded, this means that mapping vector quantities wo
 mapper.Map(KM.VELOCITY, KM.DISPLACEMENT)
 ~~~
 
+Mapping from **Destination** to **Origin** can be done using the **InverseMap** function which works in the same way as the **Map** function.
+
+~~~py
+# inverse mapping scalar quantities
+# this maps the nodal quantities of PRESSURE on the destination-ModelPart
+# to the nodal quantities of TEMPERATURE on the origin-ModelPart
+
+mapper.InverseMap(KM.TEMPERATURE, KM.PRESSURE)
+
+# inverse mapping vector quantities
+# this maps the nodal quantities of DISPLACEMENT on the destination-ModelPart
+# to the nodal quantities of VELOCITY on the origin-ModelPart
+
+mapper.InverseMap(KM.VELOCITY, KM.DISPLACEMENT)
+~~~
+
+
 ### Advanced Usage
+The previous section introduced the basics of using the _MappingApplication_. The more advanced usage is explained in this section.
+
+#### Customizing the behavior of the mapping with Flags
+By default the mapping functions **Map** and **InverseMap** will overwrite the values where they map to. In order to add instead of overwrite the values the behavior can be customized by using _Kratos::Flags_. Consider in the following example that several forces are acting on a surface. Overwritting the values would cancel the previously applied forces.
+~~~py
+# Instead of overwriting, this will add the values to the existing ones
+
+mapper.Map(KM.REACTION, KM.FORCE, KratosMapping.Mapper.ADD_VALUES)
+~~~
+
+Sometimes it can be necessary to swap the signs of quantites that are to be mapped. This can be done with the following:
+
+~~~py
+# Swapping the sign, i.e. multiplying the values with (-1)
+
+mapper.Map(KM.DISPLACEMENT, KM.MESH_DISPLACEMENT, KratosMapping.Mapper.SWAP_SIGN)
+~~~
+
+The flags can also be combined:
+~~~py
+mapper.Map(KM.REACTION, KM.FORCE, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+~~~
+
+Many _Mappers_ internally construct a mapping matrix. It is possible to use the transpose of this matrix for mapping with `USE_TRANSPOSE`. This is often used for conservative mapping of forces in FSI, when the virtual work on both interfaces should be preserved.
+
+~~~py
+mapper.Map(KM.REACTION, KM.FORCE, KratosMapping.Mapper.USE_TRANSPOSE)
+~~~
+
+#### Updating the Interface
+In case of moving interfaces (e.g. in a problem involving Contact between bodies) it can become necessary to update the inteface to take the new geometrical positions into account.\
+One way of doing this would be to construct a new _Mapper_, but this is not efficient and sometimes not even possible.
+
+Hence the _Mapper_ provides the **UpdateInterface** function for updating itseld with respect to the new geometrical positions of the interfaces.\
+Note that this is potentially an expensive operation due to searching the new geometrical neighbors on the interface.
+
+~~~py
+mapper.UpdateInterface()
+~~~
+
+
+### Available Mappers
+This section explains the theory behind the mappers.
+
+The following can be used to see which _Mappers_ are available:
+~~~py
+# available mappers for shared memory
+KratosMapping.MapperFactory.GetRegisteredMapperNames()
+
+# available mappers for distributed memory
+KratosMapping.MapperFactory.GetRegisteredMPIMapperNames()
+
+# check if mapper for shared memory exists
+KratosMapping.MapperFactory.HasMapper("mapper_name")
+
+# check if mapper for distributed memory exists
+KratosMapping.MapperFactory.HasMPIMapper("mapper_name")
+~~~
+
+#### Nearest Neighbor
+
+#### Nearest Element
 
 
 ### When to use which Mapper?
+
 
 ### FAQ
 
@@ -64,10 +156,8 @@ mapper.Map(KM.VELOCITY, KM.DISPLACEMENT)
 - **Something is not working with the mapping. What should I do?**\
   Problems with mapping can have many sources. The first thing in debugging what is happening is to increase the `echo_level` of the _Mapper_. Then in many times warnings are shown in case of some problems.
 
+- Overlapping Interfaces
 
-### Available Mappers
-This section explains the theory behind the different mappers.
+- Moving Interfaces
 
-#### Nearest Neighbor
-
-#### Nearest Element
+- Close interfaces (e.g. wing) => projection issues
