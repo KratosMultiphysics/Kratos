@@ -246,7 +246,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
-            "assign_neighbour_elements_to_conditions": false,
+            "assign_neighbour_elements_to_conditions": true,
             "time_stepping"                : {
                 "automatic_time_step" : true,
                 "CFL_number"          : 1,
@@ -456,10 +456,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = default_sound_velocity
 
         return materials_imported
-
-    def _SetNodalProperties(self):
-        # This is required to avoid the base solver to set the DENSITY and DYNAMIC_VISCOSITY in the nodes
-        pass
 
     def __SetEmbeddedFormulation(self):
         # Set the SLIP elemental flag
