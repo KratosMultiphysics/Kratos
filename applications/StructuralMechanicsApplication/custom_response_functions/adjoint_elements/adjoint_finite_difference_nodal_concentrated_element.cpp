@@ -14,6 +14,7 @@
 #include "custom_elements/nodal_concentrated_element.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "utilities/indirect_scalar.h"
 
 namespace Kratos
 {
