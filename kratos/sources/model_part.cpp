@@ -441,7 +441,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
         }
 
         remove_from_mesh(this->GetCommunicator().GhostMesh());
-        for(auto & mesh: this->GetCommunicator().GhostMeshes()) {
+        for(auto& r_mesh: this->GetCommunicator().GhostMeshes()) {
             remove_from_mesh(mesh);
         }
 
