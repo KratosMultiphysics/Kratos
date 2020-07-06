@@ -1,6 +1,18 @@
 ## Mapping Application
 The Mapping Application contains the core developments in mapping data between non matching grids. It works both in shared and distributed (**MPI**) memory environments as well as in 1D, 2D and 3D domains.
 
+### List of features
+- Parallelism:
+  - Serial (no parallelism)
+  - Shared memory (OpenMP)
+  - Distributed memory (MPI)
+- Domain sizes: 1D / 2D / 3D
+- Matching and non matching grids
+- Different mapping technologies (see [here](#available-mappers)):
+  - Nearest Neighbor
+  - Nearest Element
+- Mapping operations (see [here](#customizing-the-behavior-of-the-mapping-with-flags))
+
 
 ### Basic Usage
 The _Mapper_ maps nodal data from one _ModelPart_ to another. This means that the input for the _Mapper_ is two _ModelParts_, the **Origin** and the **Destination**. Furthermore settings in the form of _Kratos::Parameters_ are passed.
@@ -43,14 +55,12 @@ mpi_mapper = KratosMapping.MapperFactory.CreateMPIMapper(
 After constructing the _Mapper_ / _MPI-Mapper_ it can be used immediately to map any scalar and vector quantities, no further initialization is necessary.\
 The **Map** function is used to map values from the **Origin** to the **Destination**. For this the _Variables_ have to be specified. See the following example for mapping scalar quantities.
 
-**Note**: In order to demonstrate that the _Mapper_ is not tied to any particular physics, arbitrary _Variables_ are chosen in the following examples.
-
 ~~~py
 # mapping scalar quantities
 # this maps the nodal quantities of TEMPERATURE on the origin-ModelPart
-# to the nodal quantities of PRESSURE on the destination-ModelPart
+# to the nodal quantities of AMBIENT_TEMPERATURE on the destination-ModelPart
 
-mapper.Map(KM.TEMPERATURE, KM.PRESSURE)
+mapper.Map(KM.TEMPERATURE, KM.AMBIENT_TEMPERATURE)
 ~~~
 
 The **Map** function is overloaded, this means that mapping vector quantities works in the same way as mapping scalar quantites.
@@ -58,25 +68,25 @@ The **Map** function is overloaded, this means that mapping vector quantities wo
 ~~~py
 # mapping vector quantities
 # this maps the nodal quantities of VELOCITY on the origin-ModelPart
-# to the nodal quantities of DISPLACEMENT on the destination-ModelPart.
+# to the nodal quantities of MESH_VELOCITY on the destination-ModelPart.
 
-mapper.Map(KM.VELOCITY, KM.DISPLACEMENT)
+mapper.Map(KM.VELOCITY, KM.MESH_VELOCITY)
 ~~~
 
 Mapping from **Destination** to **Origin** can be done using the **InverseMap** function which works in the same way as the **Map** function.
 
 ~~~py
 # inverse mapping scalar quantities
-# this maps the nodal quantities of PRESSURE on the destination-ModelPart
+# this maps the nodal quantities of AMBIENT_TEMPERATURE on the destination-ModelPart
 # to the nodal quantities of TEMPERATURE on the origin-ModelPart
 
-mapper.InverseMap(KM.TEMPERATURE, KM.PRESSURE)
+mapper.InverseMap(KM.TEMPERATURE, KM.AMBIENT_TEMPERATURE)
 
 # inverse mapping vector quantities
-# this maps the nodal quantities of DISPLACEMENT on the destination-ModelPart
+# this maps the nodal quantities of MESH_VELOCITY on the destination-ModelPart
 # to the nodal quantities of VELOCITY on the origin-ModelPart
 
-mapper.InverseMap(KM.VELOCITY, KM.DISPLACEMENT)
+mapper.InverseMap(KM.VELOCITY, KM.MESH_VELOCITY)
 ~~~
 
 
@@ -176,7 +186,7 @@ Internally it constructs the mapping matrix, hence it offers the usage of the tr
   Problems with mapping can have many sources. The first thing in debugging what is happening is to increase the `echo_level` of the _Mapper_. Then in many times warnings are shown in case of some problems.
 
 - **I get oscillatory solutions when mapping with `USE_TRANSPOSE`**\
-  Research has shown that "simple" mappers like _NearestNeighbor_ and _NearestElement_ can have problems with mapping with the transpose if the meshes are very different. Using the _MortarMapper_ technology can improve this situation. This _Mapper_ is currently under development.
+  Research has shown that "simple" mappers like _NearestNeighbor_ and _NearestElement_ can have problems with mapping with the transpose (i.e. when using `USE_TRANSPOSE`) if the meshes are very different. Using the _MortarMapper_ technology can improve this situation. This _Mapper_ is currently under development.
 
 - **Projections find the wrong result**\
   For complex geometries the projections can fail to find the correct result if many lines or surfaces are close. In those situations it helps to partition the mapping interface and construct multiple mappers with the smaller interfaces.
