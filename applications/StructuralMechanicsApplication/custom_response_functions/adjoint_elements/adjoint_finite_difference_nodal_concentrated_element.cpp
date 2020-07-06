@@ -29,11 +29,14 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtens
     std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
 {
     auto& r_node = mpElement->GetGeometry()[NodeId];
-    if (rVector.size() != 1)
+    rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension());
+    std::size_t index = 0;
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3)
     {
-        rVector.resize(1);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Z, Step);
     }
-    rVector[0] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
 }
 
 template <class TPrimalElement>
@@ -41,11 +44,14 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtens
     std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
 {
     auto& r_node = mpElement->GetGeometry()[NodeId];
-    if (rVector.size() != 1)
+    rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension());
+    std::size_t index = 0;
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3)
     {
-        rVector.resize(1);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Z, Step);
     }
-    rVector[0] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
 }
 
 template <class TPrimalElement>
@@ -53,11 +59,14 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtens
     std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
 {
     auto& r_node = mpElement->GetGeometry()[NodeId];
-    if (rVector.size() != 1)
+    rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension());
+    std::size_t index = 0;
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3)
     {
-        rVector.resize(1);
+        rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Z, Step);
     }
-    rVector[0] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
 }
 
 template <class TPrimalElement>
