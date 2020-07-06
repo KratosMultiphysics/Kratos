@@ -95,39 +95,39 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
            model_part,
            linear_solver)
 
-        for _ in range(0): # Distance smoothing can be called multiple times
+        for _ in range(1): # Distance smoothing can be called multiple times
             smoothing_process.Execute()
 
-        #node = (model_part.Nodes)[479]
-        #self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -9.389407514939123e-05)
-        #node = (model_part.Nodes)[527]
-        #self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 8.75742241543344e-06)
-        #node = (model_part.Nodes)[673]
-        #self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -4.41856961654163e-05)
+        node = (model_part.Nodes)[479]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.002168532596594355)
+        node = (model_part.Nodes)[527]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.0028393533771017988)
+        node = (model_part.Nodes)[673]
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.006637890725420411)
 
-        gid_output = GiDOutputProcess(model_part,
-                                   "smoothing_test_2D",
-                                   KratosMultiphysics.Parameters("""
-                                       {
-                                           "result_file_configuration" : {
-                                               "gidpost_flags": {
-                                                   "GiDPostMode": "GiD_PostBinary",
-                                                   "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                   "WriteConditionsFlag": "WriteConditions",
-                                                   "MultiFileFlag": "SingleFile"
-                                               },
-                                               "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT","NORMAL"]
-                                           }
-                                       }
-                                       """)
-                                   )
+        # gid_output = GiDOutputProcess(model_part,
+        #                            "smoothing_test_2D",
+        #                            KratosMultiphysics.Parameters("""
+        #                                {
+        #                                    "result_file_configuration" : {
+        #                                        "gidpost_flags": {
+        #                                            "GiDPostMode": "GiD_PostBinary",
+        #                                            "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                                            "WriteConditionsFlag": "WriteConditions",
+        #                                            "MultiFileFlag": "SingleFile"
+        #                                        },
+        #                                        "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT","NORMAL"]
+        #                                    }
+        #                                }
+        #                                """)
+        #                            )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
 
     def test_smoothing_3d_cube_with_parameters(self):
         current_model = KratosMultiphysics.Model()
