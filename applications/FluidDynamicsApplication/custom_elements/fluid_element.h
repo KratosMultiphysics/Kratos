@@ -466,8 +466,23 @@ protected:
         array_1d<double,LocalSize>& rValues) const;
 
     void Calculate(
+        const Variable<double> &rVariable,
+        double &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<array_1d<double, 3>> &rVariable,
+        array_1d<double, 3> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void Calculate(
         const Variable<Vector> &rVariable,
         Vector &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<Matrix> &rVariable,
+        Matrix &rOutput,
         const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}

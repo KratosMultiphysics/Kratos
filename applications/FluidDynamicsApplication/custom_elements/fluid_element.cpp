@@ -619,6 +619,24 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
 
 template <class TElementData>
 void FluidElement<TElementData>::Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<array_1d<double, 3>> &rVariable,
+    array_1d<double, 3> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
     const Variable<Vector >& rVariable,
     Vector& rOutput,
     const ProcessInfo& rCurrentProcessInfo )
@@ -645,7 +663,7 @@ void FluidElement<TElementData>::Calculate(
 
         for (unsigned int g = 0; g < number_of_gauss_points; g++){
 
-            UpdateIntegrationPointData(dataLocal, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            this->UpdateIntegrationPointData(dataLocal, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
 
             const Vector gauss_point_contribution = dataLocal.ShearStress;
 
@@ -660,6 +678,15 @@ void FluidElement<TElementData>::Calculate(
     } else {
         Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<Matrix> &rVariable,
+    Matrix &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
