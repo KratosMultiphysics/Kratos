@@ -99,7 +99,7 @@ namespace Kratos
             // Compute RHS and LHS
             Vector RHS = ZeroVector(16);
             Matrix LHS = ZeroMatrix(16, 16);
-            p_element->Initialize();
+            p_element->Initialize(process_info);
             p_element->CalculateLocalSystem(LHS, RHS, process_info);
             // Check the RHS values
             KRATOS_CHECK_NEAR(RHS(0), 9.722222285, 1e-07);
@@ -187,7 +187,7 @@ namespace Kratos
             // Compute RHS and LHS
             Vector RHS = ZeroVector(24);
             Matrix LHS = ZeroMatrix(24, 24);
-            p_element->Initialize();
+            p_element->Initialize(process_info);
             p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
             // Check the RHS values
@@ -286,7 +286,7 @@ namespace Kratos
             // Compute RHS and LHS
             Vector RHS = ZeroVector(32);
             Matrix LHS = ZeroMatrix(32, 32);
-            p_element->Initialize();
+            p_element->Initialize(process_info);
             p_element->CalculateLocalSystem(LHS, RHS, process_info);
             // Check the RHS values
             KRATOS_CHECK_NEAR(RHS(0), -29.16666667, 1e-07);
