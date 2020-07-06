@@ -178,7 +178,6 @@ protected:
 	    double volume;
         // arrays
 	    array_1d<double,TNumNodes> tau;
-	    array_1d<double,TNumNodes> qstau;
         array_1d<double,TNumNodes> forcing;
         array_1d<double,TNumNodes> unknown;
         array_1d<double,TNumNodes> unknown_old;

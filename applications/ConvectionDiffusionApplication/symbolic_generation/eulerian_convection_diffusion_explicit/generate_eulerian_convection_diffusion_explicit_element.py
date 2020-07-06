@@ -113,7 +113,6 @@ for dim in dim_vector:
     k = Symbol('k',positive= True)     # diffusion coefficient
     v = DefineMatrix('v',nnodes,dim)   # convective velocity
     tau = DefineVector('tau',ngauss) # stabilization coefficient
-    qstau = DefineVector('qstau',ngauss) # stabilization coefficient
     delta_time = Symbol('delta_time',positive= True) # time current time step
     RK_time_coefficient = Symbol('RK_time_coefficient',positive= True) # time coefficient for RK scheme
     prj = DefineVector('prj',nnodes)       # OSS projection term
@@ -162,7 +161,7 @@ for dim in dim_vector:
         #####  Stabilization ASGS/OSS functional terms #####
         # ASGS/OSS Convective term
         rhs_stab_1_forcing = tau[i_gauss] * (v_gauss.transpose() * grad_q) * f_gauss
-        # rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * N.transpose() * phi_acceleration_old_gauss
+        # rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * phi_acceleration_old_gauss # use acceleration step n
         rhs_stab_1_mass = - tau[i_gauss] * (grad_q.transpose() * v_gauss) * N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time)
         rhs_stab_1_convection_1 = - tau[i_gauss] * (v_gauss.transpose() * grad_q) * (v_gauss.transpose() * grad_phi)
         rhs_stab_1_convection_2 = - tau[i_gauss] * (v_gauss.transpose() * grad_q) * phi_gauss * div_v
@@ -177,16 +176,17 @@ for dim in dim_vector:
             rhs_stab_1 += rhs_stab_1_dynamic
 
         # ASGS/OSS dynamic term
-        rhs_stab_2_forcing = - q_gauss.transpose() * f_gauss
-        # rhs_stab_2_mass = q_gauss.transpose() * N.transpose() * phi_acceleration_old_gauss
-        rhs_stab_2_mass = q_gauss.transpose() * N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time)
-        rhs_stab_2_convection_1 = q_gauss * (v_gauss.transpose() * grad_phi)
-        rhs_stab_2_convection_2 = q_gauss * phi_gauss * div_v
-        rhs_stab_2_diffusion = k * grad_phi.transpose() * grad_q
-        rhs_stab_2_mass_subgrid_old = (1/qstau[i_gauss]) * q_gauss.transpose() * phi_subscale_gauss[i_gauss]
-        rhs_stab_2 = rhs_stab_2_forcing + rhs_stab_2_mass + rhs_stab_2_convection_1 + rhs_stab_2_convection_2 + rhs_stab_2_diffusion + rhs_stab_2_mass_subgrid_old
+        rhs_stab_2_forcing = - tau[i_gauss] * q_gauss.transpose() * f_gauss
+        # rhs_stab_2_mass = tau[i_gauss] * q_gauss.transpose() * phi_acceleration_old_gauss # use acceleration step n
+        rhs_stab_2_mass = tau[i_gauss] * q_gauss.transpose() * N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time)
+        rhs_stab_2_convection_1 = tau[i_gauss] * q_gauss * (v_gauss.transpose() * grad_phi)
+        rhs_stab_2_convection_2 = tau[i_gauss] * q_gauss * phi_gauss * div_v
+        rhs_stab_2_diffusion = tau[i_gauss] * k * grad_phi.transpose() * grad_q
+        rhs_stab_2_subgrid_old = - tau[i_gauss] * q_gauss.transpose() * phi_subscale_gauss[i_gauss]
+        rhs_stab_2_mass_subgrid_old = q_gauss.transpose() * phi_subscale_gauss[i_gauss] / delta_time
+        rhs_stab_2 = rhs_stab_2_forcing + rhs_stab_2_mass + rhs_stab_2_convection_1 + rhs_stab_2_convection_2 + rhs_stab_2_diffusion + rhs_stab_2_subgrid_old + rhs_stab_2_mass_subgrid_old
         # OSS term of mass term
-        rhs_stab_2_oss = - q_gauss.transpose() * prj_gauss
+        rhs_stab_2_oss = - tau[i_gauss] * q_gauss.transpose() * prj_gauss
         if OSS_stabilization:
             rhs_stab_2 += rhs_stab_2_oss
 
@@ -199,7 +199,7 @@ for dim in dim_vector:
         ##### OSS step #####
         # with lhs we refer to the fact we take the strong equation on the left side
         lhs_OSS_forcing = - q_gauss.transpose() * f_gauss
-        # lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * phi_acceleration_old_gauss
+        # lhs_OSS_mass = q_gauss.transpose() * phi_acceleration_old_gauss # use acceleration step n
         lhs_OSS_mass = q_gauss.transpose() * (N.transpose() * (phi-phi_old)/(RK_time_coefficient*delta_time))
         lhs_OSS_mass_subscale = - q_gauss.transpose() * (phi_subscale_gauss[i_gauss]/delta_time)
         lhs_OSS_diffusion = k * grad_phi.transpose() * grad_q

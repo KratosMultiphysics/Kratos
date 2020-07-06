@@ -259,7 +259,6 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::CalculateLocalSystem
     const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto& v = rVariables.convective_velocity;
     const auto& tau = rVariables.tau;
-    const auto& qstau = rVariables.qstau;
     const auto& prj = rVariables.oss_projection;
     const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
@@ -302,7 +301,6 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::CalculateLocalSystem
     const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto& v = rVariables.convective_velocity;
     const auto& tau = rVariables.tau;
-    const auto& qstau = rVariables.qstau;
     const auto& prj = rVariables.oss_projection;
     const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
@@ -441,6 +439,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::UpdateUnknownSubgrid
 
     phi_subscale_gauss_new += N[0]*f[0] + N[1]*f[1] + N[2]*f[2]; // forcing term
     phi_subscale_gauss_new += - (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]))/(delta_time); // mass term
+    // phi_subscale_gauss_new += - (N[0]*phi_acceleration_old[0] + N[1]*phi_acceleration_old[1] + N[2]*phi_acceleration_old[2]); // mass term (use acceleration step n)
     phi_subscale_gauss_new += - (DN_DX_0_0*phi[0] + DN_DX_1_0*phi[1] + DN_DX_2_0*phi[2])*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0)) - (DN_DX_0_1*phi[0] + DN_DX_1_1*phi[1] + DN_DX_2_1*phi[2])*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1)); // convective term 1
     phi_subscale_gauss_new += - (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2])*(DN_DX_0_0*v(0,0) + DN_DX_0_1*v(0,1) + DN_DX_1_0*v(1,0) + DN_DX_1_1*v(1,1) + DN_DX_2_0*v(2,0) + DN_DX_2_1*v(2,1)); // convective term 2
     phi_subscale_gauss_new += N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2]; // OSS term
@@ -501,7 +500,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
 {
     // Calculate h
     double h = this->ComputeH(rVariables.DN_DX);
-    // Calculate tau and qstau for each gauss point
+    // Calculate tau for each gauss point
     for(unsigned int g = 0; g<TNumNodes; g++)
     {
 	const auto& N = row(rVariables.N_gausspoint,g);
@@ -531,18 +530,6 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
         // Limiting
         inv_tau = std::max(inv_tau, 1e-2);
         rVariables.tau[g] = (rVariables.density*rVariables.specific_heat) / inv_tau;
-        // Estimate quasi-static tau
-        double inv_qstau = 0;
-        // Convection
-        inv_qstau += 2.0 * norm_velocity / h;
-        inv_qstau += 1.0*div_vel; // unitary coefficient in front of \nabla \cdot convective_velocity term in the strong equation
-        // Dynamic and convection terms are multiplyied by density*specific_heat to have consistent dimensions
-        inv_qstau *= rVariables.density * rVariables.specific_heat;
-        // Diffusion
-        inv_qstau += 4.0 * rVariables.diffusivity / (h*h);
-        // Limiting
-        inv_qstau = std::max(inv_qstau, 1e-2);
-        rVariables.qstau[g] = (rVariables.density*rVariables.specific_heat) / inv_qstau;
     }
 }
 

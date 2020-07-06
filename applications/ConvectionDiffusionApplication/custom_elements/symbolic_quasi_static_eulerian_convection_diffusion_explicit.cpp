@@ -317,7 +317,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Ini
 {
     // Observations
     // * SGS time derivative term approximated as (phi-phi_old)/(RK_time_coefficient*delta_time)
-    //   observe that for RK step = 1 ASGS time derivative term = 0 because phi = phi_old
+    //   observe that for RK step = 1 ASGS time derivative term = 0 because phi = phi_old (null acceleration wrt step n)
     // * convective velocity and forcing term:
     //   RK step 1: evaluated at previous time step
     //   RK steps 2 and 3: linear interpolation between current and oldprevious time step

@@ -221,13 +221,14 @@ protected:
      */
     virtual void FinalizeSolutionStep() override
     {
-        BaseType::FinalizeSolutionStep();
+        // Update whatever needed before calling FinalizeSolutionStep of the element
         // Calculate the Orthogonal SubsScales projections
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
         if (r_process_info[OSS_SWITCH] == 1) {
             ExecuteOSSStep();
         }
+        BaseType::FinalizeSolutionStep();
     };
 
     /**
