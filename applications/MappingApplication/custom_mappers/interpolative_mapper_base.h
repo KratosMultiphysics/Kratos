@@ -183,6 +183,11 @@ public:
     ///@name Inquiry
     ///@{
 
+    int AreMeshesConforming() const override
+    {
+        return mpIntefaceCommunicator->AreMeshesConforming();
+    }
+
     ///@}
     ///@name Input and output
     ///@{
