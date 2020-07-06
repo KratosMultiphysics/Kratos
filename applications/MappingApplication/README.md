@@ -9,7 +9,7 @@ The Mapping Application contains the core developments in mapping data between n
 - [Basic Usage](#basic-usage)
 - [Advanced Usage](#advanced-usage)
 - [Available Mappers](#Available-Mappers)
-- [When to use which Mapper?](#When-to-use-which-Mapper?)
+- [When to use which Mapper?](#When-to-use-which-Mapper)
 - [FAQ](#faq)
 
 
