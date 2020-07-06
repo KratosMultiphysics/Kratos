@@ -80,15 +80,15 @@ namespace Kratos
 
             // Set the nodal DENSITY and DYNAMICS_VISCOSITY
             Element::Pointer p_element = model_part.pGetElement(1);
-            for (NodeIteratorType it_node = model_part.NodesBegin(); it_node != model_part.NodesEnd(); ++it_node)
+            for (auto & r_node : model_part.Nodes())
             {
-                it_node->FastGetSolutionStepValue(DENSITY) = p_elem_prop->GetValue(DENSITY);
-                it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_elem_prop->GetValue(DYNAMIC_VISCOSITY);
-                if (it_node->Z() == 0.0)
+                r_node.FastGetSolutionStepValue(DENSITY) = p_elem_prop->GetValue(DENSITY);
+                r_node.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_elem_prop->GetValue(DYNAMIC_VISCOSITY);
+                if (r_node.Z() == 0.0)
                 {
-                    it_node->Fix(VELOCITY_X);
-                    it_node->Fix(VELOCITY_Y);
-                    it_node->Fix(VELOCITY_Z);
+                    r_node.Fix(VELOCITY_X);
+                    r_node.Fix(VELOCITY_Y);
+                    r_node.Fix(VELOCITY_Z);
                 }
             }
             GeometricalObject::NodeType &node4 = p_element->GetGeometry()[3];
@@ -166,21 +166,21 @@ namespace Kratos
 
             // Set the nodal DENSITY and DYNAMICS_VISCOSITY
             Element::Pointer p_element = model_part.pGetElement(1);
-            for (NodeIteratorType it_node = model_part.NodesBegin(); it_node != model_part.NodesEnd(); ++it_node)
+            for (auto & r_node : model_part.Nodes())
             {
-                it_node->FastGetSolutionStepValue(DENSITY) = p_elem_prop->GetValue(DENSITY);
-                it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_elem_prop->GetValue(DYNAMIC_VISCOSITY);
-                if (it_node->Z() == 0.0)
+                r_node.FastGetSolutionStepValue(DENSITY) = p_elem_prop->GetValue(DENSITY);
+                r_node.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_elem_prop->GetValue(DYNAMIC_VISCOSITY);
+                if (r_node.Z() == 0.0)
                 {
-                    it_node->Fix(VELOCITY_X);
-                    it_node->Fix(VELOCITY_Y);
-                    it_node->Fix(VELOCITY_Z);
+                    r_node.Fix(VELOCITY_X);
+                    r_node.Fix(VELOCITY_Y);
+                    r_node.Fix(VELOCITY_Z);
                 }
-                if (it_node->Z() == 1.0)
+                if (r_node.Z() == 1.0)
                 {
-                    it_node->FastGetSolutionStepValue(VELOCITY_X) = 0.1;
-                    it_node->FastGetSolutionStepValue(VELOCITY_Y) = 0.1;
-                    it_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.1;
+                    r_node.FastGetSolutionStepValue(VELOCITY_X) = 0.1;
+                    r_node.FastGetSolutionStepValue(VELOCITY_Y) = 0.1;
+                    r_node.FastGetSolutionStepValue(VELOCITY_Z) = 0.1;
                 }
             }
 
@@ -265,21 +265,21 @@ namespace Kratos
 
             // Set the nodal DENSITY and DYNAMICS_VISCOSITY
             Element::Pointer p_element = model_part.pGetElement(1);
-            for (NodeIteratorType it_node = model_part.NodesBegin(); it_node != model_part.NodesEnd(); ++it_node)
+            for (auto & r_node : model_part.Nodes())
             {
-                it_node->FastGetSolutionStepValue(DENSITY) = p_elem_prop->GetValue(DENSITY);
-                it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_elem_prop->GetValue(DYNAMIC_VISCOSITY);
-                if (it_node->Z() == 0.0)
+                r_node.FastGetSolutionStepValue(DENSITY) = p_elem_prop->GetValue(DENSITY);
+                r_node.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_elem_prop->GetValue(DYNAMIC_VISCOSITY);
+                if (r_node.Z() == 0.0)
                 {
-                    it_node->Fix(VELOCITY_X);
-                    it_node->Fix(VELOCITY_Y);
-                    it_node->Fix(VELOCITY_Z);
+                    r_node.Fix(VELOCITY_X);
+                    r_node.Fix(VELOCITY_Y);
+                    r_node.Fix(VELOCITY_Z);
                 }
-                if (it_node->Z() == 1.0)
+                if (r_node.Z() == 1.0)
                 {
-                    it_node->FastGetSolutionStepValue(VELOCITY_X) = 0.1;
-                    it_node->FastGetSolutionStepValue(VELOCITY_Y) = 0.1;
-                    it_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.1;
+                    r_node.FastGetSolutionStepValue(VELOCITY_X) = 0.1;
+                    r_node.FastGetSolutionStepValue(VELOCITY_Y) = 0.1;
+                    r_node.FastGetSolutionStepValue(VELOCITY_Z) = 0.1;
                 }
             }
 
