@@ -10,8 +10,8 @@
 //  Main authors:    Mohammad R. Hashemi
 //
 
-#if !defined(KRATOS_SURFACE_SMOOTHING_ELEMENT_H_INCLUDED )
-#define KRATOS_SURFACE_SMOOTHING_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_DISTANCE_SMOOTHING_ELEMENT_H_INCLUDED )
+#define KRATOS_DISTANCE_SMOOTHING_ELEMENT_H_INCLUDED
 
 // System includes
 #include <string>
@@ -46,7 +46,7 @@ namespace Kratos
 ///@{
 
 template< unsigned int TDim >
-class SurfaceSmoothingElement : public Element
+class DistanceSmoothingElement : public Element
 {
 public:
 
@@ -58,7 +58,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of CellNodeProjectionElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceSmoothingElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DistanceSmoothingElement);
 
     ///@}
     ///@name Life Cycle
@@ -67,39 +67,39 @@ public:
     /**
      * Constructor.
      */
-    SurfaceSmoothingElement(IndexType NewId = 0);
+    DistanceSmoothingElement(IndexType NewId = 0);
 
     /**
      * Constructor using an array of nodes
      */
-    SurfaceSmoothingElement(IndexType NewId, const NodesArrayType& ThisNodes);
+    DistanceSmoothingElement(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /**
      * Constructor using Geometry
      */
-    SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    DistanceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /**
      * Constructor using Properties
      */
-    SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    DistanceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /**
      * Copy Constructor
      */
-    SurfaceSmoothingElement(SurfaceSmoothingElement const& rOther);
+    DistanceSmoothingElement(DistanceSmoothingElement const& rOther);
 
     /**
      * Destructor
      */
-    ~SurfaceSmoothingElement() override;
+    ~DistanceSmoothingElement() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SurfaceSmoothingElement & operator=(SurfaceSmoothingElement const& rOther);
+    DistanceSmoothingElement & operator=(DistanceSmoothingElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -250,7 +250,7 @@ private:
 
     ///@}
 
-}; // Class SurfaceSmoothingElement
+}; // Class DistanceSmoothingElement
 
 ///@}
 
@@ -265,4 +265,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SURFACE_SMOOTHING_ELEMENT_H_INCLUDED
+#endif // KRATOS_DISTANCE_SMOOTHING_ELEMENT_H_INCLUDED

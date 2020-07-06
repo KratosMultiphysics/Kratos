@@ -14,7 +14,7 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class TestSurfaceSmoothing(KratosUnittest.TestCase):
+class TestDistanceSmoothing(KratosUnittest.TestCase):
 
     def test_smoothing_2d_square(self):
         current_model = KratosMultiphysics.Model()
@@ -24,7 +24,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
 
-        KratosMultiphysics.ModelPartIO(GetFilePath("SurfaceSmoothingTest/two_dim_symmetrical_square")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("DistanceSmoothingTest/two_dim_symmetrical_square")).ReadModelPart(model_part)
 
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
@@ -91,11 +91,11 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             """)
         )
 
-        smoothing_process = KratosCFD.SurfaceSmoothingProcess2D(
+        smoothing_process = KratosCFD.DistanceSmoothingProcess2D(
            model_part,
            linear_solver)
 
-        for _ in range(5): # surface smoothing can be called multiple times
+        for _ in range(0): # Distance smoothing can be called multiple times
             smoothing_process.Execute()
 
         #node = (model_part.Nodes)[479]
@@ -137,7 +137,7 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
 
-        KratosMultiphysics.ModelPartIO(GetFilePath("SurfaceSmoothingTest/three_dim_symmetrical_cube")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("DistanceSmoothingTest/three_dim_symmetrical_cube")).ReadModelPart(model_part)
 
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
@@ -206,11 +206,11 @@ class TestSurfaceSmoothing(KratosUnittest.TestCase):
             }
             """)
 
-        smoothing_process_with_parameters = KratosCFD.SurfaceSmoothingProcess3D(
+        smoothing_process_with_parameters = KratosCFD.DistanceSmoothingProcess3D(
            current_model,
            settings)
 
-        for _ in range(1): # surface smoothing can be called multiple times
+        for _ in range(1): # Distance smoothing can be called multiple times
             smoothing_process_with_parameters.Execute()
 
         node = (model_part.Nodes)[479]

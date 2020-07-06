@@ -15,7 +15,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_elements/surface_smoothing_element.h"
+#include "custom_elements/distance_smoothing_element.h"
 
 namespace Kratos
 {
@@ -55,7 +55,7 @@ namespace Kratos
  * Constructor.
  */
 template< unsigned int TDim >
-SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId)
+DistanceSmoothingElement<TDim>::DistanceSmoothingElement(IndexType NewId)
     : Element(NewId)
 {
 }
@@ -64,7 +64,7 @@ SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId)
  * Constructor using an array of nodes
  */
 template< unsigned int TDim >
-SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId, const NodesArrayType& ThisNodes)
+DistanceSmoothingElement<TDim>::DistanceSmoothingElement(IndexType NewId, const NodesArrayType& ThisNodes)
     : Element(NewId, ThisNodes)
 {
 }
@@ -73,7 +73,7 @@ SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId, const No
  * Constructor using Geometry
  */
 template< unsigned int TDim >
-SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry)
+DistanceSmoothingElement<TDim>::DistanceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
 }
@@ -82,7 +82,7 @@ SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId, Geometry
  * Constructor using Properties
  */
 template< unsigned int TDim >
-SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+DistanceSmoothingElement<TDim>::DistanceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
@@ -91,7 +91,7 @@ SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(IndexType NewId, Geometry
  * Copy Constructor
  */
 template< unsigned int TDim >
-SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(SurfaceSmoothingElement const& rOther)
+DistanceSmoothingElement<TDim>::DistanceSmoothingElement(DistanceSmoothingElement const& rOther)
     : Element(rOther)
 {
 }
@@ -100,7 +100,7 @@ SurfaceSmoothingElement<TDim>::SurfaceSmoothingElement(SurfaceSmoothingElement c
  * Destructor
  */
 template< unsigned int TDim >
-SurfaceSmoothingElement<TDim>::~SurfaceSmoothingElement()
+DistanceSmoothingElement<TDim>::~DistanceSmoothingElement()
 {
 }
 
@@ -110,7 +110,7 @@ SurfaceSmoothingElement<TDim>::~SurfaceSmoothingElement()
 
 /// Assignment operator.
 template< unsigned int TDim >
-SurfaceSmoothingElement<TDim> & SurfaceSmoothingElement<TDim>::operator=(SurfaceSmoothingElement const& rOther)
+DistanceSmoothingElement<TDim> & DistanceSmoothingElement<TDim>::operator=(DistanceSmoothingElement const& rOther)
 {
     BaseType::operator=(rOther);
     Flags::operator =(rOther);
@@ -135,13 +135,13 @@ SurfaceSmoothingElement<TDim> & SurfaceSmoothingElement<TDim>::operator=(Surface
  * @return a Pointer to the new element
  */
 template< unsigned int TDim >
-Element::Pointer SurfaceSmoothingElement<TDim>::Create(
+Element::Pointer DistanceSmoothingElement<TDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<SurfaceSmoothingElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<DistanceSmoothingElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
@@ -153,13 +153,13 @@ Element::Pointer SurfaceSmoothingElement<TDim>::Create(
  * @return a Pointer to the new element
  */
 template< unsigned int TDim >
-Element::Pointer SurfaceSmoothingElement<TDim>::Create(
+Element::Pointer DistanceSmoothingElement<TDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<SurfaceSmoothingElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<DistanceSmoothingElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -171,10 +171,10 @@ Element::Pointer SurfaceSmoothingElement<TDim>::Create(
  * @return a Pointer to the new element
  */
 template< unsigned int TDim >
-Element::Pointer SurfaceSmoothingElement<TDim>::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
+Element::Pointer DistanceSmoothingElement<TDim>::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<SurfaceSmoothingElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    return Kratos::make_intrusive<DistanceSmoothingElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     KRATOS_CATCH("");
 }
 
@@ -185,7 +185,7 @@ Element::Pointer SurfaceSmoothingElement<TDim>::Clone(IndexType NewId, NodesArra
  * @param rCurrentProcessInfo: the current process info instance
  */
 template< unsigned int TDim >
-void SurfaceSmoothingElement<TDim>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
+void DistanceSmoothingElement<TDim>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     const unsigned int num_nodes = TDim + 1;
 
@@ -205,7 +205,7 @@ void SurfaceSmoothingElement<TDim>::EquationIdVector(EquationIdVectorType& rResu
  * @param rCurrentProcessInfo: the current process info instance
  */
 template< unsigned int TDim >
-void SurfaceSmoothingElement<TDim>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const
+void DistanceSmoothingElement<TDim>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     const unsigned int num_nodes = TDim + 1;
 
@@ -235,7 +235,7 @@ void SurfaceSmoothingElement<TDim>::GetDofList(DofsVectorType& rElementalDofList
  * @param rCurrentProcessInfo: the current process info instance
  */
 template< >
-void SurfaceSmoothingElement<2>::CalculateLocalSystem(
+void DistanceSmoothingElement<2>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -388,7 +388,7 @@ void SurfaceSmoothingElement<2>::CalculateLocalSystem(
  * @param rCurrentProcessInfo: the current process info instance
  */
 template< >
-void SurfaceSmoothingElement<3>::CalculateLocalSystem(
+void DistanceSmoothingElement<3>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -536,11 +536,11 @@ void SurfaceSmoothingElement<3>::CalculateLocalSystem(
  * this method is: MANDATORY
  */
 template< unsigned int TDim >
-int SurfaceSmoothingElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int DistanceSmoothingElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(this->GetGeometry().Area() <= 0) << "On SurfaceSmoothingElement -> "
+    KRATOS_ERROR_IF(this->GetGeometry().Area() <= 0) << "On DistanceSmoothingElement -> "
         << this->Id() <<  "; Area cannot be less than or equal to 0" << std::endl;
 
     // Base class checks for domain size and Id > 0
@@ -578,23 +578,23 @@ int SurfaceSmoothingElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo)
 /// Turn back information as a string.
 
 template< unsigned int TDim >
-std::string SurfaceSmoothingElement<TDim>::Info() const {
+std::string DistanceSmoothingElement<TDim>::Info() const {
     std::stringstream buffer;
-    buffer << "SurfaceSmoothingElement #" << Id();
+    buffer << "DistanceSmoothingElement #" << Id();
     return buffer.str();
 }
 
 /// Print information about this object.
 
 template< unsigned int TDim >
-void SurfaceSmoothingElement<TDim>::PrintInfo(std::ostream& rOStream) const {
-    rOStream << "SurfaceSmoothingElement #" << Id();
+void DistanceSmoothingElement<TDim>::PrintInfo(std::ostream& rOStream) const {
+    rOStream << "DistanceSmoothingElement #" << Id();
 }
 
 /// Print object's data.
 
 template< unsigned int TDim >
-void SurfaceSmoothingElement<TDim>::PrintData(std::ostream& rOStream) const {
+void DistanceSmoothingElement<TDim>::PrintData(std::ostream& rOStream) const {
     pGetGeometry()->PrintData(rOStream);
 }
 
@@ -653,7 +653,7 @@ void SurfaceSmoothingElement<TDim>::PrintData(std::ostream& rOStream) const {
 ///@{
 
 template< unsigned int TDim >
-void SurfaceSmoothingElement<TDim>::save(Serializer& rSerializer) const
+void DistanceSmoothingElement<TDim>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
 
@@ -662,7 +662,7 @@ void SurfaceSmoothingElement<TDim>::save(Serializer& rSerializer) const
 }
 
 template< unsigned int TDim >
-void SurfaceSmoothingElement<TDim>::load(Serializer& rSerializer)
+void DistanceSmoothingElement<TDim>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
 
@@ -692,11 +692,11 @@ void SurfaceSmoothingElement<TDim>::load(Serializer& rSerializer)
 
 /// input stream function
 template< unsigned int TDim >
-inline std::istream & operator >> (std::istream& rIStream, SurfaceSmoothingElement<TDim>& rThis);
+inline std::istream & operator >> (std::istream& rIStream, DistanceSmoothingElement<TDim>& rThis);
 
 /// output stream function
 template< unsigned int TDim >
-inline std::ostream & operator << (std::ostream& rOStream, const SurfaceSmoothingElement<TDim>& rThis)
+inline std::ostream & operator << (std::ostream& rOStream, const DistanceSmoothingElement<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -704,7 +704,7 @@ inline std::ostream & operator << (std::ostream& rOStream, const SurfaceSmoothin
     return rOStream;
 }
 
-template class SurfaceSmoothingElement<2>;
-template class SurfaceSmoothingElement<3>;
+template class DistanceSmoothingElement<2>;
+template class DistanceSmoothingElement<3>;
 
 } // namespace Kratos.

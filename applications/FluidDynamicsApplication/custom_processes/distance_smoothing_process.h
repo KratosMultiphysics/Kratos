@@ -10,8 +10,8 @@
 //  Main authors:    Mohammad R. Hashemi
 //
 
-#ifndef KRATOS_SURFACE_SMOOTHING_H
-#define KRATOS_SURFACE_SMOOTHING_H
+#ifndef KRATOS_DISTANCE_SMOOTHING_H
+#define KRATOS_DISTANCE_SMOOTHING_H
 
 // System includes
 #include <string>
@@ -30,7 +30,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 // Application includes
-#include "custom_elements/surface_smoothing_element.h"
+#include "custom_elements/distance_smoothing_element.h"
 
 namespace Kratos
 {
@@ -56,19 +56,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility for surface smoothing
+/// Utility for distance smoothing
 /// Based on Tornberg, Anna-Karin, and Björn Engquist. "A finite element based level-set method
 /// for multiphase flow applications." Computing and Visualization in Science 3, no. 1-2 (2000): 93-101.
 /// The algorithm is improved by imposing a boundary condition and a correction step.
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) SurfaceSmoothingProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceSmoothingProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SurfaceSmoothingProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SurfaceSmoothingProcess);
+    /// Pointer definition of DistanceSmoothingProcess
+    KRATOS_CLASS_POINTER_DEFINITION(DistanceSmoothingProcess);
 
     //typedef UblasSpace<double, CompressedMatrix, Vector> TSparseSpace;
     //typedef UblasSpace<double, Matrix, Vector> TDenseSpace;
@@ -83,22 +83,22 @@ public:
     ///@{
 
     /// Constructor.
-    SurfaceSmoothingProcess(
+    DistanceSmoothingProcess(
         ModelPart& rModelPart,
         typename TLinearSolver::Pointer);
 
     /// Constructor with Kratos parameters.
-    SurfaceSmoothingProcess(
+    DistanceSmoothingProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
 
     /// Constructor with Kratos model
-    SurfaceSmoothingProcess(
+    DistanceSmoothingProcess(
         Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
-    ~SurfaceSmoothingProcess() override
+    ~DistanceSmoothingProcess() override
     {
         Model& current_model = mrModelPart.GetModel();
         if(current_model.HasModelPart( mAuxModelPartName ))
@@ -141,12 +141,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Surface Smoothing Process" ;
+        buffer << "Distance Smoothing Process" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "Surface Smoothing Process";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "Distance Smoothing Process";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -185,7 +185,7 @@ private:
 
     /**
      * @brief Initialize the process
-     * Create a Model Part with the SurfaceSmoothingElement
+     * Create a Model Part with the DistanceSmoothingElement
      */
     void CreateAuxModelPart();
 
@@ -204,17 +204,17 @@ private:
     ///@{
 
     /// Default constructor.
-    SurfaceSmoothingProcess() = delete;
+    DistanceSmoothingProcess() = delete;
 
     /// Assignment operator.
-    SurfaceSmoothingProcess& operator=(SurfaceSmoothingProcess const& rOther) = delete;
+    DistanceSmoothingProcess& operator=(DistanceSmoothingProcess const& rOther) = delete;
 
     /// Copy constructor.
-    SurfaceSmoothingProcess(SurfaceSmoothingProcess const& rOther) = delete;
+    DistanceSmoothingProcess(DistanceSmoothingProcess const& rOther) = delete;
 
     ///@}
 
-}; // Class SurfaceSmoothingProcess
+}; // Class DistanceSmoothingProcess
 
 ///@}
 ///@name Type Definitions
@@ -230,4 +230,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_SURFACE_SMOOTHING__H
+#endif // KRATOS_DISTANCE_SMOOTHING__H
