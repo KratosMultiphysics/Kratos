@@ -6,8 +6,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 import math
 import os
-from random import seed
-from random import random
 
 #from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
