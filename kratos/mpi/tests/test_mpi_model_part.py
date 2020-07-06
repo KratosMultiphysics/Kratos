@@ -33,13 +33,6 @@ class TestMPIModelPart(KratosUnittest.TestCase):
     def setUp(self):
         self.communicator = KratosMultiphysics.DataCommunicator.GetDefault()
 
-    def tearDown(self):
-        rank = self.communicator.Rank()
-        if rank == 0:
-            kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".mdpa")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
-        self.communicator.Barrier()
 
     def test_remove_nodes_parallel_interfaces(self):
         current_model = KratosMultiphysics.Model()
