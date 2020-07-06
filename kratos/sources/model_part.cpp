@@ -452,7 +452,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
     }
 
     // Now recursively remove the nodes in the submodelparts
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++) {
+    for (auto& r_sub_model_part : SubModelParts()) {
         i_sub_model_part->RemoveNodes(IdentifierFlag);
     }
 }
