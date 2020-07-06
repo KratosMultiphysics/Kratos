@@ -13,6 +13,8 @@ The Mapping Application contains the core developments in mapping data between n
   - Nearest Element
 - Mapping operations (see [here](#customizing-the-behavior-of-the-mapping-with-flags))
 
+### Mapping in CoSimulation
+The Mapping Application can be used for mapping within the [CoSimulationApplication](../CoSimulationApplication). This can be done by using the  [KratosMappingDataTransferOperator](../CoSimulationApplication/python_scripts/data_transfer_operators/kratos_mapping.py).
 
 ### Basic Usage
 The _Mapper_ maps nodal data from one _ModelPart_ to another. This means that the input for the _Mapper_ is two _ModelParts_, the **Origin** and the **Destination**. Furthermore settings in the form of _Kratos::Parameters_ are passed.
