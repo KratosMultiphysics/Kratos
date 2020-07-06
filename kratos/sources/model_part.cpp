@@ -418,7 +418,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
 
         temp_nodes_container.swap(r_mesh.Nodes());
 
-        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++) {
+        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; ++i_node) {
             if( i_node->IsNot(IdentifierFlag) )
                 (r_mesh.Nodes()).push_back(std::move(*(i_node.base())));
         }
@@ -427,7 +427,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
     // This method is optimized to free the memory
     // Loop over all the local meshes (Is this still necessary with Submodelparts?)
     for(auto& r_mesh: this->GetMeshes()) {
-        remove_from_mesh(r_mesh);
+        remove_nodes_from_mesh(r_mesh);
     }
 
     if (IsDistributed()) {
@@ -435,19 +435,19 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
         this->GetCommunicator().SynchronizeOrNodalFlags(IdentifierFlag);
 
         // Remove the nodes from the mpi-interfaces in case there is any
-        remove_from_mesh(this->GetCommunicator().LocalMesh());
+        remove_nodes_from_mesh(this->GetCommunicator().LocalMesh());
         for(auto& r_mesh: this->GetCommunicator().LocalMeshes()) {
-            remove_from_mesh(r_mesh);
+            remove_nodes_from_mesh(r_mesh);
         }
 
-        remove_from_mesh(this->GetCommunicator().GhostMesh());
+        remove_nodes_from_mesh(this->GetCommunicator().GhostMesh());
         for(auto& r_mesh: this->GetCommunicator().GhostMeshes()) {
-            remove_from_mesh(r_mesh);
+            remove_nodes_from_mesh(r_mesh);
         }
 
-        remove_from_mesh(this->GetCommunicator().InterfaceMesh());
+        remove_nodes_from_mesh(this->GetCommunicator().InterfaceMesh());
         for(auto& r_mesh: this->GetCommunicator().InterfaceMeshes()) {
-            remove_from_mesh(r_mesh);
+            remove_nodes_from_mesh(r_mesh);
         }
     }
 
