@@ -1,6 +1,18 @@
 ## Mapping Application
 The Mapping Application contains the core developments in mapping data between non matching grids. It works both in shared and distributed (**MPI**) memory environments as well as in 1D, 2D and 3D domains.
 
+
+### Overview
+- [List of features](#list-of-features)
+- [Dependencies](#dependencies)
+- [Mapping in CoSimulation](#Mapping-in-CoSimulation)
+- [Basic Usage](#basic-usage)
+- [Advanced Usage](#advanced-usage)
+- [Available Mappers](#Available-Mappers)
+- [When to use which Mapper?](#When-to-use-which-Mapper?)
+- [FAQ](#faq)
+
+
 ### List of features
 - Parallelism:
   - Serial (no parallelism)
@@ -13,8 +25,13 @@ The Mapping Application contains the core developments in mapping data between n
   - Nearest Element
 - Mapping operations (see [here](#customizing-the-behavior-of-the-mapping-with-flags))
 
+### Dependencies
+The serial / shared memory parallel compilation of the Mapping Application doesn't have any dependencies (except the `KratosCore`).
+
+The distributed compilation of the Mapping Application depends on the [Trilinos library](https://trilinos.github.io/). Also most of the MPI-solvers in Kratos depend on Trilinos, see the [Trilinos Application](../TrilinosApplication).
+
 ### Mapping in CoSimulation
-The Mapping Application can be used for mapping within the [CoSimulationApplication](../CoSimulationApplication). This can be done by using the  [KratosMappingDataTransferOperator](../CoSimulationApplication/python_scripts/data_transfer_operators/kratos_mapping.py).
+The Mapping Application can be used for mapping within the [CoSimulation Application](../CoSimulationApplication). This can be done by using the  [KratosMappingDataTransferOperator](../CoSimulationApplication/python_scripts/data_transfer_operators/kratos_mapping.py).
 
 ### Basic Usage
 The _Mapper_ maps nodal data from one _ModelPart_ to another. This means that the input for the _Mapper_ is two _ModelParts_, the **Origin** and the **Destination**. Furthermore settings in the form of _Kratos::Parameters_ are passed.
@@ -160,7 +177,7 @@ This mapper is best suited for problems where both interfaces have a similar dis
 
 Internally it constructs the mapping matrix, hence it offers the usage of the transposed mapping matrix. When using this, for very inhomogenous interface discretizations it can come to oscillations in the mapped quantities.
 
-**Supported mesh topologies**: Any
+**Supported mesh topologies**: This mapper only works with nodes and hence supports any mesh topology
 
 #### Nearest Element
 The _NearestElementMapper_ projects nodes to the elements( or conditions) on other side of the inteface. Mapping is then done by interpolating the values of the nodes of the elements by using the shape functions at the projected position.
@@ -169,11 +186,11 @@ This mapper is best suited for problems where the _NearestNeighborMapper_ cannot
 
 Internally it constructs the mapping matrix, hence it offers the usage of the transposed mapping matrix. When using this, for very inhomogenous interface discretizations it can come to oscillations in the mapped quantities.
 
-**Supported mesh topologies**: Any
+**Supported mesh topologies**: Any mesh topology available in Kratos, which includes the most common linear and quadratic geometries, see [here](../../kratos/geometries).
 
 
 ### When to use which Mapper?
-- **Matching Interace**\
+- **Matching Interface**\
   For a matching interface the _NearestNeighborMapper_ is the best / fastes choice. Note that the ordering / numbering of the nodes doesn't matter.
 
 - **Interfaces with almost matching discretizations**\
