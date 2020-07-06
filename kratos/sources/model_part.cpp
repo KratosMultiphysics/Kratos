@@ -401,7 +401,7 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType::Pointer pThisNode, 
 void ModelPart::RemoveNodes(Flags IdentifierFlag)
 {
     // Lambda to remove nodes from a mesh
-    auto remove_from_mesh = [&](ModelPart::MeshType & mesh) {
+    auto remove_nodes_from_mesh = [&](ModelPart::MeshType& r_mesh) {
         //count the nodes to be erase
         const unsigned int nnodes = mesh.Nodes().size();
         unsigned int erase_count = 0;
