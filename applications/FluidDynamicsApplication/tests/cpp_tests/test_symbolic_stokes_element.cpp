@@ -102,22 +102,24 @@ namespace Kratos
             p_element->Initialize(process_info);
             p_element->CalculateLocalSystem(LHS, RHS, process_info);
             // Check the RHS values
-            KRATOS_CHECK_NEAR(RHS(0), 9.722222285, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(1), 9.722222285, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(2), 59.72222229, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(3), 0.01145833333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(4), -18.05555549, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(5), -12.49999994, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(6), -29.1666666, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(7), -0.009375, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(8), -12.49999994, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(9), -18.05555549, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(10), -29.1666666, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(11), -0.009375, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(12), -41.66666686, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(13), -41.66666686, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(14), -63.88888908, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(15), -0.009375, 1e-07);
+            Vector Expected_RHS = ZeroVector(16);
+            Expected_RHS(0) = 9.722222285;
+            Expected_RHS(1) = 9.722222285;
+            Expected_RHS(2) = 59.72222229;
+            Expected_RHS(3) = 0.01145833333;
+            Expected_RHS(4) = -18.05555549;
+            Expected_RHS(5) = -12.49999994;
+            Expected_RHS(6) = -29.1666666;
+            Expected_RHS(7) = -0.009375;
+            Expected_RHS(8) = -12.49999994;
+            Expected_RHS(9) = -18.05555549;
+            Expected_RHS(10) = -29.1666666;
+            Expected_RHS(11) = -0.009375;
+            Expected_RHS(12) = -41.66666686;
+            Expected_RHS(13) = -41.66666686;
+            Expected_RHS(14) = -63.88888908;
+            Expected_RHS(15) = -0.009375;
+            KRATOS_CHECK_VECTOR_NEAR(RHS, Expected_RHS, 1e-07);
         }
 
         /** Checks the SymbolicStokes3D6N element.
@@ -191,30 +193,33 @@ namespace Kratos
             p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
             // Check the RHS values
-            KRATOS_CHECK_NEAR(RHS(0), -16.66666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(1), -16.66666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(2), 47.22222222, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(3), 0.03854166667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(4), -33.33333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(5), -25, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(6), -27.77777778, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(7), -0.008333333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(8), -25, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(9), -33.33333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(10), -27.77777778, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(11), -0.008333333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(12), -91.66666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(13), -91.66666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(14), -72.22222222, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(15), 0.03854166667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(16), -108.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(17), -100, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(18), -147.2222222, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(19), -0.05520833333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(20), -100, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(21), -108.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(22), -147.2222222, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(23), -0.05520833333, 1e-07);
+            Vector Expected_RHS = ZeroVector(24);
+            Expected_RHS(0) = -16.66666667;
+            Expected_RHS(1) = -16.66666667;
+            Expected_RHS(2) = 47.22222222;
+            Expected_RHS(3) = 0.03854166667;
+            Expected_RHS(4) = -33.33333333;
+            Expected_RHS(5) = -25.0;
+            Expected_RHS(6) = -27.77777778;
+            Expected_RHS(7) = -0.008333333333;
+            Expected_RHS(8) = -25.0;
+            Expected_RHS(9) = -33.33333333;
+            Expected_RHS(10) = -27.77777778;
+            Expected_RHS(11) = -0.00833333333;
+            Expected_RHS(12) = -91.66666667;
+            Expected_RHS(13) = -91.66666667;
+            Expected_RHS(14) = -72.22222222;
+            Expected_RHS(15) = 0.03854166667;
+            Expected_RHS(16) = -108.3333333;
+            Expected_RHS(17) = -100.0;
+            Expected_RHS(18) = -147.2222222;
+            Expected_RHS(19) = -0.05520833333;
+            Expected_RHS(20) = -100.0;
+            Expected_RHS(21) = -108.3333333;
+            Expected_RHS(22) = -147.2222222;
+            Expected_RHS(23) = -0.05520833333;
+
+            KRATOS_CHECK_VECTOR_NEAR(RHS, Expected_RHS, 1e-07);
         }
 
         /** Checks the SymbolicStokes3D8N element.
@@ -289,38 +294,40 @@ namespace Kratos
             p_element->Initialize(process_info);
             p_element->CalculateLocalSystem(LHS, RHS, process_info);
             // Check the RHS values
-            KRATOS_CHECK_NEAR(RHS(0), -29.16666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(1), -29.16666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(2), 45.83333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(3), 0.096875, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(4), -45.83333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(5), -29.16666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(6), -4.166666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(7), 0.034375, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(8), -45.83333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(9), -45.83333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(10), -54.16666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(11), -0.028125, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(12), -29.16666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(13), -45.83333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(14), -4.166666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(15), 0.034375, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(16), -141.6666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(17), -141.6666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(18), -133.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(19), 0.065625, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(20), -158.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(21), -141.6666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(22), -183.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(23), -0.059375, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(24), -158.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(25), -158.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(26), -233.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(27), -0.184375, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(28), -141.6666667, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(29), -158.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(30), -183.3333333, 1e-07);
-            KRATOS_CHECK_NEAR(RHS(31), -0.059375, 1e-07);
+            Vector Expected_RHS = ZeroVector(32);
+            Expected_RHS(0) = -29.16666667;
+            Expected_RHS(1) = -29.16666667;
+            Expected_RHS(2) = 45.83333333;
+            Expected_RHS(3) = 0.096875;
+            Expected_RHS(4) = -45.83333333;
+            Expected_RHS(5) = -29.16666667;
+            Expected_RHS(6) = -4.166666667;
+            Expected_RHS(7) = 0.034375;
+            Expected_RHS(8) = -45.83333333;
+            Expected_RHS(9) = -45.83333333;
+            Expected_RHS(10) = -54.16666667;
+            Expected_RHS(11) = -0.028125;
+            Expected_RHS(12) = -29.16666667;
+            Expected_RHS(13) = -45.83333333;
+            Expected_RHS(14) = -4.166666667;
+            Expected_RHS(15) = 0.034375;
+            Expected_RHS(16) = -141.6666667;
+            Expected_RHS(17) = -141.6666667;
+            Expected_RHS(18) = -133.3333333;
+            Expected_RHS(19) = 0.065625;
+            Expected_RHS(20) = -158.3333333;
+            Expected_RHS(21) = -141.6666667;
+            Expected_RHS(22) = -183.3333333;
+            Expected_RHS(23) = -0.059375;
+            Expected_RHS(24) = -158.3333333;
+            Expected_RHS(25) = -158.3333333;
+            Expected_RHS(26) = -233.3333333;
+            Expected_RHS(27) = -0.184375;
+            Expected_RHS(28) = -141.6666667;
+            Expected_RHS(29) = -158.3333333;
+            Expected_RHS(30) = -183.3333333;
+            Expected_RHS(31) = -0.059375;
+            KRATOS_CHECK_VECTOR_NEAR(RHS, Expected_RHS, 1e-07)
         }
 
 
