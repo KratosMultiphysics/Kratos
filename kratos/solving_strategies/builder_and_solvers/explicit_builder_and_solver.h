@@ -95,7 +95,7 @@ public:
     // typedef Scheme<TSparseSpace, TDenseSpace> TSchemeType;
 
     /// Definition of the DoF class
-    typedef ModelPart::DofType TDofType;
+    typedef ModelPart::DofType DofType;
 
     /// Definition of the DoF array type
     typedef ModelPart::DofsArrayType DofsArrayType;
@@ -108,7 +108,7 @@ public:
     typedef typename DofsArrayType::const_iterator DofConstantIteratorType;
 
     /// The definition of the DoF set type
-    typedef typename std::unordered_set<TDofType::Pointer, DofPointerHasher> DofSetType;
+    typedef typename std::unordered_set<DofType::Pointer, DofPointerHasher> DofSetType;
 
     /// The containers of the entities
     typedef ModelPart::NodesContainerType NodesArrayType;
