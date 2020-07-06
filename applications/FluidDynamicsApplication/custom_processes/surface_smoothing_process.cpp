@@ -37,6 +37,42 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
     // Member variables initialization
     // Nothing!
 
+    /* const auto it_element_begin = mrModelPart.ElementsBegin();
+    for(unsigned int i = 0; i < rModelPart.Elements().size(); i++){
+        auto it_elem = it_element_begin + i;
+        const auto& faces = it_elem->pGetGeometry()->Faces();
+        const auto& neighbour_elems = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
+
+        for (unsigned int i_face = 0; i_face < faces.size(); i_face++) {
+        //if (neighbour_elems[ i_face ].Id() == this->Id() ){
+            const auto& r_face = faces[i_face];
+            unsigned int contact_node = 0;
+
+            const unsigned int num_face_nodes = 4 - 1;
+            for (unsigned int j=0; j < num_face_nodes; ++j){
+                if ( r_face[j].GetValue(IS_STRUCTURE) == 1.0 ){
+                    contact_node++;
+                }
+            }
+
+            if (contact_node == num_face_nodes){
+                for (unsigned int k=0; k < it_elem->GetGeometry().size(); ++k){
+                    KRATOS_INFO("Smoothing Process") << "nodes IS_STRUCTURE "
+                        << it_elem->GetGeometry()[k].GetValue(IS_STRUCTURE) << std::endl;
+                }
+                for (unsigned int j=0; j < num_face_nodes; ++j){
+                    KRATOS_INFO("Smoothing Process") << "face nodes Z "
+                        << r_face[j].Z() << std::endl;
+                }
+                KRATOS_INFO("Smoothing Process") << "i_face " << i_face << std::endl;
+                for (unsigned int ii = 0; ii < faces.size(); ii++){
+                    KRATOS_INFO("Smoothing Process") << it_elem->Id() << " " <<
+                        neighbour_elems[ ii ].Id() << std::endl;
+                }
+            }
+        }
+    } */
+
     // Generate an auxilary model part and populate it by elements of type MySimpleElement
     CreateAuxModelPart();
 
@@ -173,16 +209,18 @@ void SurfaceSmoothingProcess::Execute()
         //KRATOS_INFO("SurfaceSmoothingProcess, iId") << iId << std::endl;
         //KRATOS_INFO("SurfaceSmoothingProcess, size") << n_nodes.size() << std::endl;
         for (unsigned int j = 0; j < n_nodes.size(); ++j) {
-            const unsigned int jId = n_nodes[j].Id() - 1;
-            //KRATOS_INFO("SurfaceSmoothingProcess, jId") << jId << std::endl;
-            {
-                jPosition[0] = n_nodes[j].X();
-                jPosition[1] = n_nodes[j].Y();
-                jPosition[2] = n_nodes[j].Z();
+            if (n_nodes[j].GetValue(IS_STRUCTURE) == 0.0 || it_node->GetValue(IS_STRUCTURE) == 0.0){
+                const unsigned int jId = n_nodes[j].Id() - 1;
+                //KRATOS_INFO("SurfaceSmoothingProcess, jId") << jId << std::endl;
+                {
+                    jPosition[0] = n_nodes[j].X();
+                    jPosition[1] = n_nodes[j].Y();
+                    jPosition[2] = n_nodes[j].Z();
+                }
+                const double dist = norm_2(iPosition - jPosition);
+                NumNeighbors[iId] += 1.0/dist;
+                DistDiffAvg[iId] += DistDiff[jId]/dist;
             }
-            const double dist = norm_2(iPosition - jPosition);
-            NumNeighbors[iId] += 1.0/dist;
-            DistDiffAvg[iId] += DistDiff[jId]/dist;
         }
     }
 
