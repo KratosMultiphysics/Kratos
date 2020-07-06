@@ -436,7 +436,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
 
         // Remove the nodes from the mpi-interfaces in case there is any
         remove_from_mesh(this->GetCommunicator().LocalMesh());
-        for(auto & mesh: this->GetCommunicator().LocalMeshes()) {
+        for(auto& r_mesh: this->GetCommunicator().LocalMeshes()) {
             remove_from_mesh(mesh);
         }
 
