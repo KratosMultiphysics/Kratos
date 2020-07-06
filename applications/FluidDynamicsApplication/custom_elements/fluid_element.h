@@ -465,6 +465,11 @@ protected:
         const TElementData& rData,
         array_1d<double,LocalSize>& rValues) const;
 
+    void Calculate(
+        const Variable<Vector> &rVariable,
+        Vector &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
     ///@}
     ///@name Protected  Access
     ///@{
