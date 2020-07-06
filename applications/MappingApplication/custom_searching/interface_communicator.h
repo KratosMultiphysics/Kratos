@@ -91,6 +91,14 @@ public:
                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     ///@}
+    ///@name Inquiry
+    ///@{
+
+    int AreMeshesConforming() {
+        return mMeshesAreConforming;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -129,6 +137,7 @@ protected:
     double mSearchRadius = -1.0;
 
     int mEchoLevel = 0;
+    int mMeshesAreConforming = 0;
 
     ///@}
     ///@name Protected Operations

@@ -56,10 +56,15 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     // radius was either computed or specified properly)
     // only if some points did not find a neighbor or dont have a valid
     // projection, more search iterations are necessary
+    mMeshesAreConforming = 1;
     ConductSearchIteration(rOptions, rpInterfaceInfo);
 
     while (++num_iteration <= max_search_iterations && !AllNeighborsFound(rComm)) {
         mSearchRadius *= increase_factor;
+
+        // If all neighbours were not found in the first iteration, the meshes are not conforming
+        // for the initial given search radius.
+        mMeshesAreConforming = 0;
 
         KRATOS_WARNING_IF("Mapper", mEchoLevel >= 1 && rComm.MyPID() == 0)
             << "search radius was increased, another search iteration is conducted\n"
