@@ -403,31 +403,31 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
     // Lambda to remove nodes from a mesh
     auto remove_nodes_from_mesh = [&](ModelPart::MeshType& r_mesh) {
         //count the nodes to be erase
-        const unsigned int nnodes = mesh.Nodes().size();
+        const unsigned int nnodes = r_mesh.Nodes().size();
         unsigned int erase_count = 0;
         #pragma omp parallel for reduction(+:erase_count)
         for(int i=0; i<static_cast<int>(nnodes); ++i) {
-            ModelPart::NodesContainerType::iterator i_node = mesh.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator i_node = r_mesh.NodesBegin() + i;
 
             if( i_node->IsNot(IdentifierFlag) )
                 erase_count++;
         }
 
         ModelPart::NodesContainerType temp_nodes_container;
-        temp_nodes_container.reserve(mesh.Nodes().size() - erase_count);
+        temp_nodes_container.reserve(r_mesh.Nodes().size() - erase_count);
 
-        temp_nodes_container.swap(mesh.Nodes());
+        temp_nodes_container.swap(r_mesh.Nodes());
 
         for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++) {
             if( i_node->IsNot(IdentifierFlag) )
-                (mesh.Nodes()).push_back(std::move(*(i_node.base())));
+                (r_mesh.Nodes()).push_back(std::move(*(i_node.base())));
         }
     };
 
     // This method is optimized to free the memory
     // Loop over all the local meshes (Is this still necessary with Submodelparts?)
     for(auto& r_mesh: this->GetMeshes()) {
-        remove_from_mesh(mesh);
+        remove_from_mesh(r_mesh);
     }
 
     if (IsDistributed()) {
@@ -437,17 +437,17 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
         // Remove the nodes from the mpi-interfaces in case there is any
         remove_from_mesh(this->GetCommunicator().LocalMesh());
         for(auto& r_mesh: this->GetCommunicator().LocalMeshes()) {
-            remove_from_mesh(mesh);
+            remove_from_mesh(r_mesh);
         }
 
         remove_from_mesh(this->GetCommunicator().GhostMesh());
         for(auto& r_mesh: this->GetCommunicator().GhostMeshes()) {
-            remove_from_mesh(mesh);
+            remove_from_mesh(r_mesh);
         }
 
         remove_from_mesh(this->GetCommunicator().InterfaceMesh());
         for(auto& r_mesh: this->GetCommunicator().InterfaceMeshes()) {
-            remove_from_mesh(mesh);
+            remove_from_mesh(r_mesh);
         }
     }
 
