@@ -9,7 +9,7 @@ import os
 from random import seed
 from random import random
 
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
+#from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -32,12 +32,9 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
 
         model_part.SetBufferSize(2)
 
-        # seed random number generator
-        seed(1)
-
         for node in model_part.Nodes:
             # generate random numbers between 0-1
-            noise = (random()-0.5)*0.001
+            noise = (float(node.Id)/float(model_part.NumberOfNodes())-0.5)*0.001
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,
                 (noise+math.sqrt((node.X+0.001)**2+(node.Y-0.001)**2) - 0.006) )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
@@ -48,7 +45,7 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
 
         dimensions = model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         avg_num_elements = 3
-        find_neighbouring_elements_process = KratosMultiphysics.FindElementalNeighboursProcess(
+        KratosMultiphysics.FindElementalNeighboursProcess(
             model_part, dimensions, avg_num_elements).Execute()
 
         # Set IS_STRUCTURE to define contact with solid
@@ -99,11 +96,11 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
             smoothing_process.Execute()
 
         node = (model_part.Nodes)[479]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.002168532596594355)
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.0022019165827880842)
         node = (model_part.Nodes)[527]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.0028393533771017988)
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.0026717696729319984)
         node = (model_part.Nodes)[673]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.006637890725420411)
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.006894369786150732)
 
         # gid_output = GiDOutputProcess(model_part,
         #                            "smoothing_test_2D",
@@ -145,12 +142,9 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
 
         model_part.SetBufferSize(2)
 
-        # seed random number generator
-        seed(1)
-
         for node in model_part.Nodes:
             # generate random numbers between 0-1
-            noise = (random()-0.5)*0.001
+            noise = (float(node.Id)/float(model_part.NumberOfNodes())-0.5)*0.001
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,
                 (noise+math.sqrt((node.X+0.001)**2+(node.Y-0.001)**2+(node.Z-0.001)**2) - 0.006) )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
@@ -161,7 +155,7 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
 
         dimensions = model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         avg_num_elements = 4
-        find_neighbouring_elements_process = KratosMultiphysics.FindElementalNeighboursProcess(
+        KratosMultiphysics.FindElementalNeighboursProcess(
             model_part, dimensions, avg_num_elements).Execute()
 
         # Set IS_STRUCTURE to define contact with solid
@@ -214,11 +208,11 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
             smoothing_process_with_parameters.Execute()
 
         node = (model_part.Nodes)[479]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -9.389407514939123e-05)
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.0001145228496671521)
         node = (model_part.Nodes)[527]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 8.75742241543344e-06)
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00024193397644959517)
         node = (model_part.Nodes)[673]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), -4.41856961654163e-05)
+        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.00045951993863547536)
 
         # gid_output = GiDOutputProcess(model_part,
         #                            "smoothing_test_3D",
