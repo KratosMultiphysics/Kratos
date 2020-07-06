@@ -47,13 +47,15 @@ proc InitGIDProject { dir } {
         GiDMenu::Create "Sphere Cluster Creation" PRE
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenConditions \"SphereTree\"" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate SPH file" ] 1 PRE [list GenerateSPHFileFromOBJFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate CLU file" ] 2 PRE [list GenerateClusterFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate cluster and visualize" ] 3 PRE [list OneClickGo] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Center the geometry" ] 1 PRE [list CenterGeometry] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate SPH file" ] 2 PRE [list GenerateSPHFileFromOBJFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate CLU file" ] 3 PRE [list GenerateClusterFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate cluster and visualize" ] 4 PRE [list OneClickGo] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 4 PRE [list ReadClusterFileintoGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over mesh" ] 4 PRE [list ReadClusterFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over mesh" ] 5 PRE [list ReadClusterFileintoMesh] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 6 PRE [list DeleteSpheresGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over mesh" ] 5 PRE [list DeleteSpheresMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over mesh" ] 6 PRE [list DeleteSpheresMesh] "" ""
+
 
         GiDMenu::UpdateMenus
     }
@@ -142,6 +144,8 @@ proc AfterReadGIDProject { filename } {
 
 proc GiD_Event_BeforeMeshGeneration {elementsize} {
 
+    # CenterGeometry
+
     # Align the normal
     AlignSurfNormals Outwards
     GiD_MeshData mesh_criteria to_be_meshed 2 surfaces [GiD_Geometry list surface]
@@ -152,6 +156,9 @@ proc AfterMeshGeneration {fail} {
 }
 
 proc OneClickGo {} {
+
+    # Already centered when meshing. Geometry must be centered for visualization purposes
+    # CenterGeometry
 
     # Generate OBJ and MSH files on Calculate
     GiD_Process Mescape Utilities Calculate MEscape
@@ -170,6 +177,10 @@ proc OneClickGo {} {
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
     source [file join $problemtypedir OBJFile.tcl]
+
+    # # Already centered when meshing. be sure to center the geometry before generating the OBJ or MSH
+    # CenterGeometry
+
     set OBJOutput [GenerateOBJFile $basename $dir $problemtypedir]
 
     set modelname [GiD_Info Project ModelName]
@@ -427,6 +438,49 @@ proc DEMClusters::call_makeTreeOctree { } {
     # -depth              Depth of the sphere-tree
     # -nopause            Don't pause when processing, i.e. batch mode
 }
+
+
+proc CenterGeometry { } {
+
+    # last component of the list
+    set last_volume [lrange [GiD_Geometry list volume 1:] end end]
+
+    set all [GiD_Tools geometry mass_properties $last_volume]
+    # Only GID 14.9d+
+
+    # set mass [lrange $all 0 0]
+    set a [join [lrange $all 1 1]]
+    W $a
+    set centerX [lindex $a 0]
+    set centerY [lindex $a 1]
+    set centerZ [lindex $a 2]
+
+    GiD_Process Mescape Utilities Move Volumes MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 $last_volume escape Mescape
+}
+
+
+
+proc CenterMesh { } {
+
+    set tetrahedra [GiD_Mesh list -element_type {tetrahedra} element]
+    set all [GiD_Tools mesh mass_properties $tetrahedra]
+    # Only GID 14.9d+
+
+    # set mass [lrange $all 0 0]
+
+    set a [join [lrange $all 1 1]]
+    W $a
+    set centerX [lindex $a 0]
+    set centerY [lindex $a 1]
+    set centerZ [lindex $a 2]
+
+
+    foreach id $tetrahedra { ;
+    GiD_Process Mescape Utilities Move Elements MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 $id escape Mescape
+    }
+
+}
+
 
 proc GenerateClusterFile { } {
 

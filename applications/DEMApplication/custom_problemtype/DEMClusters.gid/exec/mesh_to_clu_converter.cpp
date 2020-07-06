@@ -181,11 +181,11 @@ int main(int argc, char * argv[]){
     std::cout << "Centroid: " << Xcdgrav << " " << Ycdgrav << " " << Zcdgrav << "\n\n";
 
     // Movemos el objecto y lo dejamos colocado tal que su centroide coincida con el origen:
-    for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
-        tcoord[0][node_counter] += Xcdgrav;
-        tcoord[1][node_counter] += Ycdgrav;
-        tcoord[2][node_counter] += Zcdgrav;
-    }
+    // for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
+    //     tcoord[0][node_counter] += Xcdgrav;
+    //     tcoord[1][node_counter] += Ycdgrav;
+    //     tcoord[2][node_counter] += Zcdgrav;
+    // }
 
     // Movemos las esferas y las dejamos colocadas tal que su centroide coincida con el origen:
     // double XSphere=0.0;
@@ -278,29 +278,29 @@ int main(int argc, char * argv[]){
 
     // Rotamos el objeto y lo colocamos paralelo a sus ejes principales de inercia
 
-    for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
+    // for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
 
-        double temporal_array[3][1];
-        temporal_array[0][0] = Q[0][0] * tcoord[0][node_counter] + Q[1][0] * tcoord[1][node_counter] + Q[2][0] * tcoord[2][node_counter];
-        temporal_array[1][0] = Q[0][1] * tcoord[0][node_counter] + Q[1][1] * tcoord[1][node_counter] + Q[2][1] * tcoord[2][node_counter];
-        temporal_array[2][0] = Q[0][2] * tcoord[0][node_counter] + Q[1][2] * tcoord[1][node_counter] + Q[2][2] * tcoord[2][node_counter];
-        tcoord[0][node_counter] = temporal_array[0][0];
-        tcoord[1][node_counter] = temporal_array[1][0];
-        tcoord[2][node_counter] = temporal_array[2][0];
-    }
+    //     double temporal_array[3][1];
+    //     temporal_array[0][0] = Q[0][0] * tcoord[0][node_counter] + Q[1][0] * tcoord[1][node_counter] + Q[2][0] * tcoord[2][node_counter];
+    //     temporal_array[1][0] = Q[0][1] * tcoord[0][node_counter] + Q[1][1] * tcoord[1][node_counter] + Q[2][1] * tcoord[2][node_counter];
+    //     temporal_array[2][0] = Q[0][2] * tcoord[0][node_counter] + Q[1][2] * tcoord[1][node_counter] + Q[2][2] * tcoord[2][node_counter];
+    //     tcoord[0][node_counter] = temporal_array[0][0];
+    //     tcoord[1][node_counter] = temporal_array[1][0];
+    //     tcoord[2][node_counter] = temporal_array[2][0];
+    // }
 
     // Rotamos las esferas y las colocamos paralelas a sus ejes principales de inercia
 
-    for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
+    // for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
 
-        double temporal_array_sph[3][1];
-        temporal_array_sph[0][0] = Q[0][0] * xcoords[spheres_counter] + Q[1][0] * ycoords[spheres_counter] + Q[2][0] * zcoords[spheres_counter];
-        temporal_array_sph[1][0] = Q[0][1] * xcoords[spheres_counter] + Q[1][1] * ycoords[spheres_counter] + Q[2][1] * zcoords[spheres_counter];
-        temporal_array_sph[2][0] = Q[0][2] * xcoords[spheres_counter] + Q[1][2] * ycoords[spheres_counter] + Q[2][2] * zcoords[spheres_counter];
-        xcoords[spheres_counter] = temporal_array_sph[0][0];
-        ycoords[spheres_counter] = temporal_array_sph[1][0];
-        zcoords[spheres_counter] = temporal_array_sph[2][0];
-    }
+    //     double temporal_array_sph[3][1];
+    //     temporal_array_sph[0][0] = Q[0][0] * xcoords[spheres_counter] + Q[1][0] * ycoords[spheres_counter] + Q[2][0] * zcoords[spheres_counter];
+    //     temporal_array_sph[1][0] = Q[0][1] * xcoords[spheres_counter] + Q[1][1] * ycoords[spheres_counter] + Q[2][1] * zcoords[spheres_counter];
+    //     temporal_array_sph[2][0] = Q[0][2] * xcoords[spheres_counter] + Q[1][2] * ycoords[spheres_counter] + Q[2][2] * zcoords[spheres_counter];
+    //     xcoords[spheres_counter] = temporal_array_sph[0][0];
+    //     ycoords[spheres_counter] = temporal_array_sph[1][0];
+    //     zcoords[spheres_counter] = temporal_array_sph[2][0];
+    // }
 
     double Distance, CenterX, CenterY, CenterZ, Radius = 0.0;
     int extreme_sphere_1, extreme_sphere_2;
@@ -339,8 +339,8 @@ int main(int argc, char * argv[]){
 
 
     // for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
-    //     xcoords[spheres_counter] += Xcdgrav-CenterX;
-    //     ycoords[spheres_counter] += Ycdgrav-CenterY;
+    //     xcoords[spheres_counter] += Xcdgrav;
+    //     ycoords[spheres_counter] += Ycdgrav;
     //     zcoords[spheres_counter] += Zcdgrav-CenterZ;
     // }
 
@@ -417,6 +417,7 @@ int main(int argc, char * argv[]){
 
 
 
+
     //std::ofstream outputfile("generic_cluster.clu", std::ios_base::out);
     std::ofstream outputfile(argv[4], std::ios_base::out);
 
@@ -426,6 +427,8 @@ int main(int argc, char * argv[]){
     }
     outputfile << "End centers_and_radii\n\n";
     outputfile << "Particle_center_and_diameter\n" << CenterX << " " << CenterY << " " << CenterZ << " " << diameter << "\n\n";
+    //outputfile << "TetraMesh_cdg\n" << Xcdgrav << " " << Ycdgrav << " " << Zcdgrav << " " << diameter << "\n\n";
+
     outputfile << "Size\n" << diameter << "\n\n" << "Volume\n" << total_volume << "\n\n";
     outputfile << "Inertia unit mass\n" << D[0][0] << '\n' << D[1][1] << '\n' << D[2][2] << '\n';
 
